@@ -15,12 +15,15 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
-
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
 import com.datadoghq.system_tests.iast.utils.CryptoExamples
+import datadog.appsec.api.login.EventTrackerV2
+import datadog.appsec.api.user.User.setUser
+
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
@@ -46,7 +49,7 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val response = Json.obj(
       "status" -> "ok",
       "library" -> Json.obj(
-        "language" -> "java",
+        "name" -> "java",
         "version" -> version
       )
     )
@@ -86,11 +89,26 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   }
 
   def tagValuePost(value: String, code: Int) = Action { request =>
-    request.body.asFormUrlEncoded // needs to be read, though we do nothing with it
+    // needs to be read, though we do nothing with it
+    request.body match {
+      case AnyContentAsFormUrlEncoded(data) =>
+      case AnyContentAsJson(data) =>
+      case anything =>
+    }
 
     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
 
     Results.Status(code)("Value tagged")
+      .as("text/plain; charset=utf-8")
+  }
+
+  def apiSecuritySamplingWithStatus(code: Int) = Action { request =>
+    Results.Status(code)("Hello!\n")
+      .as("text/plain; charset=utf-8")
+  }
+
+  def apiSecuritySampling(code: Int) = Action { request =>
+    Results.Status(200)("OK!\n")
       .as("text/plain; charset=utf-8")
   }
 
@@ -169,6 +187,20 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Ok(s"Hello $user")
   }
 
+  def identify = Action {
+    setUser(
+      "usr.id",
+      Map.apply(
+        "email" -> "usr.email",
+        "name" -> "usr.name",
+        "session_id" -> "usr.session_id",
+        "role" -> "usr.role",
+        "scope" -> "usr.scope"
+      ).asJava
+    )
+    Results.Ok("OK")
+  }
+
   def loginSuccess(event_user_id: Option[String]) = Action {
     eventTracker.trackLoginSuccessEvent(event_user_id.getOrElse("system_tests_user"), metadata)
     Results.Ok("ok")
@@ -183,6 +215,28 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def loginSuccessV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val userId = (data \ "user_id").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginSuccess(login, userId, javaMeta)
+    }
+    Results.Ok("OK")
+  }
+
+  def loginFailureV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val exists = (data \ "exists").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginFailure(login, exists.toBoolean, javaMeta)
+    }
+    Results.Ok("OK")
   }
 
   def requestdownstream =  Action.async {

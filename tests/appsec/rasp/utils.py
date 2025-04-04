@@ -2,27 +2,28 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from collections.abc import Sequence
 import json
 
 from utils import interfaces
+from utils._weblog import HttpResponse
 
 
-def validate_span_tags(request, expected_meta=(), expected_metrics=()):
+def validate_span_tags(
+    request: HttpResponse, expected_meta: Sequence[str] = (), expected_metrics: Sequence[str] = ()
+) -> None:
     """Validate RASP span tags are added when an event is generated"""
-    spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-    assert spans, "No spans to validate"
+    span = interfaces.library.get_root_span(request)
+    meta = span["meta"]
+    for m in expected_meta:
+        assert m in meta, f"missing span meta tag `{m}` in {meta}"
 
-    for span in spans:
-        meta = span["meta"]
-        for m in expected_meta:
-            assert m in meta, f"missing span meta tag `{m}` in {meta}"
-
-        metrics = span["metrics"]
-        for m in expected_metrics:
-            assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
+    metrics = span["metrics"]
+    for m in expected_metrics:
+        assert m in metrics, f"missing span metric tag `{m}` in {metrics}"
 
 
-def validate_stack_traces(request):
+def validate_stack_traces(request: HttpResponse) -> None:
     events = list(interfaces.library.get_appsec_events(request=request))
     assert len(events) != 0, "No appsec event has been reported"
 
@@ -68,11 +69,11 @@ def validate_stack_traces(request):
 
 
 def find_series(
-    namespace,
-    metric,
+    namespace: str,
+    metric: str,
     *,
     is_metrics: bool,
-):
+) -> list:
     request_type = "generate-metrics" if is_metrics else "distributions"
     series = []
     for data in interfaces.library.get_telemetry_data():
@@ -89,7 +90,7 @@ def find_series(
     return series
 
 
-def validate_metric(name, metric_type, metric):
+def validate_metric(name: str, metric_type: str, metric: dict) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -98,7 +99,27 @@ def validate_metric(name, metric_type, metric):
     )
 
 
-def validate_metric_variant(name, metric_type, variant, metric):
+def validate_metric_v2(name: str, metric_type: str, metric: dict, *, block_action: str | None = None) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not block_action or block_action in metric.get("tags", ()))
+    )
+
+
+def validate_distribution(name: str, metric_type: str, metric: dict, *, check_type: bool = False) -> bool:
+    return (
+        metric.get("metric") == name
+        and (not check_type or f"rule_type:{metric_type}" in metric.get("tags", ()))
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+    )
+
+
+def validate_metric_variant(name: str, metric_type: str, variant: str, metric: dict) -> bool:
     return (
         metric.get("metric") == name
         and metric.get("type") == "count"
@@ -108,7 +129,21 @@ def validate_metric_variant(name, metric_type, variant, metric):
     )
 
 
-def validate_metric_tag_version(tag_prefix, min_version, metric):
+def validate_metric_variant_v2(
+    name: str, metric_type: str, variant: str, metric: dict, *, block_action: str | None = None
+) -> bool:
+    return (
+        metric.get("metric") == name
+        and metric.get("type") == "count"
+        and f"rule_type:{metric_type}" in metric.get("tags", ())
+        and f"rule_variant:{variant}" in metric.get("tags", ())
+        and any(s.startswith("waf_version:") for s in metric.get("tags", ()))
+        and any(s.startswith("event_rules_version:") for s in metric.get("tags", ()))
+        and (not block_action or block_action in metric.get("tags", ()))
+    )
+
+
+def validate_metric_tag_version(tag_prefix: str, min_version: list[int], metric: dict) -> bool:
     for tag in metric["tags"]:
         if tag.startswith(tag_prefix + ":"):
             version_str = tag.split(":")[1]
@@ -118,12 +153,12 @@ def validate_metric_tag_version(tag_prefix, min_version, metric):
     return False
 
 
-def _load_file(file_path):
+def _load_file(file_path: str):
     with open(file_path, "r") as f:
         return json.load(f)
 
 
-class RC_CONSTANTS:
+class RemoteConfigConstants:
     CONFIG_ENABLED = (
         "datadog/2/ASM_FEATURES/asm_features_activation/config",
         {"asm": {"enabled": True}},
@@ -157,12 +192,12 @@ class RC_CONSTANTS:
     )
 
 
-class Base_Rules_Version:
+class BaseRulesVersion:
     """Test libddwaf version"""
 
     min_version = "1.13.3"
 
-    def test_min_version(self):
+    def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))
@@ -171,12 +206,12 @@ class Base_Rules_Version:
         assert any(validate_metric_tag_version("event_rules_version", min_version_array, s) for s in series)
 
 
-class Base_WAF_Version:
+class BaseWAFVersion:
     """Test libddwaf version"""
 
     min_version = "1.20.1"
 
-    def test_min_version(self):
+    def test_min_version(self) -> None:
         """Checks data in waf.init metric to verify waf version"""
 
         min_version_array = list(map(int, self.min_version.split(".")))

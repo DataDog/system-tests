@@ -2,18 +2,25 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+
+from collections.abc import Callable, Iterable
 import re
 
 
 class HeadersPresenceValidator:
     """Verify that some headers are present"""
 
-    def __init__(self, request_headers=(), response_headers=(), check_condition=None):
+    def __init__(
+        self,
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
+        check_condition: Callable | None = None,
+    ):
         self.request_headers = set(request_headers)
         self.response_headers = set(response_headers)
         self.check_condition = check_condition
 
-    def __call__(self, data):
+    def __call__(self, data: dict):
         if self.check_condition and not self.check_condition(data):
             return
 
@@ -31,12 +38,17 @@ class HeadersPresenceValidator:
 class HeadersMatchValidator:
     """Verify that headers header mathes regexp"""
 
-    def __init__(self, request_headers=None, response_headers=None, check_condition=None):
+    def __init__(
+        self,
+        request_headers: dict | None = None,
+        response_headers: dict | None = None,
+        check_condition: Callable | None = None,
+    ):
         self.request_headers = dict(request_headers) if request_headers is not None else {}
         self.response_headers = dict(response_headers) if response_headers is not None else {}
         self.check_condition = check_condition
 
-    def __call__(self, data):
+    def __call__(self, data: dict):
         if self.check_condition and not self.check_condition(data):
             return
 

@@ -5,7 +5,14 @@
 from ._agent import AgentInterfaceValidator
 from ._backend import _BackendInterfaceValidator
 from ._library.core import LibraryInterfaceValidator
-from ._logs import _LibraryStdout, _LibraryDotnetManaged, _AgentStdout, _PostgresStdout
+from ._logs import (
+    _LibraryStdout,
+    _LibraryDotnetManaged,
+    _AgentStdout,
+    _PostgresStdout,
+    _LibraryStdout as LibraryStdoutInterface,
+    _StdoutLogsInterfaceValidator as StdoutLogsInterface,
+)
 from ._open_telemetry import OpenTelemetryInterfaceValidator
 from ._test_agent import _TestAgentInterfaceValidator
 
@@ -25,3 +32,22 @@ nodejs_buddy = LibraryInterfaceValidator("nodejs_buddy")
 java_buddy = LibraryInterfaceValidator("java_buddy")
 ruby_buddy = LibraryInterfaceValidator("ruby_buddy")
 golang_buddy = LibraryInterfaceValidator("golang_buddy")
+
+__all__ = [
+    "LibraryStdoutInterface",
+    "StdoutLogsInterface",
+    "agent",
+    "agent_stdout",
+    "backend",
+    "golang_buddy",
+    "java_buddy",
+    "library",
+    "library_dotnet_managed",
+    "library_stdout",
+    "nodejs_buddy",
+    "open_telemetry",
+    "postgres",
+    "python_buddy",
+    "ruby_buddy",
+    "test_agent",
+]

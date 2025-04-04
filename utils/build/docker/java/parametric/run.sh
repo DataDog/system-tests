@@ -33,10 +33,12 @@ DISABLE_INTEGRATIONS=(-Ddd.integration.servlet-request-body.enabled=false \
 OPTIMIZATION_OPTIONS=(-XX:TieredStopAtLevel=1)
 
 # Start client application
+# shellcheck disable=SC2086
 java -Xmx128M -javaagent:"${DD_JAVA_AGENT}" \
   $ENABLE_OTEL_TRACING_API \
   "${ENABLE_CRASH_TRACKING[@]}" \
   "${DISABLED_FEATURES[@]}" \
   "${DISABLE_INTEGRATIONS[@]}" \
   "${OPTIMIZATION_OPTIONS[@]}" \
+  ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} \
   -jar target/dd-trace-java-client-1.0.0.jar

@@ -1,8 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces
-from utils import weblog
-from utils.tools import logger, get_rid_from_request
+from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger
 
 
 @scenarios.docker_ssi
@@ -16,8 +14,8 @@ class TestDockerSSIFeatures:
 
     def _setup_all(self):
         if TestDockerSSIFeatures._r is None:
-            parsed_url = urlparse(context.scenario.weblog_url)
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {context.scenario.weblog_url}")
+            parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
             TestDockerSSIFeatures._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
@@ -35,12 +33,12 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library}")
-        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
 
         # If the language version is supported there are traces related with the request
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
 
         # There is telemetry data related with the runtime-id
@@ -52,16 +50,16 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
+        condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
     def test_install_weblog_running(self):
-        logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.scenario.library}")
-        assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
+        logger.info(f"Testing Docker SSI installation. The weblog should be running: {context.library}")
+        assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
 
     @features.ssi_guardrails
     @bug(
-        condition="centos-7" in context.weblog_variant and context.scenario.library == "java",
+        condition="centos-7" in context.weblog_variant and context.library == "java",
         reason="APMON-1490",
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
@@ -69,6 +67,7 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @bug(context.library == "python@2.19.1", reason="INPLAT-448")
+    @bug(context.library >= "python@3.0.0dev", reason="INPLAT-448")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -137,7 +136,7 @@ class TestDockerSSIFeatures:
         logger.info("Testing Docker SSI service name")
         # There are traces related with the request and the service name is payment-service
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "service" in traces_for_request, "No service name found in traces"
         assert (
             traces_for_request["service"] == "payment-service"

@@ -1,17 +1,14 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, context, scenarios, features, irrelevant
-from utils.tools import logger
+from utils import missing_feature, context, scenarios, features, irrelevant, logger
 
 parametrize = pytest.mark.parametrize
 
 
-def enable_b3() -> Any:
+def enable_b3() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "B3 single header",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "B3 single header",
@@ -19,14 +16,14 @@ def enable_b3() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_b3_single_key() -> Any:
+def enable_b3_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "B3 single header",
     }
     return parametrize("library_env", [env])
 
 
-def enable_migrated_b3() -> Any:
+def enable_migrated_b3() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
@@ -34,7 +31,7 @@ def enable_migrated_b3() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_migrated_b3_single_key() -> Any:
+def enable_migrated_b3_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "b3",
     }
@@ -87,11 +84,11 @@ class Test_Headers_B3:
             headers = test_library.dd_make_child_span_and_get_headers([])
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        b3Arr = headers["b3"].split("-")
+        b3_arr = headers["b3"].split("-")
         logger.info(f"b3 header is {headers['b3']}")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
@@ -114,10 +111,10 @@ class Test_Headers_B3:
             )
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
-        b3Arr = headers["b3"].split("-")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_arr = headers["b3"].split("-")
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id, base=16) == span.get("trace_id")
@@ -141,10 +138,10 @@ class Test_Headers_B3:
         assert span.get("trace_id") != 0
         assert span.get("span_id") != 0
 
-        b3Arr = headers["b3"].split("-")
-        b3_trace_id = b3Arr[0]
-        b3_span_id = b3Arr[1]
-        b3_sampling = b3Arr[2]
+        b3_arr = headers["b3"].split("-")
+        b3_trace_id = b3_arr[0]
+        b3_span_id = b3_arr[1]
+        b3_sampling = b3_arr[2]
 
         assert len(b3_trace_id) == 16 or len(b3_trace_id) == 32
         assert int(b3_trace_id[-16:], base=16) == span.get("trace_id")
