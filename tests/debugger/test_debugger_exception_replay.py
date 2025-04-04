@@ -438,6 +438,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
+    @flaky(context.library == "python", reason="DEBUG-3682")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
