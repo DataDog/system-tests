@@ -348,7 +348,9 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
-    @incomplete_test_app(reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer")
+    @incomplete_test_app(
+        reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer"
+    )
     def test_dogstatsd_default(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
