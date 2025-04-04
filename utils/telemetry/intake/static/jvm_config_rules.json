@@ -830,6 +830,7 @@
         "trace_spymemcached",
         "trace_sqs",
         "trace_sslsocket",
+        "trace_surefire",
         "trace_synapse3",
         "trace_testng",
         "trace_thymeleaf",
