@@ -2343,6 +2343,7 @@ class _Features:
         pytest.mark.features(feature_id=348)(test_object)
         return test_object
 
+    @staticmethod
     def iast_security_controls(test_object):
         """IAST: Security Controls
 

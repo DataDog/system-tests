@@ -1,8 +1,6 @@
 import json
 import pytest
 from urllib import request
-from utils import weblog, interfaces, scenarios, features, context
-from utils.tools import logger
 
 def extract_baggage_value(request_headers):
     """
