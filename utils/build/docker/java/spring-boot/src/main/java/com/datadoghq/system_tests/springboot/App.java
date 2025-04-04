@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.google.protobuf.DescriptorProtos;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
@@ -29,6 +30,8 @@ import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -88,6 +91,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
@@ -120,6 +124,7 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import proto_message.Message;
 
 import static com.mongodb.client.model.Filters.eq;
 import static datadog.appsec.api.user.User.setUser;
@@ -1249,6 +1254,34 @@ public class App {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
 
+    @GetMapping("/protobuf/serialize")
+    public ResponseEntity<String> protobufSerialize() {
+        // the content of the message does not really matter since it's the schema that is observed.
+        Message.AddressBook msg = Message.AddressBook.newBuilder()
+                .setCentral(Message.PhoneNumber.newBuilder()
+                        .setNumber("0123")
+                        .setType(Message.PhoneType.WORK))
+                .build();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            msg.writeTo(stream);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+
+        return ResponseEntity.ok(Base64.getEncoder().encodeToString(stream.toByteArray()));
+    }
+
+    @GetMapping("/protobuf/deserialize")
+    public ResponseEntity<String> protobufDeserialize(@RequestParam("msg") final String b64Message) {
+        try {
+            byte[] rawBytes = Base64.getDecoder().decode(b64Message);
+            Message.AddressBook.parseFrom(rawBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.toString());
+        }
+        return ResponseEntity.ok("ok");
+    }
 
     @Bean
     @ConditionalOnProperty(

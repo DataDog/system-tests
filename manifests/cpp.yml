@@ -74,3 +74,5 @@ tests/:
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py: missing_feature
+  test_protobuf.py:
+    Test_Protobuf: missing_feature
