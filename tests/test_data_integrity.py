@@ -230,7 +230,6 @@ class Test_Agent:
             header_value_pattern="application/json",
         )
 
-    @flaky(condition=True, reason="APMSP-1811")
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""
 
@@ -245,7 +244,7 @@ class Test_Agent:
         for data, span in interfaces.library.get_root_spans():
             metrics = span["metrics"]
             sampling_priority = metrics.get("_sampling_priority_v1")
-            if sampling_priority in (None, SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
+            if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
                 trace_ids_reported_by_tracer.add(span["trace_id"])
                 if span["trace_id"] not in trace_ids_reported_by_agent:
                     logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")
