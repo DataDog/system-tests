@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
-	"weblog/gqlgen/graph/model"
+	"systemtests.weblog/gqlgen/graph/model"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"

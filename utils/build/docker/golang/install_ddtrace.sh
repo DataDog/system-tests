@@ -2,29 +2,45 @@
 
 set -euv
 
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
+MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
+
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
-    go mod edit -replace gopkg.in/DataDog/dd-trace-go.v1=/binaries/dd-trace-go
-
+    go mod edit -replace "$MAIN_MODULE=/binaries/dd-trace-go"
+    for contrib in $CONTRIBS; do
+        path="${contrib#github.com/DataDog/dd-trace-go/}"
+        path="${path%/v2}"
+        echo "Install contrib $contrib from folder /binaries/dd-trace-go/$path"
+        go mod edit -replace "github.com/DataDog/dd-trace-go/$path/v2=/binaries/dd-trace-go/$path"
+    done
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
-    echo "Install from go get -d $(cat /binaries/golang-load-from-go-get)"
-    go get -v -d "$(cat /binaries/golang-load-from-go-get)"
-    # Pin that version with a `replace` directive so nothing else can override it.
-    go mod edit -replace "gopkg.in/DataDog/dd-trace-go.v1=$(cat /binaries/golang-load-from-go-get)"
-
+    echo "Install from go get"
+    while read -r line; do
+        go get -v "$line"
+        path="${line#github.com/DataDog/dd-trace-go/}"
+        version="${line##*@}"
+        path="${path%/v2@*}"
+    done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
-    go get -v gopkg.in/DataDog/dd-trace-go.v1@latest
+    TARGET="latest"
+    echo "Install from go get -v $MAIN_MODULE@$TARGET"
+    go get -v "$MAIN_MODULE@$TARGET"
+    for contrib in $CONTRIBS; do
+        echo "Install contrib $contrib from go get -v $contrib@$TARGET"
+        go get -v "$contrib@$TARGET"
+    done
 fi
 
 # Downloading a newer version of the tracer may require to resolve again all dependencies
 go mod tidy
 
 # Read the library version out of the version.go file
-lib_mod_dir=$(go list -f '{{.Dir}}' -m gopkg.in/DataDog/dd-trace-go.v1)
+lib_mod_dir=$(go list -f '{{.Dir}}' -m github.com/DataDog/dd-trace-go/v2)
 version=$(sed -nrE 's#.*"v(.*)".*#\1#p' "${lib_mod_dir}/internal/version/version.go") # Parse the version string content "v.*"
 echo "${version}" > SYSTEM_TESTS_LIBRARY_VERSION
 
 # Output the version of dd-trace-go (per go.mod, as well as the built-in tag).
-echo "dd-trace-go go.mod version: $(go list -f '{{ .Version }}' -m gopkg.in/DataDog/dd-trace-go.v1)"
+echo "dd-trace-go go.mod version: $(go list -f '{{ .Version }}' -m github.com/DataDog/dd-trace-go/v2)"
 echo "dd-trace-go tag:            ${version}"
