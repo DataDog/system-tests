@@ -1,12 +1,44 @@
 import base64
+import dictdiffer
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, features
-from utils.tools import logger, get_rid_from_request
+from utils import context, weblog, interfaces, scenarios, irrelevant, features, logger
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
-from utils.otel_validators.validator_metric import validate_metrics
+
+
+# Validates the JSON logs from backend and returns the OTel log trace attributes
+def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str) -> None:
+    diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
+    assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+    validate_example_counter(metrics_1[0])
+    idx = 1
+    for histogram_suffix in ["", ".sum", ".count"]:
+        diff = list(dictdiffer.diff(metrics_1[idx], metrics_2[idx]))
+        assert (
+            len(diff) == 0
+        ), f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+        validate_example_histogram(metrics_1[idx], histogram_suffix)
+        idx += 1
+
+
+def validate_example_counter(counter_metric: dict) -> None:
+    assert len(counter_metric["series"]) == 1
+    counter_series = counter_metric["series"][0]
+    assert counter_series["metric"] == "example.counter"
+    assert counter_series["display_name"] == "example.counter"
+    assert len(counter_series["pointlist"]) == 1
+    assert counter_series["pointlist"][0][1] == 11.0
+
+
+def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
+    assert len(histogram_metric["series"]) == 1
+    histogram_series = histogram_metric["series"][0]
+    assert histogram_series["metric"] == "example.histogram" + histogram_suffix
+    assert histogram_series["display_name"] == "example.histogram" + histogram_suffix
+    assert len(histogram_series["pointlist"]) == 1
+    assert histogram_series["pointlist"][0][1] == 33.0 if histogram_suffix != ".count" else 1.0
 
 
 def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
@@ -93,7 +125,7 @@ class Test_OTelMetricE2E:
 
     def test_main(self):
         end = int(time.time())
-        rid = get_rid_from_request(self.r).lower()
+        rid = self.r.get_rid().lower()
         try:
             # The 1st account has metrics sent by DD Agent
             metrics_agent = [
@@ -151,7 +183,7 @@ class Test_OTelLogE2E:
         self.use_128_bits_trace_id = False
 
     def test_main(self):
-        rid = get_rid_from_request(self.r)
+        rid = self.r.get_rid()
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
         dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)

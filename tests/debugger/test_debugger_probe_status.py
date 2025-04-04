@@ -9,8 +9,8 @@ from utils import scenarios, features, bug, missing_feature, context
 
 @features.debugger
 @scenarios.debugger_probes_status
-class Test_Debugger_Probe_Statuses(debugger.Base_Debugger_Test):
-    expected_diagnostics = {}
+class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
+    expected_diagnostics: dict = {}
 
     ############ setup ############
     def _setup(self, probes_name: str):

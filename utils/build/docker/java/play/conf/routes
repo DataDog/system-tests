@@ -3,6 +3,9 @@ GET  /healthcheck              controllers.AppSecController.healthcheck
 GET  /headers                  controllers.AppSecController.headers
 GET  /tag_value/:tag_value/:status_code   controllers.AppSecController.tagValue(tag_value: String, status_code: Int)
 POST /tag_value/:tag_value/:status_code   controllers.AppSecController.tagValuePost(tag_value: String, status_code: Int)
+GET  /sample_rate_route/:i     controllers.MainController.sampleRateRoute(i: Int)
+GET  /api_security/sampling/:i controllers.AppSecController.apiSecuritySamplingWithStatus(i: Int)
+GET  /api_security_sampling/:i controllers.AppSecController.apiSecuritySampling(i: Int)
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
 GET  /waf                      controllers.AppSecController.waf
 GET  /waf/                      controllers.AppSecController.waf
@@ -11,9 +14,12 @@ POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
 GET  /users                    controllers.AppSecController.users(user: String)
+GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
 GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_user_id: Option[String], event_user_exists: Option[Boolean])
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
+POST  /user_login_success_event_v2   controllers.AppSecController.loginSuccessV2
+POST  /user_login_failure_event_v2   controllers.AppSecController.loginFailureV2
 GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                 controllers.RaspController.lfi

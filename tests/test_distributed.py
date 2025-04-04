@@ -3,9 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context
+from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.tools import logger
 
 
 @scenarios.trace_propagation_style_w3c
@@ -259,6 +258,7 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
+    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -281,6 +281,7 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
+    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)

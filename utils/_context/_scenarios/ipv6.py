@@ -1,11 +1,11 @@
-from utils.tools import logger
+from utils._logger import logger
 
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
 class IPV6Scenario(EndToEndScenario):
-    def __init__(self, name) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__(
             name,
             enable_ipv6=True,

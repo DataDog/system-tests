@@ -1,8 +1,7 @@
 import json
-from utils import scenarios, features, context
-from utils.tools import logger
+from utils import scenarios, features, context, logger
 
-from tests.k8s_lib_injection.utils import get_dev_agent_traces
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 
 
 @features.djm_ssi_k8s
@@ -18,7 +17,7 @@ class TestK8sLibInjectionSparkJdm:
         ]
 
     def test_spark_instrumented_with_ssi(self):
-        spark_traces = self._get_spark_application_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
+        spark_traces = self._get_spark_application_traces(get_cluster_info())
 
         logger.info(f"Spark application traces received: {spark_traces}")
         with open(f"{context.scenario.host_log_folder}/spark_traces.json", "w") as f:

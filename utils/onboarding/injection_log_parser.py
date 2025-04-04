@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from utils.tools import logger
+from utils._logger import logger
 
 
 def exclude_telemetry_logs_filter(line):

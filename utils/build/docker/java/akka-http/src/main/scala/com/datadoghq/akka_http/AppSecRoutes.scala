@@ -7,25 +7,38 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import scala.collection.JavaConverters._
 import datadog.appsec.api.blocking.Blocking
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
-import scala.concurrent.duration._
-import com.datadoghq.system_tests.iast.utils.Utils;
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import com.datadoghq.system_tests.iast.utils.Utils
+import com.datadoghq.system_tests.iast.utils.CryptoExamples
+
 import scala.concurrent.blocking
+import akka.http.javadsl.marshallers.jackson.Jackson
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
+import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
+import com.fasterxml.jackson.core.`type`.TypeReference
+import datadog.appsec.api.login.EventTrackerV2
 
 import java.util
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
+import datadog.appsec.api.user.User.setUser
+
+import scala.jdk.CollectionConverters._
 
 object AppSecRoutes {
 
   private val cryptoExamples = new CryptoExamples()
+
+  val objectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
+  implicit val jsonNodeUnmarshaller: FromEntityUnmarshaller[JsonNode] =
+    Jackson.unmarshaller(objectMapper, classOf[JsonNode])
+      .asScala
+      .forContentTypes(MediaTypes.`application/json`)
 
   val route: Route =
     path("") {
@@ -80,8 +93,36 @@ object AppSecRoutes {
                   entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
                 )
               )
+            } ~ (entity(as[JsonNode])) { _ =>
+              setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
+              complete(
+                HttpResponse(
+                  status = StatusCodes.custom(status_code.toInt, "some reason"),
+                  entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
+                )
+              )
             }
           }
+      } ~
+      path("api_security/sampling" / """\d{3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.custom(i.toInt, "some reason"),
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Hello!\n")
+            )
+          )
+        }
+      } ~
+      path("api_security_sampling" / """\d{2,3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.OK,
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "OK!\n")
+            )
+          )
+        }
       } ~
       path("params" / Segments) { segments: Seq[String] =>
         get {
@@ -146,6 +187,21 @@ object AppSecRoutes {
           }
         }
       } ~
+      path("identify") {
+        get {
+          setUser(
+            "usr.id",
+            Map.apply(
+              "email" -> "usr.email",
+              "name" -> "usr.name",
+              "session_id" -> "usr.session_id",
+              "role" -> "usr.role",
+              "scope" -> "usr.scope"
+            ).asJava
+          )
+          complete("OK")
+        }
+      } ~
       path("user_login_success_event") {
         get {
           parameter("event_user_id".?("system_tests_user")) { userId =>
@@ -168,6 +224,30 @@ object AppSecRoutes {
           parameter("event_name".?("system_tests_event")) { eventName =>
             eventTracker.trackCustomEvent(eventName, metadata)
             complete("ok")
+          }
+        }
+      } ~
+      path("user_login_success_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val userId = payload.get("user_id").asText()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginSuccess(login, userId, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
+          }
+        }
+      } ~
+      path("user_login_failure_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val exists = payload.get("exists").asBoolean()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginFailure(login, exists, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
           }
         }
       } ~

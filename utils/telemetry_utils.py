@@ -1,3 +1,6 @@
+from utils._context.component_version import ComponentVersion
+
+
 class TelemetryUtils:
     test_loaded_dependencies = {
         "dotnet": {"NodaTime": False},
@@ -8,11 +11,11 @@ class TelemetryUtils:
     }
 
     @staticmethod
-    def get_loaded_dependency(library) -> dict[str, bool]:
+    def get_loaded_dependency(library: str) -> dict[str, bool]:
         return TelemetryUtils.test_loaded_dependencies[library]
 
     @staticmethod
-    def get_dd_appsec_sca_enabled_str(library) -> str:
+    def get_dd_appsec_sca_enabled_str(library: ComponentVersion) -> str:
         result = "DD_APPSEC_SCA_ENABLED"
         if library == "java":
             result = "appsec_sca_enabled"

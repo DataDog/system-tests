@@ -10,9 +10,9 @@ on:
     - synchronize
     - labeled
     - unlabeled
-  push:
-    branches:
-    - main
+  # push:
+  #   branches:
+  #   - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -53,6 +53,9 @@ jobs:
     uses: ./.github/workflows/compute-impacted-libraries.yml
 
   get_dev_artifacts:
+    # WARNING : never include something secret inside this job, as
+    # the result of it will be stored in a public artifact
+    # For instance, do not use GH_TOKEN here
     needs:
     - impacted_libraries
     strategy:
@@ -78,18 +81,12 @@ jobs:
       - name: Get agent artifact
         run: ./utils/scripts/load-binary.sh agent
 
-      # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
-      # ### skipping this, waiting for a proper solution
-      # - name: Load WAF rules
-      #   if: matrix.version == 'dev'
-      #   run: ./utils/scripts/load-binary.sh waf_rule_set
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: binaries_dev_${{ matrix.library }}
           path: binaries/
+          include-hidden-files: ${{ matrix.library == 'python' }}
 
   fail-if-target-branch:
     name: Fail if target branch is specified
@@ -133,6 +130,7 @@ jobs:
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
+      desired_execution_time: 3600  # 60 minutes
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
@@ -154,6 +152,7 @@ jobs:
     secrets: inherit
 
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    name: All jobs are green
     runs-on: ubuntu-latest
     needs:
     - system_tests

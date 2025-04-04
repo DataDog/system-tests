@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2024 Datadog, Inc.
 
+
+from typing import Any
 from utils import context
 from utils import features
 from utils import interfaces
@@ -136,16 +138,15 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_runtime_activation
+@scenarios.appsec_and_rc_enabled
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_login.cookies,
@@ -156,22 +157,20 @@ class Test_Automated_User_Blocking:
         reason="no possible auto-instrumentation for python except on Django",
     )
     def test_user_blocking_auto(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, rule="block-users")
         assert self.r_home_blocked.status_code == 403
 
     def setup_user_blocking_sdk(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_login = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
 
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_DATA).apply()
 
         self.r_not_blocked = weblog.get(
             "/",
@@ -184,11 +183,10 @@ class Test_Automated_User_Blocking:
 
     @missing_feature(context.library == "java")
     def test_user_blocking_sdk(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
         assert self.r_login.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_not_blocked.status_code == 200
 
         interfaces.library.assert_waf_attack(self.r_blocked, rule="block-users")
@@ -218,7 +216,7 @@ BLOCK_SESSION = (
     },
 )
 
-BLOCK_SESSION_DATA = (
+BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
     "datadog/2/ASM_DATA/blocked_sessions/config",
     {
         "rules_data": [
@@ -249,10 +247,10 @@ class Test_Automated_Session_Blocking:
 
     @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
-        assert self.config_state_1[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_create_session.status_code == 200
 
-        assert self.config_state_2[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3[rc.RC_STATE] == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
         assert self.r_home_blocked.status_code == 403

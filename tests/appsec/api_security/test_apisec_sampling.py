@@ -6,9 +6,9 @@ from utils import (
     rfc,
     scenarios,
     weblog,
+    logger,
 )
 
-from utils.tools import logger
 import random
 import string
 import time
@@ -45,15 +45,15 @@ class Test_API_Security_Sampling_Rate:
     )
     def test_sampling_rate(self):
         """Can provide request header schema"""
-        N = self.N
+        n = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
         s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
         # check result is in at most 4 standard deviations from expected
         # (assuming 99.98% confidence interval)
         # standard deviation is N * 0.3 for 0.1 sampling rate
-        diff = abs(s / N - N * 0.1) / 0.3
+        diff = abs(s / n - n * 0.1) / 0.3
         logger.info(
-            f"API SECURITY SAMPLING RESULT: got {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}"
+            f"API SECURITY SAMPLING RESULT: got {s} requests with api sec schemas out of {n**2} requests, expecting {int(n**2 * 0.1)}"
         )
         logger.info(f"API SECURITY SAMPLING RESULT: diff is {diff:.2f} standard deviations")
         assert diff <= 4.0, "sampling rate is not 0.1"
