@@ -3,6 +3,7 @@ import argparse
 import subprocess
 import json
 from typing import Any
+import requests
 
 import boto3
 from botocore.exceptions import ClientError
@@ -107,8 +108,6 @@ def get_instance_launch_time(instance_id: str, region: str = "us-east-1") -> str
         return None
 
 
-
-
 def count_system_tests_amis() -> int:
     """Counts the number of AMIs with a system-tests tag.
 
@@ -140,6 +139,32 @@ def count_system_tests_amis() -> int:
         print("❌ AWS CLI command failed:")
         print(e.stderr)
         return -1
+
+
+def send_num_amis_event_datadog(num_amis: int) -> None:
+    """Send the number of AMIs to datadog"""
+    ddev_api_key = os.getenv("DDEV_API_KEY")
+    if not ddev_api_key:
+        print("Datadog API key not found to send event to ddev organization. Skipping event.")
+        return
+    print("Sending event to datadog ddev organization")
+    try:
+        host = "https://dddev.datadoghq.com/api/v1/events"
+        headers = {"DD-API-KEY": ddev_api_key}
+
+        default_tags = ["repository:system-tests", "source:pulumi", f"count_amis:{num_amis}"]
+
+        data_to_send = {
+            "title": "System tests AMI count",
+            "text": f"Number of AMIs with system-tests tag: {num_amis}",
+            "tags": default_tags,
+        }
+        print(f"Sending event payload: [{data_to_send}]")
+        r = requests.post(host, headers=headers, json=data_to_send, timeout=10)
+        print(f"Backend response status for sending event: [{r.status_code}]")
+
+    except Exception as e:
+        print(f"Error sending events to datadog ddevn organization {e} ")
 
 
 async def clean_up_amis() -> None:
@@ -329,6 +354,7 @@ if __name__ == "__main__":
     elif args.component == "amis_count":
         number_of_amis = count_system_tests_amis()
         print(f"Number of AMIs with system-tests tag: {number_of_amis}")
+        send_num_amis_event_datadog(number_of_amis)
     else:
         print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")
