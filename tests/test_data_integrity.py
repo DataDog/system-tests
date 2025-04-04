@@ -238,10 +238,27 @@ class Test_Agent:
         for _, span in interfaces.agent.get_spans():
             trace_ids_reported_by_agent.add(int(span["traceID"]))
 
+        def get_span_with_sampling_data(trace):
+            # The root span is not necessarily the span wherein the sampling priority can be found.
+            # If present, the root will take precedence, and otherwise the first span with the
+            # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
+            span_with_sampling_data = None
+            for span in trace:
+                if span["metrics"].get("_sampling_priority_v1", None) is not None:
+                    if span.get("parent_id") in (0, None):
+                        return span
+                    span_with_sampling_data = span
+
+            return span_with_sampling_data
+
         all_traces_are_reported = True
         trace_ids_reported_by_tracer = set()
         # check that all traces reported by the tracer are also reported by the agent
-        for data, span in interfaces.library.get_root_spans():
+        for data, trace in interfaces.library.get_traces():
+            span = get_span_with_sampling_data(trace)
+            if not span:
+                continue
+
             metrics = span["metrics"]
             sampling_priority = metrics.get("_sampling_priority_v1")
             if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
