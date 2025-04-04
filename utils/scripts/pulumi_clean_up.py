@@ -1,9 +1,9 @@
 import os
+import time
 import argparse
 import subprocess
 import json
 from typing import Any
-import requests
 
 import boto3
 from botocore.exceptions import ClientError
@@ -141,30 +141,53 @@ def count_system_tests_amis() -> int:
         return -1
 
 
-def send_num_amis_event_datadog(num_amis: int) -> None:
-    """Send the number of AMIs to datadog"""
+def send_amis_count_to_datadog(num_amis: int) -> None:
+    """Sends a custom Datadog gauge metric using curl via subprocess.
+
+    Args:
+        num_amis (int): The numeric value to send (e.g., number of AMIs).
+
+    """
+    metric_name = "custom.count_amis"
+    default_tags = ["repository:system-tests", "source:pulumi", "metric:ami_count"]
     ddev_api_key = os.getenv("DDEV_API_KEY")
     if not ddev_api_key:
         print("Datadog API key not found to send event to ddev organization. Skipping event.")
         return
-    print("Sending event to datadog ddev organization")
-    try:
-        host = "https://dddev.datadoghq.com/api/v1/events"
-        headers = {"DD-API-KEY": ddev_api_key}
+    payload = {
+        "series": [
+            {
+                "metric": metric_name,
+                "points": [[int(time.time()), num_amis]],
+                "type": "gauge",
+                "tags": default_tags,
+                "host": "custom_script",
+            }
+        ]
+    }
 
-        default_tags = ["repository:system-tests", "source:pulumi", f"count_amis:{num_amis}"]
+    curl_command = [
+        "curl",
+        "-X",
+        "POST",
+        "https://api.datadoghq.com/api/v1/series",
+        "-H",
+        "Content-Type: application/json",
+        "-H",
+        f"DD-API-KEY: {ddev_api_key}",
+        "-d",
+        json.dumps(payload),
+    ]
 
-        data_to_send = {
-            "title": "System tests AMI count",
-            "text": f"Number of AMIs with system-tests tag: {num_amis}",
-            "tags": default_tags,
-        }
-        print(f"Sending event payload: [{data_to_send}]")
-        r = requests.post(host, headers=headers, json=data_to_send, timeout=10)
-        print(f"Backend response status for sending event: [{r.status_code}]")
+    print(f"📤 Sending metric: {metric_name} = {num_amis} with tags {default_tags}")
+    result = subprocess.run(curl_command, capture_output=True, text=True, check=False)
 
-    except Exception as e:
-        print(f"Error sending events to datadog ddevn organization {e} ")
+    if result.returncode == 0:
+        print("✅ Metric sent successfully")
+    else:
+        print("❌ Failed to send metric")
+        print("stderr:", result.stderr)
+        print("stdout:", result.stdout)
 
 
 async def clean_up_amis() -> None:
@@ -354,7 +377,7 @@ if __name__ == "__main__":
     elif args.component == "amis_count":
         number_of_amis = count_system_tests_amis()
         print(f"Number of AMIs with system-tests tag: {number_of_amis}")
-        send_num_amis_event_datadog(number_of_amis)
+        send_amis_count_to_datadog(number_of_amis)
     else:
         print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")
