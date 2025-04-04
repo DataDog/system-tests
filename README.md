@@ -29,7 +29,6 @@ For Homebrew users :
 
 ```
 brew install python@3.12
-pip3.12 install virtualenv
 ```
 
 ## Getting started

@@ -572,7 +572,7 @@ class Test_APMOnboardingInstallID:
 
 
 def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
-    result = []
+    result: list = []
     for obj in objs:
         if obj is not None:
             if isinstance(obj, dict):
@@ -614,6 +614,10 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
+    @irrelevant(
+        library="dotnet",
+        reason="Re-enable when this automatically updates the dd-go files.",
+    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 

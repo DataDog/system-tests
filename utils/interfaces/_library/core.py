@@ -18,7 +18,7 @@ from utils.interfaces._library.telemetry import (
     _SeqIdLatencyValidation,
     _NoSkippedSeqId,
 )
-from utils._weblog import HttpResponse
+from utils._weblog import HttpResponse, GrpcResponse
 from utils.interfaces._misc_validators import HeadersPresenceValidator
 
 
@@ -49,12 +49,16 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.wait_for(wait_function, timeout)
 
     ############################################################
-    def get_traces(self, request: HttpResponse | None = None):
-        rid = request.get_rid() if request else None
+    def get_traces(self, request: HttpResponse | GrpcResponse | None = None):
+        rid: str | None = None
 
-        if rid:
+        if request:
+            rid = request.get_rid()
             logger.debug(f"Try to find traces related to request {rid}")
+            if isinstance(request, HttpResponse) and request.status_code is None:
+                logger.warning("HTTP app failed to respond, it will very probably fail")
 
+        trace_found = False
         for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
             if not traces:  # may be none
@@ -62,12 +66,18 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for trace in traces:
                 if rid is None:
+                    trace_found = True
                     yield data, trace
                 else:
                     for span in trace:
                         if rid == get_rid_from_span(span):
+                            logger.debug(f"Found a trace in {data['log_filename']}")
+                            trace_found = True
                             yield data, trace
                             break
+
+        if not trace_found:
+            logger.warning("No trace found")
 
     def get_spans(self, request: HttpResponse | None = None, *, full_trace: bool = False):
         """Iterate over all spans reported by the tracer to the agent.
@@ -79,15 +89,12 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         """
         rid = request.get_rid() if request else None
 
-        if rid:
-            logger.debug(f"Try to find spans related to request {rid}")
-
         for data, trace in self.get_traces(request=request):
             for span in trace:
                 if rid is None or full_trace:
                     yield data, trace, span
                 elif rid == get_rid_from_span(span):
-                    logger.debug(f"A span is found in {data['log_filename']}")
+                    logger.debug(f"Found a span in {data['log_filename']}")
                     yield data, trace, span
 
     def get_root_spans(self, request: HttpResponse | None = None):

@@ -20,5 +20,5 @@ else
         echo "install from NPM"
     fi
 
-    npm install $target
+    npm install $target || npm install $target
 fi
