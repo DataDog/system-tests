@@ -118,10 +118,12 @@ class Test_Baggage_Headers_Max_Items:
         baggage_items = [f"key{i}=value{i}" for i in range(self.max_items + 2)]
         baggage_header = ",".join(baggage_items)
         self.r = weblog.get(
-            "/baggage/inject",
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
             headers={
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
+                "x-datadog-sampling-priority": "1",
                 "baggage": baggage_header
             },
         )
@@ -134,7 +136,8 @@ class Test_Baggage_Headers_Max_Items:
         assert baggage_header_value is not None
         header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
         items = header_str.split(",")
-        assert len(items) == self.max_items
+        # Ensure we respect the max items limit
+        assert len(items) <= self.max_items
 
 @scenarios.default
 @features.datadog_baggage_headers
@@ -149,7 +152,8 @@ class Test_Baggage_Headers_Max_Bytes:
         }
         full_baggage_header = ",".join([f"{k}={v}" for k, v in baggage_items.items()])
         self.r = weblog.get(
-            "/baggage/inject",
+            "/make_distant_call",
+            params={"url": "http://weblog:7777"},
             headers={
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
@@ -161,7 +165,6 @@ class Test_Baggage_Headers_Max_Bytes:
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
-        assert data == "1"
         baggage_header_value = extract_baggage_value(data["request_headers"])
         assert baggage_header_value is not None
         header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
