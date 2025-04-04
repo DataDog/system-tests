@@ -4,7 +4,7 @@ set -eu
 
 if [ -e "/binaries/orchestrion" ]; then
     echo "Install from folder /binaries/orchestrion"
-    go mod edit $(go -C /binaries/orchestrion list -m -f '-replace={{.Path}}={{.Dir}}')
+    go mod edit "$(go -C /binaries/orchestrion list -m -f '-replace={{.Path}}={{.Dir}}')"
     go -C /binaries/orchestrion build -o "$(go env GOPATH)/bin/orchestrion" .
 elif [ -e "/binaries/orchestrion-load-from-go-get" ]; then
     echo "Install from go get -d $(cat /binaries/orchestrion-load-from-go-get)"
