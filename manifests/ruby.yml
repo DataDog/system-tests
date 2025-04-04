@@ -222,17 +222,17 @@ tests/:
           "*": missing_feature
           rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
       test_ssrf.py:
-        Test_Ssrf_BodyJson: v2.13.0.dev
-        Test_Ssrf_BodyUrlEncoded: v2.13.0.dev
+        Test_Ssrf_BodyJson: v2.14.0.dev
+        Test_Ssrf_BodyUrlEncoded: v2.14.0.dev
         Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
-        Test_Ssrf_Capability: v2.13.0.dev
-        Test_Ssrf_Mandatory_SpanTags: v2.13.0.dev
-        Test_Ssrf_Optional_SpanTags: v2.13.0.dev
+        Test_Ssrf_Capability: v2.14.0.dev
+        Test_Ssrf_Mandatory_SpanTags: v2.14.0.dev
+        Test_Ssrf_Optional_SpanTags: v2.14.0.dev
         Test_Ssrf_Rules_Version: missing_feature  # requires Telemetry V2
-        Test_Ssrf_StackTrace: v2.13.0.dev
-        Test_Ssrf_Telemetry: v2.13.0.dev
+        Test_Ssrf_StackTrace: v2.14.0.dev
+        Test_Ssrf_Telemetry: v2.14.0.dev
         Test_Ssrf_Telemetry_V2: missing_feature
-        Test_Ssrf_UrlQuery: v2.13.0.dev
+        Test_Ssrf_UrlQuery: v2.14.0.dev
         Test_Ssrf_Waf_Version: missing_feature  # requires Telemetry V2
     waf/:
       test_addresses.py:
@@ -291,7 +291,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_AppSecStandalone_NotEnabled: v2.13.0
+      Test_AppSecStandalone_NotEnabled: v2.14.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.12.3-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -579,7 +579,7 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
-      Test_Config_Tags: v2.13.0-dev
+      Test_Config_Tags: v2.14.0-dev
       Test_Config_TraceAgentURL: v2.5.0
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -680,19 +680,19 @@ tests/:
       rails70: v2.0.0
     Test_Config_IntegrationEnabled_True:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails70: v2.14.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails70: v2.14.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails70: v2.14.0-dev
     Test_Config_LogInjection_Default:
       '*': irrelevant (endpoint not implemented)
       rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
       '*': irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails70: v2.14.0-dev
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)
