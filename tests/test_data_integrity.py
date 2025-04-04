@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, flaky, logger
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
