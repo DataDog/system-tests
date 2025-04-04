@@ -12,6 +12,13 @@ from urllib.parse import urlparse
 from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger, flaky
 from utils.dd_constants import SamplingPriority
 
+"""Those are the constants used by the sampling algorithm in all the tracers
+
+See https://datadoghq.atlassian.net/wiki/spaces/APM/pages/2564915820/Trace+Ingestion+Mechanisms#From-sampling-rate-to-sampling-decision
+"""
+SAMPLING_MODULO = 2**64 - 1
+SAMPLING_KNUTH_FACTOR = 1111111111111111111
+
 
 def get_trace_request_path(root_span: dict) -> str | None:
     if root_span.get("type") != "web":
@@ -59,10 +66,8 @@ def trace_should_be_kept(sampling_rate, trace_id):
     Reference algorithm described in the priority sampling RFC
     https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/priority-sampling/rfc.md
     """
-    modulo = 2**64
-    knuth_factor = 1111111111111111111
 
-    return ((trace_id * knuth_factor) % modulo) <= (sampling_rate * modulo)
+    return ((trace_id * SAMPLING_KNUTH_FACTOR) % SAMPLING_MODULO) <= (sampling_rate * SAMPLING_MODULO)
 
 
 def _spans_with_parent(traces, parent_ids):
@@ -175,7 +180,9 @@ class Test_SamplingDecisionAdded:
     def setup_sampling_decision_added(self):
         seed(1)  # stay deterministic
 
-        self.traces = [{"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)]
+        self.traces = [
+            {"trace_id": randint(1, SAMPLING_MODULO), "parent_id": randint(1, SAMPLING_MODULO)} for _ in range(20)
+        ]
 
         for trace in self.traces:
             weblog.get(
@@ -219,7 +226,7 @@ class Test_SamplingDeterminism:
         seed(0)  # stay deterministic
 
         self.traces_determinism = [
-            {"trace_id": randint(1, 2**64 - 1), "parent_id": randint(1, 2**64 - 1)} for _ in range(20)
+            {"trace_id": randint(1, SAMPLING_MODULO), "parent_id": randint(1, SAMPLING_MODULO)} for _ in range(20)
         ]
 
         # Send requests with the same trace and parent id twice
