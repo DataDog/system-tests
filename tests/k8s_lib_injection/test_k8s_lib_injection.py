@@ -1,5 +1,5 @@
 from utils import scenarios, features, context, bug, logger
-from tests.k8s_lib_injection.utils import get_dev_agent_traces
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
@@ -15,7 +15,7 @@ class TestK8sLibInjection:
 
     @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
     def test_k8s_lib_injection(self):
-        traces_json = get_dev_agent_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
+        traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
 
 
@@ -26,7 +26,7 @@ class TestK8sLibInjection_operator:
 
     @bug(context.library > "python@2.21.0", reason="APMSP-1750")
     def test_k8s_lib_injection(self):
-        cluster_info = context.scenario.k8s_cluster_provider.get_cluster_info()
+        cluster_info = get_cluster_info()
         context_url = f"http://{cluster_info.cluster_host_name}:{cluster_info.get_weblog_port()}/"
         logger.info(f"Waiting for weblog available [{cluster_info.cluster_host_name}:{cluster_info.get_weblog_port()}]")
         assert wait_for_port(
