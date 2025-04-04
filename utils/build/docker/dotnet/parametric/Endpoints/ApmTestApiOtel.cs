@@ -177,7 +177,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger?.LogInformation("OtelIsRecording: {RequestBodyObject}", requestBodyObject);
 
-        var activity = FindActivity(requestBodyObject["id"]);
+        var activity = FindActivity(requestBodyObject["span_id"]);
 
         var result = JsonConvert.SerializeObject(new
         {
@@ -237,7 +237,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger?.LogInformation("OtelSetName: {RequestBodyObject}", requestBodyObject);
 
-        if (requestBodyObject.TryGetValue("id", out var id))
+        if (requestBodyObject.TryGetValue("span_id", out var id))
         {
             var activity = FindActivity(id);
             activity.DisplayName = requestBodyObject["name"].ToString() ?? string.Empty;
