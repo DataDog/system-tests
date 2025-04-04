@@ -1,11 +1,9 @@
 import json
-import pytest
-from urllib import request
 from utils import weblog, interfaces, features, scenarios
 
+
 def extract_baggage_value(request_headers):
-    """
-    Helper function that returns the baggage header value from the given headers.
+    """Helper function that returns the baggage header value from the given headers.
     Supports both a list of header objects and a dict.
     """
     if isinstance(request_headers, dict):
@@ -19,6 +17,7 @@ def extract_baggage_value(request_headers):
                 return header.get("value")
     return None
 
+
 @scenarios.default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Basic:
@@ -26,11 +25,7 @@ class Test_Baggage_Headers_Basic:
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
-            headers={
-                "x-datadog-parent-id": "10",
-                "x-datadog-trace-id": "2",
-                "baggage": "foo=bar"
-            },
+            headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": "foo=bar"},
         )
 
     def test_main(self):
@@ -40,6 +35,7 @@ class Test_Baggage_Headers_Basic:
         baggage_value = extract_baggage_value(data["request_headers"])
         assert baggage_value is not None
         assert "foo=bar" in baggage_value
+
 
 @scenarios.default
 @features.datadog_baggage_headers
@@ -51,7 +47,7 @@ class Test_Baggage_Headers_Malformed:
             headers={
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
-                "baggage": "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed"
+                "baggage": "no-equal-sign,foo=gets-dropped-because-previous-pair-is-malformed",
             },
         )
 
@@ -67,6 +63,7 @@ class Test_Baggage_Headers_Malformed:
         elif isinstance(headers, list):
             assert all(header.get("key") != "baggage" for header in headers)
 
+
 @scenarios.default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Malformed2:
@@ -74,11 +71,7 @@ class Test_Baggage_Headers_Malformed2:
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
-            headers={
-                "x-datadog-parent-id": "10",
-                "x-datadog-trace-id": "2",
-                "baggage": "=no-key"
-            },
+            headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": "=no-key"},
         )
 
     def test_main(self):
@@ -91,15 +84,12 @@ class Test_Baggage_Headers_Malformed2:
         elif isinstance(headers, list):
             assert all(header.get("key") != "baggage" for header in headers)
 
+
 @scenarios.only_baggage_propagation
 @features.datadog_baggage_headers
 class Test_Only_Baggage_Header:
     def setup_main(self):
-        self.r = weblog.get(
-            "/make_distant_call",
-            params={"url": "http://weblog:7777"},
-            headers={"baggage": "foo=bar"}
-        )
+        self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers={"baggage": "foo=bar"})
 
     def test_main(self):
         interfaces.library.assert_trace_exists(self.r)
@@ -108,6 +98,7 @@ class Test_Only_Baggage_Header:
         baggage_value = extract_baggage_value(data["request_headers"])
         assert baggage_value is not None
         assert "foo=bar" in baggage_value
+
 
 @scenarios.default
 @features.datadog_baggage_headers
@@ -123,7 +114,7 @@ class Test_Baggage_Headers_Max_Items:
                 "x-datadog-parent-id": "10",
                 "x-datadog-trace-id": "2",
                 "x-datadog-sampling-priority": "1",
-                "baggage": baggage_header
+                "baggage": baggage_header,
             },
         )
 
@@ -137,6 +128,7 @@ class Test_Baggage_Headers_Max_Items:
         items = header_str.split(",")
         # Ensure we respect the max items limit
         assert len(items) <= self.max_items
+
 
 @scenarios.default
 @features.datadog_baggage_headers
@@ -153,11 +145,7 @@ class Test_Baggage_Headers_Max_Bytes:
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
-            headers={
-                "x-datadog-parent-id": "10",
-                "x-datadog-trace-id": "2",
-                "baggage": full_baggage_header
-            },
+            headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": full_baggage_header},
         )
 
     def test_main(self):
