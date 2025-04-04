@@ -107,6 +107,41 @@ def get_instance_launch_time(instance_id: str, region: str = "us-east-1") -> str
         return None
 
 
+
+
+def count_system_tests_amis() -> int:
+    """Counts the number of AMIs with a system-tests tag.
+
+    Returns:
+        int: Number of matching AMIs.
+
+    """
+    try:
+        result = subprocess.run(
+            [
+                "aws",
+                "ec2",
+                "describe-images",
+                "--owners",
+                "self",
+                "--filters",
+                "Name=tag:CI,Values=system-tests",
+                "--query",
+                "Images | length(@)",
+                "--output",
+                "text",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return int(result.stdout.strip())
+    except subprocess.CalledProcessError as e:
+        print("❌ AWS CLI command failed:")
+        print(e.stderr)
+        return -1
+
+
 async def clean_up_amis() -> None:
     """Clean up obsolote amis based on parameters ami_retention_days and last launched date"""
     config = Config()
@@ -261,7 +296,7 @@ if __name__ == "__main__":
         "--component",
         type=str,
         help="AWS component to clean up",
-        choices=["amis", "amis_by_name", "ec2"],
+        choices=["amis", "amis_by_name", "amis_count", "ec2"],
     )
 
     parser.add_argument(
@@ -291,6 +326,9 @@ if __name__ == "__main__":
         clean_up_amis_by_name_stack_up(args.ami_name, args.ami_lang)
     elif args.component == "ec2":
         clean_up_ec2_stack_up(args.ec2_age_minutes)
+    elif args.component == "amis_count":
+        number_of_amis = count_system_tests_amis()
+        print(f"Number of AMIs with system-tests tag: {number_of_amis}")
     else:
         print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")
