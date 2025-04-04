@@ -544,35 +544,6 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
-	mux.HandleFunc("/baggage/inject", func(w http.ResponseWriter, r *http.Request) {
-		// Start a new root span.
-		span := tracer.StartSpan("main")
-		defer span.Finish()
-
-		// Create a text map carrier.
-		carrier := make(map[string]string)
-
-		// Inject the span context (which includes baggage) into the carrier.
-		if err := tracer.Inject(span.Context(), tracer.TextMapCarrier(carrier)); err != nil {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			w.Write([]byte("failed to inject span context"))
-			return
-		}
-
-		// Convert the carrier to JSON.
-		jsonData, err := json.Marshal(carrier)
-		if err != nil {
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			w.Write([]byte("failed to convert carrier to JSON"))
-			return
-		}
-
-		// Return the JSON response.
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(jsonData)
-	})
-
 	mux.HandleFunc("/otel_drop_in_default_propagator_extract", func(w http.ResponseWriter, r *http.Request) {
 		// Differing from other languages, the user must set the text map propagator because dd-trace-go
 		// doesn't automatically instrument at runtime (not including Orchestrion)
@@ -758,7 +729,6 @@ func (c HttpCarrier) Get(key string) string {
 }
 
 func (c HttpCarrier) Set(key, val string) {
-	log.Printf("Debug: HttpCarrier.Set called with key=%s, val=%s", key, val)
 	c.header.Set(key, val)
 }
 
