@@ -127,7 +127,7 @@ class Test_Baggage_Headers_Max_Items:
         header_str = baggage_header_value[0] if isinstance(baggage_header_value, list) else baggage_header_value
         items = header_str.split(",")
         # Ensure we respect the max items limit
-        assert len(items) <= self.max_items
+        assert len(items) == self.max_items
 
 
 @scenarios.default
