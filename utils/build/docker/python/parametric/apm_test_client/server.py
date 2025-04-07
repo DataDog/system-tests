@@ -29,6 +29,7 @@ from opentelemetry.baggage import get_baggage
 import ddtrace
 from ddtrace import config
 from ddtrace.settings.profiling import config as profiling_config
+from ddtrace.internal.agent import config as agent_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
@@ -65,6 +66,24 @@ Implement the API specified below to enable your library to run all of the share
 
 # Ensures the Datadog and OpenTelemetry tracers are interoperable
 opentelemetry.trace.set_tracer_provider(TracerProvider())
+
+
+try:
+    # ddtrace.internal.agent.config is only available in ddtrace>=3.3.0
+    from ddtrace.internal.agent import config as agent_config
+
+    def trace_agent_url():
+        return agent_config.trace_agent_url
+
+    def dogstatsd_url():
+        return agent_config.dogstatsd_url
+except ImportError:
+    # TODO: Remove this block once we stop running parametric tests for ddtrace<3.3.0
+    def trace_agent_url():
+        return ddtrace.tracer._agent_url
+
+    def dogstatsd_url():
+        return ddtrace.tracer._dogstatsd_url
 
 
 class StartSpanArgs(BaseModel):
@@ -130,9 +149,9 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": str(ddtrace.tracer._agent_url),
-            "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
-            "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
+            "dd_trace_agent_url": trace_agent_url(),
+            "dd_dogstatsd_host": urlparse(dogstatsd_url()).hostname,
+            "dd_dogstatsd_port": urlparse(dogstatsd_url()).port,
             "dd_logs_injection": str(config._logs_injection).lower(),
             "dd_profiling_enabled": str(profiling_config.enabled).lower(),
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
