@@ -35,6 +35,7 @@ markers =[
 python_files = "test_*.py *utils.py"
 
 [tool.mypy]
+python_version = "3.12"
 files = [
     "utils/",
     "tests/",
@@ -45,17 +46,7 @@ exclude = [
     "utils/grpc/weblog_pb2.py",  # auto generated
 
     # TODO
-    "utils/_context/core.py",
-    "tests/test_telemetry.py",
-    "tests/auto_inject/.*",
-    "tests/otel_tracing_e2e/test_e2e.py",
-    "tests/k8s_lib_injection/test_k8s_init_image_validator.py",
-    "tests/k8s_lib_injection/test_k8s_lib_injection_djm.py",
-    "tests/k8s_lib_injection/test_k8s_lib_injection.py",
     "utils/_context/_scenarios/auto_injection.py",
-    "utils/_context/_scenarios/k8s_lib_injection.py",
-    "utils/_context/virtual_machines.py",
-    "utils/docker_ssi/.*",
     "utils/k8s_lib_injection/.*",
     "utils/onboarding/.*",
     "utils/virtual_machine/.*",
@@ -78,7 +69,8 @@ ignore-names = ["Test*", ]  # TODO : lot of renamings to do...
 exclude = [
     "venv/", 
     "utils/grpc/weblog_pb2_grpc.py", 
-    "utils/grpc/weblog_pb2.py", "parametric/apps", 
+    "utils/grpc/weblog_pb2.py",
+    "parametric/apps", 
     "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py"
 ]
 quote-style = "double"
@@ -93,6 +85,7 @@ indent-style = "space"
 exclude = [ 
     "docs/*", # ignore docs. But may be a good idea to enable rules here
     "utils/grpc/{weblog_pb2_grpc.py,weblog_pb2.py}", # generated files
+    "lib-injection/build/docker/python/dd-lib-python-init-test-protobuf-old/addressbook_pb2.py", # generated file
 ]
 select = ["ALL"]
 
@@ -107,7 +100,6 @@ ignore = [
     "PLR0912",  # too-many-branches: TODO (17 occurences)
     "PLR0913",  # too-many-arguments: TODO (66 occurences)
     "PLR0915",  # too-many-statements: TODO (7 occurences)
-    "PLR2004",  # magic-value-comparison: TODO (674 occurences)
     "PTH118",   # os-path-join: TODO (59 occurences)
     "PTH123",   # builtin-open: TODO (117 occurences)
     "RUF012",   # mutable-class-default: TODO (111 occurences)
@@ -117,7 +109,6 @@ ignore = [
 
     ### Ignores that will be kept for the entire project
     "ANN204", # missing-return-type-special-method
-    "ANN206", # missing-return-type-class-method
     "COM812", # ruff format recommend ignoring this
     "D100",   # Missing docstring in public module
     "D101",   # Missing docstring in public class
@@ -166,7 +157,18 @@ ignore = [
 # 1. keep everything sorted alphabetically
 # 2. on each line, comment with the rule name, and a comment, either TODO, or a reason why the rule is ignored
 
-"lib-injection/*" = ["ALL"]  # TODO
+"lib-injection/*" = [
+    "ANN001",   # missing-type-function-argument
+    "ANN201",   # missing-return-type-undocumented-public-function
+    "ARG001",   # unused-function-argument
+    "INP001",   # implicit-namespace-package
+    "PTH119",   # os-path-basename
+    "PTH122",   # os-path-splitext
+    "RET503",   # implicit-return
+    "S105",     # hardcoded-password-string
+    "T201",     # print
+    "UP031",    # printf-string-formatting
+]  
 "tests/*test_*.py" = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
     "ANN001",    # missing-type-function-argument: TODO (TBD)
@@ -185,6 +187,7 @@ ignore = [
     "FIX003",    # line-contains-xxx: freedom of speech!
     "FIX004",    # line-contains-xxx: freedom of speech!
     "PLR1730",   # if-stmt-min-max: not clear that it makes the code easier to read
+    "PLR2004",   # magic-value-comparison: test code has lot of hardocded values
     "PT011",     # pytest-raises-too-broad: kind of painful to fix
     "RET506",    # superfluous-else-raise: requires a slightly higher cognitive effort to understand the code
     "RET507",    # superfluous-else-continue : requires a slightly higher cognitive effort to understand the code
@@ -208,9 +211,6 @@ ignore = [
     "RUF001",    # ambiguous-unicode-character-string: the mutator contains weird strings on purpose
 ]
 "tests/parametric/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN003",   # missing-type-kwargs: TODO
-    "ANN401",   # any-type: TODO
     "ARG002",   # unused-method-argument: TODO
 ]
 "tests/parametric/{test_headers_baggage.py,test_headers_datadog.py,test_library_tracestats.py}" = [
@@ -234,6 +234,7 @@ ignore = [
     "RET505",   # superfluous-else-return: TODO
     "SIM108",   # if-else-block-instead-of-if-exp: TODO
     "SIM210",   # if-expr-with-true-false: TODO
+    "PLR2004",  # magic-value-comparison: TODO
 ]
 "utils/_features.py" = [
     "ANN001", # missing-type-function-argument: obvious decorators
@@ -284,19 +285,19 @@ ignore = [
     "FBT002",  # boolean-default-value-positional-argument: TODO
     "N803",    # invalid-argument-name: TODO
     "N806",    # non-lowercase-variable-in-function: TODO
+    "PLR2004", # magic-value-comparison: TODO
     "PLR2044", # empty-comment: TODO
     "PTH102",  # os-mkdir: TODO
     "RET505",  # superfluous-else-return: TODO
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
-"utils/parametric/*" = [
-    "ANN001",   # missing-type-function-argument: TODO
-    "ANN003",   # missing-type-kwargs: TODO
-]
-"utils/scripts/ci_orchestrator/gitlab_exporter.py" = [ "ANN001" ]  # missing-type-function-argument: TODO
 "utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
-"utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
+    "PLR2004",  # magic-value-comparison: TODO
+]
+     
 "utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
@@ -309,6 +310,7 @@ ignore = [
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
     "ARG002",   # unused-method-argument: TODO
     "FBT002",   # boolean-default-value-positional-argument: TODO
+    "PLR2004",  # magic-value-comparison: TODO
     "TRY002",   # raise-vanilla-class: TODO
 ]
 "utils/virtual_machine/aws_provider.py" = [
@@ -329,6 +331,7 @@ ignore = [
     "F401",    # unused-import: TODO
     "F841",    # unused-variable: TODO
     "TRY002",  # raise-vanilla-class: TODO
+    "PLR2004", # magic-value-comparison: TODO
 ]
 "utils/virtual_machine/krunvm_provider.py" = [
     "ANN001",  # missing-type-function-argument: TODO
@@ -395,7 +398,7 @@ ignore = [
     "SIM401",  # if-else-block-instead-of-dict-get: TODO
 ]
 "utils/virtual_machine/vm_logger.py" = [
-    "ANN001",   # missing-type-function-argument: TODO
+    "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG001",  # unused-function-argument: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO

@@ -1,5 +1,4 @@
 import base64
-from typing import Any
 
 import numpy as np
 import msgpack
@@ -21,7 +20,7 @@ def _human_stats(stats: V06StatsAggr) -> str:
     return str(filtered_copy)
 
 
-def enable_tracestats(sample_rate: float | None = None) -> Any:
+def enable_tracestats(sample_rate: float | None = None) -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",  # reference, dotnet, python, golang
         "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java

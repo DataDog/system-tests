@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import re
 
 
@@ -12,8 +12,8 @@ class HeadersPresenceValidator:
 
     def __init__(
         self,
-        request_headers: tuple[str, ...] = (),
-        response_headers: tuple[str, ...] = (),
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
         self.request_headers = set(request_headers)

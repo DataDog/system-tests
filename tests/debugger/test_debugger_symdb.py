@@ -62,6 +62,5 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
         self._setup()
 
     @bug(context.library == "dotnet", reason="DEBUG-3298")
-    @bug(context.library >= "python@3.4.0+dev", reason="DEBUG-3659")
     def test_symdb_upload(self):
         self._assert()

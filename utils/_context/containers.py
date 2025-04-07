@@ -2,6 +2,7 @@ import os
 import re
 import stat
 import json
+from http import HTTPStatus
 from pathlib import Path
 from subprocess import run
 import time
@@ -122,6 +123,21 @@ class TestedContainer:
         self.user = user
         self.cap_add = cap_add
         self.security_opt = security_opt
+        self.ulimits: list | None = None
+        self.privileged = False
+
+    def enable_core_dumps(self) -> None:
+        """Modify container options to enable the possibility of core dumps"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+        if "SYS_ADMIN" not in self.cap_add:
+            self.cap_add.append("SYS_ADMIN")
+
+        self.privileged = True
+        self.ulimits = [docker.types.Ulimit(name="core", soft=-1, hard=-1)]
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         """Returns the image list that will be loaded to be able to run/build the container"""
@@ -201,8 +217,10 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
-            # the whole thing is reimplemented in python... TODO check if it's possible to use the builtin
+            # the whole thing is reimplemented in python...
             healthcheck={"test": ["NONE"]} if self.healthcheck is not None else None,
+            privileged=self.privileged,
+            ulimits=self.ulimits,
         )
 
         self.healthy = self.wait_for_health()
@@ -428,6 +446,7 @@ class SqlDbTestedContainer(TestedContainer):
         *,
         image_name: str,
         host_log_folder: str,
+        db_user: str,
         environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
         healthcheck: dict | None = None,
@@ -437,7 +456,6 @@ class SqlDbTestedContainer(TestedContainer):
         user: str | None = None,
         volumes: dict | None = None,
         cap_add: list[str] | None = None,
-        db_user: str | None = None,
         db_password: str | None = None,
         db_instance: str | None = None,
         db_host: str | None = None,
@@ -720,7 +738,7 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
-        base_environment = {
+        base_environment: dict[str, str | None] = {
             # Datadog setup
             "DD_SERVICE": "weblog",
             "DD_VERSION": "1.0.0",
@@ -857,6 +875,10 @@ class WeblogContainer(TestedContainer):
         else:
             header_tags = ""
 
+        if library == "ruby" and "rails" in self.weblog_variant:
+            # Ensure ruby on rails apps log to stdout
+            self.environment["RAILS_LOG_TO_STDOUT"] = "true"
+
         if len(self.additional_trace_header_tags) != 0:
             header_tags += f',{",".join(self.additional_trace_header_tags)}'
 
@@ -897,6 +919,9 @@ class WeblogContainer(TestedContainer):
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
+
+        if library == "php":
+            self.enable_core_dumps()
 
     def post_start(self):
         from utils import weblog
@@ -1163,7 +1188,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             try:
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
-                if r.status_code == 200:
+                if r.status_code == HTTPStatus.OK:
                     return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")

@@ -4,7 +4,7 @@
 
 """Validate data flow between agent and backend"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import copy
 import threading
 
@@ -97,9 +97,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def assert_headers_presence(
         self,
-        path_filter: list[str] | str | None,
-        request_headers: tuple[str, ...] = (),
-        response_headers: tuple[str, ...] = (),
+        path_filter: Iterable[str] | str | None,
+        request_headers: Iterable[str] = (),
+        response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)

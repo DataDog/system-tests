@@ -2,6 +2,7 @@ package com.datadoghq.springbootnative;
 
 import static datadog.appsec.api.user.User.setUser;
 
+import datadog.appsec.api.login.EventTrackerV2;
 import org.springframework.aot.hint.annotation.RegisterReflectionForBinding;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +29,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.util.Collections.emptyMap;
 
 @RestController
 public class WebController {
@@ -128,6 +131,26 @@ public class WebController {
     datadog.trace.api.GlobalTracer.getEventTracker()
             .trackCustomEvent(eventName, METADATA);
 
+    return "ok";
+  }
+
+  @SuppressWarnings("unchecked")
+  @PostMapping("/user_login_success_event_v2")
+  public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+    final String login = body.getOrDefault("login", "system_tests_login").toString();
+    final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+    final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+    return "ok";
+  }
+
+  @SuppressWarnings("unchecked")
+  @PostMapping("/user_login_failure_event_v2")
+  public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+    final String login = body.getOrDefault("login", "system_tests_login").toString();
+    final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+    final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+    EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
     return "ok";
   }
 

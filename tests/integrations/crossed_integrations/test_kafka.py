@@ -15,7 +15,7 @@ class _BaseKafka:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, topic):
+    def get_span(cls, interface, span_kind, topic) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -84,6 +84,8 @@ class _BaseKafka:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
@@ -125,6 +127,8 @@ class _BaseKafka:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):

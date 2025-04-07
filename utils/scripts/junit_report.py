@@ -7,6 +7,8 @@ from operator import attrgetter
 
 from utils._logger import logger
 
+_MINIMUM_NODE_ID_PART_COUNT = 3
+
 
 def junit_modifyreport(json_report, junit_report_path, junit_properties) -> None:
     """Add extra information to auto generated JUnit xml file"""
@@ -19,7 +21,7 @@ def junit_modifyreport(json_report, junit_report_path, junit_properties) -> None
         outcome = test["outcome"]
         nodeid = test["nodeid"]
         words = nodeid.split("::")
-        if len(words) < 3:
+        if len(words) < _MINIMUM_NODE_ID_PART_COUNT:
             logger.warning(f"test nodeid cannot be parse: {nodeid}")
             continue
         classname = words[0].replace("/", ".").replace(".py", ".") + words[1]

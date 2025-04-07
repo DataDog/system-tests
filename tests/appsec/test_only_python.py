@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, interfaces, irrelevant, scenarios
+from utils import context, features, interfaces, irrelevant, scenarios, flaky
 
 
 @scenarios.appsec_blocking
@@ -15,6 +15,7 @@ from utils import context, features, interfaces, irrelevant, scenarios
 class Test_ImportError:
     """Tests to verify that we don't have import errors due to tracer instrumentation."""
 
+    @flaky(context.library == "python@3.2.1" and "flask" in context.weblog_variant, reason="APMRP-360")
     def test_circular_import(self):
         """Test to verify that we don't have a circular import in the weblog."""
         assert context.library == "python"

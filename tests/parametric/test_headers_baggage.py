@@ -2,20 +2,19 @@ from utils._decorators import irrelevant
 from utils.parametric.spec.trace import find_only_span
 from utils import features, scenarios, context, missing_feature
 
-from typing import Any
 import pytest
 
 parametrize = pytest.mark.parametrize
 
 
-def disable_baggage() -> Any:
+def disable_baggage() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext",
     }
     return parametrize("library_env", [env])
 
 
-def only_baggage_enabled() -> Any:
+def only_baggage_enabled() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "baggage",
     }

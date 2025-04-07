@@ -364,7 +364,7 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
-        container_cmd="ddtrace-run python3.11 -m apm_test_client".split(" "),
+        container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
@@ -393,16 +393,13 @@ def node_library_factory() -> APMLibraryTestServer:
 FROM node:18.10-slim
 RUN apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
-COPY {nodejs_reldir}/../app.sh /usr/app/
-RUN printf 'node server.js' >> app.sh
-RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install
+RUN npm install || npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -517,9 +514,8 @@ COPY --from=build-version-tool /app/out /app
 COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
-CMD ["./ApmTestApi"]
 """,
-        container_cmd=[],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
@@ -581,7 +577,7 @@ ADD {php_reldir}/server.php .
         container_cmd=[
             "bash",
             "-c",
-            "php server.php || sleep 2s",
+            "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
         ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),

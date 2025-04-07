@@ -136,7 +136,9 @@ class VmProvider:
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation
         """
         # Store the provision script in a file (debug purposes)
-        provision_script_logger = vm_logger(context.scenario.name, f"{vm.name}_provision_script", show_timestamp=False)
+        provision_script_logger = vm_logger(
+            context.scenario.host_log_folder, f"{vm.name}_provision_script", show_timestamp=False
+        )
         provision_script_logger.info(f"echo '------------- Provision step: {installation.id} -------------'")
 
         local_command = None

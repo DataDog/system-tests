@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+from http import HTTPStatus
 import os
 import random
 import string
@@ -71,7 +72,7 @@ class HttpResponse:
     def __init__(self, data: dict):
         self._data = data
         self.request = HttpRequest(data["request"])
-        self.status_code = data["status_code"]
+        self.status_code: int | None = data["status_code"]
         self.headers: CaseInsensitiveDict = CaseInsensitiveDict(data.get("headers", {}))
         self.text = data["text"]
         self.cookies = data["cookies"]
@@ -232,7 +233,7 @@ class _Weblog:
             logger.error(f"Request {rid} raise an error: {e}")
         else:
             logger.debug(f"Request {rid}: {response.status_code}")
-            if response.status_code == 404:
+            if response.status_code == HTTPStatus.NOT_FOUND:
                 logger.error(
                     "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
                 )

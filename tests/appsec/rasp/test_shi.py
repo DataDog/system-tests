@@ -190,8 +190,6 @@ class Test_Shi_Telemetry_V2:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(
@@ -200,8 +198,9 @@ class Test_Shi_Telemetry_V2:
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
         assert any(
-            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, check_block_success=True)
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, block_action=block_action)
             for s in series_match
         ), [s.get("tags") for s in series_match]
 

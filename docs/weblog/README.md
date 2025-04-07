@@ -589,6 +589,26 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
+### POST /user_login_success_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login success with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `user_id`: String with user identifier
+- `metadata`: Objet with the metadata
+
+### POST /user_login_failure_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login failure with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `exists`: String with "true" or "false" value
+- `metadata`: Objet with the metadata
+
 ### GET '/inferred-proxy/span-creation'
 
 This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy

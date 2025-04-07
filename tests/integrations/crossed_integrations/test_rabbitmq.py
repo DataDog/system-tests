@@ -19,7 +19,7 @@ class _BaseRabbitMQ:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, exchange, operation):
+    def get_span(cls, interface, span_kind, queue, exchange, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -116,6 +116,8 @@ class _BaseRabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
@@ -182,6 +184,8 @@ class _BaseRabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):

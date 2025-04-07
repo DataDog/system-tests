@@ -4,7 +4,7 @@
 
 """Contains base class used to validate interfaces"""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 import json
 from os import listdir
 from os.path import join
@@ -125,7 +125,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
     def _append_data(self, data: dict):
         self._data_list.append(data)
 
-    def get_data(self, path_filters: list[str] | str | None = None):
+    def get_data(self, path_filters: Iterable[str] | str | None = None):
         if path_filters is not None:
             if isinstance(path_filters, str):
                 path_filters = [path_filters]
@@ -141,7 +141,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             yield data
 
     def validate(
-        self, validator: Callable, path_filters: list[str] | str | None = None, *, success_by_default: bool = False
+        self, validator: Callable, path_filters: Iterable[str] | str | None = None, *, success_by_default: bool = False
     ):
         for data in self.get_data(path_filters=path_filters):
             try:

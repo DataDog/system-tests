@@ -3,7 +3,6 @@ import os
 import random
 import socket
 import time
-
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
@@ -19,7 +18,6 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.docker_ssi.docker_ssi_definitions import SupportedImages
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -165,10 +163,32 @@ class DockerSSIScenario(Scenario):
         # TODO The best way is to push the images from pipeline instead of from test runtime
         self.ssi_image_builder.push_base_image()
 
+    def find_image_name(self, image: str, architecture: str) -> str | None:
+        """Search for the image name given its image URL and architecture.
+
+        Args:
+            json_path (str): Path to the JSON file.
+            image (str): The image URL (e.g., "public.ecr.aws/lts/ubuntu:22.04").
+            architecture (str): The architecture (e.g., "linux/amd64").
+
+        Returns:
+            Optional[str]: The matching name, or None if not found.
+
+        """
+        json_path = "utils/docker_ssi/docker_ssi_images.json"
+        with open(json_path, "r") as f:
+            data = json.load(f)
+
+        for entry in data.get("docker_ssi_images", []):
+            if entry["image"] == image and entry["architecture"] == architecture:
+                return entry["name"]
+
+        return None
+
     def fill_context(self, json_tested_components):
         """After extract the components from the weblog, fill the context with the data"""
 
-        image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
+        image_internal_name = self.find_image_name(self._base_image, self._arch)
         self.configuration["os"] = image_internal_name
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
@@ -449,33 +469,33 @@ class DockerSSIImageBuilder:
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """Print the docker build logs to docker_build.log file"""
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             f"    Building docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
 
         for chunk in build_logs:
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
-                    vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(line)
+                    vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(line)
 
     def print_docker_push_logs(self, image_tag, push_logs):
         """Print the docker push logs to docker_push.log file"""
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             f"    Push docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(push_logs)
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(push_logs)
 
 
 def _get_free_port():

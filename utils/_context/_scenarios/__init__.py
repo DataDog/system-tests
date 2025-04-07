@@ -593,6 +593,7 @@ class _Scenarios:
             "DD_TRACE_CLIENT_IP_ENABLED": "true",
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "ignore",
+            "DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED": "DD_LOGS_INJECTION",  # Test false default value in dd-trace-java
         },
         include_kafka=True,
         include_postgres_db=True,
@@ -925,6 +926,20 @@ class _Scenarios:
             }
         },
         doc="Enable APPSEC RASP",
+        github_workflow="endtoend",
+        scenario_groups=[ScenarioGroup.APPSEC],
+    )
+
+    appsec_ato_sdk = EndToEndScenario(
+        "APPSEC_ATO_SDK",
+        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
+        weblog_volumes={
+            "./tests/appsec/appsec_ato_sdk.json": {
+                "bind": "/appsec_ato_sdk.json",
+                "mode": "ro",
+            }
+        },
+        doc="Rules file with unsafe login and user id",
         github_workflow="endtoend",
         scenario_groups=[ScenarioGroup.APPSEC],
     )

@@ -33,6 +33,7 @@ class Test_NoExceptions:
         disallowed_patterns = [
             r".*ERROR.*",
             r".*WARN powerwaf_native.*",
+            r".*WARN ddwaf_native.*",
         ]
         allowed_patterns = [
             r".*"
@@ -49,6 +50,7 @@ class Test_NoExceptions:
             r".*java.lang.NullPointerException: null.*at com.datadoghq.system_tests.iast.utils.SqlExamples.fetchUsers.*",
             # APPSEC-56899:
             r".*WARN powerwaf_native - Failed to replace non-ephemeral target 'usr.id' with an ephemeral one.*",
+            r".*WARN ddwaf_native - Failed to replace non-ephemeral target 'usr.id' with an ephemeral one.*",
         ]
         if context.weblog_variant == "spring-boot-openliberty":
             # XXX: openliberty logs are more noisy for some unexpected errors,
