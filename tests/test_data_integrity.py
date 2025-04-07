@@ -244,10 +244,11 @@ class Test_Agent:
             # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
             span_with_sampling_data = None
             for span in trace:
-                if span["metrics"].get("_sampling_priority_v1", None) is not None:
+                if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:
                     if span.get("parent_id") in (0, None):
                         return span
-                    span_with_sampling_data = span
+                    elif span_with_sampling_data is None:
+                        span_with_sampling_data = span
 
             return span_with_sampling_data
 
