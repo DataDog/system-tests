@@ -23,29 +23,9 @@ cp -rf /tmp/php/common/php.ini /etc/php/
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 jq curl ca-certificates \
-		php-common php-json php-xml php-phar php-hash \
+		apache2 jq \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
-
-# Install Composer
-curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-
-# Copy PHP extensions to the correct location
-PHP_EXT_DIR=$(php -i | grep "extension_dir" | head -n 1 | cut -d " " -f 3)
-if [ -d "/usr/lib/php/modules" ]; then
-    cp /usr/lib/php/modules/*.so $PHP_EXT_DIR/
-elif [ -d "/usr/lib/php/*/modules" ]; then
-    cp /usr/lib/php/*/modules/*.so $PHP_EXT_DIR/
-fi
-
-# Set up Monolog using Composer
-cd /var/www/html
-composer require monolog/monolog:^3.5
-
-# Set proper permissions
-chmod -R 755 /var/www/html/vendor
-find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
 a2enmod rewrite
 
@@ -75,6 +55,17 @@ if ! { echo $VARIANT | grep -q zts; }; then a2dismod mpm_event; a2enmod mpm_pref
 a2enmod php
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
+
+# Install Composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set up Monolog using Composer
+cd /var/www/html
+composer install --prefer-dist
+
+# Set proper permissions
+chmod -R 755 /var/www/html/vendor
+find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
 /install_ddtrace.sh 1
 
