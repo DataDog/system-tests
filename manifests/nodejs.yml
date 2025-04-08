@@ -820,6 +820,10 @@ tests/:
           '*': irrelevant
           express4: v0.1  # real version not known
           express5: v0.1  # real version not known
+        Test_Kafka_Additional_Library:
+          '*': irrelevant
+          express4: v0.1  # TODO: wconti27 update this version
+          express5: v0.1  # TODO: wconti27 update this version
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
