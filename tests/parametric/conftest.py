@@ -73,15 +73,38 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def apm_test_server(request: pytest.FixtureRequest, library_env: dict[str, str], test_id: str) -> APMLibraryTestServer:
+def library_extra_command_arguments() -> list[str]:
+    return []
+
+
+@pytest.fixture
+def apm_test_server(
+    request: pytest.FixtureRequest,
+    library_env: dict[str, str],
+    library_extra_command_arguments: list[str],
+    test_id: str,
+) -> APMLibraryTestServer:
     """Request level definition of the library test server with the session Docker image built"""
     apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
     scenarios.parametric.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
+
+    command = apm_test_server_image.container_cmd
+
+    if len(library_extra_command_arguments) > 0:
+        if apm_test_server_image.lang not in ("nodejs", "java", "php"):
+            # TODO : all test server should call directly the target without using a sh script
+            command += library_extra_command_arguments
+        else:
+            # temporary workaround for the test server to be able to run the command
+            new_env["SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS"] = " ".join(library_extra_command_arguments)
+
     return dataclasses.replace(
-        apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
+        apm_test_server_image,
+        container_name=f"{apm_test_server_image.container_name}-{test_id}",
+        env=new_env,
     )
 
 

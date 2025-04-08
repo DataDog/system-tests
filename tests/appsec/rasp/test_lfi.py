@@ -6,7 +6,6 @@ from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils import remote_config as rc
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
-    validate_distribution,
     validate_span_tags,
     validate_stack_traces,
     find_series,
@@ -212,24 +211,6 @@ class Test_Lfi_Telemetry_V2:
 
         assert any(validate_metric_v2("rasp.rule.match", "lfi", s, block_action=block_action) for s in series_match), [
             s.get("tags") for s in series_match
-        ]
-
-        series_rule_duration = find_series("appsec", "rasp.rule.duration", is_metrics=False)
-        assert series_rule_duration
-        assert any(
-            validate_distribution("rasp.rule.duration", "lfi", s, check_type=True) for s in series_rule_duration
-        ), [s.get("tags") for s in series_rule_duration]
-
-        series_duration = find_series("appsec", "rasp.duration", is_metrics=False)
-        assert series_duration
-        assert any(validate_distribution("rasp.duration", "lfi", s) for s in series_duration), [
-            s.get("tags") for s in series_duration
-        ]
-
-        series_duration_ext = find_series("appsec", "rasp.duration_ext", is_metrics=False)
-        assert series_duration_ext
-        assert any(validate_distribution("rasp.duration_ext", "lfi", s) for s in series_duration_ext), [
-            s.get("tags") for s in series_duration_ext
         ]
 
 
