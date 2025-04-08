@@ -543,14 +543,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
             (
                 "orthogonal_priorities",
                 {"DD_PROFILING_ENABLED": True, "DD_RUNTIME_METRICS_ENABLED": True},
-                {"DD_LOGS_INJECTION": True},
+                {"DD_ENV": "abc"},
                 {"DD_PROFILING_ENABLED": False},
                 {
                     "dd_profiling_enabled": "false",
                     "dd_runtime_metrics_enabled": "true"
                     if context.library != "php"
                     else "false",  # PHP does not support runtime metrics
-                    "dd_logs_injection": "true",
+                    "dd_env": "abc",
                 },  # expected
             ),
         ],
