@@ -112,7 +112,7 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests-minikube:61396538
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests-minikube:61414448
   tags: [ "docker-in-docker:amd64" ]
   needs: []
   stage: K8S_LIB_INJECTION
