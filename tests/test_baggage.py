@@ -18,17 +18,17 @@ def extract_baggage_value(request_headers):
     return None
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Basic:
-    def setup_main(self):
+    def setup_basic(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
             headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": "foo=bar"},
         )
 
-    def test_main(self):
+    def test_basic(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
@@ -37,10 +37,10 @@ class Test_Baggage_Headers_Basic:
         assert "foo=bar" in baggage_value
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Malformed:
-    def setup_main(self):
+    def setup_malformed(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
@@ -51,7 +51,7 @@ class Test_Baggage_Headers_Malformed:
             },
         )
 
-    def test_main(self):
+    def test_malformed(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
@@ -64,17 +64,17 @@ class Test_Baggage_Headers_Malformed:
             assert all(header.get("key") != "baggage" for header in headers)
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Malformed2:
-    def setup_main(self):
+    def setup_malformed_2(self):
         self.r = weblog.get(
             "/make_distant_call",
             params={"url": "http://weblog:7777"},
             headers={"x-datadog-parent-id": "10", "x-datadog-trace-id": "2", "baggage": "=no-key"},
         )
 
-    def test_main(self):
+    def test_malformed_2(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
@@ -85,13 +85,13 @@ class Test_Baggage_Headers_Malformed2:
             assert all(header.get("key") != "baggage" for header in headers)
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Only_Baggage_Header:
-    def setup_main(self):
+    def setup_only_baggage(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers={"baggage": "foo=bar"})
 
-    def test_main(self):
+    def test_only_baggage(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
@@ -100,10 +100,10 @@ class Test_Only_Baggage_Header:
         assert "foo=bar" in baggage_value
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Max_Items:
-    def setup_main(self):
+    def setup_max_headers(self):
         self.max_items = 64
         baggage_items = [f"key{i}=value{i}" for i in range(self.max_items + 2)]
         baggage_header = ",".join(baggage_items)
@@ -118,7 +118,7 @@ class Test_Baggage_Headers_Max_Items:
             },
         )
 
-    def test_main(self):
+    def test_max_headers(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
@@ -130,10 +130,10 @@ class Test_Baggage_Headers_Max_Items:
         assert len(items) == self.max_items
 
 
-@scenarios.default
+@scenarios.trace_propagation_style_default
 @features.datadog_baggage_headers
 class Test_Baggage_Headers_Max_Bytes:
-    def setup_main(self):
+    def setup_max_bytes(self):
         self.max_bytes = 8192
         baggage_items = {
             "key1": "a" * (self.max_bytes // 2),
@@ -150,7 +150,7 @@ class Test_Baggage_Headers_Max_Bytes:
             },
         )
 
-    def test_main(self):
+    def test_max_bytes(self):
         interfaces.library.assert_trace_exists(self.r)
         assert self.r.status_code == 200
         data = json.loads(self.r.text)
