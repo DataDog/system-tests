@@ -269,6 +269,11 @@ class K8sDatadog:
         try:
             if "kind" in self.k8s_cluster_info.context_name:
                 execute_command(f"kind export logs {self.output_folder}/ --name {self.k8s_cluster_info.cluster_name}")
+            else:
+                # Assume we are running on minikube
+                execute_command(
+                    f"minikube logs --file {self.output_folder}/minikube.log --name {self.k8s_cluster_info.cluster_name}"
+                )
         except Exception as e:
             logger.error(f"Error exporting kind logs: {e}")
 
