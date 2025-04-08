@@ -1,7 +1,6 @@
 <?php
 require __DIR__ . '/vendor/autoload.php';
 
-use Monolog\Level;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
@@ -9,7 +8,7 @@ use Monolog\Handler\StreamHandler;
 $logger = new Logger('webapp');
 
 // Add handler to write to stderr (which is where error_log writes to by default)
-$logger->pushHandler(new StreamHandler('php://stderr', Level::Debug));
+$logger->pushHandler(new StreamHandler('php://stderr', Logger::DEBUG));
 
 // Log the message from GET parameter
 if (isset($_GET['msg'])) {
