@@ -130,7 +130,8 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
 
     def ensure_cluster(self):
         logger.info("Ensuring MiniKube cluster")
-        execute_command("minikube start --driver docker --ports 18080:18080 --ports 8126:8126")
+        # Added --force to avoid the error: "The docker driver should not be used with root privileges."
+        execute_command("minikube start --driver docker --ports 18080:18080 --ports 8126:8126 --force")
         execute_command("minikube status")
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
