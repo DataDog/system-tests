@@ -6,7 +6,7 @@ from kubernetes import client, config
 
 
 class K8sProviderFactory:
-    """Use the correct provider specified by Id"""
+    """Use the correct provider specified by Id."""
 
     def get_provider(self, provider_id):
         logger.info(f"Using {provider_id} provider")
