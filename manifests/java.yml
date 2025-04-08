@@ -2071,7 +2071,7 @@ tests/:
       '*': v1.23.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_ProductsDisabled:
-      '*': missing_feature
+      '*': v1.48.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Telemetry:
       '*': v0.108.1

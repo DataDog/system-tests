@@ -686,6 +686,8 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "python", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False
         app_started_found = False
@@ -724,6 +726,48 @@ class Test_ProductsDisabled:
 
         if not app_started_found:
             raise ValueError("app-started event not found in telemetry data")
+
+    @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "ruby", reason="feature not implemented")
+    @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @irrelevant(library="golang")
+    def test_debugger_products_disabled(self):
+        """Assert that the debugger products are disabled by default including DI, and ER"""
+        data_found = False
+        config_norm_rules = load_telemetry_json("config_norm_rules")
+        lang_configs = get_lang_configs()
+        lang_configs["java"] = lang_configs["jvm"]
+
+        di_config, er_config = None, None
+        for data in interfaces.library.get_telemetry_data():
+            if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
+                continue
+
+            data_found = True
+
+            configuration = data["request"]["content"]["payload"]["configuration"]
+            language = data["request"]["content"]["application"]["language_name"]
+            lang_config = lang_configs.get(language, {})
+
+            normalized_config = {}
+            for item in configuration:
+                name = item["name"].lower()
+                if name in lang_config:
+                    name = lang_config[name]
+                elif name in config_norm_rules:
+                    name = config_norm_rules[name]
+
+                normalized_config[name] = item.get("value", None)
+
+            if normalized_config.get("dynamic_instrumentation_enabled") is not None:
+                di_config = str(normalized_config["dynamic_instrumentation_enabled"]).lower()
+
+            if normalized_config.get("exception_replay_enabled") is not None:
+                er_config = str(normalized_config["exception_replay_enabled"]).lower()
+
+        assert data_found, "No app-started event found in telemetry data"
+        assert di_config == "false", "DI should be disabled by default"
+        assert er_config == "false", "Exception Replay should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
