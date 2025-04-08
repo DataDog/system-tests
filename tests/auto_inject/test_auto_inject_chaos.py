@@ -110,10 +110,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     @bug(
-        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
-        reason="APMON-1576",
-    )
-    @bug(
         context.vm_os_branch in ["redhat", "amazon_linux2"]
         and context.vm_os_cpu == "arm64"
         and context.weblog_variant == "test-app-ruby",

@@ -24,6 +24,7 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
+@flaky(context.library >= "python@3.5.0+dev", reason="DEBUG-3685")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}

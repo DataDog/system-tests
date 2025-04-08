@@ -1,4 +1,5 @@
 import os
+import time
 import argparse
 import subprocess
 import json
@@ -105,6 +106,88 @@ def get_instance_launch_time(instance_id: str, region: str = "us-east-1") -> str
     except ClientError as e:
         print(f"Error retrieving instance: {e}")
         return None
+
+
+def count_system_tests_amis() -> int:
+    """Counts the number of AMIs with a system-tests tag.
+
+    Returns:
+        int: Number of matching AMIs.
+
+    """
+    try:
+        result = subprocess.run(
+            [
+                "aws",
+                "ec2",
+                "describe-images",
+                "--owners",
+                "self",
+                "--filters",
+                "Name=tag:CI,Values=system-tests",
+                "--query",
+                "Images | length(@)",
+                "--output",
+                "text",
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        return int(result.stdout.strip())
+    except subprocess.CalledProcessError as e:
+        print("❌ AWS CLI command failed:")
+        print(e.stderr)
+        return -1
+
+
+def send_amis_count_to_datadog(num_amis: int) -> None:
+    """Sends a custom Datadog gauge metric using curl via subprocess.
+
+    Args:
+        num_amis (int): The numeric value to send (e.g., number of AMIs).
+
+    """
+    metric_name = "custom.count_amis"
+    default_tags = ["repository:system-tests", "source:pulumi", "metric:ami_count"]
+    ddev_api_key = os.getenv("DDEV_API_KEY")
+    if not ddev_api_key:
+        print("Datadog API key not found to send event to ddev organization. Skipping event.")
+        return
+    payload = {
+        "series": [
+            {
+                "metric": metric_name,
+                "points": [[int(time.time()), num_amis]],
+                "type": "gauge",
+                "tags": default_tags,
+                "host": "custom_script",
+            }
+        ]
+    }
+
+    curl_command = [
+        "curl",
+        "-X",
+        "POST",
+        "https://api.datadoghq.com/api/v1/series",
+        "-H",
+        "Content-Type: application/json",
+        "-H",
+        f"DD-API-KEY: {ddev_api_key}",
+        "-d",
+        json.dumps(payload),
+    ]
+
+    print(f"📤 Sending metric: {metric_name} = {num_amis} with tags {default_tags}")
+    result = subprocess.run(curl_command, capture_output=True, text=True, check=False)
+
+    if result.returncode == 0:
+        print("✅ Metric sent successfully")
+    else:
+        print("❌ Failed to send metric")
+        print("stderr:", result.stderr)
+        print("stdout:", result.stdout)
 
 
 async def clean_up_amis() -> None:
@@ -261,7 +344,7 @@ if __name__ == "__main__":
         "--component",
         type=str,
         help="AWS component to clean up",
-        choices=["amis", "amis_by_name", "ec2"],
+        choices=["amis", "amis_by_name", "amis_count", "ec2"],
     )
 
     parser.add_argument(
@@ -291,6 +374,10 @@ if __name__ == "__main__":
         clean_up_amis_by_name_stack_up(args.ami_name, args.ami_lang)
     elif args.component == "ec2":
         clean_up_ec2_stack_up(args.ec2_age_minutes)
+    elif args.component == "amis_count":
+        number_of_amis = count_system_tests_amis()
+        print(f"Number of AMIs with system-tests tag: {number_of_amis}")
+        send_amis_count_to_datadog(number_of_amis)
     else:
         print(f"Invalid component: {args.component}")
         raise ValueError(f"Invalid component: {args.component}")

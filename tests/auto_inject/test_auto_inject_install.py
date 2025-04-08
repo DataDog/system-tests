@@ -37,7 +37,6 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         reason="PROF-11264",
     )
     @bug(context.weblog_variant == "test-app-python-alpine", reason="PROF-11296")
-    @bug(context.weblog_variant == "test-app-python", reason="INPLAT-479")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -65,10 +64,6 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @bug(
-        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
-        reason="APMON-1576",
-    )
     def test_install(self):
         self._test_install(context.virtual_machine)
 
@@ -163,10 +158,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # Note: uninstallation of a single installer package is not available today
     # on the installer. As we can not only uninstall the injector, we are skipping
     # the uninstall test today
-    @bug(
-        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
-        reason="APMON-1576",
-    )
+
     @bug(
         context.vm_os_branch in ["redhat", "amazon_linux2"]
         and context.vm_os_cpu == "arm64"
@@ -187,10 +179,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @bug(
-        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
-        reason="APMON-1576",
-    )
     @bug(
         context.vm_os_branch in ["redhat", "amazon_linux2"]
         and context.vm_os_cpu == "arm64"

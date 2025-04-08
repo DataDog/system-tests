@@ -292,6 +292,17 @@ delete_ec2_instances:
     - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
   after_script: echo "Finish"
 
+count_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis_count
+  rules:
+    - if: '$SCHEDULED_JOB == "count_amis"'
+  after_script: echo "Finish"
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
