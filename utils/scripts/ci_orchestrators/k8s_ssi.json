@@ -41,6 +41,9 @@
                         "dd-lib-ruby-init-test-rails",
                         "dd-lib-ruby-init-test-rails-explicit",
                         "dd-lib-ruby-init-test-rails-gemsrb"
+                    ],
+                    "php": [
+                        "dd-lib-php-init-test-app"
                     ]
                 }
             ],
@@ -75,6 +78,9 @@
                         "dd-lib-ruby-init-test-rails",
                         "dd-lib-ruby-init-test-rails-explicit",
                         "dd-lib-ruby-init-test-rails-gemsrb"
+                    ],
+                    "php": [
+                        "dd-lib-php-init-test-app"
                     ]
                 }
             ]
