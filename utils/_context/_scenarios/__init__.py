@@ -99,8 +99,7 @@ class _Scenarios:
     trace_propagation_style_default = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_DEFAULT",
         weblog_env={
-            "DD_TRACE_PROPAGATION_STYLE_INJECT": "datadog,tracecontext,baggage",
-            "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,baggage",
+            # This scenario is empty since it's testing the default propagation styles
         },
         doc="Test Default propagation",
     )

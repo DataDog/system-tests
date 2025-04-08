@@ -895,6 +895,19 @@ class WeblogContainer(TestedContainer):
         if library == "golang":
             self.environment["DD_TRACE_PROPAGATION_EXTRACT_FIRST"] = "false"
 
+        # Workaround: We may want to define baggage in our list of propagators, but the cpp library
+        # has strict checks on tracer startup that will fail to launch the application
+        # when it encounters unfamiliar configurations. Override the configuration that the cpp
+        # weblog container sees so we can still run tests
+        if library in ("cpp_nginx", "cpp_httpd"):
+            extract_config = self.environment.get("DD_TRACE_PROPAGATION_STYLE_EXTRACT")
+            if extract_config and "baggage" in extract_config:
+                self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
+                    ","
+                )
+            # specify if the scenario is DD_TRACE_PROPAGATION_DEFAULT
+            # then use the default configuration values
+
         if library == "nodejs":
             try:
                 with open("./binaries/nodejs-load-from-local", encoding="utf-8") as f:
