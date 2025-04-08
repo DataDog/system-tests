@@ -67,6 +67,24 @@ Implement the API specified below to enable your library to run all of the share
 opentelemetry.trace.set_tracer_provider(TracerProvider())
 
 
+try:
+    # ddtrace.internal.agent.config is only available in ddtrace>=3.3.0
+    from ddtrace.internal.agent import config as agent_config
+
+    def trace_agent_url():
+        return agent_config.trace_agent_url
+
+    def dogstatsd_url():
+        return agent_config.dogstatsd_url
+except ImportError:
+    # TODO: Remove this block once we stop running parametric tests for ddtrace<3.3.0
+    def trace_agent_url():
+        return ddtrace.tracer._agent_url
+
+    def dogstatsd_url():
+        return ddtrace.tracer._dogstatsd_url
+
+
 class StartSpanArgs(BaseModel):
     name: str
     parent_id: Optional[int]
@@ -130,9 +148,9 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": str(ddtrace.tracer._agent_url),
-            "dd_dogstatsd_host": urlparse(ddtrace.tracer._dogstatsd_url).hostname,
-            "dd_dogstatsd_port": urlparse(ddtrace.tracer._dogstatsd_url).port,
+            "dd_trace_agent_url": trace_agent_url(),
+            "dd_dogstatsd_host": urlparse(dogstatsd_url()).hostname,
+            "dd_dogstatsd_port": urlparse(dogstatsd_url()).port,
             "dd_logs_injection": str(config._logs_injection).lower(),
             "dd_profiling_enabled": str(profiling_config.enabled).lower(),
             "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
