@@ -302,7 +302,7 @@ class K8sDatadog:
                 namespace, label_selector="app=datadog-cluster-agent"
             )
             assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
-            api_response = self.core_v1_api().read_namespaced_pod_log(
+            api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
                 name=pods.items[0].metadata.name, namespace=namespace
             )
             k8s_logger(self.output_folder, "datadog-cluster-agent").info(api_response)
