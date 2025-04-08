@@ -79,6 +79,7 @@
         "civisibility.signal.server.host": "civisibility_signal_server_host",
         "civisibility.telemetry.enabled": "civisibility_telemetry_enabled",
         "civisibility_impacted_tests_backend_request_enabled": "civisibility_impacted_tests_backend_request_enabled",
+        "civisibility.scalatest.fork.monitor.enabled": "civisibility_scalatest_fork_monitor_enabled",
         "clientIpEnabled": "trace_client_ip_enabled",
         "code_origin_enabled": "code_origin_enabled",
         "crashtracking.agentless": "crashtracking_agentless",
