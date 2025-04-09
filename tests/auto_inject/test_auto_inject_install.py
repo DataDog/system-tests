@@ -1,5 +1,5 @@
 import time
-from utils import scenarios, features, flaky, irrelevant, bug, context, missing_feature, logger
+from utils import scenarios, features, irrelevant, bug, context, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog, get_child_pids, get_zombies, fork_and_crash
 import tests.auto_inject.utils as base
 
@@ -97,7 +97,6 @@ class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.Aut
         ],
         reason="Zombies only appears in containers",
     )
-    @flaky(library="python", reason="APMLP-313")
     def test_crash_no_zombie(self):
         virtual_machine = context.virtual_machine
         vm_ip = virtual_machine.get_ip()
