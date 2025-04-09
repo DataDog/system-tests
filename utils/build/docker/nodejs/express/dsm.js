@@ -4,8 +4,10 @@ const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
-const { kafkaProduce: kafkaProduceConfluent,
-  kafkaConsume: kafkaConsumeConfluent } = require('./integrations/messaging/kafka/confluent_kafka')
+const {
+  kafkaProduce: kafkaProduceConfluent,
+  kafkaConsume: kafkaConsumeConfluent
+} = require('./integrations/messaging/kafka/confluent_kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 function initRoutes (app, tracer) {
@@ -19,7 +21,7 @@ function initRoutes (app, tracer) {
     const routingKey = req.query.routing_key
     const stream = req.query.stream
     let message = req.query.message
-    let library = req.query.library
+    const library = req.query.library
 
     if (integration === 'kafka') {
       if (library === 'kafkajs') {

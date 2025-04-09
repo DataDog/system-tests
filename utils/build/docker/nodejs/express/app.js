@@ -306,8 +306,8 @@ app.get('/kafka/consume', (req, res) => {
       .then(() => {
         res.status(200).send('[KafkaJS] consume ok')
       })
-    .catch((error) => {
-      console.error(error)
+      .catch((error) => {
+        console.error(error)
         res.status(500).send('Internal Server Error during KafkaJS consume')
       })
   } else if (integration === '@confluentinc/kafka-javascript') {
