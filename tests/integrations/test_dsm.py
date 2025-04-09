@@ -5,7 +5,6 @@
 import base64
 import json
 import os
-
 from tests.integrations.utils import compute_dsm_hash
 
 from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
@@ -33,6 +32,7 @@ DSM_STREAM = "dsm-system-tests-stream"
 
 # Generic
 DSM_QUEUE = "dsm-system-tests-queue"
+DSM_QUEUE_2 = "dsm-system-tests-queue-2"
 
 DSM_QUEUE_SQS = "dsm-system-tests-queue"
 DSM_QUEUE_SNS = "dsm-system-tests-sns-queue"
@@ -54,49 +54,74 @@ def get_message(test, system):
 class Test_DsmKafka:
     """Verify DSM stats points for Kafka"""
 
+    # nodejs has multiple kafka libraries, so we need to test both
+    test_package: dict[str, list[str | None]] = {
+        "nodejs": ["kafkajs", "@confluentinc/kafka-javascript"],
+        "default": [None],  # just use an empty list for default
+    }
+    test_packages = test_package.get(context.library.name, test_package["default"])
+    queues = [DSM_QUEUE, DSM_QUEUE_2]
+
     def setup_dsm_kafka(self):
-        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+        self.r = []
+
+        for i in range(len(self.test_packages)):
+            test_package = self.test_packages[i]
+            queue = self.queues[i]
+            self.r.append(
+                weblog.get(f"/dsm?integration=kafka&queue={queue}&group={DSM_CONSUMER_GROUP}&library={test_package}")
+            )
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
     @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
-        assert self.r.text == "ok"
+        for i in range(len(self.test_packages)):
+            test_package = self.test_packages[i]
+            queue = self.queues[i]
+            assert self.r[i].text == "ok"
 
-        # Hashes are created by applying the FNV-1 algorithm on
-        # checkpoint strings (e.g. service:foo)
-        # There is currently no FNV-1 library availble for node.js
-        # So we are using a different algorithm for node.js for now
-        if context.library == "nodejs":
-            producer_hash = 7021878731777772655
-            consumer_hash = 4591800307942911915
-        elif context.library == "golang":
-            producer_hash = 4463699290244539355
-            consumer_hash = 13758451224913876939
-        else:
-            producer_hash = 14216899112169674443
-            consumer_hash = 4247242616665718048
+            # Hashes are created by applying the FNV-1 algorithm on
+            # checkpoint strings (e.g. service:foo)
+            # There is currently no FNV-1 library availble for node.js
+            # So we are using a different algorithm for node.js for now
+            if context.library == "nodejs" and test_package == "kafkajs":
+                producer_hash = 7021878731777772655
+                consumer_hash = 4591800307942911915
+            elif context.library == "nodejs" and test_package == "@confluentinc/kafka-javascript":
+                producer_hash = 16395274252252958854
+                consumer_hash = 16262731221508036901
+            elif context.library == "golang":
+                producer_hash = 4463699290244539355
+                consumer_hash = 13758451224913876939
+            else:
+                producer_hash = 14216899112169674443
+                consumer_hash = 4247242616665718048
 
-        if context.library == "golang":
-            # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
-            edge_tags_in: tuple = ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka")
-            edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
-        else:
-            edge_tags_in: tuple = (
-                "direction:in",
-                f"group:{DSM_CONSUMER_GROUP}",
-                "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
-                f"topic:{DSM_QUEUE}",
-                "type:kafka",
-            )
-            edge_tags_out: tuple = (
-                "direction:out",
-                "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
-                f"topic:{DSM_QUEUE}",
-                "type:kafka",
-            )
+            if context.library == "golang":
+                # we are not using a group consumer for testing go as setup is complex, so no group edge_tag is included in hashing
+                edge_tags_in: tuple = ("direction:in", f"topic:{DSM_QUEUE}", "type:kafka")
+                edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
+            # confluent kafka does not support cluster id, so we are not using it in the hash
+            elif context.library == "nodejs" and test_package == "@confluentinc/kafka-javascript":
+                edge_tags_in: tuple = ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{queue}", "type:kafka")
+                edge_tags_out: tuple = ("direction:out", f"topic:{queue}", "type:kafka")
+            else:
+                edge_tags_in: tuple = (
+                    "direction:in",
+                    f"group:{DSM_CONSUMER_GROUP}",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                )
+                edge_tags_out: tuple = (
+                    "direction:out",
+                    "kafka_cluster_id:5L6g3nShT-eMCtK--X86sw",
+                    f"topic:{DSM_QUEUE}",
+                    "type:kafka",
+                )
 
-        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
-        DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
+            DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+            DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
 
 
 @features.datastreams_monitoring_support_for_http

@@ -22,6 +22,7 @@ function initRoutes (app, tracer) {
     const stream = req.query.stream
     let message = req.query.message
     const library = req.query.library
+    const groupId = req.query.group
 
     if (integration === 'kafka') {
       if (library === 'kafkajs') {
@@ -30,7 +31,7 @@ function initRoutes (app, tracer) {
 
         kafkaProduce(queue, message)
           .then(() => {
-            kafkaConsume(queue, timeout)
+            kafkaConsume(queue, timeout, groupId)
               .then(() => {
                 res.send('ok')
               })
@@ -49,7 +50,7 @@ function initRoutes (app, tracer) {
 
         kafkaProduceConfluent(queue, message)
           .then(() => {
-            kafkaConsumeConfluent(queue, timeout)
+            kafkaConsumeConfluent(queue, timeout, groupId)
               .then(() => {
                 res.send('ok')
               })

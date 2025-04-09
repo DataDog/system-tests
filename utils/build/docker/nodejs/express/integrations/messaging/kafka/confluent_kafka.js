@@ -24,7 +24,7 @@ async function kafkaProduce (topic, message) {
     await admin.createTopics({
       topics: [{ topic }]
     })
-    console.log(`Confluent Producer: Sending message to ${topic}...`)
+    console.log(`Confluent Producer: Sending message ${message} to ${topic}...`)
     await producer.send({
       topic,
       messages: [{ value: message }]
@@ -42,7 +42,7 @@ async function kafkaProduce (topic, message) {
   }
 }
 
-async function kafkaConsume (topic, timeout) {
+async function kafkaConsume (topic, timeout, groupId = 'testgroup-confluent') {
   const kafka = new Kafka({
     kafkaJS: {
       clientId: 'my-app-confluent-consumer',
@@ -55,7 +55,7 @@ async function kafkaConsume (topic, timeout) {
     }
   })
 
-  const consumer = kafka.consumer({ kafkaJS: { groupId: 'testgroup-confluent', fromBeginning: true } })
+  const consumer = kafka.consumer({ kafkaJS: { groupId, fromBeginning: true } })
   let timeoutHandle = null
 
   return new Promise((resolve, reject) => {
@@ -74,11 +74,12 @@ async function kafkaConsume (topic, timeout) {
 
         await consumer.run({
           eachMessage: async ({ topic: messageTopic, partition, message }) => {
-            console.log('Confluent Consumer: Message received:')
+            console.log('Confluent Consumer: Message received: ', message.value.toString())
             console.log({
               topic: messageTopic,
               partition,
               offset: message.offset,
+              headers: message.headers,
               value: message.value.toString() // Decode buffer
             })
             if (timeoutHandle) {
