@@ -56,7 +56,7 @@ function checkSdk()
     if ($event == 'success') {
         \datadog\appsec\track_user_login_success_event($user, ["email" => $mail]);
         http_response_code(200);
-        setLoggedInCookie($user['username']);
+        setLoggedInCookie($user);
     } else {
         \datadog\appsec\track_user_login_failure_event($user, $exists, ["email" => $mail]);
         http_response_code(401);
