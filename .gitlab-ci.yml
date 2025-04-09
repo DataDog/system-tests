@@ -135,8 +135,7 @@ python_ssi_pipeline:
 
 php_ssi_pipeline:
   stage: php
-  #needs: ["compute_pipeline", "python_ssi_pipeline"]
-  needs: ["compute_pipeline"]
+  needs: ["compute_pipeline", "python_ssi_pipeline"]
   allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
