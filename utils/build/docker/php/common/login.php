@@ -34,7 +34,7 @@ function handlePost()
     }
 
     \datadog\appsec\track_user_login_success_event_automated($user['username'], $user['id'], $user);
-    setLoggedInCookie($user['username']);
+    setLoggedInCookie($user['id']);
 }
 
 function handleGet()
