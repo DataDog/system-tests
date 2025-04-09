@@ -791,6 +791,15 @@ def parse_log_injection_message(log_message):
                         continue
                     dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
                     return {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
+            elif context.library == "php":
+                match = re.search(r"\[[^\]]+\]\s+\w+\.\w+:\s+.*?({.*?})\s*\[\]", log)
+                if match:
+                    try:
+                        message = json.loads(match.group(1))
+                        if message.get("message") == log_message:
+                            return message
+                    except json.JSONDecodeError:
+                        continue
             try:
                 message = json.loads(log)
             except json.JSONDecodeError:

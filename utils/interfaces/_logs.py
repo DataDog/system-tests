@@ -160,7 +160,13 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
 
         elif library == "php":
             self._skipped_patterns += [
-                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
+                re.compile(
+                    # Matches lines that do NOT start with either of these timestamp formats:
+                    # Format 1: [2024-03-21 14:30:45.123][info][123]
+                    r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\]"
+                    # Format 2: [2024-03-21T14:30:45.123456+02:00]
+                    r"|\[\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}\+\d{2}:\d{2}\])"
+                ),
             ]
 
             timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
