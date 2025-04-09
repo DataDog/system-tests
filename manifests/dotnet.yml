@@ -549,6 +549,13 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: v3.6.0
+    Test_Baggage_Headers_Malformed: v3.6.0
+    Test_Baggage_Headers_Malformed2: v3.6.0
+    Test_Baggage_Headers_Max_Bytes: v3.6.0
+    Test_Baggage_Headers_Max_Items: v3.6.0
+    Test_Only_Baggage_Header: v3.6.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v3.6.1
     Test_Config_ClientIPHeader_Configured: v3.4.1

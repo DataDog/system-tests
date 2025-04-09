@@ -198,7 +198,11 @@ def deserialize_http_message(
                     break
 
             if content_type_part.startswith("application/json"):
-                item["content"] = json.loads(part.content)
+                try:
+                    item["content"] = json.loads(part.content)
+                except json.decoder.JSONDecodeError:
+                    item["system-tests-error"] = "Can't decode json file"
+                    item["raw_content"] = repr(part.content)
 
             elif content_type_part == "application/gzip":
                 try:

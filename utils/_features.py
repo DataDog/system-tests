@@ -2331,6 +2331,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def datadog_baggage_headers(test_object):
+        """Baggage support
+
+        https://feature-parity.us1.prod.dog/#/?feature=348
+        """
+        pytest.mark.features(feature_id=348)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_security_controls(test_object):
         """IAST: Security Controls
 
