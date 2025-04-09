@@ -105,17 +105,29 @@ class Test_Config_UnifiedServiceTagging:
         assert span2["service"] == "no dd_service"
         assert "version" not in span2["meta"]
 
-    @parametrize("library_env", [{"DD_ENV": "dev"}])
+    @parametrize(
+        "library_env",
+        [
+            {"DD_ENV": "dev"},
+            {"DD_ENV": ""},
+            {"DD_ENV": "0"},
+            {"DD_ENV": "mIXEDcASE"},
+            {},
+        ],
+    )
     def test_specific_env(self, library_env, test_agent, test_library):
-        assert library_env.get("DD_ENV") == "dev"
         with test_library, test_library.dd_start_span(name="s1") as s1:
             pass
 
         traces = test_agent.wait_for_num_traces(1)
         assert len(traces) == 1
 
+        env = library_env.get("DD_ENV")
+
         span = find_span_in_traces(traces, s1.trace_id, s1.span_id)
-        assert span["meta"]["env"] == "dev"
+        span_env = span["meta"].get("env")
+
+        assert span_env == env
 
 
 @scenarios.parametric
