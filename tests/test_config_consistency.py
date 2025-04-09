@@ -797,7 +797,7 @@ def parse_log_injection_message(log_message):
                 # Extract the JSON string from the log. This matches the contents between the first and last bracket.
                 json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
                 message = json.loads(json_string)
-            except Exception:
+            except Exception:  # noqa: S112
                 continue
             # Locate log with the custom message, which should have the trace ID and span ID
             if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
