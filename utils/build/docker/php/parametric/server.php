@@ -571,6 +571,11 @@ $router->addRoute('GET', '/trace/config', new ClosureRequestHandler(function (Re
         'dd_log_level' => trim(var_export(\dd_trace_env_config("DD_TRACE_LOG_LEVEL"), true), "'"),
         'dd_trace_agent_url' => trim(var_export(\dd_trace_env_config("DD_TRACE_AGENT_URL"), true), "'"),
         'dd_trace_rate_limit' => var_export(\dd_trace_env_config("DD_TRACE_RATE_LIMIT"), true),
+        'dd_dogstatsd_port' => trim(var_export(\dd_trace_env_config("DD_DOGSTATSD_PORT"), true), "'"),
+        'dd_dogstatsd_host' => trim(var_export(\dd_trace_env_config("DD_DOGSTATSD_HOST"), true), "'"),
+        'dd_profiling_enabled' => strtolower(trim(ini_get("datadog.profiling.enabled"), "'")),
+        'dd_data_streams_enabled' => 'false', // PHP doesn't implement DD_DATA_STREAMS_ENABLED
+        'dd_logs_injection' => strtolower(trim(ini_get("datadog.logs_injection"), "'")),
     );
     return jsonResponse(array(
         'config' => $config
