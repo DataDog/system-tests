@@ -22,15 +22,14 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
         version=$(go list -m -json "$line" | jq -r .Version)
         go mod edit -replace "$path=$path@$version"
     done < /binaries/golang-load-from-go-get
-    go mod tidy
 else
     echo "Installing production dd-trace-version"
     TARGET="v2.0.0-rc.11"
     echo "Install from go get -v $MAIN_MODULE@$TARGET"
-    go get -v "$MAIN_MODULE@$TARGET"
+    go mod edit -replace "$MAIN_MODULE=$MAIN_MODULE@$TARGET"
     for contrib in $CONTRIBS; do
         echo "Install contrib $contrib from go get -v $contrib@$TARGET"
-        go get -v "$contrib@$TARGET"
+        go mod edit -replace "$contrib=$contrib@$TARGET"
     done
 fi
 
