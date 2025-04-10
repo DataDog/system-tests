@@ -18,11 +18,11 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
     cat /binaries/golang-load-from-go-get
     while read -r line; do
-        go get -v "$line"
-        path="${line#github.com/DataDog/dd-trace-go/}"
-        version="${line##*@}"
-        path="${path%/v2@*}"
+        path="${line%@*}"
+        version=$(go list -m -json "$line" | jq -r .Version)
+        go mod edit -replace "$path=$path@$version"
     done < /binaries/golang-load-from-go-get
+    go mod tidy
 else
     echo "Installing production dd-trace-version"
     TARGET="v2.0.0-rc.11"

@@ -3,6 +3,9 @@ FROM golang:1.23 AS build
 # print important lib versions
 RUN go version && curl --version
 
+# install jq
+RUN apt-get update && apt-get -y install jq
+
 # build application binary
 COPY utils/build/docker/golang/app /app/
 WORKDIR /app
