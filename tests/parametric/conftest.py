@@ -762,7 +762,8 @@ class StableConfigWriter:
         self.write_stable_config_content(stable_config_content, path, test_library)
 
     def write_stable_config_content(self, stable_config_content: str, path: str, test_library: APMLibrary) -> None:
-        success, message = test_library.container_exec_run(
-            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
-        )
+        cmd = f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+        if test_library.lang == "php":
+            cmd = "sudo " + cmd
+        success, message = test_library.container_exec_run(cmd)
         assert success, message
