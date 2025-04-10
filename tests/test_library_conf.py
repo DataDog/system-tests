@@ -282,6 +282,7 @@ class Test_HeaderTags_DynamicConfig:
 TRACECONTEXT_FLAGS_SET = 1 << 31
 # testing
 
+
 def retrieve_span_links(span):
     if span.get("spanLinks") is not None:
         return span["spanLinks"]
