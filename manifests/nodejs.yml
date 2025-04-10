@@ -1085,7 +1085,7 @@ tests/:
     Test_Propagate_Legacy: *ref_3_2_0
   test_library_conf.py:
     Test_ExtractBehavior_Default: *ref_5_46_0
-    Test_ExtractBehavior_Ignore: *ref_5_46_0
+    Test_ExtractBehavior_Ignore: *ref_5_47_0
     Test_ExtractBehavior_Restart: *ref_5_47_0
     Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
     Test_HeaderTags: *ref_4_11_0
