@@ -55,6 +55,7 @@ refs:
   - &ref_5_44_0 '>=5.44.0'
   - &ref_5_45_0 '>=5.45.0'
   - &ref_5_46_0 '>=5.46.0'
+  - &ref_5_47_0 '>=5.47.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1085,7 +1086,7 @@ tests/:
   test_library_conf.py:
     Test_ExtractBehavior_Default: *ref_5_46_0
     Test_ExtractBehavior_Ignore: *ref_5_46_0
-    Test_ExtractBehavior_Restart: *ref_5_46_0
+    Test_ExtractBehavior_Restart: *ref_5_47_0
     Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_46_0
     Test_HeaderTags: *ref_4_11_0
     Test_HeaderTags_Colon_Leading: *ref_4_11_0
