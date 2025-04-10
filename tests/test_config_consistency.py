@@ -37,6 +37,8 @@ log_injection_fields = {
     "java": {"message": "message"},
     "dotnet": {"message": "@mt"},
     "php": {"message": "message"},
+    "python": {"message": "message"},
+    "ruby": {"message": "message"},
 }
 
 
