@@ -159,6 +159,14 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
         elif library == "php":
+            self._skipped_patterns += [
+                re.compile(
+                    # Ensure env vars are not leaked in logs
+                    # Ex:export SOME_SECRET_ENV=api_key
+                    r"^export \w+\s*=\s*.*$",
+                ),
+            ]
+
             timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
             level = p("level", r"\w+")
             thread = p("thread", r"\d+")
