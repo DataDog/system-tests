@@ -1022,6 +1022,13 @@ tests/:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed2: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Bytes: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Items: irrelevant (uses parametric tests)
+    Test_Only_Baggage_Header: irrelevant (uses parametric tests)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: *ref_3_13_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
