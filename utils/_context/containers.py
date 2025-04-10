@@ -905,6 +905,8 @@ class WeblogContainer(TestedContainer):
                 self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
                     ","
                 )
+            # specify if the scenario is DD_TRACE_PROPAGATION_DEFAULT
+            # then use the default configuration values
 
         if library == "nodejs":
             try:
