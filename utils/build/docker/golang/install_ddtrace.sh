@@ -16,6 +16,7 @@ if [ -e "/binaries/dd-trace-go" ]; then
     done
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
+    cat /binaries/golang-load-from-go-get
     while read -r line; do
         go get -v "$line"
         path="${line#github.com/DataDog/dd-trace-go/}"
