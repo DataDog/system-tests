@@ -25,7 +25,7 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     done < /binaries/golang-load-from-go-get
 else
     echo "Installing production dd-trace-version"
-    TARGET="latest"
+    TARGET="v2.0.0-rc.11"
     echo "Install from go get -v $MAIN_MODULE@$TARGET"
     go get -v "$MAIN_MODULE@$TARGET"
     for contrib in $CONTRIBS; do
