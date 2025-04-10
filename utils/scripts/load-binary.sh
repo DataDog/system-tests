@@ -222,7 +222,7 @@ elif [ "$TARGET" = "golang" ]; then
     COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
-    echo $COMMIT_ID > golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/database/sql/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/net/http/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2@$COMMIT_ID" >> golang-load-from-go-get
