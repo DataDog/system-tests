@@ -713,7 +713,7 @@ class BaseSCAStandaloneTelemetry:
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
-        if context.library == "java":
+        if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
 
