@@ -1087,7 +1087,7 @@ tests/:
     Test_ExtractBehavior_Default: *ref_5_46_0
     Test_ExtractBehavior_Ignore: *ref_5_46_0
     Test_ExtractBehavior_Restart: *ref_5_47_0
-    Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_46_0
+    Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
     Test_HeaderTags: *ref_4_11_0
     Test_HeaderTags_Colon_Leading: *ref_4_11_0
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
