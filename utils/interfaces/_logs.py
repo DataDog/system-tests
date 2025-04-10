@@ -162,8 +162,8 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._skipped_patterns += [
                 re.compile(
                     # Ensure env vars are not leaked in logs
-                    # Ex:export SOME_SECRET_ENV=api_key
-                    r"^export \w+\s*=\s*.*$",
+                    # Ex: export SOME_SECRET_ENV=api_key OR env[SOME_SECRET_ENV] = api_key
+                    r"export \w+\s*=\s*.*|" r"env\[\w+\]\s*=.*"
                 ),
             ]
 

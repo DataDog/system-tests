@@ -5,6 +5,8 @@ if [[ $# -gt 0 ]]; then
   exit $?
 fi
 
+export SYSTEM_TESTS_LOGS=/var/log/system-tests
+
 # This is required to allow the tracer to open itself
 chmod a+rx /root
 
