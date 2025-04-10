@@ -217,7 +217,7 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
     set -o pipefail
 
-    TARGET_BRANCH="${TARGET_BRANCH:-v1-maintenance}"
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
     echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
     COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
