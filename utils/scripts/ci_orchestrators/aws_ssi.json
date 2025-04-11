@@ -72,7 +72,6 @@
         {
             "scenarios": [
                 "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
-                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
                 "CHAOS_INSTALLER_AUTO_INJECTION"
             ],
             "weblogs": [
@@ -91,6 +90,30 @@
                     ],
                     "ruby": [
                         "test-app-ruby"
+                    ],
+                    "php": [
+                        "test-app-php"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ],
+                    "java": [
+                        "test-app-java"
+                    ],
+                    "python": [
+                        "test-app-python"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet"
                     ],
                     "php": [
                         "test-app-php"
