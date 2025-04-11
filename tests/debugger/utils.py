@@ -32,14 +32,14 @@ def generate_probe_id(probe_type: str) -> str:
     return probe_type + str(uuid.uuid4())[len(probe_type) :]
 
 
-def extract_probe_ids(probes: dict) -> list:
-    if probes:
-        if isinstance(probes, dict):
-            return list(probes.keys())
+def extract_probe_ids(probes: dict | list) -> list:
+    if not probes:
+        return []
 
-        return [probe["id"] for probe in probes]
+    if isinstance(probes, dict):
+        return list(probes.keys())
 
-    return []
+    return [probe["id"] for probe in probes]
 
 
 def _get_path(test_name: str, suffix: str) -> str:
@@ -80,7 +80,7 @@ class BaseDebuggerTest:
     setup_failures: list = []
 
     def initialize_weblog_remote_config(self) -> None:
-        if self.get_tracer()["language"] == "ruby":
+        if self.get_tracer()["language"] in ["ruby"]:
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
             # Therefore, we need to issue a request to the application for
@@ -128,6 +128,10 @@ class BaseDebuggerTest:
             for probe in probes:
                 probe["language"] = language
 
+                # PHP validates that the segments field is present.
+                if "segments" not in probe:
+                    probe["segments"] = []
+
                 if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
                     if language == "dotnet":
                         probe["where"]["typeName"] = "weblog.DebuggerController"
@@ -146,6 +150,8 @@ class BaseDebuggerTest:
                         probe["where"]["methodName"] = re.sub(
                             r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                         ).lower()
+                    elif language == "php":
+                        probe["where"]["typeName"] = "DebuggerController"
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -160,6 +166,8 @@ class BaseDebuggerTest:
                         probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
                         probe["where"]["sourceFile"] = "debugger/index.js"
+                    elif language == "php":
+                        probe["where"]["sourceFile"] = "debugger.php"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -182,6 +190,10 @@ class BaseDebuggerTest:
         self.rc_states.append(
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
+
+        # PHP tracer requires a request to /debugger/* to start logging the probe information.
+        if context.library == "php":
+            weblog.get("/debugger/init")
 
     def send_rc_apm_tracing(
         self,
@@ -400,7 +412,7 @@ class BaseDebuggerTest:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library in ("python", "ruby", "nodejs"):
+            elif context.library in ("python", "ruby", "nodejs", "php"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
