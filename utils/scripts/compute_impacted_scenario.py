@@ -83,7 +83,7 @@ def main() -> None:
         result.add_scenario_group(ScenarioGroup.ALL.value)
 
     elif event_name in ("pull_request", "push"):
-        if not is_gilab:
+        if not is_gilab and "GITHUB_PULL_REQUEST_LABELS" in os.environ:
             labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
             label_names = [label["name"] for label in labels]
             result.handle_labels(label_names)
@@ -237,7 +237,7 @@ def main() -> None:
                 for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
                         result.add_scenario_requirement(scenario_requirement)
-
+                        print(file, pattern)
                         # on first matching pattern, stop the loop
                         break
                 else:
