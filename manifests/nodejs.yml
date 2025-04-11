@@ -56,6 +56,7 @@ refs:
   - &ref_5_45_0 '>=5.45.0'
   - &ref_5_46_0 '>=5.46.0'
   - &ref_5_47_0 '>=5.47.0'
+  - &ref_5_48_0 '>=5.48.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -714,28 +715,28 @@ tests/:
         nextjs: missing_feature
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Metrics:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Tags:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_HeaderCollection:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Metrics:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Tags:
-        '*': *ref_5_47_0
+        '*': *ref_5_48_0
         nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
