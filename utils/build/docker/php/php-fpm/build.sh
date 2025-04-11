@@ -68,6 +68,9 @@ export APPSEC_VERSION=latest
 cp /tmp/php/common/install_ddtrace.sh /
 /install_ddtrace.sh 0
 
+cp /tmp/php/common/install_common.sh /
+/install_common.sh
+
 rm -rf /etc/php/$PHP_VERSION/fpm/conf.d/98-ddappsec.ini
 
 SYSTEM_TESTS_LIBRARY_VERSION=$(cat /binaries/SYSTEM_TESTS_LIBRARY_VERSION)
