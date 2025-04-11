@@ -165,7 +165,10 @@ class BaseDebuggerTest:
                         # remove prefixes as part of file matching.
                         probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
-                        probe["where"]["sourceFile"] = "debugger/index.js"
+                        if context.weblog_variant == "express4-typescript":
+                            probe["where"]["sourceFile"] = "debugger/index.ts"
+                        else:
+                            probe["where"]["sourceFile"] = "debugger/index.js"
                     elif language == "php":
                         probe["where"]["sourceFile"] = "debugger.php"
                 probe["type"] = __get_probe_type(probe["id"])
