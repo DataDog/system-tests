@@ -450,9 +450,9 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_lib_injection_profiling.py:
-      TestK8sLibInjectioProfilingClusterEnabled: v1.8.2
-      TestK8sLibInjectioProfilingClusterOverride: v1.8.2
-      TestK8sLibInjectioProfilingDisabledByDefault: v1.8.2
+      TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
+      TestK8sLibInjectioProfilingClusterOverride: v1.9.0
+      TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
@@ -560,10 +560,10 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
+    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
     Test_Config_RuntimeMetrics_Default: missing_feature
