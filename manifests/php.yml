@@ -450,9 +450,9 @@ tests/:
       Test_Otel_Drop_In: missing_feature
   k8s_lib_injection/:
     test_k8s_lib_injection_profiling.py:
-      TestK8sLibInjectioProfilingClusterEnabled: v1.8.2
-      TestK8sLibInjectioProfilingClusterOverride: v1.8.2
-      TestK8sLibInjectioProfilingDisabledByDefault: v1.8.2
+      TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
+      TestK8sLibInjectioProfilingClusterOverride: v1.9.0
+      TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
