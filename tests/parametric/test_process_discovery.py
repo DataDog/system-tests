@@ -70,4 +70,16 @@ class Test_ProcessDiscovery:
             assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
             version = Version(tracer_metadata["tracer_version"])
-            assert context.library.version == version
+            # Temporary fix for Ruby until we start to bump the version after a release
+            if context.library.name != "ruby":
+                assert context.library.version == version
+            else:
+                # This cancels a hack in system-tests framework that increments the patch version
+                # and add -dev to the version string.
+                assert version.major == context.library.version.major
+                assert version.minor == context.library.version.minor
+
+                if "dev" in context.library.version.prerelease:
+                    assert version.patch == context.library.version.patch - 1
+                else:
+                    assert version.patch == context.library.version.patch
