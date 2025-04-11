@@ -14,6 +14,7 @@ mkdir -p /etc/apache2/mods-available/ /var/www/html/rasp /etc/php/
 cp -rf /tmp/php/apache-mod/php.conf /etc/apache2/mods-available/
 cp -rf /tmp/php/apache-mod/php.load /etc/apache2/mods-available/
 cp -rf /tmp/php/common/* /var/www/html/
+cp -rf /tmp/php/common/install_common.sh /
 cp -rf /tmp/php/common/install_ddtrace.sh /
 cp -rf /tmp/php/common/php.ini /etc/php/
 
@@ -70,3 +71,5 @@ find /var/www/html/vendor -type f -exec chmod 644 {} \;
 if [[ -f "/etc/php/98-ddtrace.ini" ]]; then
     grep -E 'datadog.trace.request_init_hook|datadog.trace.sources_path' /etc/php/98-ddtrace.ini >> /etc/php/php.ini
 fi
+
+/install_common.sh
