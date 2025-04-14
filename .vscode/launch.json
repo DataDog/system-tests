@@ -195,6 +195,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Replay DEBUGGER_EXCEPTION_REPLAY scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "DEBUGGER_EXCEPTION_REPLAY", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Run PARAMETRIC scenario",
             "type": "debugpy",
             "request": "launch",
