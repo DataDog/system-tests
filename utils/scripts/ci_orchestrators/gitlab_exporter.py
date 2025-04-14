@@ -108,7 +108,16 @@ def should_use_new_aws_account() -> bool:
 
     ci_commit_branch = os.getenv("CI_COMMIT_BRANCH", "")
     ci_project_name = os.getenv("CI_PROJECT_NAME")
-    migrated_projects = ["system-tests", "dd-trace-js", "dd-trace-java", "dd-trace-py", "auto_inject"]
+    migrated_projects = [
+        "system-tests",
+        "dd-trace-js",
+        "dd-trace-java",
+        "dd-trace-py",
+        "auto_inject",
+        "dd-trace-dotnet",
+        "dd-trace-php",
+        "dd-trace-rb",
+    ]
     # The projects that are under migration.
     # It's going to apply the config of the new aws account only for a specific branch
     partially_migrated_projects = ["auto_inject"]

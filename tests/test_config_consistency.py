@@ -36,6 +36,9 @@ log_injection_fields = {
     "golang": {"message": "msg"},
     "java": {"message": "message"},
     "dotnet": {"message": "@mt"},
+    "php": {"message": "message"},
+    "python": {"message": "message"},
+    "ruby": {"message": "message"},
 }
 
 
@@ -780,11 +783,12 @@ def parse_log_injection_message(log_message):
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     for data in stdout.get_data():
         logs = data.get("raw").split("\n")
-        regex_pattern = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
+        regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
+        regex_pattern_json = re.compile(r"({.*})")
         for log in logs:
             if context.library in ("python", "ruby"):
                 # Extract key-value pairs and messages
-                match = regex_pattern.search(log)
+                match = regex_pattern_raw.search(log)
                 if match:
                     curr_message = match.group(2).strip()  # Extract message after last bracket
                     if curr_message != log_message:
@@ -792,8 +796,10 @@ def parse_log_injection_message(log_message):
                     dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
                     return {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
             try:
-                message = json.loads(log)
-            except json.JSONDecodeError:
+                # Extract the JSON string from the log. This matches the contents between the first and last bracket.
+                json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
+                message = json.loads(json_string)
+            except Exception:  # noqa: S112
                 continue
             # Locate log with the custom message, which should have the trace ID and span ID
             if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
