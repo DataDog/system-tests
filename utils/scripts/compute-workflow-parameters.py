@@ -23,24 +23,33 @@ class CiData:
 
     def __init__(
         self,
+        *,
         library: str,
         scenarios: str,
         groups: str,
         parametric_job_count: int,
-        ci_environment: str,
         desired_execution_time: int,
+        explicit_artifact_name: str,
+        system_tests_dev_mode: bool,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
         self.data: dict[str, dict] = {}
         self.language = library
-        self.environment = ci_environment
+        self.ci_environment = (
+            "dev" if system_tests_dev_mode else "prod" if len(explicit_artifact_name) == 0 else "custom"
+        )
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
         self.data |= get_endtoend_definitions(
-            library, scenario_map, ci_environment, desired_execution_time, maximum_parallel_jobs=256
+            library, scenario_map, self.ci_environment, desired_execution_time, maximum_parallel_jobs=256
         )
+
+        self.data["miscs"] = {
+            "artifact_name": f"binaries_dev_{library}" if system_tests_dev_mode else explicit_artifact_name,
+            "ci_environment": self.ci_environment,
+        }
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
@@ -109,7 +118,7 @@ class CiData:
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
-        print_gitlab_pipeline(self.language, self.data, self.environment)
+        print_gitlab_pipeline(self.language, self.data, self.ci_environment)
 
     @staticmethod
     def _export(data: str, output: str) -> None:
@@ -218,7 +227,12 @@ if __name__ == "__main__":
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
     # Misc
-    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
+    parser.add_argument(
+        "--explicit-artifact-name", type=str, help="If an artifact name is explicitly provided", default=""
+    )
+    parser.add_argument(
+        "--system-tests-dev-mode", type=str, help="If an artifact name is explicitly provided", default="false"
+    )
 
     args = parser.parse_args()
 
@@ -226,7 +240,8 @@ if __name__ == "__main__":
         library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
-        ci_environment=args.ci_environment,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
+        explicit_artifact_name=args.explicit_artifact_name,
+        system_tests_dev_mode=args.system_tests_dev_mode == "true",
     ).export(export_format=args.format, output=args.output)
