@@ -113,7 +113,10 @@ class CiData:
         result = []
         for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
-                result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                if isinstance(value, (dict, list)):
+                    result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                else:
+                    result.append(f"{workflow_name}_{parameter}={value}")
 
         # github action is not able to handle aws_ssi, so nothing to do
 
