@@ -213,7 +213,7 @@ tests/:
           uds-sinatra: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
-          "*": v2.14.0.dev
+          "*": v2.15.0.dev
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
