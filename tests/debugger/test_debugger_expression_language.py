@@ -249,6 +249,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
     @bug(library="dotnet", reason="DEBUG-2530")
+    @bug(library="nodejs", weblog_variant="express4-typescript", reason="DEBUG-3715")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 
