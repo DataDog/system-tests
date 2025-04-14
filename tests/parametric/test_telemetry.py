@@ -450,7 +450,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "config_id"),
         [
             (
                 {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
@@ -465,13 +465,13 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                     # "runtime_metrics_enabled": "env_var",
                     "profiling_enabled": "local_stable_config",
                 },
+                "1231231231231",
             )
         ],
     )
     def test_stable_configuration_origin(
-        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin, config_id
     ):
-        config_id = 1231231231231
         with test_library:
             self.write_stable_config(
                 {
