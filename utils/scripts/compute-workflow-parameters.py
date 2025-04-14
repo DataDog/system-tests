@@ -31,12 +31,14 @@ class CiData:
         desired_execution_time: int,
         explicit_artifact_name: str,
         system_tests_dev_mode: bool,
+        gitlab_environment: str,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
         self.data: dict[str, dict] = {}
         self.language = library
+        self.gitlab_environment = gitlab_environment
         self.ci_environment = (
             "dev" if system_tests_dev_mode else "prod" if len(explicit_artifact_name) == 0 else "custom"
         )
@@ -118,7 +120,7 @@ class CiData:
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
-        print_gitlab_pipeline(self.language, self.data, self.ci_environment)
+        print_gitlab_pipeline(self.language, self.data, self.gitlab_environment)
 
     @staticmethod
     def _export(data: str, output: str) -> None:
@@ -233,6 +235,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--system-tests-dev-mode", type=str, help="If an artifact name is explicitly provided", default="false"
     )
+    parser.add_argument(
+        "--gitlab-environment", type=str, help="If an artifact name is explicitly provided", default="prod"
+    )
 
     args = parser.parse_args()
 
@@ -244,4 +249,5 @@ if __name__ == "__main__":
         desired_execution_time=args.desired_execution_time,
         explicit_artifact_name=args.explicit_artifact_name,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
+        gitlab_environment=args.gitlab_environment,
     ).export(export_format=args.format, output=args.output)

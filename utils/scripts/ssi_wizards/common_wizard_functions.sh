@@ -80,7 +80,7 @@ load_workflow_data(){
     echo "🔄 Running Python script to compute workflow parameters..."
 
     # Run the Python script and capture the JSON output
-    WORKFLOW_JSON=$(python utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "$1" --parametric-job-count 1 --ci-environment "prod" --format json)
+    WORKFLOW_JSON=$(python utils/scripts/compute-workflow-parameters.py "$TEST_LIBRARY" -g "$1" --parametric-job-count 1 --gitlab-environment "prod" --format json)
     export WORKFLOW_JSON=$(echo "$WORKFLOW_JSON" | jq ".$2")
 
     echo "TEST LIBRARY: $TEST_LIBRARY"
