@@ -920,7 +920,7 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
-        if library == "php":
+        if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
     def post_start(self):

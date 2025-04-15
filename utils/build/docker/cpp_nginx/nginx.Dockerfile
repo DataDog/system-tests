@@ -1,6 +1,6 @@
-FROM nginx:1.25.4
+FROM nginx:1.26.2
 
-ARG NGINX_VERSION="1.25.4"
+ARG NGINX_VERSION="1.26.2"
 ENV NGINX_VERSION=${NGINX_VERSION}
 
 RUN apt-get update \
@@ -13,6 +13,7 @@ RUN mkdir /builds /binaries
 COPY utils/build/docker/cpp_nginx/nginx/nginx.conf /etc/nginx/nginx.conf.no-waf
 COPY utils/build/docker/cpp_nginx/nginx/nginx-waf.conf /etc/nginx/nginx.conf.waf
 COPY utils/build/docker/cpp_nginx/nginx/hello.html /builds/hello.html
+COPY utils/build/docker/cpp_nginx/nginx/headers.txt /builds/headers.txt
 COPY utils/build/docker/cpp_nginx/nginx/app.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddtrace.sh /builds/
 COPY utils/build/docker/cpp_nginx/install_ddprof.sh /builds/

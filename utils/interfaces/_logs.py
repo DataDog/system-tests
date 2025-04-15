@@ -14,6 +14,10 @@ from utils._logger import logger
 from utils.interfaces._core import InterfaceValidator
 from utils._context.component_version import ComponentVersion
 
+import pydevd_pycharm
+
+pydevd_pycharm.settrace("localhost", port=5555, stdoutToServer=True, stderrToServer=True, suspend=False)
+
 
 class _LogsInterfaceValidator(InterfaceValidator):
     def __init__(self, name: str, new_log_line_pattern: str | None = None):
