@@ -15,8 +15,8 @@ class RASP::SSRFController < ApplicationController
 
   private
 
-  def perform_http_request(url)
-    url = URI.parse(url_param)
+  def perform_http_request(domain_param)
+    url = URI.parse(domain_param)
     url = "https://#{url}" unless url.scheme
 
     Faraday.get(url)
