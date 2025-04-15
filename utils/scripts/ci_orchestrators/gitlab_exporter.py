@@ -120,7 +120,7 @@ def should_use_new_aws_account() -> bool:
     ]
     # The projects that are under migration.
     # It's going to apply the config of the new aws account only for a specific branch
-    partially_migrated_projects = ["auto_inject"]
+    partially_migrated_projects = [""]
     print(f"Checking if project [{ci_project_name}] should run on the new AWS account")
     if ci_project_name in all_projects:
         if ci_project_name in migrated_projects:
