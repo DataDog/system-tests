@@ -16,6 +16,7 @@ jobs:
     outputs:
       library_matrix:  ${{ steps.compute.outputs.library_matrix }}
       libraries_with_dev:  ${{ steps.compute.outputs.libraries_with_dev }}
+      target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - uses: actions/checkout@v4
       - run:  |
@@ -100,6 +101,11 @@ jobs:
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
 
+      - name: Get target branch
+        uses: ./.github/actions/get_target_branch
+        id: get-target-branch
+        with:
+          text: ${{ github.event.pull_request.title }}
       - name: Print results
         run: |
           echo 'Impacted libraries: -> ${{ steps.compute.outputs.library_matrix }}'

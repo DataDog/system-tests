@@ -1,5 +1,6 @@
 import argparse
 import json
+import sys
 
 from utils._context._scenarios import get_all_scenarios, ScenarioGroup
 from utils.scripts.ci_orchestrators.workflow_data import (
@@ -23,23 +24,39 @@ class CiData:
 
     def __init__(
         self,
+        *,
         library: str,
         scenarios: str,
         groups: str,
         parametric_job_count: int,
-        ci_environment: str,
         desired_execution_time: int,
+        explicit_artifact_name: str,
+        system_tests_dev_mode: bool,
+        ci_environment: str | None,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
-        self.data: dict[str, dict] = {}
+        self.data: dict[str, dict] = {"miscs": {}}
         self.language = library
-        self.environment = ci_environment
+
+        if ci_environment is not None:
+            self.ci_environment = ci_environment
+        elif system_tests_dev_mode:
+            self.ci_environment = "dev"
+            self.data["miscs"]["artifact_name"] = f"binaries_dev_{library}"
+        elif len(explicit_artifact_name) != 0:
+            self.ci_environment = "custom"
+            self.data["miscs"]["artifact_name"] = explicit_artifact_name
+        else:
+            self.ci_environment = "prod"
+
+        self.data["miscs"]["ci_environment"] = self.ci_environment
+
         scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
 
         self.data |= get_endtoend_definitions(
-            library, scenario_map, ci_environment, desired_execution_time, maximum_parallel_jobs=256
+            library, scenario_map, self.ci_environment, desired_execution_time, maximum_parallel_jobs=256
         )
 
         self.data["parametric"] = {
@@ -102,14 +119,17 @@ class CiData:
         result = []
         for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
-                result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                if isinstance(value, (dict, list)):
+                    result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                else:
+                    result.append(f"{workflow_name}_{parameter}={value}")
 
         # github action is not able to handle aws_ssi, so nothing to do
 
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
-        print_gitlab_pipeline(self.language, self.data, self.environment)
+        print_gitlab_pipeline(self.language, self.data, self.ci_environment)
 
     @staticmethod
     def _export(data: str, output: str) -> None:
@@ -218,15 +238,28 @@ if __name__ == "__main__":
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
     # Misc
-    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
+    parser.add_argument(
+        "--explicit-artifact-name", type=str, help="If an artifact name is explicitly provided", default=""
+    )
+    parser.add_argument(
+        "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
+    )
+    parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
 
     args = parser.parse_args()
+
+    if args.ci_environment is not None:
+        if args.system_tests_dev_mode != "":
+            print("--ci-environment is not compatible with --system-tests-dev-mode")
+            sys.exit(1)
 
     CiData(
         library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
-        ci_environment=args.ci_environment,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
+        explicit_artifact_name=args.explicit_artifact_name,
+        system_tests_dev_mode=args.system_tests_dev_mode == "true",
+        ci_environment=args.ci_environment,
     ).export(export_format=args.format, output=args.output)
