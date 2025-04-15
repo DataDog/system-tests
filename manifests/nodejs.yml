@@ -807,6 +807,7 @@ tests/:
       Test_Debugger_Expression_Language:
         '*': irrelevant
         express4: v5.48.0
+        express4-typescript: v5.48.0
         uds-express4: v5.48.0
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
@@ -816,16 +817,19 @@ tests/:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
@@ -833,6 +837,7 @@ tests/:
       Test_Debugger_Telemetry:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
   integrations/:
     crossed_integrations/:
@@ -1120,6 +1125,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown

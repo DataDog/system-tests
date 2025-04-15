@@ -158,6 +158,7 @@ tests/:
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown

@@ -388,6 +388,11 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptProfiling: v1.9.0
+      TestHostAutoInjectInstallScriptProfiling: v1.9.0
+      TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
@@ -598,6 +603,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown
