@@ -128,6 +128,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self.send_weblog_request("/healthcheck")
 
     @features.debugger_code_origins
+<<<<<<< HEAD
     @missing_feature(context.library == "dotnet", reason="Entry spans code origins not yet implemented", force_skip=True)
     @missing_feature(
         context.library == "java" and context.weblog_variant != "spring-boot",
@@ -135,6 +136,17 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 		force_skip=True
     )
     @missing_feature(context.library == "nodejs", reason="Entry spans code origins not yet implemented for express", force_skip=True)
+=======
+    @missing_feature(
+        context.library == "dotnet", reason="Entry spans code origins not yet implemented", force_skip=True
+    )
+    @missing_feature(
+        context.library == "java", reason="Entry spans code origins not yet implemented for spring-mvc", force_skip=True
+    )
+    @missing_feature(
+        context.library == "nodejs", reason="Entry spans code origins not yet implemented for express", force_skip=True
+    )
+>>>>>>> e0c505d83 (format + configure)
     @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented", force_skip=True)
     def test_code_origin_entry_present(self):
         self.collect()
@@ -153,8 +165,12 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         )
 
     @features.debugger_probe_budgets
-    @missing_feature(context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented", force_skip=True)
-    @missing_feature(context.library == "ruby", reason="Probe snapshot budgets are not yet implemented", force_skip=True)
+    @missing_feature(
+        context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented", force_skip=True
+    )
+    @missing_feature(
+        context.library == "ruby", reason="Probe snapshot budgets are not yet implemented", force_skip=True
+    )
     def test_log_line_probe_snaphots_budgets(self):
         self._assert()
         self._validate_snapshots()

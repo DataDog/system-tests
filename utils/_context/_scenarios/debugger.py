@@ -1,12 +1,14 @@
+import pytest
+
 from .core import ScenarioGroup
 from .endtoend import EndToEndScenario
 
 
 class DebuggerScenario(EndToEndScenario):
-    def __init__(self, name, doc, weblog_env) -> None:
-        base_weblog_env = {
+    def __init__(self, name: str, doc: str, weblog_env: dict[str, str | None]) -> None:
+        base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
-            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "2",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
         }
 
         base_weblog_env.update(weblog_env)
@@ -19,3 +21,12 @@ class DebuggerScenario(EndToEndScenario):
             weblog_env=base_weblog_env,
             scenario_groups=[ScenarioGroup.DEBUGGER],
         )
+
+    def configure(self, config: pytest.Config):
+        super().configure(config)
+
+        library = self.weblog_container.image.labels["system-tests-library"]
+        if library == "python":
+            self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "0.1"
+        else:
+            self.weblog_container.environment["DD_DYNAMIC_INSTRUMENTATION_UPLOAD_FLUSH_INTERVAL"] = "100"
