@@ -217,6 +217,8 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
+            # the whole thing is reimplemented in python...
+            healthcheck={"test": ["NONE"]} if self.healthcheck is not None else None,
             privileged=self.privileged,
             ulimits=self.ulimits,
         )
@@ -920,7 +922,7 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
-        if library == "php":
+        if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
     def post_start(self):
@@ -1105,9 +1107,10 @@ class LocalstackContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",

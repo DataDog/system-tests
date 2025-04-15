@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
@@ -20,6 +20,7 @@
 # * Python:  Direct from github source
 # * Ruby:    Direct from github source
 # * WAF:     Direct from github source, but not working, as this repo is now private
+# * nginx:   From circle ci
 ##########################################################################################
 
 set -eu
@@ -100,20 +101,23 @@ get_circleci_artifact() {
 
     ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
     QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
-    ARTIFACT_URL=$(echo $ARTIFACTS | jq -r "$QUERY | .url")
+    readarray -t ARTIFACT_URLS < <(jq -r "$QUERY | .url" <<< "$ARTIFACTS")
 
-    if [ -z "$ARTIFACT_URL" ]; then
+    if [[ ${#ARTIFACT_URLS[@]} -eq 0 ]]; then
         echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
         echo $ARTIFACTS | jq -r ".items[] | .path"
         exit 1
     fi
+    echo "${ARTIFACT_URLS[@]}"
 
-    ARTIFACT_NAME=$(echo $ARTIFACTS | jq -r "$QUERY | .path" | sed -E 's/libs\///')
-    echo "Artifact URL: $ARTIFACT_URL"
-    echo "Artifact name: $ARTIFACT_NAME"
-    echo "Downloading artifact..."
-
-    curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
+    local aurl= aname=
+    for aurl in "${ARTIFACT_URLS[@]}"; do
+      aname="${aurl##*/}"
+      echo "Artifact URL: $aurl"
+      echo "Artifact Name: $aname"
+      echo "Downloading artifact..."
+      curl --silent -L "$aurl" --output "$aname"
+    done
 }
 
 get_github_action_artifact() {
@@ -246,8 +250,8 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
-    echo "Nowhere to load cpp_nginx from"
-    exit 1
+    ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.25.4 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev

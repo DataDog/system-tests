@@ -1,7 +1,9 @@
 #!/bin/bash
 
+backend &
+
 if [[ "${DDPROF_ENABLE:-,,}" == "yes" ]]; then
-  ddprof -l notice nginx -g 'daemon off;'
+  ddprof -l notice nginx-debug -g 'daemon off;'
 else
-  nginx -g 'daemon off;'
+  nginx-debug -g 'daemon off;'
 fi

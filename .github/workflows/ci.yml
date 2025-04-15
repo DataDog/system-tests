@@ -77,6 +77,7 @@ jobs:
         run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
         env:
           TARGET_BRANCH: "${{ steps.get-target-branch.outputs.target-branch }}"
+          CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
 
       - name: Get agent artifact
         run: ./utils/scripts/load-binary.sh agent
