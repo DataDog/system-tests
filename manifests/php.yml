@@ -388,6 +388,11 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptProfiling: v1.9.0
+      TestHostAutoInjectInstallScriptProfiling: v1.9.0
+      TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
