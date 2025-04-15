@@ -36,6 +36,22 @@ def read_memfd(test_library, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
+def get_context_tracer_version():
+    # Temporary fix for Ruby until we start to bump the version after a release
+    # This cancels a hack in system-tests framework that increments the patch version
+    # and add -dev to the version string.
+    if context.library.name == "ruby":
+        major = context.library.version.major
+        minor = context.library.version.minor
+        if "dev" in context.library.version.prerelease:
+            patch = context.library.version.patch - 1
+        else:
+            patch = context.library.version.patch
+        return Version(f"{major}.{minor}.{patch}")
+    else:
+        return context.library.version
+
+
 @scenarios.parametric
 @features.process_discovery
 class Test_ProcessDiscovery:
@@ -70,4 +86,4 @@ class Test_ProcessDiscovery:
             assert tracer_metadata["service_env"] == library_env["DD_ENV"]
 
             version = Version(tracer_metadata["tracer_version"])
-            assert context.library.version == version
+            assert version == get_context_tracer_version()

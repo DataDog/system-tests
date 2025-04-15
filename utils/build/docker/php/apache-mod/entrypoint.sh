@@ -8,7 +8,7 @@ fi
 # This is required to allow the tracer to open itself
 chmod a+rx /root
 
-SYSTEM_TESTS_LOGS=/var/log/system-tests
+export SYSTEM_TESTS_LOGS=/var/log/system-tests
 
 rm -f /tmp/ddappsec.lock
 LOGS_PHP=($SYSTEM_TESTS_LOGS/appsec.log $SYSTEM_TESTS_LOGS/helper.log $SYSTEM_TESTS_LOGS/php_error.log $SYSTEM_TESTS_LOGS/sidecar.log $SYSTEM_TESTS_LOGS/tracer.log)
@@ -40,4 +40,4 @@ export -p | sed 's@declare -x@export@' | tee /dev/stderr >> /etc/apache2/envvars
 
 service apache2 start
 
-exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "$SYSTEM_TESTS_LOGS/appsec.log" "$SYSTEM_TESTS_LOGS/helper.log"
+exec tail -f "${LOGS_PHP[@]}" "${LOGS_APACHE[@]}" "$SYSTEM_TESTS_LOGS/appsec.log" "$SYSTEM_TESTS_LOGS/helper.log" "$SYSTEM_TESTS_LOGS/php_error.log"

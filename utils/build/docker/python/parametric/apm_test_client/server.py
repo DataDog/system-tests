@@ -29,7 +29,6 @@ from opentelemetry.baggage import get_baggage
 import ddtrace
 from ddtrace import config
 from ddtrace.settings.profiling import config as profiling_config
-from ddtrace.internal.agent import config as agent_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK

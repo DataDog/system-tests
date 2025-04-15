@@ -20,5 +20,6 @@
     "trace_request_header_tags": "trace_request_header_tags",
     "trace_request_header_tags_comma_allowed": "trace_request_header_tags",
     "trace_response_header_tags": "trace_response_header_tags",
-    "trace_span_tags": "trace_span_tags"
+    "trace_span_tags": "trace_span_tags",
+    "trace_trace-config": "trace_annotation"
 }

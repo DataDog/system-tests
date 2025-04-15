@@ -198,7 +198,11 @@ def deserialize_http_message(
                     break
 
             if content_type_part.startswith("application/json"):
-                item["content"] = json.loads(part.content)
+                try:
+                    item["content"] = json.loads(part.content)
+                except json.decoder.JSONDecodeError:
+                    item["system-tests-error"] = "Can't decode json file"
+                    item["raw_content"] = repr(part.content)
 
             elif content_type_part == "application/gzip":
                 try:
@@ -332,12 +336,13 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
             data["path"], data[key], content, interface, key, export_content_files_to
         )
     except:
-        if key == "response" and data[key]["status_code"] == HTTPStatus.INTERNAL_SERVER_ERROR:
+        status_code: int = data[key]["status_code"]
+        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback
-            logger.exception(f"Error 500 in response in {data['log_filename']}, preventing deserialization")
-            data[key]["content"] = str(content)
+            logger.exception(f"Error {status_code} in response in {data['log_filename']}, preventing deserialization")
+            data[key]["content"] = repr(content)
         else:
             logger.exception(f"Error while deserializing {key} in {data['log_filename']}")
             data[key]["raw_content"] = str(content)

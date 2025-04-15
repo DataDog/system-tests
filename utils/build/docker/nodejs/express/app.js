@@ -202,7 +202,7 @@ app.post('/user_login_success_event_v2', (req, res) => {
   const userId = req.body.user_id
   const metadata = req.body.metadata
 
-  tracer.appsec.v2?.trackUserLoginSuccess(login, userId, metadata)
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata)
 
   res.send('OK')
 })
@@ -212,7 +212,7 @@ app.post('/user_login_failure_event_v2', (req, res) => {
   const exists = req.body.exists?.trim() === 'true'
   const metadata = req.body.metadata
 
-  tracer.appsec.v2?.trackUserLoginFailure(login, exists, metadata)
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata)
 
   res.send('OK')
 })

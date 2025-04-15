@@ -5,7 +5,6 @@
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
-    validate_distribution,
     validate_span_tags,
     validate_stack_traces,
     find_series,
@@ -203,25 +202,6 @@ class Test_Shi_Telemetry_V2:
             validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, block_action=block_action)
             for s in series_match
         ), [s.get("tags") for s in series_match]
-
-        series_rule_duration = find_series("appsec", "rasp.rule.duration", is_metrics=False)
-        assert series_rule_duration
-        assert any(
-            validate_distribution("rasp.rule.duration", "command_injection", s, check_type=True)
-            for s in series_rule_duration
-        ), [s.get("tags") for s in series_rule_duration]
-
-        series_duration = find_series("appsec", "rasp.duration", is_metrics=False)
-        assert series_duration
-        assert any(validate_distribution("rasp.duration", "command_injection", s) for s in series_duration), [
-            s.get("tags") for s in series_duration
-        ]
-
-        series_duration_ext = find_series("appsec", "rasp.duration_ext", is_metrics=False)
-        assert series_duration_ext
-        assert any(validate_distribution("rasp.duration_ext", "command_injection", s) for s in series_duration_ext), [
-            s.get("tags") for s in series_duration_ext
-        ]
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")

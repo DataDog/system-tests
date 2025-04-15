@@ -75,15 +75,15 @@ def main() -> None:
         print("CI_COMMIT_REF_NAME=" + ref)
         is_gilab = True
     else:
-        event_name = os.environ["GITHUB_EVENT_NAME"]
-        ref = os.environ["GITHUB_REF"]
+        event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
+        ref = os.environ.get("GITHUB_REF", "fake-branch-name")
         is_gilab = False
 
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(ScenarioGroup.ALL.value)
 
     elif event_name in ("pull_request", "push"):
-        if not is_gilab:
+        if not is_gilab and "GITHUB_PULL_REQUEST_LABELS" in os.environ:
             labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
             label_names = [label["name"] for label in labels]
             result.handle_labels(label_names)
@@ -237,7 +237,6 @@ def main() -> None:
                 for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
                         result.add_scenario_requirement(scenario_requirement)
-
                         # on first matching pattern, stop the loop
                         break
                 else:

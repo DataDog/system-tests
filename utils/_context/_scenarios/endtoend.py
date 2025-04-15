@@ -631,6 +631,12 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library > "php@1.7.3",
                 ticket="APMAPI-1270",
             ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
@@ -681,6 +687,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$.payload",
                 condition=self.library > "php@1.7.3",
                 ticket="XXX-1234",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)

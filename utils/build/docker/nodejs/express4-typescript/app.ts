@@ -16,6 +16,7 @@ const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
+const di = require('./debugger')
 
 iast.initData().catch(() => {})
 
@@ -28,6 +29,8 @@ iast.initMiddlewares(app)
 
 require('./auth')(app, tracer)
 iast.initRoutes(app)
+
+di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -176,7 +179,7 @@ app.post('/user_login_success_event_v2', (req: Request, res: Response) => {
   const userId = req.body.user_id;
   const metadata = req.body.metadata;
 
-  tracer.appsec.v2?.trackUserLoginSuccess(login, userId, metadata);
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata);
 
   res.send('OK');
 });
@@ -186,7 +189,7 @@ app.post('/user_login_failure_event_v2', (req: Request, res: Response) => {
   const exists = req.body.exists?.trim() === 'true';
   const metadata = req.body.metadata;
 
-  tracer.appsec.v2?.trackUserLoginFailure(login, exists, metadata);
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata);
 
   res.send('OK');
 });

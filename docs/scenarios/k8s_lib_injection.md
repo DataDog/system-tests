@@ -302,7 +302,7 @@ The following image ilustrates the DJM scenario:
 
 ## How to use a MiniKube implementation
 
-The K8s lib injection tests use the Kind cluster by default, but you can change this behaivour in order to use a MiniKube implemntation. To do that you only need:
+The K8s lib injection tests use the Kind cluster by default, but you can change this behaviour in order to use a MiniKube implementation. To do that you only need:
 
 * Install Minikube locally: [Install MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
 * Run the scenario adding the parameter "*--k8s-provider minikube*"

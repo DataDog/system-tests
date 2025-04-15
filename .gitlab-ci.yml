@@ -324,7 +324,7 @@ check_merge_labels:
 generate_system_tests_images:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
-
+  needs: []
   stage: system-tests-utils
   allow_failure: true
   before_script:

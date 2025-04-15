@@ -20,6 +20,10 @@ class K8sWeblog:
         "java": [{"name": "JAVA_TOOL_OPTIONS", "value": "-javaagent:/datadog-lib/dd-java-agent.jar"}],
         "js": [{"name": "NODE_OPTIONS", "value": "--require=/datadog-lib/node_modules/dd-trace/init"}],
         "ruby": [{"name": "RUBYOPT", "value": " -r/datadog-lib/auto_inject"}],
+        "php": [
+            {"name": "PHP_INI_SCAN_DIR", "value": ":/datadog-lib/linux-gnu/loader"},
+            {"name": "DD_LOADER_PACKAGE_PATH", "value": "/datadog-lib"},
+        ],
     }
 
     def __init__(self, app_image, library, library_init_image, injector_image, output_folder):

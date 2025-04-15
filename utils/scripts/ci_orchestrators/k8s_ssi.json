@@ -50,6 +50,19 @@
             ]
         },
         {
+            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
+            "weblogs": [
+                {
+                    "php": [
+                        "dd-lib-php-init-test-app"
+                    ]
+                }
+            ],
+            "cluster_agents": [
+                "latest"
+            ]
+        },
+        {
             "scenarios":  ["K8S_LIB_INJECTION_NO_AC", "K8S_LIB_INJECTION_NO_AC_UDS"],
             "weblogs": [
                 {
@@ -75,6 +88,9 @@
                         "dd-lib-ruby-init-test-rails",
                         "dd-lib-ruby-init-test-rails-explicit",
                         "dd-lib-ruby-init-test-rails-gemsrb"
+                    ],
+                    "php": [
+                        "dd-lib-php-init-test-app"
                     ]
                 }
             ]
