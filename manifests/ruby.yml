@@ -200,6 +200,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_BodyUrlEncoded:
           "*": v2.14.0
           sinatra14: irrelevant
@@ -211,6 +212,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
           "*": v2.14.1-dev
@@ -223,6 +225,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Mandatory_SpanTags:
           "*": v2.14.0
           sinatra14: irrelevant
@@ -234,6 +237,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Optional_SpanTags:
           "*": v2.14.0
           sinatra14: irrelevant
@@ -245,6 +249,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
         Test_Sqli_StackTrace:
           "*": v2.14.0
@@ -257,6 +262,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Telemetry:
           "*": v2.14.0
           sinatra14: irrelevant
@@ -268,6 +274,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           "*": v2.14.0
@@ -280,6 +287,7 @@ tests/:
           sinatra32: irrelevant
           sinatra40: irrelevant
           uds-sinatra: irrelevant
+          rack: irrelevant
         Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
       test_ssrf.py: missing_feature
     waf/:
