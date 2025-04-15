@@ -53,7 +53,7 @@ Rails.application.routes.draw do
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
 
   namespace :rasp do
-    resource :sqli, only: %i[show create]
+    resource :sqli, only: %i[show create], controller: 'sqli'
   end
 
   get '/sample_rate_route/:i' => 'system_test#sample_rate_route'

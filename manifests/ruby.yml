@@ -190,7 +190,7 @@ tests/:
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
-          "*": v2.12.3-dev
+          "*": v2.12.3
           sinatra14: irrelevant
           sinatra20: irrelevant
           sinatra21: irrelevant
