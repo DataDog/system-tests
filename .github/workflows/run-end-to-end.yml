@@ -186,6 +186,9 @@ jobs:
     - name: Run RUNTIME_METRICS_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
       run: ./run.sh RUNTIME_METRICS_ENABLED
+    - name: Run TRACING_CONFIG_EMPTY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_EMPTY"')
+      run: ./run.sh TRACING_CONFIG_EMPTY
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
