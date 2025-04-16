@@ -1,13 +1,7 @@
-class RASP::SSRFController < ApplicationController
+class RaspSsrfController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def show
-    perform_http_request(params.fetch(:domain))
-
-    head :ok
-  end
-
-  def create
     perform_http_request(params.fetch(:domain))
 
     head :ok

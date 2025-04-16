@@ -40,9 +40,8 @@ Rails.application.routes.draw do
   get '/rasp/sqli' => 'system_test#rasp_sqli'
   post '/rasp/sqli' => 'system_test#rasp_sqli'
 
-  namespace :rasp do
-    resource :ssrf, only: %i[show create], controller: 'ssrf'
-  end
+  get '/rasp/ssrf' => 'rasp_ssrf#show'
+  post '/rasp/ssrf' => 'rasp_ssrf#show'
 
   get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
 end
