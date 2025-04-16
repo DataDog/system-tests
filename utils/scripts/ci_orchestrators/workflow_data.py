@@ -330,6 +330,10 @@ def _split_jobs_for_parallel_execution(
 
 def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
     total_execution_time = sum(scenario_times.values())
+
+    # 1 minute minimum, almost no scenario will be less than that
+    desired_execution_time = max(desired_execution_time, 60)
+
     backpack_count = int(total_execution_time / desired_execution_time) + 1
     backpack_average_time = total_execution_time / backpack_count
 
