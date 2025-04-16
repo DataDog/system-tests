@@ -1,11 +1,7 @@
-class RASP::SQLIController < ApplicationController
+class RaspSqliController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def show
-    render plain: "DB request with #{users.size} results"
-  end
-
-  def create
     render plain: "DB request with #{users.size} results"
   end
 

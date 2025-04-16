@@ -52,9 +52,8 @@ Rails.application.routes.draw do
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
 
-  namespace :rasp do
-    resource :sqli, only: %i[show create], controller: 'sqli'
-  end
+  get '/rasp/sqli' => 'rasp_sqli#show'
+  post '/rasp/sqli' => 'rasp_sqli#show'
 
   get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
 end
