@@ -619,7 +619,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
         [
-            ["-Darg1"]
+            ["-Darg1=value"]
         ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
     )
     def test_process_arguments(self, library_env, test_agent, test_library):
@@ -636,7 +636,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                                     "operator": "exists",
                                 }
                             ],
-                            "configuration": {"DD_SERVICE": "my-service"},
+                            "configuration": {"DD_SERVICE": "{{process_arguments['-Darg1']}}"},
                         }
                     ]
                 },
@@ -646,5 +646,5 @@ class Test_Stable_Config_Default(StableConfigWriter):
             test_library.container_restart()
             config = test_library.config()
             assert (
-                config["dd_service"] == "my-service"
-            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+                config["dd_service"] == "value"
+            ), f"Service name is '{config["dd_service"]}' instead of 'value'"
