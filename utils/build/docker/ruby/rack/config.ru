@@ -238,7 +238,7 @@ module RequestDownstream
 
     [200, { 'Content-Type' => 'application/json' }, [response.body]]
   end
-module
+end
 
 # /returnheaders
 module ReturnHeaders
