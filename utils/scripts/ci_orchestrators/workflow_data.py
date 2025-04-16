@@ -452,7 +452,6 @@ if __name__ == "__main__":
     m = {
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
-            "APM_TRACING_E2E",
             "APM_TRACING_E2E_OTEL",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
