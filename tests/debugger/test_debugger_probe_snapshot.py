@@ -161,7 +161,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
             if resource == "GET /healthcheck" and resource_type == "web":
                 code_origin_type = span["meta"].get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
-                
+
         assert code_origins_entry_found
 
     def setup_log_line_probe_snaphots_budgets(self):
