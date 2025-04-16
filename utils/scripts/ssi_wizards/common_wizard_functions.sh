@@ -48,7 +48,7 @@ ask_for_test_language() {
         echo "3) Python"
         echo "4) .NET"
         echo "5) Ruby (not supported by docker-ssi)"
-        echo "6) PHP (not supported by k8s)"
+        echo "6) PHP"
 
         while true; do
             read -p "Enter the number of your choice (1-6): " choice

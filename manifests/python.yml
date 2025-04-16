@@ -1056,6 +1056,7 @@ tests/:
       '*': v0.1  # actual version unknown
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v2.8.0
@@ -1094,7 +1095,7 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
-    Test_ProductsDisabled: missing_feature
+    Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3
