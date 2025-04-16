@@ -175,3 +175,13 @@ def test_library_version():
     assert v < "java@0.94.1"
 
     assert ComponentVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+
+    v2 = ComponentVersion("php", "1.9.0-7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")
+    v3 = ComponentVersion("php", "1.9.0")
+    v4 = ComponentVersion("php", "1.8.9")
+    v5 = ComponentVersion("php", "1.9.0+7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")
+
+    assert v3 == "php@v1.9.0"
+    assert v3 <= v2
+    assert v3 <= v5
+    assert v4 < v2

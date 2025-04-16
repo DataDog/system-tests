@@ -101,6 +101,7 @@ class ComponentVersion:
 
             elif name == "php":
                 version = version.replace("-nightly", "")
+                version = version.replace("-", "+")
 
             self.version = Version(version)
 

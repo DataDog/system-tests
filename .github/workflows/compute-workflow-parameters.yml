@@ -76,9 +76,9 @@ on:
       ci_environment:
         description: ""
         value: ${{ jobs.main.outputs.ci_environment }}
-      artifact_name:
+      binaries_artifact:
         description: ""
-        value: ${{ jobs.main.outputs.artifact_name }}
+        value: ${{ jobs.main.outputs.binaries_artifact }}
 
 jobs:
   main:
@@ -97,7 +97,7 @@ jobs:
       endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}  # legacy
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
-      artifact_name: ${{ steps.main.outputs.miscs_artifact_name }}
+      binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -114,7 +114,7 @@ jobs:
           -g "${{ inputs.scenarios_groups }}" \
           -t ${{ inputs.desired_execution_time }} \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --explicit-artifact-name "${{ inputs.binaries_artifact }}" \
+          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
           --output $GITHUB_OUTPUT
     - name: log
@@ -125,7 +125,7 @@ jobs:
           -g "${{ inputs.scenarios_groups }}" \
           -t ${{ inputs.desired_execution_time }} \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --explicit-artifact-name "${{ inputs.binaries_artifact }}" \
+          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
           --format json | jq
 
