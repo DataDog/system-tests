@@ -30,7 +30,7 @@ class CiData:
         groups: str,
         parametric_job_count: int,
         desired_execution_time: int,
-        explicit_artifact_name: str,
+        explicit_binaries_artifact: str,
         system_tests_dev_mode: bool,
         ci_environment: str | None,
     ):
@@ -44,10 +44,10 @@ class CiData:
             self.ci_environment = ci_environment
         elif system_tests_dev_mode:
             self.ci_environment = "dev"
-            self.data["miscs"]["artifact_name"] = f"binaries_dev_{library}"
-        elif len(explicit_artifact_name) != 0:
+            self.data["miscs"]["binaries_artifact"] = f"binaries_dev_{library}"
+        elif len(explicit_binaries_artifact) != 0:
             self.ci_environment = "custom"
-            self.data["miscs"]["artifact_name"] = explicit_artifact_name
+            self.data["miscs"]["binaries_artifact"] = explicit_binaries_artifact
         else:
             self.ci_environment = "prod"
 
@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     # Misc
     parser.add_argument(
-        "--explicit-artifact-name", type=str, help="If an artifact name is explicitly provided", default=""
+        "--explicit-binaries-artifact", type=str, help="If an artifact for binaries is explicitly provided", default=""
     )
     parser.add_argument(
         "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
@@ -259,7 +259,7 @@ if __name__ == "__main__":
         groups=args.groups,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
-        explicit_artifact_name=args.explicit_artifact_name,
+        explicit_binaries_artifact=args.explicit_binaries_artifact,
         system_tests_dev_mode=args.system_tests_dev_mode == "true",
         ci_environment=args.ci_environment,
     ).export(export_format=args.format, output=args.output)
