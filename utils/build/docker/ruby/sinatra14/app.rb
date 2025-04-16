@@ -14,7 +14,7 @@ end
 Datadog.configure do |c|
   c.diagnostics.debug = true
 
-  c.use :sinatra, service_name: ENV['DD_SERVICE'] || 'sinatra' unless c.respond_to?(:tracing)
+  c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
 
 require 'rack/contrib/post_body_content_type_parser'
