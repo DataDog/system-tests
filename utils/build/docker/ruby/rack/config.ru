@@ -4,6 +4,7 @@ require 'pry'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'faraday'
 
 # tracer configuration of Rack integration
 
@@ -78,7 +79,7 @@ class Healthcheck
       [response.to_json]
     ]
   end
-end  
+end
 
 # /spans
 class Spans
@@ -261,7 +262,7 @@ end
 class SSRFHandler
   def self.run(request)
     url = URI.parse(request.params['domain'])
-    url = "https://#{url}" unless url.scheme
+    url = "http://#{url}" unless url.scheme
 
     Faraday.get(url)
 
@@ -275,10 +276,10 @@ require 'datadog/tracing/span_event'
 
 # /add_event
 class AddEvent
-  def self.run(request)
+  def self.run(_request)
     Datadog::Tracing.active_span.span_events << Datadog::Tracing::SpanEvent.new(
-                'span.event', attributes: { string: 'value', int: 1 }
-              )
+      'span.event', attributes: { string: 'value', int: 1 }
+    )
 
     [200, { 'Content-Type' => 'application/json' }, ['Event added']]
   end

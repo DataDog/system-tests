@@ -3,6 +3,7 @@ require 'sinatra'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'faraday'
 
 begin
   require 'datadog/auto_instrument'
@@ -227,7 +228,7 @@ end
 
 ssrf_handler = lambda do
   url = URI.parse(request.params['domain'])
-  url = "https://#{url}" unless url.scheme
+  url = "http://#{url}" unless url.scheme
 
   Faraday.get(url)
 
