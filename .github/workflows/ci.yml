@@ -83,9 +83,8 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.library }}
-      scenarios: TRACING_CONFIG_EMPTY,DEFAULT,TRACING_CONFIG_NONDEFAULT,TRACING_CONFIG_NONDEFAULT_2,TRACING_CONFIG_NONDEFAULT_3,TRACING_CONFIG_NONDEFAULT_4,RUNTIME_METRICS_ENABLED
-      # scenarios: ${{ needs.scenarios.outputs.scenarios }}
-      # scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
+      scenarios: ${{ needs.scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
