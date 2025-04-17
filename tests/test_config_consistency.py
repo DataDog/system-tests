@@ -522,7 +522,6 @@ class Test_Config_LogInjection_Enabled:
         self.message = "Test_Config_LogInjection_Enabled.test_log_injection_enabled"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
-    # @bug(context.library == "php", reason="TODO")  # service is missing
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
         msg = parse_log_injection_message(self.message)
@@ -533,7 +532,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.name in ("java", "python", "ruby"):
+        if context.library.name in ("java", "python", "ruby", "php"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
         elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
@@ -781,15 +780,38 @@ def get_runtime_metrics(agent):
 def parse_log_injection_message(log_message) -> dict:
     # Parses the JSON-formatted log message from stdout and returns it
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
+
+    # check that we didn't found more than one logs
     results = []
+
+    # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
+    processed_raws: set[str] = set()
 
     regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
     regex_pattern_json = re.compile(r"({.*})")
 
     for data in stdout.get_data():
-        logs = data.get("raw").split("\n")
+        raw: str = data.get("raw")
+
+        if raw in processed_raws:  # check if we already processed this log
+            continue
+        processed_raws.add(raw)
+
+        logs = raw.split("\n")
+
         for log in logs:
-            if context.library in ("python", "ruby"):
+            if context.library == "php":
+                matches = regex_pattern_json.search(log)
+                if matches is None:
+                    continue
+
+                message = json.loads(matches.group(1))
+                if message.get("message") == log_message:
+                    logger.debug(f"Found log: {data}")
+                    results.append(message)
+                    break
+
+            elif context.library in ("python", "ruby"):
                 # Extract key-value pairs and messages
                 match = regex_pattern_raw.search(log)
                 if match:
@@ -800,27 +822,28 @@ def parse_log_injection_message(log_message) -> dict:
                     logger.debug(f"Found log: {data}")
                     results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
                     break
-            try:
-                # Extract the JSON string from the log. This matches the contents between the first and last bracket.
-                json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
-                message = json.loads(json_string)
-            except Exception:  # noqa: S112
-                continue
-            # Locate log with the custom message, which should have the trace ID and span ID
-            if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
-                continue
+            else:
+                try:
+                    # Extract the JSON string from the log. This matches the contents between the first and last bracket.
+                    json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
+                    message = json.loads(json_string)
+                except Exception:  # noqa: S112
+                    continue
+                # Locate log with the custom message, which should have the trace ID and span ID
+                if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
+                    continue
 
-            if message.get("dd"):
-                logger.debug(f"Found log: {data}")
-                results.append(message.get("dd"))
-            elif context.library.name == "java":
-                # dd-trace-java stores injected trace information under the "mdc" key
-                logger.debug(f"Found log: {data}")
-                results.append(message.get("mdc"))
-            elif context.library.name == "dotnet":
-                # dd-trace-dotnet stores trace info directly in the message
-                logger.debug(f"Found log: {data}")
-                results.append(message)
+                if message.get("dd"):
+                    logger.debug(f"Found log: {data}")
+                    results.append(message.get("dd"))
+                elif context.library.name == "java":
+                    # dd-trace-java stores injected trace information under the "mdc" key
+                    logger.debug(f"Found log: {data}")
+                    results.append(message.get("mdc"))
+                elif context.library.name == "dotnet":
+                    # dd-trace-dotnet stores trace info directly in the message
+                    logger.debug(f"Found log: {data}")
+                    results.append(message)
 
     if len(results) > 1:
         raise ValueError(f"Found more than one message with {log_message}")
