@@ -551,7 +551,7 @@ class Test_Config_LogInjection_Default:
     """Verify log injection is disabled by default"""
 
     def setup_log_injection_default(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_default(self):
@@ -630,7 +630,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_new_traceid(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_new_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_new_traceid(self):
@@ -648,7 +648,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
             "x-datadog-tags": "_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
     def test_incoming_64bit_traceid(self):
@@ -666,7 +666,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
             "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_incoming_128bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
     def test_incoming_128bit_traceid(self):
@@ -823,7 +823,7 @@ def parse_log_injection_message(log_message) -> dict:
                 results.append(message)
 
     if len(results) > 1:
-        raise ValueError("Found more than one message")
+        raise ValueError(f"Found more than one message with {log_message}")
 
     if len(results) == 0:
         raise ValueError(f"Did not find any log with {log_message}")
