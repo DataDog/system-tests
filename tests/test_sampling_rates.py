@@ -166,6 +166,12 @@ class Test_SamplingDecisions:
             sampling_decision = priority_should_be_kept(sampling_priority)
             expected_decision = trace_should_be_kept(context.tracer_sampling_rate, root_span["trace_id"])
             if sampling_decision != expected_decision:
+                if sampling_decision and root_span["meta"].get("_dd.p.dm") == "-5":
+                    # If the decision maker is set to -5, it means that the trace has been sampled due
+                    # to AppSec, it should not impact this test and should be ignored.
+                    # In this case it is most likely the Healthcheck as it is the first request
+                    # and AppSec WAF always samples the first request.
+                    return
                 raise ValueError(
                     f"Trace id {root_span['trace_id']}, sampling priority {sampling_priority}, "
                     f"sampling decision {sampling_decision} differs from the expected {expected_decision}"
@@ -181,9 +187,7 @@ class Test_SamplingDecisionAdded:
     def setup_sampling_decision_added(self):
         seed(1)  # stay deterministic
 
-        self.traces = [
-            {"trace_id": randint(1, MAX_UINT64), "parent_id": randint(1, MAX_UINT64)} for _ in range(20)
-        ]
+        self.traces = [{"trace_id": randint(1, MAX_UINT64), "parent_id": randint(1, MAX_UINT64)} for _ in range(20)]
 
         for trace in self.traces:
             weblog.get(
