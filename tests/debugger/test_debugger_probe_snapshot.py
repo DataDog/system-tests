@@ -4,11 +4,8 @@
 
 import time
 import tests.debugger.utils as debugger
-import logging
 
-from utils import scenarios, features, missing_feature, context, rfc
-
-logger = logging.getLogger(__name__)
+from utils import scenarios, features, missing_feature, context, rfc, logger
 
 
 @features.debugger
