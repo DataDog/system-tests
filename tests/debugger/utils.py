@@ -333,7 +333,7 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
-    def wait_for_code_origin_span(self, timeout: int) -> bool:
+    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
 
         interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
