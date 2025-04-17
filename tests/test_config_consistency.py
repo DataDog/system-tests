@@ -519,14 +519,13 @@ class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
     def setup_log_injection_enabled(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_Enabled.test_log_injection_enabled"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     # @bug(context.library == "php", reason="TODO")  # service is missing
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
         msg = parse_log_injection_message(self.message)
-        assert msg is not None, "Log message with trace context not found"
 
         tid = parse_log_trace_id(msg)
         assert tid is not None, "Expected a trace ID, but got None"
@@ -779,7 +778,7 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-def parse_log_injection_message(log_message):
+def parse_log_injection_message(log_message) -> dict:
     # Parses the JSON-formatted log message from stdout and returns it
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
     results = []
@@ -814,18 +813,25 @@ def parse_log_injection_message(log_message):
             if message.get("dd"):
                 logger.debug(f"Found log: {data}")
                 results.append(message.get("dd"))
-            # dd-trace-java stores injected trace information under the "mdc" key
             elif context.library.name == "java":
+                # dd-trace-java stores injected trace information under the "mdc" key
                 logger.debug(f"Found log: {data}")
                 results.append(message.get("mdc"))
+            elif context.library.name == "dotnet":
+                # dd-trace-dotnet stores trace info directly in the message
+                logger.debug(f"Found log: {data}")
+                results.append(message)
 
     if len(results) > 1:
         raise ValueError("Found more than one message")
 
-    return results[0] if len(results) == 1 else None
+    if len(results) == 0:
+        raise ValueError(f"Did not find any log with {log_message}")
+
+    return results[0]
 
 
-def parse_log_trace_id(message):
+def parse_log_trace_id(message: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
     return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))
