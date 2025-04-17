@@ -215,6 +215,7 @@
     "DD_TRACE_AWS_ADD_SPAN_POINTERS": "trace_aws_add_span_pointers",
     "DD_TRACE_BAGGAGE_MAX_BYTES": "trace_baggage_max_bytes",
     "DD_TRACE_BAGGAGE_MAX_ITEMS": "trace_baggage_max_items",
+    "DD_TRACE_BAGGAGE_TAG_KEYS": "trace_baggage_tag_keys",
     "DD_TRACE_BATCH_INTERVAL": "trace_serialization_batch_interval",
     "DD_TRACE_BUFFER_SIZE": "trace_serialization_buffer_size",
     "DD_TRACE_BYPASS_HTTP_REQUEST_URL_CACHING_ENABLED": "trace_bypass_http_request_url_caching_enabled",
