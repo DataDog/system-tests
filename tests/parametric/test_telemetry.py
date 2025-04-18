@@ -450,7 +450,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "config_id"),
         [
             (
                 {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
@@ -465,11 +465,12 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                     # "runtime_metrics_enabled": "env_var",
                     "profiling_enabled": "local_stable_config",
                 },
+                "1231231231231",
             )
         ],
     )
     def test_stable_configuration_origin(
-        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin, config_id
     ):
         with test_library:
             self.write_stable_config(
@@ -482,6 +483,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             self.write_stable_config(
                 {
                     "apm_configuration_default": fleet_cfg,
+                    "config_id": config_id,
                 },
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
@@ -495,6 +497,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             telemetry_item = configuration[apm_telemetry_name]
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
+            if telemetry_item["origin"] == "fleet_stable_config":
+                assert telemetry_item["config_id"] == config_id
+            else:
+                assert "config_id" not in telemetry_item
 
 
 DEFAULT_ENVVARS = {
