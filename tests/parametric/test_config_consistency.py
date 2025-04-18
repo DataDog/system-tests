@@ -382,7 +382,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library != "php"
     else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false",
+    "dd_logs_injection": "false" if context.library != "java" else "true",
 }
 
 
@@ -581,7 +581,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
         reason="UST stable config is phase 2",
     )
     def test_config_stable(self, library_env, test_agent, test_library):
@@ -589,13 +589,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
         with test_library:
             self.write_stable_config(
                 {
-                    "rules": [
+                    "apm_configuration_rules": [
                         {
                             "selectors": [
                                 {
                                     "origin": "environment_variables",
-                                    "matches": ["STABLE_CONFIG_SELECTOR=true"],
+                                    "key": "STABLE_CONFIG_SELECTOR",
                                     "operator": "equals",
+                                    "matches": ["true"],
                                 }
                             ],
                             "configuration": {"DD_SERVICE": "my-service"},
@@ -610,3 +611,40 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert (
                 config["dd_service"] == "my-service"
             ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        reason="UST stable config is phase 2",
+    )
+    @pytest.mark.parametrize(
+        "library_extra_command_arguments",
+        [
+            ["-Darg1=value"]
+        ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
+    )
+    def test_process_arguments(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_rules": [
+                        {
+                            "selectors": [
+                                {
+                                    "origin": "process_arguments",
+                                    "key": "-Darg1",
+                                    "operator": "exists",
+                                }
+                            ],
+                            "configuration": {"DD_SERVICE": "{{process_arguments['-Darg1']}}"},
+                        }
+                    ]
+                },
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert (
+                config["dd_service"] == "value"
+            ), f"Service name is '{config["dd_service"]}' instead of 'value'"
