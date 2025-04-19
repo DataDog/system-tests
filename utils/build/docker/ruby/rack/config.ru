@@ -52,15 +52,19 @@ else
 end
 
 # /
-class Hello
-  def self.run
+module Hello
+  module_function
+
+  def run
     [200, { 'Content-Type' => 'text/plain' }, ['Hello, wat is love?']]
   end
 end
 
 # /healthcheck
-class Healthcheck
-  def self.run
+module Healthcheck
+  module_function
+
+  def run
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
@@ -78,11 +82,13 @@ class Healthcheck
       [response.to_json]
     ]
   end
-end  
+end
 
 # /spans
-class Spans
-  def self.run(request)
+module Spans
+  module_function
+
+  def run(request)
     repeats = Integer(request.params['repeats'] || 0)
     garbage = Integer(request.params['garbage'] || 0)
 
@@ -101,8 +107,10 @@ class Spans
 end
 
 # /headers
-class Headers
-  def self.run
+module Headers
+  module_function
+
+  def run
     [
       200,
       { 'Content-Type' => 'text/plain', 'Content-Length' => '42', 'Content-Language' => 'en-US' },
@@ -126,9 +134,11 @@ class Identify
   end
 end
 
-# contains /status
-class Status
-  def self.run(request)
+# /status
+module Status
+  module_function
+
+  def run(request)
     code = Integer(request.params['code'] || 200)
 
     [code, { 'Content-Type' => 'text/plain' }, ['Ok']]
@@ -138,8 +148,10 @@ class Status
 end
 
 # /make_distant_call
-class MakeDistantCall
-  def self.run(request)
+module MakeDistantCall
+  module_function
+
+  def run(request)
     url = request.params['url']
     uri = URI(url)
     request = nil
@@ -163,8 +175,10 @@ class MakeDistantCall
 end
 
 # /user_login_success_event
-class UserLoginSuccessEvent
-  def self.run
+module UserLoginSuccessEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: { id: 'system_tests_user' }, metadata0: 'value0', metadata1: 'value1'
     )
@@ -174,8 +188,10 @@ class UserLoginSuccessEvent
 end
 
 # /user_login_failure_event
-class UserLoginFailureEvent
-  def self.run
+module UserLoginFailureEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track_login_failure(
       Datadog::Tracing.active_trace,
       user_id: 'system_tests_user',
@@ -189,8 +205,10 @@ class UserLoginFailureEvent
 end
 
 # /custom_event
-class CustomEvent
-  def self.run
+module CustomEvent
+  module_function
+
+  def run
     Datadog::Kit::AppSec::Events.track('system_tests_event',
                                        Datadog::Tracing.active_trace,
                                        metadata0: 'value0',
@@ -201,8 +219,10 @@ class CustomEvent
 end
 
 # /requestdownstream
-class RequestDownstream
-  def self.run
+module RequestDownstream
+  module_function
+
+  def run
     uri = URI('http://localhost:7777/returnheaders')
     request = nil
     response = nil
@@ -218,8 +238,10 @@ class RequestDownstream
 end
 
 # /returnheaders
-class ReturnHeaders
-  def self.run(request)
+module ReturnHeaders
+  module_function
+
+  def run(request)
     request_headers = request.each_header.to_h.select do |k, _v|
       k.start_with?('HTTP_') || k == 'CONTENT_TYPE' || k == 'CONTENT_LENGTH'
     end
@@ -232,8 +254,10 @@ class ReturnHeaders
 end
 
 # contains tag_value
-class TagValue
-  def self.run(request)
+module TagValue
+  module_function
+
+  def run(request)
     tag_value, status_code = request.path.split('/').select { |p| !p.empty? && p != 'tag_value' }
     trace = Datadog::Tracing.active_trace
     trace.set_tag('appsec.events.system_tests_appsec_event.value', tag_value)
@@ -247,8 +271,10 @@ class TagValue
 end
 
 # contains /users
-class Users
-  def self.run(request)
+module Users
+  module_function
+
+  def run(request)
     user_id = request.params['user']
 
     Datadog::Kit::Identity.set_user(id: user_id)
@@ -262,19 +288,23 @@ end
 require 'datadog/tracing/span_event'
 
 # /add_event
-class AddEvent
-  def self.run(request)
+module AddEvent
+  module_function
+
+  def run(_request)
     Datadog::Tracing.active_span.span_events << Datadog::Tracing::SpanEvent.new(
-                'span.event', attributes: { string: 'value', int: 1 }
-              )
+      'span.event', attributes: { string: 'value', int: 1 }
+    )
 
     [200, { 'Content-Type' => 'application/json' }, ['Event added']]
   end
 end
 
 # any other route
-class NotFound
-  def self.run
+module NotFound
+  module_function
+
+  def run
     [404, { 'Content-Type' => 'text/plain' }, ['not found']]
   end
 end

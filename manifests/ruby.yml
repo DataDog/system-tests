@@ -190,37 +190,105 @@ tests/:
       test_shi.py: missing_feature
       test_sqli.py:
         Test_Sqli_BodyJson:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.12.3
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_BodyUrlEncoded:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.1-dev
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_Mandatory_SpanTags:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_Optional_SpanTags:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Rules_Version:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
         Test_Sqli_StackTrace:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_Telemetry:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
         Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
-        Test_Sqli_Waf_Version:
-          "*": missing_feature
-          rails42: bug (APPSEC-56765)  # ActiveRecord instrumentation with Rails < 5 and Ruby < 2.7 not working due to kwargs
+          "*": v2.14.0
+          rack: irrelevant
+          sinatra14: irrelevant
+          sinatra20: irrelevant
+          sinatra21: irrelevant
+          sinatra22: irrelevant
+          sinatra30: irrelevant
+          sinatra31: irrelevant
+          sinatra32: irrelevant
+          sinatra40: irrelevant
+          uds-sinatra: irrelevant
+        Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
       test_ssrf.py: missing_feature
     waf/:
       test_addresses.py:
