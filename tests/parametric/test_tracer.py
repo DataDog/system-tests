@@ -4,10 +4,11 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils.parametric.spec.trace import find_root_span
+from utils.parametric.spec.trace import find_child_spans
 from utils import missing_feature, context, rfc, scenarios, features
 
 from .conftest import _TestAgentAPI
-from .conftest import APMLibrary
+from .conftest import APMLibrary, APMLibraryV2
 
 
 parametrize = pytest.mark.parametrize
@@ -41,6 +42,46 @@ class Test_Tracer:
         assert root_span["type"] == "web"
         assert root_span["metrics"]["number"] == 10
         child_span = find_span(trace, child.span_id)
+        assert child_span["name"] == "operation.child"
+        assert child_span["meta"]["key"] == "val"
+
+
+@scenarios.parametric
+@features.trace_annotation
+class Test_Tracer_V2:
+    @missing_feature(context.library == "cpp", reason="metrics cannot be set manually")
+    @missing_feature(context.library == "nodejs", reason="nodejs overrides the manually set service name")
+    def test_tracer_span_top_level_attributes(self, test_agent: _TestAgentAPI, test_library_v2: APMLibraryV2) -> None:
+        """Do a simple trace to ensure that the test client is working properly."""
+        # We will do all of the commands ourselves
+        with test_library_v2:
+            test_library_v2.dd_start_active_span(
+                "operation", service="my-webserver", resource="/endpoint", typestr="web"
+            )
+            test_library_v2.dd_set_current_span_metric("number", 10)
+            
+            test_library_v2.dd_start_active_span("operation.child")
+            test_library_v2.dd_set_current_span_meta("key", "val")
+            # close the "operation.child span"
+            test_library_v2.dd_finish_active_span()
+
+            # close the "operation span"
+            test_library_v2.dd_finish_active_span()
+
+        traces = test_agent.wait_for_num_traces(1, sort_by_start=False)
+        trace = traces[0]
+        assert len(trace) == 2
+
+        root_span = find_root_span(trace)
+        assert root_span["name"] == "operation"
+        assert root_span["service"] == "my-webserver"
+        assert root_span["resource"] == "/endpoint"
+        assert root_span["type"] == "web"
+        assert root_span["metrics"]["number"] == 10
+
+        child_spans = find_child_spans(trace, root_span.get("span_id"))
+        assert len(child_spans) == 1
+        child_span = child_spans[0]
         assert child_span["name"] == "operation.child"
         assert child_span["meta"]["key"] == "val"
 

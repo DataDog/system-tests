@@ -27,6 +27,8 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+
+        app.MapPost("/parametric", HandleParametric);
     }
 
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
@@ -235,6 +237,113 @@ public abstract class ApmTestApi
 
         _logger?.LogInformation("Finished span {spanId}.", span.SpanId);
     }
+
+    private static async Task HandleParametric(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+
+        foreach (var command in requestJson.EnumerateArray())
+        {
+            var commandType = command.GetProperty("command").GetString();
+            switch (commandType)
+            {
+                case "dd_start_active_span":
+                    _logger?.LogError("Called dd_start_active_span");
+                    HandleDdStartActiveSpan(command);
+                    break;
+                case "dd_set_current_span_metric":
+                    _logger?.LogError("Called dd_set_current_span_metric");
+                    HandleDdSetCurrentSpanMetric(command);
+                    break;
+                case "dd_set_current_span_meta":
+                    _logger?.LogError("Called dd_set_current_span_meta");
+                    HandleDdSetCurrentSpanMeta(command);
+                    break;
+                case "dd_finish_active_span":
+                    _logger?.LogError("Called dd_finish_active_span");
+                    HandleDdFinishActiveSpan(command);
+                    break;
+                case "dd_flush":
+                    _logger?.LogError("Called dd_flush");
+                    await HandleDdFlush(command);
+                    break;
+                default:
+                    _logger?.LogError("Unknown command: {command}.", commandType);
+                    break;
+            }
+        }
+    }
+
+    private static void HandleDdStartActiveSpan(JsonElement command)
+    {
+        string? operationName = null;
+        if (command.TryGetProperty("name", out var nameProperty))
+        {
+            operationName = nameProperty.GetString();
+        }
+
+        // Start span but do not close it automatically, it will be closed manually
+        var scope = Tracer.Instance.StartActive(operationName ?? "");
+        if (command.TryGetProperty("service", out var service) && service.ValueKind != JsonValueKind.Null)
+        {
+            scope.Span.ServiceName = service.GetString();
+        }
+
+        if (command.TryGetProperty("resource", out var resource) && service.ValueKind != JsonValueKind.Null)
+        {
+            scope.Span.ResourceName = resource.GetString();
+        }
+
+        if (command.TryGetProperty("type", out var type) && type.ValueKind != JsonValueKind.Null)
+        {
+            scope.Span.Type = type.GetString();
+        }
+
+        if (command.TryGetProperty("span_tags", out var tags) && tags.ValueKind != JsonValueKind.Null)
+        {
+            foreach (var tag in tags.EnumerateArray())
+            {
+                var key = tag[0].GetString()!;
+                var value = tag[1].GetString();
+
+                scope.Span.SetTag(key, value);
+            }
+        }
+
+        _logger?.LogError("Finished dd_start_active_span with TraceId={traceId}, SpanId={spanId}", scope.Span.TraceId, scope.Span.SpanId);
+    }
+
+    private static void HandleDdSetCurrentSpanMetric(JsonElement command)
+    {
+        var key = command.GetProperty("key").GetString();
+        var value = command.GetProperty("value").GetDouble();
+
+        if (key is null)
+        {
+            _logger?.LogError("Unable to set span metric: key or value is null in request json. Key={key}, Value={value}", key, value);
+            return;
+        }   
+
+        Tracer.Instance.ActiveScope.Span.SetTag(key, value);
+    }
+
+    private static void HandleDdSetCurrentSpanMeta(JsonElement command)
+    {
+        var key = command.GetProperty("key").GetString();
+        var value = command.GetProperty("value").GetString();
+
+        if (key is null || value is null)
+        {
+            _logger?.LogError("Unable to set span tag: key or value is null in request json. Key={key}, Value={value}", key, value);
+            return;
+        }
+
+        Tracer.Instance.ActiveScope.Span.SetTag(key, value);
+    }
+
+    private static void HandleDdFinishActiveSpan(JsonElement command) => Tracer.Instance.ActiveScope.Dispose();
+
+    private static async Task HandleDdFlush(JsonElement command) => await Tracer.Instance.ForceFlushAsync();
 
     private static string Crash(HttpRequest request)
     {

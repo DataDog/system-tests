@@ -22,7 +22,7 @@ from utils.parametric.spec import remoteconfig
 from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
-from utils.parametric._library_client import APMLibrary, APMLibraryClient
+from utils.parametric._library_client import APMLibrary, APMLibraryClient, APMLibraryV2
 
 from utils import context, scenarios, logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
@@ -753,6 +753,57 @@ def test_library(
         )
 
         tracer = APMLibrary(client, apm_test_server.lang)
+        yield tracer
+
+@pytest.fixture
+def test_library_v2(
+    worker_id: str,
+    docker_network: str,
+    test_agent_port: str,
+    test_agent_container_name: str,
+    apm_test_server: APMLibraryTestServer,
+    test_server_log_file: TextIO,
+) -> Generator[APMLibraryV2, None, None]:
+    env = {
+        "DD_TRACE_DEBUG": "true",
+        "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
+        "DD_AGENT_HOST": test_agent_container_name,
+        "DD_TRACE_AGENT_PORT": test_agent_port,
+        "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
+        "DD_TRACE_OTEL_ENABLED": "true",
+    }
+    for k, v in apm_test_server.env.items():
+        # Don't set env vars with a value of None
+        if v is not None:
+            env[k] = v
+        elif k in env:
+            del env[k]
+
+    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
+
+    with scenarios.parametric.docker_run(
+        image=apm_test_server.container_tag,
+        name=apm_test_server.container_name,
+        command=apm_test_server.container_cmd,
+        env=env,
+        host_port=apm_test_server.host_port,
+        container_port=apm_test_server.container_port,
+        volumes=apm_test_server.volumes,
+        log_file=test_server_log_file,
+        network=docker_network,
+    ) as container:
+        apm_test_server.container = container
+
+        test_server_timeout = 60
+
+        if apm_test_server.host_port is None:
+            raise RuntimeError("Internal error, no port has been assigned", 1)
+
+        client = APMLibraryClient(
+            f"http://localhost:{apm_test_server.host_port}", test_server_timeout, apm_test_server.container
+        )
+
+        tracer = APMLibraryV2(client, apm_test_server.lang)
         yield tracer
 
 

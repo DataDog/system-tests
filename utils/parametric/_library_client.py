@@ -85,6 +85,9 @@ class APMLibraryClient:
             == HTTPStatus.NOT_FOUND
         )
 
+    def send_commands(self, commands: list[dict]) -> None:
+        self._session.post(self._url("/parametric"), json=commands)
+
     def _print_logs(self):
         try:
             logs = self.container.logs().decode("utf-8")
@@ -484,6 +487,76 @@ class _TestOtelSpan:
     def set_baggage(self, key: str, value: str):
         self._client.otel_set_baggage(self.span_id, key, value)
 
+
+class APMLibraryV2:
+    def __init__(self, client: APMLibraryClient, lang: str):
+        self._client = client
+        self.lang = lang
+        self.commands = []
+
+    def __enter__(self) -> "APMLibraryV2":
+        return self
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> bool | None:
+        # Only attempt a flush if there was no exception raised.
+        if exc_type is None:
+            self.dd_flush()
+            # if self.lang != "cpp":
+                # C++ does not have an otel/flush endpoint
+                # self.otel_flush(1)
+
+            self._client.send_commands(self.commands)
+
+        return None
+
+    def dd_start_active_span(
+        self,
+        name: str,
+        service: str | None = None,
+        resource: str | None = None,
+        typestr: str | None = None,
+        tags: list[tuple[str, str]] | None = None,
+    ) -> None:
+        self.commands.append({
+            "command": "dd_start_active_span",
+            "name": name,
+            "service": service,
+            "resource": resource,
+            "type": typestr,
+            "tags": tags,
+        })
+
+    def dd_finish_active_span(self) -> None:
+        self.commands.append({
+            "command": "dd_finish_active_span",
+        })
+
+    def dd_set_current_span_meta(self, key: str, value: str) -> None:
+        self.commands.append({
+            "command": "dd_set_current_span_meta",
+            "key": key,
+            "value": value,
+        })
+
+    def dd_set_current_span_metric(self, key: str, value: float) -> None:
+        self.commands.append({
+            "command": "dd_set_current_span_metric",
+            "key": key,
+            "value": value,
+        })
+
+    def dd_flush(self) -> None:
+        self.commands.append({
+            "command": "dd_flush",
+        })
+
+    def is_alive(self) -> bool:
+        try:
+            return self._client.is_alive()
+        except Exception:
+            return False
 
 class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang: str):

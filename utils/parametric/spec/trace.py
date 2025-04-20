@@ -192,6 +192,14 @@ def find_first_span_in_trace_payload(trace: Trace) -> Span:
     return trace[0]
 
 
+def find_child_spans(trace: Trace, span_id: int) -> list[Span]:
+    """Return the root span of the trace or None if no root span is found."""
+    spans = []
+    for span in trace:
+        if span.get("span_id") != span_id and span.get("parent_id") == span_id:
+            spans.append(span)
+    return spans
+
 def find_root_span(trace: Trace) -> Span | None:
     """Return the root span of the trace or None if no root span is found."""
     for span in trace:
