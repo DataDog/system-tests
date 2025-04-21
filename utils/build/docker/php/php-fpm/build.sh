@@ -5,16 +5,14 @@ set -e
 PHP_VERSION=$1
 PHP_MAJOR_VERSION=`echo $PHP_VERSION | cut -d. -f1`
 
-
 apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata publicsuffix
 
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
-	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq \
+	apt-get install -y curl apache2 libapache2-mod-fcgid software-properties-common jq ca-certificates git \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
-
 
 add-apt-repository ppa:ondrej/apache2 -y
 add-apt-repository ppa:ondrej/php -y
@@ -27,6 +25,7 @@ find /var/www/html -mindepth 1 -delete
 
 mkdir -p /var/www/html/rasp
 cp -rf /tmp/php/common/*.php /var/www/html/
+cp -rf /tmp/php/common/*.json /var/www/html/
 cp -rf /tmp/php/common/rasp/*.php /var/www/html/rasp/
 cp /tmp/php/php-fpm/php-fpm.conf /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 cp /tmp/php/common/php.ini /etc/php/$PHP_VERSION/fpm/php.ini
@@ -40,14 +39,31 @@ a2enconf php$PHP_VERSION-fpm
 a2enmod proxy
 a2enmod proxy_fcgi
 
+ARCH=$(arch)
+if [[ $ARCH = aarch64 ]]; then
+  ARCH=arm64
+else
+  ARCH=amd64
+fi
 
-curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_amd64.deb && \
+curl -Lf -o /tmp/dumb_init.deb https://github.com/Yelp/dumb-init/releases/download/v1.2.5/dumb-init_1.2.5_${ARCH}.deb && \
 	dpkg -i /tmp/dumb_init.deb && rm /tmp/dumb_init.deb
 
 sed -i s/80/7777/ /etc/apache2/ports.conf
 sed -i s/PHP_VERSION/$PHP_VERSION/ /entrypoint.sh
 sed -i s/PHP_VERSION/$PHP_VERSION/ /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
 sed -i s/PHP_MAJOR_VERSION/$PHP_MAJOR_VERSION/ /etc/apache2/conf-available/php$PHP_VERSION-fpm.conf
+
+# Install Composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+# Set up Monolog using Composer
+cd /var/www/html
+composer install --prefer-dist
+
+# Set proper permissions
+chmod -R 755 /var/www/html/vendor
+find /var/www/html/vendor -type f -exec chmod 644 {} \;
 
 export TRACER_VERSION=latest
 export APPSEC_VERSION=latest

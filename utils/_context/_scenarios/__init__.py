@@ -12,6 +12,7 @@ from .open_telemetry import OpenTelemetryScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
+from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
@@ -94,6 +95,14 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         },
         doc="Test W3C trace style",
+    )
+
+    trace_propagation_style_default = EndToEndScenario(
+        "TRACE_PROPAGATION_STYLE_DEFAULT",
+        weblog_env={
+            # This scenario is empty since it's testing the default propagation styles
+        },
+        doc="Test Default propagation",
     )
 
     # Telemetry scenarios
@@ -512,8 +521,6 @@ class _Scenarios:
     )
 
     # APM tracing end-to-end scenarios
-
-    apm_tracing_e2e = EndToEndScenario("APM_TRACING_E2E", backend_interface_timeout=5, doc="")
     apm_tracing_e2e_otel = EndToEndScenario(
         "APM_TRACING_E2E_OTEL",
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
@@ -626,82 +633,57 @@ class _Scenarios:
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
 
-    debugger_probes_status = EndToEndScenario(
+    debugger_probes_status = DebuggerScenario(
         "DEBUGGER_PROBES_STATUS",
-        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_probes_snapshot = EndToEndScenario(
+    debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
-        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "true",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
         },
-        library_interface_timeout=5,
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_pii_redaction = EndToEndScenario(
+    debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
-        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
         },
-        library_interface_timeout=5,
         doc="Check pii redaction",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
-    debugger_expression_language = EndToEndScenario(
+    debugger_expression_language = DebuggerScenario(
         "DEBUGGER_EXPRESSION_LANGUAGE",
-        rc_api_enabled=True,
-        weblog_env={"DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1", "DD_REMOTE_CONFIG_ENABLED": "true"},
-        library_interface_timeout=5,
-        doc="Check expression language",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
-    )
-
-    debugger_exception_replay = EndToEndScenario(
-        "DEBUGGER_EXCEPTION_REPLAY",
-        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_EXCEPTION_DEBUGGING_ENABLED": "true",
-            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
-        library_interface_timeout=5,
-        doc="Check exception replay",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
+        doc="Check expression language",
     )
 
-    debugger_symdb = EndToEndScenario(
+    debugger_exception_replay = DebuggerScenario(
+        "DEBUGGER_EXCEPTION_REPLAY",
+        weblog_env={
+            "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+        },
+        doc="Check exception replay",
+    )
+
+    debugger_symdb = DebuggerScenario(
         "DEBUGGER_SYMDB",
-        rc_api_enabled=True,
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
-            "DD_DEBUGGER_DIAGNOSTICS_INTERVAL": "1",
         },
-        library_interface_timeout=5,
         doc="Test scenario for checking symdb.",
-        scenario_groups=[ScenarioGroup.DEBUGGER],
     )
 
     debugger_inproduct_enablement = EndToEndScenario(
@@ -709,8 +691,6 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_APM_TRACING_ENABLED": "true",
-            "DD_REMOTE_CONFIG_ENABLED": "true",
-            "DD_INTERNAL_RCM_POLL_INTERVAL": "2000",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",

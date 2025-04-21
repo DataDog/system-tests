@@ -35,3 +35,33 @@ DEBUG=1 bundle exec ruby server.rb
 You'll be presented with a Ruby REPL, with the gRPC server running in the same process.
 
 A `client` object will be available for you to make gRPC requests to the server.
+
+# Locally run Parametric system-tests with an unreleased version of libdatadog
+
+This is a bit of a hack that is intended to help you validate WIP changes in dd-trace-rb while waiting for libdatadog release.
+
+1. Clone and compile `libdatadog`, and move it to dd-trace-rb folder
+    ```
+    export DD_RUBY_PLATFORM=`ruby -e 'puts Gem::Platform.local.to_s'`
+    mkdir -p compiled_libdatadog_folder/$DD_RUBY_PLATFORM
+    ./build-profiling-ffi.sh compiled_libdatadog_folder/$DD_RUBY_PLATFORM
+    mv compiled_libdatadog_folder /path/to/dd-trace-rb/tmp
+    ```
+
+2. Add `ENV["LIBDATADOG_VENDOR_OVERRIDE"] ||= Pathname.new("#{__dir__}/../tmp/compiled_libdatadog_folder/").expand_path.to_s`to dd-trace-rb's `ext/libdatadog_extconf_helpers.rb`
+
+3. Add compile step in parametric tests Dockerfile template located in `utils/_context/_scenarios/parametric.py::ruby_library_factory`
+    - Change the FROM line to `ghcr.io/datadog/images-rb/engines/ruby:3.2` (or any Ruby version that you've used during the `libdatadog` compile step)
+    - After `COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/` line, add:
+    ```
+    WORKDIR /binaries/dd-trace-rb
+    RUN bundle install
+    # Replace with your Ruby version and platform
+    RUN bundle exec rake clean compile:libdatadog_api.3.2_aarch64-linux
+    # Or if you want to compile profiling too
+    # RUN bundle exec rake clean compile
+    WORKDIR /app
+    ```
+
+4. In `utils/build/docker/install_ddtrace.sh`, replace the last `bundle install` by `bundle install --force --gemfile=Gemfile`
+    - For whatever reason, this `bundle install` will reuse dd-trace-rb's one instead of the app one if you don't specify the Gemfile.

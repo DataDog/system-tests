@@ -148,6 +148,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
+            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
         )
 
     def configure(self, config: pytest.Config):

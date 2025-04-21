@@ -2,13 +2,9 @@ import pytest
 
 
 class _Features:
-    """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
+    """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
 
-    run this command to get new features:
-
-    ```
-    PYTHONPATH=. python utils/scripts/update_features.py
-    ```
+    Data source is the feature parity dashboard https://feature-parity.us1.prod.dog/
     """
 
     @staticmethod
@@ -2335,6 +2331,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def datadog_baggage_headers(test_object):
+        """Baggage support
+
+        https://feature-parity.us1.prod.dog/#/?feature=389
+        """
+        pytest.mark.features(feature_id=389)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_security_controls(test_object):
         """IAST: Security Controls
 
@@ -2458,6 +2463,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=369
         """
         pytest.mark.features(feature_id=369)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_protobuf_schema_tracking(test_object):
+        """Dynamically enable debugger products
+
+        https://feature-parity.us1.prod.dog/#/?feature=371
+        """
+        pytest.mark.features(feature_id=371)(test_object)
         return test_object
 
     @staticmethod

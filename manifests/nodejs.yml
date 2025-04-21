@@ -55,6 +55,8 @@ refs:
   - &ref_5_44_0 '>=5.44.0'
   - &ref_5_45_0 '>=5.45.0'
   - &ref_5_46_0 '>=5.46.0'
+  - &ref_5_47_0 '>=5.47.0'
+  - &ref_5_48_0 '>=5.48.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -712,14 +714,30 @@ tests/:
         '*': *ref_5_45_0
         nextjs: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Metrics:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Tags:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Tags:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
@@ -786,7 +804,11 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+      Test_Debugger_Expression_Language:
+        '*': irrelevant
+        express4: v5.48.0
+        express4-typescript: v5.48.0
+        uds-express4: v5.48.0
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
@@ -795,16 +817,19 @@ tests/:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
@@ -812,6 +837,7 @@ tests/:
       Test_Debugger_Telemetry:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
   integrations/:
     crossed_integrations/:
@@ -1018,6 +1044,13 @@ tests/:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed2: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Bytes: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Items: irrelevant (uses parametric tests)
+    Test_Only_Baggage_Header: irrelevant (uses parametric tests)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: *ref_3_13_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
@@ -1059,6 +1092,8 @@ tests/:
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
+  test_data_integrity.py:
+    Test_LibraryHeaders: *ref_5_47_0
   test_distributed.py:
     Test_DistributedHttp: *ref_3_0_0
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
@@ -1077,9 +1112,9 @@ tests/:
     Test_Propagate_Legacy: *ref_3_2_0
   test_library_conf.py:
     Test_ExtractBehavior_Default: *ref_5_46_0
-    Test_ExtractBehavior_Ignore: *ref_5_46_0
-    Test_ExtractBehavior_Restart: *ref_5_46_0
-    Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_46_0
+    Test_ExtractBehavior_Ignore: *ref_5_47_0
+    Test_ExtractBehavior_Restart: *ref_5_47_0
+    Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
     Test_HeaderTags: *ref_4_11_0
     Test_HeaderTags_Colon_Leading: *ref_4_11_0
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
@@ -1092,6 +1127,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
