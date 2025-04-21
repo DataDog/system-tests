@@ -186,7 +186,7 @@ welcome "K8s lib-injection Tests"
 ask_load_requirements
 ask_load_k8s_requirements
 ask_for_test_language
-load_workflow_data "lib-injection" "libinjection_scenario_defs"
+load_workflow_data "lib-injection,lib-injection-profiling" "libinjection_scenario_defs"
 select_scenario
 select_weblog
 select_weblog_img

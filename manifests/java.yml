@@ -2029,6 +2029,10 @@ tests/:
       spring-boot-3-native: v1.39.0
       vertx3: missing_feature (Endpoint not implemented)
       vertx4: missing_feature (Endpoint not implemented)
+  test_protobuf.py:
+    Test_Protobuf:
+      '*': missing_feature
+      spring-boot: v1.47.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
       '*': missing_feature (Endpoint /sample_rate_route not implemented)
@@ -2078,7 +2082,7 @@ tests/:
       '*': v1.23.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_ProductsDisabled:
-      '*': missing_feature
+      '*': v1.48.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_Telemetry:
       '*': v0.108.1
