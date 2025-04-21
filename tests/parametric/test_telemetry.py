@@ -450,10 +450,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "config_id"),
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "fleet_config_id"),
         [
             (
-                {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {"DD_LOGS_INJECTION": False, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                     "DD_RUNTIME_METRICS_ENABLED": True,
@@ -470,7 +470,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ],
     )
     def test_stable_configuration_origin(
-        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin, config_id
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin, fleet_config_id
     ):
         with test_library:
             self.write_stable_config(
@@ -483,7 +483,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             self.write_stable_config(
                 {
                     "apm_configuration_default": fleet_cfg,
-                    "config_id": config_id,
+                    "config_id": fleet_config_id,
                 },
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
@@ -491,14 +491,14 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
 
-        configuration = test_agent.wait_for_telemetry_configurations()
+        configurations = test_agent.wait_for_telemetry_configurations()
         for cfg_name, origin in expected_origin.items():
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
-            telemetry_item = configuration[apm_telemetry_name]
-            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
+            telemetry_item = configurations[apm_telemetry_name]
+            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}\nall configs: {configurations}"
             assert telemetry_item["value"]
             if telemetry_item["origin"] == "fleet_stable_config":
-                assert telemetry_item["config_id"] == config_id
+                assert telemetry_item["config_id"] == fleet_config_id
             else:
                 assert "config_id" not in telemetry_item
 
