@@ -3,6 +3,7 @@
 from urllib.parse import urlparse
 
 import pytest
+import yaml
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
 from .conftest import StableConfigWriter
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
@@ -636,7 +637,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                                     "operator": "exists",
                                 }
                             ],
-                            "configuration": {"DD_SERVICE": "{{process_arguments['-Darg1']}}"},
+                            "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},
                         }
                     ]
                 },
@@ -645,6 +646,15 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            assert (
-                config["dd_service"] == "value"
-            ), f"Service name is '{config["dd_service"]}' instead of 'value'"
+            assert config["dd_service"] == "value", f"Service name is '{config["dd_service"]}' instead of 'value'"
+
+
+class QuotedStr(str):
+    __slots__ = ()
+
+
+def quoted_presenter(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+
+yaml.add_representer(QuotedStr, quoted_presenter)
