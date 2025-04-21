@@ -48,15 +48,15 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ assert ############
     def _assert(self, test_name, expected_exception_messages):
-        def __filter_snapshots_by_message():
+        def __filter_contents_by_message():
             filtered_snapshots = []
 
             for contents in self.probe_snapshots.values():
                 for content in contents:
                     for expected_exception_message in expected_exception_messages:
                         exception_message = self.get_exception_message(content["debugger"]["snapshot"])
-                        if expected_exception_message in self.get_exception_message(content["debugger"]["snapshot"]):
-                            filtered_snapshots.append((exception_message, content["debugger"]["snapshot"]))
+                        if expected_exception_message in exception_message:
+                            filtered_snapshots.append((exception_message, content))
 
             # Sort by multiple criteria for consistent ordering
             def get_sort_key(snapshot_tuple):
@@ -77,23 +77,46 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __filter_spans_by_snapshot_id(snapshots):
             filtered_spans = {}
 
-            for span in self.probe_spans.values():
-                snapshot_ids_in_span = {
-                    key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
-                }.values()
-                for snapshot in snapshots:
-                    if snapshot["id"] in snapshot_ids_in_span:
-                        filtered_spans[snapshot["id"]] = span
+            for snapshot in snapshots:
+                snapshot_id = snapshot["id"]
+                for spans in self.probe_spans.values():
+                    for span in spans:
+                        snapshot_ids_in_span = {
+                            key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                        }.values()
+
+                        if snapshot_id in snapshot_ids_in_span:
+                            filtered_spans[snapshot_id] = span
+                            break
+
+            return filtered_spans
+
+        def __filter_spans_by_span_id(contents):
+            filtered_spans = {}
+            for content in contents:
+                span_id = content["dd"]["span_id"]
+                snapshot_id = content["debugger"]["snapshot"]["id"]
+
+                for spans_list in self.probe_spans.values():
+                    for span in spans_list:
+                        if span.get("spanID") == span_id:
+                            filtered_spans[snapshot_id] = span
+                            break
 
             return filtered_spans
 
         self.collect()
         self.assert_all_weblog_responses_ok(expected_code=500)
 
-        snapshots = __filter_snapshots_by_message()
+        contents = __filter_contents_by_message()
+        snapshots = [content["debugger"]["snapshot"] for content in contents]
+
         self._validate_exception_replay_snapshots(test_name, snapshots)
 
-        spans = __filter_spans_by_snapshot_id(snapshots)
+        if self.get_tracer()["language"] == "python":
+            spans = __filter_spans_by_span_id(contents)
+        else:
+            spans = __filter_spans_by_snapshot_id(snapshots)
         self._validate_spans(test_name, spans)
 
     def _validate_exception_replay_snapshots(self, test_name, snapshots):
