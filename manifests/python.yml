@@ -278,7 +278,7 @@ tests/:
         Test_Cmdi_Rules_Version: v2.18.0.dev
         Test_Cmdi_StackTrace: v2.20.0.dev
         Test_Cmdi_Telemetry: v2.20.0.dev
-        Test_Cmdi_Telemetry_V2: missing_feature
+        Test_Cmdi_Telemetry_V2: v3.5.0.dev
         Test_Cmdi_Telemetry_Variant_Tag: v2.20.0.dev
         Test_Cmdi_UrlQuery: v2.20.0.dev
         Test_Cmdi_Waf_Version: v2.18.0.dev
@@ -294,7 +294,7 @@ tests/:
         Test_Lfi_StackTrace: v2.10.0
         Test_Lfi_Telemetry: v2.10.0
         Test_Lfi_Telemetry_Multiple_Exploits: v2.10.0
-        Test_Lfi_Telemetry_V2: missing_feature
+        Test_Lfi_Telemetry_V2: v3.5.0.dev
         Test_Lfi_UrlQuery: v2.10.0
         Test_Lfi_Waf_Version: v2.15.0
       test_shi.py:
@@ -307,7 +307,7 @@ tests/:
         Test_Shi_Rules_Version: v2.15.0
         Test_Shi_StackTrace: v2.11.0-rc2
         Test_Shi_Telemetry: v2.11.0-rc2
-        Test_Shi_Telemetry_V2: missing_feature
+        Test_Shi_Telemetry_V2: v3.5.0.dev
         Test_Shi_Telemetry_Variant_Tag: v2.20.0.dev
         Test_Shi_UrlQuery: v2.11.0-rc2
         Test_Shi_Waf_Version: v2.15.0
@@ -321,7 +321,7 @@ tests/:
         Test_Sqli_Rules_Version: v2.16.0
         Test_Sqli_StackTrace: v2.10.0
         Test_Sqli_Telemetry: v2.10.0
-        Test_Sqli_Telemetry_V2: missing_feature
+        Test_Sqli_Telemetry_V2: v3.5.0.dev
         Test_Sqli_UrlQuery: v2.10.0
         Test_Sqli_Waf_Version: v2.15.0
       test_ssrf.py:
@@ -334,7 +334,7 @@ tests/:
         Test_Ssrf_Rules_Version: v2.16.0
         Test_Ssrf_StackTrace: v2.10.0
         Test_Ssrf_Telemetry: v2.10.0
-        Test_Ssrf_Telemetry_V2: missing_feature
+        Test_Ssrf_Telemetry_V2: v3.5.0.dev
         Test_Ssrf_UrlQuery: v2.10.0
         Test_Ssrf_Waf_Version: v2.15.0
     waf/:
@@ -484,6 +484,7 @@ tests/:
         uds-flask: bug (APPSEC-57145)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
+      Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)

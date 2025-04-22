@@ -137,7 +137,7 @@ module Identify
   end
 end
 
-# contains /status
+# /status
 module Status
   module_function
 
