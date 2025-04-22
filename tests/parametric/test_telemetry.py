@@ -613,10 +613,10 @@ class Test_TelemetryInjectionConfigs:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
         inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
-        assert inject_force.get("value") == "true"
+        assert inject_force.get("value") == True
         assert inject_force.get("origin") == "env_var"
         inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
-        assert inject_enabled.get("value") == "true"
+        assert inject_enabled.get("value") == True
         assert inject_enabled.get("origin") == "env_var"
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -631,11 +631,11 @@ class Test_TelemetryInjectionConfigs:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
         inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
-        assert inject_force.get("value") == "false"
+        assert inject_force.get("value") == False
         assert inject_force.get("origin") == "default"
         inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
         assert inject_enabled.get("value") == "false"
-        assert inject_enabled.get("origin") == "default"
+        assert inject_enabled.get("origin") == False
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
