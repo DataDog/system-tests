@@ -93,7 +93,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         def __filter_spans_by_span_id(contents):
             filtered_spans = {}
             for content in contents:
-                span_id = content["dd"]["span_id"]
+                span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
                 snapshot_id = content["debugger"]["snapshot"]["id"]
 
                 for spans_list in self.probe_spans.values():
@@ -112,7 +112,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
         self._validate_exception_replay_snapshots(test_name, snapshots)
 
-        if self.get_tracer()["language"] == "python":
+        if self.get_tracer()["language"] in ["python", "java"]:
             spans = __filter_spans_by_span_id(contents)
         else:
             spans = __filter_spans_by_snapshot_id(snapshots)
