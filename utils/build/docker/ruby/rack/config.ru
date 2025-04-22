@@ -4,6 +4,7 @@ require 'pry'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'faraday'
 
 # tracer configuration of Rack integration
 
@@ -120,8 +121,10 @@ module Headers
 end
 
 # /identify
-class Identify
-  def self.run
+module Identify
+  module_function
+
+  def run
     trace = Datadog::Tracing.active_trace
     trace.set_tag('usr.id', 'usr.id')
     trace.set_tag('usr.name', 'usr.name')
@@ -283,6 +286,20 @@ module Users
   end
 end
 
+# /rasp/ssrf
+module SSRFHandler
+  module_function
+
+  def run(request)
+    url = URI.parse(request.params['domain'])
+    url = "http://#{url}" unless url.scheme
+
+    Faraday.get(url)
+
+    [200, { 'Content-Type' => 'text/plain' }, ['']]
+  end
+end
+
 # TODO: This require shouldn't be needed. `SpanEvent` should be loaded by default.
 # TODO: This is likely a bug in the Ruby tracer.
 require 'datadog/tracing/span_event'
@@ -346,6 +363,8 @@ app = proc do |env|
     Users.run(request)
   elsif request.path == '/add_event'
     AddEvent.run(request)
+  elsif request.path == '/rasp/ssrf'
+    SSRFHandler.run(request)
   else
     NotFound.run
   end
