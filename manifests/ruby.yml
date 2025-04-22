@@ -289,7 +289,7 @@ tests/:
           sinatra40: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
-      test_ssrf.py: missing_feature
+      test_ssrf.py:
         Test_Ssrf_BodyJson: v2.14.0
         Test_Ssrf_BodyUrlEncoded: v2.14.0
         Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
