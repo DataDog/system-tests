@@ -101,6 +101,12 @@ class SystemTestController < ApplicationController
     render json: result
   end
 
+  def log_library
+    message = params[:msg]
+    Rails.logger.info(message)
+    render plain: 'OK'
+  end
+
   def user_login_success_event
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
@@ -151,41 +157,6 @@ class SystemTestController < ApplicationController
 
     render plain: 'Hello, user!'
   end
-
-  def login
-    request.env["devise.allow_params_authentication"] = true
-
-    sdk_event = request.params[:sdk_event]
-    sdk_user = request.params[:sdk_user]
-    sdk_email = request.params[:sdk_mail]
-    sdk_exists = request.params[:sdk_user_exists]
-
-    if sdk_exists
-      sdk_exists = sdk_exists == "true"
-    end
-
-    result = request.env['warden'].authenticate({ scope: Devise.mappings[:user].name })
-
-    if sdk_event === 'failure' && sdk_user
-      metadata = {}
-      metadata[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_failure(user_id: sdk_user, user_exists: sdk_exists, **metadata)
-    elsif sdk_event === 'success' && sdk_user
-      user = {}
-      user[:id] = sdk_user
-      user[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_success(user: user)
-    end
-
-    unless result
-      render plain: '', status: 401
-      return
-    end
-
-
-    render plain: 'Hello, world!'
-  end
-
 
   def kafka_produce
     kafka = Kafka.new(
@@ -280,20 +251,6 @@ class SystemTestController < ApplicationController
     headers = {}
     OpenTelemetry.propagation.inject(headers)
     render json: JSON.generate(headers), content_type: 'application/json'
-  end
-
-  def rasp_sqli
-    user_id = params[:user_id] || request.POST && request.POST['user_id']
-    if user_id
-      User.transaction do
-        # We need to manually create the query as User.where adds parenthesis around the user_id
-        query = "SELECT * FROM users WHERE id='#{user_id}'"
-        users = User.find_by_sql(query).to_a
-        render plain: "DB request with #{users.size} results"
-      end
-    else
-      render plain: 'users not found parameter', status: 400
-    end
   end
 
   def handle_path_params

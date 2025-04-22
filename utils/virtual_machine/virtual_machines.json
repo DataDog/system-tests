@@ -208,7 +208,7 @@
         {
             "name": "Debian_12_amd64",
             "aws_config": {
-                "ami_id": "ami-064519b8c76274859",
+                "ami_id": "ami-0779caf41f9ba54f0",
                 "ami_instance_type": "t3.medium",
                 "user": "admin"
             },
@@ -217,12 +217,12 @@
             "os_branch": "debian",
             "os_cpu": "amd64",
             "default_vm": true,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Debian_12_arm64",
             "aws_config": {
-                "ami_id": "ami-0789039e34e739d67",
+                "ami_id": "ami-07c4edc673430f8b8",
                 "ami_instance_type": "t4g.medium",
                 "user": "admin"
             },
@@ -231,7 +231,7 @@
             "os_branch": "debian",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Debian_11_amd64",
@@ -359,7 +359,7 @@
         {
             "name": "CentOS_7_amd64",
             "aws_config": {
-                "ami_id": "ami-002070d43b0a4f171",
+                "ami_id": "ami-0b68b25d7fa1d99e0",
                 "ami_instance_type": "t3.medium",
                 "user": "centos"
             },
@@ -415,7 +415,7 @@
         {
             "name": "RedHat_9_0_amd64",
             "aws_config": {
-                "ami_id": "ami-03794f9a4e79d4437",
+                "ami_id": "ami-0a45c8b16782f3406",
                 "ami_instance_type": "t3.medium",
                 "user": "ec2-user"
             },
@@ -429,7 +429,7 @@
         {
             "name": "RedHat_9_0_arm64",
             "aws_config": {
-                "ami_id": "ami-0ab2ddca4728f99d1",
+                "ami_id": "ami-02efd0d9e75e2bf32",
                 "ami_instance_type": "t4g.medium",
                 "user": "ec2-user"
             },
@@ -443,7 +443,7 @@
         {
             "name": "RedHat_7_9_amd64",
             "aws_config": {
-                "ami_id": "ami-093d725884faee25e",
+                "ami_id": "ami-0c76662758dc1db64",
                 "ami_instance_type": "t3.medium",
                 "user": "ec2-user"
             },
@@ -482,7 +482,7 @@
             "default_vm": false,
             "disabled": false
         },
-         {
+        {
             "name": "OracleLinux_9_2_amd64",
             "aws_config": {
                 "ami_id": "ami-01453ca80e53609e3",

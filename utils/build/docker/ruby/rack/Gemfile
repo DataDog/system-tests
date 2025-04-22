@@ -1,5 +1,6 @@
 source 'https://rubygems.org'
 
+gem 'faraday'
 gem 'rack-contrib'
 gem 'puma'
 gem 'pry'

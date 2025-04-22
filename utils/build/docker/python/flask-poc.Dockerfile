@@ -16,8 +16,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # Cross Tracer Integration Testing for Trace Context Propagation
 ENV DD_BOTOCORE_PROPAGATION_ENABLED=true
 ENV DD_KAFKA_PROPAGATION_ENABLED=true
-ENV DD_TRACE_API_VERSION='v0.4'
-
 ENV LOG_LEVEL='DEBUG'
 
 # docker startup

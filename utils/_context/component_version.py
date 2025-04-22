@@ -93,14 +93,15 @@ class ComponentVersion:
                     version = re.sub(r"\* *libddwaf *\((.*)\)", r"\1", version)
 
             elif name == "java":
-                version = version.split("~")[0]
-                version = version.replace("-SNAPSHOT", "")
+                version = version.replace("~", "+")  # Java uses a ~ to separate the version from the build
 
             elif name == "dotnet":
                 version = re.sub(r"(datadog-dotnet-apm-)?(.*?)(\.tar\.gz)?", r"\2", version)
 
             elif name == "php":
-                version = version.replace("-nightly", "")
+                # if the pre-release part looks like a commit sha [0-9abcdef]{32,100}
+                # the we can hack to move it to the built part:
+                version = re.sub(r"-([0-9a-f]{32,100})$", r"+\1", version)
 
             self.version = Version(version)
 
