@@ -586,6 +586,41 @@ class Test_TelemetryInstallSignature:
                 ), f"The install signature should not be included in the telemetry event, got {body}"
 
 
+@rfc("")
+@scenarios.parametric
+@features.telemetry_app_started_event
+class Test_TelemetryInjectionConfigs:
+    """This telemetry provides insights into how a library was installed."""
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_INJECT_FORCE": "true",
+                "DD_INJECTION_ENABLED": "true",
+            },
+        ],
+    )
+    def test_telemetry_event_propagated(self, library_env, test_agent, test_library):
+        """Ensure SSI configurations are included in a configuration or app-started telemetry event.
+        """
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        # # Check that the tags name match the expected value
+        inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
+        assert inject_force.get("value") == "true"
+        assert inject_force.get("origin") == "env_var"
+        inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
+        assert inject_enabled.get("value") == "true"
+        assert inject_enabled.get("origin") == "env_var"
+
+
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
 @scenarios.parametric
 @features.telemetry_app_started_event
