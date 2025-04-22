@@ -602,9 +602,8 @@ class Test_TelemetryInjectionConfigs:
             },
         ],
     )
-    def test_telemetry_event_propagated(self, library_env, test_agent, test_library):
-        """Ensure SSI configurations are included in a configuration or app-started telemetry event.
-        """
+    def test_env_var_set(self, library_env, test_agent, test_library):
+        """Ensure SSI configurations are captured by a telemetry event."""
 
         # Some libraries require a first span for telemetry to be emitted.
         with test_library.dd_start_span("first_span"):
@@ -619,6 +618,24 @@ class Test_TelemetryInjectionConfigs:
         inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
         assert inject_enabled.get("value") == "true"
         assert inject_enabled.get("origin") == "env_var"
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_default(self, library_env, test_agent, test_library):
+        """Ensure SSI configurations are captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        # # Check that the tags name match the expected value
+        inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
+        assert inject_force.get("value") == "false"
+        assert inject_force.get("origin") == "default"
+        inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
+        assert inject_enabled.get("value") == "false"
+        assert inject_enabled.get("origin") == "default"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
