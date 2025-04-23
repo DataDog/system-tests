@@ -504,7 +504,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 {"DD_PROFILING_ENABLED": True},
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
-                    "DD_RUNTIME_METRICS_ENABLED": True,
                 },
                 {"DD_LOGS_INJECTION": True},
                 "1231231231231",
