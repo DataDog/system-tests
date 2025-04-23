@@ -60,13 +60,21 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             # Sort by multiple criteria for consistent ordering
             def get_sort_key(snapshot_tuple):
                 message, snapshot = snapshot_tuple
-                # Get method name from probe location if available (for Java)
+                # Get method name from probe location if available
                 method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
                 # Get line number from probe location
                 line_number = snapshot.get("probe", {}).get("location", {}).get("line", 0)
-                # Get stack depth as additional sorting criteria
-                stack_depth = len(snapshot.get("stack", []))
-                return (message, method_name, line_number, stack_depth)
+
+                if "recursion" in message.lower():
+                    args = snapshot.get("captures", {}).get("return", {}).get("arguments", {})
+                    if "currentDepth" in args:
+                        current_depth = args["currentDepth"].get("value")
+                    else:
+                        current_depth = "-1"
+                    return (message, method_name, line_number, current_depth)
+
+                # For non-recursion tests, use regular ordering
+                return (message, method_name, line_number)
 
             filtered_snapshots.sort(key=get_sort_key)
 
