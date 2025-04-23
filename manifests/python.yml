@@ -670,9 +670,21 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_inproduct_enablement.py:
-      Test_Debugger_InProduct_Enablement_Code_Origin: v3.5.0
-      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.5.0
-      Test_Debugger_InProduct_Enablement_Exception_Replay: v3.5.0
+      Test_Debugger_InProduct_Enablement_Code_Origin:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
+      Test_Debugger_InProduct_Enablement_Exception_Replay:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
