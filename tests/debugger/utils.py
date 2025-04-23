@@ -8,9 +8,15 @@ import os
 import os.path
 from pathlib import Path
 import uuid
+from enum import Enum
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
+
+
+class EvaluationPoint(Enum):
+    ENTRY = "ENTRY"
+    EXIT = "EXIT"
 
 
 _CONFIG_PATH = "/v0.7/config"
@@ -28,8 +34,13 @@ def read_probes(test_name: str) -> list:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str) -> str:
-    return probe_type + str(uuid.uuid4())[len(probe_type) :]
+def generate_probe_id(probe_type: str, suffix: str = "") -> str:
+    uuid_str = str(uuid.uuid4())
+    if suffix:
+        # Replace the last len(suffix) characters of the UUID with the suffix
+        uuid_str = uuid_str[: -len(suffix)] + suffix
+
+    return probe_type + uuid_str[len(probe_type) :]
 
 
 def extract_probe_ids(probes: dict | list) -> list:
@@ -109,7 +120,7 @@ class BaseDebuggerTest:
         return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes: list[dict]) -> None:
+    def set_probes(self, probes: list[dict], evaluate_at: EvaluationPoint = EvaluationPoint.EXIT) -> None:
         def _enrich_probes(probes: list[dict]):
             def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
@@ -127,6 +138,7 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = evaluate_at.value
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:

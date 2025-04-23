@@ -4,6 +4,7 @@
 
 import time
 import tests.debugger.utils as debugger
+from tests.debugger.utils import EvaluationPoint
 
 from utils import scenarios, features, missing_feature, context, rfc, logger
 
@@ -13,11 +14,23 @@ from utils import scenarios, features, missing_feature, context, rfc, logger
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ############ setup ############
-    def _setup(self, probes_name: str, request_path: str, lines=None):
+    def _setup(
+        self,
+        probes_name: str,
+        request_path: str,
+        probe_type: str,
+        evaluate_at: EvaluationPoint,
+        lines=None,
+    ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
+
+        # Update probe IDs using the generate_probe_id function with the provided probe_type
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id(probe_type)
+
         if lines is not None:
             for probe in probes:
                 if "methodName" in probe["where"]:
@@ -26,7 +39,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
                 probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
                 probe["where"]["typeName"] = None
 
-        self.set_probes(probes)
+        self.set_probes(probes, evaluate_at=evaluate_at)
 
         ### send requests
         self.send_rc_probes()
@@ -66,60 +79,130 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
     ########### method ############
     ### log probe ###
-    def setup_log_method_probe_snaphots(self):
-        self._setup("probe_snapshot_log_method", "/debugger/log")
+    def setup_log_method_exit_snapshot(self):
+        self._setup("probe_snapshot_log_method", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
-    def test_log_method_probe_snaphots(self):
+    def test_log_method_exit_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+
+    def setup_log_method_entry_snapshot(self):
+        self._setup("probe_snapshot_log_method", "/debugger/log", "log", evaluate_at=EvaluationPoint.ENTRY)
+
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
+    def test_log_method_entry_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
     ### span probe ###
-    def setup_span_method_probe_snaphots(self):
-        self._setup("probe_snapshot_span_method", "/debugger/span")
+    def setup_span_method_exit_snapshot(self):
+        self._setup("probe_snapshot_span_method", "/debugger/span", "span", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_method_probe_snaphots(self):
+    def test_span_method_exit_snapshot(self):
+        self._assert()
+        self._validate_spans()
+
+    def setup_span_method_entry_snapshot(self):
+        self._setup("probe_snapshot_span_method", "/debugger/span", "span", evaluate_at=EvaluationPoint.ENTRY)
+
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_span_method_entry_snapshot(self):
         self._assert()
         self._validate_spans()
 
     ### span decoration probe ###
-    def setup_span_decoration_method_probe_snaphots(self):
-        self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
+    def setup_span_decoration_method_exit_snapshot(self):
+        self._setup(
+            "probe_snapshot_span_decoration_method",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.EXIT,
+        )
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_decoration_method_probe_snaphots(self):
+    def test_span_decoration_method_exit_snapshot(self):
+        self._assert()
+        self._validate_spans()
+
+    def setup_span_decoration_method_entry_snapshot(self):
+        self._setup(
+            "probe_snapshot_span_decoration_method",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.ENTRY,
+        )
+
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_span_decoration_method_entry_snapshot(self):
         self._assert()
         self._validate_spans()
 
     ########### line ############
     ### log probe ###
-    def setup_log_line_probe_snaphots(self):
-        self._setup("probe_snapshot_log_line", "/debugger/log")
+    def setup_log_line_exit_snapshot(self):
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)
 
-    def test_log_line_probe_snaphots(self):
+    def test_log_line_exit_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+
+    def setup_log_line_entry_snapshot(self):
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", evaluate_at=EvaluationPoint.ENTRY)
+
+    def test_log_line_entry_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
     ### span decoration probe ###
-    def setup_span_decoration_line_probe_snaphots(self):
-        self._setup("probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1")
+    def setup_span_decoration_line_exit_snapshot(self):
+        self._setup(
+            "probe_snapshot_span_decoration_line",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.EXIT,
+        )
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_decoration_line_probe_snaphots(self):
+    def test_span_decoration_line_exit_snapshot(self):
+        self._assert()
+        self._validate_spans()
+
+    def setup_span_decoration_line_entry_snapshot(self):
+        self._setup(
+            "probe_snapshot_span_decoration_line",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.ENTRY,
+        )
+
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_span_decoration_line_entry_snapshot(self):
         self._assert()
         self._validate_spans()
 
     ########### mix ############
     ### mix log probe ###
-    def setup_mix_probe(self):
-        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
+    def setup_mix_exit_snapshot(self):
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_mix_probe(self):
+    def test_mix_exit_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+
+    def setup_mix_entry_snapshot(self):
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", evaluate_at=EvaluationPoint.ENTRY)
+
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_mix_entry_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
@@ -133,18 +216,14 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self.send_weblog_request("/healthcheck")
 
     @features.debugger_code_origins
-    @missing_feature(
-        context.library == "dotnet", reason="Entry spans code origins not yet implemented", force_skip=True
-    )
+    @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
     @missing_feature(
         context.library == "java" and context.weblog_variant != "spring-boot",
-        reason="Entry spans code origins only implemented for spring-mvc",
+        reason="Implemented for spring-mvc",
         force_skip=True,
     )
-    @missing_feature(
-        context.library == "nodejs", reason="Entry spans code origins not yet implemented for express", force_skip=True
-    )
-    @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented for express", force_skip=True)
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     def test_code_origin_entry_present(self):
         self.collect()
 
@@ -163,21 +242,19 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
         assert code_origins_entry_found
 
-    def setup_log_line_probe_snaphots_budgets(self):
+    def setup_log_line_exit_budgets(self):
         self._setup(
             "probe_snapshot_log_line_budgets",
             "/debugger/budgets/150",
             lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
+            evaluate_at=EvaluationPoint.EXIT,
+            probe_type="log",
         )
 
     @features.debugger_probe_budgets
-    @missing_feature(
-        context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented", force_skip=True
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Probe snapshot budgets are not yet implemented", force_skip=True
-    )
-    def test_log_line_probe_snaphots_budgets(self):
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    def test_log_line_exit_budgets(self):
         self._assert()
         self._validate_snapshots()
 
