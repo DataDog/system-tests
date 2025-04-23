@@ -720,6 +720,7 @@ class BaseSCAStandaloneTelemetry:
     def setup_app_dependencies_loaded(self):
         self.r = weblog.get("/load_dependency")
 
+    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
