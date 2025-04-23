@@ -685,17 +685,22 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 class BaseSCAStandaloneTelemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
-    def assert_standalone_is_enabled(self, request):
+    def assert_standalone_is_enabled(self, request0, request1):
         # test standalone is enabled and dropping traces
-        for _, __, span in interfaces.library.get_spans(request):
-            assert span["metrics"]["_sampling_priority_v1"] <= 0
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+        spans_checked = 0
+        for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
+            if span["metrics"]["_sampling_priority_v1"] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+                spans_checked += 1
+
+        assert spans_checked > 0
 
     def setup_telemetry_sca_enabled_propagated(self):
-        self.r = weblog.get("/")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/")
+        self.r1 = weblog.get("/")
 
     def test_telemetry_sca_enabled_propagated(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -718,7 +723,9 @@ class BaseSCAStandaloneTelemetry:
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
-        self.r = weblog.get("/load_dependency")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/load_dependency")
+        self.r1 = weblog.get("/load_dependency")
 
     @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
@@ -729,7 +736,7 @@ class BaseSCAStandaloneTelemetry:
     @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
