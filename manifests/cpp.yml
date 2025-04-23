@@ -14,7 +14,7 @@ tests/:
       Test_Stable_Config_Default: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
-      TestDynamicConfigV1_EmptyServiceTargets: v1.0.1.dev
+      TestDynamicConfigV1_EmptyServiceTargets: missing_feature
     test_headers_b3multi.py:
       Test_Headers_B3multi: v1.0.1.dev
     test_headers_baggage.py:
@@ -69,6 +69,7 @@ tests/:
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
       Test_Stable_Configuration_Origin: missing_feature
+      Test_TelemetryInjectionConfigs: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature
     test_tracer.py:
