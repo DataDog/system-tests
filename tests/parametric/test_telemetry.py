@@ -595,10 +595,9 @@ class Test_TelemetryInstallSignature:
                 ), f"The install signature should not be included in the telemetry event, got {body}"
 
 
-@rfc("")
 @scenarios.parametric
 @features.telemetry_app_started_event
-class Test_TelemetryInjectionConfigs:
+class Test_TelemetrySSIConfigs:
     """This telemetry provides insights into how a library was installed."""
 
     @missing_feature(context.library == "python", reason="Not implemented")
