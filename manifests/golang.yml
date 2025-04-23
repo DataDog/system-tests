@@ -240,7 +240,8 @@ tests/:
           echo: v1.36.0
           gin: v1.37.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL:
+          '*': v1.60.0
         Test_GrpcServerMethod: v1.62.0
         Test_Headers:
           '*': v1.34.0
