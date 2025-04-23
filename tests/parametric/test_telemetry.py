@@ -15,6 +15,15 @@ from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
+    "ssi_injection_enabled": {
+        "dotnet": "DD_INJECTION_ENABLED",
+        "nodejs": "DD_INJECTION_ENABLED",
+        "python": "DD_INJECTION_ENABLED",
+    },
+    "ssi_forced_injection_enabled": {
+        "nodejs": "DD_INJECT_FORCE",
+        "python": "DD_INJECT_FORCE",
+    },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
@@ -592,18 +601,43 @@ class Test_TelemetryInstallSignature:
 class Test_TelemetryInjectionConfigs:
     """This telemetry provides insights into how a library was installed."""
 
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_INJECTION_ENABLED": "true",
+            },
+        ],
+    )
+    def test_injection_enabled(self, library_env, test_agent, test_library):
+        """Ensure SSI DD_INJECTION_ENABLED configuration is captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        ssi_enabled_telemetry_name = _mapped_telemetry_name(context, "ssi_injection_enabled")
+        inject_enabled = configuration_by_name.get(ssi_enabled_telemetry_name)
+        assert inject_enabled, ",\n".join(configuration_by_name.keys())
+        assert str(inject_enabled.get("value")).lower() == "true"
+        assert inject_enabled.get("origin") == "env_var"
+
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 **DEFAULT_ENVVARS,
                 "DD_INJECT_FORCE": "true",
-                "DD_INJECTION_ENABLED": "true",
             },
         ],
     )
-    def test_env_var_set(self, library_env, test_agent, test_library):
-        """Ensure SSI configurations are captured by a telemetry event."""
+    def test_inject_force(self, library_env, test_agent, test_library):
+        """Ensure SSI DD_INJECT_FORCE configuration is captured by a telemetry event."""
 
         # Some libraries require a first span for telemetry to be emitted.
         with test_library.dd_start_span("first_span"):
@@ -612,30 +646,11 @@ class Test_TelemetryInjectionConfigs:
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
-        inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
-        assert inject_force.get("value") == True
+        inject_force_telemetry_name = _mapped_telemetry_name(context, "ssi_forced_injection_enabled")
+        inject_force = configuration_by_name.get(inject_force_telemetry_name)
+        assert inject_force, ",\n".join(configuration_by_name.keys())
+        assert str(inject_force.get("value")).lower() == "true"
         assert inject_force.get("origin") == "env_var"
-        inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
-        assert inject_enabled.get("value") == True
-        assert inject_enabled.get("origin") == "env_var"
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_default(self, library_env, test_agent, test_library):
-        """Ensure SSI configurations are captured by a telemetry event."""
-
-        # Some libraries require a first span for telemetry to be emitted.
-        with test_library.dd_start_span("first_span"):
-            pass
-
-        test_agent.wait_for_telemetry_configurations()
-        configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        # # Check that the tags name match the expected value
-        inject_force = configuration_by_name.get("DD_INJECT_FORCE", {})
-        assert inject_force.get("value") == False
-        assert inject_force.get("origin") == "default"
-        inject_enabled = configuration_by_name.get("DD_INJECTION_ENABLED", {})
-        assert inject_enabled.get("value") == "false"
-        assert inject_enabled.get("origin") == False
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")

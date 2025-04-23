@@ -520,7 +520,7 @@ tests/:
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
       Test_Stable_Configuration_Origin: missing_feature
-      Test_TelemetryInjectionConfigs: missing_feature
+      Test_TelemetryInjectionConfigs: v2.49.0
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
     test_trace_sampling.py:
