@@ -24,7 +24,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.0.0-dev
         Test_Schema_Request_Cookies: v1.60.0
         Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
         Test_Schema_Request_Headers: v1.60.0
@@ -35,7 +35,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Body_env_var: v2.0.0-dev
         Test_Schema_Response_Headers: v1.60.0
     iast/:
       sink/:
