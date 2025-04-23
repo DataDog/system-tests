@@ -450,10 +450,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "fleet_config_id"),
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
         [
             (
-                {"DD_LOGS_INJECTION": False, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                     "DD_RUNTIME_METRICS_ENABLED": True,
@@ -465,11 +465,57 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                     # "runtime_metrics_enabled": "env_var",
                     "profiling_enabled": "local_stable_config",
                 },
-                "1231231231231",
             )
         ],
     )
     def test_stable_configuration_origin(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+
+        configuration = test_agent.wait_for_telemetry_configurations()
+        for cfg_name, origin in expected_origin.items():
+            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+            telemetry_item = configuration[apm_telemetry_name]
+            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
+            assert telemetry_item["value"]
+
+    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origin", "fleet_config_id"),
+        [
+            (
+                {"DD_LOGS_INJECTION": False, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                    "DD_RUNTIME_METRICS_ENABLED": True,
+                },
+                {"DD_LOGS_INJECTION": True},
+                {
+                    "logs_injection_enabled": "fleet_stable_config",
+                    "profiling_enabled": "local_stable_config",
+                },
+                "1231231231231",
+            )
+        ],
+    )
+    def test_stable_configuration_config_id(
         self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin, fleet_config_id
     ):
         with test_library:
@@ -492,11 +538,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
-        for cfg_name, origin in expected_origin.items():
+        for cfg_name in expected_origin:
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
             telemetry_item = configurations[apm_telemetry_name]
-            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}\nall configs: {configurations}"
-            assert telemetry_item["value"]
+            assert telemetry_item["origin"] == expected_origin[cfg_name], f"wrong origin for {telemetry_item}"
             if telemetry_item["origin"] == "fleet_stable_config":
                 assert telemetry_item["config_id"] == fleet_config_id
             else:
