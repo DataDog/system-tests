@@ -36,7 +36,7 @@ jobs:
           # temporary print to see what's hapenning on differents events
           print(json.dumps(github_context, indent=2))
 
-          libraries = "cpp|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel"
+          libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel"
           result = set()
 
           # do not include otel in system-tests CI by default, as the staging backend is not stable enough
@@ -91,7 +91,7 @@ jobs:
               "version": "dev",
             }
             for library in sorted(result)
-            if "otel" not in library and library not in ("cpp_httpd", "cpp_nginx")
+            if "otel" not in library and library not in ("cpp_nginx", )
           ]
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
