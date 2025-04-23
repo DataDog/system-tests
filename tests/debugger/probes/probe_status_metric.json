@@ -16,8 +16,7 @@
       "typeName": "NotReallyExists",
       "methodName": "SomeMethod",
       "sourceFile": null
-    },
-    "evaluateAt": "EXIT"
+    }
   },
   {
     "language": "",
@@ -36,7 +35,6 @@
       "typeName": "ACTUAL_TYPE_NAME",
       "methodName": "MetricProbe",
       "sourceFile": null
-    },
-    "evaluateAt": "EXIT"
+    }
   }
 ]

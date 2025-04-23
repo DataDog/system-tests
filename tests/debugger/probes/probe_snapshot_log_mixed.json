@@ -9,8 +9,7 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "MixProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     },
     {
         "language": "",

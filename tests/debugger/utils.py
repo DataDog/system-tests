@@ -8,10 +8,15 @@ import os
 import os.path
 from pathlib import Path
 import uuid
+from enum import Enum
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
+
+class EvaluationPoint(Enum):
+    ENTRY = "ENTRY"
+    EXIT = "EXIT"
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
@@ -109,7 +114,7 @@ class BaseDebuggerTest:
         return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes: list[dict]) -> None:
+    def set_probes(self, probes: list[dict], evaluate_at: EvaluationPoint = EvaluationPoint.EXIT) -> None:
         def _enrich_probes(probes: list[dict]):
             def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
@@ -127,6 +132,7 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = evaluate_at.value
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:

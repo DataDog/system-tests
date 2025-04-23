@@ -8,7 +8,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "LogProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

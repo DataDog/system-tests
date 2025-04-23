@@ -42,7 +42,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "SpanDecorationProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

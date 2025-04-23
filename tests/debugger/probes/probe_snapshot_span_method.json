@@ -8,7 +8,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "SpanProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]
