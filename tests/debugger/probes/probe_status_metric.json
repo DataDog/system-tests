@@ -2,7 +2,7 @@
   {
     "language": "",
     "type": "",
-    "id": "metricf2-meth-45cf-9f39-591received",
+    "id": "",
     "version": 0,
     "metricName": "MetricCountInt",
     "kind": "COUNT",
@@ -21,7 +21,7 @@
   {
     "language": "",
     "type": "",
-    "id": "metricf2-meth-45cf-9f39-59installed",
+    "id": "",
     "version": 0,
     "metricName": "MetricCountInt",
     "kind": "COUNT",

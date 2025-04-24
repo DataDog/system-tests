@@ -15,12 +15,22 @@ from utils import scenarios, features, missing_feature, context, rfc, logger
 class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(
-        self, probes_name: str, request_path: str, lines=None, evaluate_at: EvaluationPoint = EvaluationPoint.EXIT
+        self,
+        probes_name: str,
+        request_path: str,
+        probe_type: str,
+        evaluate_at: EvaluationPoint,
+        lines=None,
     ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
+
+        # Update probe IDs using the generate_probe_id function with the provided probe_type
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id(probe_type)
+
         if lines is not None:
             for probe in probes:
                 if "methodName" in probe["where"]:
@@ -70,7 +80,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ########### method ############
     ### log probe ###
     def setup_log_method_exit_snapshot(self):
-        self._setup("probe_snapshot_log_method", "/debugger/log", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_snapshot_log_method", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_exit_snapshot(self):
@@ -78,7 +88,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self._validate_snapshots()
 
     def setup_log_method_entry_snapshot(self):
-        self._setup("probe_snapshot_log_method", "/debugger/log", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_snapshot_log_method", "/debugger/log", "log", evaluate_at=EvaluationPoint.ENTRY)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
     def test_log_method_entry_snapshot(self):
@@ -87,7 +97,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
     ### span probe ###
     def setup_span_method_exit_snapshot(self):
-        self._setup("probe_snapshot_span_method", "/debugger/span", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_snapshot_span_method", "/debugger/span", "span", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
@@ -96,7 +106,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self._validate_spans()
 
     def setup_span_method_entry_snapshot(self):
-        self._setup("probe_snapshot_span_method", "/debugger/span", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_snapshot_span_method", "/debugger/span", "span", evaluate_at=EvaluationPoint.ENTRY)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
@@ -107,7 +117,10 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ### span decoration probe ###
     def setup_span_decoration_method_exit_snapshot(self):
         self._setup(
-            "probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1", evaluate_at=EvaluationPoint.EXIT
+            "probe_snapshot_span_decoration_method",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.EXIT,
         )
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -120,6 +133,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self._setup(
             "probe_snapshot_span_decoration_method",
             "/debugger/span-decoration/asd/1",
+            "decor",
             evaluate_at=EvaluationPoint.ENTRY,
         )
 
@@ -132,14 +146,14 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ########### line ############
     ### log probe ###
     def setup_log_line_exit_snapshot(self):
-        self._setup("probe_snapshot_log_line", "/debugger/log", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)
 
     def test_log_line_exit_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
     def setup_log_line_entry_snapshot(self):
-        self._setup("probe_snapshot_log_line", "/debugger/log", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", evaluate_at=EvaluationPoint.ENTRY)
 
     def test_log_line_entry_snapshot(self):
         self._assert()
@@ -148,7 +162,10 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ### span decoration probe ###
     def setup_span_decoration_line_exit_snapshot(self):
         self._setup(
-            "probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1", evaluate_at=EvaluationPoint.EXIT
+            "probe_snapshot_span_decoration_line",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.EXIT,
         )
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -159,7 +176,10 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
     def setup_span_decoration_line_entry_snapshot(self):
         self._setup(
-            "probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1", evaluate_at=EvaluationPoint.ENTRY
+            "probe_snapshot_span_decoration_line",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            evaluate_at=EvaluationPoint.ENTRY,
         )
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
@@ -171,7 +191,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     ########### mix ############
     ### mix log probe ###
     def setup_mix_exit_snapshot(self):
-        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_mix_exit_snapshot(self):
@@ -179,7 +199,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         self._validate_snapshots()
 
     def setup_mix_entry_snapshot(self):
-        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", evaluate_at=EvaluationPoint.ENTRY)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_mix_entry_snapshot(self):
@@ -228,6 +248,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
             "/debugger/budgets/150",
             lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
             evaluate_at=EvaluationPoint.EXIT,
+            probe_type="log",
         )
 
     @features.debugger_probe_budgets

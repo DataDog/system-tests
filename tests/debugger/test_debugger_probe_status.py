@@ -13,11 +13,19 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
     expected_diagnostics: dict = {}
 
     ############ setup ############
-    def _setup(self, probes_name: str, evaluate_at: EvaluationPoint = EvaluationPoint.EXIT):
+    def _setup(self, probes_name: str, probe_type: str, evaluate_at: EvaluationPoint):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
+
+        for probe in probes:
+            if probe["where"]["typeName"] == "NotReallyExists":
+                suffix = "received"
+            else:
+                suffix = "installed"
+            probe["id"] = debugger.generate_probe_id(probe_type, suffix)
+
         self.set_probes(probes, evaluate_at=evaluate_at)
 
         ### set expected
@@ -62,7 +70,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
     ############ log line probe ############
     def setup_log_line_exit_status(self):
-        self._setup("probe_status_log_line", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -71,7 +79,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_log_line_entry_status(self):
-        self._setup("probe_status_log_line", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -81,7 +89,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
     ############ log method probe ############
     def setup_log_method_exit_status(self):
-        self._setup("probe_status_log_method", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_log_method", probe_type="log", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -90,7 +98,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_log_method_entry_status(self):
-        self._setup("probe_status_log_method", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_log_method", probe_type="log", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -100,7 +108,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
     ############ metric probe ############
     def setup_metric_exit_status(self):
-        self._setup("probe_status_metric", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_metric", probe_type="metric", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -110,7 +118,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_metric_entry_status(self):
-        self._setup("probe_status_metric", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_metric", probe_type="metric", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -120,7 +128,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_metric_line_exit_status(self):
-        self._setup("probe_status_metric_line", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -131,7 +139,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_metric_line_entry_status(self):
-        self._setup("probe_status_metric_line", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -143,7 +151,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
     ############ span probe ############
     def setup_span_method_exit_status(self):
-        self._setup("probe_status_span", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_span", probe_type="span", evaluate_at=EvaluationPoint.EXIT)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
@@ -151,7 +159,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_span_method_entry_status(self):
-        self._setup("probe_status_span", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_span", probe_type="span", evaluate_at=EvaluationPoint.ENTRY)
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
@@ -160,7 +168,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
     ############ span decoration probe ############
     def setup_span_decoration_method_exit_status(self):
-        self._setup("probe_status_spandecoration", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_spandecoration", probe_type="decor", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -170,7 +178,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_span_decoration_method_entry_status(self):
-        self._setup("probe_status_spandecoration", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_spandecoration", probe_type="decor", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -180,7 +188,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_span_decoration_line_exit_status(self):
-        self._setup("probe_status_spandecoration_line", evaluate_at=EvaluationPoint.EXIT)
+        self._setup("probe_status_spandecoration_line", probe_type="decor", evaluate_at=EvaluationPoint.EXIT)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
@@ -191,7 +199,7 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         self._assert()
 
     def setup_span_decoration_line_entry_status(self):
-        self._setup("probe_status_spandecoration_line", evaluate_at=EvaluationPoint.ENTRY)
+        self._setup("probe_status_spandecoration_line", probe_type="decor", evaluate_at=EvaluationPoint.ENTRY)
 
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")

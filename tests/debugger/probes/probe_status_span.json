@@ -2,7 +2,7 @@
   {
     "language": "",
     "type": "",
-    "id": "span0cf2-meth-45cf-9f39-591received",
+    "id": "",
     "version": 0,
     "where": {
       "typeName": "NotReallyExists",
@@ -13,7 +13,7 @@
   {
     "language": "",
     "type": "",
-    "id": "span0cf2-meth-45cf-9f39-59installed",
+    "id": "",
     "version": 0,
     "where": {
       "typeName": "ACTUAL_TYPE_NAME",

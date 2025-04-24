@@ -2,14 +2,14 @@
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-591received",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "tags": [],
                 "when": {
-                    "dsl" : "",
+                    "dsl": "",
                     "json": {
                         "gt": [
                             {
@@ -32,7 +32,7 @@
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-59installed",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
