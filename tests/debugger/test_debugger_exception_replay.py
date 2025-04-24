@@ -48,22 +48,21 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     ############ assert ############
     def _assert(self, test_name, expected_exception_messages):
         def __filter_contents_by_message():
-            filtered_snapshots = []
+            filtered_contents = []
 
             for contents in self.probe_snapshots.values():
                 for content in contents:
                     for expected_exception_message in expected_exception_messages:
                         exception_message = self.get_exception_message(content["debugger"]["snapshot"])
                         if expected_exception_message in exception_message:
-                            filtered_snapshots.append((exception_message, content))
+                            filtered_contents.append((exception_message, content))
 
-            # Sort by multiple criteria for consistent ordering
-            def get_sort_key(snapshot_tuple):
-                message, snapshot = snapshot_tuple
-                # Get method name from probe location if available
+            def get_sort_key(content_tuple):
+                message, content = content_tuple
+                snapshot = content["debugger"]["snapshot"]
+
                 method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
-                # Get line number from probe location
-                line_number = snapshot.get("probe", {}).get("location", {}).get("line", 0)
+                line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [""])[0]
 
                 if "recursion" in message.lower():
                     args = snapshot.get("captures", {}).get("return", {}).get("arguments", {})
@@ -72,14 +71,12 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     else:
                         current_depth = "-1"
                     return (message, method_name, line_number, current_depth)
+                else:
+                    return (message, method_name, line_number)
 
-                # For non-recursion tests, use regular ordering
-                return (message, method_name, line_number)
+            filtered_contents.sort(key=get_sort_key)
 
-            filtered_snapshots.sort(key=get_sort_key)
-
-            # Return only the snapshots
-            return [snapshot for _, snapshot in filtered_snapshots]
+            return [snapshot for _, snapshot in filtered_contents]
 
         def __filter_spans_by_snapshot_id(snapshots):
             filtered_spans = {}
@@ -372,8 +369,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         assert found_top, "Top layer snapshot not found"
         assert found_lowest, "Lowest layer snapshot not found"
 
-    ############ test ############
-    ############ Simple ############
+    ########### test ############
+    ########### Simple ############
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
@@ -382,7 +379,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
-    ############ Recursion ############
+    ########### Recursion ############
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 

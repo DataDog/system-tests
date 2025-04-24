@@ -54,22 +54,14 @@
       "version": 0,
       "location": {
         "lines": [],
-        "method": "deepFunctionC",
+        "method": "deepFunctionA",
         "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
       }
     },
     "stack": [
       {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-        "lineNumber": 56
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 60
-      },
-      {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 64
+        "lineNumber": 65
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
@@ -222,14 +214,22 @@
       "version": 0,
       "location": {
         "lines": [],
-        "method": "deepFunctionA",
+        "method": "deepFunctionC",
         "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
       }
     },
     "stack": [
       {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
+        "lineNumber": 56
+      },
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
+        "lineNumber": 60
+      },
+      {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 65
+        "lineNumber": 64
       },
       {
         "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
