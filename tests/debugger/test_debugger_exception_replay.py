@@ -62,7 +62,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 snapshot = content["debugger"]["snapshot"]
 
                 method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
-                line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [""])[0]
+                line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [])
 
                 if "recursion" in message.lower():
                     args = snapshot.get("captures", {}).get("return", {}).get("arguments", {})
