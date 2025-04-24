@@ -702,13 +702,14 @@ class BaseSCAStandaloneTelemetry:
     def test_telemetry_sca_enabled_propagated(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
+        configuration_by_name: dict[str, dict] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-started":
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {item["name"]: item for item in configuration}
+            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
 
         assert configuration_by_name
 
