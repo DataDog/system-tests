@@ -189,6 +189,10 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-dotnet-multialpine",
         reason="INPLAT-484",
     )
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
+        reason="python 3.7 is not supported on ddtrace >= 3.x",
+    )
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
