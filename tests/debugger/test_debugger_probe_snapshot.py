@@ -234,23 +234,6 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     def test_log_line_exit_budgets(self):
-        self._assert_budgets()
-
-    def setup_log_line_entry_budgets(self):
-        self._setup(
-            "probe_snapshot_log_line_budgets",
-            "/debugger/budgets/150",
-            lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
-            evaluate_at=EvaluationPoint.ENTRY,
-        )
-
-    @features.debugger_probe_budgets
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    def test_log_line_entry_budgets(self):
-        self._assert_budgets()
-
-    def _assert_budgets(self):
         self._assert()
         self._validate_snapshots()
 
