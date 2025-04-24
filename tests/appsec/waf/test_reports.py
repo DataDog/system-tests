@@ -50,9 +50,13 @@ class Test_Monitoring:
     def setup_waf_monitoring_once(self):
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
+    @irrelevant(context.library >= "golang@v2.1.0-dev", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_once(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
-        least once in a request span at some point
+        least once in a request span at some point. The metrics asserted by this
+        test are deprecated for libraries that implemented RFC-1025; at which
+        point the test_waf_monitoring_once_rfc1025 is sufficient and this can be
+        reported as irrelevant.
         """
 
         # Tags that are expected to be reported at least once at some point
@@ -111,6 +115,37 @@ class Test_Monitoring:
                     raise Exception(
                         f"rule error details should be valid JSON but was `{meta[expected_rules_errors_meta_tag]}`"
                     ) from e
+
+            return True
+
+        # Perform an attack for the sake of having a request and an event in
+        # order to be able to run this test alone. But the validation function
+        # is not associated with the attack request.
+        interfaces.library.assert_waf_attack(self.r_once)
+        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)
+
+    def setup_waf_monitoring_once_rfc1025(self):
+        self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+
+    def test_waf_monitoring_once_rfc1025(self):
+        """Some WAF monitoring span tags are expected to be sent at least once
+        in a request span at some point.
+        """
+
+        # Tags that are expected to be reported at least once at some point
+        expected_waf_version_tag = "_dd.appsec.waf.version"
+
+        def validate_rules_monitoring_span_tags(span):
+            """Validate the mandatory rules monitoring span tags are added to a request span at some point such as the
+            first request or first attack.
+            """
+
+            meta = span["meta"]
+            if expected_waf_version_tag not in meta:
+                return None  # Skip this span
+
+            if re.match(self.expected_version_regex, meta[expected_waf_version_tag], 0) is None:
+                raise Exception(f"the span meta tag `{meta[expected_waf_version_tag]}` doesn't match the version regex")
 
             return True
 
