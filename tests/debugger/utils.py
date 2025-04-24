@@ -18,6 +18,7 @@ class EvaluationPoint(Enum):
     ENTRY = "ENTRY"
     EXIT = "EXIT"
 
+
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
