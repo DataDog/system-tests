@@ -190,7 +190,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         reason="INPLAT-484",
     )
     @irrelevant(
-        context.library >= "python@2.21.0" and context.installed_language_runtime < "3.8.0",
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
         reason="python 3.7 is not supported on ddtrace >= 3.x",
     )
     def test_install(self):
