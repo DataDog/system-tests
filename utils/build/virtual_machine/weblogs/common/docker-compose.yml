@@ -5,4 +5,4 @@ services:
     container_name: test-app
     image: system-tests/local:latest
     ports:
-      - 5985:18080 
+      - 5985:18080

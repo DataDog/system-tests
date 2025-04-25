@@ -1,4 +1,3 @@
----
 tests/:
   k8s_lib_injection/:
     test_k8s_lib_injection_profiling.py:

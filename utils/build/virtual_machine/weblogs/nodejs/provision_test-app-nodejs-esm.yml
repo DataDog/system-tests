@@ -1,21 +1,21 @@
 weblog:
-    name: test-app-nodejs-esm
-    nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/docker-compose.yml
-          - name: copy-nodejs-app
-            local_path: lib-injection/build/docker/nodejs/sample-app
-          - name: copy-node20-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node20
-          - name: copy-nodejs-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf
-        remote-command: sh create_and_run_app_multicontainer.sh
+  name: test-app-nodejs-esm
+  nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/docker-compose.yml
+        - name: copy-nodejs-app
+          local_path: lib-injection/build/docker/nodejs/sample-app
+        - name: copy-node20-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node20
+        - name: copy-nodejs-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.node
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf
+      remote-command: sh create_and_run_app_multicontainer.sh

@@ -1,45 +1,45 @@
 lang_variant:
-    name: DefaultJDK
-    version: default
-    cache: true
-    install:
-      - os_type: linux
-        os_distro: deb
-        os_branch: debian
-        remote-command: |
-          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
-          sudo apt update
-          sudo apt -y install default-jdk
-          
-      - os_type: linux
-        os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
+  name: DefaultJDK
+  version: default
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: deb
+      os_branch: debian
+      remote-command: |
+        echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+        sudo apt update
+        sudo apt -y install default-jdk
 
-      - os_type: linux
-        os_distro: rpm
-        remote-command: | 
-          sudo yum install tar -y || sudo dnf install tar -y || true
-          sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
+    - os_type: linux
+      os_distro: deb
+      remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
+
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
+        sudo yum install tar -y || sudo dnf install tar -y || true
+        sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
 
 weblog:
-    name: test-app-java
-    install:
-      - os_type: linux
+  name: test-app-java
+  install:
+    - os_type: linux
 
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-compile-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
+        - name: copy-compile-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_run.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/test-app-java_run.sh
 
-          - name: copy-java-app
-            local_path: lib-injection/build/docker/java/jetty-app
+        - name: copy-java-app
+          local_path: lib-injection/build/docker/java/jetty-app
 
-        remote-command: sh test-app-java_run.sh
+      remote-command: sh test-app-java_run.sh

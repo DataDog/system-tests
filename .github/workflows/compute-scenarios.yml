@@ -33,7 +33,7 @@ jobs:
       - name: Get scenario map
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Get list of modified files
-        run:  |
+        run: |
           git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
           git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
           cat modified_files.txt

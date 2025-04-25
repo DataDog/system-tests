@@ -5,6 +5,3 @@ runtime:
     virtualenv: venv
 description: APM Datadog Library Injection tests
 
-
-
-

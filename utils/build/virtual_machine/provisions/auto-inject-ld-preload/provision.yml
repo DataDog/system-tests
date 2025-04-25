@@ -11,12 +11,12 @@ vm_logs:
 
 # Mandatory: Steps to provision VM
 provision_steps:
-  - init-config # Init the VM configuration
-  - prepare-docker # Install docker
-  - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
-  - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  - ld-so-preload # Add some staff to the ld.so.preload before install dd software
-  - install-installer # Install the installer
+  - init-config  # Init the VM configuration
+  - prepare-docker  # Install docker
+  - amazon-ecr-credential-helper  # Install AWS ECR helper to download images from ECR
+  - patch-docker-daemon  #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
+  - ld-so-preload  # Add some staff to the ld.so.preload before install dd software
+  - install-installer  # Install the installer
 
 init-config:
   cache: true

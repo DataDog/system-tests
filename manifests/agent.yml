@@ -1,4 +1,3 @@
----
 tests/:
   otel_tracing_e2e/:
     test_e2e.py:

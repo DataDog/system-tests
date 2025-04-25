@@ -22,4 +22,4 @@ runs:
 
       # the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable
       env:
-          INPUTS_TEXT: ${{ inputs.text }}
+        INPUTS_TEXT: ${{ inputs.text }}

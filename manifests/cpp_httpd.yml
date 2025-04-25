@@ -1,4 +1,3 @@
----
 # Important note : version specified in this file are httpd-datadog version
 # you can find the list of existing version here : https://github.com/DataDog/httpd-datadog/releases
 tests/:

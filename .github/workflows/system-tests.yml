@@ -47,10 +47,10 @@ on:
         required: false
         type: boolean
       build_lib_injection_app_images:
-          description: "Shall we build and push k8s lib injection weblog images"
-          default: false
-          required: false
-          type: boolean
+        description: "Shall we build and push k8s lib injection weblog images"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -145,7 +145,7 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
       - name: Get binaries artifact
-        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        if: ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
