@@ -263,5 +263,8 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     def setup_pii_redaction_excluded_identifiers(self):
         self._setup(line_probe=True)
 
+    @bug(context.library == "java", reason="DEBUG-3745")
+    @bug(context.library == "ruby", reason="DEBUG-3747")
+    @bug(context.library == "python", reason="DEBUG-3746")
     def test_pii_redaction_excluded_identifiers(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True, excluded_identifiers=EXCLUDED_IDENTIFIERS)
