@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,9 +11,8 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Request) {
@@ -29,9 +29,12 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 	}
 	w.Header().Set("Content-Type", "application/json")
 
+	tIdBytes := span.Context().TraceIDBytes()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
 	response := StartSpanReturn{
 		SpanId:  span.Context().SpanID(),
-		TraceId: span.Context().TraceID(),
+		TraceId: tId,
 	}
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		http.Error(w, "Failed to encode response: "+err.Error(), http.StatusInternalServerError)
@@ -39,7 +42,7 @@ func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (ddtrace.Span, error) {
+func (s *apmClientServer) StartSpan(ctx context.Context, args *StartSpanArgs) (*tracer.Span, error) {
 	var opts []tracer.StartSpanOption
 	if p := args.ParentId; p > 0 {
 		if span, ok := s.spans[p]; ok {
@@ -81,7 +84,7 @@ func (s *apmClientServer) spanSetMetaHandler(w http.ResponseWriter, r *http.Requ
 		http.Error(w, "Span not found", http.StatusNotFound)
 		return
 	}
-	span.SetTag(args.Key, args.Value)
+	span.SetTag(args.Key, args.InferredValue())
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -127,14 +130,14 @@ func (s *apmClientServer) finishSpanHandler(w http.ResponseWriter, r *http.Reque
 
 func (s *apmClientServer) flushSpansHandler(w http.ResponseWriter, r *http.Request) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
 
 func (s *apmClientServer) flushStatsHandler(w http.ResponseWriter, r *http.Request) {
 	tracer.Flush()
-	s.spans = make(map[uint64]tracer.Span)
+	s.spans = make(map[uint64]*tracer.Span)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 }
