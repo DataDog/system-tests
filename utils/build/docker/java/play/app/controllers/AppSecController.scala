@@ -75,6 +75,35 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       .withHeaders("Content-Language" -> "en-US")
   }
 
+  /**
+   * Endpoint for testing custom headers. Adds five custom headers to the response.
+   */
+  def customResponseHeaders = Action {
+    Results.Ok("Response with custom headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(
+        "Content-Language"      -> "en-US",
+        "X-Test-Header-1"       -> "value1",
+        "X-Test-Header-2"       -> "value2",
+        "X-Test-Header-3"       -> "value3",
+        "X-Test-Header-4"       -> "value4",
+        "X-Test-Header-5"       -> "value5"
+      )
+  }
+
+  /**
+   * Endpoint exceeding default header budget with 50 custom headers.
+   */
+  def exceedResponseHeaders = Action {
+    // Generate 50 custom headers
+    val customHeaders = (1 to 50).map { i => s"X-Test-Header-$i" -> s"value$i" }
+    // Prepend the standard Content-Language header
+    val allHeaders = ("Content-Language" -> "en-US") +: customHeaders
+    Results.Ok("Response with more than 50 headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(allHeaders: _*)
+  }
+
 
   def tagValue(value: String, code: Int) = Action { request =>
     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
