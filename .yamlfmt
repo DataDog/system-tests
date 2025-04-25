@@ -10,3 +10,4 @@ exclude:
     - lib-injection/common/templates/deployment.yaml
     - lib-injection/common/templates/pod.yaml
     - venv/
+    - utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
