@@ -433,8 +433,6 @@ def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
     filename = "tests/appsec/iast/"
     os.system(cmd + " -la" + filename)
-    # subp = subprocess.Popen(args=[cmd, "-la", filename])
-    # subp.wait()
     return HttpResponse("OK")
 
 
@@ -443,8 +441,6 @@ def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
     filename = "tests/appsec/iast/"
     os.system(shlex.quote(cmd) + " -la" + filename)
-    # subp = subprocess.Popen(args=[shlex.quote(cmd), "-la", filename])
-    # subp.wait()
     return HttpResponse("OK")
 
 

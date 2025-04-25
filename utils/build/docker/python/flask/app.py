@@ -1505,10 +1505,7 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la" + filename)
     return Response("OK")
 
 
@@ -1516,8 +1513,7 @@ def view_cmdi_insecure():
 def view_cmdi_secure():
     filename = "/"
     command = " ".join([flask_request.form["cmd"], "-la", filename])
-    subp = subprocess.Popen(args=[shlex.quote(command), "-la", filename])
-    subp.wait()
+    os.system(shlex.quote(command) + " -la" + filename)
     return Response("OK")
 
 

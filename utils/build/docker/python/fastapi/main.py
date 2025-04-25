@@ -869,9 +869,7 @@ def test_weak_randomness_secure():
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
 
-    subp = subprocess.Popen(args=[cmd, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.system(cmd + " -la" + filename)
     return "OK"
 
 
@@ -879,8 +877,7 @@ async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
     command = " ".join([cmd, "-la", filename])  # noqa F841
-    subp = subprocess.Popen(args=[shlex.quote(command), "-la", filename])
-    subp.wait()
+    os.system(shlex.quote(command) + " -la" + filename)
     return "OK"
 
 
