@@ -13,7 +13,6 @@ from utils import (
 )
 
 REDACTED_KEYS = [
-    "_2fa",
     "ACCESSTOKEN",
     "Access_Token",
     "AccessToken",
@@ -36,7 +35,6 @@ REDACTED_KEYS = [
     "clientsecret",
     "connectionstring",
     "connectsid",
-    "cookie",
     "credentials",
     "creditcard",
     "csrf",
@@ -83,7 +81,6 @@ REDACTED_KEYS = [
     "securityquestion",
     "serviceaccountcredentials",
     "session",
-    "sessionid",
     "sessionkey",
     "setcookie",
     "signature",
@@ -109,6 +106,12 @@ REDACTED_KEYS = [
 
 REDACTED_TYPES = ["customPii"]
 
+EXCLUDED_IDENTIFIERS = [
+    "_2fa",
+    "cookie",
+    "sessionid",
+]
+
 
 @features.debugger_pii_redaction
 @scenarios.debugger_pii_redaction
@@ -129,30 +132,39 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
-    def _assert(self, redacted_keys, redacted_types, *, line_probe=False):
+    def _assert(self, redacted_keys, redacted_types, *, line_probe=False, excluded_identifiers=None):
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
-        self._validate_pii_keyword_redaction(redacted_keys, line_probe)
+        self._validate_pii_keyword_redaction(redacted_keys, line_probe, excluded_identifiers=excluded_identifiers)
         if context.library != "nodejs":  # Node.js does not support type redacting
             self._validate_pii_type_redaction(redacted_types, line_probe)
 
-    def _validate_pii_keyword_redaction(self, should_redact_field_names, line_probe):
+    def _validate_pii_keyword_redaction(self, should_redact_field_names, line_probe, excluded_identifiers):
         not_redacted = []
         not_found = list(set(should_redact_field_names))
+        excluded_found = []
+        improperly_redacted = []
+
+        if excluded_identifiers is None:
+            excluded_identifiers = []
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
+            if line_probe:
+                fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
+            else:
+                fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
+
+            # Check if fields that should be redacted are properly redacted
             for field_name in should_redact_field_names:
-                if line_probe:
-                    fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
-                else:
-                    fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
+                if field_name in excluded_identifiers:
+                    continue
 
                 if context.library == "ruby":
                     check_field_name = "@" + field_name
@@ -165,6 +177,20 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
                     if "value" in fields[check_field_name]:
                         not_redacted.append(field_name)
 
+            # Check excluded identifiers are present and NOT redacted (they should have values)
+            for field_name in excluded_identifiers:
+                if context.library == "ruby":
+                    check_field_name = "@" + field_name
+                else:
+                    check_field_name = field_name
+
+                if check_field_name in fields:
+                    excluded_found.append(field_name)
+
+                    # Excluded identifiers should have values
+                    if "value" not in fields[check_field_name]:
+                        improperly_redacted.append(field_name)
+
         error_message = ""
         if not_redacted:
             not_redacted.sort()
@@ -173,6 +199,15 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
         if not_found:
             not_found.sort()
             error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
+
+        if improperly_redacted:
+            improperly_redacted.sort()
+            error_message += ". Excluded fields improperly redacted: " + "".join(
+                [f"{item}, " for item in improperly_redacted]
+            )
+
+        if excluded_identifiers and not excluded_found:
+            error_message += ". No excluded identifiers found in snapshot."
 
         if error_message != "":
             raise ValueError(error_message)
@@ -215,11 +250,18 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     )
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_pii_redaction_method_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES)
+        self._assert(REDACTED_KEYS, REDACTED_TYPES, excluded_identifiers=None)
 
     ### line ###
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
     def test_pii_redaction_line_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
+        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True, excluded_identifiers=None)
+
+    ### excluded identifiers ###
+    def setup_pii_redaction_excluded_identifiers(self):
+        self._setup(line_probe=True)
+
+    def test_pii_redaction_excluded_identifiers(self):
+        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True, excluded_identifiers=EXCLUDED_IDENTIFIERS)
