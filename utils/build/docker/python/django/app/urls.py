@@ -445,6 +445,7 @@ def view_cmdi_secure(request):
     subp.wait()
     return HttpResponse("OK")
 
+
 @csrf_exempt
 def view_iast_path_traversal_insecure(request):
     path = request.POST.get("path", "")
