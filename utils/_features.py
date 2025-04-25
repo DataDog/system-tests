@@ -2591,5 +2591,14 @@ class _Features:
         pytest.mark.features(feature_id=394)(test_object)
         return test_object
 
+    @staticmethod
+    def appsec_collect_all_headers(test_object):
+        """Appsec collects all headers
+
+        https://feature-parity.us1.prod.dog/#/?feature=390
+        """
+        pytest.mark.features(feature_id=390)(test_object)
+        return test_object
+
 
 features = _Features()

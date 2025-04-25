@@ -189,6 +189,26 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
+    @GetMapping("/customResponseHeaders")
+    String customResponseHeaders(HttpServletResponse response) {
+        response.setHeader("Content-Language", "en-US");
+        response.setHeader("X-Test-Header-1", "value1");
+        response.setHeader("X-Test-Header-2", "value2");
+        response.setHeader("X-Test-Header-3", "value3");
+        response.setHeader("X-Test-Header-4", "value4");
+        response.setHeader("X-Test-Header-5", "value5");
+        return "Response with custom headers";
+    }
+
+    @GetMapping("/exceedResponseHeaders")
+    String exceedResponseHeaders(HttpServletResponse response) {
+        for (int i = 1; i <= 50; i++) {
+            response.setHeader("X-Test-Header-" + i, "value" + i);
+        }
+        response.setHeader("content-language", "en-US");
+        return "Response with more than 50 headers";
+    }
+
     @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
     ResponseEntity<String> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code) {
         setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value);
