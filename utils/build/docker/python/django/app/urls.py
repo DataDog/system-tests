@@ -431,8 +431,8 @@ def view_iast_weak_randomness_secure(request):
 @csrf_exempt
 def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
+    filename = "tests/appsec/iast/"
+    subp = subprocess.Popen(args=[cmd, "-la", filename])
     subp.wait()
     return HttpResponse("OK")
 
@@ -440,8 +440,8 @@ def view_cmdi_insecure(request):
 @csrf_exempt
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    subp = subprocess.Popen(args=[shlex.quote(cmd), "-la", filename], shell=True)
+    filename = "tests/appsec/iast/"
+    subp = subprocess.Popen(args=[shlex.quote(cmd), "-la", filename])
     subp.wait()
     return HttpResponse("OK")
 

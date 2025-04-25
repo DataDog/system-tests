@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
@@ -1515,10 +1516,8 @@ def view_cmdi_insecure():
 def view_cmdi_secure():
     filename = "/"
     command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    subp = subprocess.Popen(args=[shlex.quote(command), "-la", filename])
+    subp.wait()
     return Response("OK")
 
 

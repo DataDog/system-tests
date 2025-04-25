@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import typing
@@ -878,10 +879,8 @@ async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
     command = " ".join([cmd, "-la", filename])  # noqa F841
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    subp = subprocess.Popen(args=[shlex.quote(command), "-la", filename])
+    subp.wait()
     return "OK"
 
 
