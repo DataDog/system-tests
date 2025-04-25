@@ -1743,6 +1743,15 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        spring-boot: v1.49.0
+        spring-boot-jetty: v1.49.0
+        spring-boot-openliberty: v1.49.0
+        spring-boot-payara: v1.49.0
+        spring-boot-undertow: v1.49.0
+        spring-boot-wildfly: v1.49.0
+        uds-spring-boot: v1.49.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature

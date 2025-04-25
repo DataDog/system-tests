@@ -109,10 +109,15 @@ REDACTED_KEYS = [
 
 REDACTED_TYPES = ["customPii"]
 
+EXCLUDED_IDENTIFIERS = [
+    "_2fa",
+    "cookie",
+    "sessionid",
+]
+
 
 @features.debugger_pii_redaction
-@scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
+class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self, *, line_probe=False):
         self.initialize_weblog_remote_config()
@@ -142,18 +147,20 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
 
     def _validate_pii_keyword_redaction(self, should_redact_field_names, line_probe):
         not_redacted = []
-        not_found = list(set(should_redact_field_names))
+        not_found = list(set(should_redact_field_names + EXCLUDED_IDENTIFIERS))
+        improperly_redacted = []
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
-            for field_name in should_redact_field_names:
-                if line_probe:
-                    fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
-                else:
-                    fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
+            if line_probe:
+                fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
+            else:
+                fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
 
+            # Check if fields that should be redacted are properly redacted
+            for field_name in set(should_redact_field_names + EXCLUDED_IDENTIFIERS):
                 if context.library == "ruby":
                     check_field_name = "@" + field_name
                 else:
@@ -162,20 +169,31 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
                 if check_field_name in fields:
                     not_found.remove(field_name)
 
-                    if "value" in fields[check_field_name]:
+                    # Fields included in should_redact_field_names should not have values
+                    if "value" in fields[check_field_name] and field_name in should_redact_field_names:
                         not_redacted.append(field_name)
 
-        error_message = ""
+                    # Fields not included in should_redact_field_names should have values
+                    if "value" not in fields[check_field_name] and field_name not in should_redact_field_names:
+                        improperly_redacted.append(field_name)
+
+        error_message = []
         if not_redacted:
             not_redacted.sort()
-            error_message = "Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+            error_message.append("Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted]))
 
         if not_found:
             not_found.sort()
-            error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
+            error_message.append("Fields not found: " + "".join([f"{item}, " for item in not_found]))
 
-        if error_message != "":
-            raise ValueError(error_message)
+        if improperly_redacted:
+            improperly_redacted.sort()
+            error_message.append(
+                "Excluded fields improperly redacted: " + "".join([f"{item}, " for item in improperly_redacted])
+            )
+
+        if error_message:
+            raise ValueError(". ".join(error_message))
 
     def _validate_pii_type_redaction(self, should_redact_types, line_probe):
         not_redacted = []
@@ -196,11 +214,14 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
         error_message = ""
         if not_redacted:
             not_redacted.sort()
-            error_message = "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+            error_message += "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
 
         if error_message != "":
             raise ValueError(error_message)
 
+
+@scenarios.debugger_pii_redaction
+class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     ############ test ############
     ### method ###
     def setup_pii_redaction_method_full(self):
@@ -223,3 +244,18 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
 
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
+
+
+@scenarios.tracing_config_nondefault_4
+class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionTest):
+    ### excluded identifiers ###
+    def setup_pii_redaction_excluded_identifiers(self):
+        self._setup(line_probe=True)
+
+    @bug(context.library == "java", reason="DEBUG-3745")
+    @bug(context.library == "ruby", reason="DEBUG-3747")
+    @bug(context.library == "python", reason="DEBUG-3746")
+    def test_pii_redaction_excluded_identifiers(self):
+        # Remove EXCLUDED_IDENTIFIERS from REDACTED_KEYS
+        redacted_keys = [key for key in REDACTED_KEYS if key not in EXCLUDED_IDENTIFIERS]
+        self._assert(redacted_keys, [], line_probe=True)

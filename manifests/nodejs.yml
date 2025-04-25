@@ -827,6 +827,11 @@ tests/:
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
