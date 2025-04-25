@@ -432,7 +432,7 @@ def view_iast_weak_randomness_secure(request):
 def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
     filename = "tests/appsec/iast/"
-    os.system(cmd + " -la" + filename)
+    os.system(cmd + " -la " + filename)
     return HttpResponse("OK")
 
 
@@ -440,7 +440,7 @@ def view_cmdi_insecure(request):
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
     filename = "tests/appsec/iast/"
-    os.system(shlex.quote(cmd) + " -la" + filename)
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return HttpResponse("OK")
 
 

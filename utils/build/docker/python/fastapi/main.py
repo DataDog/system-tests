@@ -868,7 +868,6 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-
     os.system(cmd + " -la" + filename)
     return "OK"
 
@@ -876,8 +875,7 @@ async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])  # noqa F841
-    os.system(shlex.quote(command) + " -la" + filename)
+    os.system(shlex.quote(cmd) + " -la" + filename)
     return "OK"
 
 

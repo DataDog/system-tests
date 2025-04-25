@@ -1505,15 +1505,15 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    os.system(command + " -la" + filename)
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    os.system(shlex.quote(command) + " -la" + filename)
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 
