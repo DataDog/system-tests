@@ -1,6 +1,12 @@
 formatter:
     type: basic
-    include_document_start: true
+    include_document_start: false
     indent: 2
     pad_line_comments: 2
     eof_newline: true
+    trim_trailing_whitespace: true
+    retain_line_breaks_single: true
+exclude:
+    - lib-injection/common/templates/deployment.yaml
+    - lib-injection/common/templates/pod.yaml
+    - venv/
