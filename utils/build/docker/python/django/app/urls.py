@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import random
+import shlex
 import subprocess
 import xmltodict
 import sys
@@ -432,7 +433,6 @@ def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
     filename = "/"
     subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
-    subp.communicate()
     subp.wait()
     return HttpResponse("OK")
 
@@ -441,13 +441,9 @@ def view_cmdi_insecure(request):
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
     filename = "/"
-    cmd = " ".join([cmd, "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(cmd, shell=True)
-    # subp.communicate()
-    # subp.wait()
+    subp = subprocess.Popen(args=[shlex.quote(cmd), "-la", filename], shell=True)
+    subp.wait()
     return HttpResponse("OK")
-
 
 @csrf_exempt
 def view_iast_path_traversal_insecure(request):
