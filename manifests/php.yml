@@ -307,8 +307,8 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
+      Test_SCAStandalone_Telemetry_V2: v1.8.0
       Test_UserEventsStandalone: v1.8.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
