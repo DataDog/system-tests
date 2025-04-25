@@ -16,13 +16,18 @@ on:
         default: ''
         required: false
         type: string
+      excluded_scenarios:
+        description: "Comma-separated list of scenarios not to run"
+        type: string
+        default: ""
+        required: false
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
         required: false
         type: string
       ci_environment:
-        description: "Which CI environment is running the tests, used for FPD"
+        description: "**DEPRECATED**"
         default: 'custom'
         required: false
         type: string
@@ -71,6 +76,16 @@ on:
         default: 1
         required: false
         type: number
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
+      _system_tests_library_target_branch:
+        description: "If system-tests dev mode, the branch to use for the library"
+        default: ''
+        required: false
+        type: string
 
 jobs:
   compute_parameters:
@@ -80,9 +95,12 @@ jobs:
       library: ${{ inputs.library }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
+      excluded_scenarios: ${{ inputs.excluded_scenarios }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
       desired_execution_time: ${{ inputs.desired_execution_time }}
-      _ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
+      _system_tests_library_target_branch: ${{ inputs._system_tests_library_target_branch }}
 
   parametric:
     needs:
@@ -92,8 +110,8 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
@@ -109,7 +127,7 @@ jobs:
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
       library: ${{ inputs.library }}
-      version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
+      version: ${{ needs.compute_parameters.outputs.ci_environment }}
 
   build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})
@@ -127,10 +145,10 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
       - name: Get binaries artifact
-        if : ${{ inputs.binaries_artifact != '' }}
+        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
-          name: ${{ inputs.binaries_artifact }}
+          name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
       - name: Build python's weblog base images
         if: inputs.library == 'python' && inputs.build_python_base_images
@@ -144,7 +162,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.weblog }}
+          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}
           path: binaries/
 
   run_end_to_end:
@@ -165,18 +183,18 @@ jobs:
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      binaries_artifact: binaries_${{ inputs.ci_environment}}_${{ inputs.library }}_${{ matrix.job.weblog }}
-      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ inputs.ci_environment }}_${{ matrix.job.weblog_instance }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}
 
   external_processing:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && needs.compute_parameters.outputs.binaries_artifact != ''}}
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      ci_environment: ${{ inputs.ci_environment }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}

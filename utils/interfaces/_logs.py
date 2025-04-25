@@ -160,7 +160,11 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
 
         elif library == "php":
             self._skipped_patterns += [
-                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
+                re.compile(
+                    # Ensure env vars are not leaked in logs
+                    # Ex: export SOME_SECRET_ENV=api_key OR env[SOME_SECRET_ENV] = api_key
+                    r"export \w+\s*=\s*.*|" r"env\[\w+\]\s*=.*"
+                ),
             ]
 
             timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")

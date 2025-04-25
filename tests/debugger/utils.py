@@ -97,13 +97,13 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -165,7 +165,10 @@ class BaseDebuggerTest:
                         # remove prefixes as part of file matching.
                         probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
-                        probe["where"]["sourceFile"] = "debugger/index.js"
+                        if context.weblog_variant == "express4-typescript":
+                            probe["where"]["sourceFile"] = "debugger/index.ts"
+                        else:
+                            probe["where"]["sourceFile"] = "debugger/index.js"
                     elif language == "php":
                         probe["where"]["sourceFile"] = "debugger.php"
                 probe["type"] = __get_probe_type(probe["id"])
@@ -330,7 +333,7 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
-    def wait_for_code_origin_span(self, timeout: int) -> bool:
+    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
 
         interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)

@@ -75,7 +75,7 @@ func LFI(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println("unknown error during file open: ", err.Error())
 	}
 }
 
@@ -98,7 +98,7 @@ func SSRF(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println("unknown error during http call: ", err.Error())
 	}
 }
 
@@ -127,6 +127,6 @@ func SQLi(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		log.Fatalln(err.Error())
+		log.Println("unknown error during sql call: ", err.Error())
 	}
 }

@@ -309,6 +309,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_UserEventsStandalone: v1.8.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -388,6 +389,11 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptProfiling: v1.9.0
+      TestHostAutoInjectInstallScriptProfiling: v1.9.0
+      TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   debugger/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
@@ -402,7 +408,9 @@ tests/:
     test_debugger_probe_snapshot.py:
       Test_Debugger_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature
+      Test_Debugger_Probe_Statuses:
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature
     test_debugger_telemetry.py:
@@ -448,6 +456,11 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v1.8.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  k8s_lib_injection/:
+    test_k8s_lib_injection_profiling.py:
+      TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
+      TestK8sLibInjectioProfilingClusterOverride: v1.9.0
+      TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
@@ -555,10 +568,10 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
+    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
     Test_Config_RuntimeMetrics_Default: missing_feature
@@ -593,6 +606,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown

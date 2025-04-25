@@ -133,7 +133,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
 
     def get_warmups(self):
         warmups = super().get_warmups()
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
 
         if not self.with_datadog_operator:
@@ -238,7 +238,7 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
 
     def get_warmups(self):
         warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_datadog.deploy_test_agent)
         warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
@@ -309,7 +309,7 @@ class K8sSparkScenario(K8sScenario):
 
     def get_warmups(self):
         warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_cluster_provider.create_spak_service_account)
         warmups.append(self.k8s_datadog.deploy_test_agent)
