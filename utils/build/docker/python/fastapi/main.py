@@ -868,14 +868,14 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    os.system(cmd + " -la" + filename)
+    os.system(cmd + " -la " + filename)
     return "OK"
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    os.system(shlex.quote(cmd) + " -la" + filename)
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return "OK"
 
 
