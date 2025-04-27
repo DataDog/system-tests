@@ -2,6 +2,24 @@ from kubernetes import client, watch
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
+from utils.k8s_lib_injection.k8s_command_utils import execute_command
+
+
+class K8sWeblogSpecs:
+    def __init__(self, pod_name="my-app", weblog_env={}, weblog_labels={"app": "my-app"}, namespace="default"):
+        self.pod_name = pod_name
+        self.weblog_env = weblog_env
+        self.weblog_labels = weblog_labels
+        self.namespace = namespace
+
+    def __repr__(self):
+        """Returns a string representation of the object with all fields."""
+        return (
+            f"K8sWeblogSpecs(pod_name='{self.pod_name}', "
+            f"weblog_env={self.weblog_env}, "
+            f"weblog_labels={self.weblog_labels}, "
+            f"namespace='{self.namespace}')"
+        )
 
 
 class K8sWeblog:
@@ -26,18 +44,25 @@ class K8sWeblog:
         ],
     }
 
-    def __init__(self, app_image, library, library_init_image, injector_image, output_folder):
+    def __init__(self, app_image, library, library_init_image, injector_image, output_folder, k8s_weblog_specs=None):
         self.app_image = app_image
         self.library = library
         self.library_init_image = library_init_image
         self.injector_image = injector_image
         self.output_folder = output_folder
+        if k8s_weblog_specs is None:
+            self.k8s_weblog_specs = K8sWeblogSpecs()
+        else:
+            self.k8s_weblog_specs = k8s_weblog_specs
 
-    def configure(self, k8s_cluster_info, weblog_env=None, dd_cluster_uds=None, service_account=None):
-        self.weblog_env = weblog_env
+    def configure(self, k8s_cluster_info, dd_cluster_uds=None, service_account=None, inject_by_annotations=True):
+        self.weblog_env = self.k8s_weblog_specs.weblog_env
         self.dd_cluster_uds = dd_cluster_uds
         self.dd_service_account = service_account
         self.k8s_cluster_info = k8s_cluster_info
+        # For testing we can specify the lib-init and injector custom images using annotation in the pod app
+        # If this variable is set to true we will use the annotation
+        self.inject_by_annotations = inject_by_annotations
 
     def _get_base_weblog_pod(self):
         """Installs a target app for manual library injection testing.
@@ -45,48 +70,36 @@ class K8sWeblog:
         """
 
         logger.info(
-            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s]"
-            % (self.app_image, self.library, self.library_init_image)
+            "[Deploy weblog] Creating weblog pod configuration. weblog_variant_image: [%s], library: [%s], library_init_image: [%s], weblog_specs: [%s]"
+            % (self.app_image, self.library, self.library_init_image, self.k8s_weblog_specs)
         )
         library_lib = "js" if self.library == "nodejs" else self.library
-        pod_metadata = client.V1ObjectMeta(
-            name="my-app",
-            namespace="default",
-            labels={
-                "admission.datadoghq.com/enabled": "true",
-                "app": "my-app",
-                "tags.datadoghq.com/env": "local",
-                "tags.datadoghq.com/service": "my-app",
-                "tags.datadoghq.com/version": "local",
-            },
-            annotations={
+
+        inject_annotations = (
+            {
                 f"admission.datadoghq.com/{library_lib}-lib.custom-image": f"{self.library_init_image}",
                 "admission.datadoghq.com/apm-inject.custom-image": f"{self.injector_image}",
-            },
+            }
+            if self.inject_by_annotations
+            else {}
+        )
+
+        # Pod labels
+        pod_labels = self.k8s_weblog_specs.weblog_labels
+        if self.inject_by_annotations:
+            pod_labels.update({"admission.datadoghq.com/enabled": "true"})
+
+        pod_metadata = client.V1ObjectMeta(
+            name=self.k8s_weblog_specs.pod_name,
+            namespace=self.k8s_weblog_specs.namespace,
+            labels=pod_labels,
+            annotations=inject_annotations,
         )
 
         containers = []
         # Set the default environment variables for all pods
         default_pod_env = [
             client.V1EnvVar(name="SERVER_PORT", value="18080"),
-            client.V1EnvVar(
-                name="DD_ENV",
-                value_from=client.V1EnvVarSource(
-                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/env']")
-                ),
-            ),
-            client.V1EnvVar(
-                name="DD_SERVICE",
-                value_from=client.V1EnvVarSource(
-                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/service']")
-                ),
-            ),
-            client.V1EnvVar(
-                name="DD_VERSION",
-                value_from=client.V1EnvVarSource(
-                    field_ref=client.V1ObjectFieldSelector(field_path="metadata.labels['tags.datadoghq.com/version']")
-                ),
-            ),
             client.V1EnvVar(name="DD_TRACE_DEBUG", value="1"),
             client.V1EnvVar(name="DD_APM_INSTRUMENTATION_DEBUG", value="true"),
         ]
@@ -119,17 +132,25 @@ class K8sWeblog:
         logger.info("[Deploy weblog] Weblog pod configuration done.")
         return pod_body
 
-    def install_weblog_pod(self, namespace="default"):
+    def install_weblog_pod(self):
         try:
+            if self.k8s_weblog_specs.namespace != "default":
+                logger.info("[Deploy weblog] Create the namespace")
+                namespace_body = client.V1Namespace(metadata=client.V1ObjectMeta(name=self.k8s_weblog_specs.namespace))
+                self.k8s_cluster_info.core_v1_api().create_namespace(body=namespace_body)
             logger.info("[Deploy weblog] Installing weblog pod using admission controller")
             pod_body = self._get_base_weblog_pod()
-            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
+            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(
+                namespace=self.k8s_weblog_specs.namespace, body=pod_body
+            )
             logger.info("[Deploy weblog] Weblog pod using admission controller created. Waiting for it to be ready!")
-            self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+            self.wait_for_weblog_ready_by_label_app(
+                self.k8s_weblog_specs.weblog_labels["app"], self.k8s_weblog_specs.namespace, timeout=200
+            )
         except Exception as e:
             logger.error(f"[Deploy weblog] Error installing weblog pod: {e}")
 
-    def install_weblog_pod_with_manual_inject(self, namespace="default"):
+    def install_weblog_pod_with_manual_inject(self):
         """We do our own pod mutation to inject the library manually instead of using the admission controller"""
         try:
             pod_body = self._get_base_weblog_pod()
@@ -185,8 +206,10 @@ class K8sWeblog:
                 )
             pod_body.spec.volumes = volumes
 
-            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(namespace=namespace, body=pod_body)
-            self.wait_for_weblog_ready_by_label_app("my-app", namespace, timeout=200)
+            self.k8s_cluster_info.core_v1_api().create_namespaced_pod(
+                namespace=self.k8s_weblog_specs.namespace, body=pod_body
+            )
+            self.wait_for_weblog_ready_by_label_app("my-app", self.k8s_weblog_specs.namespace, timeout=200)
         except Exception as e:
             logger.error(f"[Deploy weblog with manual inject] Error installing weblog pod: {e}")
 
@@ -226,33 +249,48 @@ class K8sWeblog:
         """Necessary to retry the list_namespaced_pod call in case of error (used by watch stream)"""
         return self.k8s_cluster_info.core_v1_api().list_namespaced_pod(namespace, **kwargs)
 
-    def export_debug_info(self, namespace="default"):
+    def export_debug_info(self):
         """Extracts debug info from the k8s weblog app and logs it to the specified folder."""
 
         # check weblog describe pod
         try:
-            api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod("my-app", namespace=namespace)
-            k8s_logger(self.output_folder, "myapp.describe").info(api_response)
+            api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod(
+                self.k8s_weblog_specs.pod_name, namespace=self.k8s_weblog_specs.namespace
+            )
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.describe").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "myapp.describe").info(
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.describe").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod: %s\n" % e
             )
 
         # check weblog logs for pod
         try:
             api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
-                name="my-app", namespace=namespace
+                name=self.k8s_weblog_specs.pod_name, namespace=self.k8s_weblog_specs.namespace
             )
-            k8s_logger(self.output_folder, "myapp.logs").info(api_response)
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.logs").info(api_response)
         except Exception as e:
-            k8s_logger(self.output_folder, "myapp.logs").info(
+            k8s_logger(self.output_folder, f"{self.k8s_weblog_specs.pod_name}.logs").info(
                 "Exception when calling CoreV1Api->read_namespaced_pod_log: %s\n" % e
             )
+
+        # check event in the app namespace
+        # Get all pods
+        ret = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(self.k8s_weblog_specs.namespace, watch=False)
+        if ret is not None:
+            for i in ret.items:
+                k8s_logger(self.output_folder, self.k8s_weblog_specs.namespace + "-get.pods").info(
+                    "%s\t%s\t%s" % (i.status.pod_ip, i.metadata.namespace, i.metadata.name)
+                )
+                execute_command(
+                    f"kubectl get event -n {self.k8s_weblog_specs.namespace} --field-selector involvedObject.name={i.metadata.name}",
+                    logfile=f"{self.output_folder}/{i.metadata.name}_events.log",
+                )
 
         app_name = f"{self.library}-app"
         try:
             pods = self.k8s_cluster_info.core_v1_api().list_namespaced_pod(
-                namespace="default", label_selector=f"app={app_name}"
+                namespace=self.k8s_weblog_specs.namespace, label_selector=f"app={app_name}"
             )
             for index in range(len(pods.items)):
                 k8s_logger(self.output_folder, "deployment.logs").info(
