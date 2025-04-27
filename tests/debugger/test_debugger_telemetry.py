@@ -4,7 +4,7 @@
 
 import tests.debugger.utils as debugger
 from utils import scenarios, features, missing_feature, context, logger
-from utils.telemetry import load_telemetry_json, get_lang_configs
+from utils.telemetry import get_config_norm_rules, get_lang_configs
 
 ALLOWED_ORIGINS = {"env_var", "code", "dd_config", "remote_config", "app.config", "default", "unknown"}
 
@@ -18,7 +18,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
         # Load the telemetry intake general and language-specific configuration normalization rules.
-        self.config_norm_rules = load_telemetry_json("config_norm_rules")
+        self.config_norm_rules = get_config_norm_rules()
         self.lang_configs = get_lang_configs()
         self.lang_configs["java"] = self.lang_configs["jvm"]
 

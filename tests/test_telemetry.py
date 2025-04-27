@@ -5,7 +5,12 @@ import time
 from dateutil.parser import isoparse
 from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
-from utils.telemetry import get_lang_configs, load_telemetry_json
+from utils.telemetry import (
+    get_lang_configs,
+    get_config_norm_rules,
+    get_config_prefix_block_list,
+    get_config_aggregation_list,
+)
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -624,9 +629,9 @@ class Test_TelemetryV2:
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
 
-        config_norm_rules = load_telemetry_json("config_norm_rules")
-        config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
-        config_aggregation_list = load_telemetry_json("config_aggregation_list")
+        config_norm_rules = get_config_norm_rules()
+        config_prefix_block_list = get_config_prefix_block_list()
+        config_aggregation_list = get_config_aggregation_list()
 
         lang_configs = get_lang_configs()
 
@@ -733,7 +738,7 @@ class Test_ProductsDisabled:
     def test_debugger_products_disabled(self):
         """Assert that the debugger products are disabled by default including DI, and ER"""
         data_found = False
-        config_norm_rules = load_telemetry_json("config_norm_rules")
+        config_norm_rules = get_config_norm_rules()
         lang_configs = get_lang_configs()
         lang_configs["java"] = lang_configs["jvm"]
 
