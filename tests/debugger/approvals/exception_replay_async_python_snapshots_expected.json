@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "69"
+          "64"
         ]
       }
     },
@@ -17,8 +17,8 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_async",
-        "lineNumber": 69
+        "function": "_async_throw",
+        "lineNumber": 64
       },
       {
         "<runtime>": "<scrubbed>"
@@ -26,7 +26,7 @@
     ],
     "captures": {
       "lines": {
-        "69": {
+        "64": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -70,7 +70,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "64"
+          "69"
         ]
       }
     },
@@ -78,8 +78,8 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "_async_throw",
-        "lineNumber": 64
+        "function": "exception_replay_async",
+        "lineNumber": 69
       },
       {
         "<runtime>": "<scrubbed>"
@@ -87,7 +87,7 @@
     ],
     "captures": {
       "lines": {
-        "64": {
+        "69": {
           "arguments": {},
           "locals": {
             "@exception": {
