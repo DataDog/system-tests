@@ -542,13 +542,35 @@ tests/:
         rails80: v2.8.0
         uds-rails: v2.12.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Method_Probe_Snaphots:
         "*": irrelevant
         rails70: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+      Test_Debugger_Line_Probe_Snaphots:
+        "*": irrelevant
+        rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Method_Probe_Statuses:
+        "*": irrelevant
+        rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
+      Test_Debugger_Line_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
         rails80: v2.8.0

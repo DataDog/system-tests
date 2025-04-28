@@ -426,9 +426,15 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: v2.53.0
+      Test_Debugger_Method_Probe_Statuses: v2.53.0
+      Test_Debugger_Line_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: v2.53.0
     test_debugger_telemetry.py:

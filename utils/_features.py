@@ -1342,15 +1342,6 @@ class _Features:
         return test_object
 
     @staticmethod
-    def debugger(test_object):
-        """Debugger
-
-        https://feature-parity.us1.prod.dog/#/?feature=211
-        """
-        pytest.mark.features(feature_id=211)(test_object)
-        return test_object
-
-    @staticmethod
     def datastreams_monitoring_support_for_kafka(test_object):
         """DataStreams Monitoring support for Kafka
 
@@ -2409,6 +2400,24 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=368
         """
         pytest.mark.features(feature_id=368)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_method_probe(test_object):
+        """Method-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=392
+        """
+        pytest.mark.features(feature_id=379)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_line_probe(test_object):
+        """Line-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=393
+        """
+        pytest.mark.features(feature_id=380)(test_object)
         return test_object
 
     @staticmethod

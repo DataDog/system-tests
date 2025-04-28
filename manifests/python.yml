@@ -692,13 +692,35 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Method_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Line_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Method_Probe_Statuses:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Line_Probe_Statuses:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0

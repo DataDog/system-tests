@@ -7,12 +7,11 @@ from tests.debugger.utils import EvaluationPoint
 from utils import scenarios, features, bug, missing_feature, context
 
 
-@features.debugger
-@scenarios.debugger_probes_status
-class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
+class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
+    """Base class with common methods for status probe tests"""
+    
     expected_diagnostics: dict = {}
 
-    ############ setup ############
     def _setup(self, probes_name: str, probe_type: str, evaluate_at: EvaluationPoint):
         self.initialize_weblog_remote_config()
 
@@ -39,7 +38,6 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
         ### send requests
         self.send_rc_probes()
 
-    ########### assert ############
     def _assert(self):
         self.collect()
 
@@ -68,24 +66,11 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
 
         assert not errors, "Probe status errors:\n" + "\n".join(errors)
 
-    ############ log line probe ############
-    def setup_log_line_exit_status(self):
-        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.EXIT)
 
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    def test_log_line_exit_status(self):
-        self._assert()
-
-    def setup_log_line_entry_status(self):
-        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.ENTRY)
-
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    def test_log_line_entry_status(self):
-        self._assert()
+@features.debugger_method_probe
+@scenarios.debugger_probes_status
+class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
+    """Tests for method-level probe status"""
 
     ############ log method probe ############
     def setup_log_method_exit_status(self):
@@ -127,28 +112,6 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
     def test_metric_entry_status(self):
         self._assert()
 
-    def setup_metric_line_exit_status(self):
-        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.EXIT)
-
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    def test_metric_line_exit_status(self):
-        self._assert()
-
-    def setup_metric_line_entry_status(self):
-        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.ENTRY)
-
-    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
-    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-    def test_metric_line_entry_status(self):
-        self._assert()
-
     ############ span probe ############
     def setup_span_method_exit_status(self):
         self._setup("probe_status_span", probe_type="span", evaluate_at=EvaluationPoint.EXIT)
@@ -187,6 +150,55 @@ class Test_Debugger_Probe_Statuses(debugger.BaseDebuggerTest):
     def test_span_decoration_method_entry_status(self):
         self._assert()
 
+
+@features.debugger_line_probe
+@scenarios.debugger_probes_status
+class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
+    """Tests for line-level probe status"""
+
+    ############ log line probe ############
+    def setup_log_line_exit_status(self):
+        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.EXIT)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    def test_log_line_exit_status(self):
+        self._assert()
+
+    def setup_log_line_entry_status(self):
+        self._setup("probe_status_log_line", probe_type="log", evaluate_at=EvaluationPoint.ENTRY)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    def test_log_line_entry_status(self):
+        self._assert()
+
+    ############ metric line probe ############
+    def setup_metric_line_exit_status(self):
+        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.EXIT)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    def test_metric_line_exit_status(self):
+        self._assert()
+
+    def setup_metric_line_entry_status(self):
+        self._setup("probe_status_metric_line", probe_type="metric", evaluate_at=EvaluationPoint.ENTRY)
+
+    @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
+    @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    def test_metric_line_entry_status(self):
+        self._assert()
+
+    ############ span decoration line probe ############
     def setup_span_decoration_line_exit_status(self):
         self._setup("probe_status_spandecoration_line", probe_type="decor", evaluate_at=EvaluationPoint.EXIT)
 
