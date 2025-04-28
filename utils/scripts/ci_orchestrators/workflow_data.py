@@ -383,9 +383,6 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
 
 def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
-    if ci_environment != "dev" and library == "python" and weblog == "django-py3.13":
-        # as now, django-py3.13 support is not released
-        return False
 
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
