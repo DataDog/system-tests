@@ -4,7 +4,7 @@ import string
 
 import pytest
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
@@ -53,7 +53,7 @@ class IntegrationsScenario(EndToEndScenario):
                 "Spawns tracer, agent, and a full set of database. "
                 "Test the integrations of those databases with tracers"
             ),
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.APPSEC, ScenarioGroup.ESSENTIALS],
+            scenario_groups=[scenario_groups.integrations, scenario_groups.appsec, scenario_groups.essentials],
         )
 
     def configure(self, config: pytest.Config):
@@ -117,7 +117,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
             include_buddies=include_buddies,
             include_localstack=include_localstack,
             include_elasticmq=include_elasticmq,
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
+            scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )
 
     def configure(self, config: pytest.Config):
@@ -148,7 +148,7 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
-            scenario_groups=[ScenarioGroup.INTEGRATIONS, ScenarioGroup.ESSENTIALS],
+            scenario_groups=[scenario_groups.integrations, scenario_groups.essentials],
         )
 
     def configure(self, config: pytest.Config):
