@@ -376,7 +376,7 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_enabled],
     )
 
     appsec_standalone_experimental = EndToEndScenario(

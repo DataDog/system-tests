@@ -2,14 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, interfaces, irrelevant, scenarios, flaky
+from utils import context, features, interfaces, irrelevant, scenarios, flaky, scenario_groups
 
 
 @scenarios.appsec_blocking
 @scenarios.appsec_rasp
 @scenarios.appsec_runtime_activation
-@scenarios.appsec_standalone
-@scenarios.default
+@scenario_groups.appsec_enabled
 @features.language_specifics
 @irrelevant(context.library != "python", reason="specific tests for python tracer")
 class Test_ImportError:

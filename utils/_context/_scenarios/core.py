@@ -48,6 +48,12 @@ class _ScenarioGroups:
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
 
+    # appsec_enabled group is used to mark all tests that performs ASM defaults
+    # assertions,  whatever the way ASM has been enabled (basic, SSI, RC...).
+    # Tests asserting how it has been enabled should not be marked with this group
+    # but rather with the specific group (appsec, docker-ssi, remote-config...)
+    appsec_enabled = ScenarioGroup()
+
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
 
