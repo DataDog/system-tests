@@ -381,7 +381,7 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
     return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
 
 
-def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
+def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
 
     # open-telemetry-automatic
