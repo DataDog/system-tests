@@ -31,7 +31,20 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.appsec import track_user_sdk
+try
+    from ddtrace.appsec import track_user_sdk
+except ImportError:
+    # fallback for when the new SDK is not available
+    class TUS:
+        def track_login_success(self, *args, **kwargs):
+            pass
+
+        def track_login_failure(self, *args, **kwargs):
+            pass
+
+        def track_custom_event(self, *args, **kwargs):
+            pass
+    track_user_sdk = TUS()
 
 try:
     from ddtrace.trace import Pin, tracer
