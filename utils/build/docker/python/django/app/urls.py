@@ -31,7 +31,8 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-try
+
+try:
     from ddtrace.appsec import track_user_sdk
 except ImportError:
     # fallback for when the new SDK is not available
@@ -44,6 +45,7 @@ except ImportError:
 
         def track_custom_event(self, *args, **kwargs):
             pass
+
     track_user_sdk = TUS()
 
 try:
