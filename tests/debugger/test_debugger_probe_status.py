@@ -9,7 +9,7 @@ from utils import scenarios, features, bug, missing_feature, context
 
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     """Base class with common methods for status probe tests"""
-    
+
     expected_diagnostics: dict = {}
 
     def _setup(self, probes_name: str, probe_type: str, evaluate_at: EvaluationPoint):

@@ -6,12 +6,12 @@ import time
 import tests.debugger.utils as debugger
 from tests.debugger.utils import EvaluationPoint
 
-from utils import scenarios, features, missing_feature, context, logger
+from utils import scenarios, features, missing_feature, context
 
 
 class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
     """Base class with common methods for snapshot probe tests"""
-    
+
     def _setup(
         self,
         probes_name: str,
@@ -80,7 +80,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
-    
+
     ### log probe ###
     def setup_log_method_exit_snapshot(self):
         self._setup("probe_snapshot_log_method", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)
@@ -169,7 +169,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for line-level probe snapshots"""
-    
+
     ### log probe ###
     def setup_log_line_exit_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", evaluate_at=EvaluationPoint.EXIT)

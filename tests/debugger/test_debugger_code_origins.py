@@ -42,4 +42,4 @@ class Test_Debugger_Code_Origins(debugger.BaseDebuggerTest):
                 code_origin_type = span["meta"].get("_dd.code_origin.type", "")
                 code_origins_entry_found = code_origin_type == "entry"
 
-        assert code_origins_entry_found 
+        assert code_origins_entry_found

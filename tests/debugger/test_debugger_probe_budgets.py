@@ -91,4 +91,4 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             # captures for 150 requests.
             assert (
                 1 <= snapshots_with_captures <= 20
-            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds" 
+            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
