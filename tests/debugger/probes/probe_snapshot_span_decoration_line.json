@@ -2,7 +2,7 @@
     {
         "language": "",
         "type": "",
-        "id": "decor0aa-acda-4453-9111-1478a697line",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -44,7 +44,6 @@
             "lines": [
                 "44"
             ]
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]
