@@ -60,6 +60,10 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
             if expected_trace not in self.probe_spans:
                 raise ValueError("Trace " + expected_trace + " was not received.")
 
+            # Make sure there's at least one span for this trace
+            if not self.probe_spans[expected_trace]:
+                raise ValueError(f"No spans found for trace {expected_trace}")
+
     ########### method ############
     ### log probe ###
     def setup_log_method_probe_snaphots(self):
