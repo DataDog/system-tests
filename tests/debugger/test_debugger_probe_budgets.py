@@ -4,7 +4,6 @@
 
 import time
 import tests.debugger.utils as debugger
-from tests.debugger.utils import EvaluationPoint
 
 from utils import scenarios, features, missing_feature, context
 
@@ -17,7 +16,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         probes_name: str,
         request_path: str,
         lines,
-        evaluate_at: EvaluationPoint,
         probe_type: str = "log",
     ):
         self.initialize_weblog_remote_config()
@@ -36,7 +34,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
             probe["where"]["typeName"] = None
 
-        self.set_probes(probes, evaluate_at=evaluate_at)
+        self.set_probes(probes)
 
         ### send requests
         self.send_rc_probes()
@@ -64,17 +62,16 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
             if expected_snapshot not in self.probe_snapshots:
                 raise ValueError("Snapshot " + expected_snapshot + " was not received.")
 
-    def setup_log_line_exit_budgets(self):
+    def setup_log_line_budgets(self):
         self._setup(
             "probe_snapshot_log_line_budgets",
             "/debugger/budgets/150",
             lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
-            evaluate_at=EvaluationPoint.EXIT,
         )
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    def test_log_line_exit_budgets(self):
+    def test_log_line_budgets(self):
         self._assert()
         self._validate_snapshots()
 
