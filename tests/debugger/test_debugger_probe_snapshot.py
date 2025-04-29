@@ -76,6 +76,8 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @features.debugger_method_probe
 @scenarios.debugger_probes_snapshot
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -92,8 +94,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -107,8 +107,6 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
