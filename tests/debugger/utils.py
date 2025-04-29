@@ -14,10 +14,6 @@ from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
 
-class EvaluationPoint(Enum):
-    ENTRY = "ENTRY"
-    EXIT = "EXIT"
-
 
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
@@ -120,7 +116,7 @@ class BaseDebuggerTest:
         return definitions.get(method, {}).get(language, [])
 
     ###### set #####
-    def set_probes(self, probes: list[dict], evaluate_at: EvaluationPoint = EvaluationPoint.EXIT) -> None:
+    def set_probes(self, probes: list[dict]) -> None:
         def _enrich_probes(probes: list[dict]):
             def __get_probe_type(probe_id: str):
                 if probe_id.startswith("log"):
@@ -190,7 +186,7 @@ class BaseDebuggerTest:
         def _extract_probe_ids(probes: list[dict]):
             return [probe["id"] for probe in probes]
 
-        self.probe_definitions = _enrich_probes(probes)
+        self.probe_definitions = _enrich_probes(probes, evaluate_at)
         self.probe_ids = _extract_probe_ids(probes)
 
     ###### send #####
