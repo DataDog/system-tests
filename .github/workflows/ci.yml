@@ -120,6 +120,7 @@ jobs:
     permissions:
       checks: read
       statuses: read
+      actions: read
     needs:
     - system_tests
     if: '!cancelled()'
