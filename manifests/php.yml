@@ -414,11 +414,11 @@ tests/:
       Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
-        "*": missing_feature
-        symfony61-fpm: v0.92.0
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
       Test_Debugger_Method_Probe_Statuses:
-        "*": missing_feature
-        symfony61-fpm: v0.92.0
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature
     test_debugger_telemetry.py:

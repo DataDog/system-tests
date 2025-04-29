@@ -818,40 +818,35 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        '*': missing_feature
-        express: *ref_5_44_0
-        express5: *ref_5_44_0
-        fastify: *ref_5_44_0
-        nextjs: missing_feature
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
-        '*': missing_feature
-        express: *ref_5_44_0
-        express5: *ref_5_44_0
-        fastify: *ref_5_44_0
-        nextjs: missing_featurefeature not implemented)
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
       Test_Debugger_Method_Probe_Snaphots:
-        '*': missing_feature
-        express: *ref_5_44_0
-        express5: *ref_5_44_0
-        fastify: *ref_5_44_0
-        nextjs: missing_feature
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
-        '*': missing_feature
-        express: *ref_5_44_0
-        express5: *ref_5_44_0
-        fastify: *ref_5_44_0
-        nextjs: missing_feature
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
       Test_Debugger_Method_Probe_Statuses:
-        '*': missing_feature
-        express: *ref_5_44_0
-        express5: *ref_5_44_0
-        fastify: *ref_5_44_0
-        nextjs: missing_feature
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:
