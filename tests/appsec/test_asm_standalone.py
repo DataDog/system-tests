@@ -936,6 +936,10 @@ class Test_UserEventsStandalone:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no signup events in Python except for django",
+    )
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)
