@@ -803,7 +803,7 @@ tests/:
       Test_Events: v2.0.0
   debugger/:
     test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins:
+      Test_Debugger_Code_Origins: missing_feature (only Fastify is supported)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
@@ -823,30 +823,21 @@ tests/:
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
     test_debugger_probe_budgets.py:
-      Test_Debugger_Probe_Budgets:
-        '*': missing_feature
+      Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
-      Test_Debugger_Method_Probe_Snaphots:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
-      Test_Debugger_Method_Probe_Statuses:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Statuses: missing_feature
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:
