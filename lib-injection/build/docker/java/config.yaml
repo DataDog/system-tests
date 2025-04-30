@@ -5,7 +5,7 @@ metadata:
   labels:
     reloader: enabled
 data:
-  auto-instru.json: |
+  auto-instru.json: |-
     [{
       "id": "11777398274940883092",
       "revision": 0,

@@ -3,7 +3,7 @@ name: Update agent protobuf deserializer
 on:
   workflow_dispatch: {}
   schedule:
-    - cron:  '00 02 * * 2-6'
+    - cron: '00 02 * * 2-6'
 
 jobs:
   main:

@@ -1,4 +1,3 @@
----
 tests/:
   integrations/:
     test_open_telemetry.py:

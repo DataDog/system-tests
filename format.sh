@@ -127,9 +127,9 @@ fi
 
 echo "Running yamlfmt formatter..."
 if [ "$COMMAND" == "fix" ]; then
- yamlfmt manifests/
+ yamlfmt ./
 else
- yamlfmt -lint manifests/
+ yamlfmt -lint ./
 fi
 
 echo "Running yamllint checks..."

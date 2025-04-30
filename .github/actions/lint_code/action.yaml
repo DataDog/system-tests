@@ -12,12 +12,7 @@ runs:
       run: ./format.sh --check
     - if: ${{ failure() }}
       shell: bash
-      run:
-        'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md"
-
-        exit 1
-
-        '
+      run: 'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md" #magic___^_^___line exit 1 #magic___^_^___line '
     - name: 'Install shellcheck'
       shell: bash
       run: sudo apt-get install -y shellcheck
@@ -31,6 +26,6 @@ runs:
     - name: 'Run nodejs lint'
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express
-      run: |
+      run: |-
         npm install
         npm run lint
