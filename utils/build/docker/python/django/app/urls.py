@@ -780,7 +780,6 @@ def user_login_success_event(request):
     login = json_data.get("login")
     user_id = json_data.get("user_id")
     metadata = json_data.get("metadata")
-    print(f"[user_login_success_event] login: {login}, user_id: {user_id}, metadata: {metadata}")
     track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
     return HttpResponse("OK")
 
@@ -791,7 +790,6 @@ def user_login_failure_event(request):
     login = json_data.get("login")
     exists = False if json_data.get("exists") == "false" else True
     metadata = json_data.get("metadata")
-    print(f"[user_login_failure_event] login: {login}, user_id: {user_id}, metadata: {metadata}")
     track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
     return HttpResponse("OK")
 
