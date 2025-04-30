@@ -15,7 +15,7 @@ if [ -z "${GITHUB_TOKEN}" ] ; then
 else
     REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/DataDog/dd-go.git"
 fi
-if [ ! -z $USE_GIT_SSH ] ; then
+if [ -n "$USE_GIT_SSH" ] ; then
     REPO_URL="git@github.com:DataDog/dd-go.git"
 fi
 
