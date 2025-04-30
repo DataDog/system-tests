@@ -677,7 +677,10 @@ async def login(request: Request):
 
 @app.post("/user_login_success_event_v2", response_class=PlainTextResponse)
 async def user_login_success_event(request: Request):
-    from ddtrace.appsec import track_user_sdk
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
 
     json_data = await request.json()
     login = json_data.get("login")
@@ -688,8 +691,11 @@ async def user_login_success_event(request: Request):
 
 
 @app.post("/user_login_failure_event_v2", response_class=PlainTextResponse)
-async def user_login_failure_event(request):
-    from ddtrace.appsec import track_user_sdk
+async def user_login_failure_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
 
     json_data = await request.json()
     login = json_data.get("login")

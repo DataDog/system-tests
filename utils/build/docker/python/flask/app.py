@@ -1337,9 +1337,12 @@ def login():
     return Response("login failure", status=401)
 
 
-@app.route("/user_login_success_event_v2", method=["POST"])
+@app.route("/user_login_success_event_v2", methods=["POST"])
 def user_login_success_event():
-    from ddtrace.appsec import track_user_sdk
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
 
     json_data = request.get_json()
     login = json_data.get("login")
@@ -1349,9 +1352,12 @@ def user_login_success_event():
     return Response("OK", status=200)
 
 
-@app.route("/user_login_failure_event_v2", method=["POST"])
+@app.route("/user_login_failure_event_v2", methods=["POST"])
 def user_login_failure_event():
-    from ddtrace.appsec import track_user_sdk
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
 
     json_data = request.get_json()
     login = json_data.get("login")
