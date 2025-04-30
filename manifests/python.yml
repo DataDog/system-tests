@@ -55,10 +55,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
-            django-poc: bug (APPSEC-57095)
-            django-py3.13: bug (APPSEC-57095)
             fastapi: v2.15.0
-            python3.12: bug (APPSEC-57095)
           TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
