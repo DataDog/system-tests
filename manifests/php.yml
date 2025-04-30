@@ -359,6 +359,8 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
       Test_Fingerprinting_Endpoint_Capability: missing_feature
