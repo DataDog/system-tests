@@ -39,6 +39,8 @@ tests/:
     test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
     test_versions.py: irrelevant (ASM is not implemented in C++)
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: irrelevant
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: irrelevant
     test_debugger_expression_language.py:
@@ -49,10 +51,14 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: irrelevant
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: irrelevant
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: irrelevant
+      Test_Debugger_Line_Probe_Statuses: irrelevant
+      Test_Debugger_Method_Probe_Statuses: irrelevant
     test_debugger_symdb.py:
       Test_Debugger_SymDb: irrelevant
     test_debugger_telemetry.py:

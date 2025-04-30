@@ -622,6 +622,12 @@ class EndToEndScenario(DockerScenario):
                 ticket="APMRP-360",
             ),
             _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=self.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            _SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
                 condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",

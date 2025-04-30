@@ -9,7 +9,6 @@
             "methodName": "Pii",
             "sourceFile": null
         },
-        "evaluateAt": "EXIT",
         "captureSnapshot": true,
         "capture": {
             "maxFieldCount": 200
