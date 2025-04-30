@@ -2,14 +2,14 @@
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-line-45cf-9f39-59installed",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "tags": [],
                 "when": {
-                    "dsl" : "",
+                    "dsl": "",
                     "json": {
                         "gt": [
                             {
@@ -30,7 +30,6 @@
             "lines": [
                 "44"
             ]
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

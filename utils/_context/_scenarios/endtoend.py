@@ -35,7 +35,7 @@ from utils._context.containers import (
 
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 @dataclass
@@ -273,9 +273,11 @@ class EndToEndScenario(DockerScenario):
         include_buddies: bool = False,
         require_api_key: bool = False,
     ) -> None:
-        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
-            scenario_groups or []
-        )
+        scenario_groups = [
+            all_scenario_groups.all,
+            all_scenario_groups.end_to_end,
+            all_scenario_groups.tracer_release,
+        ] + (scenario_groups or [])
 
         super().__init__(
             name,
@@ -618,6 +620,12 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library in ("python@2.16.2", "python@2.16.3")
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=self.library == "dotnet",
+                ticket="DEBUG-3734",
             ),
             _SchemaBug(
                 endpoint="/symdb/v1/input",

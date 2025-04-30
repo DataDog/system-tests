@@ -1679,6 +1679,16 @@ tests/:
     test_versions.py:
       Test_Events: v0.90.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
@@ -1732,8 +1742,27 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+      Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -1743,7 +1772,16 @@ tests/:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+      Test_Debugger_Method_Probe_Statuses:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
