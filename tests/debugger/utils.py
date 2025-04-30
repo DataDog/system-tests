@@ -28,8 +28,13 @@ def read_probes(test_name: str) -> list:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str) -> str:
-    return probe_type + str(uuid.uuid4())[len(probe_type) :]
+def generate_probe_id(probe_type: str, suffix: str = "") -> str:
+    uuid_str = str(uuid.uuid4())
+    if suffix:
+        # Replace the last len(suffix) characters of the UUID with the suffix
+        uuid_str = uuid_str[: -len(suffix)] + suffix
+
+    return probe_type + uuid_str[len(probe_type) :]
 
 
 def extract_probe_ids(probes: dict | list) -> list:
@@ -127,6 +132,7 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = "EXIT"
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:
