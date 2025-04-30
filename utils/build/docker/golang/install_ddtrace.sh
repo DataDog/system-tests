@@ -2,8 +2,17 @@
 
 set -euv
 
-CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
+# Run go mod tidy once to make sure go list does not fail
+go mod tidy
+
 MAIN_MODULE="github.com/DataDog/dd-trace-go/v2"
+CONTRIBS="$(go list -m all | grep github.com/DataDog/dd-trace-go/contrib | cut -f1 -d' ')"
+
+if [ -z "$CONTRIBS" ]; then
+    echo "No contribs found: go list failed"
+    exit 1
+fi
+
 
 if [ -e "/binaries/dd-trace-go" ]; then
     echo "Install from folder /binaries/dd-trace-go"
