@@ -455,6 +455,12 @@ class TestedContainer:
             self.environment["AWS_REGION"] = "us-east-1"
             self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
 
+        if "AWS_SECRET_ACCESS_KEY" not in self.environment:
+            self.environment["AWS_SECRET_ACCESS_KEY"] = "not-secret"  # noqa: S105
+
+        if "AWS_ACCESS_KEY_ID" not in self.environment:
+            self.environment["AWS_ACCESS_KEY_ID"] = "not-secret"
+
 
 class SqlDbTestedContainer(TestedContainer):
     def __init__(
