@@ -144,7 +144,7 @@ class TestDockerSSIFeatures:
 
     @features.ssi_service_tracking
     @missing_feature(condition=True, reason="Not implemented yet")
-    def test_service_tracking(self):
+    def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
