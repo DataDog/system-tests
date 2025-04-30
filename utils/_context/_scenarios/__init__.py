@@ -960,6 +960,19 @@ class _Scenarios:
         scenario_groups=[ScenarioGroup.APPSEC],
     )
 
+    appsec_collect_request_body = EndToEndScenario(
+        "APPSEC_COLLECT_REQUEST_BODY",
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_RASP_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+        },
+        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
+        doc="Appsec collect request body mode ",
+        scenario_groups=[ScenarioGroup.APPSEC, ScenarioGroup.APPSEC_RASP],
+    )
+
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
