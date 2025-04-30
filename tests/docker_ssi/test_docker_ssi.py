@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger
+from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger, missing_feature
 
 
 @scenarios.docker_ssi
@@ -141,3 +141,27 @@ class TestDockerSSIFeatures:
         assert (
             traces_for_request["service"] == "payment-service"
         ), f"Service name is not payment-service but {traces_for_request['service']}"
+
+    @features.ssi_service_tracking
+    @missing_feature(condition=True, reason="Not implemented yet")
+    def test_service_tracking(self):
+        logger.info("Testing Docker SSI service tracking")
+        # There are traces related with the request
+        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
+        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
+        assert "service" in traces_for_request, "No service name found in traces"
+        span_service_name = traces_for_request["service"]
+        # Get all captured telemetry configuration data
+        configurations = {}
+        for data in interfaces.library.get_telemetry_data():
+            event = data["request"]["content"]
+            if event["application"]["service_name"] != span_service_name:
+                # Skip telemetry data that doesn't match the service name
+                continue
+            if event["request_type"] in ["app-started", "app-client-configuration-change"]:
+                for config in event.get("payload", {}).get("configuration", []):
+                    configurations[config["name"]] = config
+        # Check that injection source is ssi
+        injection_source = configurations.get("instrumentation_source")
+        assert injection_source, f"instrumentation_source not found in configuration {configurations}"
+        assert injection_source["value"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
