@@ -1,6 +1,6 @@
 import pytest
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
@@ -19,7 +19,7 @@ class ProfilingScenario(EndToEndScenario):
                 "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
-            scenario_groups=[ScenarioGroup.PROFILING],
+            scenario_groups=[scenario_groups.profiling],
             require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
         )
 

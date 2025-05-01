@@ -1,13 +1,13 @@
 import json
 
-from utils._context._scenarios import ScenarioGroup
+from utils._context._scenarios import scenario_groups
 from utils._context.core import context
 
 
 def get_lang_configs():
-    # ensure that any scneario using this method got ScenarioGroup.TELEMETRY
+    # ensure that any scneario using this method got scenario_groups.telemetry
     assert (
-        ScenarioGroup.TELEMETRY in context.scenario.scenario_groups
+        scenario_groups.telemetry in context.scenario.scenario_groups
     ), f"Please add scenario group TELEMETRY to scenario {context.scenario.name}"
 
     lang_configs = {}
@@ -18,9 +18,9 @@ def get_lang_configs():
 
 
 def load_telemetry_json(filename: str):
-    # ensure that any scneario using this method got ScenarioGroup.TELEMETRY
+    # ensure that any scneario using this method got scenario_groups.telemetry
     assert (
-        ScenarioGroup.TELEMETRY in context.scenario.scenario_groups
+        scenario_groups.telemetry in context.scenario.scenario_groups
     ), f"Please add scenario group TELEMETRY to scenario {context.scenario.name}"
 
     with open(f"utils/telemetry/intake/static/{filename}.json", encoding="utf-8") as fh:

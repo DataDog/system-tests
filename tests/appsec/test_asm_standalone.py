@@ -6,6 +6,39 @@ from requests.structures import CaseInsensitiveDict
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
 
+USER = "test"
+NEW_USER = "testnew"
+INVALID_USER = "invalidUser"
+UUID_USER = "testuuid"
+PASSWORD = "1234"
+
+
+# Return a boolean indicating if the test passed
+def assert_tags(first_trace, span, obj, expected_tags) -> bool:
+    def _assert_tags_value(span, obj, expected_tags):
+        struct = span if obj is None else span[obj]
+        for tag, value in expected_tags.items():
+            if value is None:
+                assert tag not in struct
+            elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+                assert value(struct[tag])
+            else:
+                assert struct[tag] == value
+
+    # Case 1: The tags are set on the first span of every trace chunk
+    try:
+        _assert_tags_value(first_trace, obj, expected_tags)
+        return True
+    except (KeyError, AssertionError):
+        pass  # should try the second case
+
+    # Case 2: The tags are set on the local root span
+    try:
+        _assert_tags_value(span, obj, expected_tags)
+        return True
+    except (KeyError, AssertionError):
+        return False
+
 
 class BaseAsmStandaloneUpstreamPropagation(ABC):
     """APM correctly propagates AppSec events in distributing tracing."""
@@ -32,33 +65,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
     # Tested product
     tested_product: str | None = None
-
-    # Return a boolean indicating if the test passed
-    @staticmethod
-    def _assert_tags(first_trace, span, obj, expected_tags) -> bool:
-        def _assert_tags_value(span, obj, expected_tags):
-            struct = span if obj is None else span[obj]
-            for tag, value in expected_tags.items():
-                if value is None:
-                    assert tag not in struct
-                elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
-                    assert value(struct[tag])
-                else:
-                    assert struct[tag] == value
-
-        # Case 1: The tags are set on the first span of every trace chunk
-        try:
-            _assert_tags_value(first_trace, obj, expected_tags)
-            return True
-        except (KeyError, AssertionError):
-            pass  # should try the second case
-
-        # Case 2: The tags are set on the local root span
-        try:
-            _assert_tags_value(span, obj, expected_tags)
-            return True
-        except (KeyError, AssertionError):
-            return False
 
     @staticmethod
     def assert_product_is_enabled(response, product) -> None:
@@ -122,8 +128,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -166,8 +172,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -210,8 +216,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -254,8 +260,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -297,8 +303,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -340,8 +346,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0
             assert span["trace_id"] == 1212121212121212121
@@ -384,8 +390,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -427,8 +433,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -470,8 +476,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -511,8 +517,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -552,8 +558,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -593,8 +599,8 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
-            assert self._assert_tags(trace[0], span, "meta", tested_meta)
-            assert self._assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -679,25 +685,31 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 class BaseSCAStandaloneTelemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
-    def assert_standalone_is_enabled(self, request):
+    def assert_standalone_is_enabled(self, request0, request1):
         # test standalone is enabled and dropping traces
-        for _, __, span in interfaces.library.get_spans(request):
-            assert span["metrics"]["_sampling_priority_v1"] <= 0
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+        spans_checked = 0
+        for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
+            if span["metrics"]["_sampling_priority_v1"] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+                spans_checked += 1
+
+        assert spans_checked > 0
 
     def setup_telemetry_sca_enabled_propagated(self):
-        self.r = weblog.get("/")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/")
+        self.r1 = weblog.get("/")
 
     def test_telemetry_sca_enabled_propagated(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
+        configuration_by_name: dict[str, dict] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-started":
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {item["name"]: item for item in configuration}
+            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
 
         assert configuration_by_name
 
@@ -707,13 +719,16 @@ class BaseSCAStandaloneTelemetry:
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
-        if context.library == "java":
+        if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
-        self.r = weblog.get("/load_dependency")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/load_dependency")
+        self.r1 = weblog.get("/load_dependency")
 
+    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
@@ -722,7 +737,7 @@ class BaseSCAStandaloneTelemetry:
     @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
@@ -846,3 +861,87 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 
     def propagated_tag_value(self):
         return "02"
+
+
+@rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_UserEventsStandalone:
+    """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def _get_test_headers(self, trace_id):
+        return {
+            "x-datadog-trace-id": str(trace_id),
+            "x-datadog-parent-id": str(34343434),
+            "x-datadog-origin": "rum",
+            "x-datadog-sampling-priority": "-1",
+            "x-datadog-tags": "_dd.p.other=1",
+        }
+
+    def _login_data(self, context, user, password):
+        """In Rails the parameters are group by scope. In the case of the test the scope is user.
+        The syntax to group parameters in a POST request is scope[parameter]
+        """
+        username_key = "user[username]" if "rails" in context.weblog_variant else "username"
+        password_key = "user[password]" if "rails" in context.weblog_variant else "password"
+        return {username_key: user, password_key: password}
+
+    def _get_standalone_span_meta(self, trace_id):
+        tested_meta = {
+            "_dd.p.ts": "02",
+        }
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
+            assert span["trace_id"] == trace_id
+            assert trace[0]["trace_id"] == trace_id
+
+            # Some tracers use true while others use yes
+            assert any(
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+            )
+            return span["meta"]
+
+        return None
+
+    def _call_endpoint(self, endpoint, user, trace_id):
+        self.r = weblog.post(
+            endpoint,
+            headers=self._get_test_headers(trace_id),
+            data=self._login_data(context, user, PASSWORD),
+        )
+
+    def setup_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        self._call_endpoint("/login?auth=local", USER, trace_id)
+
+    def test_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["_dd.appsec.usr.login"] == USER
+
+    def setup_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        self._call_endpoint("/login?auth=local", INVALID_USER, trace_id)
+
+    def test_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+
+    def setup_user_signup_event_generates_asm_event(self):
+        trace_id = 1212121212121212133
+        self._call_endpoint("/signup", NEW_USER, trace_id)
+
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no signup events in Python except for django",
+    )
+    def test_user_signup_event_generates_asm_event(self):
+        trace_id = 1212121212121212133
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["appsec.events.users.signup.usr.login"] == NEW_USER

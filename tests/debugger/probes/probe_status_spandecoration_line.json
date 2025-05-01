@@ -1,0 +1,35 @@
+[
+    {
+        "language": "",
+        "type": "",
+        "id": "",
+        "version": 0,
+        "targetSpan": "ACTIVE",
+        "decorations": [
+            {
+                "tags": [],
+                "when": {
+                    "dsl": "",
+                    "json": {
+                        "gt": [
+                            {
+                                "ref": "intLocal"
+                            },
+                            {
+                                "ref": "intArg"
+                            }
+                        ]
+                    }
+                }
+            }
+        ],
+        "where": {
+            "typeName": null,
+            "dsl" : "",
+            "sourceFile": "ACTUAL_SOURCE_FILE",
+            "lines": [
+                "44"
+            ]
+        }
+    }
+]

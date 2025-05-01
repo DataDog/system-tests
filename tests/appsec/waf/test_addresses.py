@@ -449,6 +449,7 @@ class Test_GraphQL:
             ),
         )
 
+    @missing_feature(library="golang", reason="Not supported or implemented in existing libraries")
     def test_request_monitor_attack_directive(self):
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 

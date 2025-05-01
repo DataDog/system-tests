@@ -330,6 +330,10 @@ def _split_jobs_for_parallel_execution(
 
 def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
     total_execution_time = sum(scenario_times.values())
+
+    # 1 minute minimum, almost no scenario will be less than that
+    desired_execution_time = max(desired_execution_time, 60)
+
     backpack_count = int(total_execution_time / desired_execution_time) + 1
     backpack_average_time = total_execution_time / backpack_count
 
@@ -377,11 +381,8 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
     return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
 
 
-def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
+def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
-    if ci_environment != "dev" and library == "python" and weblog == "django-py3.13":
-        # as now, django-py3.13 support is not released
-        return False
 
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
@@ -448,7 +449,6 @@ if __name__ == "__main__":
     m = {
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
-            "APM_TRACING_E2E",
             "APM_TRACING_E2E_OTEL",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
@@ -509,6 +509,7 @@ if __name__ == "__main__":
             "TELEMETRY_METRIC_GENERATION_DISABLED",
             "TELEMETRY_METRIC_GENERATION_ENABLED",
             "TRACE_PROPAGATION_STYLE_W3C",
+            "TRACE_PROPAGATION_STYLE_DEFAULT",
             "TRACING_CONFIG_EMPTY",
             "TRACING_CONFIG_NONDEFAULT",
             "TRACING_CONFIG_NONDEFAULT_2",

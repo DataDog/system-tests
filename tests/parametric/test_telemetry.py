@@ -496,6 +496,54 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
+    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
+        [
+            (
+                {"DD_PROFILING_ENABLED": True},
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                },
+                {"DD_LOGS_INJECTION": True},
+                "1231231231231",
+            )
+        ],
+    )
+    def test_stable_configuration_config_id(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, fleet_config_id
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                    "config_id": fleet_config_id,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+
+        configurations = test_agent.wait_for_telemetry_configurations()
+        # Configuration set via fleet config should have the config_id set
+        apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
+        telemetry_item = configurations[apm_telemetry_name]
+        assert telemetry_item["origin"] == "fleet_stable_config"
+        assert telemetry_item["config_id"] == fleet_config_id
+        # Configuration set via local config should not have the config_id set
+        apm_telemetry_name = _mapped_telemetry_name(context, "profiling_enabled")
+        telemetry_item = configurations[apm_telemetry_name]
+        assert telemetry_item["origin"] == "local_stable_config"
+        assert "config_id" not in telemetry_item
+
 
 DEFAULT_ENVVARS = {
     # Decrease the heartbeat/poll intervals to speed up the tests

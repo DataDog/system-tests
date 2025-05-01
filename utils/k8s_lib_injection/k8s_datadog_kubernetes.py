@@ -105,7 +105,7 @@ class K8sDatadog:
         self.wait_for_test_agent(namespace)
         logger.info("[Test agent] Daemonset created")
 
-    def deploy_datadog_cluster_agent(self, namespace="default"):
+    def deploy_datadog_cluster_agent(self, host_log_folder: str, namespace="default"):
         """Installs the Datadog Cluster Agent via helm for manual library injection testing.
         We enable the admission controller and wait for the datdog cluster to be ready.
         The Datadog Admission Controller is an important piece of the Datadog Cluster Agent.
@@ -134,6 +134,7 @@ class K8sDatadog:
             self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
 
         helm_install_chart(
+            host_log_folder,
             self.k8s_cluster_info,
             "datadog",
             "datadog/datadog",
@@ -144,7 +145,7 @@ class K8sDatadog:
         logger.info("[Deploy datadog cluster] Waiting for the cluster to be ready")
         self._wait_for_cluster_agent_ready(namespace)
 
-    def deploy_datadog_operator(self, namespace="default"):
+    def deploy_datadog_operator(self, host_log_folder: str, namespace="default"):
         """Datadog Operator is a Kubernetes Operator that enables you to deploy and configure the Datadog Agent in a Kubernetes environment.
         By using the Datadog Operator, you can use a single Custom Resource Definition (CRD) to deploy the node-based Agent,
         the Datadog Cluster Agent, and Cluster check runners.
@@ -152,6 +153,7 @@ class K8sDatadog:
         logger.info("[Deploy datadog operator] Configuring helm repository")
         helm_add_repo("datadog", "https://helm.datadoghq.com", self.k8s_cluster_info, update=True)
         helm_install_chart(
+            host_log_folder,
             self.k8s_cluster_info,
             "my-datadog-operator",
             "datadog/datadog-operator",
@@ -300,7 +302,7 @@ class K8sDatadog:
                 namespace, label_selector="app=datadog-cluster-agent"
             )
             assert len(pods.items) > 0, "No pods found for app datadog-cluster-agent"
-            api_response = self.core_v1_api().read_namespaced_pod_log(
+            api_response = self.k8s_cluster_info.core_v1_api().read_namespaced_pod_log(
                 name=pods.items[0].metadata.name, namespace=namespace
             )
             k8s_logger(self.output_folder, "datadog-cluster-agent").info(api_response)

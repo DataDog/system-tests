@@ -35,7 +35,7 @@ from utils._context.containers import (
 
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 @dataclass
@@ -273,9 +273,11 @@ class EndToEndScenario(DockerScenario):
         include_buddies: bool = False,
         require_api_key: bool = False,
     ) -> None:
-        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
-            scenario_groups or []
-        )
+        scenario_groups = [
+            all_scenario_groups.all,
+            all_scenario_groups.end_to_end,
+            all_scenario_groups.tracer_release,
+        ] + (scenario_groups or [])
 
         super().__init__(
             name,
@@ -620,6 +622,12 @@ class EndToEndScenario(DockerScenario):
                 ticket="APMRP-360",
             ),
             _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=self.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            _SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
                 condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
@@ -630,6 +638,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$.payload",
                 condition=self.library > "php@1.7.3",
                 ticket="APMAPI-1270",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
@@ -681,6 +695,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$.payload",
                 condition=self.library > "php@1.7.3",
                 ticket="XXX-1234",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)

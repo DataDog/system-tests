@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
@@ -16,6 +17,7 @@ import mock
 import urllib3
 import xmltodict
 import graphene
+import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -102,8 +104,8 @@ logging.basicConfig(
     level=logging.INFO,
     format=(
         "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
-        "- %(message)s"
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
+        " %(message)s"
     ),
 )
 
@@ -468,6 +470,16 @@ def format_error(errors):
             }
         )
     return {"errors": formatted_errors}
+
+
+@app.route("/add_event", methods=["GET", "POST"])
+def add_event():
+    span = tracer.current_root_span()
+    assert span
+    name = "span_event"
+    attributes = {"string": "value", "int": 1}
+    span._add_event(name=name, attributes=attributes)
+    return {"message": "event added", "status_code": 200}
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1493,21 +1505,15 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 

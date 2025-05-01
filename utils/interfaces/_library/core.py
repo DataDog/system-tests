@@ -58,6 +58,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             if isinstance(request, HttpResponse) and request.status_code is None:
                 logger.warning("HTTP app failed to respond, it will very probably fail")
 
+        trace_found = False
         for data in self.get_data(path_filters=self.trace_paths):
             traces = data["request"]["content"]
             if not traces:  # may be none
@@ -65,12 +66,18 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             for trace in traces:
                 if rid is None:
+                    trace_found = True
                     yield data, trace
                 else:
                     for span in trace:
                         if rid == get_rid_from_span(span):
+                            logger.debug(f"Found a trace in {data['log_filename']}")
+                            trace_found = True
                             yield data, trace
                             break
+
+        if not trace_found:
+            logger.warning("No trace found")
 
     def get_spans(self, request: HttpResponse | None = None, *, full_trace: bool = False):
         """Iterate over all spans reported by the tracer to the agent.
@@ -87,7 +94,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 if rid is None or full_trace:
                     yield data, trace, span
                 elif rid == get_rid_from_span(span):
-                    logger.debug(f"A span is found in {data['log_filename']}")
+                    logger.debug(f"Found a span in {data['log_filename']}")
                     yield data, trace, span
 
     def get_root_spans(self, request: HttpResponse | None = None):
@@ -352,8 +359,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             try:
                 if validator(span):
                     return
-            except:
-                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+            except Exception as e:
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
                 raise
 
         if not success_by_default:

@@ -143,9 +143,6 @@ jobs:
     - name: Run CROSSED_TRACING_LIBRARIES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
@@ -158,15 +155,15 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+    - name: Run TRACE_PROPAGATION_STYLE_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_DEFAULT"')
+      run: ./run.sh TRACE_PROPAGATION_STYLE_DEFAULT
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
     - name: Run INTEGRATIONS_AWS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
@@ -183,6 +180,9 @@ jobs:
     - name: Run RUNTIME_METRICS_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
       run: ./run.sh RUNTIME_METRICS_ENABLED
+    - name: Run TRACING_CONFIG_EMPTY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_EMPTY"')
+      run: ./run.sh TRACING_CONFIG_EMPTY
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
@@ -269,6 +269,9 @@ jobs:
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+    - name: Run APPSEC_ATO_SDK scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
+      run: ./run.sh APPSEC_ATO_SDK
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
