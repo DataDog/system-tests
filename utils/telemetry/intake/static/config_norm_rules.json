@@ -515,6 +515,7 @@
     "cloud_payload_tagging_rules_aws_sqs_request": "cloud_payload_tagging_rules_aws_sqs_request",
     "cloud_payload_tagging_rules_aws_sqs_response": "cloud_payload_tagging_rules_aws_sqs_response",
     "codeOriginForSpans.enabled": "code_origin_for_spans_enabled",
+    "codeOriginForSpans.experimental.exit_spans.enabled": "code_origin_for_spans_exit_spans_enabled",
     "code_hotspots_enabled": "code_hotspots_enabled",
     "code_origin_max_user_frames": "code_origin_for_spans_max_user_frames",
     "commitSHA": "commit_sha",
