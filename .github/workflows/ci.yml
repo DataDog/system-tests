@@ -133,19 +133,19 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    - uses: DataDog/ensure-ci-success@v0
+      if: always()
+      with:
+        # initial-delay-seconds: '0'
+        polling-interval-seconds: '60'
+        max-retries: '60'
+        ignored-name-patterns: |
+          dd-gitlab/.*
+
     - uses: wechuli/allcheckspassed@v1
       if: always()
       with:
         checks_exclude: 'dd-gitlab/.*'
-
-    - uses: DataDog/ensure-ci-success@v0
-      if: always()
-      with:
-        polling-interval-seconds: '60'
-        max-retries: '60'
-        # initial-delay-seconds: '0'
-        ignored-name-patterns: |
-          dd-gitlab/.*
 
     - uses: DataDog/ensure-ci-success@v0
       if: always()
