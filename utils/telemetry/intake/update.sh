@@ -15,6 +15,9 @@ if [ -z "${GITHUB_TOKEN}" ] ; then
 else
     REPO_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/DataDog/dd-go.git"
 fi
+if [ -n "$USE_GIT_SSH" ] ; then
+    REPO_URL="git@github.com:DataDog/dd-go.git"
+fi
 
 SCRIPT_DIR=$(dirname "$(realpath "$0")")
 TARGET_DIR="$SCRIPT_DIR/static"
