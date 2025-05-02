@@ -2259,7 +2259,7 @@ class _Features:
 
     @staticmethod
     def ssi_service_tracking(test_object):
-        """Docker ssi service tracking feature
+        """SSI service tracking feature
 
         https://feature-parity.us1.prod.dog/#/?feature=327
         """
