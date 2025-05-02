@@ -955,7 +955,11 @@ class _Scenarios:
 
     appsec_collect_all_headers = EndToEndScenario(
         "APPSEC_COLLECT_ALL_HEADERS",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_COLLECT_ALL_HEADERS": "true"},
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
+            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+        },
         doc="Appsec collect all headers mode ",
         scenario_groups=[ScenarioGroup.APPSEC],
     )
