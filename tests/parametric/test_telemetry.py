@@ -700,7 +700,7 @@ class Test_TelemetrySSIConfigs:
 
         test_agent.wait_for_telemetry_configurations()
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
-        # # Check that the tags name match the expected value
+        # Check that the tags name match the expected value
         instrumentation_source_telemetry_name = _mapped_telemetry_name(context, "instrumentation_source")
         instrumentation_source = configuration_by_name.get(instrumentation_source_telemetry_name)
         assert instrumentation_source, ",\n".join(configuration_by_name.keys())
