@@ -84,8 +84,8 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.library }}
-      scenarios: ${{ needs.scenarios.outputs.scenarios }}
-      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
+      scenarios: DEFAULT
+      # scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
@@ -133,13 +133,32 @@ jobs:
     - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - uses: DataDog/ensure-ci-success@v1
+
+    - uses: wechuli/allcheckspassed@v1
+      if: always()
+      with:
+        checks_exclude: 'dd-gitlab/.*'
+
+    - uses: DataDog/ensure-ci-success@v0
+      if: always()
       with:
         polling-interval-seconds: '60'
         max-retries: '60'
         # initial-delay-seconds: '0'
         ignored-name-patterns: |
           dd-gitlab/.*
+
+    - uses: DataDog/ensure-ci-success@v0
+      if: always()
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        polling-interval-seconds: '60'
+        max-retries: '60'
+        # initial-delay-seconds: '0'
+        ignored-name-patterns: |
+          dd-gitlab/.*
+
+
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard

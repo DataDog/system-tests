@@ -33,6 +33,8 @@ def get_jobs(session: requests.Session, repo_slug: str, run_id: int) -> list:
         jobs += items
         params["page"] += 1
 
+    logging.info(f"Found {len(jobs)} jobs")
+
     return jobs
 
 
