@@ -318,9 +318,9 @@ class Test_SampleRateFunction:
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
-
         for req, expected_sampling_decision in self.requests_expected_decision:
             # Ensure the request succeeded, any failure would make the test incorrect.
+
             assert req.status_code == 200, "Call to /sample_rate_route/:i failed"
 
             for data, _, span in interfaces.library.get_spans(request=req):
