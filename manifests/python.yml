@@ -473,6 +473,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev

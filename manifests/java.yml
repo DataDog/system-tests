@@ -1175,6 +1175,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
