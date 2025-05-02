@@ -17,7 +17,7 @@ class Test_SingleSpan:
     Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
 
     The tests below depend on the `.single_span_submitted` suffix to be part of the `DD_SPAN_SAMPLING_RULES`
-    configuration defined for this scenario in `run.sh`.
+    configuration defined for this scenario in `run.sh`
     """
 
     def setup_parent_span_is_single_span(self):
