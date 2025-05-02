@@ -28,8 +28,13 @@ def read_probes(test_name: str) -> list:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str) -> str:
-    return probe_type + str(uuid.uuid4())[len(probe_type) :]
+def generate_probe_id(probe_type: str, suffix: str = "") -> str:
+    uuid_str = str(uuid.uuid4())
+    if suffix:
+        # Replace the last len(suffix) characters of the UUID with the suffix
+        uuid_str = uuid_str[: -len(suffix)] + suffix
+
+    return probe_type + uuid_str[len(probe_type) :]
 
 
 def extract_probe_ids(probes: dict | list) -> list:
@@ -127,6 +132,7 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = "EXIT"
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:
@@ -488,7 +494,7 @@ class BaseDebuggerTest:
     def _collect_spans(self):
         def _get_spans_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
-            span_hash = {}
+            span_hash: dict[str, list[dict]] = {}
 
             span_decoration_line_key = None
             if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
@@ -506,17 +512,26 @@ class BaseDebuggerTest:
 
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
-                                    span_hash[span["meta"]["debugger.probeid"]] = span
+                                    probe_id = span["meta"]["debugger.probeid"]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
                                 is_span_decoration_line = span_decoration_line_key in span["meta"]
                                 if is_span_decoration_line:
-                                    span_hash[span["meta"][span_decoration_line_key]] = span
+                                    probe_id = span["meta"][span_decoration_line_key]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
                                 has_exception_id = "_dd.debug.error.exception_id" in span["meta"]
                                 if has_exception_id:
-                                    span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                    exception_id = span["meta"]["_dd.debug.error.exception_id"]
+                                    if exception_id not in span_hash:
+                                        span_hash[exception_id] = []
+                                    span_hash[exception_id].append(span)
                                     continue
 
                                 has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
@@ -530,11 +545,16 @@ class BaseDebuggerTest:
                                         if has_stack_trace:
                                             for key in span["meta"]:
                                                 if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
-                                                    span_hash[span["meta"][key]] = span
-                                                    break
+                                                    snapshot_id = span["meta"][key]
+                                                    if snapshot_id not in span_hash:
+                                                        span_hash[snapshot_id] = []
+                                                    span_hash[snapshot_id].append(span)
                                             continue
                                     else:
-                                        span_hash[span["meta"]["_dd.debug.error.exception_capture_id"]] = span
+                                        capture_id = span["meta"]["_dd.debug.error.exception_capture_id"]
+                                        if capture_id not in span_hash:
+                                            span_hash[capture_id] = []
+                                        span_hash[capture_id].append(span)
                                     continue
 
                                 # For Python, we need to look for spans with stack trace information

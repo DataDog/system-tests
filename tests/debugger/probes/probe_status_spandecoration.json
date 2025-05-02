@@ -2,14 +2,14 @@
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-591received",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
             {
                 "tags": [],
                 "when": {
-                    "dsl" : "",
+                    "dsl": "",
                     "json": {
                         "gt": [
                             {
@@ -27,13 +27,12 @@
             "typeName": "NotReallyExists",
             "methodName": "SomeMethod",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     },
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-59installed",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -58,7 +57,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "SpanDecorationProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

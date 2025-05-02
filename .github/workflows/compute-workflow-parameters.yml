@@ -15,6 +15,10 @@ on:
         description: "Comma-separated list of scenarios groups to run"
         type: string
         default: ""
+      excluded_scenarios:
+        description: "Comma-separated list of scenarios not to run"
+        type: string
+        default: ""
       parametric_job_count:
         description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
         default: 1
@@ -110,9 +114,10 @@ jobs:
       run: |
         source venv/bin/activate
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -t ${{ inputs.desired_execution_time }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
-          -t ${{ inputs.desired_execution_time }} \
+          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
@@ -121,9 +126,10 @@ jobs:
       run: |
         source venv/bin/activate
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -t ${{ inputs.desired_execution_time }} \
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
-          -t ${{ inputs.desired_execution_time }} \
+          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
@@ -136,6 +142,7 @@ jobs:
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
         TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}

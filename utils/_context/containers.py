@@ -436,6 +436,31 @@ class TestedContainer:
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
 
+    def _set_aws_auth_environment(self):
+        # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+            prefix = "SYSTEM_TESTS_AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key.replace("SYSTEM_TESTS_", "")] = value
+        else:
+            prefix = "AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key] = value
+
+        # Set default AWS values if specific keys are not present
+        if "AWS_REGION" not in self.environment:
+            self.environment["AWS_REGION"] = "us-east-1"
+            self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
+
+        if "AWS_SECRET_ACCESS_KEY" not in self.environment:
+            self.environment["AWS_SECRET_ACCESS_KEY"] = "not-secret"  # noqa: S105
+
+        if "AWS_ACCESS_KEY_ID" not in self.environment:
+            self.environment["AWS_ACCESS_KEY_ID"] = "not-secret"
+
 
 class SqlDbTestedContainer(TestedContainer):
     def __init__(
@@ -658,7 +683,7 @@ class BuddyContainer(TestedContainer):
             },
         )
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
     @property
     def interface(self) -> LibraryInterfaceValidator:
@@ -861,7 +886,7 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
 
@@ -1377,23 +1402,3 @@ class ExternalProcessingContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
-
-
-def _set_aws_auth_environment(image: TestedContainer):
-    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
-
-    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-        prefix = "SYSTEM_TESTS_AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
-    else:
-        prefix = "AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key] = value
-
-    # Set default AWS values if specific keys are not present
-    if "AWS_REGION" not in image.environment:
-        image.environment["AWS_REGION"] = "us-east-1"
-        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"

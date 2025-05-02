@@ -55,10 +55,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
-            django-poc: bug (APPSEC-57095)
-            django-py3.13: bug (APPSEC-57095)
             fastapi: v2.15.0
-            python3.12: bug (APPSEC-57095)
           TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
@@ -484,6 +481,7 @@ tests/:
         uds-flask: bug (APPSEC-57145)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
+      Test_UserEventsStandalone: v3.2.0.dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -656,6 +654,12 @@ tests/:
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
@@ -669,23 +673,51 @@ tests/:
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_inproduct_enablement.py:
-      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
-      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+      Test_Debugger_InProduct_Enablement_Code_Origin:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
+      Test_Debugger_InProduct_Enablement_Exception_Replay:
+        '*': missing_feature
+        flask-poc: v3.5.0
+        uds-flask: v3.5.0
+        uwsgi-poc: v3.5.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Statuses:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -915,7 +947,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.9.0
       Test_Environment: v2.8.0
-      Test_Stable_Configuration_Origin: v3.2.0.dev
+      Test_Stable_Configuration_Origin: v3.7.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
     test_trace_sampling.py:

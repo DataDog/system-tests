@@ -1,5 +1,5 @@
 import json
-from utils import weblog, interfaces, context, logger
+from utils import weblog, interfaces, context, logger, irrelevant
 from utils._weblog import HttpResponse
 
 
@@ -576,6 +576,10 @@ class BaseTestCookieNameFilter:
         self.req2 = weblog.post(self.endpoint, data={"cookieName": cookie_name_2, "cookieValue": "value2"})
         self.req3 = weblog.post(self.endpoint, data={"cookieName": cookie_name_3, "cookieValue": "value3"})
 
+    @irrelevant(
+        context.library >= "nodejs@5.50.0",
+        reason="cookie name filtering is not present anymore after the change on cookie vuln hash calculation.",
+    )
     def test_cookie_name_filter(self) -> None:
         assert_iast_vulnerability(
             request=self.req1,

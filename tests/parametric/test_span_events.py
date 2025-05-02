@@ -54,23 +54,25 @@ class Test_Span_Events:
 
         assert event["attributes"].get("str_arr") == {
             "type": 4,
-            "array_value": [
-                {"type": 0, "string_value": "a"},
-                {"type": 0, "string_value": "b"},
-                {"type": 0, "string_value": "c"},
-            ],
+            "array_value": {
+                "values": [
+                    {"type": 0, "string_value": "a"},
+                    {"type": 0, "string_value": "b"},
+                    {"type": 0, "string_value": "c"},
+                ]
+            },
         }
         assert event["attributes"].get("bool_arr") == {
             "type": 4,
-            "array_value": [{"type": 1, "bool_value": True}, {"type": 1, "bool_value": False}],
+            "array_value": {"values": [{"type": 1, "bool_value": True}, {"type": 1, "bool_value": False}]},
         }
         assert event["attributes"].get("int_arr") == {
             "type": 4,
-            "array_value": [{"type": 2, "int_value": 5}, {"type": 2, "int_value": 6}],
+            "array_value": {"values": [{"type": 2, "int_value": 5}, {"type": 2, "int_value": 6}]},
         }
         assert event["attributes"].get("double_arr") == {
             "type": 4,
-            "array_value": [{"type": 3, "double_value": 1.1}, {"type": 3, "double_value": 2.2}],
+            "array_value": {"values": [{"type": 3, "double_value": 1.1}, {"type": 3, "double_value": 2.2}]},
         }
 
         event = span_events[1]
