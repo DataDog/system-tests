@@ -489,9 +489,21 @@ tests/:
       Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
-      Test_V3_Login_Events: v2.20.0.dev
-      Test_V3_Login_Events_Anon: v2.20.0.dev
-      Test_V3_Login_Events_Blocking: v2.20.0.dev
+      Test_V3_Login_Events:
+        '*': v2.20.0.dev
+        'django-poc': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+      Test_V3_Login_Events_Anon:
+        '*': v2.20.0.dev
+        'django-poc': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+      Test_V3_Login_Events_Blocking:
+        '*': v2.20.0.dev
+        'django-poc': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v2.20.0.dev but weblog use new SDK now)
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
@@ -499,8 +511,16 @@ tests/:
         django-poc: v3.3.0.dev
         django-py3.13: v3.3.0.dev
         python3.12: v3.3.0.dev
-      Test_Automated_User_Blocking: v3.0.0.rc
-      Test_Automated_User_Tracking: v3.1.0.dev
+      Test_Automated_User_Blocking:
+        '*': v3.0.0.rc
+        'django-poc': v3.6.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        'django-py3.13': v3.6.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v3.0.0.rc but weblog use new SDK now)
+      Test_Automated_User_Tracking:
+        '*': v3.1.0.dev
+        'django-poc': v3.6.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.6.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v3.1.0.dev but weblog use new SDK now)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -575,23 +595,41 @@ tests/:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
-      Test_CustomEvent: v1.10.0
+      Test_CustomEvent:
+        '*': v1.10.0
+        'django-poc': v3.6.0.dev (is v1.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.6.0.dev (is v1.10.0 but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v1.10.0 but weblog use new SDK now)
       Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent:
         '*': v2.10.0
+        'django-poc': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
+        'django-poc': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)
+        'python3.12': v3.6.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection:
+        '*': v3.6.0.dev
+      Test_UserLoginFailureEventV2_Libddwaf:
+        '*': v3.6.0.dev
+      Test_UserLoginFailureEventV2_Metrics:
+        '*': v3.6.0.dev
+      Test_UserLoginFailureEventV2_Tags:
+        '*': v3.6.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection:
+        '*': v3.6.0.dev
+      Test_UserLoginSuccessEventV2_Libddwaf:
+        '*': v3.6.0.dev
+      Test_UserLoginSuccessEventV2_Metrics:
+        '*': v3.6.0.dev
+      Test_UserLoginSuccessEventV2_Tags:
+        '*': v3.6.0.dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
