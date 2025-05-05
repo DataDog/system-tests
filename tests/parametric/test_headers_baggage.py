@@ -21,6 +21,13 @@ def only_baggage_enabled() -> pytest.MarkDecorator:
     return parametrize("library_env", [env])
 
 
+def specify_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "session.id,foo",
+    }
+    return parametrize("library_env", [env])
+
+
 @features.datadog_headers_propagation
 @scenarios.parametric
 class Test_Headers_Baggage:
@@ -287,3 +294,45 @@ class Test_Headers_Baggage:
             header_size = len(baggage_header[1].encode("utf-8"))
             assert len(items) == 2
             assert header_size <= max_bytes
+
+
+@features.datadog_headers_propagation
+@scenarios.parametric
+class Test_Headers_Baggage_Span_Tags:
+    def test_baggage_span_tags_default(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,session.id=mysession,foo=bar"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") == "doggo"
+        assert meta.get("baggage.session.id") == "mysession"
+        assert meta.get("baggage.foo") is None
+
+    @specify_span_tags()
+    def test_baggage_span_tags_specific_keys(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,session.id=fakesession,account.id=123,foo=bar"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") == "fakesession"
+        assert meta.get("baggage.foo") == "bar"
+        assert meta.get("baggage.account.id") is None
