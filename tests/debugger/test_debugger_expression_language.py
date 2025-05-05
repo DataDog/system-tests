@@ -17,9 +17,9 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     def _setup(self, probes, request_path):
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
     def _assert(self, expected_response: int):
