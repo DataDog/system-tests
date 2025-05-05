@@ -415,6 +415,8 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0
     test_debugger_expression_language.py:
@@ -425,10 +427,13 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: v2.53.0
+      Test_Debugger_Method_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: v2.53.0
     test_debugger_telemetry.py:

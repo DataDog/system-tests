@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
@@ -1504,21 +1505,15 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 

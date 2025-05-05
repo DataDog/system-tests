@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import typing
@@ -867,21 +868,14 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-
-    subp = subprocess.Popen(args=[cmd, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.system(cmd + " -la " + filename)
     return "OK"
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])  # noqa F841
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return "OK"
 
 

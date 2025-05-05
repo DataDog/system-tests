@@ -1,4 +1,3 @@
-import os
 import random
 import string
 
@@ -62,34 +61,6 @@ class IntegrationsScenario(EndToEndScenario):
 
 
 class AWSIntegrationsScenario(EndToEndScenario):
-    AWS_BAD_CREDENTIALS_MSG = """
-🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
-                                ⚠️⚠️⚠️⚠️⚠️⚠️⚠️  AWS Authentication Error  ⚠️⚠️⚠️⚠️⚠️⚠️⚠️
-
-    It seems that your AWS authentication is not set up correctly.
-    Please take the following actions:
-
-    🔑 With `aws-vault` setup:
-
-        To enter an authenticated shell session that sets temp AWS credentials in your shell environment:
-        👉 `aws-vault login sso-sandbox-account-admin --`
-        👉 `[your system-test command]`
-                or
-
-        To run ONLY the system tests command with auth: (temp AWS credentials are not set in shell environment)
-        👉 `aws-vault login sso-sandbox-account-admin -- [your system-test command]`
-
-
-    🔧 Or to first set up `aws-vault` / `aws-cli`, please visit:
-        🔗 [AWS CLI Config Setup & Update Guide]
-        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-v2-setup)
-        🔗 (https://github.com/DataDog/cloud-inventory/tree/master/organizations/aws#aws-cli-config-setup--update)
-
-🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫🔴🚫
-"""
-
-    # Since we are using real AWS queues / topics, we need a unique message to ensure we aren't consuming messages from
-    # other tests. This time hash is added to the message, test consumers only stops once finding the specific message.
     unique_id: str = ""
 
     def __init__(
@@ -123,13 +94,6 @@ class AWSIntegrationsScenario(EndToEndScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
         self.unique_id = _get_unique_id(self.host_log_folder, replay=self.replay)
-
-    def _check_aws_variables(self):
-        if not os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
-
-        if not os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY") and not os.environ.get("AWS_ACCESS_KEY_ID"):
-            pytest.exit(f"\n    Error while starting {self.name}\n" + self.AWS_BAD_CREDENTIALS_MSG, 1)
 
 
 class CrossedTracingLibraryScenario(EndToEndScenario):

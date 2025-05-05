@@ -496,6 +496,8 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (feature not implented)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
@@ -506,10 +508,14 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:

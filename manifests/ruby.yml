@@ -527,6 +527,12 @@ tests/:
     test_versions.py:
       Test_Events: v0.54.2
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
@@ -541,14 +547,30 @@ tests/:
         rails70: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        "*": irrelevant
+        rails70: missing_feature (feature not implemented)
+        rails80: missing_feature (feature not implemented)
+        uds-rails: missing_feature (feature not implemented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
+        "*": irrelevant
+        rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
+      Test_Debugger_Method_Probe_Snaphots:
         "*": irrelevant
         rails70: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
+        "*": irrelevant
+        rails70: v2.8.0
+        rails80: v2.8.0
+        uds-rails: v2.12.0
+      Test_Debugger_Method_Probe_Statuses:
         "*": irrelevant
         rails70: v2.8.0
         rails80: v2.8.0
@@ -776,9 +798,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting:
-      "*": irrelevant
-      graphql23: v2.11.0
+    Test_GraphQLQueryErrorReporting: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
