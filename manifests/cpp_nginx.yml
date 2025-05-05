@@ -11,6 +11,7 @@ tests/:
       sink/: irrelevant (ASM is not implemented in C++)
       source/: irrelevant (ASM is not implemented in C++)
       test_security_controls.py: irrelevant (ASM is not implemented in C++)
+      test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
     rasp/: irrelevant (ASM is not implemented in C++)
     waf/: irrelevant (ASM is not implemented in C++)
     test_alpha.py: irrelevant (ASM is not implemented in C++)
