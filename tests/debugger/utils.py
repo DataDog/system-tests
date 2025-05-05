@@ -426,6 +426,7 @@ class BaseDebuggerTest:
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
+            logger.debug(f"Reading data from {path}")
             return list(interfaces.agent.get_data(path))
 
         all_data = _read_data()
@@ -448,6 +449,7 @@ class BaseDebuggerTest:
                 probe_id = diagnostics["probeId"]
                 status = diagnostics["status"]
 
+                logger.debug(f"Processing probe diagnostics: {probe_id} - {status}")
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
                     if _should_update_status(current_status, status):

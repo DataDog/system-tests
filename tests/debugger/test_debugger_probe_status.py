@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, bug, missing_feature, context, flaky
 
 
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
@@ -70,6 +70,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 @scenarios.debugger_probes_status
 @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
 @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
+@flaky(context.library > "php@1.8.3", reason="DEBUG-3814")
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
