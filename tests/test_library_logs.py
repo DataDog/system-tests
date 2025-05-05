@@ -85,6 +85,7 @@ class Test_NoExceptions:
             re.escape("Skipped authentication, auth={}"),
             # APPSEC-56726:
             re.escape("Attempt to replace context value for {}"),
+            re.escape(".*Failed to find the jdk.internal.jvmstat module.*"),
         ]
         if context.weblog_variant == "spring-boot-openliberty":
             # AIDM-588:
