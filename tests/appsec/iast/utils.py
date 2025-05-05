@@ -332,7 +332,7 @@ def validate_extended_location_data(
                 location_match = True
                 break
 
-        assert location_match, "location not found in stack trace"
+        assert location_match, f"location not found in stack trace, location={location}, stack_trace={stack_trace}"
     # Check extended data if on location if stack trace do not exists
     else:
         assert all(field in location for field in ["path", "line"])
