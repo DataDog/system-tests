@@ -304,6 +304,11 @@ def validate_extended_location_data(
     location = vuln["location"]
 
     stack_id = location.get("stackId")
+    # XXX: Backwards compatibility trick for tracers that got `stackId` outside location.
+    # The correct stackId location is tested else wher e.g. schema tests.
+    if not stack_id:
+        stack_id = vuln.get("stackId")
+
     if not stack_id:
         # If there is no stacktrace, just check for the presence of basic attributes.
         assert all(field in location for field in ["path", "line"])
