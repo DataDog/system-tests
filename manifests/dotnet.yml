@@ -312,7 +312,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: v3.12.0
       Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: missing_feature
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone: v3.12.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
