@@ -303,10 +303,20 @@ def validate_extended_location_data(
     vuln = vulns[0]
     location = vuln["location"]
 
-    # Check extended data if stack trace exists
-    if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
-        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
-        stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+    stack_id = location.get("stackId")
+    if not stack_id:
+        # If there is no stacktrace, just check for the presence of basic attributes.
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.name not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])
+    else:
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
+        stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
+        assert stack_traces, "No vulnerability stack traces found"
+        stack_traces = [s for s in stack_traces if s.get("id") == stack_id]
+        assert stack_traces, f"No vulnerability stack trace found for id {stack_id}"
+        stack_trace = stack_traces[0]
 
         assert "language" in stack_trace
         assert stack_trace["language"] in (
@@ -333,12 +343,6 @@ def validate_extended_location_data(
                 break
 
         assert location_match, f"location not found in stack trace, location={location}, stack_trace={stack_trace}"
-    # Check extended data if on location if stack trace do not exists
-    else:
-        assert all(field in location for field in ["path", "line"])
-
-        if context.library.name not in ("python", "nodejs"):
-            assert all(field in location for field in ["class", "method"])
 
 
 def get_hardcoded_vulnerabilities(vulnerability_type: str) -> list:
