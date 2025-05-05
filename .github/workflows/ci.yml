@@ -114,7 +114,8 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+  all-jobs-are-green-legacy:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    name: All jobs are green
     runs-on: ubuntu-latest
     permissions:
       checks: read
@@ -132,32 +133,27 @@ jobs:
     - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Fail if any job failed
+      if: needs.system_tests.result != 'success'
+      run: exit 1
 
+  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    # name: All jobs are green  # DO NOT SET A NAME
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      statuses: read
+      actions: read
+    needs:
+    - system_tests
+    if: '!cancelled()'
+    steps:
     - uses: DataDog/ensure-ci-success@v0
-      if: always()
       with:
-        # initial-delay-seconds: '0'
-        polling-interval-seconds: '60'
+        polling-interval-seconds: '30'
         max-retries: '60'
         ignored-name-patterns: |
           dd-gitlab/.*
-
-    - uses: wechuli/allcheckspassed@v1
-      if: always()
-      with:
-        checks_exclude: 'dd-gitlab/.*'
-
-    - uses: DataDog/ensure-ci-success@v0
-      if: always()
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        polling-interval-seconds: '60'
-        max-retries: '60'
-        # initial-delay-seconds: '0'
-        ignored-name-patterns: |
-          dd-gitlab/.*
-
-
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard

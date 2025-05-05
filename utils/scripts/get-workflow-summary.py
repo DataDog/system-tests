@@ -53,7 +53,7 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
         failing_steps = defaultdict(list)
 
         for job in jobs:
-            if job["name"] in ("all-jobs-are-green", "fancy-report", "All jobs are green"):
+            if job["name"] in ("all-jobs-are-green", "fancy-report", "All jobs are green", "all-jobs-are-green-legacy"):
                 logging.info(f"Skipping job {job['name']}")
                 continue
 
