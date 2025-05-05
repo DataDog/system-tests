@@ -11,7 +11,7 @@ from debugger.collection_factory import CollectionFactory
 # dummy line
 debugger_blueprint = Blueprint("debugger", __name__, url_prefix="/debugger")
 
-intLocal = 0
+intLocal = 1000
 intMixLocal = 0
 
 

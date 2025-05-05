@@ -8,6 +8,7 @@ on:
     types:
     - opened
     - synchronize
+    - reopened
     - labeled
     - unlabeled
   # push:
@@ -113,9 +114,13 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+  all-jobs-are-green-legacy:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
     name: All jobs are green
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      statuses: read
+      actions: read
     needs:
     - system_tests
     if: '!cancelled()'
@@ -123,7 +128,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.12'
     - run: pip install requests
     - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
       env:
@@ -131,6 +136,24 @@ jobs:
     - name: Fail if any job failed
       if: needs.system_tests.result != 'success'
       run: exit 1
+
+  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    # name: All jobs are green  # DO NOT SET A NAME
+    runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      statuses: read
+      actions: read
+    needs:
+    - system_tests
+    if: '!cancelled()'
+    steps:
+    - uses: DataDog/ensure-ci-success@v0
+      with:
+        polling-interval-seconds: '30'
+        max-retries: '60'
+        ignored-name-patterns: |
+          dd-gitlab/.*
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard

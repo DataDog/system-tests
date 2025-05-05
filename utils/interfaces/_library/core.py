@@ -359,8 +359,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             try:
                 if validator(span):
                     return
-            except:
-                logger.error(f"This span is failing validation: {json.dumps(span, indent=2)}")
+            except Exception as e:
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
                 raise
 
         if not success_by_default:
