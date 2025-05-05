@@ -184,6 +184,8 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature

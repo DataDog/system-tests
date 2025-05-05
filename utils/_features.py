@@ -2582,5 +2582,14 @@ class _Features:
         pytest.mark.features(feature_id=387)(test_object)
         return test_object
 
+    @staticmethod
+    def iast_schema(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=394
+        """
+        pytest.mark.features(feature_id=394)(test_object)
+        return test_object
+
 
 features = _Features()
