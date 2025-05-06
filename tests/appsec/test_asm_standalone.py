@@ -135,9 +135,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -179,9 +181,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -223,9 +227,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -267,9 +273,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -310,9 +318,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -353,9 +363,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -397,9 +409,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -440,9 +454,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -483,9 +499,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -524,9 +542,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -565,9 +585,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -606,9 +628,11 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             spans_checked += 1
 
@@ -777,7 +801,7 @@ class Test_AppSecStandalone_NotEnabled:
         spans_checked = 0
         for data, _, span in interfaces.library.get_spans(request=self.r):
             assert span["trace_id"] == 1212121212121212122
-            assert "datadog-client-computed-stats" not in [x.lower() for x, y in data["request"]["headers"]]
+            assert "Datadog-Client-Computed-Stats" not in [x.lower() for x, y in data["request"]["headers"]]
             spans_checked += 1
         assert spans_checked == 1
 
@@ -897,9 +921,11 @@ class Test_UserEventsStandalone:
             assert span["trace_id"] == trace_id
             assert trace[0]["trace_id"] == trace_id
 
-            # Some tracers use true while others use yes
+            # Some tracers use true while others use yes, headers are case-insensitive
+            headers = CaseInsensitiveDict(data["request"]["headers"])
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                headers.get("Datadog-Client-Computed-Stats") == trueish
+                for trueish in ["yes", "true"]
             )
             return span["meta"]
 
