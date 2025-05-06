@@ -436,6 +436,31 @@ class TestedContainer:
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
 
+    def _set_aws_auth_environment(self):
+        # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+            prefix = "SYSTEM_TESTS_AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key.replace("SYSTEM_TESTS_", "")] = value
+        else:
+            prefix = "AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key] = value
+
+        # Set default AWS values if specific keys are not present
+        if "AWS_REGION" not in self.environment:
+            self.environment["AWS_REGION"] = "us-east-1"
+            self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
+
+        if "AWS_SECRET_ACCESS_KEY" not in self.environment:
+            self.environment["AWS_SECRET_ACCESS_KEY"] = "not-secret"  # noqa: S105
+
+        if "AWS_ACCESS_KEY_ID" not in self.environment:
+            self.environment["AWS_ACCESS_KEY_ID"] = "not-secret"
+
 
 class SqlDbTestedContainer(TestedContainer):
     def __init__(
@@ -444,6 +469,7 @@ class SqlDbTestedContainer(TestedContainer):
         *,
         image_name: str,
         host_log_folder: str,
+        db_user: str,
         environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
         healthcheck: dict | None = None,
@@ -453,7 +479,6 @@ class SqlDbTestedContainer(TestedContainer):
         user: str | None = None,
         volumes: dict | None = None,
         cap_add: list[str] | None = None,
-        db_user: str | None = None,
         db_password: str | None = None,
         db_instance: str | None = None,
         db_host: str | None = None,
@@ -658,7 +683,7 @@ class BuddyContainer(TestedContainer):
             },
         )
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
     @property
     def interface(self) -> LibraryInterfaceValidator:
@@ -861,7 +886,7 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
 
@@ -872,6 +897,10 @@ class WeblogContainer(TestedContainer):
             header_tags = "user-agent"
         else:
             header_tags = ""
+
+        if library == "ruby" and "rails" in self.weblog_variant:
+            # Ensure ruby on rails apps log to stdout
+            self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
             header_tags += f',{",".join(self.additional_trace_header_tags)}'
@@ -901,6 +930,8 @@ class WeblogContainer(TestedContainer):
                 self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
                     ","
                 )
+            # specify if the scenario is DD_TRACE_PROPAGATION_DEFAULT
+            # then use the default configuration values
 
         if library == "nodejs":
             try:
@@ -1371,23 +1402,3 @@ class ExternalProcessingContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
-
-
-def _set_aws_auth_environment(image: TestedContainer):
-    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
-
-    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-        prefix = "SYSTEM_TESTS_AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
-    else:
-        prefix = "AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key] = value
-
-    # Set default AWS values if specific keys are not present
-    if "AWS_REGION" not in image.environment:
-        image.environment["AWS_REGION"] = "us-east-1"
-        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"

@@ -3,7 +3,7 @@ Whether it's adding a new test or modifying an existing test, a moderate amount 
 Once the changes are complete, post them in a PR.
 
 #### Notes
-* Each test class tests only one feature
+* Each test class tests only one feature (see [the doc on features](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md))
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
 ```python

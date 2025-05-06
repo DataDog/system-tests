@@ -10,7 +10,7 @@ class TestLanguageVersionNotSupported:
 
     def test_app_working(self):
         """Test app is working."""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name

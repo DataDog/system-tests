@@ -614,6 +614,10 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
+    @irrelevant(
+        library="dotnet",
+        reason="Re-enable when this automatically updates the dd-go files.",
+    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
@@ -662,7 +666,6 @@ class Test_TelemetryV2:
     @missing_feature(library="cpp_httpd")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
-    @bug(context.library > "php@1.7.3", reason="APMAPI-1270")
     def test_telemetry_v2_required_headers(self):
         """Assert library add the relevant headers to telemetry v2 payloads"""
 
@@ -682,6 +685,8 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "python", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False
         app_started_found = False
@@ -720,6 +725,52 @@ class Test_ProductsDisabled:
 
         if not app_started_found:
             raise ValueError("app-started event not found in telemetry data")
+
+    @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "ruby", reason="feature not implemented")
+    @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @irrelevant(library="golang")
+    def test_debugger_products_disabled(self):
+        """Assert that the debugger products are disabled by default including DI, and ER"""
+        data_found = False
+        config_norm_rules = load_telemetry_json("config_norm_rules")
+        lang_configs = get_lang_configs()
+        lang_configs["java"] = lang_configs["jvm"]
+
+        di_config, er_config, co_config = None, None, None
+        for data in interfaces.library.get_telemetry_data():
+            if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
+                continue
+
+            data_found = True
+
+            configuration = data["request"]["content"]["payload"]["configuration"]
+            language = data["request"]["content"]["application"]["language_name"]
+            lang_config = lang_configs.get(language, {})
+
+            normalized_config = {}
+            for item in configuration:
+                name = item["name"].lower()
+                if name in lang_config:
+                    name = lang_config[name]
+                elif name in config_norm_rules:
+                    name = config_norm_rules[name]
+
+                normalized_config[name] = item.get("value", None)
+
+            if normalized_config.get("dynamic_instrumentation_enabled") is not None:
+                di_config = str(normalized_config["dynamic_instrumentation_enabled"]).lower()
+
+            if normalized_config.get("exception_replay_enabled") is not None:
+                er_config = str(normalized_config["exception_replay_enabled"]).lower()
+
+            if normalized_config.get("code_origin_for_spans_enabled") is not None:
+                co_config = str(normalized_config["code_origin_for_spans_enabled"]).lower()
+
+        assert data_found, "No app-started event found in telemetry data"
+        assert di_config == "false", "DI should be disabled by default"
+        assert er_config == "false", "Exception Replay should be disabled by default"
+        assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported

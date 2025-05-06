@@ -120,6 +120,7 @@ select_lib_init_and_injector(){
     LIB_INIT_IMAGES_nodejs=("gcr.io/datadoghq/dd-lib-js-init:latest" "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot")
     LIB_INIT_IMAGES_python=("gcr.io/datadoghq/dd-lib-python-init:latest" "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot")
     LIB_INIT_IMAGES_ruby=("gcr.io/datadoghq/dd-lib-ruby-init:latest" "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot")
+    LIB_INIT_IMAGES_php=("gcr.io/datadoghq/dd-lib-php-init:latest" "ghcr.io/datadog/dd-trace-php/dd-lib-php-init:latest_snapshot")
 
     LIB_INIT_IMAGES_VAR="LIB_INIT_IMAGES_${TEST_LIBRARY}[@]"
     DEFAULT_LIB_INIT_IMAGES=(${!LIB_INIT_IMAGES_VAR})
@@ -185,7 +186,7 @@ welcome "K8s lib-injection Tests"
 ask_load_requirements
 ask_load_k8s_requirements
 ask_for_test_language
-load_workflow_data "lib-injection" "libinjection_scenario_defs"
+load_workflow_data "lib-injection,lib-injection-profiling" "libinjection_scenario_defs"
 select_scenario
 select_weblog
 select_weblog_img

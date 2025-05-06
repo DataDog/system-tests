@@ -5,7 +5,19 @@
 import re
 import json
 import time
-from utils import weblog, interfaces, scenarios, features, rfc, irrelevant, context, bug, missing_feature, logger
+from utils import (
+    weblog,
+    interfaces,
+    scenarios,
+    features,
+    rfc,
+    irrelevant,
+    context,
+    bug,
+    missing_feature,
+    logger,
+    incomplete_test_app,
+)
 
 # get the default log output
 stdout = interfaces.library_stdout
@@ -24,6 +36,9 @@ log_injection_fields = {
     "golang": {"message": "msg"},
     "java": {"message": "message"},
     "dotnet": {"message": "@mt"},
+    "php": {"message": "message"},
+    "python": {"message": "message"},
+    "ruby": {"message": "message"},
 }
 
 
@@ -103,7 +118,10 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
     def setup_query_string_obfuscation_empty_client(self):
         self.r = weblog.get("/make_distant_call", params={"url": "http://weblog:7777/?key=monkey"})
 
-    @bug(context.library == "java", reason="APMAPI-770")
+    @bug(
+        context.library == "java" and context.weblog_variant in ("vertx3", "vertx4"),
+        reason="APMAPI-770",
+    )
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
@@ -117,7 +135,6 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         self.r = weblog.get("/?application_key=value")
 
     @bug(context.library == "python", reason="APMAPI-772")
-    @bug(context.library >= "java@1.48.0" and context.weblog_variant == "spring-boot-3-native", reason="APMAPI-1251")
     def test_query_string_obfuscation_empty_server(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         server_span = _get_span_by_tags(spans, tags={"http.url": "http://localhost:7777/?application_key=value"})
@@ -299,7 +316,6 @@ class Test_Config_ClientIPHeader_Configured:
             "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"custom-ip-header": "5.6.7.9"}
         )
 
-    @bug(context.library >= "java@1.48.0", reason="APMAPI-1251")
     def test_ip_headers_sent_in_one_request(self):
         # Ensures the header set in DD_TRACE_CLIENT_IP_HEADER takes precedence over all supported ip headers
         trace = [span for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)]
@@ -503,13 +519,12 @@ class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
     def setup_log_injection_enabled(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_Enabled.test_log_injection_enabled"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_enabled(self):
         assert self.r.status_code == 200
         msg = parse_log_injection_message(self.message)
-        assert msg is not None, "Log message with trace context not found"
 
         tid = parse_log_trace_id(msg)
         assert tid is not None, "Expected a trace ID, but got None"
@@ -517,7 +532,7 @@ class Test_Config_LogInjection_Enabled:
         assert sid is not None, "Expected a span ID, but got None"
 
         required_fields = ["service", "version", "env"]
-        if context.library.name in ("java", "python"):
+        if context.library.name in ("java", "python", "ruby", "php"):
             required_fields = ["dd.service", "dd.version", "dd.env"]
         elif context.library.name == "dotnet":
             required_fields = ["dd_service", "dd_version", "dd_env"]
@@ -535,15 +550,14 @@ class Test_Config_LogInjection_Default:
     """Verify log injection is disabled by default"""
 
     def setup_log_injection_default(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_log_injection_default(self):
         assert self.r.status_code == 200
-        pattern = r'"dd":\{[^}]*\}'
-        pattern = r'"dd.trace_id":\{[^}]*\}'
-        pattern = r'"dd_trace_id":\{[^}]*\}'
-        stdout.assert_absence(pattern)
+        stdout.assert_absence(r'"dd":\{[^}]*\}')
+        stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
+        stdout.assert_absence(r'"dd_trace_id":\{[^}]*\}')
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -554,7 +568,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
     def setup_new_traceid(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_new_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_new_traceid(self):
@@ -572,9 +586,12 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
             "x-datadog-tags": "_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
+    @incomplete_test_app(
+        context.library == "ruby", reason="rails70 app does not use the incoming headers in log correlation"
+    )
     def test_incoming_64bit_traceid(self):
         assert self.r.status_code == 200
         log_msg = parse_log_injection_message(self.message)
@@ -590,7 +607,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
             "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Enabled.test_incoming_128bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
     def test_incoming_128bit_traceid(self):
@@ -612,7 +629,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
     """Verify 128 bit traceid are disabled in log injection when DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED=false"""
 
     def setup_new_traceid(self):
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_new_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
     def test_new_traceid(self):
@@ -630,7 +647,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
             "x-datadog-tags": "_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_incoming_64bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
     def test_incoming_64bit_traceid(self):
@@ -648,7 +665,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Disabled:
             "x-datadog-tags": "_dd.p.tid=1111111111111111,_dd.p.dm=-4",
         }
 
-        self.message = "test_weblog_log_injection"
+        self.message = "Test_Config_LogInjection_128Bit_TraceId_Disabled.test_incoming_128bit_traceid"
         self.r = weblog.get("/log/library", params={"msg": self.message}, headers=incoming_headers)
 
     def test_incoming_128bit_traceid(self):
@@ -760,38 +777,84 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-def parse_log_injection_message(log_message):
+def parse_log_injection_message(log_message) -> dict:
     # Parses the JSON-formatted log message from stdout and returns it
     # To pass tests that use this function, ensure your library has an entry in log_injection_fields
+
+    # check that we didn't found more than one logs
+    results = []
+
+    # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
+    processed_raws: set[str] = set()
+
+    regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
+    regex_pattern_json = re.compile(r"({.*})")
+
     for data in stdout.get_data():
-        logs = data.get("raw").split("\n")
+        raw: str = data.get("raw")
+
+        if raw in processed_raws:  # check if we already processed this log
+            continue
+        processed_raws.add(raw)
+
+        logs = raw.split("\n")
+
         for log in logs:
-            if context.library == "python":
-                # Log Injection values are stored in the following format in python:
-                # [dd.service=service_test dd.env=system-tests dd.version=1.0.0 dd.trace_id=0 dd.span_id=0] - log message
-                extracted_log_message = next(iter(re.findall(r"\] - (.+)$", log)), "")
-                if log_message in extracted_log_message:
-                    dd_injected = re.findall(r"(dd\.[a-zA-Z0-9_]+)=([a-zA-Z0-9_]+)", log)
-                    return {key: value for key, value in dd_injected}
-                else:
+            if context.library == "php":
+                matches = regex_pattern_json.search(log)
+                if matches is None:
                     continue
-            try:
-                message = json.loads(log)
-            except json.JSONDecodeError:
-                continue
-            # Locate log with the custom message, which should have the trace ID and span ID
-            if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
-                continue
-            if message.get("dd"):
-                return message.get("dd")
-            # dd-trace-java stores injected trace information under the "mdc" key
-            if context.library.name == "java":
-                message = message.get("mdc")
-            return message
-    return None
+
+                message = json.loads(matches.group(1))
+                if message.get("message") == log_message:
+                    logger.debug(f"Found log: {data}")
+                    results.append(message)
+                    break
+
+            elif context.library in ("python", "ruby"):
+                # Extract key-value pairs and messages
+                match = regex_pattern_raw.search(log)
+                if match:
+                    curr_message = match.group(2).strip()  # Extract message after last bracket
+                    if curr_message != log_message:
+                        continue
+                    dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
+                    logger.debug(f"Found log: {data}")
+                    results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
+                    break
+            else:
+                try:
+                    # Extract the JSON string from the log. This matches the contents between the first and last bracket.
+                    json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
+                    message = json.loads(json_string)
+                except Exception:  # noqa: S112
+                    continue
+                # Locate log with the custom message, which should have the trace ID and span ID
+                if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
+                    continue
+
+                if message.get("dd"):
+                    logger.debug(f"Found log: {data}")
+                    results.append(message.get("dd"))
+                elif context.library.name == "java":
+                    # dd-trace-java stores injected trace information under the "mdc" key
+                    logger.debug(f"Found log: {data}")
+                    results.append(message.get("mdc"))
+                elif context.library.name == "dotnet":
+                    # dd-trace-dotnet stores trace info directly in the message
+                    logger.debug(f"Found log: {data}")
+                    results.append(message)
+
+    if len(results) > 1:
+        raise ValueError(f"Found more than one message with {log_message}")
+
+    if len(results) == 0:
+        raise ValueError(f"Did not find any log with {log_message}")
+
+    return results[0]
 
 
-def parse_log_trace_id(message):
+def parse_log_trace_id(message: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
     return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))

@@ -11,13 +11,12 @@ TIMEOUT = 5
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "java", force_skip=True)
+@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDebuggerTest):
     ############ dynamic instrumentation ############
     _probe_template = """
     {
         "version": 0,
-        "type": "LOG_PROBE",
         "where": {
             "typeName": null,
             "sourceFile": "ACTUAL_SOURCE_FILE",
@@ -33,7 +32,6 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
             self.set_probes([probe])
 
             self.send_rc_apm_tracing(dynamic_instrumentation_enabled=enabled)
-
             self.send_rc_probes()
             self.send_weblog_request("/debugger/log")
 
@@ -65,7 +63,7 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "java", force_skip=True)
+@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerTest):
     ############ exception replay ############
     _max_retries = 2
@@ -102,7 +100,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 
         _send_config()
         self.er_empty_config = _wait_for_exception_snapshot_received(
-            "/exceptionreplay/?depth=1", "recursion exception depth 1"
+            "/exceptionreplay/recursion?depth=1", "recursion exception depth 1"
         )
 
         _send_config(enabled=False)
@@ -123,6 +121,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 @missing_feature(context.library == "java", force_skip=True)
+@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):

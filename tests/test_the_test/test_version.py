@@ -97,7 +97,7 @@ def test_version_serialization():
     assert v.version == "1.0.14+1.0.beta1"
 
     v = ComponentVersion("php", "1.0.0-nightly")
-    assert v.version == "1.0.0"
+    assert v.version == "1.0.0-nightly"
 
     v = ComponentVersion("nodejs", "3.0.0-pre0")
     assert v.version == "3.0.0-pre0"
@@ -165,13 +165,37 @@ def test_library_version():
     assert v == "python@0.53.0.dev70+g494e6dc0"
 
     v = ComponentVersion("java", "0.94.1~dde6877139")
-    assert v == "java@0.94.1"
+    assert v == "java@0.94.1+dde6877139"
     assert v >= "java@0.94.1"
     assert v < "java@0.94.2"
 
     v = ComponentVersion("java", "0.94.0-SNAPSHOT~57664cfbe5")
-    assert v == "java@0.94.0"
-    assert v >= "java@0.94.0"
+    assert v == "java@0.94.0-SNAPSHOT+57664cfbe5"
+    assert v < "java@0.94.0"
     assert v < "java@0.94.1"
 
     assert ComponentVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+
+
+def test_php_version():
+    v1 = ComponentVersion("php", "1.8.9")
+    v2 = ComponentVersion("php", "1.9.0-prerelease")
+    v3 = ComponentVersion("php", "1.9.0")
+    v4 = ComponentVersion("php", "1.9.0+7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")
+
+    assert v3 == "php@v1.9.0"
+
+    assert v1 < v2
+    assert v1 < v3
+    assert v2 < v3
+    assert v3 <= v4
+
+    # PHP may use a `-` to separate the version from the build
+    # system-tests then replace the `-` with a `+`
+    v5 = ComponentVersion("php", "1.9.0-7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")  # hacked
+    assert str(v5.version) == "1.9.0+7ab1806dec09cbf6e7079ac59453b79fc5e9c91f"
+    assert v3 <= v5
+
+    # but legit pre-release names are kept untouched
+    assert str(ComponentVersion("php", "1.9.0-prerelease").version) == "1.9.0-prerelease"
+    assert str(ComponentVersion("php", "1.9.0-dev").version) == "1.9.0-dev"

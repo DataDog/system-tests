@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
@@ -8,7 +6,7 @@ from utils import bug, missing_feature, context, scenarios, features
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_propagationstyle_default() -> Any:
+def temporary_enable_propagationstyle_default() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",

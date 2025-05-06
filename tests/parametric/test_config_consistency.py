@@ -3,7 +3,7 @@
 from urllib.parse import urlparse
 
 import pytest
-from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc
+from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
 from .conftest import StableConfigWriter
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 
@@ -348,6 +348,9 @@ class Test_Config_Dogstatsd:
     @parametrize(
         "library_env", [{"DD_AGENT_HOST": "localhost"}]
     )  # Adding DD_AGENT_HOST because some SDKs use DD_AGENT_HOST to set the dogstatsd host if unspecified
+    @incomplete_test_app(
+        reason="PHP parameteric app can not access the dogstatsd default values, this logic is internal to the tracer"
+    )
     def test_dogstatsd_default(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
@@ -375,7 +378,9 @@ class Test_Config_Dogstatsd:
 
 SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
-    "dd_profiling_enabled": "false",
+    "dd_profiling_enabled": "false"
+    if context.library != "php"
+    else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
     "dd_logs_injection": "false",
 }
@@ -406,7 +411,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_runtime_metrics_enabled": "true",
+                    "dd_runtime_metrics_enabled": "true"
+                    if context.library != "php"
+                    else "false",  # PHP does not support runtime metrics
                 },
             ),
             (
@@ -416,7 +423,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_data_streams_enabled": "true",
+                    "dd_data_streams_enabled": "true"
+                    if context.library != "php"
+                    else "false",  # PHP does not support data streams
                 },
             ),
             (
@@ -458,12 +467,12 @@ class Test_Stable_Config_Default(StableConfigWriter):
         [
             {
                 "apm_configuration_default": {
-                    "DD_RUNTIME_METRICS_ENABLED": True,
+                    "DD_LOGS_INJECTION": True,
                     "DD_FOOBAR_ENABLED": "baz",
                 },
                 "expected": {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_runtime_metrics_enabled": "true",
+                    "dd_logs_injection": "true",
                 },
             },
         ],
@@ -534,12 +543,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
             (
                 "orthogonal_priorities",
                 {"DD_PROFILING_ENABLED": True, "DD_RUNTIME_METRICS_ENABLED": True},
-                {"DD_LOGS_INJECTION": True},
+                {"DD_ENV": "abc"},
                 {"DD_PROFILING_ENABLED": False},
                 {
                     "dd_profiling_enabled": "false",
-                    "dd_runtime_metrics_enabled": "true",
-                    "dd_logs_injection": "true",
+                    "dd_runtime_metrics_enabled": "true"
+                    if context.library != "php"
+                    else "false",  # PHP does not support runtime metrics
+                    "dd_env": "abc",
                 },  # expected
             ),
         ],

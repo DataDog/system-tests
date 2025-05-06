@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
@@ -10,7 +8,7 @@ from utils import missing_feature, context, scenarios, features, irrelevant, log
 parametrize = pytest.mark.parametrize
 
 
-def enable_b3() -> Any:
+def enable_b3() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "B3 single header",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "B3 single header",
@@ -18,14 +16,14 @@ def enable_b3() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_b3_single_key() -> Any:
+def enable_b3_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "B3 single header",
     }
     return parametrize("library_env", [env])
 
 
-def enable_migrated_b3() -> Any:
+def enable_migrated_b3() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "b3",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "b3",
@@ -33,7 +31,7 @@ def enable_migrated_b3() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_migrated_b3_single_key() -> Any:
+def enable_migrated_b3_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "b3",
     }

@@ -37,7 +37,7 @@ public class DebuggerController {
 
 // Dummy line
 // Dummy line
-    private int intLocal = 0;
+    private int intLocal = 1000;
     @GetMapping("/span-decoration/{arg}/{intArg}")
     public String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
         intLocal = intArg * arg.length();

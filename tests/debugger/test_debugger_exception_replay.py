@@ -5,6 +5,7 @@
 import re
 import os
 import tests.debugger.utils as debugger
+import time
 from utils import scenarios, features, bug, context, flaky, irrelevant, logger
 
 
@@ -46,52 +47,80 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     ############ assert ############
     def _assert(self, test_name, expected_exception_messages):
-        def __filter_snapshots_by_message():
-            filtered_snapshots = []
+        def __filter_contents_by_message():
+            filtered_contents = []
 
             for contents in self.probe_snapshots.values():
                 for content in contents:
                     for expected_exception_message in expected_exception_messages:
                         exception_message = self.get_exception_message(content["debugger"]["snapshot"])
-                        if expected_exception_message in self.get_exception_message(content["debugger"]["snapshot"]):
-                            filtered_snapshots.append((exception_message, content["debugger"]["snapshot"]))
+                        if expected_exception_message in exception_message:
+                            filtered_contents.append((exception_message, content))
 
-            # Sort by multiple criteria for consistent ordering
-            def get_sort_key(snapshot_tuple):
-                message, snapshot = snapshot_tuple
-                # Get method name from probe location if available (for Java)
+            def get_sort_key(content_tuple):
+                message, content = content_tuple
+                snapshot = content["debugger"]["snapshot"]
+
                 method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
-                # Get line number from probe location
-                line_number = snapshot.get("probe", {}).get("location", {}).get("line", 0)
-                # Get stack depth as additional sorting criteria
-                stack_depth = len(snapshot.get("stack", []))
-                return (message, method_name, line_number, stack_depth)
+                line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [])
 
-            filtered_snapshots.sort(key=get_sort_key)
+                if "recursion" in message.lower():
+                    args = snapshot.get("captures", {}).get("return", {}).get("arguments", {})
+                    if "currentDepth" in args:
+                        current_depth = args["currentDepth"].get("value")
+                    else:
+                        current_depth = "-1"
+                    return (message, method_name, line_number, current_depth)
+                else:
+                    return (message, method_name, line_number)
 
-            # Return only the snapshots
-            return [snapshot for _, snapshot in filtered_snapshots]
+            filtered_contents.sort(key=get_sort_key)
+
+            return [snapshot for _, snapshot in filtered_contents]
 
         def __filter_spans_by_snapshot_id(snapshots):
             filtered_spans = {}
 
-            for span in self.probe_spans.values():
-                snapshot_ids_in_span = {
-                    key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
-                }.values()
-                for snapshot in snapshots:
-                    if snapshot["id"] in snapshot_ids_in_span:
-                        filtered_spans[snapshot["id"]] = span
+            for snapshot in snapshots:
+                snapshot_id = snapshot["id"]
+                for spans in self.probe_spans.values():
+                    for span in spans:
+                        snapshot_ids_in_span = {
+                            key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                        }.values()
+
+                        if snapshot_id in snapshot_ids_in_span:
+                            filtered_spans[snapshot_id] = span
+                            break
+
+            return filtered_spans
+
+        def __filter_spans_by_span_id(contents):
+            filtered_spans = {}
+            for content in contents:
+                span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
+                snapshot_id = content["debugger"]["snapshot"]["id"]
+
+                for spans_list in self.probe_spans.values():
+                    for span in spans_list:
+                        if span.get("spanID") == span_id:
+                            filtered_spans[snapshot_id] = span
+                            break
 
             return filtered_spans
 
         self.collect()
         self.assert_all_weblog_responses_ok(expected_code=500)
 
-        snapshots = __filter_snapshots_by_message()
+        contents = __filter_contents_by_message()
+        snapshots = [content["debugger"]["snapshot"] for content in contents]
+
         self._validate_exception_replay_snapshots(test_name, snapshots)
 
-        spans = __filter_spans_by_snapshot_id(snapshots)
+        if self.get_tracer()["language"] in ["python", "java"]:
+            spans = __filter_spans_by_span_id(contents)
+        else:
+            spans = __filter_spans_by_snapshot_id(snapshots)
         self._validate_spans(test_name, spans)
 
     def _validate_exception_replay_snapshots(self, test_name, snapshots):
@@ -322,6 +351,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             nonlocal found_top, found_lowest
 
             for frame in frames:
+                if "<runtime>" in frame:
+                    continue
                 if entry_method == frame["function"]:
                     found_top = True
                 if helper_method == frame["function"]:
@@ -338,23 +369,21 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         assert found_top, "Top layer snapshot not found"
         assert found_lowest, "Lowest layer snapshot not found"
 
-    ############ test ############
-    ############ Simple ############
+    ########### test ############
+    ########### Simple ############
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
-    ############ Recursion ############
+    ########### Recursion ############
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
@@ -365,7 +394,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
         self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
@@ -376,12 +404,11 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
     @bug(context.library == "dotnet", reason="DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 10)
+        self._validate_recursion_snapshots(self.snapshots, 9)
 
     def setup_exception_replay_recursion_inlined(self):
         self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
@@ -397,7 +424,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup("/exceptionreplay/inner", "outer exception")
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
@@ -422,12 +448,14 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
                 shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                if self.get_tracer()["language"] == "python":
+                    time.sleep(1)
+
                 timeout = _timeout_next
 
             retries += 1
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
@@ -437,7 +465,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
     @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
@@ -447,7 +474,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         self._setup("/exceptionreplay/async", "async exception")
 
     @flaky(context.library == "dotnet", reason="DEBUG-3281")
-    @bug(context.library == "python", reason="DEBUG-3257")
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])

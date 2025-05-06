@@ -4,7 +4,8 @@ import pytest
 import json
 import msgpack
 from jsonschema import validate as validation_jsonschema
-from utils import features, scenarios
+from utils import features, scenarios, context
+from utils._context.component_version import Version
 
 
 def find_dd_memfds(test_library, pid: int) -> list[str]:
@@ -35,6 +36,22 @@ def read_memfd(test_library, memfd_path: str):
     return rc, msgpack.unpackb(output)
 
 
+def get_context_tracer_version():
+    # Temporary fix for Ruby until we start to bump the version after a release
+    # This cancels a hack in system-tests framework that increments the patch version
+    # and add -dev to the version string.
+    if context.library.name == "ruby":
+        major = context.library.version.major
+        minor = context.library.version.minor
+        if "dev" in context.library.version.prerelease:
+            patch = context.library.version.patch - 1
+        else:
+            patch = context.library.version.patch
+        return Version(f"{major}.{minor}.{patch}")
+    else:
+        return context.library.version
+
+
 @scenarios.parametric
 @features.process_discovery
 class Test_ProcessDiscovery:
@@ -61,9 +78,12 @@ class Test_ProcessDiscovery:
             assert tracer_metadata["schema_version"] == 1
             assert tracer_metadata["runtime_id"]
             # assert tracer_metadata["hostname"]
-            # TODO(@dmehala): how to get the version?
-            # assert tracer_metadata["tracer_version"] ==
-            assert tracer_metadata["tracer_language"] == test_library.lang
+
+            lang = "go" if test_library.lang == "golang" else test_library.lang
+            assert tracer_metadata["tracer_language"] == lang
             assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
             assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
             assert tracer_metadata["service_env"] == library_env["DD_ENV"]
+
+            version = Version(tracer_metadata["tracer_version"])
+            assert version == get_context_tracer_version()

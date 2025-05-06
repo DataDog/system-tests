@@ -30,6 +30,7 @@ class Test_Decisionless_Extraction:
                 #
                 # [1]: https://docs.google.com/document/d/1zeO6LGnvxk5XweObHAwJbK3SfK23z7jQzp7ozWJTa2A/edit#heading=h.2nfwolfi3o1j
                 "DD_TRACE_SAMPLE_RATE": "1.0",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
             }
         ],
     )

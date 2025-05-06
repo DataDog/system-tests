@@ -1,6 +1,5 @@
 import os
 import signal
-import subprocess
 import sys
 import time
 
@@ -38,7 +37,7 @@ def fork_and_crash(request):
         # Parent process
         _, status = os.waitpid(pid, 0)  # Wait for the child process to exit
         return HttpResponse(f"Child process {pid} exited with status {status}")
-    elif pid == 0:
+    if pid == 0:
         # Child process
         time.sleep(5)  # don't crash immediately or the telemetry forwarder leaves a zombie behind
         crashme(request)
@@ -70,7 +69,7 @@ def child_pids(request):
         response_content = ", ".join(child_pids)
         return HttpResponse(response_content, content_type="text/plain")
     except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
+        return HttpResponse(f"Error: {e!s}", status=500, content_type="text/plain")
 
 
 def zombies(request):
@@ -106,7 +105,7 @@ def zombies(request):
         response_content = ", ".join(zombie_processes)
         return HttpResponse(response_content, content_type="text/plain")
     except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500, content_type="text/plain")
+        return HttpResponse(f"Error: {e!s}", status=500, content_type="text/plain")
 
 
 urlpatterns = [

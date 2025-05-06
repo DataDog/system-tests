@@ -20,6 +20,13 @@ from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 from utils.parametric._library_client import Link
 
+# this global mark applies to all tests in this file.
+#   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
+#   DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED=true is required in the tracers to enable baggage propagation, which is used for one test class in this file
+pytestmark = pytest.mark.parametrize(
+    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED": "true"}]
+)
+
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
@@ -363,7 +370,6 @@ class Test_Parametric_DDTrace_Flush:
 
 @scenarios.parametric
 @features.parametric_endpoint_parity
-@pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_HTTP_BAGGAGE_ENABLED": "true"}])
 class Test_Parametric_DDTrace_Baggage:
     def test_set_baggage(self, test_agent, test_library):
         """Validates that /trace/span/set_baggage sets a baggage item.

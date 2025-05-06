@@ -21,7 +21,7 @@ from docker.models.networks import Network
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, scenario_groups
 
 
 def _fail(message: str):
@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -364,7 +364,7 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
-        container_cmd="ddtrace-run python3.11 -m apm_test_client".split(" "),
+        container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
@@ -393,9 +393,6 @@ def node_library_factory() -> APMLibraryTestServer:
 FROM node:18.10-slim
 RUN apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
-COPY {nodejs_reldir}/../app.sh /usr/app/
-RUN printf 'node server.js' >> app.sh
-RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
@@ -507,7 +504,6 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
-ENV DD_TRACE_OTEL_ENABLED=false
 
 # copy custom tool used to get library version (built above)
 COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
@@ -517,9 +513,8 @@ COPY --from=build-version-tool /app/out /app
 COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
-CMD ["./ApmTestApi"]
 """,
-        container_cmd=[],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
@@ -566,6 +561,7 @@ def php_library_factory() -> APMLibraryTestServer:
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
+RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
@@ -581,7 +577,7 @@ ADD {php_reldir}/server.php .
         container_cmd=[
             "bash",
             "-c",
-            "php server.php || sleep 2s",
+            "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
         ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),

@@ -8,6 +8,7 @@ const tracer = require('dd-trace').init({
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
+const http = require('http')
 const fs = require('fs')
 const crypto = require('crypto')
 const pino = require('pino')
@@ -123,24 +124,44 @@ app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
   console.log(url)
 
-  axios.get(url)
-    .then(response => {
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: null,
-        response_headers: null
+        request_headers: response.req._headers,
+        response_headers: response.headers,
+        response_body: responseBody
       })
     })
-    .catch(error => {
-      console.log(error)
-      res.json({
-        url,
-        status_code: 500,
-        request_headers: null,
-        response_headers: null
-      })
+  })
+
+  // Handle errors
+  request.on('error', (error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
     })
+  })
+
+  request.end()
 })
 
 app.get('/user_login_success_event', (req, res) => {
@@ -172,6 +193,26 @@ app.get('/custom_event', (req, res) => {
   const eventName = req.query.event_name || 'system_tests_event'
 
   tracer.appsec.trackCustomEvent(eventName, { metadata0: 'value0', metadata1: 'value1' })
+
+  res.send('OK')
+})
+
+app.post('/user_login_success_event_v2', (req, res) => {
+  const login = req.body.login
+  const userId = req.body.user_id
+  const metadata = req.body.metadata
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata)
+
+  res.send('OK')
+})
+
+app.post('/user_login_failure_event_v2', (req, res) => {
+  const login = req.body.login
+  const exists = req.body.exists?.trim() === 'true'
+  const metadata = req.body.metadata
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata)
 
   res.send('OK')
 })

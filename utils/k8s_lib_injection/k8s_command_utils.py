@@ -1,6 +1,5 @@
 import subprocess, datetime, os, time, signal, shlex
 from utils._logger import logger
-from utils import context
 from retry import retry
 
 
@@ -67,7 +66,9 @@ def helm_add_repo(name, url, k8s_cluster_info, update=False):
 
 
 @retry(delay=1, tries=5)
-def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False, timeout=90):
+def helm_install_chart(
+    host_log_folder: str, k8s_cluster_info, name, chart, set_dict={}, value_file=None, upgrade=False, timeout=90
+):
     # Copy and replace cluster name in the value file
     custom_value_file = None
     if value_file:
@@ -76,7 +77,7 @@ def helm_install_chart(k8s_cluster_info, name, chart, set_dict={}, value_file=No
 
         value_data = value_data.replace("$$CLUSTER_NAME$$", str(k8s_cluster_info.cluster_name))
 
-        custom_value_file = f"{context.scenario.host_log_folder}/{k8s_cluster_info.cluster_name}_help_values.yaml"
+        custom_value_file = f"{host_log_folder}/{k8s_cluster_info.cluster_name}_help_values.yaml"
 
         with open(custom_value_file, "w") as fp:
             fp.write(value_data)

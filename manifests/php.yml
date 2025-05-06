@@ -183,6 +183,8 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
@@ -307,23 +309,24 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
+      Test_SCAStandalone_Telemetry_V2: v1.8.0
+      Test_UserEventsStandalone: v1.8.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: v1.8.0-dev
-      Test_V3_Login_Events: v1.8.0-dev
-      Test_V3_Login_Events_Anon: v1.8.0-dev
-      Test_V3_Login_Events_Blocking: v1.8.0-dev
-      Test_V3_Login_Events_RC: v1.8.0-dev
+      Test_V3_Auto_User_Instrum_Mode_Capability: v1.8.0
+      Test_V3_Login_Events: v1.8.0
+      Test_V3_Login_Events_Anon: v1.8.0
+      Test_V3_Login_Events_Blocking: v1.8.0
+      Test_V3_Login_Events_RC: v1.8.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: v1.8.0-dev
+      Test_Automated_User_Blocking: v1.8.0
+      Test_Automated_User_Tracking: v1.8.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
@@ -335,6 +338,19 @@ tests/:
       Test_StandardTagsClientIp: v0.81.0
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
+    test_event_tracking.py:
+      Test_CustomEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
+      Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Tags: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
       Test_Fingerprinting_Endpoint_Capability: missing_feature
@@ -375,7 +391,14 @@ tests/:
       Test_ExternalWafRequestsIdentification: v1.0.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v0.86.3
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptProfiling: v1.9.0
+      TestHostAutoInjectInstallScriptProfiling: v1.9.0
+      TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
@@ -386,10 +409,18 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: missing_feature
+      Test_Debugger_Line_Probe_Snaphots: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
+      Test_Debugger_Method_Probe_Statuses:
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature
     test_debugger_telemetry.py:
@@ -435,6 +466,11 @@ tests/:
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v1.8.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
+  k8s_lib_injection/:
+    test_k8s_lib_injection_profiling.py:
+      TestK8sLibInjectioProfilingClusterEnabled: v1.9.0
+      TestK8sLibInjectioProfilingClusterOverride: v1.9.0
+      TestK8sLibInjectioProfilingDisabledByDefault: v1.9.0
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
@@ -442,14 +478,14 @@ tests/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
-      Test_Config_Dogstatsd: missing_feature
+      Test_Config_Dogstatsd: v1.9.0
       Test_Config_RateLimit: v1.5.0
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v1.9.0
       Test_Config_TraceAgentURL: v1.4.0
       Test_Config_TraceEnabled: v1.3.0  # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.5.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v1.8.0
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -490,7 +526,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v1.9.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
     test_trace_sampling.py:
@@ -523,6 +559,13 @@ tests/:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.5.1
     Test_Config_ClientIPHeader_Configured: v1.4.0
@@ -535,10 +578,10 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (not enabled by default)
-    Test_Config_LogInjection_Default: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
+    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
     Test_Config_RuntimeMetrics_Default: missing_feature
@@ -573,6 +616,7 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown

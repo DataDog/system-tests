@@ -1,5 +1,6 @@
 <?php
 
+require_once 'cookie_manager.php';
 
 const USERS = [
     'test' => [
@@ -33,6 +34,7 @@ function handlePost()
     }
 
     \datadog\appsec\track_user_login_success_event_automated($user['username'], $user['id'], $user);
+    setLoggedInCookie($user['id']);
 }
 
 function handleGet()
@@ -54,6 +56,7 @@ function checkSdk()
     if ($event == 'success') {
         \datadog\appsec\track_user_login_success_event($user, ["email" => $mail]);
         http_response_code(200);
+        setLoggedInCookie($user);
     } else {
         \datadog\appsec\track_user_login_failure_event($user, $exists, ["email" => $mail]);
         http_response_code(401);

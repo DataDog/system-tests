@@ -12,8 +12,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v2.0.0-dev
+        Test_API_Security_RC_ASM_DD_scanners: v2.0.0-dev
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
@@ -24,7 +24,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.0.0-dev
         Test_Schema_Request_Cookies: v1.60.0
         Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
         Test_Schema_Request_Headers: v1.60.0
@@ -35,7 +35,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Body_env_var: v2.0.0-dev
         Test_Schema_Response_Headers: v1.60.0
     iast/:
       sink/:
@@ -198,6 +198,8 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
@@ -240,7 +242,8 @@ tests/:
           echo: v1.36.0
           gin: v1.37.0
         Test_FullGrpc: missing_feature
-        Test_GraphQL: missing_feature
+        Test_GraphQL:
+          '*': v1.60.0
         Test_GrpcServerMethod: v1.62.0
         Test_Headers:
           '*': v1.34.0
@@ -350,7 +353,8 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry_V2: v2.0.0-dev
+      Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -406,8 +410,20 @@ tests/:
       Test_NoLimitOnWafRules: v1.37.0
     test_event_tracking.py:
       Test_CustomEvent: v1.47.0
+      Test_CustomEvent_Metrics: v2.1.0-dev
       Test_UserLoginFailureEvent: v1.47.0
+      Test_UserLoginFailureEvent_Metrics: v2.1.0-dev
       Test_UserLoginSuccessEvent: v1.47.0
+      Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Tags: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Metrics: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.69.0
       Test_Fingerprinting_Endpoint_Capability: v1.69.0
@@ -482,6 +498,8 @@ tests/:
         '*': v1.36.0
         gin: v1.37.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (feature not implented)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
@@ -492,10 +510,14 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implented)
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:
@@ -681,6 +703,13 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.70.1
     Test_Config_ClientIPHeader_Configured: v1.60.0
@@ -738,6 +767,7 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.53.0
     Test_HeaderTags_Whitespace_Val_Long: v1.53.0
     Test_HeaderTags_Whitespace_Val_Short: v1.53.0
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.72.1  # real version unknown
     Test_SamplingDecisionAdded: v1.72.1  # real version unknown

@@ -28,18 +28,23 @@ def read_probes(test_name: str) -> list:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str) -> str:
-    return probe_type + str(uuid.uuid4())[len(probe_type) :]
+def generate_probe_id(probe_type: str, suffix: str = "") -> str:
+    uuid_str = str(uuid.uuid4())
+    if suffix:
+        # Replace the last len(suffix) characters of the UUID with the suffix
+        uuid_str = uuid_str[: -len(suffix)] + suffix
+
+    return probe_type + uuid_str[len(probe_type) :]
 
 
-def extract_probe_ids(probes: dict) -> list:
-    if probes:
-        if isinstance(probes, dict):
-            return list(probes.keys())
+def extract_probe_ids(probes: dict | list) -> list:
+    if not probes:
+        return []
 
-        return [probe["id"] for probe in probes]
+    if isinstance(probes, dict):
+        return list(probes.keys())
 
-    return []
+    return [probe["id"] for probe in probes]
 
 
 def _get_path(test_name: str, suffix: str) -> str:
@@ -80,7 +85,7 @@ class BaseDebuggerTest:
     setup_failures: list = []
 
     def initialize_weblog_remote_config(self) -> None:
-        if self.get_tracer()["language"] == "ruby":
+        if self.get_tracer()["language"] in ["ruby"]:
             # Ruby tracer initializes remote configuration client from
             # middleware that is only invoked during request processing.
             # Therefore, we need to issue a request to the application for
@@ -97,13 +102,13 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
         }
 
         return definitions.get(method, {}).get(language, [])
@@ -127,6 +132,11 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = "EXIT"
+
+                # PHP validates that the segments field is present.
+                if "segments" not in probe:
+                    probe["segments"] = []
 
                 if probe["where"]["typeName"] == "ACTUAL_TYPE_NAME":
                     if language == "dotnet":
@@ -146,6 +156,8 @@ class BaseDebuggerTest:
                         probe["where"]["methodName"] = re.sub(
                             r"([a-z])([A-Z])", r"\1_\2", probe["where"]["methodName"]
                         ).lower()
+                    elif language == "php":
+                        probe["where"]["typeName"] = "DebuggerController"
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -159,7 +171,12 @@ class BaseDebuggerTest:
                         # remove prefixes as part of file matching.
                         probe["where"]["sourceFile"] = "shared/rails/app/controllers/debugger_controller.rb"
                     elif language == "nodejs":
-                        probe["where"]["sourceFile"] = "debugger/index.js"
+                        if context.weblog_variant == "express4-typescript":
+                            probe["where"]["sourceFile"] = "debugger/index.ts"
+                        else:
+                            probe["where"]["sourceFile"] = "debugger/index.js"
+                    elif language == "php":
+                        probe["where"]["sourceFile"] = "debugger.php"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -182,6 +199,10 @@ class BaseDebuggerTest:
         self.rc_states.append(
             remote_config.send_debugger_command(probes=self.probe_definitions, version=BaseDebuggerTest._rc_version)
         )
+
+        # PHP tracer requires a request to /debugger/* to start logging the probe information.
+        if context.library == "php":
+            weblog.get("/debugger/init")
 
     def send_rc_apm_tracing(
         self,
@@ -293,7 +314,7 @@ class BaseDebuggerTest:
 
     def _wait_for_snapshot_received(self, data: dict):
         if data["path"] == _LOGS_PATH:
-            logger.debug("Reading " + data["log_filename"] + ", looking for " + self._exception_message)
+            logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
             contents = data["request"].get("content", []) or []
 
             for content in contents:
@@ -309,8 +330,7 @@ class BaseDebuggerTest:
 
                 exception_message = self.get_exception_message(snapshot)
 
-                logger.debug(f"Exception message is {exception_message}")
-                logger.debug(f"Self Exception message is {self._exception_message}")
+                logger.debug(f"Found exception message is {exception_message}")
 
                 if self._exception_message and self._exception_message in exception_message:
                     self._snapshot_found = True
@@ -319,7 +339,7 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
-    def wait_for_code_origin_span(self, timeout: int) -> bool:
+    def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
 
         interfaces.agent.wait_for(self._wait_for_code_origin_span, timeout=timeout)
@@ -401,11 +421,12 @@ class BaseDebuggerTest:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library in ("python", "ruby", "nodejs"):
+            elif context.library in ("python", "ruby", "nodejs", "php"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
+            logger.debug(f"Reading data from {path}")
             return list(interfaces.agent.get_data(path))
 
         all_data = _read_data()
@@ -428,6 +449,7 @@ class BaseDebuggerTest:
                 probe_id = diagnostics["probeId"]
                 status = diagnostics["status"]
 
+                logger.debug(f"Processing probe diagnostics: {probe_id} - {status}")
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
                     if _should_update_status(current_status, status):
@@ -474,7 +496,7 @@ class BaseDebuggerTest:
     def _collect_spans(self):
         def _get_spans_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
-            span_hash = {}
+            span_hash: dict[str, list[dict]] = {}
 
             span_decoration_line_key = None
             if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
@@ -489,20 +511,55 @@ class BaseDebuggerTest:
                         for chunk in payload["chunks"]:
                             for span in chunk["spans"]:
                                 self.all_spans.append(span)
+
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
-                                    span_hash[span["meta"]["debugger.probeid"]] = span
+                                    probe_id = span["meta"]["debugger.probeid"]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
                                 is_span_decoration_line = span_decoration_line_key in span["meta"]
                                 if is_span_decoration_line:
-                                    span_hash[span["meta"][span_decoration_line_key]] = span
+                                    probe_id = span["meta"][span_decoration_line_key]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
-                                is_exception_replay = "_dd.debug.error.exception_id" in span["meta"]
-                                if is_exception_replay:
-                                    span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                has_exception_id = "_dd.debug.error.exception_id" in span["meta"]
+                                if has_exception_id:
+                                    exception_id = span["meta"]["_dd.debug.error.exception_id"]
+                                    if exception_id not in span_hash:
+                                        span_hash[exception_id] = []
+                                    span_hash[exception_id].append(span)
                                     continue
+
+                                has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
+                                if has_exception_capture_id:
+                                    if self.get_tracer()["language"] == "python":
+                                        has_stack_trace = any(
+                                            key.startswith("_dd.debug.error.") and key.endswith(".file")
+                                            for key in span["meta"]
+                                        )
+
+                                        if has_stack_trace:
+                                            for key in span["meta"]:
+                                                if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
+                                                    snapshot_id = span["meta"][key]
+                                                    if snapshot_id not in span_hash:
+                                                        span_hash[snapshot_id] = []
+                                                    span_hash[snapshot_id].append(span)
+                                            continue
+                                    else:
+                                        capture_id = span["meta"]["_dd.debug.error.exception_capture_id"]
+                                        if capture_id not in span_hash:
+                                            span_hash[capture_id] = []
+                                        span_hash[capture_id].append(span)
+                                    continue
+
+                                # For Python, we need to look for spans with stack trace information
 
             return span_hash
 

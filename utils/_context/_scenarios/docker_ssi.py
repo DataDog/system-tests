@@ -469,33 +469,33 @@ class DockerSSIImageBuilder:
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """Print the docker build logs to docker_build.log file"""
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             f"    Building docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
 
         for chunk in build_logs:
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
-                    vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(line)
+                    vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(line)
 
     def print_docker_push_logs(self, image_tag, push_logs):
         """Print the docker push logs to docker_push.log file"""
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             f"    Push docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(push_logs)
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(push_logs)
 
 
 def _get_free_port():

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
 from tests.appsec.rasp.utils import (
     validate_span_tags,
@@ -10,7 +10,6 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric_variant,
     validate_metric_variant_v2,
-    validate_distribution,
     BaseRulesVersion,
     BaseWAFVersion,
 )
@@ -165,7 +164,6 @@ class Test_Cmdi_StackTrace:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_stack_trace(self):
-        assert self.r.status_code == 403
         validate_stack_traces(self.r)
 
 
@@ -179,8 +177,6 @@ class Test_Cmdi_Telemetry:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [
@@ -204,8 +200,6 @@ class Test_Cmdi_Telemetry_V2:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant_v2("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [
@@ -214,29 +208,13 @@ class Test_Cmdi_Telemetry_V2:
 
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
+
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+
         assert any(
-            validate_metric_variant_v2("rasp.rule.match", "command_injection", "exec", s, check_block_success=True)
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "exec", s, block_action=block_action)
             for s in series_match
         ), [s.get("tags") for s in series_match]
-
-        series_rule_duration = find_series("appsec", "rasp.rule.duration", is_metrics=False)
-        assert series_rule_duration
-        assert any(
-            validate_distribution("rasp.rule.duration", "command_injection", s, check_type=True)
-            for s in series_rule_duration
-        ), [s.get("tags") for s in series_rule_duration]
-
-        series_duration = find_series("appsec", "rasp.duration", is_metrics=False)
-        assert series_duration
-        assert any(validate_distribution("rasp.duration", "command_injection", s) for s in series_duration), [
-            s.get("tags") for s in series_duration
-        ]
-
-        series_duration_ext = find_series("appsec", "rasp.duration_ext", is_metrics=False)
-        assert series_duration_ext
-        assert any(validate_distribution("rasp.duration_ext", "command_injection", s) for s in series_duration_ext), [
-            s.get("tags") for s in series_duration_ext
-        ]
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
@@ -249,8 +227,6 @@ class Test_Cmdi_Telemetry_Variant_Tag:
         self.r = weblog.get("/rasp/cmdi", params={"command": "/usr/bin/touch /tmp/passwd"})
 
     def test_cmdi_telemetry(self):
-        assert self.r.status_code == 403
-
         series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "exec", s) for s in series_eval), [

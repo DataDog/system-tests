@@ -2,13 +2,9 @@ import pytest
 
 
 class _Features:
-    """Data source is https://dd-feature-parity.azurewebsites.net/Import/Features
+    """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
 
-    run this command to get new features:
-
-    ```
-    PYTHONPATH=. python utils/scripts/update_features.py
-    ```
+    Data source is the feature parity dashboard https://feature-parity.us1.prod.dog/
     """
 
     @staticmethod
@@ -912,6 +908,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=141
         """
         pytest.mark.features(feature_id=141)(test_object)
+        return test_object
+
+    @staticmethod
+    def event_tracking_sdk_v2(test_object):
+        """Event tracking SDK v2
+
+        https://feature-parity.us1.prod.dog/#/?feature=372
+        """
+        pytest.mark.features(feature_id=372)(test_object)
         return test_object
 
     @staticmethod
@@ -2326,6 +2331,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def datadog_baggage_headers(test_object):
+        """Baggage support
+
+        https://feature-parity.us1.prod.dog/#/?feature=389
+        """
+        pytest.mark.features(feature_id=389)(test_object)
+        return test_object
+
+    @staticmethod
     def iast_security_controls(test_object):
         """IAST: Security Controls
 
@@ -2398,6 +2412,24 @@ class _Features:
         return test_object
 
     @staticmethod
+    def debugger_method_probe(test_object):
+        """Method-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=392
+        """
+        pytest.mark.features(feature_id=392)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_line_probe(test_object):
+        """Line-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=393
+        """
+        pytest.mark.features(feature_id=393)(test_object)
+        return test_object
+
+    @staticmethod
     def debugger_symdb(test_object):
         """Probe Budgets
 
@@ -2449,6 +2481,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=369
         """
         pytest.mark.features(feature_id=369)(test_object)
+        return test_object
+
+    @staticmethod
+    def datastreams_monitoring_protobuf_schema_tracking(test_object):
+        """Dynamically enable debugger products
+
+        https://feature-parity.us1.prod.dog/#/?feature=371
+        """
+        pytest.mark.features(feature_id=371)(test_object)
         return test_object
 
     @staticmethod
@@ -2539,6 +2580,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=387
         """
         pytest.mark.features(feature_id=387)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_schema(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=394
+        """
+        pytest.mark.features(feature_id=394)(test_object)
         return test_object
 
 
