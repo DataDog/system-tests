@@ -28,6 +28,20 @@ def specify_span_tags() -> pytest.MarkDecorator:
     return parametrize("library_env", [env])
 
 
+def all_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "*",
+    }
+    return parametrize("library_env", [env])
+
+
+def disable_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "",
+    }
+    return parametrize("library_env", [env])
+
+
 @features.datadog_headers_propagation
 @scenarios.parametric
 class Test_Headers_Baggage:
@@ -336,3 +350,64 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.session.id") == "fakesession"
         assert meta.get("baggage.foo") == "bar"
         assert meta.get("baggage.account.id") is None
+
+    @all_span_tags()
+    def test_baggage_span_tags_all(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=bits,session.id=mysession,account.id=9871,serverNode=DF 28,region=us-east-1"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") == "bits"
+        assert meta.get("baggage.session.id") == "mysession"
+        assert meta.get("baggage.account.id") == "9871"
+        assert meta.get("baggage.serverNode") == "DF 28"
+        assert meta.get("baggage.region") == "us-east-1"
+
+    def test_baggage_span_tags_malformed_header(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=,session.id=mysession,account.id=abcd"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        # if a header is malformed, all items get dropped
+        # therefore, there are no baggage tags
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") is None
+        assert meta.get("baggage.account.id") is None
+
+    @disable_span_tags()
+    def test_baggage_span_tags_disabled(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=alice,session.id=xyz123,locale=en-US,account.id=12345"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") is None
+        assert meta.get("baggage.account.id") is None
+        assert meta.get("baggage.locale") is None
