@@ -148,10 +148,11 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@v0
+    - uses: DataDog/ensure-ci-success@v2
       with:
-        polling-interval-seconds: '30'
-        max-retries: '60'
+        initial-delay-seconds: '300'
+        polling-interval-seconds: '60'
+        max-retries: '120'
         ignored-name-patterns: |
           dd-gitlab/.*
 
