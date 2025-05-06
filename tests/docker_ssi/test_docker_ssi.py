@@ -147,7 +147,8 @@ class TestDockerSSIFeatures:
         self.r_inst_source = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
     @features.ssi_service_tracking
-    @missing_feature(condition=True, reason="Not implemented yet")
+    @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.8.0.dev", reason="INPLAT-448")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
@@ -155,9 +156,7 @@ class TestDockerSSIFeatures:
         assert root_span, f"No traces found for request {self.r_inst_source.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(
-            root_span["meta"]["runtime-id"], root_span["service"]
-        )
+        configurations = interfaces.test_agent.get_telemetry_configurations(root_span["service"], None)
         # Check that instrumentation source is ssi
         injection_source = configurations.get("instrumentation_source")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
