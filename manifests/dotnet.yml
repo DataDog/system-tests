@@ -626,7 +626,7 @@ tests/:
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.11.1  # real version unknown
     Test_SamplingDecisionAdded: v3.11.1  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v3.11.1  # real version unknown
     Test_SamplingDeterminism: v3.11.1  # real version unknown
     Test_SamplingRates: v3.11.1  # real version unknown
   test_scrubbing.py:

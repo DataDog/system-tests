@@ -38,7 +38,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
 
         start_time = time.time()
         self.send_weblog_request(request_path)
@@ -46,7 +46,7 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
         # Store the total request time for later use in debugging tests where budgets are limited by time.
         self.total_request_time = end_time - start_time
 
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     def _assert(self):
         self.collect()

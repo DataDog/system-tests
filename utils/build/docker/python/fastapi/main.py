@@ -675,6 +675,36 @@ async def login(request: Request):
     return PlainTextResponse("login failure", status_code=401)
 
 
+@app.post("/user_login_success_event_v2", response_class=PlainTextResponse)
+async def user_login_success_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
+@app.post("/user_login_failure_event_v2", response_class=PlainTextResponse)
+async def user_login_failure_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
 MAGIC_SESSION_KEY = "random_session_id"
 
 
