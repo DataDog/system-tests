@@ -17,5 +17,6 @@
     "docker_service_failed": "Job for docker.service failed because the control process exited with error code.",
     "openssl_ssl_read_error": "OpenSSL SSL_read: error:0A000126:SSL routines::unexpected eof while reading",
     "docker_build_request_canceled": "net/http: request canceled while waiting for connection",
-    "docker_build_error_microsoft": "failed to solve: mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2"
+    "docker_build_error_microsoft": "failed to solve: mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2",
+    "docker_build_error_reading_from_server": "Unavailable desc = error reading from server: EOF"
 }

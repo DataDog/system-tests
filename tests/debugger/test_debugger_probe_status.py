@@ -36,6 +36,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
+        self.wait_for_all_probes(statuses=["INSTALLED", "RECEIVED"])
 
     def _assert(self):
         self.collect()

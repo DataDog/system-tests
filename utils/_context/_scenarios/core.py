@@ -59,38 +59,15 @@ class _ScenarioGroups:
         return getattr(self, key)
 
 
-scenario_groups = _ScenarioGroups()
-
 # populate names
-for name, group in scenario_groups.__dict__.items():
+for name, group in _ScenarioGroups.__dict__.items():
     if isinstance(group, ScenarioGroup):
         group.name = name
 
-# class ScenarioGroup(Enum):
-#     ALL = "all"
-#     APPSEC = "appsec"
-#     APPSEC_RASP = "appsec_rasp"
-#     DEBUGGER = "debugger"
-#     END_TO_END = "end-to-end"
-#     GRAPHQL = "graphql"
-#     INTEGRATIONS = "integrations"
-#     IPV6 = "ipv6"
-#     LIB_INJECTION = "lib-injection"
-#     LIB_INJECTION_PROFILING = "lib-injection-profiling"
-#     OPEN_TELEMETRY = "open-telemetry"
-#     PROFILING = "profiling"
-#     SAMPLING = "sampling"
-#     ONBOARDING = "onboarding"
-#     SIMPLE_ONBOARDING = "simple_onboarding"
-#     SIMPLE_ONBOARDING_PROFILING = "simple_onboarding_profiling"
-#     DOCKER_SSI = "docker-ssi"
-#     ESSENTIALS = "essentials"
-#     EXTERNAL_PROCESSING = "external-processing"
-#     REMOTE_CONFIG = "remote-config"
-#     TELEMETRY = "telemetry"
-#     TRACING_CONFIG = "tracing-config"
-#     TRACER_RELEASE = "tracer-release"
+scenario_groups = _ScenarioGroups()
 
+# safeguard to ensure that names are set
+assert scenario_groups.all.name == "all", "Scenario group 'all' should be named 'all'"
 
 VALID_CI_WORKFLOWS = {
     None,
