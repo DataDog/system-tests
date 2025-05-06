@@ -336,13 +336,16 @@ def validate_extended_location_data(
         assert "frames" in stack_trace
 
         # Verify frame matches location
+        def _norm(s: str | None) -> str | None:
+            return s if s else None
+
         location_match = False
         for frame in stack_trace["frames"]:
             if (
                 frame.get("file", "").endswith(location["path"])
                 and location["line"] == frame["line"]
-                and location.get("class", "") == frame.get("class_name", "")
-                and location.get("method", "") == frame.get("function", "")
+                and _norm(location.get("class")) == _norm(frame.get("class_name"))
+                and _norm(location.get("method")) == _norm(frame.get("function"))
             ):
                 location_match = True
                 break
