@@ -44,7 +44,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                             return data_received
         return None
 
-    def get_telemetry_for_runtime(self, runtime_id: str):
+    def get_telemetry_for_runtime(self, runtime_id: str | None):
         logger.debug(f"Try to find telemetry data related to runtime-id {runtime_id}")
         assert runtime_id is not None, "Runtime ID not found"
         telemetry_msgs = []
@@ -105,3 +105,29 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                     crash_reports.append(payload)
 
         return crash_reports
+
+    def get_telemetry_configurations(self, runtime_id: str, service_name: str | None = None) -> dict:
+        """Get telemetry configurations for a given runtime ID and service name."""
+        configurations = {}
+        # Sort telemetry requests by timestamp, this ensures later configurations take precedence
+        requests = list(self.get_telemetry_for_runtime(runtime_id))
+        requests.sort(key=lambda x: x["tracer_time"])
+        for request in requests:
+            if service_name is not None:
+                # Check if the service name in telemetry matches the expected service name
+                assert (
+                    request["application"]["service_name"] == service_name
+                ), f"Service name in telemetry in requests: {request} "
+                f"does not match expected service name {service_name}"
+            # flatten the payload if it's a message-batch
+            payloads = (
+                request["payload"]
+                if request["request_type"] == "message-batch"
+                else [{"payload": request["payload"], "request_type": request["request_type"]}]
+            )
+            for payload in payloads:
+                # Get the configuration from app-started or app-client-configuration-change payloads
+                if payload and payload["request_type"] in ("app-started", "app-client-configuration-change"):
+                    for config in payload.get("configuration", []):
+                        configurations[config["name"]] = config
+        return configurations

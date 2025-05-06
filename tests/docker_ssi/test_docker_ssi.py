@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger, missing_feature
+from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger
 
 
 @scenarios.docker_ssi
@@ -142,26 +142,23 @@ class TestDockerSSIFeatures:
             traces_for_request["service"] == "payment-service"
         ), f"Service name is not payment-service but {traces_for_request['service']}"
 
+    def setup_instrumentation_source_ssi(self):
+        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+        self.r_inst_source = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
+
     @features.ssi_service_tracking
-    @missing_feature(condition=True, reason="Not implemented yet")
+    # @missing_feature(condition=True, reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
-        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
-        assert "service" in traces_for_request, "No service name found in traces"
-        span_service_name = traces_for_request["service"]
+        root_span = interfaces.test_agent.get_traces(request=self.r_inst_source)
+        assert root_span, f"No traces found for request {self.r_inst_source.get_rid()}"
+        assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
-        configurations = {}
-        for data in interfaces.library.get_telemetry_data():
-            event = data["request"]["content"]
-            if event["application"]["service_name"] != span_service_name:
-                # Skip telemetry data that doesn't match the service name
-                continue
-            if event["request_type"] in ["app-started", "app-client-configuration-change"]:
-                for config in event.get("payload", {}).get("configuration", []):
-                    configurations[config["name"]] = config
-        # Check that injection source is ssi
+        configurations = interfaces.test_agent.get_telemetry_configurations(
+            root_span["meta"]["runtime-id"], root_span["service"]
+        )
+        # Check that instrumentation source is ssi
         injection_source = configurations.get("instrumentation_source")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
         assert injection_source["value"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
