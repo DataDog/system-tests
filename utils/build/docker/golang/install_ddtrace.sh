@@ -19,12 +19,16 @@ if [ -e "/binaries/dd-trace-go" ]; then
     done
 elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
-    cat /binaries/golang-load-from-go-get
-    while read -r line; do
+    # Read the file into an array to ensure we capture all lines
+    mapfile -t lines < /binaries/golang-load-from-go-get
+    
+    for line in "${lines[@]}"; do
         path="${line%@*}"
-        version=$(go list -m -json "$line" | jq -r .Version)
-        go mod edit -replace "$path=$path@$version"
-    done < /binaries/golang-load-from-go-get
+        commit="${line#*@}"
+        # Get the correct pseudo-version using go list
+        pseudo_version=$(go list -m -json "$path@$commit" | jq -r .Version)
+        go mod edit -replace "$path=$path@$pseudo_version"
+    done
 else
     echo "Installing production dd-trace-version"
     TARGET="v2.0.0-rc.11"
