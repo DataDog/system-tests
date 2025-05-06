@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger
+from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger, missing_feature
 
 
 @scenarios.docker_ssi
@@ -147,7 +147,7 @@ class TestDockerSSIFeatures:
         self.r_inst_source = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
     @features.ssi_service_tracking
-    # @missing_feature(condition=True, reason="Not implemented yet")
+    @missing_feature(condition=True, reason="Not implemented yet")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
