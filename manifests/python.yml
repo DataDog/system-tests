@@ -601,7 +601,11 @@ tests/:
         fastapi: v2.4.0
         flask-poc: v1.10
         python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
-      Test_Suspicious_Request_Blocking: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+      Test_Suspicious_Request_Blocking:
+        '*': v2.4.0
+        'django-poc': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        'django-py3': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -706,7 +710,11 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0
       Test_RetainTraces: v1.1.0-rc2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+      Test_UserBlocking_FullDenylist:
+        '*': v2.11.0
+        'django-poc': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        'django-py3': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
