@@ -13,6 +13,7 @@ from utils import (
 )
 
 REDACTED_KEYS = [
+    "_2fa",
     "ACCESSTOKEN",
     "Access_Token",
     "AccessToken",
@@ -35,6 +36,7 @@ REDACTED_KEYS = [
     "clientsecret",
     "connectionstring",
     "connectsid",
+    "cookie",
     "credentials",
     "creditcard",
     "csrf",
@@ -81,6 +83,7 @@ REDACTED_KEYS = [
     "securityquestion",
     "serviceaccountcredentials",
     "session",
+    "sessionid",
     "sessionkey",
     "setcookie",
     "signature",
@@ -114,8 +117,7 @@ EXCLUDED_IDENTIFIERS = [
 
 
 @features.debugger_pii_redaction
-@scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
+class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self, *, line_probe=False):
         self.initialize_weblog_remote_config()
@@ -236,6 +238,9 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
         if error_message != "":
             raise ValueError(error_message)
 
+
+@scenarios.debugger_pii_redaction
+class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     ############ test ############
     ### method ###
     def setup_pii_redaction_method_full(self):
@@ -259,6 +264,9 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True, excluded_identifiers=None)
 
+
+@scenarios.tracing_config_nondefault_4
+class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionTest):
     ### excluded identifiers ###
     def setup_pii_redaction_excluded_identifiers(self):
         self._setup(line_probe=True)
@@ -267,4 +275,6 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     @bug(context.library == "ruby", reason="DEBUG-3747")
     @bug(context.library == "python", reason="DEBUG-3746")
     def test_pii_redaction_excluded_identifiers(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True, excluded_identifiers=EXCLUDED_IDENTIFIERS)
+        # Remove EXCLUDED_IDENTIFIERS from REDACTED_KEYS
+        redacted_keys = [key for key in REDACTED_KEYS if key not in EXCLUDED_IDENTIFIERS]
+        self._assert(redacted_keys, [], line_probe=True, excluded_identifiers=EXCLUDED_IDENTIFIERS)
