@@ -363,11 +363,11 @@ tests/:
     test_asm_standalone.py:
       Test_AppSecStandalone_NotEnabled: v2.13.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
-      Test_AppSecStandalone_UpstreamPropagation_V2: v2.12.3-dev
+      Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: irrelevant
-      Test_SCAStandalone_Telemetry_V2: v2.12.3-dev
+      Test_SCAStandalone_Telemetry_V2: v2.13.0
       Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
@@ -377,81 +377,81 @@ tests/:
       Test_V2_Login_Events_RC: irrelevant
       Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
       Test_V3_Login_Events:
-        "*": v2.12.3-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        "*": v2.13.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_Anon:
-        "*": v2.12.3-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        "*": v2.13.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_Blocking:
-        "*": v2.12.3-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        "*": v2.13.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_RC: irrelevant
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
         "*": v2.15.0-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Blocking:
-        "*": v2.12.3-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        "*": v2.13.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Tracking:
-        "*": v2.12.3-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        "*": v2.13.0
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
     test_blocking_addresses.py:
-      Test_BlockingGraphqlResolvers: v2.3.1-dev
+      Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
@@ -501,29 +501,29 @@ tests/:
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session:
         "*": v2.15.0-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Fingerprinting_Session_Capability: missing_feature
       Test_Fingerprinting_Session_Preprocessor:
         "*": v2.15.0-dev
-        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
-        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
