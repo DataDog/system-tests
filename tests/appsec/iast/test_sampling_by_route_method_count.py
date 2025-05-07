@@ -1,6 +1,8 @@
 from utils import features
 from tests.appsec.iast.utils import get_iast_event
 from utils import weblog
+from utils._logger import logger
+
 
 @features.iast_vuln_sampling_route_method_count_algorithm
 class TestSamplingByRouteMethodCount:
@@ -8,7 +10,7 @@ class TestSamplingByRouteMethodCount:
         # Endpoint expect 15 vulnerabilities with different hashes
         # vulnerability types don't matter
         # Each request expect some vulnerabilities or no vulns, but at the end all the vulnerabilities must be there
-        
+
         r1 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
         r2 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
         r3 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
@@ -23,20 +25,21 @@ class TestSamplingByRouteMethodCount:
 
     def test_sampling_by_route_method_count(self):
         vuln_hash_set = set()
-        vuln_type_count = dict()
 
         for r in self.requests:
             iast = None
             try:
                 iast = get_iast_event(r)
-            except Exception as e:
+                assert isinstance(iast, dict)
+            except Exception:
+                logger.debug("No iast event found in request")
                 continue
 
-            if iast["vulnerabilities"]:
-                assert len(iast["vulnerabilities"]) < 15 # Vulns are sampled, so not all of them are present
+            if iast["vulnerabilities"] is not None:
+                assert len(iast["vulnerabilities"]) < 15  # Vulns are sampled, so not all of them are present
 
                 for vuln in iast["vulnerabilities"]:
-                    hash = vuln["hash"]
-                    vuln_hash_set.add(hash)
+                    vulnerability_hash = vuln["hash"]
+                    vuln_hash_set.add(vulnerability_hash)
 
-        assert len(vuln_hash_set) >= 15 # Bigger or equal, because unrelated extra vulns could be detected in the app
+        assert len(vuln_hash_set) >= 15  # Bigger or equal, because unrelated extra vulns could be detected in the app
