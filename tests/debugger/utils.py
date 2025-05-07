@@ -246,21 +246,17 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes_installed(self, timeout: int = 30) -> bool:
+    def wait_for_all_probes(self, statuses: list[str], timeout: int = 30) -> bool:
         self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
 
-    def wait_for_all_probes_emitting(self, timeout: int = 30) -> bool:
-        self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
-        return self._wait_successful
-
-    def _wait_for_all_probes(self, data: dict, status: str):
+    def _wait_for_all_probes(self, data: dict, statuses: list[str]):
         found_ids = set()
 
-        def _check_all_probes_status(probe_diagnostics: dict, status: str):
-            logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
+        def _check_all_probes_status(probe_diagnostics: dict, statuses: list[str]):
+            statuses = statuses + ["ERROR"]
+            logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
                 if expected_id not in probe_diagnostics:
@@ -269,11 +265,11 @@ class BaseDebuggerTest:
                 probe_status = probe_diagnostics[expected_id]["status"]
                 logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
-                if probe_status in (status, "ERROR"):
+                if probe_status in statuses:
                     found_ids.add(expected_id)
                     continue
 
-                if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                if self.get_tracer()["language"] == "dotnet" and statuses[0] == "INSTALLED":
                     probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
                     # EMITTING is not implemented for dotnet span probe
                     if probe["type"] == "SPAN_PROBE":
@@ -298,7 +294,7 @@ class BaseDebuggerTest:
                 logger.debug("Probes diagnostics is empty")
                 return False
 
-            self._wait_successful = _check_all_probes_status(probe_diagnostics, status)
+            self._wait_successful = _check_all_probes_status(probe_diagnostics, statuses)
 
         return self._wait_successful
 
