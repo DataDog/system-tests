@@ -221,7 +221,7 @@ class DockerSSIScenario(Scenario):
 
     def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
-        time.sleep(30)
+        time.sleep(10)
         interfaces.test_agent.collect_data(
             f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
         )

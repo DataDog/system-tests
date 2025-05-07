@@ -21,7 +21,6 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     @bug(condition="centos-7" in context.weblog_variant and context.library == "java", reason="APMON-1490")
-    @bug(condition=context.library == "python", reason="INPLAT-11")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
