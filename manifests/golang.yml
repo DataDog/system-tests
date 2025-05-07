@@ -633,7 +633,7 @@ tests/:
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: v1.70.0
       Test_Config_UnifiedServiceTagging: v1.72.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v2.1.0-dev.1
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v1.64.0
