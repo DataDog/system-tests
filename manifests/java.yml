@@ -1884,7 +1884,16 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
-    test_inferred_proxy.py: missing_feature
+    test_inferred_proxy.py:  # Moved this block here
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        "*": irrelevant
+        spring-boot: v1.50.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        "*": irrelevant
+        spring-boot: v1.50.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        "*": irrelevant
+        spring-boot: v1.50.0
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
