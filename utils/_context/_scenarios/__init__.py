@@ -884,12 +884,12 @@ class _Scenarios:
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
-        scenario_groups=[scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
-        scenario_groups=[scenario_groups.docker_ssi],
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
