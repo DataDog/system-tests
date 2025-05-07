@@ -414,7 +414,18 @@ tests/:
         uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_RC: irrelevant
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
+      Test_Automated_Session_Blocking:
+        "*": v2.15.0-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Blocking:
         "*": v2.12.3-dev
         rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
@@ -483,14 +494,36 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.15.0
       Test_Fingerprinting_Endpoint_Capability: missing_feature
-      Test_Fingerprinting_Endpoint_Preprocessor: missing_feature
+      Test_Fingerprinting_Endpoint_Preprocessor: v2.15.0-dev
       Test_Fingerprinting_Header_And_Network: v2.15.0
-      Test_Fingerprinting_Header_And_Network_Preprocessor: missing_feature
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v2.15.0-dev
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session:
+        "*": v2.15.0-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
       Test_Fingerprinting_Session_Capability: missing_feature
-      Test_Fingerprinting_Session_Preprocessor: missing_feature
+      Test_Fingerprinting_Session_Preprocessor:
+        "*": v2.15.0-dev
+        rack: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra14: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra20: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra21: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra22: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra30: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra31: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra32: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        sinatra40: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
+        uds-sinatra: irrelevant (We do not instrument authentication frameworks that work with sinatra or rack)
     test_identify.py:
       Test_Basic: v1.0.0
     test_ip_blocking_full_denylist.py:
