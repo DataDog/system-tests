@@ -1310,7 +1310,7 @@ class DockerSSIContainer(TestedContainer):
                 "DD_DEBUG": "true",
                 "DD_TRACE_DEBUG": "true",
                 "DD_TRACE_SAMPLE_RATE": "1",
-                "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5",
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
                 "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_PORT": str(agent_port),
             },

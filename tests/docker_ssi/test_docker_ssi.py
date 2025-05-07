@@ -10,18 +10,11 @@ class TestDockerSSIFeatures:
     If the language version is not supported, we only check that we don't break the app and telemetry is generated.
     """
 
-    _r = None
-
     def _setup_all(self):
-        if TestDockerSSIFeatures._r is None:
-            parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
-            TestDockerSSIFeatures._r = weblog.request(
-                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
-            )
-            logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
-
-        self.r = TestDockerSSIFeatures._r
+        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+        logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
+        self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
+        logger.info(f"Setup Docker SSI installation {self.r}")
 
     def setup_install_supported_runtime(self):
         self._setup_all()
@@ -143,8 +136,7 @@ class TestDockerSSIFeatures:
         ), f"Service name is not payment-service but {traces_for_request['service']}"
 
     def setup_instrumentation_source_ssi(self):
-        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
-        self.r_inst_source = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
+        self._setup_all()
 
     @features.ssi_service_tracking
     @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
@@ -152,8 +144,8 @@ class TestDockerSSIFeatures:
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
-        root_span = interfaces.test_agent.get_traces(request=self.r_inst_source)
-        assert root_span, f"No traces found for request {self.r_inst_source.get_rid()}"
+        root_span = interfaces.test_agent.get_traces(request=self.r)
+        assert root_span, f"No traces found for request {self.r.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
         configurations = interfaces.test_agent.get_telemetry_configurations(root_span["service"], None)

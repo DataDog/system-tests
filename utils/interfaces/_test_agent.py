@@ -4,6 +4,7 @@ import json
 from utils.interfaces._core import InterfaceValidator
 from utils._logger import logger
 from utils._weblog import HttpResponse
+from utils.tools import get_rid_from_span
 
 
 class _TestAgentInterfaceValidator(InterfaceValidator):
@@ -31,17 +32,17 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             )
 
     def get_traces(self, request: HttpResponse | None = None):
+        # TODO(munir): rename this method. This method returns a span
+        # and not return traces.
         rid = request.get_rid() if request else None
         if not rid:
             raise ValueError("Request ID not found")
         logger.debug(f"Try to find traces related to request {rid}")
 
-        for data in self._data_traces_list:
-            for data_received in data:
-                if "trace_id" in data_received:
-                    if "http.useragent" in data_received["meta"]:
-                        if rid in data_received["meta"]["http.useragent"]:
-                            return data_received
+        for trace in self._data_traces_list:
+            for span in trace:
+                if rid == get_rid_from_span(span):
+                    return span
         return None
 
     def get_telemetry_for_runtime(self, runtime_id: str | None):
