@@ -11,7 +11,7 @@ from utils import (
 from utils import weblog, logger
 
 
-@scenarios.docker_ssi
+@scenarios.docker_ssi_crashtracking
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test scenarios when the application crashes and sends a crash report.
