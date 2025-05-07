@@ -253,6 +253,7 @@ type Config struct {
 	RateLimit              string            `json:"sample_rate_limit"`
 	DogstatsdAddr          string            `json:"dogstatsd_address"`
 	ProfilingEnabled       bool              `json:"enabled"`
+	DataStreamsEnabled     bool              `json:"data_streams_enabled"`
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
@@ -330,7 +331,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	if profilingEnabled, exists := l.globalConfig["ProfilingEnabled"]; exists {
 		config["dd_profiling_enabled"] = profilingEnabled
 	}
-	log.Print("Parsed config: ", config)
+	config["dd_data_streams_enabled"] = l.globalConfig["DataStreamsEnabled"]
 	return config
 }
 
