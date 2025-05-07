@@ -22,7 +22,7 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     after_script: |
-        SCENARIO_SUFIX=$(echo "DOCKER_SSI" | tr "[:upper:]" "[:lower:]")
+        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             cp -R logs_"${SCENARIO_SUFIX}" reports/
