@@ -213,6 +213,7 @@ def main() -> None:
                     ],
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/replay_scenarios\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,
