@@ -14,8 +14,12 @@ class TestSamplingByRouteMethodCount:
         r3 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
         r4 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
         r5 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
-        r6 = weblog.request(method="GET", path="/vuln1")
-        self.requests = [r1, r2, r3, r4, r5, r6]
+        r6 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
+        r7 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
+        r8 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
+        r9 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
+        r10 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count")
+        self.requests = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10]
 
     def test_sampling_by_route_method_count(self):
         vuln_hash_set = set()
