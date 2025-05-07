@@ -11,7 +11,7 @@ from utils import (
 from utils import weblog, logger
 
 
-@scenarios.docker_ssi
+@scenarios.docker_ssi_crashtracking
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test scenarios when the application crashes and sends a crash report.
@@ -19,7 +19,6 @@ class TestDockerSSICrash:
 
     _r = None
 
-    @bug(context.library == "python", force_skip=True, reason="INPLAT-448")
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
             parsed_url = urlparse(scenarios.docker_ssi.weblog_url + "/crashme")
@@ -33,7 +32,7 @@ class TestDockerSSICrash:
 
     @features.ssi_crashtracking
     @bug(condition=context.library in ("java", "php", "ruby"), reason="INPLAT-11")
-    @bug(context.library == "python", force_skip=True, reason="INPLAT-448")
+    @bug(context.library == "python", reason="INPLAT-448")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_crash(self):
