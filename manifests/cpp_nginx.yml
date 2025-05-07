@@ -10,6 +10,7 @@ tests/:
     iast/:
       sink/: irrelevant (ASM is not implemented in C++)
       source/: irrelevant (ASM is not implemented in C++)
+      test_sampling_by_route_method_count.py: irrelevant (ASM is not implemented in C++)
       test_security_controls.py: irrelevant (ASM is not implemented in C++)
       test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
     rasp/: irrelevant (ASM is not implemented in C++)

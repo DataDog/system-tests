@@ -2591,5 +2591,13 @@ class _Features:
         pytest.mark.features(feature_id=394)(test_object)
         return test_object
 
+    @staticmethod
+    def iast_vuln_sampling_route_method_count_algorithm(test_object):
+        """Vulnerability sampling algorithm by route, method and counts for IAST.
+
+        https://feature-parity.us1.prod.dog/#/?feature=395
+        """
+        pytest.mark.features(feature_id=395)(test_object)
+        return test_object
 
 features = _Features()

@@ -721,6 +721,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
