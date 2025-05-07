@@ -77,7 +77,7 @@ In the following code (*utils/_context/_scenarios/__init__.py*) you can see the 
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
     #Create a new scenario with a custom provision
@@ -85,7 +85,7 @@ In the following code (*utils/_context/_scenarios/__init__.py*) you can see the 
         "DEMO_AWS",
         "Demo aws scenario",
         vm_provision="demo",
-        scenario_groups=[ScenarioGroup.ONBOARDING],
+        scenario_groups=[scenario_groups.onboarding],
         github_workflow="aws_ssi",
     )
 

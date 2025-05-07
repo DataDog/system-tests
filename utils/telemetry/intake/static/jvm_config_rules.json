@@ -62,6 +62,7 @@
         "dynamic_instrumentation_verify_bytecode": "dynamic_instrumentation_verify_bytecode",
         "experimental.api-security.enabled": "experimental_api-security_enabled",
         "experimental_defer_integrations_until": "experimental_defer_integrations_until",
+        "experimental.propagate.process.tags.enabled": "experimental_propagate_process_tags_enabled",
         "http.client.error.statuses": "http_client_error_statuses",
         "http.client.tag.headers": "http_client_tag_headers",
         "http.server.decoded.resource.preserve-spaces": "http_server_decoded_resource_preserve-spaces",
