@@ -38,6 +38,7 @@ refs:
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
   - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
   - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
+  - &ref_5_24_0_5_49_0 '5.24.0 - 5.49.0 || ^4.48.0'
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
@@ -189,7 +190,7 @@ tests/:
             '*': *ref_4_1_0
             nextjs: missing_feature
           TestInsecureCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestInsecureCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -212,7 +213,7 @@ tests/:
             '*': *ref_4_3_0
             nextjs: missing_feature
           TestNoHttponlyCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestNoHttponlyCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -225,7 +226,7 @@ tests/:
             '*': *ref_4_3_0
             nextjs: missing_feature
           TestNoSamesiteCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestNoSamesiteCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -428,6 +429,8 @@ tests/:
         TestSecurityControls:
           '*': *ref_5_37_0
           nextjs: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -621,6 +624,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
       Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
+      Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -801,6 +805,8 @@ tests/:
     test_versions.py:
       Test_Events: v2.0.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (only Fastify is supported)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
@@ -819,18 +825,22 @@ tests/:
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Statuses: missing_feature
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:

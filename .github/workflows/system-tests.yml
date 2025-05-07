@@ -16,6 +16,11 @@ on:
         default: ''
         required: false
         type: string
+      excluded_scenarios:
+        description: "Comma-separated list of scenarios not to run"
+        type: string
+        default: ""
+        required: false
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -90,6 +95,7 @@ jobs:
       library: ${{ inputs.library }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
+      excluded_scenarios: ${{ inputs.excluded_scenarios }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
       desired_execution_time: ${{ inputs.desired_execution_time }}
       binaries_artifact: ${{ inputs.binaries_artifact }}

@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 
-from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
     get_endtoend_definitions,
@@ -28,6 +28,7 @@ class CiData:
         library: str,
         scenarios: str,
         groups: str,
+        excluded_scenarios: str,
         parametric_job_count: int,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
@@ -53,7 +54,11 @@ class CiData:
 
         self.data["miscs"]["ci_environment"] = self.ci_environment
 
-        scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
+        scenario_map = self._get_workflow_map(
+            scenario_names=scenarios.split(","),
+            scenario_group_names=groups.split(","),
+            excluded_scenario_names=excluded_scenarios.split(","),
+        )
 
         self.data |= get_endtoend_definitions(
             library, scenario_map, self.ci_environment, desired_execution_time, maximum_parallel_jobs=256
@@ -140,7 +145,9 @@ class CiData:
             print(data)
 
     @staticmethod
-    def _get_workflow_map(scenario_names: list[str], scenario_group_names: list[str]) -> dict:
+    def _get_workflow_map(
+        *, scenario_names: list[str], excluded_scenario_names: list[str], scenario_group_names: list[str]
+    ) -> dict:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
@@ -148,36 +155,39 @@ class CiData:
 
         result: dict[str, list[str]] = {}
 
-        scenarios_groups = [group.strip() for group in scenario_group_names if group.strip()]
-        scenarios = {scenario.strip(): False for scenario in scenario_names if scenario.strip()}
+        # clean inputs
+        scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
+        scenario_group_names = [group.strip() for group in scenario_group_names if group.strip()]
+        excluded_scenario_names = [scenario.strip() for scenario in excluded_scenario_names if scenario.strip()]
 
-        for group in scenarios_groups:
-            try:
-                ScenarioGroup(group)
-            except ValueError as e:
-                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+        # check that all scenarios provided by the user are valid
+        existing_scenarios: dict[str, Scenario] = {scenario.name: scenario for scenario in get_all_scenarios()}
+        for name in scenario_names:
+            if name not in existing_scenarios:
+                raise ValueError(f"Scenario {name} does not exists")
 
-        for scenario in get_all_scenarios():
+        # check that all groups provided by the user are valid
+        for group in scenario_group_names:
+            _ = all_scenarios_groups[group]
+
+        for scenario in existing_scenarios.values():
             # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
             if not scenario.github_workflow:
-                scenarios[scenario.name] = True  # won't be executed, but it exists
                 continue
 
             if scenario.github_workflow not in result:
                 result[scenario.github_workflow] = []
 
-            if scenario.name in scenarios:
+            if scenario.name in excluded_scenario_names:
+                continue
+
+            if scenario.name in scenario_names:
                 result[scenario.github_workflow].append(scenario.name)
-                scenarios[scenario.name] = True
-
-            for group in scenarios_groups:
-                if ScenarioGroup(group) in scenario.scenario_groups:
-                    result[scenario.github_workflow].append(scenario.name)
-                    break
-
-        for scenario_name, found in scenarios.items():
-            if not found:
-                raise ValueError(f"Scenario {scenario_name} does not exists")
+            else:
+                for group in scenario_group_names:
+                    if all_scenarios_groups[group] in scenario.scenario_groups:
+                        result[scenario.github_workflow].append(scenario.name)
+                        break
 
         return result
 
@@ -216,6 +226,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+    parser.add_argument("--excluded-scenarios", type=str, help="Scenarios to excluded", default="")
 
     # how long the workflow is expected to run
     parser.add_argument(
@@ -257,6 +268,7 @@ if __name__ == "__main__":
         library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
+        excluded_scenarios=args.excluded_scenarios,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,

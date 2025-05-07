@@ -1,5 +1,17 @@
 {
+    "name": "php/weblog",
+    "type": "project",
     "require": {
+        "weblog/acme": "*",
         "monolog/monolog": "*"
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./Acme",
+            "options": {
+                "symlink": true
+            }
+        }
+    ]
 }

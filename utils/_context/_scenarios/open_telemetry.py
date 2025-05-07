@@ -17,7 +17,7 @@ from utils._context.containers import (
 )
 
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import DockerScenario
 
 
@@ -47,7 +47,7 @@ class OpenTelemetryScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="endtoend",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.OPEN_TELEMETRY],
+            scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,

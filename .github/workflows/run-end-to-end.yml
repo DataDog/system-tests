@@ -143,9 +143,6 @@ jobs:
     - name: Run CROSSED_TRACING_LIBRARIES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
@@ -167,15 +164,18 @@ jobs:
     - name: Run INTEGRATIONS_AWS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
+      run: ./run.sh APM_TRACING_E2E_SINGLE_SPAN
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')

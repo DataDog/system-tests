@@ -727,6 +727,8 @@ tests/:
           play: missing_feature
           ratpack: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -1194,6 +1196,7 @@ tests/:
       Test_SCAStandalone_Telemetry_V2:
         '*': v1.47.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1678,6 +1681,16 @@ tests/:
     test_versions.py:
       Test_Events: v0.90.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
@@ -1694,9 +1707,33 @@ tests/:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
     test_debugger_inproduct_enablement.py:
-      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
-      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+      Test_Debugger_InProduct_Enablement_Code_Origin:
+        '*': missing_feature
+        spring-boot: v1.48.0
+        spring-boot-jetty: v1.48.0
+        spring-boot-openliberty: v1.48.0
+        spring-boot-payara: v1.48.0
+        spring-boot-undertow: v1.48.0
+        spring-boot-wildfly: v1.48.0
+        uds-spring-boot: v1.48.0
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation:
+        '*': missing_feature
+        spring-boot: v1.48.0
+        spring-boot-jetty: v1.48.0
+        spring-boot-openliberty: v1.48.0
+        spring-boot-payara: v1.48.0
+        spring-boot-undertow: v1.48.0
+        spring-boot-wildfly: v1.48.0
+        uds-spring-boot: v1.48.0
+      Test_Debugger_InProduct_Enablement_Exception_Replay:
+        '*': missing_feature
+        spring-boot: v1.48.0
+        spring-boot-jetty: v1.48.0
+        spring-boot-openliberty: v1.48.0
+        spring-boot-payara: v1.48.0
+        spring-boot-undertow: v1.48.0
+        spring-boot-wildfly: v1.48.0
+        uds-spring-boot: v1.48.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         '*': missing_feature
@@ -1707,8 +1744,27 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+      Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -1718,7 +1774,16 @@ tests/:
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+      Test_Debugger_Method_Probe_Statuses:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -2042,7 +2107,10 @@ tests/:
       '*': missing_feature (Endpoint /sample_rate_route not implemented)
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions:
+      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      spring-boot: v0.92.0
+      spring-boot-3-native: v0.92.0
     Test_SamplingDeterminism:
       '*': missing_feature (Endpoint /sample_rate_route not implemented)
       spring-boot: v0.92.0

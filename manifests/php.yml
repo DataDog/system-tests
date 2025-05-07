@@ -183,6 +183,8 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
@@ -307,8 +309,9 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
+      Test_SCAStandalone_Telemetry_V2: v1.8.0
+      Test_UserEventsStandalone: v1.8.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -394,6 +397,8 @@ tests/:
       TestHostAutoInjectInstallScriptProfiling: v1.9.0
       TestSimpleInstallerAutoInjectManualProfiling: v1.9.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
@@ -404,10 +409,18 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: missing_feature
+      Test_Debugger_Line_Probe_Snaphots: missing_feature
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: missing_feature
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
+      Test_Debugger_Method_Probe_Statuses:
+        '*': missing_feature
+        'apache-mod-8.0': v1.8.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature
     test_debugger_telemetry.py:
@@ -513,7 +526,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v1.9.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
     test_trace_sampling.py:
