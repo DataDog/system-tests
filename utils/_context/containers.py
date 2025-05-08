@@ -1306,14 +1306,22 @@ class DockerSSIContainer(TestedContainer):
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
             environment={
-                "DD_SERVICE": "payments-service",
                 "DD_DEBUG": "true",
+                "DD_SERVICE": "payments-service2",
                 "DD_TRACE_DEBUG": "true",
                 "DD_TRACE_SAMPLE_RATE": "1",
+                "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
-                "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
-                "DD_AGENT_PORT": str(agent_port),
             },
+            # environment={
+            #    "DD_SERVICE": "payments-service",
+            #    "DD_DEBUG": "true",
+            #    "DD_TRACE_DEBUG": "true",
+            #    "DD_TRACE_SAMPLE_RATE": "1",
+            #    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
+            #    "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
+            #    "DD_AGENT_PORT": str(agent_port),
+            # },
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 

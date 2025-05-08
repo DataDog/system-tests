@@ -10,11 +10,18 @@ class TestDockerSSIFeatures:
     If the language version is not supported, we only check that we don't break the app and telemetry is generated.
     """
 
+    _r = None
+
     def _setup_all(self):
-        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
-        logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
-        self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
-        logger.info(f"Setup Docker SSI installation {self.r}")
+        if TestDockerSSIFeatures._r is None:
+            parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
+            TestDockerSSIFeatures._r = weblog.request(
+                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
+            )
+            logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
+
+        self.r = TestDockerSSIFeatures._r
 
     def setup_install_supported_runtime(self):
         self._setup_all()
@@ -147,7 +154,10 @@ class TestDockerSSIFeatures:
         assert root_span, f"No traces found for request {self.r.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(root_span["service"], None)
+        configurations = interfaces.test_agent.get_telemetry_configurations(
+            root_span["service"], root_span["meta"]["runtime-id"]
+        )
+
         # Check that instrumentation source is ssi
         injection_source = configurations.get("instrumentation_source")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"

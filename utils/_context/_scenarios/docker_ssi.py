@@ -318,7 +318,7 @@ class DockerSSIImageBuilder:
 
     def push_base_image(self):
         """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
-        if self.should_push_base_images:
+        if 1 == 2:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
                 docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
