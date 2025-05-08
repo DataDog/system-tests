@@ -33,11 +33,10 @@ class DockerSSIScenario(Scenario):
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
         self.agent_port = _get_free_port()
-        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
         self.agent_host = "localhost"
-        self._weblog_injection = DockerSSIContainer(
-            host_log_folder=self.host_log_folder, agent_name=self._agent_container.name, agent_port=self.agent_port
-        )
+        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._agent_container)
         self._required_containers.append(self._weblog_injection)
@@ -222,7 +221,7 @@ class DockerSSIScenario(Scenario):
 
     def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
-        time.sleep(20)
+        time.sleep(10)
         interfaces.test_agent.collect_data(
             f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
         )

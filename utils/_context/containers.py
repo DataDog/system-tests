@@ -1297,7 +1297,7 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 
 class DockerSSIContainer(TestedContainer):
-    def __init__(self, host_log_folder: str, agent_name: str, agent_port: int = 8126) -> None:
+    def __init__(self, host_log_folder: str, agent_port: int = 8126) -> None:
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
@@ -1311,7 +1311,7 @@ class DockerSSIContainer(TestedContainer):
                 "DD_TRACE_DEBUG": "true",
                 "DD_TRACE_SAMPLE_RATE": "1",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
-                "DD_AGENT_HOST": agent_name,  # dockerSSI and testagent containers are run on the same network
+                "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
                 "DD_AGENT_PORT": str(agent_port),
             },
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
