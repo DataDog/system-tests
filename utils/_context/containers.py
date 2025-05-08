@@ -1297,7 +1297,7 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 
 class DockerSSIContainer(TestedContainer):
-    def __init__(self, host_log_folder: str, agent_port: int = 8126) -> None:
+    def __init__(self, host_log_folder: str) -> None:
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
@@ -1307,21 +1307,14 @@ class DockerSSIContainer(TestedContainer):
             allow_old_container=False,
             environment={
                 "DD_DEBUG": "true",
-                "DD_SERVICE": "payments-service2",
+                # TODO: We need to find a solution for this. We have tests that checks the service naming.
+                # This impacts on the service naming tests
+                "DD_SERVICE": "payments-service",
                 "DD_TRACE_DEBUG": "true",
                 "DD_TRACE_SAMPLE_RATE": "1",
                 "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
             },
-            # environment={
-            #    "DD_SERVICE": "payments-service",
-            #    "DD_DEBUG": "true",
-            #    "DD_TRACE_DEBUG": "true",
-            #    "DD_TRACE_SAMPLE_RATE": "1",
-            #    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
-            #    "DD_TRACE_AGENT_URL": "unix:///var/run/datadog/apm.socket",
-            #    "DD_AGENT_PORT": str(agent_port),
-            # },
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 

@@ -128,9 +128,11 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_naming
-    @irrelevant(condition=not context.weblog_variant.startswith("tomcat-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("websphere-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("jboss-app"))
+    @irrelevant(
+        condition=not context.weblog_variant.startswith("tomcat-app")
+        and not context.weblog_variant.startswith("websphere-app")
+        and not context.weblog_variant.startswith("jboss-app")
+    )
     def test_service_name(self):
         logger.info("Testing Docker SSI service name")
         # There are traces related with the request and the service name is payment-service

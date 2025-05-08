@@ -34,7 +34,7 @@ class DockerSSIScenario(Scenario):
 
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
@@ -318,7 +318,7 @@ class DockerSSIImageBuilder:
 
     def push_base_image(self):
         """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
-        if 1 == 2:
+        if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
                 docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
