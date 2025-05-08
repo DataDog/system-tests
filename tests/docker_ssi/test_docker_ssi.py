@@ -31,6 +31,8 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
@@ -63,10 +65,9 @@ class TestDockerSSIFeatures:
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @bug(context.library == "python@2.19.1", reason="INPLAT-448")
-    @bug(context.library >= "python@3.0.0dev", reason="INPLAT-448")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     def test_telemetry(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
         telemetry_autoinject_data = interfaces.test_agent.get_telemetry_for_autoinject()
@@ -91,9 +92,11 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.7.0")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime > "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime > "3.7.0")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
+    @bug(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0", reason="INPLAT-448")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
@@ -148,7 +151,8 @@ class TestDockerSSIFeatures:
 
     @features.ssi_service_tracking
     @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
-    @missing_feature(context.library < "python@3.8.0.dev", reason="INPLAT-448")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
