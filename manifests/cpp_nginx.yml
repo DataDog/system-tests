@@ -14,6 +14,7 @@ tests/:
       sink/: irrelevant (ASM is not implemented in C++)
       source/: irrelevant (ASM is not implemented in C++)
       test_security_controls.py: irrelevant (ASM is not implemented in C++)
+      test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
     rasp/: irrelevant (ASM is not implemented in C++)
     waf/:
       test_addresses.py:
@@ -231,6 +232,7 @@ tests/:
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
+  test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown

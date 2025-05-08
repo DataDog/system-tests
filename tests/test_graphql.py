@@ -136,6 +136,6 @@ class Test_GraphQLQueryErrorReporting:
         elif type_ == 3:
             return value["double_value"]
         elif type_ == 4:
-            return [Test_GraphQLQueryErrorReporting._parse_event_value(v) for v in value["array_value"]]
+            return [Test_GraphQLQueryErrorReporting._parse_event_value(v) for v in value["array_value"]["values"]]
         else:
             raise ValueError(f"Unsupported span event attribute type {type_} for: {value}")

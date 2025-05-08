@@ -1,14 +1,8 @@
-from collections.abc import Callable, Generator, Sequence
-from functools import lru_cache
+from collections.abc import Generator, Sequence
 import hashlib
-import os
 import struct
-import time
 
-import boto3
-import botocore.exceptions
-
-from utils import weblog, interfaces, scenarios, logger, HttpResponse
+from utils import weblog, interfaces, logger, HttpResponse
 
 
 class BaseDbIntegrationsTestClass:
@@ -150,118 +144,6 @@ class BaseDbIntegrationsTestClass:
                 return span_child
 
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
-
-
-@lru_cache
-def _get_aws_session():
-    # set AWS credentials for runner, either using 'SYSTEM_TESTS_AWS...' vars or default vars
-    return boto3.Session(
-        aws_access_key_id=os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"),
-        region_name=os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1"),
-    )
-
-
-def delete_aws_resource(
-    delete_callable: Callable,
-    resource_identifier: str,
-    resource_type: str,
-    error_name: str,
-    get_callable: Callable | None = None,
-) -> None:
-    """Generalized function to delete AWS resources.
-
-    :param delete_callable: A callable to delete the AWS resource.
-    :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
-    :param resource_type: The type of the resource (e.g., SQS, SNS, Kinesis).
-    :param error_name: The name of the error to handle (e.g., 'QueueDoesNotExist').
-    :param get_callable: An optional get callable to get the AWS resource, used to trigger an exception
-    confirming the resource is deleted (in cases where the delete resource returns void).
-    """
-    timeout = 20
-    end = time.time() + timeout
-    while time.time() < end:
-        try:
-            # Call the delete function
-            _ = delete_callable(resource_identifier)
-
-            if get_callable:
-                # if the resource is not found via the getter, it will throw an error with the error name
-                _ = get_callable(resource_identifier)
-
-        except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == error_name:
-                logger.info(f"{resource_type} {resource_identifier} already deleted.")
-                return
-            else:
-                logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-                raise
-        except Exception as e:
-            logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-            raise
-
-
-SQS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sqs.us-east-1.amazonaws.com/601427279990")
-SNS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://sns.us-east-1.amazonaws.com/601427279990")
-KINESIS_URL = os.getenv("SYSTEM_TESTS_AWS_URL", "https://kinesis.us-east-1.amazonaws.com/601427279990")
-
-
-def delete_sqs_queue(queue_name: str) -> None:
-    try:
-        queue_url = f"{SQS_URL}/{queue_name}"
-        sqs_client = _get_aws_session().client("sqs", endpoint_url=SQS_URL)
-        delete_aws_resource(
-            delete_callable=lambda url: sqs_client.delete_queue(QueueUrl=url),
-            resource_identifier=queue_url,
-            resource_type="SQS Queue",
-            error_name="AWS.SimpleQueueService.NonExistentQueue",
-            get_callable=lambda url: sqs_client.get_queue_attributes(QueueUrl=url),
-        )
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
-
-
-def delete_sns_topic(topic_name: str) -> None:
-    try:
-        topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
-        sns_client = _get_aws_session().client("sns", endpoint_url=SNS_URL)
-        delete_aws_resource(
-            delete_callable=lambda arn: sns_client.delete_topic(TopicArn=arn),
-            resource_identifier=topic_arn,
-            resource_type="SNS Topic",
-            error_name="NotFound",
-            get_callable=lambda arn: sns_client.get_topic_attributes(TopicArn=arn),
-        )
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
-
-
-def delete_kinesis_stream(stream_name: str) -> None:
-    try:
-        kinesis_client = _get_aws_session().client("kinesis", endpoint_url=KINESIS_URL)
-        delete_aws_resource(
-            delete_callable=lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True),
-            resource_identifier=stream_name,
-            resource_type="Kinesis Stream",
-            error_name="ResourceNotFoundException",
-        )
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
 
 
 def fnv(data: bytes, hval_init: int, fnv_prime: int, fnv_size: int) -> int:

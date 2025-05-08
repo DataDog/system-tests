@@ -407,6 +407,10 @@ function main() {
                 scenarios+=(SCA_STANDALONE)
                 unset "scenarios[${i}]"
                 ;;
+
+            APM_TRACING_E2E)
+                unset "scenarios[${i}]"
+                ;;
         esac
     done
 

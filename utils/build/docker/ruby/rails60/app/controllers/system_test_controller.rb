@@ -13,7 +13,7 @@ class SystemTestController < ApplicationController
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: { 
+    render json: {
       status: 'ok',
       library: {
         name: 'ruby',
@@ -191,14 +191,11 @@ class SystemTestController < ApplicationController
     render json: JSON.generate(request_headers), content_type: 'application/json'
   end
 
-  def rasp_sqli
-    # We need to manually create the query as User.where adds parenthesis around the user_id
-    query = "SELECT * FROM users WHERE id='#{params.fetch(:user_id)}'"
-    users = User.find_by_sql(query).to_a
-    render plain: "DB request with #{users.size} results"
+  def handle_path_params
+    render plain: 'OK'
   end
 
-  def handle_path_params
+  def sample_rate_route
     render plain: 'OK'
   end
 end

@@ -17,9 +17,9 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     def _setup(self, probes, request_path):
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
     def _assert(self, expected_response: int):
@@ -469,7 +469,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @missing_feature(library="python", reason="DEBUG-3240")
+    @missing_feature(library="python", reason="DEBUG-3240", force_skip=True)
     def test_expression_language_hash_operations(self):
         self._assert(expected_response=200)
 

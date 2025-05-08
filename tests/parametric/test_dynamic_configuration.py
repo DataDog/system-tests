@@ -587,6 +587,7 @@ class TestDynamicConfigV1_ServiceTargets:
 @features.adaptive_sampling
 class TestDynamicConfigV2:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TAGS": "key1:val1,key2:val2"}])
+    @flaky(context.library > "python@3.7.0", reason="APMAPI-1400")
     def test_tracing_client_tracing_tags(self, library_env, test_agent, test_library):
         expected_local_tags = {}
         if "DD_TAGS" in library_env:

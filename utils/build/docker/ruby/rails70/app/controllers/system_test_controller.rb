@@ -15,7 +15,7 @@ class SystemTestController < ApplicationController
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: { 
+    render json: {
       status: 'ok',
       library: {
         name: 'ruby',
@@ -230,7 +230,7 @@ class SystemTestController < ApplicationController
     context = OpenTelemetry.propagation.extract(request.headers)
 
     span_context = OpenTelemetry::Trace.current_span(context).context
-    
+
     baggage = OpenTelemetry::Baggage.raw_entries()
     baggage_str = ""
     baggage.each_pair do |key, value|
@@ -253,21 +253,11 @@ class SystemTestController < ApplicationController
     render json: JSON.generate(headers), content_type: 'application/json'
   end
 
-  def rasp_sqli
-    user_id = params[:user_id] || request.POST && request.POST['user_id']
-    if user_id
-      User.transaction do
-        # We need to manually create the query as User.where adds parenthesis around the user_id
-        query = "SELECT * FROM users WHERE id='#{user_id}'"
-        users = User.find_by_sql(query).to_a
-        render plain: "DB request with #{users.size} results"
-      end
-    else
-      render plain: 'users not found parameter', status: 400
-    end
+  def handle_path_params
+    render plain: 'OK'
   end
 
-  def handle_path_params
+  def sample_rate_route
     render plain: 'OK'
   end
 end

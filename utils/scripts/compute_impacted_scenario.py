@@ -2,13 +2,18 @@ from collections import defaultdict
 import json
 import os
 import re
+from typing import TYPE_CHECKING
 from manifests.parser.core import load as load_manifests
-from utils._context._scenarios import ScenarioGroup, scenarios, Scenario
+from utils._context._scenarios import scenarios, Scenario, scenario_groups
+from utils._context._scenarios.core import ScenarioGroup
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable
 
 
 class Result:
     def __init__(self) -> None:
-        self.scenarios = {"DEFAULT"}  # always run the default scenario
+        self.scenarios: set[str] = {scenarios.default.name}  # always run the default scenario
         self.scenarios_groups: set[str] = set()
 
     def add_scenario_requirement(
@@ -20,57 +25,58 @@ class Result:
             for req in scenario_requirement:
                 self.add_scenario_requirement(req)
         elif isinstance(scenario_requirement, Scenario):
-            self.add_scenario(scenario_requirement.name)
+            self.add_scenario(scenario_requirement)
         elif isinstance(scenario_requirement, ScenarioGroup):
-            self.add_scenario_group(scenario_requirement.value)
+            self.add_scenario_group(scenario_requirement)
         else:
             raise TypeError(f"Unknown scenario requirement: {scenario_requirement}.")
 
-    def add_scenario(self, scenario: str) -> None:
-        if scenario == "EndToEndScenario":
-            self.add_scenario_group(ScenarioGroup.END_TO_END.value)
-        else:
-            self.scenarios.add(scenario)
+    def add_scenario(self, scenario: Scenario) -> None:
+        self.scenarios.add(scenario.name)
 
-    def add_scenario_group(self, scenario_group: str) -> None:
-        self.scenarios_groups.add(scenario_group)
+    def add_scenario_group(self, scenario_group: ScenarioGroup) -> None:
+        self.scenarios_groups.add(scenario_group.name)
 
-    def add_scenarios(self, scenarios: set[str] | list[str]) -> None:
+    def add_scenarios(self, scenarios: set[Scenario] | list[Scenario]) -> None:
         for scenario in scenarios:
             self.add_scenario(scenario)
 
+    def add_scenario_names(self, scenario_names: set[str] | list[str]) -> None:
+        for name in scenario_names:
+            self.scenarios.add(name)
+
     def handle_labels(self, labels: list[str]) -> None:
         if "run-all-scenarios" in labels:
-            self.add_scenario_group(ScenarioGroup.ALL.value)
+            self.add_scenario_group(scenario_groups.all)
         else:
             if "run-integration-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.INTEGRATIONS.value)
+                self.add_scenario_group(scenario_groups.integrations)
             if "run-sampling-scenario" in labels:
-                self.add_scenario_group(ScenarioGroup.SAMPLING.value)
+                self.add_scenario_group(scenario_groups.sampling)
             if "run-profiling-scenario" in labels:
-                self.add_scenario_group(ScenarioGroup.PROFILING.value)
+                self.add_scenario_group(scenario_groups.profiling)
             if "run-debugger-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.DEBUGGER.value)
+                self.add_scenario_group(scenario_groups.debugger)
             if "run-appsec-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.APPSEC.value)
+                self.add_scenario_group(scenario_groups.appsec)
             if "run-open-telemetry-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.OPEN_TELEMETRY.value)
+                self.add_scenario_group(scenario_groups.open_telemetry)
             if "run-parametric-scenario" in labels:
-                self.add_scenario(scenarios.parametric.name)
+                self.add_scenario(scenarios.parametric)
             if "run-graphql-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.GRAPHQL.value)
+                self.add_scenario_group(scenario_groups.graphql)
             if "run-docker-ssi-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.DOCKER_SSI.value)
+                self.add_scenario_group(scenario_groups.docker_ssi)
             if "run-external-processing-scenarios" in labels:
-                self.add_scenario_group(ScenarioGroup.EXTERNAL_PROCESSING.value)
+                self.add_scenario_group(scenario_groups.external_processing)
 
 
 def main() -> None:
     result = Result()
 
     if "GITLAB_CI" in os.environ:
-        event_name = os.environ["CI_PIPELINE_SOURCE"]
-        ref = os.environ["CI_COMMIT_REF_NAME"]
+        event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
+        ref = os.environ.get("CI_COMMIT_REF_NAME", "")
         print("CI_PIPELINE_SOURCE=" + event_name)
         print("CI_COMMIT_REF_NAME=" + ref)
         is_gilab = True
@@ -80,7 +86,7 @@ def main() -> None:
         is_gilab = False
 
     if event_name == "schedule" or ref == "refs/heads/main":
-        result.add_scenario_group(ScenarioGroup.ALL.value)
+        result.add_scenario_group(scenario_groups.all)
 
     elif event_name in ("pull_request", "push"):
         if not is_gilab and "GITHUB_PULL_REQUEST_LABELS" in os.environ:
@@ -106,7 +112,8 @@ def main() -> None:
             ):
                 modified_nodeids.add(nodeid)
 
-        scenarios_by_files = defaultdict(set)
+        scenarios_by_files: dict[str, set[str]] = defaultdict(set)
+        scenario_names: Iterable[str]
         for nodeid, scenario_names in scenario_map.items():
             file = nodeid.split(":", 1)[0]
             for scenario_name in scenario_names:
@@ -114,7 +121,7 @@ def main() -> None:
 
             for modified_nodeid in modified_nodeids:
                 if nodeid.startswith(modified_nodeid):
-                    result.add_scenarios(scenario_names)
+                    result.add_scenario_names(scenario_names)
                     break
 
         # this file is generated with
@@ -137,9 +144,9 @@ def main() -> None:
 
                     folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
 
-                    for sub_file in scenarios_by_files:
+                    for sub_file, scenario_names in scenarios_by_files.items():
                         if sub_file.startswith(folder):
-                            result.add_scenarios(scenarios_by_files[sub_file])
+                            result.add_scenario_names(scenario_names)
 
             else:
                 # Map of file patterns -> scenario requirement:
@@ -160,57 +167,58 @@ def main() -> None:
                     r"\.circleci/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/CODEOWNERS": None,
-                    r"\.github/workflows/run-docker-ssi\.yml": ScenarioGroup.DOCKER_SSI,
-                    r"\.github/workflows/run-end-to-end\.yml": ScenarioGroup.END_TO_END,
-                    r"\.github/workflows/run-graphql\.yml": ScenarioGroup.GRAPHQL,
-                    r"\.github/workflows/run-lib-injection\.yml": ScenarioGroup.LIB_INJECTION,
-                    r"\.github/workflows/run-open-telemetry\.yml": ScenarioGroup.OPEN_TELEMETRY,
+                    r"\.github/workflows/run-docker-ssi\.yml": scenario_groups.docker_ssi,
+                    r"\.github/workflows/run-end-to-end\.yml": scenario_groups.end_to_end,
+                    r"\.github/workflows/run-graphql\.yml": scenario_groups.graphql,
+                    r"\.github/workflows/run-lib-injection\.yml": scenario_groups.lib_injection,
+                    r"\.github/workflows/run-open-telemetry\.yml": scenario_groups.open_telemetry,
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/.*": None,
-                    r"\.gitlab/aws_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
-                    r"\.gitlab/k8s_gitlab-ci.yml": ScenarioGroup.LIB_INJECTION,
-                    r"\.gitlab/ssi_gitlab-ci.yml": ScenarioGroup.ONBOARDING,
+                    r"\.gitlab/aws_gitlab-ci.yml": scenario_groups.onboarding,
+                    r"\.gitlab/k8s_gitlab-ci.yml": scenario_groups.lib_injection,
+                    r"\.gitlab/ssi_gitlab-ci.yml": scenario_groups.onboarding,
                     r"binaries/.*": None,
                     r"docs/.*": None,
-                    r"lib-injection/.*": ScenarioGroup.LIB_INJECTION,
+                    r"lib-injection/.*": scenario_groups.lib_injection,
                     r"manifests/.*": None,  # already handled by the manifest comparison
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
-                    r"utils/_context/_scenarios/auto_injection\.py": ScenarioGroup.ONBOARDING,
+                    r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
-                    r"utils/_context/_scenarios/integrations\.py": ScenarioGroup.INTEGRATIONS,
-                    r"utils/_context/_scenarios/ipv6\.py": ScenarioGroup.IPV6,
-                    r"utils/_context/_scenarios/open_telemetry\.py": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/_context/_scenarios/integrations\.py": scenario_groups.integrations,
+                    r"utils/_context/_scenarios/ipv6\.py": scenario_groups.ipv6,
+                    r"utils/_context/_scenarios/open_telemetry\.py": scenario_groups.open_telemetry,
                     r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
-                    r"utils/_context/_scenarios/profiling\.py": ScenarioGroup.PROFILING,
-                    r"utils/_context/virtual_machine\.py": ScenarioGroup.ONBOARDING,
-                    r"utils/build/docker/java_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
-                    r"utils/build/docker/nodejs_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
-                    r"utils/build/docker/python_otel/.*": ScenarioGroup.OPEN_TELEMETRY,
+                    r"utils/_context/_scenarios/profiling\.py": scenario_groups.profiling,
+                    r"utils/_context/virtual_machine\.py": scenario_groups.onboarding,
+                    r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
+                    r"utils/build/docker/nodejs_otel/.*": scenario_groups.open_telemetry,
+                    r"utils/build/docker/python_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
                     r"utils/build/docker/.*": [
-                        ScenarioGroup.END_TO_END,
-                        ScenarioGroup.OPEN_TELEMETRY,
+                        scenario_groups.end_to_end,
+                        scenario_groups.open_telemetry,
                     ],
-                    r"utils/build/ssi/.*": ScenarioGroup.DOCKER_SSI,
-                    r"utils/build/virtual_machine/.*": ScenarioGroup.ONBOARDING,
-                    r"utils/docker_ssi/.*": ScenarioGroup.DOCKER_SSI,
-                    r"utils/interfaces/schemas.*": ScenarioGroup.END_TO_END,
-                    r"utils/k8s_lib_injection.*": ScenarioGroup.LIB_INJECTION,
-                    r"utils/onboarding.*": ScenarioGroup.ONBOARDING,
+                    r"utils/build/ssi/.*": scenario_groups.docker_ssi,
+                    r"utils/build/virtual_machine/.*": scenario_groups.onboarding,
+                    r"utils/docker_ssi/.*": scenario_groups.docker_ssi,
+                    r"utils/interfaces/schemas.*": scenario_groups.end_to_end,
+                    r"utils/k8s_lib_injection.*": scenario_groups.lib_injection,
+                    r"utils/onboarding.*": scenario_groups.onboarding,
                     r"utils/parametric/.*": scenarios.parametric,
-                    r"utils/telemetry/.*": ScenarioGroup.TELEMETRY,
+                    r"utils/telemetry/.*": scenario_groups.telemetry,
                     r"utils/proxy/.*": [
-                        ScenarioGroup.END_TO_END,
-                        ScenarioGroup.OPEN_TELEMETRY,
-                        ScenarioGroup.EXTERNAL_PROCESSING,
+                        scenario_groups.end_to_end,
+                        scenario_groups.open_telemetry,
+                        scenario_groups.external_processing,
                     ],
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/replay_scenarios\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,
-                    r"utils/virtual_machine/.*": ScenarioGroup.ONBOARDING,
-                    r"utils/.*": ScenarioGroup.ALL,
+                    r"utils/virtual_machine/.*": scenario_groups.onboarding,
+                    r"utils/.*": scenario_groups.all,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,
@@ -219,7 +227,7 @@ def main() -> None:
                     r"\.shellcheckrc": None,
                     r"\.yamlfmt": None,
                     r"\.yamllint": None,
-                    r"conftest\.py": ScenarioGroup.ALL,
+                    r"conftest\.py": scenario_groups.all,
                     r"CHANGELOG\.md": None,
                     r"flake\.lock": None,
                     r"format\.sh": None,
@@ -229,8 +237,8 @@ def main() -> None:
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
                     r"README\.md": None,
-                    r"requirements\.txt": ScenarioGroup.ALL,
-                    r"run\.sh": ScenarioGroup.ALL,
+                    r"requirements\.txt": scenario_groups.all,
+                    r"run\.sh": scenario_groups.all,
                     r".*\.nix": None,
                 }
 
@@ -246,7 +254,7 @@ def main() -> None:
 
             # now get known scenarios executed in this file
             if file in scenarios_by_files:
-                result.add_scenarios(scenarios_by_files[file])
+                result.add_scenario_names(scenarios_by_files[file])
 
     print("scenarios=" + ",".join(result.scenarios))
     print("scenarios_groups=" + ",".join(result.scenarios_groups))

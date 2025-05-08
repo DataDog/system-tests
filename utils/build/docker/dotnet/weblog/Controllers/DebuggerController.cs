@@ -35,7 +35,7 @@ namespace weblog
             return Content("Span probe");
         }
 
-        private int intLocal = 0;
+        private int intLocal = 1000;
         [HttpGet("span-decoration/{arg}/{intArg}")]
         [Consumes("application/json", "application/xml")]
         public IActionResult SpanDecorationProbe(string arg, int intArg)

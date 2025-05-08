@@ -8,10 +8,12 @@ require __DIR__ . "/vendor/autoload.php";
 use Amp\ByteStream;
 use Amp\Http\Server\DefaultErrorHandler;
 use Amp\Http\Server\Request;
+use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\Router;
 use Amp\Http\Server\SocketHttpServer;
+use Amp\Http\Server\Middleware;
 use Amp\Log\ConsoleFormatter;
 use Amp\Log\StreamHandler;
 use DDTrace\Configuration;
@@ -532,7 +534,17 @@ $router->addRoute('GET', '/trace/crash', new ClosureRequestHandler(function (Req
 
     return jsonResponse([]);
 }));
-$server->start($router, $errorHandler);
+
+$middleware = new class implements Middleware {
+    public function handleRequest(Request $request, RequestHandler $next): Response {
+        $response = $next->handleRequest($request);
+        dd_trace_internal_fn("finalize_telemetry");
+        return $response;
+    }
+};
+$stackedHandler = Middleware\stackMiddleware($router, $middleware);
+
+$server->start($stackedHandler, $errorHandler);
 
 $signal = trapSignal([SIGINT, SIGTERM]);
 $logger->info("Caught signal $signal, stopping server");

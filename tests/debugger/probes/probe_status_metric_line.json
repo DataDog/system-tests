@@ -2,7 +2,7 @@
   {
     "language": "",
     "type": "",
-    "id": "metricf2-line-45cf-9f39-59installed",
+    "id": "",
     "version": 0,
     "kind": "COUNT",
     "metricName": "MetricCountInt",
@@ -18,7 +18,6 @@
       "lines": [
         "28"
       ]
-    },
-    "evaluateAt": "EXIT"
+    }
   }
 ]

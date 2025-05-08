@@ -2,20 +2,19 @@
     {
         "language": "",
         "type": "",
-        "id": "logfb5a-1974-4cdb-b1dd-77dba2method",
+        "id": "",
         "version": 0,
         "captureSnapshot": true,
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "MixProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     },
     {
         "language": "",
         "type": "",
-        "id": "logfb5a-1974-4cdb-b1dd-77dba2f1line",
+        "id": "",
         "version": 0,
         "captureSnapshot": true,
         "where": {

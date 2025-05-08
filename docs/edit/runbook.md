@@ -16,12 +16,13 @@ The impact is that these **configs are not visible** in Metabase, REDAPL, or any
 
 #### Runbook
 
-1. Check the test failure to see exactly which configs are missing
-2. Add config normalization rules [here](https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/) following the existing pattern
-   1. This can be merged with any review from [@apm-sdk](https://github.com/orgs/DataDog/teams/apm-sdk)
+1. Check the test failure to see exactly which configs are missing.
+2. Add config normalization rules [here](https://github.com/DataDog/dd-go/tree/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/) following the existing pattern. Note that the PR should be made against the `prod` (default) branch.
+   1. This can be merged with any review from [@apm-sdk](https://github.com/orgs/DataDog/teams/apm-sdk).
    2. Bonus Points: Run the auto-formatter [_format.py](https://github.com/DataDog/dd-go/blob/prod/trace/apps/tracer-telemetry-intake/telemetry-payload/static/_format.py) from the `dd-go` root via `python ./trace/apps/tracer-telemetry-intake/telemetry-payload/static/_format.py`
 3. After merging, update system-tests by running [update.sh](/utils/telemetry/intake/update.sh)
    1. This can be run from the root by running `./utils/telemetry/intake/update.sh`
+      1. If this fails, try re-running with `USE_GIT_SSH=1` to force a `git@github.com:` URL
    2. This can be merged with any review from [@apm-ecosystems](https://github.com/orgs/DataDog/teams/apm-ecosystems)
 4. You're all set - your tests should pass 🏁
 

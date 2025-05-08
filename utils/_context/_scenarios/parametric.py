@@ -21,7 +21,7 @@ from docker.models.networks import Network
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, scenario_groups
 
 
 def _fail(message: str):
@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 

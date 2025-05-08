@@ -949,3 +949,35 @@ stripped (accounting for a quirk in the boto3 library).
 Examples:
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
+
+### \[GET\] /mock_s3/copy_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `original_bucket` query parameter and puts an object at
+the `original_key` query parameter. The body of the object is just the bytes of
+the key, encoded with utf-8. The method then creates another `bucket` if
+necessary and copies the object into the `key` location. Returns a result
+object with an `object` JSON object field containing the `e_tag` field with the
+ETag of the copied object. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /protobuf/serialize
+
+This endpoint serializes a constant protobuf message. Returns the serialized message as a base64 encoded string. It is meant to be used to test the protobuf serialization integration.
+
+Examples:
+- `GET`: `/protobuf/serialize`
+
+### \[GET\] /protobuf/deserialize
+
+This endpoint deserializes a protobuf message from a base64 encoded string provided in the query parameters. Returns "ok" if deserialization is successful. The simplest way to use it is to pass the output of the `/protobuf/serialize` endpoint to it. It is meant to be used to test the protobuf deserialization integration.
+
+Expected query params:
+- `msg`: Base64 encoded protobuf message to deserialize
+
+Examples:
+- `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`

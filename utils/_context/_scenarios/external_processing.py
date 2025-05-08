@@ -6,7 +6,8 @@ from utils.interfaces._core import ProxyBasedInterfaceValidator
 
 from utils._logger import logger
 
-from .endtoend import DockerScenario, ScenarioGroup
+from .core import scenario_groups
+from .endtoend import DockerScenario
 
 
 class ExternalProcessingScenario(DockerScenario):
@@ -23,7 +24,7 @@ class ExternalProcessingScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="externalprocessing",
-            scenario_groups=[ScenarioGroup.END_TO_END, ScenarioGroup.EXTERNAL_PROCESSING],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
