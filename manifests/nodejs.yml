@@ -431,8 +431,6 @@ tests/:
         TestSecurityControls:
           '*': *ref_5_37_0
           nextjs: missing_feature
-      test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
