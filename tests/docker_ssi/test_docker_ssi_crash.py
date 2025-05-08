@@ -19,7 +19,6 @@ class TestDockerSSICrash:
 
     _r = None
 
-    @bug(context.library == "python", force_skip=True, reason="INPLAT-448")
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
             parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url)
@@ -37,10 +36,10 @@ class TestDockerSSICrash:
         self.r = TestDockerSSICrash._r
 
     @features.ssi_crashtracking
-    @bug(condition=context.library in ("java", "php", "ruby"), reason="INPLAT-11")
-    @bug(context.library == "python", force_skip=True, reason="INPLAT-448")
+    @bug(condition=context.library not in ("python", "nodejs", "dotnet"), reason="INPLAT-11")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-448")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
