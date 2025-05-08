@@ -22,7 +22,9 @@ class TestDockerSSICrash:
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
             parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url)
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi_crashtracking.weblog_url}")
+            logger.info(
+                f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi_crashtracking.weblog_url}"
+            )
             r_ready = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
             logger.info(f"Check Docker SSI installation https status: {r_ready.status_code}")
             parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url + "/crashme")
