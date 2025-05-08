@@ -886,7 +886,11 @@ class _Scenarios:
         doc="Validates the installer and the ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-
+    docker_ssi_crashtracking = DockerSSIScenario(
+        "DOCKER_SSI_CRASHTRACKING",
+        doc="Validates the crashtracking for ssi on a docker environment",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},

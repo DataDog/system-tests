@@ -826,11 +826,11 @@ tests/:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature
   test_sampling_rates.py:
-    Test_SampleRateFunction: missing_feature  # very flakey
+    Test_SampleRateFunction: v2.15.0  # real version unknown
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
-    Test_SamplingDecisions: missing_feature  # very flakey
+    Test_SamplingDecisions: v2.15.0  # real version unknown
     Test_SamplingDeterminism: v2.12.1  # real version unknown
-    Test_SamplingRates: missing_feature  # very flakey
+    Test_SamplingRates: v2.15.0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: missing_feature (Needs weblog endpoint)
     Test_UrlQuery: v1.0.0

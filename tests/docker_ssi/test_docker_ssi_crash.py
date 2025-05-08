@@ -11,7 +11,7 @@ from utils import (
 from utils import weblog, logger
 
 
-@scenarios.docker_ssi
+@scenarios.docker_ssi_crashtracking
 class TestDockerSSICrash:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test scenarios when the application crashes and sends a crash report.
@@ -22,8 +22,13 @@ class TestDockerSSICrash:
     @bug(context.library == "python", force_skip=True, reason="INPLAT-448")
     def setup_crash(self):
         if TestDockerSSICrash._r is None:
-            parsed_url = urlparse(scenarios.docker_ssi.weblog_url + "/crashme")
-            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
+            parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url)
+            logger.info(
+                f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi_crashtracking.weblog_url}"
+            )
+            r_ready = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
+            logger.info(f"Check Docker SSI installation https status: {r_ready.status_code}")
+            parsed_url = urlparse(scenarios.docker_ssi_crashtracking.weblog_url + "/crashme")
             TestDockerSSICrash._r = weblog.request(
                 "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
             )
@@ -41,12 +46,12 @@ class TestDockerSSICrash:
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")
         assert (
             self.r.status_code is None
-        ), f"Response from request {scenarios.docker_ssi.weblog_url + '/crashme'} was supposed to fail: {self.r}"
+        ), f"Response from request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'} was supposed to fail: {self.r}"
 
         # No traces should have been generated
         assert not interfaces.test_agent.get_traces(
             self.r
-        ), f"Traces found for request {scenarios.docker_ssi.weblog_url + '/crashme'}"
+        ), f"Traces found for request {scenarios.docker_ssi_crashtracking.weblog_url + '/crashme'}"
 
         # Crash report should have been generated
         crash_reports = interfaces.test_agent.get_crash_reports()
