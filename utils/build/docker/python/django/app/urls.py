@@ -651,6 +651,24 @@ def view_iast_source_path(request):
 
     return HttpResponse("OK")
 
+def view_iast_sampling_by_route_method(request, id):
+    param_tainted = request.GET.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return HttpResponse("OK", status=200)
 
 @csrf_exempt
 def view_iast_source_path_parameter(request, table):
@@ -1040,6 +1058,7 @@ urlpatterns = [
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
+    path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
