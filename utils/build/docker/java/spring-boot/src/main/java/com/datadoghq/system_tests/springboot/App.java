@@ -774,6 +774,33 @@ public class App {
         return "ok";
     }
 
+    @RequestMapping("/inferred-proxy/span-creation")
+    ResponseEntity<String> inferredProxySpanCheck(
+        @RequestParam(required = false, name = "status_code") String statusCodeParam,
+        final HttpServletRequest request
+    ) {
+        // Default status code
+        int statusCode = 200;
+
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400; // Bad request if parsing fails
+            }
+        }
+
+        // Log request headers
+        System.out.println("Received an API Gateway request:");
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String header = headerNames.nextElement();
+            System.out.println(header + ": " + request.getHeader(header));
+        }
+
+        return ResponseEntity.status(statusCode).body("ok");
+    }
+
     @RequestMapping("/dsm/inject")
     String dsmInject(
         @RequestParam(required = true, name = "integration") String integration,

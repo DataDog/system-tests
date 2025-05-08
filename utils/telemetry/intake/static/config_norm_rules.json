@@ -103,7 +103,7 @@
     "DD_ERROR_TRACKING_REPORT_HANDLED_ERRORS_ENABLED_MODULES": "error_tracking_report_handled_errors_enabled_modules",
     "DD_ERROR_TRACKING_REPORT_HANDLED_ERRORS_LOGGER": "error_tracking_report_handled_errors_logger",
     "DD_ERROR_TRACKING_HANDLED_ERRORS": "error_tracking_handled_errors",
-    "DD_ERROR_TRACKING_HANDLED_ERRORS_MODULES": "error_tracking_handled_errors_modules",
+    "DD_ERROR_TRACKING_HANDLED_ERRORS_INCLUDE": "error_tracking_handled_errors_include",
     "DD_EXCEPTION_DEBUGGING_CAPTURE_FULL_CALLSTACK_ENABLED": "dd_exception_debugging_capture_full_callstack_enabled",
     "DD_EXCEPTION_DEBUGGING_ENABLED": "exception_replay_enabled",
     "DD_EXCEPTION_DEBUGGING_MAX_EXCEPTION_ANALYSIS_LIMIT": "dd_exception_debugging_max_exception_analysis_limit",
