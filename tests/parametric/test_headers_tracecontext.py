@@ -746,6 +746,61 @@ class Test_Headers_Tracecontext:
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert f"p:{int(span.span_id):016x}" in tracestate
 
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
+    def test_tracestate_w3c_p_extract_and_inject(self, test_agent, test_library):
+        """Ensure the last parent id is propagated according to the W3C spec"""
+        with test_library:
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_set",
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                ],
+            ) as s1:
+                headers1 = test_library.dd_inject_headers(s1.span_id)
+
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_invalid",
+                [
+                    ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
+                ],
+            ) as s2:
+                headers2 = test_library.dd_inject_headers(s2.span_id)
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        assert len(traces) == 2
+        case1, case2 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+        )
+        tracestate_headers1 = list(filter(lambda h: h[0].lower() == "tracestate", headers1))
+        tracestate_headers2 = list(filter(lambda h: h[0].lower() == "tracestate", headers2))
+
+        assert case1["name"] == "p_set"
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        assert len(tracestate_headers1) == 1
+        tracestate1 = tracestate_headers1[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s1.span_id):016x}" in tracestate1
+
+        assert case2["name"] == "p_invalid"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X"
+
+        assert len(tracestate_headers2) == 1
+        tracestate2 = tracestate_headers2[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s2.span_id):016x}" in tracestate2
+
     @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @missing_feature(context.library < "php@0.99.0", reason="Not implemented")

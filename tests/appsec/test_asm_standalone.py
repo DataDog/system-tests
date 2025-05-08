@@ -685,25 +685,31 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
 class BaseSCAStandaloneTelemetry:
     """Tracer correctly propagates SCA telemetry in distributing tracing."""
 
-    def assert_standalone_is_enabled(self, request):
+    def assert_standalone_is_enabled(self, request0, request1):
         # test standalone is enabled and dropping traces
-        for _, __, span in interfaces.library.get_spans(request):
-            assert span["metrics"]["_sampling_priority_v1"] <= 0
-            assert span["metrics"]["_dd.apm.enabled"] == 0
+        spans_checked = 0
+        for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
+            if span["metrics"]["_sampling_priority_v1"] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+                spans_checked += 1
+
+        assert spans_checked > 0
 
     def setup_telemetry_sca_enabled_propagated(self):
-        self.r = weblog.get("/")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/")
+        self.r1 = weblog.get("/")
 
     def test_telemetry_sca_enabled_propagated(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
+        configuration_by_name: dict[str, dict] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-started":
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {item["name"]: item for item in configuration}
+            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
 
         assert configuration_by_name
 
@@ -713,13 +719,16 @@ class BaseSCAStandaloneTelemetry:
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
 
         outcome_value: bool | str = True
-        if context.library == "java":
+        if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
-        self.r = weblog.get("/load_dependency")
+        # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
+        self.r0 = weblog.get("/load_dependency")
+        self.r1 = weblog.get("/load_dependency")
 
+    @irrelevant(context.library == "golang", reason="Go does not support dynamic dependency loading")
     @missing_feature(context.library == "nodejs" and context.weblog_variant == "nextjs")
     @missing_feature(context.weblog_variant == "vertx4", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
@@ -728,7 +737,7 @@ class BaseSCAStandaloneTelemetry:
     @missing_feature(context.weblog_variant == "vertx3", reason="missing_feature (endpoint not implemented)")
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
     def test_app_dependencies_loaded(self):
-        self.assert_standalone_is_enabled(self.r)
+        self.assert_standalone_is_enabled(self.r0, self.r1)
 
         seen_loaded_dependencies = TelemetryUtils.get_loaded_dependency(context.library.name)
 
@@ -927,6 +936,10 @@ class Test_UserEventsStandalone:
         trace_id = 1212121212121212133
         self._call_endpoint("/signup", NEW_USER, trace_id)
 
+    @irrelevant(
+        context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
+        reason="no signup events in Python except for django",
+    )
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)

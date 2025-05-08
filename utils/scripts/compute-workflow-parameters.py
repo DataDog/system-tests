@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 
-from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
     get_endtoend_definitions,
@@ -155,22 +155,22 @@ class CiData:
 
         result: dict[str, list[str]] = {}
 
-        # using a set to check that the user input is valid
-        scenarios = {scenario.strip(): False for scenario in scenario_names if scenario.strip()}
-        scenarios_groups = [group.strip() for group in scenario_group_names if group.strip()]
-        excluded_scenarios = [scenario.strip() for scenario in excluded_scenario_names if scenario.strip()]
+        # clean inputs
+        scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
+        scenario_group_names = [group.strip() for group in scenario_group_names if group.strip()]
+        excluded_scenario_names = [scenario.strip() for scenario in excluded_scenario_names if scenario.strip()]
 
-        for group in scenarios_groups:
-            try:
-                ScenarioGroup(group)
-            except ValueError as e:
-                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+        # check that all scenarios provided by the user are valid
+        existing_scenarios: dict[str, Scenario] = {scenario.name: scenario for scenario in get_all_scenarios()}
+        for name in scenario_names:
+            if name not in existing_scenarios:
+                raise ValueError(f"Scenario {name} does not exists")
 
-        for scenario in get_all_scenarios():
-            # set the value to true to save that the value exists
-            # a final loop will look for false values and report an error if any
-            scenarios[scenario.name] = True
+        # check that all groups provided by the user are valid
+        for group in scenario_group_names:
+            _ = all_scenarios_groups[group]
 
+        for scenario in existing_scenarios.values():
             # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
             if not scenario.github_workflow:
                 continue
@@ -178,21 +178,16 @@ class CiData:
             if scenario.github_workflow not in result:
                 result[scenario.github_workflow] = []
 
-            if scenario.name in excluded_scenarios:
+            if scenario.name in excluded_scenario_names:
                 continue
 
-            if scenario.name in scenarios:
+            if scenario.name in scenario_names:
                 result[scenario.github_workflow].append(scenario.name)
             else:
-                for group in scenarios_groups:
-                    if ScenarioGroup(group) in scenario.scenario_groups:
+                for group in scenario_group_names:
+                    if all_scenarios_groups[group] in scenario.scenario_groups:
                         result[scenario.github_workflow].append(scenario.name)
                         break
-
-        # check that all scenarios provided by the user are valid
-        for scenario_name, found in scenarios.items():
-            if not found:
-                raise ValueError(f"Scenario {scenario_name} does not exists")
 
         return result
 

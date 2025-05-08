@@ -2412,6 +2412,24 @@ class _Features:
         return test_object
 
     @staticmethod
+    def debugger_method_probe(test_object):
+        """Method-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=392
+        """
+        pytest.mark.features(feature_id=392)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_line_probe(test_object):
+        """Line-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=393
+        """
+        pytest.mark.features(feature_id=393)(test_object)
+        return test_object
+
+    @staticmethod
     def debugger_symdb(test_object):
         """Probe Budgets
 
@@ -2562,6 +2580,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=387
         """
         pytest.mark.features(feature_id=387)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_schema(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=394
+        """
+        pytest.mark.features(feature_id=394)(test_object)
         return test_object
 
 
