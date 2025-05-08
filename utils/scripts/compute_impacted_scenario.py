@@ -75,8 +75,8 @@ def main() -> None:
     result = Result()
 
     if "GITLAB_CI" in os.environ:
-        event_name = os.environ["CI_PIPELINE_SOURCE"]
-        ref = os.environ["CI_COMMIT_REF_NAME"]
+        event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
+        ref = os.environ.get("CI_COMMIT_REF_NAME", "")
         print("CI_PIPELINE_SOURCE=" + event_name)
         print("CI_COMMIT_REF_NAME=" + ref)
         is_gilab = True
@@ -213,6 +213,7 @@ def main() -> None:
                     ],
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/replay_scenarios\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,

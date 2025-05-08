@@ -40,16 +40,16 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
         self.rc_states = []
 
         _send_config()
-        self.di_initial_disabled = not self.wait_for_all_probes_emitting(TIMEOUT)
+        self.di_initial_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         _send_config(enabled=True)
-        self.di_explicit_enabled = self.wait_for_all_probes_emitting(TIMEOUT)
+        self.di_explicit_enabled = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         _send_config()
-        self.di_empty_config = self.wait_for_all_probes_emitting(TIMEOUT)
+        self.di_empty_config = self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
         _send_config(enabled=False)
-        self.di_explicit_disabled = not self.wait_for_all_probes_emitting(TIMEOUT)
+        self.di_explicit_disabled = not self.wait_for_all_probes(statuses=["EMITTING"], timeout=TIMEOUT)
 
     def test_inproduct_enablement_di(self):
         self.assert_rc_state_not_error()
