@@ -45,5 +45,3 @@ types-retry==0.9.9.20250322
 watchdog==3.0.0
 yamllint==1.35.1
 yarl==1.9.4
-
-pydevd-pycharm~=221.6008.13
