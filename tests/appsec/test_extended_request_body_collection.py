@@ -41,6 +41,33 @@ class Test_ExtendedRequestBodyCollection:
     def test_if_rasp_event_collect_request_body(self):
         self.assert_feature_is_enabled(self.check_r)
 
+    def setup_request_body_truncated(self):
+        self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd" + "A" * 5000})
+
+    def test_request_body_truncated(self):
+        assert self.r.status_code == 403
+        interfaces.library.assert_rasp_attack(
+            self.r,
+            "rasp-932-110",
+            {
+                "resource": {
+                    "address": "server.sys.exec.cmd",
+                    "value": "/usr/bin/touch /tmp/passwd" + "A" * 4070,
+                },
+                "params": {
+                    "address": "server.request.body",
+                    "value": "/usr/bin/touch /tmp/passwd" + "A" * 4070,
+                },
+            },
+        )
+        span = interfaces.library.get_root_span(request=self.r)
+        meta_struct = span.get("meta_struct", {})
+        body = meta_struct.get("http.request.body")
+        assert body is not None
+        assert body.get("command")[0] == "/usr/bin/touch /tmp/passwd" + "A" * 4070
+        meta = span.get("meta", {})
+        assert meta.get("_dd.appsec.rasp.request_body_size.exceeded") == "true"
+
     def setup_if_no_rasp_event_no_collect_request_body(self):
         self.setup_feature_is_enabled()
         self.r = weblog.get(
