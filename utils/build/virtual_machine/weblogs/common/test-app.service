@@ -12,7 +12,7 @@ Type=simple
 Environment=DD_CONFIG_SOURCES=LOCAL:/etc/datadog-agent/inject/debug_config.yaml
 Environment=DD_APM_INSTRUMENTATION_DEBUG=TRUE
 Environment=DD_TRACE_DEBUG=true
-
+Environment=DD_APM_INSTRUMENTATION_OUTPUT_PATHS=syslog
 EnvironmentFile=/var/log/datadog_weblog/app.env
 EnvironmentFile=/var/log/datadog_weblog/scenario_app.env
 EnvironmentFile=/etc/environment
