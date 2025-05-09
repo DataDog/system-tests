@@ -16,7 +16,7 @@ class TestSamplingByRouteMethodCount:
             requests.append(r)
             r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count-2/{i}/?param=value{i}")
             requests.append(r)
-            r = weblog.request(method="POST", path=f"/iast/sampling-by-route-method-count/{i}/?param=value{i}")
+            r = weblog.request(method="POST", path=f"/iast/sampling-by-route-method-count/{i}/", data={"param": f"value{i}"})
             requests.append(r)
 
         self.requests = requests
