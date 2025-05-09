@@ -363,11 +363,11 @@ class Test_Config_Dogstatsd:
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "192.168.10.1"
 
-    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "randomname"}])
+    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "127.0.0.1"}])
     def test_dogstatsd_custom_hostname(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
-        assert resp["dd_dogstatsd_host"] == "randomname"
+        assert resp["dd_dogstatsd_host"] == "127.0.0.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
     def test_dogstatsd_custom_port(self, library_env, test_agent, test_library):
