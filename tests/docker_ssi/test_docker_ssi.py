@@ -10,11 +10,18 @@ class TestDockerSSIFeatures:
     If the language version is not supported, we only check that we don't break the app and telemetry is generated.
     """
 
+    _r = None
+
     def _setup_all(self):
-        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
-        logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
-        self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
-        logger.info(f"Setup Docker SSI installation {self.r}")
+        if TestDockerSSIFeatures._r is None:
+            parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+            logger.info(f"Setting up Docker SSI installation WEBLOG_URL {scenarios.docker_ssi.weblog_url}")
+            TestDockerSSIFeatures._r = weblog.request(
+                "GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port
+            )
+            logger.info(f"Setup Docker SSI installation {TestDockerSSIFeatures._r}")
+
+        self.r = TestDockerSSIFeatures._r
 
     def setup_install_supported_runtime(self):
         self._setup_all()
@@ -25,6 +32,8 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     def test_install_supported_runtime(self):
         logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.library}")
         assert self.r.status_code == 200, f"Failed to get response from {scenarios.docker_ssi.weblog_url}"
@@ -57,8 +66,9 @@ class TestDockerSSIFeatures:
     )
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     @bug(context.library == "python@2.19.1", reason="INPLAT-448")
     @bug(context.library >= "python@3.0.0dev", reason="INPLAT-448")
     def test_telemetry(self):
@@ -85,10 +95,11 @@ class TestDockerSSIFeatures:
     @features.ssi_guardrails
     @irrelevant(context.library == "java" and context.installed_language_runtime >= "1.8.0_0")
     @irrelevant(context.library == "php" and context.installed_language_runtime >= "7.0")
-    @irrelevant(context.library == "python" and context.installed_language_runtime >= "3.8.0")
-    @bug(context.library == "python", reason="INPLAT-448")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime > "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime > "3.7.0")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
     @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
+    @bug(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0", reason="INPLAT-448")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     def test_telemetry_abort(self):
         # There is telemetry data about the auto instrumentation injector. We only validate there is data
@@ -119,29 +130,12 @@ class TestDockerSSIFeatures:
                 break
         assert abort, "No telemetry data found for library_entrypoint.abort"
 
-    def setup_service_name(self):
-        self._setup_all()
-
-    @features.ssi_service_naming
-    @irrelevant(condition=not context.weblog_variant.startswith("tomcat-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("websphere-app"))
-    @irrelevant(condition=not context.weblog_variant.startswith("jboss-app"))
-    def test_service_name(self):
-        logger.info("Testing Docker SSI service name")
-        # There are traces related with the request and the service name is payment-service
-        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
-        assert "service" in traces_for_request, "No service name found in traces"
-        assert (
-            traces_for_request["service"] == "payment-service"
-        ), f"Service name is not payment-service but {traces_for_request['service']}"
-
     def setup_instrumentation_source_ssi(self):
         self._setup_all()
 
     @features.ssi_service_tracking
     @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
-    @missing_feature(context.library < "python@3.8.0.dev", reason="INPLAT-448")
+    @missing_feature(context.library < "python@3.8.0.dev", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
@@ -150,7 +144,10 @@ class TestDockerSSIFeatures:
         assert root_span, f"No traces found for request {self.r.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(root_span["service"], None)
+        configurations = interfaces.test_agent.get_telemetry_configurations(
+            root_span["service"], root_span["meta"]["runtime-id"]
+        )
+
         # Check that instrumentation source is ssi
         injection_source = configurations.get("instrumentation_source")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
