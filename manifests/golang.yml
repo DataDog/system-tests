@@ -678,6 +678,7 @@ tests/:
       Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v1.60.0

@@ -29,13 +29,12 @@ class DockerSSIScenario(Scenario):
 
     _network: Network = None
 
-    def __init__(self, name, doc, scenario_groups=None) -> None:
+    def __init__(self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
-
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
+        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, extra_env_vars=extra_env_vars)
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
@@ -222,14 +221,10 @@ class DockerSSIScenario(Scenario):
 
     def post_setup(self, session):  # noqa: ARG002
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
-        data = None
-        attempts = 0
-        while attempts < 30 and not data:
-            attempts += 1
-            data = interfaces.test_agent.collect_data(
-                f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
-            )
-            time.sleep(5)
+        time.sleep(15)
+        interfaces.test_agent.collect_data(
+            f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+        )
 
     @property
     def library(self):

@@ -900,6 +900,12 @@ class _Scenarios:
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
+    docker_ssi_servicenaming = DockerSSIScenario(
+        "DOCKER_SSI_SERVICENAMING",
+        doc="Validates the installer and the ssi service naming features on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
     docker_ssi_crashtracking = DockerSSIScenario(

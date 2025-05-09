@@ -2258,6 +2258,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def ssi_service_tracking(test_object):
+        """SSI service tracking feature
+
+        https://feature-parity.us1.prod.dog/#/?feature=327
+        """
+        pytest.mark.features(feature_id=327)(test_object)
+        return test_object
+
+    @staticmethod
     def serverless_span_pointers(test_object):
         """Serverless : Span Pointers are correctly incorporated in spans
 
