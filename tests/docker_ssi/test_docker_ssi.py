@@ -130,25 +130,6 @@ class TestDockerSSIFeatures:
                 break
         assert abort, "No telemetry data found for library_entrypoint.abort"
 
-    def setup_service_name(self):
-        self._setup_all()
-
-    @features.ssi_service_naming
-    @irrelevant(
-        condition=not context.weblog_variant.startswith("tomcat-app")
-        and not context.weblog_variant.startswith("websphere-app")
-        and not context.weblog_variant.startswith("jboss-app")
-    )
-    def test_service_name(self):
-        logger.info("Testing Docker SSI service name")
-        # There are traces related with the request and the service name is payment-service
-        traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
-        assert "service" in traces_for_request, "No service name found in traces"
-        assert (
-            traces_for_request["service"] == "payment-service"
-        ), f"Service name is not payment-service but {traces_for_request['service']}"
-
     def setup_instrumentation_source_ssi(self):
         self._setup_all()
 

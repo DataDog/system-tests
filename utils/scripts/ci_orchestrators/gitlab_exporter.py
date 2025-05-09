@@ -171,7 +171,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(
                 0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
             )
-        # print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
+        #print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
     if matrix_data["dockerssi_scenario_defs"]:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
@@ -186,7 +186,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
             result_pipeline[".k8s_lib_injection_base"]["script"].insert(
                 0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
             )
-        # print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
+        #print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
     output_file = f"{language}_ssi_gitlab_pipeline.yml"

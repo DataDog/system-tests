@@ -29,12 +29,12 @@ class DockerSSIScenario(Scenario):
 
     _network: Network = None
 
-    def __init__(self, name, doc, scenario_groups=None) -> None:
+    def __init__(self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
+        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, extra_env_vars=extra_env_vars)
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []

@@ -8,10 +8,7 @@
                 {
                     "java": [
                         "jetty-app",
-                        "tomcat-app",
-                        "java7-app",
-                        "websphere-app",
-                        "jboss-app"
+                        "java7-app"
                     ],
                     "nodejs": [
                         "js-app"
@@ -21,6 +18,20 @@
                     ],
                     "php": [
                         "php-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "DOCKER_SSI_SERVICENAMING"
+            ],
+            "weblogs": [
+                {
+                    "java": [
+                        "tomcat-app",
+                        "websphere-app",
+                        "jboss-app"
                     ]
                 }
             ]
