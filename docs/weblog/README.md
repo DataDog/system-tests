@@ -277,7 +277,19 @@ This endpoint should set the header whose name comes in the `reflected` field of
 
 Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
 
-### GET /iast/sampling-by-route-method-count
+### GET /iast/sampling-by-route-method-count/:key
+
+This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
+
+### GET /iast/sampling-by-route-method-count-2/:key
+
+Exactly the same content as the previous one, in different route and with different vulnerability hashes.
+
+This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
+
+### POST /iast/sampling-by-route-method-count/:key
+
+Exactly the same content as the previous one, but POST instead of GET and with different vulnerability hashes.
 
 This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
 

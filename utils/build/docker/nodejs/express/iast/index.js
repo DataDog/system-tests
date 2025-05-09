@@ -250,6 +250,26 @@ function initRoutes (app, tracer) {
     res.send('OK')
   })
 
+  app.get('/iast/sampling-by-route-method-count-2/:key', (req, res) => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
   app.post('/iast/sampling-by-route-method-count/:key', (req, res) => {
     crypto.createHash('md5').update('insecure').digest('hex')
     crypto.createHash('md5').update('insecure').digest('hex')
