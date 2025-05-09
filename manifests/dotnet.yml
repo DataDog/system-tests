@@ -306,6 +306,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
       Test_IastStandalone_UpstreamPropagation: missing_feature

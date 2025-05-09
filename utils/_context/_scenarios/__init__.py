@@ -379,6 +379,22 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    # Combined scenario for API Security in standalone mode
+    appsec_standalone_api_security = EndToEndScenario(
+        "APPSEC_STANDALONE_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
+        doc="Scenario to test API Security in AppSec standalone mode",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    )
+
     appsec_standalone_experimental = EndToEndScenario(
         "APPSEC_STANDALONE_EXPERIMENTAL",
         weblog_env={
