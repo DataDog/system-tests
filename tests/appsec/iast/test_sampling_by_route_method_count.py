@@ -10,18 +10,14 @@ class TestSamplingByRouteMethodCount:
         # Endpoint expect 15 vulnerabilities with different hashes
         # vulnerability types don't matter
         # Each request expect some vulnerabilities or no vulns, but at the end all the vulnerabilities must be there
+        requests = []
+        for i in range(1, 11):
+            r = weblog.request(method="GET", path=f"/iast/sampling-by-route-method-count/{i}/?param=value{i}")
+            requests.append(r)
+            r = weblog.request(method="POST", path=f"/iast/sampling-by-route-method-count/{i}/?param=value{i}")
+            requests.append(r)
 
-        r1 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/1/?param=value01")
-        r2 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/2/?param=value02")
-        r3 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/3/?param=value03")
-        r4 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/4/?param=value04")
-        r5 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/5/?param=value05")
-        r6 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/6/?param=value06")
-        r7 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/7/?param=value07")
-        r8 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/8/?param=value08")
-        r9 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/9/?param=value09")
-        r10 = weblog.request(method="GET", path="/iast/sampling-by-route-method-count/10/?param=value10")
-        self.requests = [r1, r2, r3, r4, r5, r6, r7, r8, r9, r10]
+        self.requests = requests
 
     def test_sampling_by_route_method_count(self):
         vuln_hash_set = set()
@@ -44,4 +40,8 @@ class TestSamplingByRouteMethodCount:
                     vulnerability_hash = vuln["hash"]
                     vuln_hash_set.add(vulnerability_hash)
 
-        assert len(vuln_hash_set) >= 15, f"Invalid number of vulnerabilities: {vuln_debug_list}"  # Bigger or equal, because unrelated extra vulns could be detected in the app
+        assert (
+            len(vuln_hash_set) >= 30
+        ), (
+            f"Invalid number of vulnerabilities: {vuln_debug_list}"
+        )  # Bigger or equal, because unrelated extra vulns could be detected in the app
