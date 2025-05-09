@@ -37,10 +37,9 @@ class TestDockerSSICrash:
 
     @features.ssi_crashtracking
     @bug(condition=context.library in ("java", "php", "ruby"), reason="INPLAT-11")
-    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-448")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.7.0")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
-    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-448")
+    @bug(context.library >= "python@3.0.0.dev", reason="INPLAT-603")
     def test_crash(self):
         """Validate that a crash report is generated when the application crashes"""
         logger.info(f"Testing Docker SSI crash tracking: {context.library.name}")

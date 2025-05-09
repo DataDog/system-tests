@@ -166,6 +166,12 @@
                         "allowed_runtime_versions": [
                             "*"
                         ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
                     }
                 ]
             }
