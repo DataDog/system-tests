@@ -354,7 +354,7 @@ def python_library_factory() -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71@sha256:9e3f53fa98ffc4b838b959d74d969aa2c384c4cbee7a3047a03d501be5f58760
+FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
 RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
