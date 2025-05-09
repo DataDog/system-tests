@@ -382,7 +382,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library != "php"
     else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "ruby" else "true", # Enabled by default in ruby
+    "dd_logs_injection": "false" if context.library != "ruby" else "true",  # Enabled by default in ruby
 }
 
 
@@ -424,16 +424,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
                     "dd_data_streams_enabled": "true"
-                    if context.library != "php" and context.library != "ruby"
+                    if context.library not in ("php", "ruby")
                     else "false",  # PHP and Ruby do not support data streams
                 },
             ),
             (
                 "logs_injection",
                 {
-                    "DD_LOGS_INJECTION": True
-                    if context.library != "ruby"
-                    else False,  # Ruby defaults logs injection to true
+                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
