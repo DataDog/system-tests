@@ -653,6 +653,8 @@ tests/:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Tags:
         '*': v3.7.0.dev
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0

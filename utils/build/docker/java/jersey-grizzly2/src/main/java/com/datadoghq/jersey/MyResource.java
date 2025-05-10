@@ -412,6 +412,34 @@ public class MyResource {
         return "ok";
     }
 
+    @GET
+    @Path("/customResponseHeaders")
+    public Response customResponseHeaders() {
+        return Response.ok("Response with custom headers")
+                .header("content-type", "text/plain")
+                .header("content-language", "en-US")
+                .header("X-Test-Header-1", "value1")
+                .header("X-Test-Header-2", "value2")
+                .header("X-Test-Header-3", "value3")
+                .header("X-Test-Header-4", "value4")
+                .header("X-Test-Header-5", "value5")
+                .build();
+    }
+
+    @GET
+    @Path("/exceedResponseHeaders")
+    public Response exceedResponseHeaders() {
+        Response.ResponseBuilder builder = Response.ok("Response with more than 50 headers")
+                .header("content-type", "text/plain");
+        // Añadir 50 headers
+        for (int i = 1; i <= 50; i++) {
+            builder.header("X-Test-Header-" + i, "value" + i);
+        }
+        // Header estándar adicional
+        builder.header("content-language", "en-US");
+        return builder.build();
+    }
+
     public static final class DistantCallResponse {
         public String url;
         public int status_code;

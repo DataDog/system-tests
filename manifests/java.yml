@@ -1501,6 +1501,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0

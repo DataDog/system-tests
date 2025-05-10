@@ -34,3 +34,5 @@ GET  /requestdownstream        controllers.AppSecController.requestdownstream
 GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerableRequestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
+GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
+GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
