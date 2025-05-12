@@ -10,7 +10,12 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v1.6.2
         Test_API_Security_RC_ASM_DD_scanners: v1.6.2
-      test_apisec_sampling.py: missing_feature
+      test_apisec_sampling.py:
+        Test_API_Security_Sampling_Different_Endpoints: v1.8.0
+        Test_API_Security_Sampling_Different_Paths: v1.8.0
+        Test_API_Security_Sampling_Different_Status: v1.8.0
+        Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v1.8.0
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
