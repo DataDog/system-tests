@@ -220,6 +220,14 @@ class DockerSSIScenario(Scenario):
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
     def post_setup(self, session):  # noqa: ARG002
+        # At this point the it should be present the injector and library versions.
+        # if not, stop here, something is wrong with the job parameters (ie --ssi-library-version)
+        assert self.components.get(
+            "datadog-apm-library"
+        ), "❌ Library version not found. Please check the job parameters (ie --ssi-library-version) and the docker build logs. ❌"
+
+        assert self._datadog_apm_inject_version, "❌ Injector version not found. Please check the job parameters (ie --ssi-injector-version) and the docker build logs. ❌"
+
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(15)
         interfaces.test_agent.collect_data(
