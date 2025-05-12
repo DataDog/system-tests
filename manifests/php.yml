@@ -181,6 +181,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
