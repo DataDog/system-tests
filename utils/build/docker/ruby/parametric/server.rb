@@ -649,19 +649,22 @@ class MyApp
   def handle_trace_config(_req, res)
     config = {}
 
-    Datadog.configure do |c|
-      config["dd_service"] = c.service || ""
-      config["dd_trace_sample_rate"] = c.tracing.sampling.default_rate.to_s
-      config["dd_trace_enabled"] = c.tracing.enabled.to_s
-      config["dd_runtime_metrics_enabled"] = c.runtime_metrics.enabled.to_s
-      config["dd_trace_propagation_style"] = c.tracing.propagation_style.join(",")
-      config["dd_trace_debug"] = c.diagnostics.debug.to_s
-      config["dd_env"] = c.env || ""
-      config["dd_version"] = c.version || ""
-      config["dd_tags"] = c.tags.nil? ? "" : c.tags.map { |k, v| "#{k}:#{v}" }.join(",")
-      config["dd_trace_rate_limit"] = c.tracing.sampling.rate_limit.to_s
-      config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.collect_config![:agent_url] || ""
-    end
+    config["dd_service"] = Datadog.configuration.service || ""
+    config["dd_trace_sample_rate"] = Datadog.configuration.tracing.sampling.default_rate.to_s
+    config["dd_trace_enabled"] = Datadog.configuration.tracing.enabled.to_s
+    config["dd_runtime_metrics_enabled"] = Datadog.configuration.runtime_metrics.enabled.to_s
+    config["dd_trace_propagation_style"] = Datadog.configuration.tracing.propagation_style.join(",")
+    config["dd_trace_debug"] = Datadog.configuration.diagnostics.debug.to_s
+    config["dd_env"] = Datadog.configuration.env || ""
+    config["dd_version"] = Datadog.configuration.version || ""
+    config["dd_tags"] = Datadog.configuration.tags.nil? ? "" : Datadog.configuration.tags.map { |k, v| "#{k}:#{v}" }.join(",")
+    config["dd_trace_rate_limit"] = Datadog.configuration.tracing.sampling.rate_limit.to_s
+    config["dd_trace_agent_url"] = Datadog::Tracing::Diagnostics::EnvironmentCollector.collect_config![:agent_url] || ""
+    config["dd_profiling_enabled"] = Datadog.configuration.profiling.enabled.to_s
+    config["dd_logs_injection"] = Datadog.configuration.tracing.log_injection.to_s
+
+    config["dd_data_streams_enabled"] = false.to_s # Not implemented
+
     res.write(TraceConfigReturn.new(config).to_json)
   end
 
