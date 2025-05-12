@@ -125,7 +125,7 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@1517bce5564037de6a02562a6b4f119503c9781d
+    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
       with:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
