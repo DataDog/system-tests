@@ -58,6 +58,7 @@ refs:
   - &ref_5_46_0 '>=5.46.0'
   - &ref_5_47_0 '>=5.47.0'
   - &ref_5_48_0 '>=5.48.0'
+  - &ref_5_52_0 '>=5.52.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -615,7 +616,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: *ref_5_52_0
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
