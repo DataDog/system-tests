@@ -690,6 +690,7 @@ def view_iast_sampling_by_route_method(request, id):
         os.system(f"ls {param_tainted}")
     return HttpResponse("OK", status=200)
 
+
 def view_iast_sampling_by_route_method_2(request, id):
     param_tainted = request.GET.get("param")
     os.system(f"ls {param_tainted}")
@@ -708,6 +709,7 @@ def view_iast_sampling_by_route_method_2(request, id):
     os.system(f"ls {param_tainted}")
     os.system(f"ls {param_tainted}")
     return HttpResponse("OK", status=200)
+
 
 @csrf_exempt
 def view_iast_source_path_parameter(request, table):
