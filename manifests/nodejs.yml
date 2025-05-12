@@ -616,7 +616,9 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone: *ref_5_52_0
+      Test_APISecurityStandalone:
+        '*': *ref_5_52_0
+        nextjs: missing_feature
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
