@@ -233,6 +233,7 @@ def main() -> None:
                     r"NOTICE": None,
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
+                    r"static-analysis\.datadog\.yml": None,
                     r"README\.md": None,
                     r"requirements\.txt": scenario_groups.all,
                     r"run\.sh": scenario_groups.all,
