@@ -374,6 +374,9 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "true",
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
+            # added to test Test_ExtendedHeaderCollection
+            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
+            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -951,17 +954,6 @@ class _Scenarios:
         doc="Envoy + external processing + blocking rule file",
         extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
-
-    appsec_collect_all_headers = EndToEndScenario(
-        "APPSEC_COLLECT_ALL_HEADERS",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
-            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
-        },
-        doc="Appsec collect all headers mode ",
-        scenario_groups=[scenario_groups.appsec],
     )
 
     ipv6 = IPV6Scenario("IPV6")
