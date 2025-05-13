@@ -1,13 +1,7 @@
-from utils import (
-    interfaces,
-    weblog,
-)
-from .loader import (
-    load_schema,
-)
-from .validator import (
-    assert_required_keys,
-)
+from utils import interfaces, weblog, context
+from .loader import load_schema
+from .validator import assert_required_keys
+from .report import generate_compliance_report
 
 
 class Test_WebFrameworks:
@@ -15,7 +9,14 @@ class Test_WebFrameworks:
         self.r = weblog.get("/")
 
     def test_simple(self):
-        root_span = interfaces.library.get_root_span(self.r)
         schema = load_schema("web_frameworks")
-        required = schema["required_root_span_attributes"]
-        assert_required_keys(root_span, required)
+        root_span = interfaces.library.get_root_span(self.r)
+
+        missing, deprecated = assert_required_keys(root_span, schema)
+
+        generate_compliance_report(
+            category="web_framework", name=context.weblog_variant, missing=missing, deprecated=deprecated
+        )
+
+        if missing:
+            raise AssertionError(f"Missing required attributes: {missing}")

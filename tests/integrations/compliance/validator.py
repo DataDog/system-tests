@@ -1,15 +1,39 @@
-def flatten_keys(d, parent_key=''):
-    keys = set()
-    for k, v in d.items():
-        full_key = f"{parent_key}.{k}" if parent_key else k
-        if isinstance(v, dict):
-            keys |= flatten_keys(v, full_key)
+def _get_nested(d: dict, dotted_key: str):
+    keys = dotted_key.split(".")
+    if len(keys) > 1 and keys[0] in ("meta", "metrics"):
+        keys = [keys[0]] + [".".join(keys[1:])]
+    for key in keys:
+        if isinstance(d, dict) and key in d:
+            d = d[key]
         else:
-            keys.add(full_key)
-    return keys
+            return None
+    return d
 
 
-def assert_required_keys(span, required_keys):
-    flattened = flatten_keys(span)
-    missing = [key for key in required_keys if key not in flattened]
-    assert not missing, f"Missing required keys: {missing}"
+def assert_required_keys(span: dict, schema: dict) -> tuple[list[str], list[str]]:
+    required = schema["required_span_attributes"]
+    deprecated_aliases = schema.get("deprecated_aliases", {})
+
+    mandatory_keys = required["mandatory"]
+    # best_effort_keys = required.get("best_effort", [])
+
+    missing_keys = []
+    deprecated_used = []
+
+    for key in mandatory_keys:
+        if _get_nested(span, key) is not None:
+            continue
+
+        fallback_keys = deprecated_aliases.get(key, [])
+        for fallback in fallback_keys:
+            if _get_nested(span, fallback) is not None:
+                deprecated_used.append(fallback)
+                break
+        else:
+            missing_keys.append(key)
+
+    # for key in best_effort_keys:
+    #    if _get_nested(span, key) is None:
+    #        print(f"[BEST-EFFORT] Optional but recommended key not found: {key}")
+
+    return missing_keys, deprecated_used
