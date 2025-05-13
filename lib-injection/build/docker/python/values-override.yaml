@@ -1,5 +1,0 @@
-app_env_no_admission_controller:
-  - name: PYTHONPATH
-    value: "/datadog-lib/"
-  - name: DD_INSTALL_DDTRACE_PYTHON
-    value: 1

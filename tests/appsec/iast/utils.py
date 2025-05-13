@@ -289,8 +289,8 @@ def validate_extended_location_data(
 ) -> None:
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
-    assert iast, "Expected at least one vulnerability"
-    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+    assert iast, f"Expected at least one vulnerability in span {span.get('span_id')}"
+    assert iast["vulnerabilities"], f"Expected at least one vulnerability: {iast['vulnerabilities']}"
 
     # Filter by vulnerability
     if vulnerability_type:
