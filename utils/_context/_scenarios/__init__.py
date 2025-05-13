@@ -376,7 +376,7 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_enabled],
     )
 
     # Combined scenario for API Security in standalone mode

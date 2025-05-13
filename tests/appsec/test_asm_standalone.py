@@ -5,7 +5,19 @@ import time
 from requests.structures import CaseInsensitiveDict
 
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger
+from utils import (
+    context,
+    weblog,
+    interfaces,
+    scenarios,
+    features,
+    rfc,
+    bug,
+    missing_feature,
+    irrelevant,
+    logger,
+    scenario_groups,
+)
 
 USER = "test"
 NEW_USER = "testnew"
@@ -796,7 +808,7 @@ class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamProp
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_enabled
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1016,7 +1028,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@scenario_groups.appsec_enabled
 class Test_UserEventsStandalone:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
