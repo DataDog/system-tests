@@ -219,7 +219,35 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
+    def check_installed_components(self):
+        """Check the the injector and library versions are present"""
+        is_valid = True
+        if not self.components.get("datadog-apm-library"):
+            is_valid = False
+            logger.stdout(
+                "❌ Library version not found. Could not get the tracer image or the version of the library could not be extracted"
+            )
+            if self._custom_library_version:
+                logger.stdout(
+                    f"🛠️ You have specified a custom version of the library (--ssi-library-version), please check that the reference [{self._custom_library_version}] is correct."
+                )
+        if not self._datadog_apm_inject_version:
+            is_valid = False
+            logger.stdout(
+                "❌ Injector version not found. Could not get the injector image or the version of the injector could not be extracted"
+            )
+            if self._custom_injector_version:
+                logger.stdout(
+                    f"🛠️ You have specified a custom version of the injector (--ssi-injector-version), please check that the reference [{self._custom_injector_version}] is correct."
+                )
+        if not is_valid:
+            logger.stdout(f"🌍 You have set the environment to [{self._env}]. Check the docker build logs.\n\n\n")
+            raise ValueError("❌ Error: Could not get the library or injector version. ❌")
+        logger.stdout("✅ All components are installed correctly. ✅")
+
     def post_setup(self, session):  # noqa: ARG002
+        self.check_installed_components()
+
         logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
         time.sleep(15)
         interfaces.test_agent.collect_data(
