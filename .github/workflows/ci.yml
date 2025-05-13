@@ -10,7 +10,6 @@ on:
     - synchronize
     - reopened
     - labeled
-    - unlabeled
   # push:
   #   branches:
   #   - main
