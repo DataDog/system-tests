@@ -1,4 +1,4 @@
-# Integration Compliance Tests
+# Integration Compliance Tests (Not up to date)
 
 This directory contains compliance tests that verify if integration spans (e.g., for web frameworks, databases) include a required set of attributes. These tests are meant to ensure consistent span formatting across libraries.
 

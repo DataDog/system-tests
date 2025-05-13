@@ -1,4 +1,5 @@
-required_root_span_attributes:
-  - meta.http.method
-  - meta.http.status_code
-  - meta.http.url
+span_attributes:
+  mandatory:
+    - meta.http.method
+    - meta.http.status_code
+    - meta.http.url

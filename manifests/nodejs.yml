@@ -861,6 +861,20 @@ tests/:
         express4-typescript: v5.39.0
         uds-express4: v5.39.0
   integrations/:
+    compliance/:
+      test_databases.py:
+        Test_MsSql:
+          '*': missing_feature
+          express4: v1.0.0
+          express5: v1.0.0
+        Test_MySql:
+          '*': missing_feature
+          express4: v1.0.0
+          express5: v1.0.0
+        Test_Postgres:
+          '*': missing_feature
+          express4: v1.0.0
+          express5: v1.0.0
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:

@@ -1,4 +1,4 @@
-# Compliance Schemas
+# Compliance Schemas (Not up to date)
 
 Each YAML file in this directory defines the required, **mandatory** root span attributes for a particular integration category.
 
