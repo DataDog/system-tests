@@ -302,7 +302,7 @@ def validate_extended_location_data(
 
     logger.debug(f"Vulnerabilities: {json.dumps(vulns, indent=2)}")
     assert len(vulns) == 1, "Expected a single vulnerability with the matching criteria"
-    
+
     vuln = vulns[0]
     location = vuln["location"]
 
