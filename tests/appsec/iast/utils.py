@@ -341,12 +341,17 @@ def validate_extended_location_data(
 
         location_match = False
         for frame in stack_trace["frames"]:
-            if (
-                frame.get("file", "").endswith(location["path"])
-                and location["line"] == frame["line"]
-                and _norm(location.get("class")) == _norm(frame.get("class_name"))
-                and _norm(location.get("method")) == _norm(frame.get("function"))
-            ):
+            logger.debug(frame)
+            if not frame.get("file", "").endswith(location["path"]):
+                logger.debug("path does not match")
+            elif frame["line"] != location["line"]:
+                logger.debug("line does not match")
+            elif _norm(location.get("class")) != _norm(frame.get("class_name")):
+                logger.debug("class does not match")
+            elif _norm(location.get("method")) != _norm(frame.get("function")):
+                logger.debug("method does not match")
+            else:
+                logger.debug("location match")
                 location_match = True
                 break
 
