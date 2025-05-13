@@ -379,6 +379,22 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    # Combined scenario for API Security in standalone mode
+    appsec_standalone_api_security = EndToEndScenario(
+        "APPSEC_STANDALONE_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
+        doc="Scenario to test API Security in AppSec standalone mode",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    )
+
     appsec_standalone_experimental = EndToEndScenario(
         "APPSEC_STANDALONE_EXPERIMENTAL",
         weblog_env={
@@ -884,9 +900,19 @@ class _Scenarios:
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-
+    docker_ssi_servicenaming = DockerSSIScenario(
+        "DOCKER_SSI_SERVICENAMING",
+        doc="Validates the installer and the ssi service naming features on a docker environment",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
+    docker_ssi_crashtracking = DockerSSIScenario(
+        "DOCKER_SSI_CRASHTRACKING",
+        doc="Validates the crashtracking for ssi on a docker environment",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
         weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},

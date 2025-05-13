@@ -306,6 +306,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -528,6 +529,7 @@ tests/:
       Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
+      Test_TelemetrySSIConfigs: v2.53.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v2.46.0
       Test_Trace_Sampling_Globs: v2.46.0

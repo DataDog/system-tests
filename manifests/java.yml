@@ -727,8 +727,6 @@ tests/:
           play: missing_feature
           ratpack: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -1177,6 +1175,7 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
@@ -1884,7 +1883,16 @@ tests/:
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
-    test_inferred_proxy.py: missing_feature
+    test_inferred_proxy.py:  # Moved this block here
+      Test_AWS_API_Gateway_Inferred_Span_Creation:
+        "*": irrelevant
+        spring-boot: v1.50.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+        "*": irrelevant
+        spring-boot: v1.50.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+        "*": irrelevant
+        spring-boot: v1.50.0
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -1943,6 +1951,7 @@ tests/:
       Test_Stable_Configuration_Origin: v1.47.0-SNAPSHOT
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
