@@ -57,6 +57,11 @@ func main() {
 					Type:    graphql.NewNonNull(graphql.NewList(graphql.NewNonNull(userType))),
 					Resolve: resolveUserByName,
 				},
+				"withError": &graphql.Field{
+					Args:    graphql.FieldConfigArgument{},
+					Type:    graphql.ID,
+					Resolve: resolveWithError,
+				},
 			},
 		}),
 	})
@@ -155,4 +160,31 @@ func resolveUserByName(p graphql.ResolveParams) (any, error) {
 	}
 
 	return result, nil
+}
+
+func resolveWithError(_ graphql.ResolveParams) (any, error) {
+	return nil, customError{
+		message: "test error",
+		extensions: map[string]any{
+			"int":          1,
+			"float":        1.1,
+			"str":          "1",
+			"bool":         true,
+			"other":        []any{1, "foo"},
+			"not_captured": "nope",
+		},
+	}
+}
+
+type customError struct {
+	message    string
+	extensions map[string]any
+}
+
+func (e customError) Error() string {
+	return e.message
+}
+
+func (e customError) Extensions() map[string]any {
+	return e.extensions
 }
