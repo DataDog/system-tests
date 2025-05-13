@@ -2,16 +2,13 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI"
+                "DOCKER_SSI","DOCKER_SSI_CRASHTRACKING"
             ],
             "weblogs": [
                 {
                     "java": [
                         "jetty-app",
-                        "tomcat-app",
-                        "java7-app",
-                        "websphere-app",
-                        "jboss-app"
+                        "java7-app"
                     ],
                     "nodejs": [
                         "js-app"
@@ -21,6 +18,20 @@
                     ],
                     "php": [
                         "php-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "DOCKER_SSI_SERVICENAMING"
+            ],
+            "weblogs": [
+                {
+                    "java": [
+                        "tomcat-app",
+                        "websphere-app",
+                        "jboss-app"
                     ]
                 }
             ]
@@ -163,6 +174,12 @@
                 "supported_images": [
                     {
                         "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
                         "allowed_runtime_versions": [
                             "*"
                         ]

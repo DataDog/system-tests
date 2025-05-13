@@ -34,7 +34,7 @@ class Test_AppSecRequestBlocking:
     def test_request_blocking(self):
         """Test requests are blocked by rules in blocking mode"""
 
-        assert self.config_state[remote_config.RC_STATE] == remote_config.ApplyState.ACKNOWLEDGED
+        assert self.config_state.state == remote_config.ApplyState.ACKNOWLEDGED
 
         assert self.blocked_requests1.status_code == 403
         interfaces.library.assert_waf_attack(self.blocked_requests1, rule="ua0-600-12x")

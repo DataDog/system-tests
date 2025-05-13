@@ -19,7 +19,7 @@ SOFTWARE.
 
 import socket
 import time
-from utils.tools import logger
+from utils._logger import logger
 
 
 def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):

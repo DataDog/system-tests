@@ -1,5 +1,8 @@
 package com.datadoghq.vertx3;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.infra.LdapServer;
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
@@ -7,6 +10,7 @@ import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -18,21 +22,18 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.http.HttpClient;
 
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.http.HttpResponse;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
@@ -167,6 +168,16 @@ public class Main {
                     Blocking.forUser(user).blockIfMatch();
                     ctx.response().end("Hello " + user);
                 });
+        router.get("/identify").handler(ctx -> {
+            final Map<String, String> metadata = new HashMap<>();
+            metadata.put("email", "usr.email");
+            metadata.put("name", "usr.name");
+            metadata.put("session_id", "usr.session_id");
+            metadata.put("role", "usr.role");
+            metadata.put("scope", "usr.scope");
+            setUser("usr.id", metadata);
+            ctx.response().end("OK");
+        });
         router.get("/user_login_success_event")
                 .handler(ctx -> {
                     String event_user_id = ctx.request().getParam("event_user_id");
@@ -201,6 +212,26 @@ public class Main {
                     }
                     datadog.trace.api.GlobalTracer.getEventTracker()
                             .trackCustomEvent(event_name, METADATA);
+                    ctx.response().end("ok");
+                });
+        router.post("/user_login_success_event_v2")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final JsonObject body = ctx.getBodyAsJson();
+                    final String login = body.getString("login", "system_tests_login");
+                    final String userId = body.getString("user_id", "system_tests_user_id");
+                    final Map<String, String> metadata = asMetadataMap(body.getJsonObject("metadata"));
+                    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+                    ctx.response().end("ok");
+                });
+        router.post("/user_login_failure_event_v2")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final JsonObject body = ctx.getBodyAsJson();
+                    final String login = body.getString("login", "system_tests_login");
+                    final String exists = body.getString("exists", "true");
+                    final Map<String, String> metadata = asMetadataMap(body.getJsonObject("metadata"));
+                    EventTrackerV2.trackUserLoginFailure(login, Boolean.parseBoolean(exists), metadata);
                     ctx.response().end("ok");
                 });
         router.get("/requestdownstream")
@@ -281,7 +312,7 @@ public class Main {
                     final Session session = ctx.session();
                     final String sdkUser = ctx.request().getParam("sdk_user");
                     EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-                    tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+                    tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
                     ctx.response().end(session.id());
                 });
         router.mountSubRouter("/session", sessionRouter);
@@ -298,6 +329,18 @@ public class Main {
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
         return Stream.of(new RaspRouteProvider(DATA_SOURCE));
+    }
+
+    private static Map<String, String> asMetadataMap(final JsonObject metadata) {
+        if (metadata == null) {
+            return emptyMap();
+        }
+        return metadata.stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().toString()
+
+                ));
     }
 
     private static final Map<String, String> METADATA = createMetadata();
@@ -344,7 +387,7 @@ public class Main {
 
         Map<String, Object> response = new HashMap<>();
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
         response.put("status", "ok");
         response.put("library", library);
@@ -352,8 +395,8 @@ public class Main {
         JsonObject jsonResponse = new JsonObject(response);
 
         context.response()
-            .putHeader("content-type", "application/json")
-            .end(jsonResponse.encode());
+                .putHeader("content-type", "application/json")
+                .end(jsonResponse.encode());
     }
 
     private static Optional<String> getVersion() {

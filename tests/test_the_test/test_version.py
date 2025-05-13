@@ -1,7 +1,7 @@
 import pytest
 import semantic_version as semver
 from utils._decorators import CustomSpec
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -37,38 +37,38 @@ def test_version_comparizon():
 
 
 def test_ruby_version():
-    v = LibraryVersion("ruby", "0.53.0.appsec.180045")
+    v = ComponentVersion("ruby", "0.53.0.appsec.180045")
     assert str(v.version) == "0.53.1-appsec+180045"
 
-    v = LibraryVersion("ruby", "1.0.0.beta1 de82857")
+    v = ComponentVersion("ruby", "1.0.0.beta1 de82857")
     assert v.version == Version("1.0.1-beta1+de82857")
 
-    v = LibraryVersion("ruby", "2.3.0 7dbcc40")
+    v = ComponentVersion("ruby", "2.3.0 7dbcc40")
     assert str(v.version) == "2.3.1-z+7dbcc40"
 
-    assert LibraryVersion("ruby", "1.0.0.beta1") == "ruby@1.0.1-z+beta1"
-    assert LibraryVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.1-beta1+de82857"
+    assert ComponentVersion("ruby", "1.0.0.beta1") == "ruby@1.0.1-z+beta1"
+    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") == "ruby@1.0.1-beta1+de82857"
 
     # very particular use case, because we hack the path for dev versions
-    assert LibraryVersion("ruby", "1.0.0.beta1 de82857") < "ruby@1.0.1"
-    assert LibraryVersion("ruby", "1.0.0.rc1") < "ruby@1.0.1"
+    assert ComponentVersion("ruby", "1.0.0.beta1 de82857") < "ruby@1.0.1"
+    assert ComponentVersion("ruby", "1.0.0.rc1") < "ruby@1.0.1"
 
-    assert LibraryVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.1-dev"
+    assert ComponentVersion("ruby", "2.3.0 7dbcc40") >= "ruby@2.3.1-dev"
 
 
 def test_library_version_comparizon():
-    assert LibraryVersion("x", "1.31.1") < "x@1.34.1"
-    assert LibraryVersion("x", "v1.34.1") > "x@1.31.1"
-    assert LibraryVersion("x", "1.31.1") < LibraryVersion("x", "v1.34.1")
+    assert ComponentVersion("x", "1.31.1") < "x@1.34.1"
+    assert ComponentVersion("x", "v1.34.1") > "x@1.31.1"
+    assert ComponentVersion("x", "1.31.1") < ComponentVersion("x", "v1.34.1")
 
-    assert LibraryVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
-    assert LibraryVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
+    assert ComponentVersion("python", "1.1.0rc2.dev15+gc41d325d") >= "python@1.1.0rc2.dev"
+    assert ComponentVersion("python", "1.1.0") > "python@1.1.0rc2.dev"
 
-    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
-    assert LibraryVersion("python", "2.1.0-dev") < "python@2.1.0"
+    assert ComponentVersion("python", "2.1.0-dev") < "python@2.1.0.dev83+gac1037728"
+    assert ComponentVersion("python", "2.1.0-dev") < "python@2.1.0"
 
-    assert LibraryVersion("nodejs", "6.0.0-pre") > "nodejs@5.0.0"
-    assert LibraryVersion("nodejs", "5.0.0") <= "nodejs@6.0.0-pre"
+    assert ComponentVersion("nodejs", "6.0.0-pre") > "nodejs@5.0.0"
+    assert ComponentVersion("nodejs", "5.0.0") <= "nodejs@6.0.0-pre"
 
 
 def test_spec():
@@ -90,32 +90,32 @@ def test_spec():
 
 
 def test_version_serialization():
-    assert LibraryVersion("cpp", "v1.3.1") == "cpp@1.3.1"
+    assert ComponentVersion("cpp", "v1.3.1") == "cpp@1.3.1"
 
-    v = LibraryVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
+    v = ComponentVersion("libddwaf", "* libddwaf (1.0.14.1.0.beta1)")
     assert v.version == Version("1.0.14.1.0.beta1")
     assert v.version == "1.0.14+1.0.beta1"
 
-    v = LibraryVersion("php", "1.0.0-nightly")
-    assert v.version == "1.0.0"
+    v = ComponentVersion("php", "1.0.0-nightly")
+    assert v.version == "1.0.0-nightly"
 
-    v = LibraryVersion("nodejs", "3.0.0-pre0")
+    v = ComponentVersion("nodejs", "3.0.0-pre0")
     assert v.version == "3.0.0-pre0"
 
-    v = LibraryVersion("agent", "7.43.1-beta-cache-hit-ratio")
+    v = ComponentVersion("agent", "7.43.1-beta-cache-hit-ratio")
     assert v.version == "7.43.1-beta-cache-hit-ratio"
 
-    v = LibraryVersion("agent", "7.50.0-dbm-oracle-0.1")
+    v = ComponentVersion("agent", "7.50.0-dbm-oracle-0.1")
     assert str(v.version) == "7.50.0-dbm-oracle-0.1"
 
 
 def test_agent_version():
-    v = LibraryVersion("agent", "7.54.0-installer-0.0.7+git.106.b0943ad")
+    v = ComponentVersion("agent", "7.54.0-installer-0.0.7+git.106.b0943ad")
     assert v == "agent@7.54.0-installer-0.0.7+git.106.b0943ad"
 
 
 def test_in_operator():
-    v = LibraryVersion("p", "1.0")
+    v = ComponentVersion("p", "1.0")
 
     assert v in ("p@1.0", "p@1.1")
     assert v not in ("p@1.1", "p@1.2")
@@ -123,11 +123,11 @@ def test_in_operator():
 
 
 def test_library_version():
-    v = LibraryVersion("p")
+    v = ComponentVersion("p")
     assert v == "p"
     assert v != "u"
 
-    v = LibraryVersion("p", "1.0")
+    v = ComponentVersion("p", "1.0")
 
     assert v == "p@1.0"
     assert v == "p"
@@ -156,22 +156,46 @@ def test_library_version():
     assert (v >= "u@1.0") is False
     assert (v <= "u@1.0") is False
 
-    v = LibraryVersion("p")
+    v = ComponentVersion("p")
 
     assert (v == "u@1.0") is False
     assert (v >= "u@1.0") is False
 
-    v = LibraryVersion("python", "0.53.0.dev70+g494e6dc0")
+    v = ComponentVersion("python", "0.53.0.dev70+g494e6dc0")
     assert v == "python@0.53.0.dev70+g494e6dc0"
 
-    v = LibraryVersion("java", "0.94.1~dde6877139")
-    assert v == "java@0.94.1"
+    v = ComponentVersion("java", "0.94.1~dde6877139")
+    assert v == "java@0.94.1+dde6877139"
     assert v >= "java@0.94.1"
     assert v < "java@0.94.2"
 
-    v = LibraryVersion("java", "0.94.0-SNAPSHOT~57664cfbe5")
-    assert v == "java@0.94.0"
-    assert v >= "java@0.94.0"
+    v = ComponentVersion("java", "0.94.0-SNAPSHOT~57664cfbe5")
+    assert v == "java@0.94.0-SNAPSHOT+57664cfbe5"
+    assert v < "java@0.94.0"
     assert v < "java@0.94.1"
 
-    assert LibraryVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+    assert ComponentVersion("agent", "7.39.0-devel") == "agent@7.39.0-devel"
+
+
+def test_php_version():
+    v1 = ComponentVersion("php", "1.8.9")
+    v2 = ComponentVersion("php", "1.9.0-prerelease")
+    v3 = ComponentVersion("php", "1.9.0")
+    v4 = ComponentVersion("php", "1.9.0+7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")
+
+    assert v3 == "php@v1.9.0"
+
+    assert v1 < v2
+    assert v1 < v3
+    assert v2 < v3
+    assert v3 <= v4
+
+    # PHP may use a `-` to separate the version from the build
+    # system-tests then replace the `-` with a `+`
+    v5 = ComponentVersion("php", "1.9.0-7ab1806dec09cbf6e7079ac59453b79fc5e9c91f")  # hacked
+    assert str(v5.version) == "1.9.0+7ab1806dec09cbf6e7079ac59453b79fc5e9c91f"
+    assert v3 <= v5
+
+    # but legit pre-release names are kept untouched
+    assert str(ComponentVersion("php", "1.9.0-prerelease").version) == "1.9.0-prerelease"
+    assert str(ComponentVersion("php", "1.9.0-dev").version) == "1.9.0-dev"

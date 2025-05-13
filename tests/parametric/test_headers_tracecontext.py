@@ -7,7 +7,6 @@
 # 3. Neither the name of the W3C nor the names of its contributors may be used to endorse or promote products derived from this work without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from typing import Any
 
 import pytest
 
@@ -18,7 +17,7 @@ from utils import missing_feature, context, scenarios, features
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_optin_tracecontext() -> Any:
+def temporary_enable_optin_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
@@ -26,7 +25,7 @@ def temporary_enable_optin_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def temporary_enable_optin_tracecontext_single_key() -> Any:
+def temporary_enable_optin_tracecontext_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
     }
@@ -746,6 +745,61 @@ class Test_Headers_Tracecontext:
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
             assert f"p:{int(span.span_id):016x}" in tracestate
+
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
+    def test_tracestate_w3c_p_extract_and_inject(self, test_agent, test_library):
+        """Ensure the last parent id is propagated according to the W3C spec"""
+        with test_library:
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_set",
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                ],
+            ) as s1:
+                headers1 = test_library.dd_inject_headers(s1.span_id)
+
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_invalid",
+                [
+                    ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
+                ],
+            ) as s2:
+                headers2 = test_library.dd_inject_headers(s2.span_id)
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        assert len(traces) == 2
+        case1, case2 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+        )
+        tracestate_headers1 = list(filter(lambda h: h[0].lower() == "tracestate", headers1))
+        tracestate_headers2 = list(filter(lambda h: h[0].lower() == "tracestate", headers2))
+
+        assert case1["name"] == "p_set"
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        assert len(tracestate_headers1) == 1
+        tracestate1 = tracestate_headers1[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s1.span_id):016x}" in tracestate1
+
+        assert case2["name"] == "p_invalid"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X"
+
+        assert len(tracestate_headers2) == 1
+        tracestate2 = tracestate_headers2[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s2.span_id):016x}" in tracestate2
 
     @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")

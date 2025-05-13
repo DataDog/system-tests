@@ -3,10 +3,24 @@ from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 
 
-class BaseFullDenyListTest:
-    states = None
+def find_series(request_type: str, namespace: str, metrics: list[str]) -> list:
+    series = []
+    for data in interfaces.library.get_telemetry_data():
+        content = data["request"]["content"]
+        if content.get("request_type") != request_type:
+            continue
+        fallback_namespace = content["payload"].get("namespace")
+        for serie in content["payload"]["series"]:
+            computed_namespace = serie.get("namespace", fallback_namespace)
+            if computed_namespace == namespace and serie["metric"] in metrics:
+                series.append(serie)
+    return series
 
-    def setup_scenario(self):
+
+class BaseFullDenyListTest:
+    states: remote_config.RemoteConfigStateResults | None = None
+
+    def setup_scenario(self) -> None:
         # Generate the list of 100 * 125 = 12500 blocked ips that are found in the
         # file rc_mocked_responses_asm_data_full_denylist.json
         # to edit or generate a new rc mocked response, use the DataDog/rc-tracer-client-test-generator repository
@@ -36,10 +50,11 @@ class BaseFullDenyListTest:
         self.states = BaseFullDenyListTest.states
         self.blocked_ips = [blocked_ips[0], blocked_ips[2500], blocked_ips[-1]]
 
-    def assert_protocol_is_respected(self):
+    def assert_protocol_is_respected(self) -> None:
+        assert self.states is not None
         interfaces.library.assert_rc_targets_version_states(targets_version=0, config_states=[])
         interfaces.library.assert_rc_targets_version_states(
-            targets_version=self.states[remote_config.RC_VERSION],
+            targets_version=self.states.version,
             config_states=[
                 {
                     "id": "ASM_DATA-base",

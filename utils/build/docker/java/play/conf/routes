@@ -14,9 +14,12 @@ POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
 GET  /users                    controllers.AppSecController.users(user: String)
+GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
 GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_user_id: Option[String], event_user_exists: Option[Boolean])
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
+POST  /user_login_success_event_v2   controllers.AppSecController.loginSuccessV2
+POST  /user_login_failure_event_v2   controllers.AppSecController.loginFailureV2
 GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                 controllers.RaspController.lfi

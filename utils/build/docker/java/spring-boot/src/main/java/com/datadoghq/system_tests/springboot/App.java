@@ -19,15 +19,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.google.protobuf.DescriptorProtos;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
@@ -87,6 +91,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
@@ -119,11 +124,14 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import proto_message.Message;
 
 import static com.mongodb.client.model.Filters.eq;
+import static datadog.appsec.api.user.User.setUser;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
+import static java.util.Collections.emptyMap;
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -165,7 +173,7 @@ public class App {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -243,7 +251,7 @@ public class App {
     @GetMapping(value = "/session/user")
     ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
         EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
         return ResponseEntity.ok(request.getRequestedSessionId());
     }
 
@@ -273,6 +281,18 @@ public class App {
         return "Hello " + user;
     }
 
+    @GetMapping("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
+    }
+
     @GetMapping("/user_login_success_event")
     public String userLoginSuccess(
             @RequestParam(value = "event_user_id", defaultValue = "system_tests_user") String userId) {
@@ -298,6 +318,26 @@ public class App {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackCustomEvent(eventName, METADATA);
 
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_success_event_v2")
+    public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_failure_event_v2")
+    public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
         return "ok";
     }
 
@@ -732,6 +772,33 @@ public class App {
             return "unknown integration: " + integration;
         }
         return "ok";
+    }
+
+    @RequestMapping("/inferred-proxy/span-creation")
+    ResponseEntity<String> inferredProxySpanCheck(
+        @RequestParam(required = false, name = "status_code") String statusCodeParam,
+        final HttpServletRequest request
+    ) {
+        // Default status code
+        int statusCode = 200;
+
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400; // Bad request if parsing fails
+            }
+        }
+
+        // Log request headers
+        System.out.println("Received an API Gateway request:");
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String header = headerNames.nextElement();
+            System.out.println(header + ": " + request.getHeader(header));
+        }
+
+        return ResponseEntity.status(statusCode).body("ok");
     }
 
     @RequestMapping("/dsm/inject")
@@ -1214,6 +1281,34 @@ public class App {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
 
+    @GetMapping("/protobuf/serialize")
+    public ResponseEntity<String> protobufSerialize() {
+        // the content of the message does not really matter since it's the schema that is observed.
+        Message.AddressBook msg = Message.AddressBook.newBuilder()
+                .setCentral(Message.PhoneNumber.newBuilder()
+                        .setNumber("0123")
+                        .setType(Message.PhoneType.WORK))
+                .build();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            msg.writeTo(stream);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+
+        return ResponseEntity.ok(Base64.getEncoder().encodeToString(stream.toByteArray()));
+    }
+
+    @GetMapping("/protobuf/deserialize")
+    public ResponseEntity<String> protobufDeserialize(@RequestParam("msg") final String b64Message) {
+        try {
+            byte[] rawBytes = Base64.getDecoder().decode(b64Message);
+            Message.AddressBook.parseFrom(rawBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.toString());
+        }
+        return ResponseEntity.ok("ok");
+    }
 
     @Bean
     @ConditionalOnProperty(

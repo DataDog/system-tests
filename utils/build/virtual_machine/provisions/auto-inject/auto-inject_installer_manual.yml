@@ -16,7 +16,7 @@
     fi
 
     # Environment variables for the installer
-    export DD_APM_INSTRUMENTATION_ENABLED=all
+    export DD_APM_INSTRUMENTATION_ENABLED=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
     export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
@@ -76,7 +76,7 @@
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-
+    for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
 - os_type: windows
   remote-command: |
     Set-ExecutionPolicy Bypass -Scope Process -Force;

@@ -5,23 +5,27 @@
 """Validate data flow between agent and backend"""
 
 import json
+from http import HTTPStatus
 import os
 import time
 
 import requests
 
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.tools import logger, get_rid_from_span, get_rid_from_request
+from utils.interfaces._library.core import LibraryInterfaceValidator
+from utils.tools import get_rid_from_span
+from utils._logger import logger
+from utils._weblog import HttpResponse
 
 
 class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     """Validate backend data processors"""
 
-    def __init__(self, library_interface):
+    def __init__(self, library_interface: LibraryInterfaceValidator):
         super().__init__("backend")
 
         # Mapping from request ID to the root span trace IDs submitted from tracers to agent.
-        self.rid_to_library_trace_ids = {}
+        self.rid_to_library_trace_ids: dict[str | None, list[int]] = {}
         self.dd_site_url = self._get_dd_site_api_host()
         self.message_count = 0
 
@@ -53,7 +57,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         return dd_app_url
 
     # Called by the test setup to make sure the interface is ready.
-    def wait(self, timeout):
+    def wait(self, timeout: int):
         super().wait(timeout)
         self._init_rid_to_library_trace_ids()
 
@@ -75,7 +79,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     ######### API for tests #########
     #################################
 
-    def assert_library_traces_exist(self, request, min_traces_len=1):
+    def assert_library_traces_exist(self, request: HttpResponse, min_traces_len: int = 1):
         """Attempts to fetch from the backend, ALL the traces that the library tracers sent to the agent
         during the execution of the given request.
 
@@ -87,7 +91,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of traces.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         traces_data = list(self._wait_for_request_traces(rid))
         traces = [self._extract_trace_from_backend_response(data["response"]) for data in traces_data]
         assert (
@@ -96,7 +100,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         return traces
 
     def assert_otlp_trace_exist(
-        self, request: requests.Request, dd_trace_id: str, dd_api_key: str | None = None, dd_app_key: str | None = None
+        self, request: HttpResponse, dd_trace_id: int, dd_api_key: str | None = None, dd_app_key: str | None = None
     ) -> dict:
         """Attempts to fetch from the backend, ALL the traces that the OpenTelemetry SDKs sent to Datadog
         during the execution of the given request.
@@ -106,7 +110,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         that case you need to manually propagate the user agent to the new spans.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         data = self._wait_for_trace(
             rid=rid,
             trace_id=dd_trace_id,
@@ -117,7 +121,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         )
         return data["response"]["content"]["trace"]
 
-    def assert_single_spans_exist(self, request, min_spans_len=1, limit=100):
+    def assert_single_spans_exist(self, request: HttpResponse, min_spans_len: int = 1, limit: int = 100):
         """Attempts to fetch single span events using the given `query_filter` as part of the search query.
         The query should be what you would use in the `/apm/traces` page in the UI.
 
@@ -128,11 +132,13 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of span events.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         query_filter = f"service:weblog @single_span:true @http.useragent:*{rid}"
         return self.assert_request_spans_exist(request, query_filter, min_spans_len, limit)
 
-    def assert_request_spans_exist(self, request, query_filter, min_spans_len=1, limit=100, retries=5):
+    def assert_request_spans_exist(
+        self, request: HttpResponse, query_filter: str, min_spans_len: int = 1, limit: int = 100, retries: int = 5
+    ):
         """Attempts to fetch span events from the Event Platform using the given `query_filter`
         as part of the search query. The query should be what you would use in the `/apm/traces`
         page in the UI. When a valid request is provided we will restrict the span search to span
@@ -142,13 +148,13 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         returning the list of span events.
         """
 
-        rid = get_rid_from_request(request)
+        rid = request.get_rid()
         if rid:
             query_filter = f"{query_filter} @http.useragent:*{rid}"
 
         return self.assert_spans_exist(query_filter, min_spans_len, limit, retries)
 
-    def assert_spans_exist(self, query_filter, min_spans_len=1, limit=100, retries=5):
+    def assert_spans_exist(self, query_filter: str, min_spans_len: int = 1, limit: int = 100, retries: int = 5):
         """Attempts to fetch span events from the Event Platform using the given `query_filter`
         as part of the search query. The query should be what you would use in the `/apm/traces`
         page in the UI.
@@ -169,13 +175,21 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
     ######### Internal implementation ##########
     ############################################
 
-    def _get_trace_ids(self, rid):
+    def _get_trace_ids(self, rid: str):
         if rid not in self.rid_to_library_trace_ids:
             raise ValueError("There is no trace id related to this request ")
 
         return self.rid_to_library_trace_ids[rid]
 
-    def _request(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
+    def _request(
+        self,
+        method: str,
+        path: str,
+        host: str | None = None,
+        json_payload: dict | None = None,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+    ):
         while True:
             data = self._request_one(
                 method=method,
@@ -186,7 +200,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 dd_app_key=dd_app_key,
             )
             status_code = data["response"]["status_code"]
-            if status_code == 429:
+            if status_code == HTTPStatus.TOO_MANY_REQUESTS:
                 # https://docs.datadoghq.com/api/latest/rate-limits/
                 logger.debug(f"Got rate limit error: {data['response']}")
                 sleep_time_s = int(data["response"]["headers"]["x-ratelimit-reset"])
@@ -195,11 +209,23 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 continue
             return data
 
-    def _request_one(self, method, path, host=None, json_payload=None, dd_api_key=None, dd_app_key=None):
+    def _request_one(
+        self,
+        method: str,
+        path: str,
+        host: str | None = None,
+        json_payload: dict | None = None,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+    ):
         if dd_api_key is None:
-            dd_api_key = os.environ["DD_API_KEY"]
+            dd_api_key = os.environ.get("DD_API_KEY")
         if dd_app_key is None:
-            dd_app_key = os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"])
+            dd_app_key = os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY"))
+
+        assert dd_api_key is not None, "DD_API_KEY environment variable is not set"
+        assert dd_app_key is not None, "DD_APP_KEY environment variable is not set"
+
         headers = {
             "DD-API-KEY": dd_api_key,
             "DD-APPLICATION-KEY": dd_app_key,
@@ -209,7 +235,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             host = self.dd_site_url
         r = requests.request(method, url=f"{host}{path}", headers=headers, json=json_payload, timeout=10)
 
-        if r.status_code == 403:
+        if r.status_code == HTTPStatus.FORBIDDEN:
             raise ValueError(
                 "Request to the backend returned error 403: check DD_API_KEY and DD_APP_KEY environment variables"
             )
@@ -218,35 +244,46 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             path, query = path.split("?", 1)
         else:
             query = ""
+
+        try:
+            response_content = r.json()
+        except:
+            response_content = r.text
+
         data = {
             "host": host,
             "path": path,
             "query": query,
             "request": {"content": json_payload},
-            "response": {"status_code": r.status_code, "content": r.content, "headers": dict(r.headers)},
+            "response": {"status_code": r.status_code, "content": response_content, "headers": dict(r.headers)},
             "log_filename": f"{self.log_folder}/{self.message_count:03d}_{path.replace('/', '_')}.json",
         }
         self.message_count += 1
 
-        try:
-            data["response"]["content"] = r.json()
-        except:
-            data["response"]["content"] = r.text
-
-        with open(data["log_filename"], mode="w", encoding="utf-8") as f:
+        with open(str(data["log_filename"]), mode="w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
 
         return data
 
-    def _get_backend_trace_data(self, rid, trace_id, dd_api_key=None, dd_app_key=None):
+    def _get_backend_trace_data(
+        self, rid: str, trace_id: int, dd_api_key: str | None = None, dd_app_key: str | None = None
+    ):
         path = f"/api/v1/trace/{trace_id}"
         result = self._request("GET", path=path, dd_api_key=dd_api_key, dd_app_key=dd_app_key)
         result["rid"] = rid
 
         return result
 
-    def _wait_for_trace(self, rid, trace_id, retries, sleep_interval_multiplier, dd_api_key=None, dd_app_key=None):
-        sleep_interval_s = 1
+    def _wait_for_trace(
+        self,
+        rid: str,
+        trace_id: int,
+        retries: int,
+        sleep_interval_multiplier: float,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+    ):
+        sleep_interval_s = 1.0
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Retry {current_retry}")
@@ -256,9 +293,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code not in (404, 200):
+            if status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.OK):
                 raise ValueError(f"Backend did not provide trace: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 return data
 
             logger.debug(f"Sleeping {sleep_interval_s} seconds")
@@ -269,7 +306,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             f"Backend did not provide trace after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
-    def _wait_for_request_traces(self, rid, retries=5, sleep_interval_multiplier=2.0):
+    def _wait_for_request_traces(self, rid: str, retries: int = 5, sleep_interval_multiplier: float = 2.0):
         trace_ids = self._get_trace_ids(rid)
         logger.info(
             f"Waiting for {len(trace_ids)} traces to become available from request {rid} with {retries} retries..."
@@ -280,19 +317,21 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             )
             yield self._wait_for_trace(rid, trace_id, retries, sleep_interval_multiplier)
 
-    def _extract_trace_from_backend_response(self, response):
+    def _extract_trace_from_backend_response(self, response: dict):
         trace = response["content"].get("trace")
         if not trace:
             raise ValueError(f"The response does not contain valid trace content:\n{json.dumps(response, indent=2)}")
 
         return trace
 
-    def _wait_for_event_platform_spans(self, query_filter, limit, retries=5, sleep_interval_multiplier=2.0):
+    def _wait_for_event_platform_spans(
+        self, query_filter: str, limit: int, retries: int = 5, sleep_interval_multiplier: float = 2.0
+    ):
         logger.info(
             f"Waiting until spans (non-empty response) become available with "
             f"query '{query_filter}' with {retries} retries..."
         )
-        sleep_interval_s = 1
+        sleep_interval_s = 1.0
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Retry {current_retry}")
@@ -302,7 +341,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             # We should retry fetching from the backend as long as the response has empty data.
             status_code = data["response"]["status_code"]
-            if status_code != 200:
+            if status_code != HTTPStatus.OK:
                 raise ValueError(f"Fetching spans from Event Platform failed: {data['path']}. Status is {status_code}.")
 
             parsed = data["response"]["content"]
@@ -315,7 +354,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         # We always try once so `data` should have not be None.
         return data
 
-    def _get_event_platform_spans(self, query_filter, limit):
+    def _get_event_platform_spans(self, query_filter: str, limit: int):
         # Example of this query can be seen in the `events-ui` internal website (see Jira ATI-2419).
         path = "/api/unstable/event-platform/analytics/list?type=trace"
 
@@ -344,15 +383,15 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         start: int,
         end: int,
         metric: str,
-        dd_api_key=None,
-        dd_app_key=None,
-        retries=12,
-        sleep_interval_multiplier=2.0,
-        initial_delay_s=10.0,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+        retries: int = 12,
+        sleep_interval_multiplier: float = 2.0,
+        initial_delay_s: float = 10.0,
     ):
         query = metric + "{rid:" + rid + "}"
         path = f"/api/v1/query?from={start}&to={end}&query={query}"
-        sleep_interval_s = 1
+        sleep_interval_s = 1.0
         current_retry = 1
         # It takes very long for metric timeseries to be query-able.
         time.sleep(initial_delay_s)
@@ -364,9 +403,9 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             )
             # We should retry fetching from the backend as long as the response is 404.
             status_code = data["response"]["status_code"]
-            if status_code not in (404, 200):
+            if status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.OK):
                 raise ValueError(f"Backend did not provide metric: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 resp_content = data["response"]["content"]
                 # There may be delay in metric query, retry when series are not present
                 if len(resp_content["series"]) > 0:
@@ -381,10 +420,16 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
     # Queries the backend log search API and returns the log matching the given query.
     def get_logs(
-        self, query: str, rid: str, dd_api_key=None, dd_app_key=None, retries=10, sleep_interval_multiplier=2.0
+        self,
+        query: str,
+        rid: str,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+        retries: int = 10,
+        sleep_interval_multiplier: float = 2.0,
     ):
         path = f"/api/v2/logs/events?query={query}"
-        sleep_interval_s = 1
+        sleep_interval_s = 1.0
         current_retry = 1
         while current_retry <= retries:
             logger.info(f"Getting logs from {path}, retry {current_retry}")
@@ -397,7 +442,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             if status_code not in (404, 200):
                 logger.error(f"Backend response: {data['response']}")
                 raise ValueError(f"Backend did not provide logs: {data['path']}. Status is {status_code}.")
-            if status_code != 404:
+            if status_code != HTTPStatus.NOT_FOUND:
                 logs = data["response"]["content"]["data"]
                 # Log search can sometimes return wrong results. Retry if expected log is not present.
                 for log in logs:

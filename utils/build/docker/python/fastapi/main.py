@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import typing
@@ -105,7 +106,7 @@ async def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -674,6 +675,36 @@ async def login(request: Request):
     return PlainTextResponse("login failure", status_code=401)
 
 
+@app.post("/user_login_success_event_v2", response_class=PlainTextResponse)
+async def user_login_success_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
+@app.post("/user_login_failure_event_v2", response_class=PlainTextResponse)
+async def user_login_failure_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
 MAGIC_SESSION_KEY = "random_session_id"
 
 
@@ -867,21 +898,14 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-
-    subp = subprocess.Popen(args=[cmd, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.system(cmd + " -la " + filename)
     return "OK"
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])  # noqa F841
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return "OK"
 
 

@@ -14,7 +14,7 @@ import (
 )
 
 type DatadogInformations struct {
-	Language string `json:"language"`
+	Name string `json:"name"`
 	Version  string `json:"version"`
 }
 
@@ -86,7 +86,7 @@ func GetDatadogInformations() (DatadogInformations, error) {
 	}
 
 	return DatadogInformations{
-		Language: "golang",
+		Name: "golang",
 		Version:  string(tracerVersion),
 	}, nil
 }

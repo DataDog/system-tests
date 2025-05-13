@@ -1,5 +1,4 @@
-from utils import scenarios, features, context
-from utils.tools import logger
+from utils import scenarios, features, context, logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 
@@ -11,7 +10,7 @@ class TestLanguageVersionNotSupported:
 
     def test_app_working(self):
         """Test app is working."""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         vm_name = virtual_machine.name

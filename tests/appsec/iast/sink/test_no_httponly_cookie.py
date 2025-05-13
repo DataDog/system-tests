@@ -29,7 +29,7 @@ class TestNoHttponlyCookie(BaseSinkTest):
         super().test_secure()
 
     def setup_empty_cookie(self):
-        self.request_empty_cookie = weblog.get("/iast/no-httponly-cookie/test_empty_cookie", data={})
+        self.request_empty_cookie = weblog.get("/iast/no-httponly-cookie/test_empty_cookie")
 
     def test_empty_cookie(self):
         self.assert_no_iast_event(self.request_empty_cookie)

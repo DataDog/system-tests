@@ -2,25 +2,24 @@ from __future__ import annotations
 
 import json
 
-from utils.buddies import java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.tools import logger
+from utils.buddies import java_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
 
 
 class _BaseRabbitMQ:
     """Test RabbitMQ compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    WEBLOG_TO_BUDDY_EXCHANGE = None
-    BUDDY_TO_WEBLOG_EXCHANGE = None
-    BUDDY_TO_WEBLOG_ROUTING_KEY = None
-    WEBLOG_TO_BUDDY_ROUTING_KEY = None
-    buddy = None
-    buddy_interface = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    WEBLOG_TO_BUDDY_EXCHANGE: str
+    BUDDY_TO_WEBLOG_EXCHANGE: str
+    BUDDY_TO_WEBLOG_ROUTING_KEY: str
+    WEBLOG_TO_BUDDY_ROUTING_KEY: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, exchange, operation):
+    def get_span(cls, interface, span_kind, queue, exchange, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -117,6 +116,8 @@ class _BaseRabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
@@ -183,6 +184,8 @@ class _BaseRabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):

@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datadog.Trace;
 using Microsoft.AspNetCore.Identity;
+using Serilog;
+using Serilog.Formatting.Compact;
 using weblog.IdentityStores;
 using weblog.ModelBinders;
 
@@ -13,6 +15,10 @@ namespace weblog
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSerilog((services, lc) => lc
+                .Enrich.FromLogContext()
+                .WriteTo.Console(new CompactJsonFormatter()));
+
             services.AddSession();
             services.AddRazorPages();
             services.AddControllers(options =>

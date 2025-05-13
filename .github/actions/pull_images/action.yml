@@ -57,6 +57,12 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
+#retry
     - name: Pull
-      shell: bash
-      run: docker compose pull
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+      with:
+        shell: bash
+        command: docker compose pull
+        timeout_minutes: 10
+        retry_wait_seconds: 10
+        max_attempts: 3

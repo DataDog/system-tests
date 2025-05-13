@@ -102,7 +102,12 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-    result_pipeline["include"] = pipeline_data["include"]
+
+    result_pipeline["include"] = [
+        {
+            "remote": "https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml"
+        }
+    ]
 
     if (
         not matrix_data["aws_ssi_scenario_defs"]
@@ -204,7 +209,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 result_pipeline[vm_job]["stage"] = scenario
                 result_pipeline[vm_job]["extends"] = ".base_docker_ssi_job"
                 result_pipeline[vm_job]["tags"] = [
-                    f"runner:{'docker' if architecture == 'linux/amd64' else 'docker-arm'}"
+                    f"{'docker-in-docker:amd64' if architecture == 'linux/amd64' else 'runner:docker-arm'}"
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}

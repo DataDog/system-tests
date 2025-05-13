@@ -3,7 +3,7 @@ Whether it's adding a new test or modifying an existing test, a moderate amount 
 Once the changes are complete, post them in a PR.
 
 #### Notes
-* Each test class tests only one feature
+* Each test class tests only one feature (see [the doc on features](https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md))
 * A test class can have several tests
 * If an RFC for the feature exists, you must use the decorator `rfc` decorator:
 ```python
@@ -41,7 +41,7 @@ class Test_Feature():
 
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        interfaces.library.validate_spans(self.r, validator=lamda span: span["meta"]["http.method"] == "GET")
 ```
 
 Sometimes you need to [skip a test](./skip-tests.md):
@@ -58,7 +58,7 @@ class Test_Feature():
     @bug(library="ruby", reason="APPSEC-123")
     def test_feature_detail(self):
         """ tests an awesome feature """
-        interfaces.library.validate_spans(self.r, lamda span: span["meta"]["http.method"] == "GET")
+        interfaces.library.validate_spans(self.r, validator=lamda span: span["meta"]["http.method"] == "GET")
 ```
 
 You'll need to build the images at least once, so if you haven't yet, run the `build` command. After the first build, you can just re-run the tests using the `run` command.

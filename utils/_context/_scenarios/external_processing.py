@@ -2,27 +2,29 @@ import pytest
 
 from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
 from utils import interfaces
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 
-from utils.tools import logger
+from utils._logger import logger
 
-from .endtoend import DockerScenario, ScenarioGroup
+from .core import scenario_groups
+from .endtoend import DockerScenario
 
 
 class ExternalProcessingScenario(DockerScenario):
     def __init__(
         self,
-        name,
-        doc,
+        name: str,
+        doc: str,
         *,
-        extproc_env=None,
-        extproc_volumes=None,
-        rc_api_enabled=False,
+        extproc_env: dict[str, str | None] | None = None,
+        extproc_volumes: dict[str, dict[str, str]] | None = None,
+        rc_api_enabled: bool = False,
     ) -> None:
         super().__init__(
             name,
             doc=doc,
             github_workflow="externalprocessing",
-            scenario_groups=[ScenarioGroup.END_TO_END, ScenarioGroup.EXTERNAL_PROCESSING],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
@@ -44,14 +46,14 @@ class ExternalProcessingScenario(DockerScenario):
         self._required_containers.append(self._envoy_container)
         self._required_containers.append(self._http_app_container)
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
 
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.agent.configure(self.host_log_folder, self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-    def _start_interfaces_watchdog(self, _=None):
-        super()._start_interfaces_watchdog([interfaces.library, interfaces.agent])
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")
@@ -102,7 +104,7 @@ class ExternalProcessingScenario(DockerScenario):
             self._agent_container.stop()
             interfaces.agent.check_deserialization_errors()
 
-    def _wait_interface(self, interface, timeout):
+    def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 

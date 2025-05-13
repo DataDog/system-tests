@@ -9,7 +9,6 @@ from utils import (
     features,
     bug,
     missing_feature,
-    irrelevant,
     context,
 )
 
@@ -125,9 +124,9 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
 
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request("/debugger/pii")
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
     def _assert(self, redacted_keys, redacted_types, *, line_probe=False):
@@ -207,12 +206,14 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
     def setup_pii_redaction_method_full(self):
         self._setup()
 
-    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
-    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted", force_skip=True)
+    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted", force_skip=True)
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "ruby", reason="Local variable capture not implemented for method probes")
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented")
+    @missing_feature(
+        context.library == "ruby", reason="Local variable capture not implemented for method probes", force_skip=True
+    )
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_pii_redaction_method_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES)
 
@@ -222,36 +223,3 @@ class Test_Debugger_PII_Redaction(debugger.BaseDebuggerTest):
 
     def test_pii_redaction_line_full(self):
         self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
-
-    ############ old versions ############
-
-    def setup_pii_redaction_java_1_33(self):
-        self._setup()
-
-    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
-    def test_pii_redaction_java_1_33(self):
-        self._assert(
-            filter(
-                [
-                    "address",
-                    "connectionstring",
-                    "connectsid",
-                    "geolocation",
-                    "ipaddress",
-                    "oauthtoken",
-                    "secretkey",
-                    "xsrf",
-                ]
-            ),
-            REDACTED_TYPES,
-        )
-
-    def setup_pii_redaction_dotnet_2_50(self):
-        self._setup()
-
-    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
-    @bug(
-        context.weblog_variant == "uds" and context.library == "dotnet@2.50.0", reason="APMRP-360"
-    )  # bug with UDS protocol on this version
-    def test_pii_redaction_dotnet_2_50(self):
-        self._assert(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)

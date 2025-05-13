@@ -1,10 +1,16 @@
 package com.datadoghq.jersey;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.utils.*;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -27,6 +33,7 @@ import java.util.List;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -69,7 +76,7 @@ public class MyResource {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -224,6 +231,19 @@ public class MyResource {
     }
 
     @GET
+    @Path("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
+    }
+
+    @GET
     @Path("/user_login_success_event")
     @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
     public String userLoginSuccess(@DefaultValue("system_tests_user") @QueryParam("event_user_id") String userId) {
@@ -251,6 +271,46 @@ public class MyResource {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @POST
+    @Path("/user_login_success_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
+    public String userLoginSuccessV2(final JsonValue body) {
+        final JsonObject data = body.asJsonObject();
+        final String login = data.getString("login");
+        final String userId = data.getString("user_id");
+        final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
+        EventTrackerV2.trackUserLoginSuccess(login, userId, meta);
+        return "<html><body>ok</body></html>";
+    }
+
+    @POST
+    @Path("/user_login_failure_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
+    public String userLoginFailureV2(final JsonValue body) {
+        final JsonObject data = body.asJsonObject();
+        final String login = data.getString("login");
+        final boolean exists = Boolean.parseBoolean(data.getString("exists"));
+        final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
+        EventTrackerV2.trackUserLoginFailure(login, exists, meta);
+        return "<html><body>ok</body></html>";
+    }
+
+    private static Map<String, String> asMap(final JsonObject object) {
+        if (object == null) {
+            return emptyMap();
+        }
+        return object.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+            final JsonValue value = e.getValue();
+            if (value instanceof JsonString) {
+                return ((JsonString) value).getString();
+            } else {
+                return value.toString();
+            }
+        }));
     }
 
     @XmlRootElement(name = "string")

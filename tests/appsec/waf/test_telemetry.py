@@ -1,5 +1,4 @@
-from utils import bug, context, interfaces, features, rfc, scenarios, weblog
-from utils.tools import logger
+from utils import bug, context, interfaces, features, rfc, scenarios, weblog, logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
@@ -100,12 +99,7 @@ class Test_TelemetryMetrics:
             "rate_limited",
             "input_truncated",
         }
-        mandatory_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-            "rule_triggered",
-            "request_blocked",
-        }
+        mandatory_tag_prefixes = self._get_waf_requests_mandatory_tags()
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         logger.debug(series)
         # Depending on the timing, there might be more than 3 series. For example, if a warmup
@@ -115,6 +109,10 @@ class Test_TelemetryMetrics:
         matched_not_blocked = 0
         matched_triggered = 0
         matched_blocked = 0
+        matched_input_truncated = 0
+        matched_rate_limited = 0
+        matched_block_failure = 0
+
         for s in series:
             assert s["_computed_namespace"] == "appsec"
             assert s["metric"] == expected_metric_name
@@ -140,10 +138,25 @@ class Test_TelemetryMetrics:
             else:
                 raise ValueError(f"Unexpected tags: {full_tags}")
 
+            if "input_truncated:false" in full_tags:
+                matched_input_truncated += 1
+            if "rate_limited:false" in full_tags:
+                matched_rate_limited += 1
+            if "block_failure:false" in full_tags:
+                matched_block_failure += 1
+
         # XXX: Warm up requests might generate more than one series.
         assert matched_not_blocked >= 1
         assert matched_triggered == 1
         assert matched_blocked == 1
+
+        # Assert only if the tags exist in mandatory_tag_prefixes
+        if "input_truncated" in mandatory_tag_prefixes:
+            assert matched_input_truncated >= 3
+        if "rate_limited" in mandatory_tag_prefixes:
+            assert matched_rate_limited >= 3
+        if "block_failure" in mandatory_tag_prefixes:
+            assert matched_block_failure >= 3
 
     setup_waf_requests_match_traced_requests = _setup
 
@@ -195,11 +208,24 @@ class Test_TelemetryMetrics:
         missing_tags = mandatory_prefixes - tag_prefixes
         assert not missing_tags
 
+    def _get_waf_requests_mandatory_tags(self):
+        mandatory_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "rule_triggered",
+            "request_blocked",
+        }
+
+        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0":
+            mandatory_tag_prefixes.update({"block_failure", "rate_limited", "input_truncated"})
+
+        return mandatory_tag_prefixes
+
 
 def _validate_headers(headers, request_type):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
-    expected_language = context.library.library
+    expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
 

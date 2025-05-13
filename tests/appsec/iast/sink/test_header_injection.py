@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, missing_feature, rfc, weblog
+from utils import context, features, missing_feature, rfc, weblog, HttpResponse, bug
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -12,12 +12,12 @@ from tests.appsec.iast.utils import (
 
 
 class _BaseTestHeaderInjectionReflectedExclusion:
-    origin_header: None
-    reflected_header: None
-    headers: None
+    origin_header: str
+    reflected_header: str
+    headers: dict
 
-    exclusion_request: None
-    no_exclusion_request: None
+    exclusion_request: HttpResponse
+    no_exclusion_request: HttpResponse
 
     def setup_no_exclusion(self):
         assert self.origin_header is not None, f"Please set {self}.origin_header"
@@ -134,5 +134,6 @@ class TestHeaderInjection_ExtendedLocation:
     def setup_extended_location_data(self):
         self.r = weblog.post("/iast/header_injection/test_insecure", data={"test": "dummyvalue"})
 
+    @bug(context.library > "python@3.7.0", reason="APPSEC-57552")
     def test_extended_location_data(self):
         validate_extended_location_data(self.r, self.vulnerability_type)

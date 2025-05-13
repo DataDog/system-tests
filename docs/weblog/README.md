@@ -7,7 +7,7 @@ Weblog implementations are located in `utils/docker/`.
 
 ## Disclaimer
 
-This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not passes it, then you must correct it, even if it's in line with this document.
+This document describes endpoints implemented on weblog. Though, it's not a complete description, and can contain mistakes. The source of truth are the test itself. If a weblog endpoint passes system tests, then you can consider it as ok. And if it does not pass it, then you must correct it, even if it's in line with this document.
 
 **You are strongly encouraged to help others by submitting corrections when you notice issues with this document.**
 
@@ -78,7 +78,7 @@ Hello world!\n
 
 ### GET /sample_rate_route/%i
 
-This endpoint must accpect a parameter `i` as an integer.
+This endpoint must accept a parameter `i` as an integer.
 
 The following text may be written to the body of the response:
 
@@ -113,8 +113,8 @@ OK\n
 
 The endpoint may accept two query string parameters:
 
-* `repeats` - this is the number of spans that should be manually created (default `1`). Span must be flatten (not nested)
-* `garbage` - this is the number of tags that should added to each a span (default `1`). Tag must be of the form `garbage{i}: Random string`, `i` starting at `0`
+* `repeats` - this is the number of spans that should be manually created (default `1`). Span must be flattened (not nested)
+* `garbage` - this is the number of tags that should be added to each a span (default `1`). Tag must be of the form `garbage{i}: Random string`, `i` starting at `0`
 
 The following text should be written to the body of the response:
 
@@ -195,9 +195,9 @@ Make sure to specify the Content-Type header as `application/json`
 ```
 /tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
-must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with reponse headers populated with `Content-Language=fr` and `custom_field=myvalue`.
+must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with response headers populated with `Content-Language=fr` and `custom_field=myvalue`.
 
-The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on reponse status code or response header content.
+The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on response status code or response header content.
 
 ### GET /iast/insecure-cookie/test_secure
 
@@ -217,11 +217,11 @@ This endpoint should set a cookie with empty cookie value without Secure flag, I
 
 ### GET /iast/insecure_hashing/deduplicate
 
-Parameterless endpoint. This endpoint contains a vulnerable souce code line (weak hash) in a loop with at least two iterations.
+Parameterless endpoint. This endpoint contains a vulnerable source code line (weak hash) in a loop with at least two iterations.
 
 ### GET /iast/insecure_hashing/multiple_hash
 
-Parameterless endpoint. This endpoint contains 2 different insecure hashing operations (for example md5 and sha1). These operations are located in differents points of the executed source code.
+Parameterless endpoint. This endpoint contains 2 different insecure hashing operations (for example md5 and sha1). These operations are located in different points of the executed source code.
 
 ### GET /iast/insecure_hashing/test_secure_algorithm
 
@@ -305,7 +305,7 @@ A GET request using a header `table` with any value.
 
 #### GET /iast/source/headername/test
 
-A GET request using a header `table` with any value. It will use its name, without it being harded.
+A GET request using a header `table` with any value. It will use its name, without it being hardcoded.
 
 #### GET /iast/source/cookievalue/test
 
@@ -376,14 +376,14 @@ A post request using a parameter with a value that triggers a vulnerability. The
 
 ### GET /make_distant_call
 
-This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should returns a JSON response :
+This endpoint accept a mandatory parameter `url`. It'll make a call to these url, and should return a JSON response :
 
-```json
+```js
 {
-    "url": <url in paramter>,
-    "status_code": <status code of the response>,
-    "request_headers": <request headers as a dict>,
-    "response_headers": <response headers as a dict>,
+    "url": "url",  // url in parameter
+    "status_code": 200, // status code of the response
+    "request_headers": {}, // request headers as a dict
+    "response_headers": {} // response headers as a dict
 }
 ```
 
@@ -589,6 +589,26 @@ By default, the generated event has the following specification:
 
 Values can be changed with the query params called `event_name`.
 
+### POST /user_login_success_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login success with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `user_id`: String with user identifier
+- `metadata`: Objet with the metadata
+
+### POST /user_login_failure_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login failure with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `exists`: String with "true" or "false" value
+- `metadata`: Objet with the metadata
+
 ### GET '/inferred-proxy/span-creation'
 
 This endpoint is supposed to be hit with the necessary headers that are used to create inferred proxy
@@ -773,7 +793,7 @@ Examples:
 ### \[GET\] /rasp/multiple
 The idea of this endpoint is to have an endpoint where multiple rasp operation take place. All of them will generate a MATCH on the WAF but none of them will block. The goal of this endpoint is to verify that the `rasp.rule.match` telemetry entry is updated properly. While this seems easy, the WAF requires that data given on `call` is passed as ephemeral and not as persistent.
 
-In order to make the test easier, the operation used here need to generate LFI matches. The request will have two get parameters(`file1`, `file2`) which will contain a path that needs to be used as the parameters of the choosen lfi function. Then there will be another call to the lfi function with a harcoded parameter `'../etc/passwd'`. This will make `rasp.rule.match` to be equal to 3. A code example look like:
+In order to make the test easier, the operation used here need to generate LFI matches. The request will have two get parameters(`file1`, `file2`) which will contain a path that needs to be used as the parameters of the chosen lfi function. Then there will be another call to the lfi function with a harcoded parameter `'../etc/passwd'`. This will make `rasp.rule.match` to be equal to 3. A code example look like:
 
 ```
 lfi_operation($request->get('file1'))
@@ -782,18 +802,18 @@ lfi_operation('../etc/passwd') //This one is harcoded
 ```
 
 ### GET /dsm/inject
-This endpoint is used to validate DSM context injection injects the correct encoding to a headers carrier.
+This endpoint is used to validate DSM context injection injects the correct encoding to a header carrier.
 
 ### GET /dsm/extract
 This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
 
 ### \[GET,POST\] /requestdownstream
-This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning it's value (the headers received) to inspect them, looking for
+This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning its value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
 ### \[GET\] /vulnerablerequestdownstream
 
-Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and returning return the resulting json data structure from `/returnheaders` in its response.
+Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and return the resulting json data structure from `/returnheaders` in its response.
 
 ### \[GET,POST\] /returnheaders
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
@@ -809,12 +829,12 @@ Returns a JSON dict, with those values :
 
 ```js
 {
-    "status": "ok",
-    "library": {
-      "language": "<language>",  // one of cpp, dotnet, golang, java, nodejs, php, python, ruby
-      "version": "1.2.3"  // version of the library
-    }
+  "status": "ok",
+  "library": {
+    "name": "<library's name>", // one of cpp, cpp_nginx, cpp_httpd, dotnet, golang, java, nodejs, php, python, ruby
+    "version": "1.2.3" // version of the library
   }
+}
 ```
 
 ### \[GET,POST\] /rasp/shi
@@ -929,3 +949,35 @@ stripped (accounting for a quirk in the boto3 library).
 Examples:
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
+
+### \[GET\] /mock_s3/copy_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `original_bucket` query parameter and puts an object at
+the `original_key` query parameter. The body of the object is just the bytes of
+the key, encoded with utf-8. The method then creates another `bucket` if
+necessary and copies the object into the `key` location. Returns a result
+object with an `object` JSON object field containing the `e_tag` field with the
+ETag of the copied object. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /protobuf/serialize
+
+This endpoint serializes a constant protobuf message. Returns the serialized message as a base64 encoded string. It is meant to be used to test the protobuf serialization integration.
+
+Examples:
+- `GET`: `/protobuf/serialize`
+
+### \[GET\] /protobuf/deserialize
+
+This endpoint deserializes a protobuf message from a base64 encoded string provided in the query parameters. Returns "ok" if deserialization is successful. The simplest way to use it is to pass the output of the `/protobuf/serialize` endpoint to it. It is meant to be used to test the protobuf deserialization integration.
+
+Expected query params:
+- `msg`: Base64 encoded protobuf message to deserialize
+
+Examples:
+- `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`

@@ -4,19 +4,19 @@ import os
 from pathlib import Path
 
 
-def _load_json(file_path) -> dict:
+def _load_json(file_path: str) -> dict:
     with open(file_path, "r") as file:
         return json.load(file)
 
 
-def _get_weblog_spec(weblogs_spec, weblog_name) -> dict:
+def _get_weblog_spec(weblogs_spec: list[dict], weblog_name: str) -> dict:
     for entry in weblogs_spec:
         if weblog_name == entry["name"]:
             return entry
     raise ValueError(f"Weblog variant {weblog_name} not found (please aws_ssi.json)")
 
 
-def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Computes the matrix "scenario" - "weblog" - "cluster agent" given a list of scenarios and a language."""
     k8s_ssi = _load_json(k8s_ssi_file)
     cluster_agent_specs = k8s_ssi["cluster_agent_spec"]
@@ -43,7 +43,7 @@ def get_k8s_matrix(k8s_ssi_file, scenarios: list[str], language: str) -> dict:
     return results
 
 
-def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
     """
@@ -99,7 +99,9 @@ def get_aws_matrix(virtual_machines_file, aws_ssi_file, scenarios: list[str], la
     return results
 
 
-def get_docker_ssi_matrix(images_file, runtimes_file, docker_ssi_file, scenarios: list[str], language: str) -> dict:
+def get_docker_ssi_matrix(
+    images_file: str, runtimes_file: str, docker_ssi_file: str, scenarios: list[str], language: str
+) -> dict:
     """Load the JSON files (the docker imgs and runtimes supported by the system and the scenario-weblog definition)"""
     images = _load_json(images_file)
     runtimes = _load_json(runtimes_file)
@@ -247,10 +249,7 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
 def get_endtoend_definitions(
     library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
 ) -> dict:
-    if "otel" not in library:
-        scenarios = scenario_map["endtoend"] + scenario_map["graphql"]
-    else:
-        scenarios = scenario_map["opentelemetry"]
+    scenarios = scenario_map["endtoend"]
 
     # get time stats
     with open("utils/scripts/ci_orchestrators/time-stats.json", "r") as file:
@@ -265,12 +264,14 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
-        scenarios_times = {
-            scenario: _get_execution_time(library, weblog, scenario, time_stats["run"]) for scenario in scenarios
-        }
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
 
-        if len(scenarios) > 0:  # remove weblogs with no scenarios
+        if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
+            scenarios_times = {
+                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                for scenario in supported_scenarios
+            }
+
             jobs.append(
                 Job(
                     library=library,
@@ -329,6 +330,10 @@ def _split_jobs_for_parallel_execution(
 
 def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
     total_execution_time = sum(scenario_times.values())
+
+    # 1 minute minimum, almost no scenario will be less than that
+    desired_execution_time = max(desired_execution_time, 60)
+
     backpack_count = int(total_execution_time / desired_execution_time) + 1
     backpack_average_time = total_execution_time / backpack_count
 
@@ -376,11 +381,8 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
     return sorted([scenario for scenario in set(scenarios) if _is_supported(library, weblog, scenario, ci_environment)])
 
 
-def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str) -> bool:
+def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
-    if ci_environment != "dev" and library == "python" and weblog == "django-py3.13":
-        # as now, django-py3.13 support is not released
-        return False
 
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
@@ -422,7 +424,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
             # python 3.13 issue : APMAPI-1096
             return False
 
-    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library == "cpp":
+    if scenario in ("APPSEC_MISSING_RULES", "APPSEC_CORRUPTED_RULES") and library in ("cpp_nginx", "cpp_httpd"):
         # C++ 1.2.0 freeze when the rules file is missing
         return False
 
@@ -437,7 +439,7 @@ def _is_supported(library: str, weblog: str, scenario: str, ci_environment: str)
 
     # open-telemetry-automatic
     if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
-        if scenario not in ("OTEL_INTEGRATIONS"):
+        if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
     return True
@@ -447,7 +449,6 @@ if __name__ == "__main__":
     m = {
         "endtoend": [
             "AGENT_NOT_SUPPORTING_SPAN_EVENTS",
-            "APM_TRACING_E2E",
             "APM_TRACING_E2E_OTEL",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
@@ -508,6 +509,7 @@ if __name__ == "__main__":
             "TELEMETRY_METRIC_GENERATION_DISABLED",
             "TELEMETRY_METRIC_GENERATION_ENABLED",
             "TRACE_PROPAGATION_STYLE_W3C",
+            "TRACE_PROPAGATION_STYLE_DEFAULT",
             "TRACING_CONFIG_EMPTY",
             "TRACING_CONFIG_NONDEFAULT",
             "TRACING_CONFIG_NONDEFAULT_2",
@@ -535,4 +537,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("java", m, "dev", 20, 256)
+    get_endtoend_definitions("ruby", m, "dev", 20, 256)

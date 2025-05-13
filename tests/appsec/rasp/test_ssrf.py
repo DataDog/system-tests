@@ -9,6 +9,7 @@ from tests.appsec.rasp.utils import (
     validate_stack_traces,
     find_series,
     validate_metric,
+    validate_metric_v2,
     BaseRulesVersion,
     BaseWAFVersion,
 )
@@ -201,6 +202,30 @@ class Test_Ssrf_Telemetry:
         series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "ssrf", s) for s in series_match), [
+            s.get("tags") for s in series_match
+        ]
+
+
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
+@features.rasp_server_side_request_forgery
+@scenarios.appsec_rasp
+class Test_Ssrf_Telemetry_V2:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_ssrf_telemetry(self):
+        self.r = weblog.get("/rasp/ssrf", params={"domain": "169.254.169.254"})
+
+    def test_ssrf_telemetry(self):
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
+        assert series_eval
+        assert any(validate_metric_v2("rasp.rule.eval", "ssrf", s) for s in series_eval), [
+            s.get("tags") for s in series_eval
+        ]
+
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
+        assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+        assert any(validate_metric_v2("rasp.rule.match", "ssrf", s, block_action=block_action) for s in series_match), [
             s.get("tags") for s in series_match
         ]
 

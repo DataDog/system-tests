@@ -38,6 +38,7 @@ refs:
   - &ref_5_22_0 '>=5.22.0 || ^4.46.0'
   - &ref_5_23_0 '>=5.23.0 || ^4.47.0'
   - &ref_5_24_0 '>=5.24.0 || ^4.48.0'
+  - &ref_5_24_0_5_49_0 '5.24.0 - 5.49.0 || ^4.48.0'
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
@@ -51,6 +52,13 @@ refs:
   - &ref_5_39_0 '>=5.39.0'
   - &ref_5_40_0 '>=5.40.0'
   - &ref_5_41_0 '>=5.41.0'
+  - &ref_5_43_0 '>=5.43.0'
+  - &ref_5_44_0 '>=5.44.0'
+  - &ref_5_45_0 '>=5.45.0'
+  - &ref_5_46_0 '>=5.46.0'
+  - &ref_5_47_0 '>=5.47.0'
+  - &ref_5_48_0 '>=5.48.0'
+  - &ref_5_52_0 '>=5.52.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -62,7 +70,6 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints:
           '*': *ref_5_27_0
@@ -184,7 +191,7 @@ tests/:
             '*': *ref_4_1_0
             nextjs: missing_feature
           TestInsecureCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestInsecureCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -207,7 +214,7 @@ tests/:
             '*': *ref_4_3_0
             nextjs: missing_feature
           TestNoHttponlyCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestNoHttponlyCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -220,7 +227,7 @@ tests/:
             '*': *ref_4_3_0
             nextjs: missing_feature
           TestNoSamesiteCookieNameFilter:
-            '*': *ref_5_24_0
+            '*': *ref_5_24_0_5_49_0
             nextjs: missing_feature
           TestNoSamesiteCookie_ExtendedLocation:
             '*': *ref_5_37_0
@@ -436,15 +443,10 @@ tests/:
         Test_Cmdi_Mandatory_SpanTags: *ref_5_30_0
         Test_Cmdi_Optional_SpanTags: *ref_5_30_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
-        Test_Cmdi_StackTrace:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
-        Test_Cmdi_Telemetry:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
-        Test_Cmdi_Telemetry_Variant_Tag:
-          '*': *ref_5_30_0
-          nextjs: missing_feature
+        Test_Cmdi_StackTrace: *ref_5_30_0
+        Test_Cmdi_Telemetry: *ref_5_30_0
+        Test_Cmdi_Telemetry_V2: *ref_5_46_0
+        Test_Cmdi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Cmdi_UrlQuery:
           '*': *ref_5_30_0
           nextjs: missing_feature
@@ -470,6 +472,7 @@ tests/:
         Test_Lfi_StackTrace: *ref_5_24_0
         Test_Lfi_Telemetry: *ref_5_24_0
         Test_Lfi_Telemetry_Multiple_Exploits: *ref_5_37_0
+        Test_Lfi_Telemetry_V2: *ref_5_46_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
@@ -491,6 +494,7 @@ tests/:
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace: *ref_5_25_0
         Test_Shi_Telemetry: *ref_5_25_0
+        Test_Shi_Telemetry_V2: *ref_5_46_0
         Test_Shi_Telemetry_Variant_Tag: *ref_5_30_0
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
@@ -513,6 +517,7 @@ tests/:
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace: *ref_5_23_0
         Test_Sqli_Telemetry: *ref_5_23_0
+        Test_Sqli_Telemetry_V2: *ref_5_46_0
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
@@ -536,6 +541,7 @@ tests/:
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
           express5: *ref_5_29_0  # test uses querystring
+        Test_Ssrf_Telemetry_V2: *ref_5_46_0
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
@@ -606,10 +612,13 @@ tests/:
       test_telemetry.py:
         Test_TelemetryMetrics: *ref_4_17_0
       test_truncation.py:
-        Test_Truncation: missing_feature
+        Test_Truncation: *ref_5_43_0
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone:
+        '*': *ref_5_52_0
+        nextjs: missing_feature
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
@@ -617,6 +626,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
       Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
+      Test_UserEventsStandalone: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -687,28 +697,68 @@ tests/:
       Test_ConfigurationVariables: v2.7.0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
+      Test_CorruptedRules_Telemetry: *ref_5_44_0
       Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
       Test_CustomEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+      Test_CustomEvent_Metrics:
+        '*': *ref_5_45_0
+        nextjs: missing_feature
       Test_UserLoginFailureEvent:
         '*': *ref_3_13_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEvent_Metrics:
+        '*': *ref_5_45_0
         nextjs: missing_feature
       Test_UserLoginSuccessEvent:
         '*': *ref_3_13_0
         nextjs: missing_feature
+      Test_UserLoginSuccessEvent_Metrics:
+        '*': *ref_5_45_0
+        nextjs: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Metrics:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Tags:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Tags:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
+      Test_Fingerprinting_Endpoint_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session:
         '*': *ref_5_39_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability: *ref_5_39_0
+      Test_Fingerprinting_Session_Preprocessor:
+        '*': *ref_5_39_0
+        nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
     test_ip_blocking_full_denylist.py:
@@ -757,10 +807,16 @@ tests/:
     test_versions.py:
       Test_Events: v2.0.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature (only Fastify is supported)
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+      Test_Debugger_Expression_Language:
+        '*': irrelevant
+        express4: v5.48.0
+        express4-typescript: v5.48.0
+        uds-express4: v5.48.0
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
@@ -769,19 +825,32 @@ tests/:
       Test_Debugger_PII_Redaction:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
         '*': irrelevant
         express4: v5.39.0
+        express4-typescript: v5.39.0
         uds-express4: v5.39.0
+      Test_Debugger_Method_Probe_Statuses: missing_feature
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry:
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -931,7 +1000,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_span_with_baggage.py:
-      Test_Otel_Span_With_Baggage: missing_feature
+      Test_Otel_Span_With_Baggage: *ref_5_32_0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
       Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
@@ -955,6 +1024,7 @@ tests/:
       Test_Stable_Configuration_Origin: *ref_5_41_0
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown
@@ -987,6 +1057,13 @@ tests/:
       Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Malformed2: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Bytes: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Max_Items: irrelevant (uses parametric tests)
+    Test_Only_Baggage_Header: irrelevant (uses parametric tests)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: *ref_3_13_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0
@@ -1005,12 +1082,12 @@ tests/:
       '*': *ref_5_25_0
       express4-typescript: incomplete_test_app
       nextjs: incomplete_test_app
-    Test_Config_LogInjection_128Bit_TraceId_Default:
-      '*': *ref_5_38_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       '*': *ref_3_15_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_128Bit_TraceId_Enabled:
+      '*': *ref_5_38_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default:
@@ -1028,10 +1105,12 @@ tests/:
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: *ref_5_25_0
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
+  test_data_integrity.py:
+    Test_LibraryHeaders: *ref_5_47_0
   test_distributed.py:
-    Test_DistributedHttp: missing_feature
+    Test_DistributedHttp: *ref_3_0_0
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: v5.27.0
+    Test_Span_Links_From_Conflicting_Contexts: *ref_5_27_0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog:
       '*': *ref_5_25_0
@@ -1045,10 +1124,10 @@ tests/:
     Test_Propagate: *ref_3_2_0
     Test_Propagate_Legacy: *ref_3_2_0
   test_library_conf.py:
-    Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Default: *ref_5_46_0
+    Test_ExtractBehavior_Ignore: *ref_5_47_0
+    Test_ExtractBehavior_Restart: *ref_5_47_0
+    Test_ExtractBehavior_Restart_With_Extract_First: *ref_5_47_0
     Test_HeaderTags: *ref_4_11_0
     Test_HeaderTags_Colon_Leading: *ref_4_11_0
     Test_HeaderTags_Colon_Trailing: *ref_4_11_0
@@ -1061,6 +1140,13 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
+  test_protobuf.py: missing_feature
+  test_sampling_rates.py:
+    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
+    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDeterminism: bug (APMAPI-736)
+    Test_SamplingRates: *ref_5_17_0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
@@ -1071,7 +1157,15 @@ tests/:
       '*': *ref_3_13_1
       nextjs: missing_feature  # nextjs makes some internal requests and we have different tag names
     Test_MetricsStandardTags: *ref_3_13_1
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      express4: *ref_5_43_0
+      express5: *ref_5_43_0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      express4: *ref_5_17_0
+      express5: *ref_5_17_0
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': *ref_3_6_0

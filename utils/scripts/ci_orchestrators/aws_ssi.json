@@ -61,6 +61,10 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
                     ]
                 }
             ]
@@ -110,6 +114,9 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet"
+                    ],
+                    "php": [
+                        "test-app-php"
                     ]
                 }
             ]
@@ -199,6 +206,11 @@
                     "dotnet": [
                         "test-app-dotnet",
                         "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
                     ]
                 }
             ]

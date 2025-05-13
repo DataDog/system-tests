@@ -9,11 +9,11 @@ from pathlib import Path
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru
 
 
-def get_simple_gets_corpus():
+def get_simple_gets_corpus() -> list:
     return [{"method": "GET", "path": "/"}]
 
 
-def get_attack10_corpus():
+def get_attack10_corpus() -> list:
     result = []
     for _ in range(9):
         result.append({"method": "GET", "path": "/"})
@@ -23,7 +23,7 @@ def get_attack10_corpus():
     return result
 
 
-def get_big_requests_corpus():
+def get_big_requests_corpus() -> list:
     """Send huge requests.
 
     Should be run with -c 1
@@ -134,7 +134,7 @@ def get_big_requests_corpus():
     return result
 
 
-def get_saved_corpus(source):
+def get_saved_corpus(source) -> list:
     if source is None:
         source = str(Path(os.path.realpath(__file__)).parent)
         source = os.path.join(source, "corpus")
@@ -148,7 +148,7 @@ def get_saved_corpus(source):
         elif filename.endswith(".dump"):
             with open(filename, "r", encoding="utf-8") as f:
                 for line in f:
-                    if len(line.strip() != 0):
+                    if len(line.strip()) != 0:
                         _add_request(json.loads(line))
         else:
             raise ValueError(f"{filename} file must be a .dump or a .json")
@@ -176,7 +176,7 @@ def get_saved_corpus(source):
     return result
 
 
-def get_corpus(corpus=None):
+def get_corpus(corpus=None) -> list:
     if corpus == "attack10":
         return get_attack10_corpus()
 

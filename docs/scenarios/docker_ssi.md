@@ -376,12 +376,12 @@ class TestDockerSSIFeatures:
 
     @features.ssi_guardrails
     def test_install_supported_runtime(self):
-        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.library}")
+        logger.info(f"Testing Docker SSI installation on supported lang runtime: {context.scenario.library.name}")
         assert self.r.status_code == 200, f"Failed to get response from {context.scenario.weblog_url}"
 
         # If the language version is supported there are traces related with the request
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
-        assert traces_for_request, f"No traces found for request {get_rid_from_request(self.r)}"
+        assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "runtime-id" in traces_for_request["meta"], "No runtime-id found in traces"
 
         # There is telemetry data related with the runtime-id

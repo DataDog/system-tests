@@ -21,14 +21,20 @@ if [ "$PKG" == "" ]; then
   unset PKG
 fi
 
+EXTRA_ARGS=""
+PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+if [ "$(printf '%s\n' "7.1" "$PHP_VERSION" | sort -V | head -n1)" = "7.1" ]; then
+  EXTRA_ARGS="--enable-profiling"
+fi
+
 INI_FILE=/etc/php/php.ini
 echo "Installing php package ${PKG-"{default}"} with setup script $SETUP"
 if [[ $IS_APACHE -eq 0 ]]; then
-      php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+      php $SETUP --php-bin all ${PKG+"--file=$PKG"} ${EXTRA_ARGS}
       PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
       INI_FILE=/etc/php/$PHP_VERSION/fpm/conf.d/98-ddtrace.ini
 else
-      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"}
+      PHP_INI_SCAN_DIR="/etc/php" php $SETUP --php-bin all ${PKG+"--file=$PKG"} ${EXTRA_ARGS}
 fi
 
 if test -f $INI_FILE; then

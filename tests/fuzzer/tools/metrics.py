@@ -5,7 +5,7 @@
 from datetime import datetime, timedelta, UTC
 
 
-def get_readable_integer_value(value):
+def get_readable_integer_value(value) -> str:
     if value == 0:
         return "-"
 
@@ -41,64 +41,64 @@ class Metric:
         self.display_length = display_length
         self.has_raw_value = has_raw_value
 
-    def update(self, value=None):
+    def update(self, value=None) -> None:
         self.value = value
         self.global_value = value
 
-    def observe(self):
+    def observe(self) -> None:
         """Will be called before printing"""
 
-    def observe_global_value(self):
+    def observe_global_value(self) -> None:
         self.value = self.global_value
         self.observe()
 
-    def reset(self):
+    def reset(self) -> None:
         """Will be called after printing"""
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         """Will be printed"""
         return self.format_string.format(value=str(self.value))
 
     @property
-    def raw(self):
+    def raw(self) -> list | str | float | None:
         """Will be exported for later analysis"""
         return self.value
 
     @property
-    def is_null(self):
+    def is_null(self) -> bool:
         """If true, will not reported in log file"""
         return False
 
 
 class NumericalMetric(Metric):
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         return get_readable_integer_value(self.value)
 
 
 class BooleanMetric(Metric):
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         return "🚀" if self.value else "🚫"
 
 
 class AccumulatedMetric(Metric):
-    def update(self, value=1):
+    def update(self, value=1) -> None:
         self.value += value
         self.global_value += value
 
     @property
-    def is_null(self):
+    def is_null(self) -> bool:
         return self.value == 0
 
 
 class ResetedAccumulatedMetric(AccumulatedMetric):
-    def reset(self):
+    def reset(self) -> None:
         self.value = 0
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         return get_readable_integer_value(self.value)
 
 
@@ -109,35 +109,35 @@ class RateMetric(AccumulatedMetric):
         self.init_observation_timestamp = datetime.now(tz=UTC)
         self.rate = 0
 
-    def observe(self):
+    def observe(self) -> None:
         delta = datetime.now(tz=UTC) - self.last_observation_timestamp
         seconds = delta.seconds + delta.microseconds / 1000000
         self.rate = self.value / seconds
 
-    def observe_global_value(self):
-        self.last_observation_timestamp = self.init_observation_timestamp()
+    def observe_global_value(self) -> None:
+        self.last_observation_timestamp = self.init_observation_timestamp
         super().observe()
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         return f"{get_readable_integer_value(self.rate)}/s"
 
     @property
-    def raw(self):
+    def raw(self) -> float:
         return self.rate
 
-    def reset(self):
+    def reset(self) -> None:
         self.last_observation_timestamp = datetime.now(tz=UTC)
         self.value = 0
 
 
 class AccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, total_metric, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name, total_metric, display_length: int, raw_name: str):
+        super().__init__(name, display_length=display_length, raw_name=raw_name)
         self.total_metric = total_metric
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         if self.total_metric.value == 0:
             return "N.A."
 
@@ -147,36 +147,36 @@ class AccumulatedMetricWithPercent(AccumulatedMetric):
         return f"{round(100*self.value/self.total_metric.value)}%"
 
     @property
-    def raw(self):
+    def raw(self) -> float | None:
         if self.total_metric.value == 0:
             return None
 
         return self.value / self.total_metric.value
 
-    def reset(self):
+    def reset(self) -> None:
         self.value = 0
 
 
 class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
-    def __init__(self, name, **kwargs):
-        super().__init__(name, **kwargs)
+    def __init__(self, name):
+        super().__init__(name)
         self.total = 0
         self.global_total = 0
 
-    def update(self, value=1):
+    def update(self, value=1) -> None:
         self.value += value
         self.total += 1
 
         self.global_value += value
         self.global_total += 1
 
-    def observe_global_value(self):
+    def observe_global_value(self) -> None:
         self.total = self.global_total
         self.value = self.global_value
         super().observe()
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         if self.total == 0:
             return "N.A."
 
@@ -186,13 +186,13 @@ class SelfAccumulatedMetricWithPercent(AccumulatedMetric):
         return f"{round(100*self.value/self.total)}%"
 
     @property
-    def raw(self):
+    def raw(self) -> float | None:
         if self.total == 0:
             return None
 
         return self.value / self.total
 
-    def reset(self):
+    def reset(self) -> None:
         self.value = 0
         self.total = 0
 
@@ -202,7 +202,7 @@ class EllapsedMetric(Metric):
         super().__init__(name)
         self.start_time = datetime.now(tz=UTC)
 
-    def observe(self):
+    def observe(self) -> None:
         self.value = datetime.now(tz=UTC) - self.start_time
 
 
@@ -229,7 +229,7 @@ class PerformanceMetric(Metric):
     def _format(self, values):
         return " ".join([f"{v: <4}" for v in values])
 
-    def update(self, value=None):
+    def update(self, value=None) -> None:
         ellapsed = min(int(value * 1000), len(self.data) - 1)
 
         self.data[ellapsed] += 1
@@ -238,7 +238,7 @@ class PerformanceMetric(Metric):
         self.global_data[ellapsed] += 1
         self.global_count += 1
 
-    def observe(self):
+    def observe(self) -> None:
         total = 0
 
         i_percentiles = iter(self.percentiles.values())
@@ -259,21 +259,21 @@ class PerformanceMetric(Metric):
                     except StopIteration:
                         break
 
-    def observe_global_value(self):
+    def observe_global_value(self) -> None:
         self.count = self.global_count
         self.data = self.global_data
 
         super().observe()
 
     @property
-    def pretty(self):
+    def pretty(self) -> str:
         return self._format(self.value)
 
     @property
-    def raw(self):
+    def raw(self) -> list:
         return self.value
 
-    def reset(self):
+    def reset(self) -> None:
         self.count = 0
         self.data = [0 for _ in range(10000)]
 
@@ -286,9 +286,9 @@ class Report:
         self.metric_count = 0
         self.logger = logger
         self.report_frequency = timedelta(seconds=report_frequency)
-        self.next_report_timestamp = None
+        self.next_report_timestamp = datetime.now(tz=UTC)
 
-    def start(self):
+    def start(self) -> None:
         self.next_report_timestamp = datetime.now(tz=UTC)
         self._compute_next_report_timestamp()
 
@@ -298,17 +298,17 @@ class Report:
     def _is_report_time(self):
         return self.next_report_timestamp < datetime.now(tz=UTC)
 
-    def get_headers(self, metrics_getter):
+    def get_headers(self, metrics_getter) -> list:
         return [
             (metric.name + " " * 200)[: metric.display_length]
             for metric in metrics_getter()
             if metric.included_in_pulse
         ]
 
-    def print_headers(self, metrics_getter):
+    def print_headers(self, metrics_getter) -> None:
         self.logger.info(" ".join(self.get_headers(metrics_getter)))
 
-    def get_pulse_report(self, metrics):
+    def get_pulse_report(self, metrics) -> tuple:
         pretties = []
         raws = []
         print_headers = False
@@ -334,13 +334,13 @@ class Report:
 
         return print_headers, pretties, raws
 
-    def signal(self, key, value):
+    def signal(self, key, value) -> None:
         self.logger.info(f"S {key}: {value}")
 
-    def value(self, key, value):
+    def value(self, key, value) -> None:
         self.logger.info(f"V {key}: {value}")
 
-    def pulse(self, metrics_getter, *, force=False):
+    def pulse(self, metrics_getter, *, force: bool = False) -> None:
         if self._is_report_time() or force:
             metrics = metrics_getter()
 
@@ -355,7 +355,7 @@ class Report:
 
             self._compute_next_report_timestamp()
 
-    def done(self, metrics_getter):
+    def done(self, metrics_getter) -> None:
         metrics = metrics_getter()
 
         for metric in metrics:

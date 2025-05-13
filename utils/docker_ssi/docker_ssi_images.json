@@ -1,90 +1,91 @@
 {
-    "docker_ssi_images": [
-      {
-        "name": "Ubuntu_22_amd64",
-        "image": "ubuntu:22.04",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "Ubuntu_22_arm64",
-        "image": "ubuntu:22.04",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "Ubuntu_16_amd64",
-        "image": "ubuntu:16.04",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "Ubuntu_16_arm64",
-        "image": "ubuntu:16.04",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "CentOS_7_amd64",
-        "image": "centos:7",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "OracleLinux_9_3_arm64",
-        "image": "oraclelinux:9",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "OracleLinux_9_3_amd64",
-        "image": "oraclelinux:9",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "OracleLinux_8_10_arm64",
-        "image": "oraclelinux:8.10",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "OracleLinux_8_10_amd64",
-        "image": "oraclelinux:8.10",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "AlmaLinux_9_arm64",
-        "image": "almalinux:9.4",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "AlmaLinux_9_amd64",
-        "image": "almalinux:9.4",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "AlmaLinux_8_arm64",
-        "image": "almalinux:8.10",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "AlmaLinux_8_amd64",
-        "image": "almalinux:8.10",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "Tomcat_9_amd64",
-        "image": "tomcat:9",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "Tomcat_9_arm64",
-        "image": "tomcat:9",
-        "architecture": "linux/arm64"
-      },
-      {
-        "name": "Websphere_amd64",
-        "image": "icr.io/appcafe/websphere-traditional",
-        "architecture": "linux/amd64"
-      },
-      {
-        "name": "Wildfly_amd64",
-        "image": "quay.io/wildfly/wildfly:26.1.2.Final",
-        "architecture": "linux/amd64"
-      }
-    ]
-  }
+  "docker_ssi_images": [
+    {
+      "name": "Ubuntu_22_amd64",
+      "image": "public.ecr.aws/lts/ubuntu:22.04",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "Ubuntu_22_arm64",
+      "image": "public.ecr.aws/lts/ubuntu:22.04",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "Ubuntu_16_amd64",
+      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "Ubuntu_16_arm64",
+      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "CentOS_7_amd64",
+      "image": "public.ecr.aws/docker/library/centos:7",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "OracleLinux_9_3_arm64",
+      "image": "public.ecr.aws/docker/library/oraclelinux:9",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "OracleLinux_9_3_amd64",
+      "image": "public.ecr.aws/docker/library/oraclelinux:9",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "OracleLinux_8_10_arm64",
+      "image": "public.ecr.aws/docker/library/oraclelinux:8.10",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "OracleLinux_8_10_amd64",
+      "image": "public.ecr.aws/docker/library/oraclelinux:8.10",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "AlmaLinux_9_arm64",
+      "image": "public.ecr.aws/docker/library/almalinux:9.4",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "AlmaLinux_9_amd64",
+      "image": "public.ecr.aws/docker/library/almalinux:9.4",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "AlmaLinux_8_arm64",
+      "image": "public.ecr.aws/docker/library/almalinux:8.10",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "AlmaLinux_8_amd64",
+      "image": "public.ecr.aws/docker/library/almalinux:8.10",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "Tomcat_9_amd64",
+      "image": "public.ecr.aws/docker/library/tomcat:9",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "Tomcat_9_arm64",
+      "image": "public.ecr.aws/docker/library/tomcat:9",
+      "architecture": "linux/arm64"
+    },
+    {
+      "name": "Websphere_amd64",
+      "image": "icr.io/appcafe/websphere-traditional",
+      "architecture": "linux/amd64"
+    },
+    {
+      "name": "Wildfly_amd64",
+      "image": "quay.io/wildfly/wildfly:26.1.2.Final",
+      "architecture": "linux/amd64"
+    }
+  ]
+}
+
   

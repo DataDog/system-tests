@@ -1,3 +1,4 @@
+# please update requirements.txt if you change this version
 FROM mitmproxy/mitmproxy:9.0.1
 
 WORKDIR /app

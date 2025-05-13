@@ -31,7 +31,7 @@ CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 
-RUN npm install
+RUN npm install || npm install
 RUN /binaries/install_ddtrace.sh
 RUN npm run build
 ENV DD_TRACE_HEADER_TAGS=user-agent

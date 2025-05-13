@@ -3,8 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features
-from utils.tools import logger
+from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
 
 
 @features.appsec_request_blocking
@@ -276,7 +275,7 @@ class Test_BodyXml:
         headers = headers or {}
         headers["Content-Type"] = "application/xml"
         data = f"<?xml version='1.0' encoding='utf-8'?>{data}"
-        return weblog.post(path, params, data, headers)
+        return weblog.post(path, params=params, data=data, headers=headers)
 
     def setup_xml_attr_value(self):
         self.r_attr_1 = self.weblog_post("/waf", data='<string attack="var_dump ()" />')
@@ -450,6 +449,7 @@ class Test_GraphQL:
             ),
         )
 
+    @missing_feature(library="golang", reason="Not supported or implemented in existing libraries")
     def test_request_monitor_attack_directive(self):
         self.base_test_request_monitor_attack(["userByName", "case", "format"], ["userByName", "0", "case", "format"])
 

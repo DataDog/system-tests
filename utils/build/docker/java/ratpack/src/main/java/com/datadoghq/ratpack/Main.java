@@ -1,7 +1,11 @@
 package com.datadoghq.ratpack;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -113,7 +117,7 @@ public class Main {
 
                                 Map<String, Object> response = new HashMap<>();
                                 Map<String, String> library = new HashMap<>();
-                                library.put("language", "java");
+                                library.put("name", "java");
                                 library.put("version", version);
                                 response.put("status", "ok");
                                 response.put("library", library);
@@ -216,6 +220,16 @@ public class Main {
                                 datadog.appsec.api.blocking.Blocking.forUser(user).blockIfMatch();
                                 ctx.getResponse().send("text/plain", "Hello " + user);
                             })
+                            .get("identify", ctx -> {
+                                final Map<String, String> metadata = new HashMap<>();
+                                metadata.put("email", "usr.email");
+                                metadata.put("name", "usr.name");
+                                metadata.put("session_id", "usr.session_id");
+                                metadata.put("role", "usr.role");
+                                metadata.put("scope", "usr.scope");
+                                setUser("usr.id", metadata);
+                                ctx.getResponse().send("text/plain", "OK");
+                            })
                             .get("user_login_success_event", ctx -> {
                                 MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
                                 datadog.trace.api.GlobalTracer.getEventTracker()
@@ -238,6 +252,24 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .post("user_login_success_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    String userId = (String) data.getOrDefault("user_id", "system_tests_id");
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
+                            })
+                            .post("user_login_failure_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    boolean exists = Boolean.parseBoolean((String) data.getOrDefault("exists", "true"));
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
                             })
                             .get("requestdownstream", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {

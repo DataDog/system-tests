@@ -5,8 +5,10 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
+from collections.abc import Sequence
 import json
 import os
+from pathlib import Path
 import time
 import types
 
@@ -16,9 +18,9 @@ from pytest_jsonreport.plugin import JSONReport
 from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios, Scenario
-from utils.tools import logger
+from utils._logger import logger
 from utils.scripts.junit_report import junit_modifyreport
-from utils._context.library_version import LibraryVersion
+from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
 
@@ -26,11 +28,11 @@ from utils.properties_serialization import SetupProperties
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
 
 # pytest does not keep a trace of deselected items, so we keep it in a global variable
-_deselected_items = []
+_deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
 
 
-def pytest_addoption(parser) -> None:
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--scenario", "-S", type=str, action="store", default="DEFAULT", help="Unique identifier of scenario"
     )
@@ -70,13 +72,6 @@ def pytest_addoption(parser) -> None:
     parser.addoption("--vm-env", type=str, action="store", help="Set virtual machine environment")
     parser.addoption("--vm-provider", type=str, action="store", help="Set provider for VMs")
     parser.addoption("--vm-only", type=str, action="store", help="Filter to execute only one vm name")
-    parser.addoption(
-        "--vm-gitlab-pipeline",
-        type=str,
-        action="store",
-        help="Generate pipeline for Gitlab CI. Not run the tests. Values: one-pipeline, system-tests",
-    )
-
     parser.addoption(
         "--vm-default-vms",
         type=str,
@@ -127,7 +122,7 @@ def pytest_addoption(parser) -> None:
     )
 
 
-def pytest_configure(config) -> None:
+def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
@@ -170,7 +165,7 @@ def pytest_configure(config) -> None:
 
 
 # Called at the very begening
-def pytest_sessionstart(session) -> None:
+def pytest_sessionstart(session: pytest.Session) -> None:
     # get the terminal to allow logging directly in stdout
     logger.terminal = session.config.pluginmanager.get_plugin("terminalreporter")
 
@@ -185,7 +180,7 @@ def pytest_sessionstart(session) -> None:
 
 
 # called when each test item is collected
-def _collect_item_metadata(item):
+def _collect_item_metadata(item: pytest.Item):
     details: str | None = None
     test_declaration: str | None = None
 
@@ -225,7 +220,7 @@ def _collect_item_metadata(item):
     }
 
 
-def _get_skip_reason_from_marker(marker) -> str | None:
+def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
     if marker.name == "skipif":
         if all(marker.args):
             return marker.kwargs.get("reason", "")
@@ -239,19 +234,30 @@ def _get_skip_reason_from_marker(marker) -> str | None:
     return None
 
 
-def pytest_pycollect_makemodule(module_path, parent) -> None:
+def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
     # As now, declaration only works for tracers at module level
 
-    library = context.scenario.library.library
+    library = context.library.name
 
     manifests = load_manifests()
 
-    nodeid = str(module_path.relative_to(module_path.cwd()))
+    path = module_path.relative_to(module_path.cwd())
 
-    if nodeid not in manifests or library not in manifests[nodeid]:
+    declaration: str | None = None
+    nodeid: str
+
+    # look in manifests for any declaration of this file, or on one of its parents
+    while str(path) != ".":
+        nodeid = f"{path!s}/" if path.is_dir() else str(path)
+
+        if nodeid in manifests and library in manifests[nodeid]:
+            declaration = manifests[nodeid][library]
+            break
+
+        path = path.parent
+
+    if declaration is None:
         return None
-
-    declaration: str = manifests[nodeid][library]
 
     logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
 
@@ -268,7 +274,7 @@ def pytest_pycollect_makemodule(module_path, parent) -> None:
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector, name, obj) -> None:
+def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
     if collector.istestclass(obj, name):
         if obj is None:
             message = f"""{collector.nodeid} is not properly collected.
@@ -289,7 +295,7 @@ def pytest_pycollect_makeitem(collector, name, obj) -> None:
                 raise ValueError(f"Unexpected error for {nodeid}.") from e
 
 
-def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> None:
+def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
@@ -299,7 +305,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> 
 
     all_declared_scenarios = {}
 
-    def iter_markers(self, name=None):
+    def iter_markers(self: pytest.Item, name: str | None = None):
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     must_pass_item_count = 0
@@ -316,7 +322,7 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> 
         all_declared_scenarios[item.nodeid] = declared_scenarios
 
         # If we are running scenario with the option sleep, we deselect all
-        if session.config.option.sleep or session.config.option.vm_gitlab_pipeline:
+        if session.config.option.sleep:
             deselected.append(item)
             continue
 
@@ -352,11 +358,11 @@ def pytest_collection_modifyitems(session, config, items: list[pytest.Item]) -> 
             json.dump(all_declared_scenarios, f, indent=2)
 
 
-def pytest_deselected(items) -> None:
+def pytest_deselected(items: Sequence[pytest.Item]) -> None:
     _deselected_items.extend(items)
 
 
-def _item_must_pass(item) -> bool:
+def _item_must_pass(item: pytest.Item) -> bool:
     """Returns True if the item must pass to be considered as a success"""
 
     if any(item.iter_markers("skip")):
@@ -372,7 +378,7 @@ def _item_must_pass(item) -> bool:
     return True
 
 
-def _item_is_skipped(item):
+def _item_is_skipped(item: pytest.Item):
     return any(item.iter_markers("skip"))
 
 
@@ -440,20 +446,20 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     context.scenario.post_setup(session)
 
 
-def pytest_runtest_call(item) -> None:
+def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
 
 
 @pytest.hookimpl(optionalhook=True)
-def pytest_json_runtest_metadata(item, call) -> None | dict:
+def pytest_json_runtest_metadata(item: pytest.Item, call: pytest.CallInfo) -> None | dict:
     if call.when != "setup":
         return {}
 
     return _collect_item_metadata(item)
 
 
-def pytest_json_modifyreport(json_report) -> None:
+def pytest_json_modifyreport(json_report: dict) -> None:
     try:
         # add usefull data for reporting
         json_report["context"] = context.serialize()
@@ -464,7 +470,7 @@ def pytest_json_modifyreport(json_report) -> None:
         logger.error("Fail to modify json report", exc_info=True)
 
 
-def pytest_sessionfinish(session, exitstatus) -> None:
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     logger.info("Executing pytest_sessionfinish")
 
     if session.config.option.skip_empty_scenario and exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
@@ -481,7 +487,9 @@ def pytest_sessionfinish(session, exitstatus) -> None:
     if context.scenario.is_main_worker:
         with open(f"{context.scenario.host_log_folder}/known_versions.json", "w", encoding="utf-8") as f:
             json.dump(
-                {library: sorted(versions) for library, versions in LibraryVersion.known_versions.items()}, f, indent=2
+                {library: sorted(versions) for library, versions in ComponentVersion.known_versions.items()},
+                f,
+                indent=2,
             )
 
         data = session.config._json_report.report  # noqa: SLF001
@@ -495,14 +503,8 @@ def pytest_sessionfinish(session, exitstatus) -> None:
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
 
-    if session.config.option.vm_gitlab_pipeline:
-        NO_TESTS_COLLECTED = 5  # noqa: N806
-        SUCCESS = 0  # noqa: N806
-        if exitstatus == NO_TESTS_COLLECTED:
-            session.exitstatus = SUCCESS
 
-
-def export_feature_parity_dashboard(session, data) -> None:
+def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:
     tests = [convert_test_to_feature_parity_model(test) for test in data["tests"]]
 
     result = {
@@ -510,7 +512,7 @@ def export_feature_parity_dashboard(session, data) -> None:
         "runDate": data["created"],
         "environment": session.config.option.report_environment or "local",
         "testSource": "systemtests",
-        "language": context.scenario.library.library,
+        "language": context.library.name,
         "variant": context.weblog_variant,
         "testedDependencies": [
             {"name": name, "version": str(version)} for name, version in context.scenario.components.items()
@@ -524,7 +526,7 @@ def export_feature_parity_dashboard(session, data) -> None:
         json.dump(result, f, indent=2)
 
 
-def convert_test_to_feature_parity_model(test) -> dict | None:
+def convert_test_to_feature_parity_model(test: dict) -> dict | None:
     result = {
         "path": test["nodeid"],
         "lineNumber": test["lineno"],
@@ -540,7 +542,7 @@ def convert_test_to_feature_parity_model(test) -> dict | None:
 
 ## Fixtures corners
 @pytest.fixture(scope="session", name="session")
-def fixture_session(request) -> pytest.Session:
+def fixture_session(request: pytest.FixtureRequest) -> pytest.Session:
     return request.session
 
 

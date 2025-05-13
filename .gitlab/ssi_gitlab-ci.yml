@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -21,7 +21,7 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     after_script: |
-        SCENARIO_SUFIX=$(echo "DOCKER_SSI" | tr "[:upper:]" "[:lower:]")
+        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             cp -R logs_"${SCENARIO_SUFIX}" reports/
@@ -69,7 +69,7 @@ ssi_tests:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     script:
-        - ./build.sh -i runner
+        - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
         - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
     after_script: |
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
@@ -123,7 +123,7 @@ ssi_tests:
     export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
     export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
   script:
-    - ./build.sh -i runner # rebuild runner in case there were changes
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
     - python --version
     - pip freeze

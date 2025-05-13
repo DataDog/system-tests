@@ -10,16 +10,17 @@
 #
 # Binaries sources:
 #
-# * Agent:   Docker hub datadog/agent-dev:master-py3
-# * Golang:  gopkg.in/DataDog/dd-trace-go.v1@main
-# * .NET:    ghcr.io/datadog/dd-trace-dotnet
-# * Java:    ghcr.io/datadog/dd-trace-java
-# * PHP:     ghcr.io/datadog/dd-trace-php
-# * Node.js: Direct from github source
-# * C++:     Direct from github source
-# * Python:  Direct from github source
-# * Ruby:    Direct from github source
-# * WAF:     Direct from github source, but not working, as this repo is now private
+# * Agent:      Docker hub datadog/agent-dev:master-py3
+# * cpp_httpd:  Github action artifact
+# * Golang:     gopkg.in/DataDog/dd-trace-go.v1@main
+# * .NET:       ghcr.io/datadog/dd-trace-dotnet
+# * Java:       ghcr.io/datadog/dd-trace-java
+# * PHP:        ghcr.io/datadog/dd-trace-php
+# * Node.js:    Direct from github source
+# * C++:        Direct from github source
+# * Python:     Clone  locally the githu repo
+# * Ruby:       Direct from github source
+# * WAF:        Direct from github source, but not working, as this repo is now private
 ##########################################################################################
 
 set -eu
@@ -215,11 +216,13 @@ elif [ "$TARGET" = "php" ]; then
 elif [ "$TARGET" = "golang" ]; then
     assert_version_is_dev
     rm -rf golang-load-from-go-get
+    set -o pipefail
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    COMMIT_ID=$(curl -s "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
+    TARGET_BRANCH="${TARGET_BRANCH:-v1-maintenance}"
+    echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
+    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$TARGET_BRANCH"
+    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
     echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
@@ -236,6 +239,15 @@ elif [ "$TARGET" = "cpp" ]; then
     TARGET_BRANCH="${TARGET_BRANCH:-main}"
     echo "https://github.com/DataDog/dd-trace-cpp@$TARGET_BRANCH" > cpp-load-from-git
     echo "Using $(cat cpp-load-from-git)"
+
+elif [ "$TARGET" = "cpp_httpd" ]; then
+    assert_version_is_dev
+    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog.so"
+
+elif [ "$TARGET" = "cpp_nginx" ]; then
+    assert_version_is_dev
+    echo "Nowhere to load cpp_nginx from"
+    exit 1
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev

@@ -16,9 +16,8 @@ from utils import (
     weblog,
     features,
     remote_config,
+    logger,
 )
-
-from utils.tools import logger
 
 
 @rfc("https://docs.google.com/document/d/1bUVtEpXNTkIGvLxzkNYCxQzP2X9EK9HMBLHWXr_5KLM/edit#heading=h.vy1jegxy7cuc")
@@ -192,7 +191,6 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
         remote_config.send_sequential_commands(payloads)
 
     @bug(context.library == "python@1.9.2", reason="APMRP-360")
-    @bug(context.weblog_variant == "spring-boot-openliberty", reason="APPSEC-6721")
     @bug(
         context.library >= "java@1.4.0" and context.agent_version < "1.8.0" and context.appsec_rules_file is not None,
         reason="APMRP-360",  # ASM_FEATURES was not subscribed when a custom rules file was present

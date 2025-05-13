@@ -25,7 +25,7 @@ def get_environ() -> dict[str, str]:
     return environ
 
 
-def get_json(url, headers=None, params=None) -> Any:  # noqa: ANN401
+def get_json(url: str, headers: dict | None = None, params: dict | None = None) -> Any:  # noqa: ANN401
     response = requests.get(url, headers=headers, params=params, timeout=30)
     response.raise_for_status()
     return response.json()
@@ -105,7 +105,7 @@ if __name__ == "__main__":
         "-l",
         type=str,
         help="One of the supported Datadog languages",
-        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+        choices=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
     parser.add_argument(
         "--repo-slug",

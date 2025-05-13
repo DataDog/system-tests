@@ -62,6 +62,7 @@ node_modules/
 # vim
 /*.vim
 *.swp
+*.swo
 
 utils/build/docker/*/parametric/Dockerfile
 
@@ -71,3 +72,5 @@ utils/build/docker/*/parametric/Dockerfile
 
 # version check
 version-check-output/
+
+tmp/

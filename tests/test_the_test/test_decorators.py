@@ -3,10 +3,9 @@ import logging
 
 import pytest
 
-from utils import irrelevant, missing_feature, flaky, rfc, context
+from utils import irrelevant, missing_feature, flaky, rfc, logger, scenarios
 from utils._decorators import released
-from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+from utils._context.component_version import ComponentVersion
 
 
 pytestmark = pytest.mark.scenario("TEST_THE_TEST")
@@ -83,10 +82,10 @@ def test_version_range():
         class LocalClass:
             pass
 
-        original_library = context.scenario.library  # not very clean, TODO: add a fixture for that purpose
-        context.scenario.library = LibraryVersion("java", tested_version)
+        original_library = scenarios.test_the_test.library  # not very clean, TODO: add a fixture for that purpose
+        scenarios.test_the_test.library = ComponentVersion("java", tested_version)
         decorated_class = released(java=declaration)(LocalClass)
-        context.scenario.library = original_library
+        scenarios.test_the_test.library = original_library
 
         if should_be_skipped:
             assert hasattr(decorated_class, "pytestmark")

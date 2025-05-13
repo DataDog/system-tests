@@ -1,5 +1,6 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
+
 stages:
   - configure
   - nodejs
@@ -59,6 +60,9 @@ compute_pipeline:
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
       fi
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
@@ -79,6 +83,9 @@ nodejs_ssi_pipeline:
       - artifact: nodejs_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 java_ssi_pipeline:
   stage: java
@@ -91,6 +98,9 @@ java_ssi_pipeline:
       - artifact: java_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 dotnet_ssi_pipeline:
   stage: dotnet
@@ -103,6 +113,9 @@ dotnet_ssi_pipeline:
       - artifact: dotnet_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 python_ssi_pipeline:
   stage: python
@@ -115,6 +128,9 @@ python_ssi_pipeline:
       - artifact: python_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 php_ssi_pipeline:
   stage: php
@@ -127,6 +143,9 @@ php_ssi_pipeline:
       - artifact: php_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 ruby_ssi_pipeline:
   stage: ruby
@@ -139,6 +158,9 @@ ruby_ssi_pipeline:
       - artifact: ruby_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
 
 check_pipeline_status:
   stage: pipeline-status
@@ -147,28 +169,53 @@ check_pipeline_status:
   script:
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
+
+    # Function to fetch all jobs from a paginated GitLab API endpoint
     - |
-      RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs")
+      fetch_all_jobs() {
+        local url="$1"
+        local failed_count=0
+        local page=1
 
-      # Validate JSON response
-      if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
-        echo "❌ Error: Invalid JSON response from GitLab API."
-        exit 1
-      fi
+        while true; do
+          RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
 
-      FAILED_JOBS=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
+          # Validate JSON response
+          if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
+            echo "❌ Error: Invalid JSON response from GitLab API."
+            exit 1
+          fi
+
+          # Count failed jobs on this page
+          local page_failed_jobs
+          page_failed_jobs=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
+          failed_count=$((failed_count + page_failed_jobs))
+
+          # Check if there are more pages (by checking if we got less than 100 results)
+          local jobs_count
+          jobs_count=$(echo "$RESPONSE" | jq 'length')
+
+          if [ "$jobs_count" -lt 100 ]; then
+            break
+          fi
+
+          ((page++))
+        done
+
+        echo "$failed_count"
+      }
+
+    # Fetch failed jobs in the parent pipeline
+    - |
+      FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
 
       # Fetch child pipelines
       CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-      "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
+        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
 
       FAILED_CHILD_JOBS=0
       for CHILD_PIPELINE in $CHILD_PIPELINES; do
-        CHILD_FAILED_JOBS=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs" | jq '[.[] | select(.status == "failed")] | length')
-
-        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED_JOBS))
+        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + $(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")))
       done
 
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
@@ -180,6 +227,81 @@ check_pipeline_status:
 
     - echo "✅ All jobs and child pipelines passed!"
   when: always
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+
+delete_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  variables:
+    AMI_RETENTION_DAYS: 10
+    AMI_LAST_LAUNCHED_DAYS: 10
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis"'
+  after_script: echo "Finish"
+  timeout: 3h
+
+delete_amis_by_name_or_lang:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - |
+          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+            exit 1
+          fi
+          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - |
+          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
+
+          if [ -n "$AMI_NAME" ]; then
+            CMD="$CMD --ami-name $AMI_NAME"
+          fi
+
+          if [ -n "$AMI_LANG" ]; then
+            CMD="$CMD --ami-lang $AMI_LANG"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
+  after_script: echo "Finish"
+
+delete_ec2_instances:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  variables:
+    EC2_AGE_MINUTES: 45
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
+  after_script: echo "Finish"
+
+count_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis_count
+  rules:
+    - if: '$SCHEDULED_JOB == "count_amis"'
+  after_script: echo "Finish"
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
@@ -201,7 +323,7 @@ check_merge_labels:
 generate_system_tests_images:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
-
+  needs: []
   stage: system-tests-utils
   allow_failure: true
   before_script:
@@ -214,3 +336,11 @@ generate_system_tests_images:
       - ./utils/build/build_python_base_images.sh --push
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
+
+.delayed_base_job:
+    image: registry.ddbuild.io/images/ci_docker_base
+    tags: ["arch:amd64"]
+    script:
+        - echo "⏳ Waiting before triggering the child pipeline..."
+    when: delayed
+    start_in: 5 minutes

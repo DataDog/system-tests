@@ -1,7 +1,8 @@
 import argparse
 import json
+import sys
 
-from utils._context._scenarios import get_all_scenarios, ScenarioGroup
+from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
     get_endtoend_definitions,
@@ -23,29 +24,52 @@ class CiData:
 
     def __init__(
         self,
+        *,
         library: str,
         scenarios: str,
         groups: str,
+        excluded_scenarios: str,
         parametric_job_count: int,
-        ci_environment: str,
         desired_execution_time: int,
+        explicit_binaries_artifact: str,
+        system_tests_dev_mode: bool,
+        ci_environment: str | None,
     ):
         # this data struture is a dict where:
         #  the key is the workflow identifier
         #  the value is also a dict, where the key/value pair is the parameter name/value.
-        self.data: dict[str, dict] = {}
+        self.data: dict[str, dict] = {"miscs": {}}
         self.language = library
-        self.environment = ci_environment
-        scenario_map = self._get_workflow_map(scenarios.split(","), groups.split(","))
+
+        if ci_environment is not None:
+            self.ci_environment = ci_environment
+        elif system_tests_dev_mode:
+            self.ci_environment = "dev"
+            self.data["miscs"]["binaries_artifact"] = f"binaries_dev_{library}"
+        elif len(explicit_binaries_artifact) != 0:
+            self.ci_environment = "custom"
+            self.data["miscs"]["binaries_artifact"] = explicit_binaries_artifact
+        else:
+            self.ci_environment = "prod"
+
+        self.data["miscs"]["ci_environment"] = self.ci_environment
+
+        scenario_map = self._get_workflow_map(
+            scenario_names=scenarios.split(","),
+            scenario_group_names=groups.split(","),
+            excluded_scenario_names=excluded_scenarios.split(","),
+        )
 
         self.data |= get_endtoend_definitions(
-            library, scenario_map, ci_environment, desired_execution_time, maximum_parallel_jobs=256
+            library, scenario_map, self.ci_environment, desired_execution_time, maximum_parallel_jobs=256
         )
 
         self.data["parametric"] = {
             "job_count": parametric_job_count,
             "job_matrix": list(range(1, parametric_job_count + 1)),
-            "enable": len(scenario_map["parametric"]) > 0 and "otel" not in library,
+            "enable": len(scenario_map["parametric"]) > 0
+            and "otel" not in library
+            and library not in ("cpp_nginx", "cpp_httpd"),
         }
 
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
@@ -70,7 +94,6 @@ class CiData:
         )
 
         # legacy part
-        self.data["graphql"] = {"scenarios": [], "weblogs": []}
         self.data["parametric"]["scenarios"] = ["PARAMETRIC"] if self.data["parametric"]["enable"] else []
         legacy_scenarios, legacy_weblogs = set(), set()
 
@@ -101,14 +124,17 @@ class CiData:
         result = []
         for workflow_name, workflow in self.data.items():
             for parameter, value in workflow.items():
-                result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                if isinstance(value, (dict, list)):
+                    result.append(f"{workflow_name}_{parameter}={json.dumps(value)}")
+                else:
+                    result.append(f"{workflow_name}_{parameter}={value}")
 
         # github action is not able to handle aws_ssi, so nothing to do
 
         self._export("\n".join(result), output)
 
     def _export_gitlab(self) -> None:
-        print_gitlab_pipeline(self.language, self.data, self.environment)
+        print_gitlab_pipeline(self.language, self.data, self.ci_environment)
 
     @staticmethod
     def _export(data: str, output: str) -> None:
@@ -119,44 +145,49 @@ class CiData:
             print(data)
 
     @staticmethod
-    def _get_workflow_map(scenarios, scenarios_groups) -> dict:
+    def _get_workflow_map(
+        *, scenario_names: list[str], excluded_scenario_names: list[str], scenario_group_names: list[str]
+    ) -> dict:
         """Returns a dict where:
         * the key is the workflow identifier
         * the value is a list of scenarios to run, associated to the workflow
         """
 
-        result = {}  # type: dict[str, list[str]]
+        result: dict[str, list[str]] = {}
 
-        scenarios_groups = [group.strip() for group in scenarios_groups if group.strip()]
-        scenarios = {scenario.strip(): False for scenario in scenarios if scenario.strip()}
+        # clean inputs
+        scenario_names = [scenario.strip() for scenario in scenario_names if scenario.strip()]
+        scenario_group_names = [group.strip() for group in scenario_group_names if group.strip()]
+        excluded_scenario_names = [scenario.strip() for scenario in excluded_scenario_names if scenario.strip()]
 
-        for group in scenarios_groups:
-            try:
-                ScenarioGroup(group)
-            except ValueError as e:
-                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+        # check that all scenarios provided by the user are valid
+        existing_scenarios: dict[str, Scenario] = {scenario.name: scenario for scenario in get_all_scenarios()}
+        for name in scenario_names:
+            if name not in existing_scenarios:
+                raise ValueError(f"Scenario {name} does not exists")
 
-        for scenario in get_all_scenarios():
+        # check that all groups provided by the user are valid
+        for group in scenario_group_names:
+            _ = all_scenarios_groups[group]
+
+        for scenario in existing_scenarios.values():
             # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
             if not scenario.github_workflow:
-                scenarios[scenario.name] = True  # won't be executed, but it exists
                 continue
 
             if scenario.github_workflow not in result:
                 result[scenario.github_workflow] = []
 
-            if scenario.name in scenarios:
+            if scenario.name in excluded_scenario_names:
+                continue
+
+            if scenario.name in scenario_names:
                 result[scenario.github_workflow].append(scenario.name)
-                scenarios[scenario.name] = True
-
-            for group in scenarios_groups:
-                if ScenarioGroup(group) in scenario.scenario_groups:
-                    result[scenario.github_workflow].append(scenario.name)
-                    break
-
-        for scenario, found in scenarios.items():
-            if not found:
-                raise ValueError(f"Scenario {scenario} does not exists")
+            else:
+                for group in scenario_group_names:
+                    if all_scenarios_groups[group] in scenario.scenario_groups:
+                        result[scenario.github_workflow].append(scenario.name)
+                        break
 
         return result
 
@@ -164,11 +195,13 @@ class CiData:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
-        "language",
+        "library",
         type=str,
         help="One of the supported Datadog library",
         choices=[
             "cpp",
+            "cpp_httpd",
+            "cpp_nginx",
             "dotnet",
             "python",
             "ruby",
@@ -193,6 +226,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
+    parser.add_argument("--excluded-scenarios", type=str, help="Scenarios to excluded", default="")
 
     # how long the workflow is expected to run
     parser.add_argument(
@@ -215,15 +249,29 @@ if __name__ == "__main__":
     parser.add_argument("--parametric-job-count", type=int, help="How may jobs must run parametric scenario", default=1)
 
     # Misc
-    parser.add_argument("--ci-environment", type=str, help="Used internally in system-tests CI", default="custom")
+    parser.add_argument(
+        "--explicit-binaries-artifact", type=str, help="If an artifact for binaries is explicitly provided", default=""
+    )
+    parser.add_argument(
+        "--system-tests-dev-mode", type=str, help="true if running in system-tests CI, with  the dev mode", default=""
+    )
+    parser.add_argument("--ci-environment", type=str, help="Explicitly provide CI environment", default=None)
 
     args = parser.parse_args()
 
+    if args.ci_environment is not None:
+        if args.system_tests_dev_mode != "":
+            print("--ci-environment is not compatible with --system-tests-dev-mode")
+            sys.exit(1)
+
     CiData(
-        library=args.language,
+        library=args.library,
         scenarios=args.scenarios,
         groups=args.groups,
-        ci_environment=args.ci_environment,
+        excluded_scenarios=args.excluded_scenarios,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
+        explicit_binaries_artifact=args.explicit_binaries_artifact,
+        system_tests_dev_mode=args.system_tests_dev_mode == "true",
+        ci_environment=args.ci_environment,
     ).export(export_format=args.format, output=args.output)

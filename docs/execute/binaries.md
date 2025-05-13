@@ -42,7 +42,7 @@ To change Orchestrion version, create a file `orchestrion-load-from-go-get` unde
 
 ## Java library
 
-Follow these steps to run Parametric tests with a custom Java Tracer version:
+Follow these steps to run tests with a custom Java Tracer version:
 
 To run a custom Tracer version from a local branch:
 
@@ -64,7 +64,13 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 
 Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
-4. Run Parametric tests from the `system-tests/parametric` folder:
+4. Build your selected weblog:
+
+```shell
+./build.sh java [--weblog-variant spring-boot]
+```
+
+5. Run tests from the `system-tests` folder:
 
 ```bash
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001

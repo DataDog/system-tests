@@ -1,12 +1,13 @@
 import os
 
 from docker.models.networks import Network
+import pytest
 
-from utils._context.library_version import LibraryVersion, Version
+from utils._context.component_version import ComponentVersion, Version
 
 from utils.k8s_lib_injection.k8s_datadog_kubernetes import K8sDatadog
 from utils.k8s_lib_injection.k8s_weblog import K8sWeblog
-from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory
+from utils.k8s_lib_injection.k8s_cluster_provider import K8sProviderFactory, K8sClusterProvider
 from utils._context.containers import (
     create_network,
     APMTestAgentContainer,
@@ -17,11 +18,15 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
-from .core import Scenario, ScenarioGroup
+from utils._logger import logger
+from .core import Scenario, scenario_groups
 
 
-class K8sScenario(Scenario):
+class K8sScenarioWithClusterProvider:
+    k8s_cluster_provider: K8sClusterProvider
+
+
+class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that tests kubernetes lib injection"""
 
     def __init__(
@@ -32,7 +37,7 @@ class K8sScenario(Scenario):
         weblog_env={},
         dd_cluster_feature={},
         with_datadog_operator=False,
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
@@ -40,7 +45,7 @@ class K8sScenario(Scenario):
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         # If we are using the datadog operator, we don't need to deploy the test agent
         # But we'll use the real agent deployed automatically by the operator
         # We'll use the real backend, we need the real api key and app key
@@ -56,7 +61,7 @@ class K8sScenario(Scenario):
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
@@ -106,7 +111,7 @@ class K8sScenario(Scenario):
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
@@ -128,15 +133,15 @@ class K8sScenario(Scenario):
 
     def get_warmups(self):
         warmups = super().get_warmups()
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
 
         if not self.with_datadog_operator:
             warmups.append(self.k8s_datadog.deploy_test_agent)
-            warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+            warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
         else:
-            warmups.append(self.k8s_datadog.deploy_datadog_operator)
+            warmups.append(lambda: self.k8s_datadog.deploy_datadog_operator(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
@@ -172,7 +177,7 @@ class K8sScenario(Scenario):
         return self._datadog_apm_inject_version
 
 
-class K8sManualInstrumentationScenario(Scenario):
+class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider):
     """Scenario that applied the auto instrumentation manually
     Without using the cluster agent or the operator. We simply add volume mounts to the pods
     with the context of the lib init image, then we inject the env variables to the weblog to
@@ -184,23 +189,23 @@ class K8sManualInstrumentationScenario(Scenario):
             name,
             doc=doc,
             github_workflow="libinjection",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
         )
         self.use_uds = use_uds
         self.weblog_env = weblog_env
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         self.k8s_weblog = config.option.k8s_weblog
         self.k8s_weblog_img = config.option.k8s_weblog_img
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
         # Get Lib init version
-        self._library = LibraryVersion(
+        self._library = ComponentVersion(
             config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
         )
         self.k8s_lib_init_img = config.option.k8s_lib_init_img
-        self.components["library"] = self._library
+        self.components["library"] = str(self._library)
 
         # Configure the K8s cluster provider
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
@@ -216,7 +221,7 @@ class K8sManualInstrumentationScenario(Scenario):
         # Weblog handler
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             None,
             self.host_log_folder,
@@ -233,7 +238,7 @@ class K8sManualInstrumentationScenario(Scenario):
 
     def get_warmups(self):
         warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_datadog.deploy_test_agent)
         warmups.append(self.test_weblog.install_weblog_pod_with_manual_inject)
@@ -275,7 +280,7 @@ class K8sSparkScenario(K8sScenario):
             dd_cluster_feature=dd_cluster_feature,
         )
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
 
@@ -290,7 +295,7 @@ class K8sSparkScenario(K8sScenario):
 
         self.test_weblog = K8sWeblog(
             self.k8s_weblog_img,
-            self.library.library,
+            self.library.name,
             self.k8s_lib_init_img,
             self.k8s_injector_img,
             self.host_log_folder,
@@ -304,11 +309,11 @@ class K8sSparkScenario(K8sScenario):
 
     def get_warmups(self):
         warmups = []
-        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Kind Cluster", bold=True))
+        warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
         warmups.append(self.k8s_cluster_provider.create_spak_service_account)
         warmups.append(self.k8s_datadog.deploy_test_agent)
-        warmups.append(self.k8s_datadog.deploy_datadog_cluster_agent)
+        warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
         warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
@@ -332,18 +337,18 @@ class WeblogInjectionScenario(Scenario):
         self._required_containers.append(APMTestAgentContainer(host_log_folder=self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
 
-    def configure(self, config):  # noqa: ARG002
+    def configure(self, config: pytest.Config):  # noqa: ARG002
         assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
-        self._library = LibraryVersion(os.getenv("TEST_LIBRARY"), "0.0")
+        self._library = ComponentVersion(os.environ["TEST_LIBRARY"], "0.0")
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"
-        self._lib_init_image = os.getenv("LIB_INIT_IMAGE")
+        self._lib_init_image = os.environ["LIB_INIT_IMAGE"]
         self._weblog_variant = os.getenv("WEBLOG_VARIANT", "")
         self._mount_injection_volume._lib_init_image(self._lib_init_image)
         self._weblog_injection.set_environment_for_library(self.library)
 
         for container in self._required_containers:
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
     def _create_network(self):
         self._network = create_network()

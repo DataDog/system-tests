@@ -2,6 +2,7 @@ import pytest
 
 from utils.parametric.spec.trace import find_first_span_in_trace_payload, find_trace, find_only_span
 from utils import missing_feature, irrelevant, context, scenarios, features
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 POWER_2_64 = 18446744073709551616
@@ -14,16 +15,16 @@ class Test_128_Bit_Traceids:
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "Datadog", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
     )
-    def test_datadog_128_bit_propagation(self, test_agent, test_library):
+    def test_datadog_128_bit_propagation(self, test_agent, test_library: APMLibrary):
         """Ensure that external 128-bit TraceIds are properly propagated in Datadog
         headers.
         """
         with test_library:
             headers = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "1234567890123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-tags", "_dd.p.tid=640cfd8d00000000"],
+                    ("x-datadog-trace-id", "1234567890123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-tags", "_dd.p.tid=640cfd8d00000000"),
                 ],
             )
         span = find_only_span(test_agent.wait_for_num_traces(1))
@@ -186,8 +187,10 @@ class Test_128_Bit_Traceids:
         validate_dd_p_tid(dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
-    @missing_feature(context.library == "ruby", reason="not implemented")
-    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
+    @irrelevant(
+        context.library in ("ruby", "python"),
+        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -210,8 +213,10 @@ class Test_128_Bit_Traceids:
         check_128_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
-    @missing_feature(context.library == "ruby", reason="not implemented")
-    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
+    @irrelevant(
+        context.library in ("ruby", "python"),
+        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -230,10 +235,10 @@ class Test_128_Bit_Traceids:
         check_64_bit_trace_id(fields[0], trace_id, dd_p_tid)
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
-    @missing_feature(
-        context.library == "ruby", reason="Issue: Ruby doesn't support case-insensitive distributed headers"
+    @irrelevant(
+        context.library in ("ruby", "python"),
+        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
     )
-    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
@@ -250,8 +255,10 @@ class Test_128_Bit_Traceids:
         check_64_bit_trace_id(fields[0], span.get("trace_id"), span["meta"].get("_dd.p.tid"))
 
     @missing_feature(context.library == "cpp", reason="propagation style not supported")
-    @missing_feature(context.library == "ruby", reason="not implemented")
-    @irrelevant(context.library > "python@2.20.0", reason="3.x set `b3` instead of `B3 single header`")
+    @irrelevant(
+        context.library in ("ruby", "python"),
+        reason="Supports the value `b3` instead of the deprecated `B3 single header`",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "B3 single header", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -379,7 +386,10 @@ class Test_128_Bit_Traceids:
         assert dd_p_tid == "640cfd8d00000000"
         assert propagation_error is None
 
-    @missing_feature(context.library == "ruby", reason="not implemented")
+    @irrelevant(
+        context.library == "ruby",
+        reason="ruby tracer adds trace level tags to the local root span and not the chunk root span. This inconsistency is not a bug and is expected.",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "true"}],
@@ -399,6 +409,26 @@ class Test_128_Bit_Traceids:
         first_span = find_first_span_in_trace_payload(trace)
         tid_chunk_root = first_span["meta"].get("_dd.p.tid")
         assert tid_chunk_root is not None
+
+    def test_w3c_128_bit_propagation_tid_in_trace_chunk(self, test_agent, test_library):
+        """Ensure that atleast one span in the trace chunk contains the tid."""
+        with (
+            test_library,
+            test_library.dd_start_span(name="parent", service="service", resource="resource") as parent,
+            test_library.dd_start_span(name="child", service="service", parent_id=parent.span_id),
+        ):
+            pass
+
+        traces = test_agent.wait_for_num_traces(1, clear=True, sort_by_start=False)
+        trace = find_trace(traces, parent.trace_id)
+        assert len(trace) == 2
+
+        for span in trace:
+            tid = span["meta"].get("_dd.p.tid")
+            if tid is not None:
+                break
+        else:
+            raise AssertionError(f"No span in the trace chunk contains the tid: {traces}")
 
     @missing_feature(context.library < "nodejs@5.38.0", reason="Implemented in 5.38.0")
     @pytest.mark.parametrize(

@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from tests.appsec.utils import find_series
 from utils import weblog, context, interfaces, scenarios, features
 
 
@@ -23,6 +24,27 @@ class Test_CorruptedRules:
             assert r.status_code == 200
             # Appsec does not catch any attack
             interfaces.library.assert_no_appsec_event(r)
+
+
+@scenarios.appsec_corrupted_rules
+@features.threats_configuration
+class Test_CorruptedRules_Telemetry:
+    """Report telemetry when rules file is corrupted"""
+
+    def setup_waf_init_and_config_errors_tags(self):
+        self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
+        self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
+
+    def test_waf_init_and_config_errors_tags(self):
+        waf_init_series = find_series("generate-metrics", "appsec", ["waf.init"])
+        waf_init_metric = [
+            d for d in waf_init_series if "event_rules_version:unknown" in d["tags"] and "success:false" in d["tags"]
+        ]
+        assert waf_init_metric, "waf.init missing 'success:false' or 'event_rules_version:unknown' tag"
+
+        waf_config_errors_series = find_series("generate-metrics", "appsec", ["waf.config_errors"])
+        waf_config_errors_metric = [d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]]
+        assert waf_config_errors_metric, "waf.config_errors missing 'event_rules_version:unknown' tag"
 
 
 @scenarios.appsec_missing_rules
@@ -59,7 +81,7 @@ class Test_ConfRuleSet:
     def test_log(self):
         # Check if it's implemented for the weblog variant
         if context.library == "java":
-            stdout.assert_presence("AppSec is FULLY_ENABLED with powerwaf")
+            stdout.assert_presence(r"AppSec is FULLY_ENABLED with (ddwaf|powerwaf)")
         # Check there is no error reported in logs
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")

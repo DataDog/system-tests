@@ -11,7 +11,7 @@ import time
 import datetime
 import hashlib
 from pathlib import Path
-from typing import TextIO, TypedDict
+from typing import TextIO, TypedDict, Any
 import urllib.parse
 
 import requests
@@ -24,9 +24,8 @@ from utils.parametric.spec.trace import Trace
 from utils.parametric.spec.trace import decode_v06_stats
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
 
-from utils import context, scenarios
+from utils import context, scenarios, logger
 from utils.dd_constants import RemoteConfigApplyState, Capabilities
-from utils.tools import logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
 
@@ -35,7 +34,7 @@ default_subprocess_run_timeout = 300
 
 
 @pytest.fixture
-def test_id(request) -> str:
+def test_id(request: pytest.FixtureRequest) -> str:
     import uuid
 
     result = str(uuid.uuid4())[0:6]
@@ -54,13 +53,13 @@ class AgentRequestV06Stats(AgentRequest):
     body: V06StatsPayload  # type: ignore[misc]
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     config.addinivalue_line(
         "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
     )
 
 
-def _request_token(request):
+def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
     token += request.module.__name__
     token += f".{request.cls.__name__}" if request.cls else ""
@@ -74,20 +73,45 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def apm_test_server(request, library_env, test_id):
+def library_extra_command_arguments() -> list[str]:
+    return []
+
+
+@pytest.fixture
+def apm_test_server(
+    request: pytest.FixtureRequest,
+    library_env: dict[str, str],
+    library_extra_command_arguments: list[str],
+    test_id: str,
+) -> APMLibraryTestServer:
     """Request level definition of the library test server with the session Docker image built"""
     apm_test_server_image = scenarios.parametric.apm_test_server_definition
     new_env = dict(library_env)
-    context.scenario.parametrized_tests_metadata[request.node.nodeid] = new_env
+    scenarios.parametric.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(apm_test_server_image.env)
+
+    command = apm_test_server_image.container_cmd
+
+    if len(library_extra_command_arguments) > 0:
+        if apm_test_server_image.lang not in ("nodejs", "java", "php"):
+            # TODO : all test server should call directly the target without using a sh script
+            command += library_extra_command_arguments
+        else:
+            # temporary workaround for the test server to be able to run the command
+            new_env["SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS"] = " ".join(library_extra_command_arguments)
+
     return dataclasses.replace(
-        apm_test_server_image, container_name=f"{apm_test_server_image.container_name}-{test_id}", env=new_env
+        apm_test_server_image,
+        container_name=f"{apm_test_server_image.container_name}-{test_id}",
+        env=new_env,
     )
 
 
 @pytest.fixture
-def test_server_log_file(apm_test_server, request) -> Generator[TextIO, None, None]:
+def test_server_log_file(
+    apm_test_server: APMLibraryTestServer, request: pytest.FixtureRequest
+) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
@@ -109,12 +133,12 @@ class _TestAgentAPI:
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
 
-    def _write_log(self, log_type, json_trace):
+    def _write_log(self, log_type: str, json_trace: Any):  # noqa: ANN401
         with open(self.log_path, "a") as log:
             log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def traces(self, *, clear=False, **kwargs) -> list[Trace]:
+    def traces(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
@@ -122,7 +146,7 @@ class _TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
-    def set_remote_config(self, path, payload):
+    def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
         assert resp.status_code == 202
 
@@ -138,7 +162,7 @@ class _TestAgentAPI:
                 result.append({"path": path, "msg": msg})
         return result
 
-    def add_remote_config(self, path, payload):
+    def add_remote_config(self, path: str, payload: dict):
         current_rc = self.get_remote_config()
         current_rc.append({"path": path, "msg": payload})
         remote_config_payload = self._build_config_path_response(current_rc)
@@ -212,11 +236,11 @@ class _TestAgentAPI:
         }
         return json.dumps(remote_config_payload)
 
-    def set_trace_delay(self, delay):
+    def set_trace_delay(self, delay: int):
         resp = self._session.post(self._url("/test/settings"), json={"trace_request_delay": delay})
         assert resp.status_code == 202
 
-    def raw_telemetry(self, *, clear=False):
+    def raw_telemetry(self, *, clear: bool = False):
         raw_reqs = self.requests()
         reqs = []
         for req in raw_reqs:
@@ -226,33 +250,33 @@ class _TestAgentAPI:
             self.clear()
         return reqs
 
-    def telemetry(self, *, clear=False, **kwargs):
-        resp = self._session.get(self._url("/test/session/apmtelemetry"), **kwargs)
+    def telemetry(self, *, clear: bool = False):
+        resp = self._session.get(self._url("/test/session/apmtelemetry"))
         if clear:
             self.clear()
         return resp.json()
 
-    def tracestats(self, **kwargs):
-        resp = self._session.get(self._url("/test/session/stats"), **kwargs)
-        resp_json = resp.json()
-        self._write_log("tracestats", resp_json)
-        return resp_json
+    # def tracestats(self, **kwargs: Any):
+    #     resp = self._session.get(self._url("/test/session/stats"), **kwargs)
+    #     resp_json = resp.json()
+    #     self._write_log("tracestats", resp_json)
+    #     return resp_json
 
-    def requests(self, **kwargs) -> list[AgentRequest]:
-        resp = self._session.get(self._url("/test/session/requests"), **kwargs)
+    def requests(self) -> list[AgentRequest]:
+        resp = self._session.get(self._url("/test/session/requests"))
         resp_json = resp.json()
         self._write_log("requests", resp_json)
         return resp_json
 
-    def rc_requests(self, *, post_only=False):
+    def rc_requests(self, *, post_only: bool = False):
         reqs = self.requests()
         rc_reqs = [r for r in reqs if r["url"].endswith("/v0.7/config") and (not post_only or r["method"] == "POST")]
         for r in rc_reqs:
             r["body"] = json.loads(base64.b64decode(r["body"]).decode("utf-8"))
         return rc_reqs
 
-    def get_tracer_flares(self, **kwargs):
-        resp = self._session.get(self._url("/test/session/tracerflares"), **kwargs)
+    def get_tracer_flares(self):
+        resp = self._session.get(self._url("/test/session/tracerflares"))
         resp_json = resp.json()
         self._write_log("tracerflares", resp_json)
         return resp_json
@@ -271,11 +295,11 @@ class _TestAgentAPI:
             )
         return agent_requests
 
-    def clear(self, **kwargs) -> None:
-        self._session.get(self._url("/test/session/clear"), **kwargs)
+    def clear(self) -> None:
+        self._session.get(self._url("/test/session/clear"))
 
-    def info(self, **kwargs):
-        resp = self._session.get(self._url("/info"), **kwargs)
+    def info(self):
+        resp = self._session.get(self._url("/info"))
 
         if resp.status_code != 200:
             message = f"Test agent unexpected {resp.status_code} response: {resp.text}"
@@ -287,7 +311,7 @@ class _TestAgentAPI:
         return resp_json
 
     @contextlib.contextmanager
-    def snapshot_context(self, token, ignores=None):
+    def snapshot_context(self, token: str, ignores: list[str] | None = None):
         ignores = ignores or []
         try:
             resp = self._session.get(self._url(f"/test/session/start?test_session_token={token}"))
@@ -384,7 +408,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, clear: bool = False) -> dict[str, str]:
+    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
         """Waits for and returns the latest configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
@@ -404,6 +428,8 @@ class _TestAgentAPI:
         events.sort(key=lambda r: r["tracer_time"])
         # Extract configuration data from relevant telemetry events
         for event in events:
+            if service is not None and event["application"]["service_name"] != service:
+                continue
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
@@ -415,7 +441,7 @@ class _TestAgentAPI:
             self.clear()
         return configurations
 
-    def _get_telemetry_event(self, event, request_type):
+    def _get_telemetry_event(self, event: dict, request_type: str):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
         matches the expected request_type and was not emitted from a sidecar.
         """
@@ -583,7 +609,7 @@ def test_agent_port() -> int:
 
 
 @pytest.fixture
-def test_agent_log_file(request) -> Generator[TextIO, None, None]:
+def test_agent_log_file(request: pytest.FixtureRequest) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
@@ -605,7 +631,7 @@ def test_agent_log_file(request) -> Generator[TextIO, None, None]:
 
 
 @pytest.fixture
-def test_agent_container_name(test_id) -> str:
+def test_agent_container_name(test_id: str) -> str:
     return f"ddapm-test-agent-{test_id}"
 
 
@@ -622,7 +648,7 @@ def test_agent(
     test_agent_container_name: str,
     test_agent_port: int,
     test_agent_log_file: TextIO,
-):
+) -> Generator[_TestAgentAPI, None, None]:
     env = {}
     if os.getenv("DEV_MODE") is not None:
         env["SNAPSHOT_CI"] = "0"
@@ -733,12 +759,13 @@ def test_library(
 
 
 class StableConfigWriter:
-    def write_stable_config(self, stable_config: dict, path, test_library):
+    def write_stable_config(self, stable_config: dict, path: str, test_library: APMLibrary) -> None:
         stable_config_content = yaml.dump(stable_config)
         self.write_stable_config_content(stable_config_content, path, test_library)
 
-    def write_stable_config_content(self, stable_config_content: str, path: str, test_library):
-        success, message = test_library.container_exec_run(
-            f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
-        )
+    def write_stable_config_content(self, stable_config_content: str, path: str, test_library: APMLibrary) -> None:
+        cmd = f'bash -c "mkdir -p {Path(path).parent!s} && printf {shlex.quote(stable_config_content)} | tee {path}"'
+        if test_library.lang == "php":
+            cmd = "sudo " + cmd
+        success, message = test_library.container_exec_run(cmd)
         assert success, message

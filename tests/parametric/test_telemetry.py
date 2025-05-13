@@ -15,6 +15,14 @@ from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
+    "ssi_injection_enabled": {
+        "nodejs": "DD_INJECTION_ENABLED",
+        "python": "DD_INJECTION_ENABLED",
+    },
+    "ssi_forced_injection_enabled": {
+        "nodejs": "DD_INJECT_FORCE",
+        "python": "DD_INJECT_FORCE",
+    },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
@@ -24,6 +32,7 @@ telemetry_name_mapping = {
         "dotnet": "DD_LOGS_INJECTION",
         "nodejs": "DD_LOG_INJECTION",
         "python": "DD_LOGS_INJECTION",
+        "php": "trace.logs_enabled",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
@@ -48,12 +57,18 @@ telemetry_name_mapping = {
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
     },
+    "dynamic_instrumentation_enabled": {
+        "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+        "nodejs": "dynamicInstrumentation.enabled",
+        "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
+        "php": "dynamic_instrumentation.enabled",
+    },
 }
 
 
 def _mapped_telemetry_name(context, apm_telemetry_name):
     if apm_telemetry_name in telemetry_name_mapping:
-        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.library)
+        mapped_name = telemetry_name_mapping[apm_telemetry_name].get(context.library.name)
         if mapped_name is not None:
             return mapped_name
     return apm_telemetry_name
@@ -453,7 +468,11 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
         [
             (
-                {"DD_LOGS_INJECTION": True, "DD_RUNTIME_METRICS_ENABLED": True, "DD_PROFILING_ENABLED": True},
+                {
+                    "DD_LOGS_INJECTION": True,
+                    "DD_RUNTIME_METRICS_ENABLED": True,
+                    "DD_DYNAMIC_INSTRUMENTATION_ENABLED": True,
+                },
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                     "DD_RUNTIME_METRICS_ENABLED": True,
@@ -463,7 +482,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                     "logs_injection_enabled": "fleet_stable_config",
                     # Reporting for other origins than stable config is not completely implemented
                     # "runtime_metrics_enabled": "env_var",
-                    "profiling_enabled": "local_stable_config",
+                    "dynamic_instrumentation_enabled": "local_stable_config",
                 },
             )
         ],
@@ -495,6 +514,54 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             telemetry_item = configuration[apm_telemetry_name]
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
+
+    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
+        [
+            (
+                {"DD_DYNAMIC_INSTRUMENTATION_ENABLED": True},
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                },
+                {"DD_LOGS_INJECTION": True},
+                "1231231231231",
+            )
+        ],
+    )
+    def test_stable_configuration_config_id(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, fleet_config_id
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                    "config_id": fleet_config_id,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+
+        configurations = test_agent.wait_for_telemetry_configurations()
+        # Configuration set via fleet config should have the config_id set
+        apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
+        telemetry_item = configurations[apm_telemetry_name]
+        assert telemetry_item["origin"] == "fleet_stable_config"
+        assert telemetry_item["config_id"] == fleet_config_id
+        # Configuration set via local config should not have the config_id set
+        apm_telemetry_name = _mapped_telemetry_name(context, "dynamic_instrumentation_enabled")
+        telemetry_item = configurations[apm_telemetry_name]
+        assert telemetry_item["origin"] == "local_stable_config"
+        assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
 
 
 DEFAULT_ENVVARS = {
@@ -584,6 +651,119 @@ class Test_TelemetryInstallSignature:
                 assert (
                     "install_signature" not in body["payload"]
                 ), f"The install signature should not be included in the telemetry event, got {body}"
+
+
+@scenarios.parametric
+@features.ssi_service_tracking
+class Test_TelemetrySSIConfigs:
+    """This telemetry provides insights into how a library was installed."""
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_value"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": "tracer",
+                },
+                "tracer",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": "service_test,profiler,false",
+                },
+                "service_test,profiler,false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": None,
+                },
+                None,
+            ),
+        ],
+    )
+    def test_injection_enabled(self, library_env, expected_value, test_agent, test_library):
+        """Ensure SSI DD_INJECTION_ENABLED configuration is captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        ssi_enabled_telemetry_name = _mapped_telemetry_name(context, "ssi_injection_enabled")
+        inject_enabled = configuration_by_name.get(ssi_enabled_telemetry_name)
+        assert inject_enabled, ",\n".join(configuration_by_name.keys())
+        assert inject_enabled.get("value") == expected_value
+        if expected_value is not None:
+            assert inject_enabled.get("origin") == "env_var"
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_value"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": "true",
+                },
+                "true",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": "false",
+                },
+                "false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": None,
+                },
+                "none",
+            ),
+        ],
+    )
+    def test_inject_force(self, library_env, expected_value, test_agent, test_library):
+        """Ensure SSI DD_INJECT_FORCE configuration is captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        # # Check that the tags name match the expected value
+        inject_force_telemetry_name = _mapped_telemetry_name(context, "ssi_forced_injection_enabled")
+        inject_force = configuration_by_name.get(inject_force_telemetry_name)
+        assert inject_force, ",\n".join(configuration_by_name.keys())
+        assert str(inject_force.get("value")).lower() == expected_value
+        if expected_value != "none":
+            assert inject_force.get("origin") == "env_var"
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "service_test"}])
+    def test_instrumentation_source_non_ssi(self, library_env, test_agent, test_library):
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        # Check that the tags name match the expected value
+        instrumentation_source_telemetry_name = _mapped_telemetry_name(context, "instrumentation_source")
+        instrumentation_source = configuration_by_name.get(instrumentation_source_telemetry_name)
+        assert instrumentation_source, ",\n".join(configuration_by_name.keys())
+        assert instrumentation_source.get("value").lower() != "ssi"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")

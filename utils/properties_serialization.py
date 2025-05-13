@@ -6,17 +6,20 @@ import pytest
 from requests.structures import CaseInsensitiveDict
 
 from utils._weblog import HttpResponse, GrpcResponse, _Weblog
+from utils._remote_config import RemoteConfigStateResults
 from utils.interfaces._core import InterfaceValidator
-from utils.tools import logger
+from utils._logger import logger
 
 
 class _PropertiesEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:  # noqa: ANN401
         if isinstance(o, CaseInsensitiveDict):
             return dict(o.items())
 
-        if isinstance(o, (HttpResponse, GrpcResponse)):
-            return o.serialize()
+        if isinstance(o, (HttpResponse, GrpcResponse, RemoteConfigStateResults)):
+            serialized = o.to_json()
+            assert "__class__" not in serialized
+            return serialized | {"__class__": o.__class__.__name__}
 
         if isinstance(o, set):
             return {"__class__": "set", "values": list(o)}
@@ -30,16 +33,19 @@ class _PropertiesDecoder(json.JSONDecoder):
         json.JSONDecoder.__init__(self, object_hook=_PropertiesDecoder.from_dict)
 
     @staticmethod
-    def from_dict(d) -> Any:  # noqa: ANN401
+    def from_dict(d: dict) -> object:
         if klass := d.get("__class__"):
             if klass == "set":
                 return set(d["values"])
 
             if klass == "GrpcResponse":
-                return GrpcResponse(d)
+                return GrpcResponse.from_json(d)
 
             if klass == "HttpResponse":
-                return HttpResponse(d)
+                return HttpResponse.from_json(d)
+
+            if klass == "RemoteConfigStateResults":
+                return RemoteConfigStateResults.from_json(d)
 
         return d
 
@@ -63,7 +69,7 @@ class SetupProperties:
                 setattr(item.instance, name, value)
 
     @staticmethod
-    def _get_properties(instance) -> dict:
+    def _get_properties(instance: object) -> dict:
         properties = {
             name: getattr(instance, name)
             for name in dir(instance)
@@ -97,7 +103,7 @@ class SetupProperties:
         if properties := self._store.get(item.nodeid):
             self._log_requests(properties)
 
-    def _log_requests(self, o) -> None:
+    def _log_requests(self, o: object) -> None:
         if isinstance(o, HttpResponse):
             logger.info(f"weblog {o.request.method} {o.request.url} -> {o.status_code}")
         elif isinstance(o, GrpcResponse):

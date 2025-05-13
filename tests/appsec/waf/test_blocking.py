@@ -13,7 +13,7 @@ def _read_file(file_path: str) -> str:
         return file.read()
 
 
-def assert_valid_html_blocked_template(body: str) -> bool:
+def assert_valid_html_blocked_template(body: str) -> None:
     """Returns true if body is a valid HTML response on a blocked requests"""
 
     valid_templates = {
@@ -27,7 +27,7 @@ def assert_valid_html_blocked_template(body: str) -> bool:
     assert body in valid_templates
 
 
-def assert_valid_json_blocked_template(body: str) -> bool:
+def assert_valid_json_blocked_template(body: str) -> None:
     """Returns true if body is a valid JSON response on a blocked requests"""
 
     valid_templates = {

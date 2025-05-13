@@ -16,11 +16,11 @@ import requests
 from utils._context.core import context
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 from utils.interfaces import library
-from utils.tools import logger
+from utils._logger import logger
 from utils._context.containers import ProxyContainer
 
 
-def _post(path: str, payload) -> None:
+def _post(path: str, payload: list[dict] | dict) -> None:
     if "SYSTEM_TESTS_PROXY_HOST" in os.environ:
         domain = os.environ["SYSTEM_TESTS_PROXY_HOST"]
     elif "DOCKER_HOST" in os.environ:
@@ -32,13 +32,27 @@ def _post(path: str, payload) -> None:
     requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
 
 
-RC_VERSION = "_ci_global_version"
-RC_STATE = "_ci_state"
+class RemoteConfigStateResults:
+    def __init__(self, version: int, state: ApplyState = ApplyState.UNKNOWN, configs: dict | None = None) -> None:
+        self.version = version
+        self.state = state
+        self.configs: dict[str, dict] = configs if configs is not None else {}
+
+    def to_json(self) -> dict:
+        return {
+            "version": self.version,
+            "state": self.state,
+            "configs": self.configs,
+        }
+
+    @staticmethod
+    def from_json(d: dict) -> "RemoteConfigStateResults":
+        return RemoteConfigStateResults(version=d["version"], state=d["state"], configs=d["configs"])
 
 
 def send_state(
-    raw_payload, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
-) -> dict[str, dict[str, Any]]:
+    raw_payload: dict, *, wait_for_acknowledged_status: bool = True, state_version: int = -1
+) -> RemoteConfigStateResults:
     """Sends a remote config payload to the library and waits for the config to be applied.
     Then returns a dictionary with the state of each requested file as returned by the library.
 
@@ -66,24 +80,22 @@ def send_state(
 
     client_configs = raw_payload.get("client_configs", [])
 
-    current_states: dict[str, Any] = {}
+    current_states = RemoteConfigStateResults(version=state_version)
     version = None
     targets = json.loads(base64.b64decode(raw_payload["targets"]))
     version = targets["signed"]["version"]
     for client_config in client_configs:
         _, _, product, config_id, _ = client_config.split("/")
-        current_states[config_id] = {
+        current_states.configs[config_id] = {
             "id": config_id,
             "product": product,
             "apply_state": ApplyState.UNKNOWN,
             "apply_error": "<No known response from the library>",
         }
-    current_states[RC_VERSION] = state_version
-    current_states[RC_STATE] = ApplyState.UNKNOWN
 
     state = {}
 
-    def remote_config_applied(data) -> bool:
+    def remote_config_applied(data: dict) -> bool:
         nonlocal state
         if data["path"] != "/v0.7/config":
             return False
@@ -92,7 +104,7 @@ def send_state(
         if len(client_configs) == 0:
             found = state["targets_version"] == state_version and state.get("config_states", []) == []
             if found:
-                current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
+                current_states.state = ApplyState.ACKNOWLEDGED
             return found
 
         if state["targets_version"] != version:
@@ -100,18 +112,17 @@ def send_state(
 
         config_states = state.get("config_states", [])
         for state in config_states:
-            config_state = current_states.get(state["id"])
+            config_state = current_states.configs.get(state["id"])
             if config_state and state["product"] == config_state["product"]:
                 logger.debug(f"Remote config state: {state}")
                 config_state.update(state)
 
         if wait_for_acknowledged_status:
-            for key, state in current_states.items():
-                if key not in (RC_VERSION, RC_STATE):
-                    if state["apply_state"] == ApplyState.UNKNOWN:
-                        return False
+            for state in current_states.configs.values():
+                if state["apply_state"] == ApplyState.UNKNOWN:
+                    return False
 
-        current_states[RC_STATE] = ApplyState.ACKNOWLEDGED
+        current_states.state = ApplyState.ACKNOWLEDGED
         return True
 
     _post("/unique_command", raw_payload)
@@ -135,7 +146,7 @@ def send_sequential_commands(commands: list[dict], *, wait_for_all_command: bool
 
     counts_by_runtime_id: dict[str, int] = {}
 
-    def all_payload_sent(data) -> bool:
+    def all_payload_sent(data: dict) -> bool:
         if data["path"] != "/v0.7/config":
             return False
 
@@ -232,17 +243,17 @@ def build_debugger_command(probes: list | None, version: int):
     return _build_base_command(path_payloads, version)
 
 
-def send_debugger_command(probes: list, version: int = 1) -> dict:
+def send_debugger_command(probes: list, version: int = 1) -> RemoteConfigStateResults:
     raw_payload = build_debugger_command(probes, version)
     return send_state(raw_payload)
 
 
-def build_symdb_command(version):
+def build_symdb_command(version: int):
     path_payloads = {"datadog/2/LIVE_DEBUGGING_SYMBOL_DB/symDb/config": {"upload_symbols": True}}
     return _build_base_command(path_payloads, version)
 
 
-def send_symdb_command(version: int = 1) -> dict:
+def send_symdb_command(version: int = 1) -> RemoteConfigStateResults:
     raw_payload = build_symdb_command(version)
     return send_state(raw_payload)
 
@@ -289,7 +300,7 @@ def send_apm_tracing_command(
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
     version: int = 1,
-) -> dict:
+) -> RemoteConfigStateResults:
     raw_payload = build_apm_tracing_command(
         version=version,
         dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
@@ -302,25 +313,24 @@ def send_apm_tracing_command(
     return send_state(raw_payload)
 
 
-def _json_to_base64(json_object):
+def _json_to_base64(json_object: dict) -> str:
     json_string = json.dumps(json_object, indent=2).encode("utf-8")
     return base64.b64encode(json_string).decode("utf-8")
 
 
-def _sha256(value):
+def _sha256(value: str) -> str:
     return hashlib.sha256(base64.b64decode(value)).hexdigest()
 
 
 class ClientConfig:
     _store: dict[str, "ClientConfig"] = {}
-    config_file_version: int = 1
 
-    def __init__(self, path: str, config, config_file_version=None) -> None:
+    def __init__(self, path: str, config: str | dict, config_file_version: int = 1) -> None:
         self.path = path
 
         self.raw = config if isinstance(config, str) else _json_to_base64(config)
         self.raw_decoded = base64.b64decode(self.raw).decode("utf-8")
-        self.config_file_version = self.config_file_version if config_file_version is None else config_file_version
+        self.config_file_version = config_file_version
 
         if config is not None:
             self._store[path] = self
@@ -337,7 +347,7 @@ class ClientConfig:
     def raw_deserialized(self):
         return json.loads(self.raw_decoded)
 
-    def get_target_file(self, *, deserialized=False):
+    def get_target_file(self, *, deserialized: bool = False):
         return {"path": self.path, "raw": self.raw_deserialized if deserialized else self.raw}
 
     def get_target(self):
@@ -381,7 +391,7 @@ class _RemoteConfigState:
         self.expires: str = expires or _RemoteConfigState.expires
         self.opaque_backend_state = base64.b64encode(self.backend_state.encode("utf-8")).decode("utf-8")
 
-    def set_config(self, path, config, config_file_version=None) -> "_RemoteConfigState":
+    def set_config(self, path: str, config: dict, config_file_version: int | None = None) -> "_RemoteConfigState":
         """Set a file in current state."""
         client_config = ClientConfig(
             path=path,
@@ -391,7 +401,7 @@ class _RemoteConfigState:
         self.targets[path] = client_config
         return self
 
-    def del_config(self, path) -> "_RemoteConfigState":
+    def del_config(self, path: str) -> "_RemoteConfigState":
         """Remove a file in current state."""
         if path in self.targets:
             del self.targets[path]
@@ -402,7 +412,7 @@ class _RemoteConfigState:
         self.targets.clear()
         return self
 
-    def serialize_targets(self, *, deserialized=False):
+    def serialize_targets(self, *, deserialized: bool = False):
         result = {
             "signed": {
                 "_type": "targets",
@@ -417,7 +427,7 @@ class _RemoteConfigState:
 
         return _json_to_base64(result) if not deserialized else result
 
-    def to_payload(self, *, deserialized=False):
+    def to_payload(self, *, deserialized: bool = False):
         result = {"targets": self.serialize_targets(deserialized=deserialized)}
 
         target_files = [
@@ -433,7 +443,7 @@ class _RemoteConfigState:
 
         return result
 
-    def apply(self, *, wait_for_acknowledged_status: bool = True) -> dict[str, dict[str, Any]]:
+    def apply(self, *, wait_for_acknowledged_status: bool = True) -> RemoteConfigStateResults:
         self.version += 1
         command = self.to_payload()
         return send_state(

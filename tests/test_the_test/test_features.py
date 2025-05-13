@@ -1,5 +1,4 @@
-from utils import scenarios, features
-from utils.tools import logger
+from utils import scenarios, features, logger
 
 from .utils import run_system_tests
 

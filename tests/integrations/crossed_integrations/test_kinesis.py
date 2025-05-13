@@ -1,22 +1,21 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context
-from utils.tools import logger
+from utils.buddies import python_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, logger
 
 
 class _BaseKinesis:
     """Test Kinesis compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_STREAM = None
-    WEBLOG_TO_BUDDY_STREAM = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_STREAM: str
+    WEBLOG_TO_BUDDY_STREAM: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, stream, operation):
+    def get_span(cls, interface, span_kind, stream, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -75,7 +74,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce at {self.unique_id}"
         )
 
         self.production_response = weblog.get(
@@ -123,6 +122,8 @@ class _BaseKinesis:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
@@ -134,7 +135,7 @@ class _BaseKinesis:
         """
         message = (
             "[crossed_integrations/test_kinesis.py][Kinesis] Hello from Kinesis "
-            f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume at {self.unique_id}"
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume at {self.unique_id}"
         )
 
         self.production_response = self.buddy.get(
@@ -182,6 +183,8 @@ class _BaseKinesis:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kinesis_spans(self, producer_interface, consumer_interface, stream):

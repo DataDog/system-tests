@@ -1,13 +1,13 @@
 import requests
-from utils import scenarios, features, context, bug, irrelevant, missing_feature
-from utils.tools import logger
+from utils import scenarios, features, context, bug, irrelevant, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base
+from utils.virtual_machine.virtual_machines import _VirtualMachine
 
 
 class BaseAutoInjectChaos(base.AutoInjectBaseTest):
-    def _test_removing_things(self, virtual_machine, evil_command):
+    def _test_removing_things(self, virtual_machine: _VirtualMachine, evil_command):
         """Test break the installation and restore it.
         After breaking the installation, the app should be still working (but no sending traces to the backend).
         After breaking the installation, we can restart the app
@@ -19,7 +19,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         weblog_url = f"http://{vm_ip}:{vm_port}/"
         # Weblog start command. If it's a ruby tracer, we must to rebuild the app before restart it
         weblog_start_command = "sudo systemctl start test-app.service"
-        if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+        if context.library.name in ["ruby", "python", "dotnet"]:
             weblog_start_command = virtual_machine._vm_provision.weblog_installation.remote_command
 
         # Ok the installation is done, now we can do some chaos
@@ -57,7 +57,7 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         apm_inject_restore = "sudo datadog-installer apm instrument"
 
         # Env for installation command
-        prefix_env = f"DD_LANG={context.scenario.library.library}"
+        prefix_env = f"DD_LANG={context.library.name}"
         for key, value in virtual_machine._vm_provision.env.items():
             prefix_env += f" DD_{key}={value}"
 
@@ -87,20 +87,14 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
     @irrelevant(
         context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
         reason="LD library failures impact on the docker engine, causes flakiness",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
@@ -110,26 +104,16 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
     )
     def test_install_after_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can install the dd software and the app should be instrumented."""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
     @bug(
-        context.vm_name == "AlmaLinux_8_arm64" and context.weblog_variant == "test-app-python-alpine",
-        reason="APMON-1576",
-    )
-    @bug(
-        context.vm_os_branch in ["centos_7_amd64", "amazon_linux2"] and context.weblog_variant == "test-app-ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
@@ -139,7 +123,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
     )
     def test_remove_ld_preload(self):
         """We added entries to the ld.so.preload. After that, we can remove the entries and the app should be instrumented."""
-        virtual_machine = context.scenario.virtual_machine
-        logger.info(f"Launching test_remove_ld_preload for : [{virtual_machine.name}]...")
-        self._test_removing_things(virtual_machine, "sudo rm /etc/ld.so.preload")
-        logger.info(f"Success test_remove_ld_preload for : [{virtual_machine.name}]")
+        logger.info(f"Launching test_remove_ld_preload for : [{context.vm_name}]...")
+        self._test_removing_things(context.virtual_machine, "sudo rm /etc/ld.so.preload")
+        logger.info(f"Success test_remove_ld_preload for : [{context.vm_name}]")

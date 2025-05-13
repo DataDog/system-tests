@@ -11,6 +11,10 @@ if (count($uri) < 4) {
 	error();
 }
 
+
+$rootSpan = \DDTrace\root_span();
+$rootSpan->meta["http.route"] = '/tag_value/{tag_value}/{status_code}';
+
 $value = $uri[2];
 $response_code= strtok($uri[3], '?'); //There can be url parameters. Lets remove them
 

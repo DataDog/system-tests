@@ -11,7 +11,7 @@ COPY utils/build/docker/nodejs/nextjs /usr/app
 
 WORKDIR /usr/app
 
-RUN npm install
+RUN npm install || npm install
 
 EXPOSE 7777
 

@@ -12,6 +12,7 @@ from datetime import datetime, UTC
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
+from mitmproxy.http import HTTPFlow, Request
 
 from _deserializer import deserialize
 from ports import ProxyPorts
@@ -27,7 +28,7 @@ messages_counts: dict[str, int] = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o) -> Any:  # noqa: ANN401
+    def default(self, o: Any) -> Any:  # noqa: ANN401
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
@@ -57,11 +58,11 @@ class _RequestLogger:
         self.rc_api_runtime_ids_request_count: dict = {}
 
     @staticmethod
-    def get_error_response(message) -> http.Response:
+    def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
-    def request(self, flow: Flow):
+    def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
 
@@ -126,10 +127,10 @@ class _RequestLogger:
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
-    def request_is_from_tracer(request) -> bool:
+    def request_is_from_tracer(request: Request) -> bool:
         return request.host == "agent"
 
-    def response(self, flow):
+    def response(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
 
@@ -219,7 +220,7 @@ class _RequestLogger:
         except:
             logger.exception("Unexpected error")
 
-    def _modify_response(self, flow):
+    def _modify_response(self, flow: Flow):
         if self.request_is_from_tracer(flow.request):
             if self.rc_api_enabled:
                 self._add_rc_capabilities_in_info_request(flow)
@@ -255,7 +256,7 @@ class _RequestLogger:
 
             self._modify_span_events_flag(flow)
 
-    def _remove_meta_structs_support(self, flow):
+    def _remove_meta_structs_support(self, flow: Flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
             if "span_meta_structs" in c:
@@ -263,7 +264,7 @@ class _RequestLogger:
                 c.pop("span_meta_structs")
                 flow.response.content = json.dumps(c).encode()
 
-    def _add_rc_capabilities_in_info_request(self, flow):
+    def _add_rc_capabilities_in_info_request(self, flow: Flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
 
@@ -272,7 +273,7 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
-    def _modify_span_events_flag(self, flow):
+    def _modify_span_events_flag(self, flow: Flow):
         """Modify the agent flag that signals support for native span event serialization.
         There are three possible cases:
         - Not configured: agent's response is not modified, the real agent behavior is preserved

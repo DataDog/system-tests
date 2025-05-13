@@ -10,10 +10,9 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
-
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
+RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
 
 FROM eclipse-temurin:11-jre
 

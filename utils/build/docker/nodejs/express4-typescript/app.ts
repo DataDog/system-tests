@@ -1,6 +1,7 @@
 'use strict'
 
 import { Request, Response } from "express";
+import http from 'http';
 
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
@@ -15,6 +16,7 @@ const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
+const di = require('./debugger')
 
 iast.initData().catch(() => {})
 
@@ -28,6 +30,8 @@ iast.initMiddlewares(app)
 require('./auth')(app, tracer)
 iast.initRoutes(app)
 
+di.initRoutes(app)
+
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
   res.send('Hello\n');
@@ -37,7 +41,7 @@ app.get('/healthcheck', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     library: {
-      language: 'nodejs',
+      name: 'nodejs',
       version: require('dd-trace/package.json').version
     }
   });
@@ -103,28 +107,48 @@ app.get('/status', (req: Request, res: Response) => {
 });
 
 app.get("/make_distant_call", (req: Request, res: Response) => {
-  const url = req.query.url;
-  console.log(url);
+  const url = req.query.url
+  console.log(url)
 
-  axios.get(url)
-    .then((response: Response) => {
-      res.json({
-        url: url,
-        status_code: response.statusCode,
-        request_headers: null,
-        response_headers: null,
-      });
+  const parsedUrl = new URL(url as string)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const request = http.request(options, (response: http.IncomingMessage) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
     })
-    .catch((error: Error) => {
-      console.log(error);
+
+    response.on('end', () => {
       res.json({
-        url: url,
-        status_code: 500,
-        request_headers: null,
-        response_headers: null,
-      });
-    });
-});
+        url,
+        status_code: response.statusCode,
+        request_headers: (response as any).req._headers,
+        response_headers: response.headers,
+        response_body: responseBody
+      })
+    })
+  })
+
+  // Handle errors
+  request.on('error', (error: Error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
+    })
+  })
+
+  request.end()
+})
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
@@ -148,6 +172,26 @@ app.get("/user_login_failure_event", (req: Request, res: Response) => {
   tracer.appsec.trackUserLoginFailureEvent(userId, exists, { metadata0: "value0", metadata1: "value1" });
 
   res.send("OK");
+});
+
+app.post('/user_login_success_event_v2', (req: Request, res: Response) => {
+  const login = req.body.login;
+  const userId = req.body.user_id;
+  const metadata = req.body.metadata;
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata);
+
+  res.send('OK');
+});
+
+app.post('/user_login_failure_event_v2', (req: Request, res: Response) => {
+  const login = req.body.login;
+  const exists = req.body.exists?.trim() === 'true';
+  const metadata = req.body.metadata;
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata);
+
+  res.send('OK');
 });
 
 app.get("/custom_event", (req: Request, res: Response) => {

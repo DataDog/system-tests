@@ -1,5 +1,25 @@
 {
     "IdempotentParameterMismatch": "creating EC2 Instance: IdempotentParameterMismatch",
     "InternalError": "last error: Server.InternalError: Internal error on launch",
-    "error_ssh_connection":"error: after 30 failed attempts:"
+    "error_ssh_connection": "error: after 30 failed attempts:",
+    "error_pulumi_plugin": "error: could not read plugin",
+    "docker_build_error_ecr": "net/http: TLS handshake timeout",
+    "error_ecr": "error: could not create ECR",
+    "pulumi_ghcr_rate_limmit": "GitHub rate limit exceeded for https://api.github.com/repos/pulumi",
+    "microsoft_connection_lost": "Get \"https://mcr.microsoft.com/v2/\": read tcp",
+    "public.ecr.aws_no_such_host": "dial tcp: lookup public.ecr.aws: no such host",
+    "pulumi_exited_prematurely": "pulumi-resource-aws exited prematurely",
+    "rpc_curl_connectivity_flaky": "error: RPC failed; curl 16 Error in the HTTP2 framing layer",
+    "java_build_io_error": "ERROR: Failed to create usr/lib/jvm/java-11-openjdk/jmods/java.xml.jmod: I/O error",
+    "pulumi_resource_monitor_terminated": "Exception calling application: Resource monitor has terminated, shutting down",
+    "install.datadoghq.com_not_resolve_host": "Could not resolve host: install.datadoghq.com",
+    "apt_get_fetch_error": "Unable to fetch some archives, maybe run apt-get update or try with --fix-missing?",
+    "docker_service_failed": "Job for docker.service failed because the control process exited with error code.",
+    "openssl_ssl_read_error": "OpenSSL SSL_read: error:0A000126:SSL routines::unexpected eof while reading",
+    "docker_build_request_canceled": "net/http: request canceled while waiting for connection",
+    "docker_build_error_microsoft": "failed to solve: mcr.microsoft.com/dotnet/sdk:7.0.100-preview.2",
+    "docker_build_error_reading_from_server": "Unavailable desc = error reading from server: EOF",
+    "docker_build_error_reading_from_server_2": "listing workers for Build: failed to list workers: Unavailable: error reading from server: EOF",
+    "java_buildpack_build_error": "java.io.IOException: Downloading from https://github.com/bantonsson/gradle/releases/download/v7.5-patched/gradle-7.5.47-all.zip failed: timeout"
+    
 }

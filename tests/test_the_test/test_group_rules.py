@@ -2,15 +2,15 @@
 # it means that we cannot b y design make some group part of another group
 # waiting for a clean solution to this problem, let's just test it
 
-from utils import scenarios
-from utils._context._scenarios import ScenarioGroup, get_all_scenarios
+from utils import scenarios, scenario_groups
+from utils._context._scenarios import get_all_scenarios
 
 
 @scenarios.test_the_test
 def test_appsec():
     for scenario in get_all_scenarios():
-        if ScenarioGroup.APPSEC_RASP in scenario.scenario_groups:
-            assert ScenarioGroup.APPSEC in scenario.scenario_groups
+        if scenario_groups.appsec_rasp in scenario.scenario_groups:
+            assert scenario_groups.appsec_rasp in scenario.scenario_groups
 
 
 @scenarios.test_the_test
@@ -34,6 +34,8 @@ def test_tracer_release():
         scenarios.container_auto_injection_install_script_profiling,
         scenarios.container_auto_injection_install_script,
         scenarios.docker_ssi,
+        scenarios.docker_ssi_crashtracking,
+        scenarios.docker_ssi_servicenaming,
         scenarios.external_processing_blocking,  # need to declare a white list of library in get-workflow-parameters
         scenarios.external_processing,  # need to declare a white list of library in get-workflow-parameters
         scenarios.host_auto_injection_install_script_profiling,
@@ -59,10 +61,10 @@ def test_tracer_release():
     ]
 
     for scenario in get_all_scenarios():
-        if ScenarioGroup.TRACER_RELEASE not in scenario.scenario_groups:
+        if scenario_groups.tracer_release not in scenario.scenario_groups:
             assert (
                 scenario in not_in_tracer_release_group
-            ), f"Scenario {scenario} is not part of {ScenarioGroup.TRACER_RELEASE}"
+            ), f"Scenario {scenario} is not part of {scenario_groups.tracer_release}"
 
             if scenario in not_in_tracer_release_group:
-                assert ScenarioGroup.TRACER_RELEASE not in scenario.scenario_groups
+                assert scenario_groups.tracer_release not in scenario.scenario_groups

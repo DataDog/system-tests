@@ -7,7 +7,7 @@ from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_exten
 
 
 def _expected_location():
-    if context.library.library == "java":
+    if context.library.name == "java":
         if context.weblog_variant.startswith("spring-boot"):
             return "com.datadoghq.system_tests.springboot.AppSecIast"
         if context.weblog_variant == "resteasy-netty3":
@@ -18,7 +18,7 @@ def _expected_location():
             return "com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider"
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
-    if context.library.library == "nodejs":
+    if context.library.name == "nodejs":
         if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":

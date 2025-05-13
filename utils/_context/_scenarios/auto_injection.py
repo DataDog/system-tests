@@ -2,12 +2,12 @@ import copy
 import json
 import os
 from pathlib import Path
-from utils._context.library_version import LibraryVersion
-from utils.tools import logger
+import pytest
+from utils._context.component_version import ComponentVersion
+from utils._logger import logger
 from utils.onboarding.debug_vm import extract_logs_to_file
-from utils.virtual_machine.utils import get_tested_apps_vms, generate_gitlab_pipeline
+from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
-from utils.scripts.ci_orchestrators.workflow_data import get_aws_matrix
 from .core import Scenario
 
 
@@ -16,10 +16,10 @@ class _VirtualMachineScenario(Scenario):
 
     def __init__(
         self,
-        name,
+        name: str,
         *,
-        github_workflow,
-        doc,
+        github_workflow: str,
+        doc: str,
         vm_provision=None,
         agent_env=None,
         app_env=None,
@@ -53,13 +53,13 @@ class _VirtualMachineScenario(Scenario):
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
         from utils.virtual_machine.virtual_machine_provisioner import provisioner
 
         if config.option.vm_provider:
             self.vm_provider_id = config.option.vm_provider
-        self._library = LibraryVersion(config.option.vm_library, "0.0")
+        self._library = ComponentVersion(config.option.vm_library, "0.0")
         self._datadog_apm_inject_version = "v0.00.00"
         self._os_configurations = {}
         self._env = config.option.vm_env
@@ -72,74 +72,27 @@ class _VirtualMachineScenario(Scenario):
             raise ValueError(
                 f"Invalid value for --vm-default-vms: {self.only_default_vms}. Use 'All', 'True' or 'False'"
             )
-        # Pipeline generation mode. No run tests, no start vms
-        self.vm_gitlab_pipeline = config.option.vm_gitlab_pipeline
 
-        # TODO REMOVE THIS AFTER REMOVE THE PIPELINE GENERATION FROM THE SCENARIO.
-        # TODO we will load only the machine set by the --vm-only flag
         all_vms = load_virtual_machines(self.vm_provider_id)
-        supported_vm_names = get_aws_matrix(
-            "utils/virtual_machine/virtual_machines.json",
-            "utils/scripts/ci_orchestrators/aws_ssi.json",
-            [self.name],
-            self._library.library,
-        )[self.name][self._weblog]
-        logger.info(f" Supported names: {supported_vm_names} ")
-        supported_vms = [vm for vm in all_vms if vm.name in supported_vm_names]
-        if self.only_default_vms != "All":
-            supported_vms = [
-                vm for vm in supported_vms if str(vm.default_vm).casefold() == self.only_default_vms.casefold()
-            ]
-        logger.info(f"Supported VMs: {', '.join([vm.name for vm in supported_vms])}")
-
-        if self.vm_gitlab_pipeline:
-            # For the pipeline generation we need to caclculate the provision for each machine
-            # For cache pipelie we need to cache name and this came from the provision
-            for vm in supported_vms:
-                vm.add_provision(
-                    provisioner.get_provision(
-                        self._library.library,
-                        self._env,
-                        self._weblog,
-                        self.vm_provision_name,
-                        vm.os_type,
-                        vm.os_distro,
-                        vm.os_branch,
-                        vm.os_cpu,
-                    )
-                )
-            pipeline = generate_gitlab_pipeline(
-                config.option.vm_library,
-                self._weblog,
-                self.name,
+        assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
+        self.virtual_machine = next((vm for vm in all_vms if vm.name == config.option.vm_only), None)
+        assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
+        logger.info(f"Selected VM: {self.virtual_machine.name}")
+        self.vm_provider.configure(self.virtual_machine)
+        self.virtual_machine.add_provision(
+            provisioner.get_provision(
+                self._library.name,
                 self._env,
-                supported_vms,
-                os.getenv("DD_INSTALLER_LIBRARY_VERSION", ""),
-                os.getenv("DD_INSTALLER_INJECTOR_VERSION", ""),
-                "one-pipeline" in self.vm_gitlab_pipeline,
+                self._weblog,
+                self.vm_provision_name,
+                self.virtual_machine.os_type,
+                self.virtual_machine.os_distro,
+                self.virtual_machine.os_branch,
+                self.virtual_machine.os_cpu,
             )
-            with open(f"{self.host_log_folder}/gitlab_pipeline.yml", "w", encoding="utf-8") as f:
-                json.dump(pipeline, f, ensure_ascii=False, indent=4)
-        else:
-            assert config.option.vm_only is not None, "No VM selected to run. Use --vm-only"
-            self.virtual_machine = next((vm for vm in supported_vms if vm.name == config.option.vm_only), None)
-            assert self.virtual_machine is not None, f"VM not found: {config.option.vm_only}"
-            logger.info(f"Selected VM: {self.virtual_machine.name}")
-            self.vm_provider.configure(self.virtual_machine)
-            self.virtual_machine.add_provision(
-                provisioner.get_provision(
-                    self._library.library,
-                    self._env,
-                    self._weblog,
-                    self.vm_provision_name,
-                    self.virtual_machine.os_type,
-                    self.virtual_machine.os_distro,
-                    self.virtual_machine.os_branch,
-                    self.virtual_machine.os_cpu,
-                )
-            )
-            self.virtual_machine.add_agent_env(self.agent_env)
-            self.virtual_machine.add_app_env(self.app_env)
+        )
+        self.virtual_machine.add_agent_env(self.agent_env)
+        self.virtual_machine.add_app_env(self.app_env)
 
     def _check_test_environment(self):
         """Check if the test environment is correctly set"""
@@ -149,7 +102,7 @@ class _VirtualMachineScenario(Scenario):
         assert self._weblog is not None, "Weblog is not set (use --vm-weblog)"
 
         base_folder = "utils/build/virtual_machine"
-        weblog_provision_file = f"{base_folder}/weblogs/{self._library.library}/provision_{self._weblog}.yml"
+        weblog_provision_file = f"{base_folder}/weblogs/{self._library.name}/provision_{self._weblog}.yml"
         assert Path(weblog_provision_file).is_file(), f"Weblog Provision file not found: {weblog_provision_file}"
 
         provision_file = f"{base_folder}/provisions/{self.vm_provision_name}/provision.yml"
@@ -160,10 +113,9 @@ class _VirtualMachineScenario(Scenario):
 
     def get_warmups(self):
         warmups = super().get_warmups()
-        if not self.vm_gitlab_pipeline:
-            if self.is_main_worker:
-                warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
-                warmups.append(self.vm_provider.stack_up)
+        if self.is_main_worker:
+            warmups.append(lambda: logger.terminal.write_sep("=", "Provisioning Virtual Machines", bold=True))
+            warmups.append(self.vm_provider.stack_up)
 
             warmups.append(self.fill_context)
 
@@ -180,7 +132,7 @@ class _VirtualMachineScenario(Scenario):
             if key.startswith("datadog-apm-inject") and self.components[key]:
                 self._datadog_apm_inject_version = f"v{self.components[key]}"
             if key.startswith("datadog-apm-library-") and self.components[key]:
-                self._library = LibraryVersion(self._library.library, self.components[key])
+                self._library = ComponentVersion(self._library.name, self.components[key])
                 # We store without the lang sufix
                 self.components["datadog-apm-library"] = self.components[key]
                 del self.components[key]
@@ -193,7 +145,7 @@ class _VirtualMachineScenario(Scenario):
         self.close_targets()
 
     def close_targets(self):
-        if self.is_main_worker and not self.vm_gitlab_pipeline:
+        if self.is_main_worker:
             # Extract logs from the VM before destroy
             if self.virtual_machine.get_vm_logs() is not None:
                 extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
@@ -216,7 +168,7 @@ class _VirtualMachineScenario(Scenario):
     def configuration(self):
         return self._os_configurations
 
-    def customize_feature_parity_dashboard(self, result):
+    def customize_feature_parity_dashboard(self, result: dict):
         # Customize the general report
         for test in result["tests"]:
             last_index = test["path"].rfind("::") + 2

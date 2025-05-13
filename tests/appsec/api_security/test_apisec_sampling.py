@@ -6,9 +6,9 @@ from utils import (
     rfc,
     scenarios,
     weblog,
+    logger,
 )
 
-from utils.tools import logger
 import random
 import string
 import time

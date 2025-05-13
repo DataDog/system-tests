@@ -110,6 +110,9 @@ jobs:
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
+    - name: Run APPSEC_STANDALONE_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
+      run: ./run.sh APPSEC_STANDALONE_API_SECURITY
     - name: Run APPSEC_STANDALONE_EXPERIMENTAL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_EXPERIMENTAL"')
       run: ./run.sh APPSEC_STANDALONE_EXPERIMENTAL
@@ -143,9 +146,6 @@ jobs:
     - name: Run CROSSED_TRACING_LIBRARIES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')
       run: ./run.sh CROSSED_TRACING_LIBRARIES
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run PROFILING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"PROFILING"')
       run: |
@@ -158,21 +158,27 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+    - name: Run TRACE_PROPAGATION_STYLE_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_DEFAULT"')
+      run: ./run.sh TRACE_PROPAGATION_STYLE_DEFAULT
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
     - name: Run INTEGRATIONS_AWS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS_AWS"')
       run: ./run.sh INTEGRATIONS_AWS
-      env:
-        SYSTEM_TESTS_AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     - name: Run APM_TRACING_E2E_OTEL scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_OTEL"')
       run: ./run.sh APM_TRACING_E2E_OTEL
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+        DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_E2E_SINGLE_SPAN scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_E2E_SINGLE_SPAN"')
+      run: ./run.sh APM_TRACING_E2E_SINGLE_SPAN
+      env:
+        DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
@@ -183,6 +189,9 @@ jobs:
     - name: Run RUNTIME_METRICS_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"RUNTIME_METRICS_ENABLED"')
       run: ./run.sh RUNTIME_METRICS_ENABLED
+    - name: Run TRACING_CONFIG_EMPTY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_EMPTY"')
+      run: ./run.sh TRACING_CONFIG_EMPTY
     - name: Run TRACING_CONFIG_NONDEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT
@@ -192,6 +201,9 @@ jobs:
     - name: Run TRACING_CONFIG_NONDEFAULT_3 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_3"')
       run: ./run.sh TRACING_CONFIG_NONDEFAULT_3
+    - name: Run TRACING_CONFIG_NONDEFAULT_4 scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACING_CONFIG_NONDEFAULT_4"')
+      run: ./run.sh TRACING_CONFIG_NONDEFAULT_4
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES
@@ -207,8 +219,11 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
+    - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
+      run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
     - name: Run AGENT_NOT_SUPPORTING_SPAN_EVENTS scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, 'AGENT_NOT_SUPPORTING_SPAN_EVENTS')
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
       # C++ 1.2.0 freeze when the rules file is missing
@@ -245,6 +260,9 @@ jobs:
     - name: Run APPSEC_REQUEST_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
       run: ./run.sh APPSEC_REQUEST_BLOCKING
+    - name: Run APPSEC_AND_RC_ENABLED scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
+      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION
@@ -260,6 +278,9 @@ jobs:
     - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
       run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
+    - name: Run APPSEC_ATO_SDK scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
+      run: ./run.sh APPSEC_ATO_SDK
     - name: Run APPSEC_API_SECURITY_WITH_SAMPLING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_WITH_SAMPLING"')
       run: |
@@ -319,6 +340,9 @@ jobs:
     - name: Run DEBUGGER_INPRODUCT_ENABLEMENT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_INPRODUCT_ENABLEMENT"')
       run: ./run.sh DEBUGGER_INPRODUCT_ENABLEMENT
+    - name: Run DEBUGGER_TELEMETRY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_TELEMETRY"')
+      run: ./run.sh DEBUGGER_TELEMETRY
     - name: Run OTEL_INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_INTEGRATIONS"')
       run: ./run.sh OTEL_INTEGRATIONS
@@ -359,7 +383,6 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
-
     - name: Run all scenarios in replay mode
       run: utils/scripts/replay_scenarios.sh
       env:

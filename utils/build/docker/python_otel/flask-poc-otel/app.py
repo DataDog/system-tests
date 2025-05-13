@@ -28,7 +28,7 @@ def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python_otel",
+            "name": "python_otel",
             "version": otel_version,
         },
     }

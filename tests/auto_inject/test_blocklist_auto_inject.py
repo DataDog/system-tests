@@ -1,8 +1,7 @@
 import uuid
 from scp import SCPClient
 
-from utils import scenarios, context, features, irrelevant, bug
-from utils.tools import logger
+from utils import scenarios, context, features, irrelevant, bug, logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
@@ -73,20 +72,14 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.library == "ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     def test_builtin_block_commands(self):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing commands that should be blocked")
         ssh_client = virtual_machine.get_ssh_connection()
         for command in self.builtin_commands_not_injected:
@@ -99,22 +92,16 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.library == "ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     def test_builtin_block_args(self):
         """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_block_args")
-        language = context.scenario.library.library
+        language = context.library.name
         if language in self.builtin_args_commands_block:
             ssh_client = virtual_machine.get_ssh_connection()
             for command in self.builtin_args_commands_block[language]:
@@ -127,22 +114,16 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "buildpack" in context.weblog_variant
     )
     @bug(
-        context.vm_os_branch in ["amazon_linux2", "centos_7_amd64"] and context.scenario.library == "ruby",
+        context.vm_os_branch in ["redhat", "amazon_linux2"]
+        and context.vm_os_cpu == "arm64"
+        and context.library == "ruby",
         reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_os_branch == "redhat" and context.vm_os_cpu == "arm64" and context.scenario.library == "ruby",
-        reason="INPLAT-103",
-    )
-    @bug(
-        context.vm_name in ["Ubuntu_24_10_amd64", "Ubuntu_24_10_arm64"] and context.weblog_variant == "test-app-python",
-        reason="INPLAT-478",
     )
     def test_builtin_instrument_args(self):
         """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         logger.info(f"[{virtual_machine.get_ip()}] Executing test_builtIn_instrument_args")
-        language = context.scenario.library.library
+        language = context.library.name
         if language in self.builtin_args_commands_injected:
             ssh_client = virtual_machine.get_ssh_connection()
             for command in self.builtin_args_commands_injected[language]:

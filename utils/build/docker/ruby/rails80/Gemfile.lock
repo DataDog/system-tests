@@ -111,8 +111,15 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    dogstatsd-ruby (5.6.6)
     drb (2.2.1)
     erubi (1.13.1)
+    faraday (2.13.0)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.0)
+      net-http (>= 0.5.0)
     ffi (1.17.1)
     ffi (1.17.1-aarch64-linux-gnu)
     ffi (1.17.1-aarch64-linux-musl)
@@ -139,6 +146,7 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    json (2.10.2)
     libdatadog (14.1.0.1.0)
     libdatadog (14.1.0.1.0-aarch64-linux)
     libdatadog (14.1.0.1.0-x86_64-linux)
@@ -168,6 +176,8 @@ GEM
     mini_portile2 (2.8.8)
     minitest (5.25.4)
     msgpack (1.7.5)
+    net-http (0.6.0)
+      uri
     net-imap (0.5.4)
       date
       net-protocol
@@ -335,6 +345,8 @@ DEPENDENCIES
   datadog (~> 2.7.0)
   debug
   devise
+  dogstatsd-ruby
+  faraday
   importmap-rails
   jbuilder
   pry

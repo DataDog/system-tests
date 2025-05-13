@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import random
+import shlex
 import subprocess
 import xmltodict
 import sys
@@ -31,7 +32,22 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.appsec import track_user_sdk
+except ImportError:
+    # fallback for when the new SDK is not available
+    class TUS:
+        def track_login_success(self, *args, **kwargs):
+            pass
+
+        def track_login_failure(self, *args, **kwargs):
+            pass
+
+        def track_custom_event(self, *args, **kwargs):
+            pass
+
+    track_user_sdk = TUS()
 
 try:
     from ddtrace.trace import Pin, tracer
@@ -87,7 +103,7 @@ def healthcheck(request):
     result = {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -98,8 +114,7 @@ def healthcheck(request):
 @csrf_exempt
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
-        appsec_trace_utils.track_custom_event(
-            tracer,
+        track_user_sdk.track_custom_event(
             event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
             metadata={"value": kwargs["tag_value"]},
         )
@@ -430,22 +445,16 @@ def view_iast_weak_randomness_secure(request):
 @csrf_exempt
 def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
-    subp.communicate()
-    subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(cmd + " -la " + filename)
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    cmd = " ".join([cmd, "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(cmd, shell=True)
-    # subp.communicate()
-    # subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return HttpResponse("OK")
 
 
@@ -722,15 +731,15 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    track_user_sdk.track_login_success(login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
+    track_user_sdk.track_login_failure(
+        login=_TRACK_USER,
         exists=True,
+        user_id=_TRACK_USER,
         metadata=_TRACK_METADATA,
     )
     return HttpResponse("OK")
@@ -756,15 +765,33 @@ def login(request):
         sdk_mail = request.GET.get("sdk_mail")
         sdk_user_exists = request.GET.get("sdk_user_exists")
         if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            track_user_sdk.track_login_success(login=sdk_user, user_id=sdk_user, metadata={"email": sdk_mail})
             is_logged_in = True
         elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
-            )
+            track_user_sdk.track_login_failure(login=sdk_user, exists=sdk_user_exists, metadata={"email": sdk_mail})
     if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
+
+
+@csrf_exempt
+def user_login_success_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def user_login_failure_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return HttpResponse("OK")
 
 
 @csrf_exempt
@@ -786,15 +813,16 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 
 def session_new(request):
-    response = HttpResponse("OK")
-    response.set_cookie("session_id", MAGIC_SESSION_KEY)
-    return response
+    request.session.save()
+    session_id = request.session.session_key
+    return HttpResponse(session_id)
 
 
 def session_user(request):
     user = request.GET.get("sdk_user", "")
     if user and request.COOKIES.get("session_id", "") == MAGIC_SESSION_KEY:
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+        # track_user_sdk.track_login_success(user_id=user, session_id=f"session_{user}")
+        track_user_sdk.track_login_success(login=user, user_id=user, session_id=f"session_{user}")
     return HttpResponse("OK")
 
 
@@ -802,7 +830,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    track_user_sdk.track_custom_event(event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -967,6 +995,8 @@ urlpatterns = [
     path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
+    path("user_login_success_event_v2", user_login_success_event),
+    path("user_login_failure_event_v2", user_login_failure_event),
     path("identify-propagate", identify_propagate),
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),

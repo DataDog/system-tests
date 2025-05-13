@@ -8,7 +8,7 @@ tracer.use('dns', false)
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
-const { trace, ROOT_CONTEXT, SpanKind } = require('@opentelemetry/api')
+const { trace, ROOT_CONTEXT, SpanKind, propagation } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
@@ -361,6 +361,15 @@ app.post("/trace/otel/record_exception", (req, res) => {
   span.recordException(new Error(message))
   res.json({})
 })
+
+app.post("/trace/otel/otel_set_baggage", (req, res) => {
+  const bag = propagation
+        .createBaggage()
+        .setEntry(req.body.key, { value: req.body.value });
+  const context = propagation.setBaggage(ROOT_CONTEXT, bag)
+  const value = propagation.getBaggage(context).getEntry(req.body.key).value
+  res.json({ value });
+});
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

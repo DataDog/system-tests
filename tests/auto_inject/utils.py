@@ -1,9 +1,8 @@
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
-from utils import context
+from utils import context, logger
 from threading import Timer
 
 
@@ -30,7 +29,7 @@ class AutoInjectBaseTest:
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
@@ -46,9 +45,24 @@ class AutoInjectBaseTest:
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, profile=profile)
 
-    def close_channel(self, channel):
+        try:
+            wait_backend_trace_id(request_uuid, profile=profile)
+        except (TimeoutError, AssertionError) as e:
+            self._log_trace_debug_message(e, request_uuid)
+            raise
+
+    def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
+        logger.error(
+            f"❌ Exception during trace in backend verification: {exc}\n"
+            "🔍 Possible causes:\n"
+            "- A bug/problem in the tracer (check app logs in `/var/log/datadog_weblog`)\n"
+            "- A problem in the agent (check agent logs in `/var/log/datadog`)\n"
+            "- A problem in the Docker daemon?? (check logs in `/var/log/journalctl_docker.log`)\n"
+            f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
+        )
+
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
@@ -79,7 +93,7 @@ class AutoInjectBaseTest:
                 if not line.startswith("export"):
                     command_output += line
             header = "*****************************************************************"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
+            vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
@@ -151,13 +165,13 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+        if context.weblog_variant == f"test-app-{context.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"

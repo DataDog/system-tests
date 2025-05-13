@@ -20,3 +20,4 @@ module Rails70
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end
+
