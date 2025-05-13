@@ -66,11 +66,11 @@ compute_pipeline:
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
-      - java_ssi_gitlab_pipeline.yml
-      - dotnet_ssi_gitlab_pipeline.yml
-      - python_ssi_gitlab_pipeline.yml
-      - php_ssi_gitlab_pipeline.yml
-      - ruby_ssi_gitlab_pipeline.yml
+      #- java_ssi_gitlab_pipeline.yml
+      #- dotnet_ssi_gitlab_pipeline.yml
+      #- python_ssi_gitlab_pipeline.yml
+      #- php_ssi_gitlab_pipeline.yml
+      #- ruby_ssi_gitlab_pipeline.yml
 
 nodejs_ssi_pipeline:
   stage: nodejs
