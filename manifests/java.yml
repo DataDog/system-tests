@@ -2192,7 +2192,9 @@ tests/:
     Test_StandardTagsUserAgent: v0.107.1
   test_telemetry.py:
     Test_DependencyEnable: v1.7.0
-    Test_Log_Generation: missing_feature
+    Test_Log_Generation:
+      '*': v1.50.0
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_MessageBatch:
       '*': v1.23.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
