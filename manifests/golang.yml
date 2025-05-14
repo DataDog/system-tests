@@ -355,7 +355,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: v2.0.0-dev
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone_Automated: missing_feature
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
