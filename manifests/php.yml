@@ -417,6 +417,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:

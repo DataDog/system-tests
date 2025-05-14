@@ -761,6 +761,11 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        flask-poc: v3.7.0
+        uds-flask: v3.7.0
+        uwsgi-poc: v3.7.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
