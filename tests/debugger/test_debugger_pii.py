@@ -128,7 +128,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
-    def _assert(self, excluded_identifiers=[], *, line_probe=False):
+    def _assert(self, excluded_identifiers=None, *, line_probe=False):
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
@@ -143,6 +143,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         not_redacted = []
         not_found = list(set(REDACTED_KEYS))
         improperly_redacted = []
+        excluded_identifiers = excluded_identifiers if excluded_identifiers else []
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
