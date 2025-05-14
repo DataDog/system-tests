@@ -33,9 +33,9 @@ on:
         default: 'main'
         required: false
         type: string
-      forced_tests:
+      force_execute_tests:
         description: "Array of tests to force-execute, separated by commas"
-        default: '[]'
+        default: ''
         required: false
         type: string
       _experimental_job_count:
@@ -84,7 +84,7 @@ jobs:
       - name: Run PARAMETRIC scenario
         run: |
           ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs.job_count }} --group=${{ matrix.job_instance }} \
-            ${{inputs.forced_tests != '[]' && format('-F {0}', join(fromJSON(inputs.forced_tests), ' -F ')) || ''}}
+            ${{inputs.force_execute_tests != '' && format('-F {0}', join(fromJSON(inputs.force_execute_tests), ' -F ')) || ''}}
       - name: Compress logs
         id: compress_logs
         if: always()
