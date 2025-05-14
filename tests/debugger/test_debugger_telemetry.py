@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-from utils import scenarios, features, missing_feature, context, logger
+from utils import scenarios, features, missing_feature, context, logger, flaky
 from utils.telemetry import load_telemetry_json, get_lang_configs
 
 ALLOWED_ORIGINS = {"env_var", "code", "dd_config", "remote_config", "app.config", "default", "unknown"}
@@ -79,6 +79,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     def setup_telemetry_er(self):
         self._setup()
 
+    @flaky(context.library == "dotnet", reason="DEBUG-3322")
     @missing_feature(context.library == "nodejs", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
     def test_telemetry_er(self):
