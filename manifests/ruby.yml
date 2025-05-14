@@ -501,7 +501,7 @@ tests/:
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session:
-        "*": missing_feature (work in progress)
+        "*": v2.15.1-dev
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
