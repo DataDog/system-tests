@@ -130,6 +130,29 @@ public class Main {
                                         .add("content-language", "en-US");
                                 response.send("text/plain", "012345678901234567890123456789012345678901");
                             })
+                            // Endpoint with five custom headers
+                            .get("customResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Standard header
+                                response.getHeaders().add("Content-Language", "en-US");
+                                // Five test headers
+                                response.getHeaders().add("X-Test-Header-1", "value1");
+                                response.getHeaders().add("X-Test-Header-2", "value2");
+                                response.getHeaders().add("X-Test-Header-3", "value3");
+                                response.getHeaders().add("X-Test-Header-4", "value4");
+                                response.getHeaders().add("X-Test-Header-5", "value5");
+                                response.send("text/plain", "Response with custom headers");
+                            })
+                            // Endpoint exceeding default header budget with 50 headers
+                            .get("exceedResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Add 50 test headers
+                                for (int i = 1; i <= 50; i++) {
+                                    response.getHeaders().add("X-Test-Header-" + i, "value" + i);
+                                }
+                                response.getHeaders().add("content-language", "en-US");
+                                response.send("text/plain", "Response with more than 50 headers");
+                            })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
                                     String url = ctx.getRequest().getQueryParams().get("url");
