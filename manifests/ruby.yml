@@ -622,7 +622,9 @@ tests/:
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry:
         "*": irrelevant
-        rails70: missing_feature (feature not implemented)
+        rails70: v2.15.1-dev
+        rails80: v2.15.1-dev
+        uds-rails: v2.15.1-dev
   integrations/:
     crossed_integrations/:
       test_kafka.py:
