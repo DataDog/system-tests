@@ -79,10 +79,10 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.weblog_variant == "test-app-python-alpine",
         reason="PROF-11296",
     )
-    @missing_feature(
-        context.weblog_variant == "test-app-nodejs-multicontainer",
-        reason="waiting for node24 support",
-    )
+    #@missing_feature(
+    #    context.weblog_variant == "test-app-nodejs-multicontainer",
+    #    reason="waiting for node24 support",
+    #)
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
 
