@@ -1180,6 +1180,7 @@ tests/:
       '*': *ref_3_6_0
       nextjs: missing_feature  # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v2.11.0
       nextjs: missing_feature  # http.route not added in nextjs

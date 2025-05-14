@@ -1190,6 +1190,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
+    Test_StandardTagsReferrerHostname: v3.4.0
     Test_StandardTagsRoute:
       '*': v1.6.0
     Test_StandardTagsStatusCode: v1.4.0-rc1
