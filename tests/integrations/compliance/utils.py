@@ -55,7 +55,7 @@ def generate_compliance_report(
     deprecated: list[str] | None = None,
 ) -> None:
     report: dict[str, Any] = {
-        "framework": name,
+        "integration": name,
         "language": context.library.name,
         "status": "pass" if not missing else "fail",
     }
