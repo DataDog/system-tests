@@ -357,16 +357,18 @@ tests/:
       Test_UserLoginSuccessEvent: v2.27.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginFailureEventV2_Libddwaf: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics: v3.15.0
+      Test_UserLoginFailureEventV2_Tags: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags: v3.15.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v3.4.0
       Test_Fingerprinting_Endpoint_Capability: v3.4.0
@@ -430,6 +432,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:

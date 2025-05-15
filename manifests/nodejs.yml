@@ -746,6 +746,8 @@ tests/:
         nextjs: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
@@ -825,6 +827,11 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0

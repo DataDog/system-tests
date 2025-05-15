@@ -1505,6 +1505,10 @@ tests/:
       Test_ExtendedHeaderCollection:
         '*': missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
@@ -1747,6 +1751,15 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        spring-boot: v1.49.0
+        spring-boot-jetty: v1.49.0
+        spring-boot-openliberty: v1.49.0
+        spring-boot-payara: v1.49.0
+        spring-boot-undertow: v1.49.0
+        spring-boot-wildfly: v1.49.0
+        uds-spring-boot: v1.49.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
@@ -2113,19 +2126,19 @@ tests/:
       spring-boot: v1.47.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisionAdded:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisions:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDeterminism:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingRates: v0.92.0

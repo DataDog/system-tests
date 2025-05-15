@@ -655,6 +655,8 @@ tests/:
         '*': v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
@@ -761,6 +763,11 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        flask-poc: v3.7.0
+        uds-flask: v3.7.0
+        uwsgi-poc: v3.7.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
