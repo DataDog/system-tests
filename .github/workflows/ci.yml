@@ -10,7 +10,6 @@ on:
     - synchronize
     - reopened
     - labeled
-    - unlabeled
   # push:
   #   branches:
   #   - main
@@ -114,29 +113,6 @@ jobs:
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  all-jobs-are-green-legacy:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
-    name: All jobs are green
-    runs-on: ubuntu-latest
-    permissions:
-      checks: read
-      statuses: read
-      actions: read
-    needs:
-    - system_tests
-    if: '!cancelled()'
-    steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - run: pip install requests
-    - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Fail if any job failed
-      if: needs.system_tests.result != 'success'
-      run: exit 1
-
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
     # name: All jobs are green  # DO NOT SET A NAME
     runs-on: ubuntu-latest
@@ -148,10 +124,11 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@v0
+    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
       with:
-        polling-interval-seconds: '30'
-        max-retries: '60'
+        # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
+        polling-interval-seconds: '60'
+        max-retries: '120'
         ignored-name-patterns: |
           dd-gitlab/.*
 

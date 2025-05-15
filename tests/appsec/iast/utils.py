@@ -289,8 +289,8 @@ def validate_extended_location_data(
 ) -> None:
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
-    assert iast, "Expected at least one vulnerability"
-    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+    assert iast, f"Expected at least one vulnerability in span {span.get('span_id')}"
+    assert iast["vulnerabilities"], f"Expected at least one vulnerability: {iast['vulnerabilities']}"
 
     # Filter by vulnerability
     if vulnerability_type:
@@ -299,6 +299,9 @@ def validate_extended_location_data(
 
     if not is_expected_location_required:
         return
+
+    logger.debug(f"Vulnerabilities: {json.dumps(vulns, indent=2)}")
+    assert len(vulns) == 1, "Expected a single vulnerability with the matching criteria"
 
     vuln = vulns[0]
     location = vuln["location"]
@@ -336,14 +339,22 @@ def validate_extended_location_data(
         assert "frames" in stack_trace
 
         # Verify frame matches location
+        def _norm(s: str | None) -> str | None:
+            return s if s else None
+
         location_match = False
         for frame in stack_trace["frames"]:
-            if (
-                frame.get("file", "").endswith(location["path"])
-                and location["line"] == frame["line"]
-                and location.get("class", "") == frame.get("class_name", "")
-                and location.get("method", "") == frame.get("function", "")
-            ):
+            logger.debug(frame)
+            if not frame.get("file", "").endswith(location["path"]):
+                logger.debug("path does not match")
+            elif frame["line"] != location["line"]:
+                logger.debug("line does not match")
+            elif _norm(location.get("class")) != _norm(frame.get("class_name")):
+                logger.debug("class does not match")
+            elif _norm(location.get("method")) != _norm(frame.get("function")):
+                logger.debug("method does not match")
+            else:
+                logger.debug("location match")
                 location_match = True
                 break
 

@@ -11,6 +11,21 @@ from utils import (
     features,
     scenarios,
 )
+from collections import defaultdict
+
+COMPONENT_EXCEPTIONS: defaultdict[str, defaultdict[str, dict]] = defaultdict(
+    lambda: defaultdict(lambda: {"operation_name": "graphql.execute", "has_location": True})
+)
+
+COMPONENT_EXCEPTIONS["go"]["99designs/gqlgen"] = {
+    "operation_name": "graphql.query",
+    "has_location": False,
+}
+
+COMPONENT_EXCEPTIONS["go"]["graph-gophers/graphql-go"] = {
+    "operation_name": "graphql.request",
+    "has_location": False,
+}
 
 
 @rfc("https://docs.google.com/document/d/1JjctLYE4a4EbtmnFixQt-TilltcSV69IAeiSGjcUL34")
@@ -66,7 +81,7 @@ class Test_GraphQLQueryErrorReporting:
         spans = list(
             span
             for _, _, span in interfaces.library.get_spans(request=self.request, full_trace=True)
-            if span["name"] == "graphql.execute"
+            if self._is_graphql_execute_span(span)
         )
 
         assert len(spans) == 1
@@ -89,10 +104,14 @@ class Test_GraphQLQueryErrorReporting:
         for path in attributes["path"]:
             assert isinstance(path, str)
 
-        for location in attributes["locations"]:
-            assert len(location.split(":")) == 2
-            assert location.split(":")[0].isdigit()
-            assert location.split(":")[1].isdigit()
+        if self._has_location(span):
+            location = attributes["locations"]
+            assert len(location) == 1
+
+            for loc in location:
+                assert len(loc.split(":")) == 2
+                assert loc.split(":")[0].isdigit()
+                assert loc.split(":")[1].isdigit()
 
         assert attributes["extensions.int"] == 1
         assert attributes["extensions.float"] == 1.1
@@ -109,6 +128,19 @@ class Test_GraphQLQueryErrorReporting:
         assert "foo" in attributes["extensions.other"]
 
         assert "extensions.not_captured" not in attributes
+
+    @staticmethod
+    def _is_graphql_execute_span(span) -> bool:
+        name = span["name"]
+        lang = span.get("meta", {}).get("language", "")
+        component = span.get("meta", {}).get("component", "")
+        return name == COMPONENT_EXCEPTIONS[lang][component]["operation_name"]
+
+    @staticmethod
+    def _has_location(span) -> bool:
+        lang = span.get("meta", {}).get("language", "")
+        component = span.get("meta", {}).get("component", "")
+        return COMPONENT_EXCEPTIONS[lang][component]["has_location"]
 
     @staticmethod
     def _get_events(span) -> dict:

@@ -13,7 +13,7 @@ class SystemTestController < ApplicationController
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: { 
+    render json: {
       status: 'ok',
       library: {
         name: 'ruby',
@@ -172,6 +172,10 @@ class SystemTestController < ApplicationController
   end
 
   def handle_path_params
+    render plain: 'OK'
+  end
+
+  def sample_rate_route
     render plain: 'OK'
   end
 end

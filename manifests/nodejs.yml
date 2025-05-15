@@ -58,6 +58,7 @@ refs:
   - &ref_5_46_0 '>=5.46.0'
   - &ref_5_47_0 '>=5.47.0'
   - &ref_5_48_0 '>=5.48.0'
+  - &ref_5_52_0 '>=5.52.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -429,8 +430,6 @@ tests/:
         TestSecurityControls:
           '*': *ref_5_37_0
           nextjs: missing_feature
-      test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
@@ -617,6 +616,9 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone:
+        '*': *ref_5_52_0
+        nextjs: missing_feature
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
@@ -742,6 +744,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags:
         '*': *ref_5_48_0
         nextjs: missing_feature
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
@@ -821,6 +827,11 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
@@ -1022,6 +1033,7 @@ tests/:
       Test_Stable_Configuration_Origin: *ref_5_41_0
       Test_TelemetryInstallSignature: *ref_4_23_0
       Test_TelemetrySCAEnvVar: *ref_5_13_0
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
       Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown

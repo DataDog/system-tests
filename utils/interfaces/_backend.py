@@ -219,9 +219,13 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         dd_app_key: str | None = None,
     ):
         if dd_api_key is None:
-            dd_api_key = os.environ["DD_API_KEY"]
+            dd_api_key = os.environ.get("DD_API_KEY")
         if dd_app_key is None:
-            dd_app_key = os.environ.get("DD_APP_KEY", os.environ["DD_APPLICATION_KEY"])
+            dd_app_key = os.environ.get("DD_APP_KEY", os.environ.get("DD_APPLICATION_KEY"))
+
+        assert dd_api_key is not None, "DD_API_KEY environment variable is not set"
+        assert dd_app_key is not None, "DD_APP_KEY environment variable is not set"
+
         headers = {
             "DD-API-KEY": dd_api_key,
             "DD-APPLICATION-KEY": dd_app_key,

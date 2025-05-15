@@ -46,6 +46,3 @@ jobs:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_PULL_REQUEST_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
-          TEMP_TEST: ${{ toJSON(github.doesntexists) }}
-
