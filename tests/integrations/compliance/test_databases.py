@@ -37,10 +37,10 @@ class _BaseDatabaseComplianceTest(BaseDbIntegrationsTestClass):
 
 @features.not_reported
 @scenarios.integrations
-class Test_Postgres(_BaseDatabaseComplianceTest):
-    """Postgres compliance tests."""
+class Test_MsSql(_BaseDatabaseComplianceTest):
+    """MSSQL compliance tests."""
 
-    db_service = "postgresql"
+    db_service = "mssql"
 
 
 @features.not_reported
@@ -53,7 +53,7 @@ class Test_MySql(_BaseDatabaseComplianceTest):
 
 @features.not_reported
 @scenarios.integrations
-class Test_MsSql(_BaseDatabaseComplianceTest):
-    """MSSQL compliance tests."""
+class Test_Postgres(_BaseDatabaseComplianceTest):
+    """Postgres compliance tests."""
 
-    db_service = "mssql"
+    db_service = "postgresql"
