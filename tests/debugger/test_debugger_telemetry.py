@@ -71,7 +71,6 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     def setup_telemetry_di(self):
         self._setup()
 
-    @missing_feature(context.library == "ruby", reason="DEBUG-3573", force_skip=True)
     def test_telemetry_di(self):
         self._assert(required_telemetry=["dynamic_instrumentation_enabled"])
 
@@ -82,6 +81,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     @flaky(context.library == "dotnet", reason="DEBUG-3322")
     @missing_feature(context.library == "nodejs", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
+    @missing_feature(context.library == "ruby", reason="feature not implemented", force_skip=True)
     def test_telemetry_er(self):
         self._assert(required_telemetry=["exception_replay_enabled"])
 
@@ -91,6 +91,7 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
 
     @missing_feature(context.library == "nodejs", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
+    @missing_feature(context.library == "ruby", reason="feature not implemented", force_skip=True)
     def test_telemetry_symdb(self):
         self._assert(required_telemetry=["symbol_database_upload_enabled"])
 
@@ -101,5 +102,6 @@ class Test_Debugger_Telemetry(debugger.BaseDebuggerTest):
     @missing_feature(context.library == "python", reason="DEBUG-3550", force_skip=True)
     @missing_feature(context.library == "dotnet", reason="feature not implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="feature not implemented", force_skip=True)
+    @missing_feature(context.library == "ruby", reason="feature not implemented", force_skip=True)
     def test_telemetry_co(self):
         self._assert(required_telemetry=["code_origin_for_spans_enabled"])
