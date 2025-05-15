@@ -14,7 +14,6 @@ def generate_compliance_report(
     report: dict[str, Any] = {
         "framework": name,
         "language": context.library.name,
-        "version": str(version or context.library.version),
         "status": "pass" if not missing else "fail",
     }
 
