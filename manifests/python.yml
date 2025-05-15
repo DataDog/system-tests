@@ -805,6 +805,17 @@ tests/:
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: v2.11.0
   integrations/:
+    compliance/:
+      test_databases.py:
+        Test_Postgres:
+          '*': missing_feature
+          flask-poc: v1.18.3
+        Test_MySql:
+          '*': missing_feature
+          flask-poc: v1.18.3
+        Test_MsSql:
+          '*': missing_feature
+          flask-poc: v1.18.3
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:

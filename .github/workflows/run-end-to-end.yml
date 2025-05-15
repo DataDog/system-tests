@@ -417,6 +417,7 @@ jobs:
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
 
     - name: Print Compliance Reports
+      if: always()
       run: |
         for folder in logs*/ ; do
           if [ -f "${folder}compliance.json" ]; then

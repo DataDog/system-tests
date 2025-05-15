@@ -627,6 +627,8 @@ tests/:
         "*": irrelevant
         rails70: missing_feature (feature not implemented)
   integrations/:
+    compliance/:
+      test_databases.py: missing_feature
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:

@@ -1825,6 +1825,17 @@ tests/:
         spring-boot-undertow: v1.38.0
         uds-spring-boot: v1.38.0
   integrations/:
+    compliance/:
+      test_databases.py:
+        Test_Postgres:
+          '*': missing_feature
+          spring-boot: v1.12.0
+        Test_MySql:
+          '*': missing_feature
+          spring-boot: v1.12.0
+        Test_MsSql:
+          '*': missing_feature
+          spring-boot: v1.12.0
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
