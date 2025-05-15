@@ -2122,19 +2122,19 @@ tests/:
       spring-boot: v1.47.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisionAdded:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisions:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDeterminism:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingRates: v0.92.0
