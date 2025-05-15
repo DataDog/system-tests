@@ -8,6 +8,7 @@ tests/:
   integrations/:
     compliance/:
       test_databases.py: missing_feature
+      test_web_frameworks.py: missing_feature
     crossed_integrations/: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py: missing_feature
     test_dbm.py: missing_feature
