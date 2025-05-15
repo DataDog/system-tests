@@ -17,10 +17,6 @@ paramiko==3.4.1
 pexpect==4.9.0  #On Boarding requirements
 pluggy==1.0.0
 psutil==6.0.0
-pulumi-aws==6.38.0  #On Boarding requirements
-pulumi-command==0.11.1  #On Boarding requirements
-pulumi-tls==5.0.3  #On Boarding requirements
-pulumi==3.116.0  #On Boarding requirements
 pytest-json-report==1.5.0
 pytest-split==0.9.0
 pytest-xdist==3.2.1
