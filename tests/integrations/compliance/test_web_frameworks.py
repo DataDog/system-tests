@@ -1,7 +1,8 @@
-from utils import interfaces, weblog, context
+from utils import interfaces, weblog, context, features
 from .utils import assert_required_keys, generate_compliance_report, load_schema
 
 
+@features.not_reported
 class Test_WebFrameworks:
     def setup_simple(self):
         self.r = weblog.get("/")
