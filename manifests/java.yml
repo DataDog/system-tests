@@ -1827,13 +1827,13 @@ tests/:
   integrations/:
     compliance/:
       test_databases.py:
-        Test_Postgres:
+        Test_MsSql:
           '*': missing_feature
           spring-boot: v1.12.0
         Test_MySql:
           '*': missing_feature
           spring-boot: v1.12.0
-        Test_MsSql:
+        Test_Postgres:
           '*': missing_feature
           spring-boot: v1.12.0
     crossed_integrations/:

@@ -807,13 +807,13 @@ tests/:
   integrations/:
     compliance/:
       test_databases.py:
-        Test_Postgres:
+        Test_MsSql:
           '*': missing_feature
           flask-poc: v1.18.3
         Test_MySql:
           '*': missing_feature
           flask-poc: v1.18.3
-        Test_MsSql:
+        Test_Postgres:
           '*': missing_feature
           flask-poc: v1.18.3
     crossed_integrations/:
