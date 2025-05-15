@@ -4,7 +4,7 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils.parametric.spec.trace import find_root_span
-from utils.tools import logger
+from utils import logger
 from utils import missing_feature, context, rfc, scenarios, features, bug
 
 from .conftest import _TestAgentAPI
