@@ -1,4 +1,4 @@
-from utils import logger, scenarios
+from utils import logger, scenarios, features
 from .utils import assert_required_keys, generate_compliance_report, load_schema
 
 from tests.integrations.utils import BaseDbIntegrationsTestClass
@@ -35,6 +35,7 @@ class _BaseDatabaseComplianceTest(BaseDbIntegrationsTestClass):
             raise AssertionError(f"Missing required attributes: {all_missing}")
 
 
+@features.not_reported
 @scenarios.integrations
 class Test_Postgres(_BaseDatabaseComplianceTest):
     """Postgres compliance tests."""
@@ -42,6 +43,7 @@ class Test_Postgres(_BaseDatabaseComplianceTest):
     db_service = "postgresql"
 
 
+@features.not_reported
 @scenarios.integrations
 class Test_MySql(_BaseDatabaseComplianceTest):
     """MySQL compliance tests."""
@@ -49,6 +51,7 @@ class Test_MySql(_BaseDatabaseComplianceTest):
     db_service = "mysql"
 
 
+@features.not_reported
 @scenarios.integrations
 class Test_MsSql(_BaseDatabaseComplianceTest):
     """MSSQL compliance tests."""
