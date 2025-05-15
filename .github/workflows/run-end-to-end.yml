@@ -415,3 +415,13 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
+    - name: Print Compliance Reports
+      run: |
+        for folder in logs*/ ; do
+          if [ -f "${folder}compliance.json" ]; then
+            echo "=== Compliance Report for ${folder} ==="
+            cat "${folder}compliance.json"
+            echo -e "\n"
+          fi
+        done
