@@ -1,3 +1,7 @@
+DEPRECATED
+
+----
+
 ⚠️ Did this test just fail, and you want to fix it? ⚠️
 
 Here's what you need to do!

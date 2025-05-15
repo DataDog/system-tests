@@ -24,8 +24,6 @@ ask_load_requirements() {
     if [[ "$load_choice" =~ ^[Yy]$ ]]; then
         echo "🚀 Loading system-tests requirements..."
         ./build.sh -i runner
-        # shellcheck source=/dev/null
-        source venv/bin/activate
         if [[ $? -ne 0 ]]; then
             echo "❌ Error: Failed to load system-tests requirements. Please check the logs."
             exit 1
@@ -34,6 +32,10 @@ ask_load_requirements() {
     else
         echo "⚠️ Skipping system-tests requirements setup."
     fi
+    echo "🔄 Activating virtual environment..."
+    # shellcheck source=/dev/null
+    source venv/bin/activate
+    echo "✅ Virtual environment activated."
 }
 
 ask_for_test_language() {

@@ -1,5 +1,6 @@
 import json
 from abc import ABC, abstractmethod
+import time
 
 from requests.structures import CaseInsensitiveDict
 
@@ -13,7 +14,19 @@ UUID_USER = "testuuid"
 PASSWORD = "1234"
 
 
-# Return a boolean indicating if the test passed
+# This methods exist to test the 2 different ways of setting the tags in the tracers.
+# In some tracers, the propagation tags are set in the first span of every trace chunk,
+# while in others they are set in the local root span. (same for the sampling priority tag)
+# This method test the first case and if it fails, it will test the second case. When both cases fail, the test will fail.
+#
+# first_trace is the first span of every trace chunk
+# span is the local root span
+# obj is the object where the tags are set (meta, metrics)
+# expected_tags is a dict of tag name to value
+#   - The key is the tag name
+#   - The value can be None to assert that the tag is not present
+#   - The value can be a string to assert the value of the tag
+#   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
 def assert_tags(first_trace, span, obj, expected_tags) -> bool:
     def _assert_tags_value(span, obj, expected_tags):
         struct = span if obj is None else span[obj]
@@ -44,21 +57,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     """APM correctly propagates AppSec events in distributing tracing."""
 
     # TODO downstream propagation
-
-    # This methods exist to test the 2 different ways of setting the tags in the tracers.
-    # In some tracers, the propagation tags are set in the first span of every trace chunk,
-    # while in others they are set in the local root span. (same for the sampling priority tag)
-    # This method test the first case and if it fails, it will test the second case. When both cases fail, the test will fail.
-    #
-    # first_trace is the first span of every trace chunk
-    # span is the local root span
-    # obj is the object where the tags are set (meta, metrics)
-    # expected_tags is a dict of tag name to value
-    #   - The key is the tag name
-    #   - The value can be None to assert that the tag is not present
-    #   - The value can be a string to assert the value of the tag
-    #   - The value can be a lambda function that will be used to assert the value of the tag (special case for _sampling_priority_v1)
-    #
 
     # Enpoint that triggers an ASM event and a downstream request
     request_downstream_url: str = "/requestdownstream"
@@ -861,6 +859,159 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 
     def propagated_tag_value(self):
         return "02"
+
+
+@rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
+@features.api_security_configuration
+@scenarios.appsec_standalone_api_security
+class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
+    """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
+
+    def propagated_tag(self):
+        return "_dd.p.ts"
+
+    def propagated_tag_value(self):
+        return "02"
+
+    @staticmethod
+    def get_schema(request, address) -> list | None:
+        """Extract API security schema from span metadata"""
+        for _, _, span in interfaces.library.get_spans(request=request):
+            meta = span.get("meta", {})
+            if payload := meta.get("_dd.appsec.s." + address):
+                return payload
+        return None
+
+    @staticmethod
+    def check_trace_retained(request, *, should_be_retained: bool) -> bool:
+        """Check if trace is retained with expected sampling priority"""
+
+        spans_checked = 0
+        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2 if should_be_retained else x <= 0}
+        for data, trace, span in interfaces.library.get_spans(request=request):
+            assert span["trace_id"] == 1212121212121212121
+            assert trace[0]["trace_id"] == 1212121212121212121
+            assert assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
+
+            # Check for client-computed-stats header
+            headers = data["request"]["headers"]
+            assert any(["Datadog-Client-Computed-Stats", trueish] in headers for trueish in ["yes", "true"])
+            spans_checked += 1
+
+        return spans_checked == 1
+
+    def verify_trace_sampling(self, request, *, should_be_retained: bool, should_have_schema: bool):
+        """Verify trace is sampled with expected sampling priority and schema presence
+
+        Args:
+            request: The HTTP request to verify
+            should_be_retained: Whether the trace should be retained
+            should_have_schema: Whether schema should exist in the trace
+
+        """
+
+        assert self.check_trace_retained(request, should_be_retained=should_be_retained), "Trace retention check failed"
+        schema = self.get_schema(request, "req.headers")
+
+        if should_have_schema:
+            assert schema is not None, "Schema missing when it should exist"
+            assert isinstance(schema, list), "Schema has invalid format"
+            for header in ("host", "user-agent"):
+                assert header in schema[0], f"Header '{header}' missing from schema"
+                assert isinstance(schema[0][header], list), f"Header '{header}' value is not a list"
+        else:
+            assert schema is None, "Schema found when it should be absent"
+
+    def _get_headers(self, trace_id=1212121212121212121):
+        """Standard test headers"""
+        return {
+            "x-datadog-trace-id": str(trace_id),
+            "x-datadog-parent-id": "34343434",
+            "x-datadog-origin": "rum",
+            "x-datadog-sampling-priority": "-1",
+        }
+
+    def setup_first_request_retained(self):
+        endpoint = "/tag_value/test_first_request_retained/200"
+        self.first_request = weblog.get(endpoint, headers=self._get_headers())
+
+    def test_first_request_retained(self):
+        assert self.first_request.status_code == 200
+        self.verify_trace_sampling(self.first_request, should_be_retained=True, should_have_schema=True)
+
+    def setup_different_endpoints(self):
+        self.request1 = weblog.get("/api_security/sampling/200", headers=self._get_headers())
+        self.request2 = weblog.get("/api_security_sampling/1", headers=self._get_headers())
+        self.subsequent_requests = [
+            weblog.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
+        ]
+
+    def test_different_endpoints(self):
+        # First requests to different endpoints retained with schema
+        assert self.request1.status_code == 200
+        self.verify_trace_sampling(self.request1, should_be_retained=True, should_have_schema=True)
+
+        assert self.request2.status_code == 200
+        self.verify_trace_sampling(self.request2, should_be_retained=True, should_have_schema=True)
+
+        # Subsequent requests to same endpoint sampled out
+        for request in self.subsequent_requests:
+            assert request.status_code == 200
+            self.verify_trace_sampling(request, should_be_retained=False, should_have_schema=False)
+
+    def setup_sampling_window_renewal(self):
+        time.sleep(4)  # Wait for the sampling window to expire
+
+        self.endpoint = "/api_security/sampling/200"
+        self.window1_request1 = weblog.get(self.endpoint, headers=self._get_headers())
+        self.window1_request2 = weblog.get(self.endpoint, headers=self._get_headers())
+        time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
+        self.window2_request1 = weblog.get(self.endpoint, headers=self._get_headers())
+
+    def test_sampling_window_renewal(self):
+        """Verify that endpoint sampling resets after the sampling window expires"""
+
+        # First request should be retained with schema
+        assert self.window1_request1.status_code == 200
+        self.verify_trace_sampling(self.window1_request1, should_be_retained=True, should_have_schema=True)
+
+        # Following request sampled out
+        assert self.window1_request2.status_code == 200
+        self.verify_trace_sampling(self.window1_request2, should_be_retained=False, should_have_schema=False)
+
+        # After window expiration, request retained again
+        assert self.window2_request1.status_code == 200
+        self.verify_trace_sampling(self.window2_request1, should_be_retained=True, should_have_schema=True)
+
+    def setup_appsec_propagation_does_not_force_schema_collection(self):
+        """Test that spans with USER_KEEP priority do not force schema collection"""
+
+        time.sleep(4)  # Wait for the sampling window to expire
+
+        self.endpoint = "/api_security/sampling/200"
+
+        # Set USER_KEEP (2) priority explicitly
+        headers = self._get_headers()
+        headers["x-datadog-sampling-priority"] = "2"  # USER_KEEP
+        headers["x-datadog-tags"] = f"{self.propagated_tag()}={self.propagated_tag_value()}"
+
+        # Make multiple requests to same endpoint that would normally be sampled out
+        self.request1 = weblog.get(self.endpoint, headers=headers)
+        self.request2 = weblog.get(self.endpoint, headers=headers)
+        self.request3 = weblog.get(self.endpoint, headers=headers)
+
+    def test_appsec_propagation_does_not_force_schema_collection(self):
+        """Test that spans with USER_KEEP priority do not force schema collection"""
+
+        assert self.request1.status_code == 200
+        self.verify_trace_sampling(self.request1, should_be_retained=True, should_have_schema=True)
+
+        assert self.request2.status_code == 200
+        self.verify_trace_sampling(self.request2, should_be_retained=True, should_have_schema=False)
+
+        assert self.request3.status_code == 200
+        self.verify_trace_sampling(self.request3, should_be_retained=True, should_have_schema=False)
 
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")

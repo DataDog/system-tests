@@ -15,6 +15,14 @@ from utils import context, scenarios, rfc, features, missing_feature
 
 
 telemetry_name_mapping = {
+    "ssi_injection_enabled": {
+        "nodejs": "DD_INJECTION_ENABLED",
+        "python": "DD_INJECTION_ENABLED",
+    },
+    "ssi_forced_injection_enabled": {
+        "nodejs": "DD_INJECT_FORCE",
+        "python": "DD_INJECT_FORCE",
+    },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
@@ -643,6 +651,119 @@ class Test_TelemetryInstallSignature:
                 assert (
                     "install_signature" not in body["payload"]
                 ), f"The install signature should not be included in the telemetry event, got {body}"
+
+
+@scenarios.parametric
+@features.ssi_service_tracking
+class Test_TelemetrySSIConfigs:
+    """This telemetry provides insights into how a library was installed."""
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_value"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": "tracer",
+                },
+                "tracer",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": "service_test,profiler,false",
+                },
+                "service_test,profiler,false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECTION_ENABLED": None,
+                },
+                None,
+            ),
+        ],
+    )
+    def test_injection_enabled(self, library_env, expected_value, test_agent, test_library):
+        """Ensure SSI DD_INJECTION_ENABLED configuration is captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        ssi_enabled_telemetry_name = _mapped_telemetry_name(context, "ssi_injection_enabled")
+        inject_enabled = configuration_by_name.get(ssi_enabled_telemetry_name)
+        assert inject_enabled, ",\n".join(configuration_by_name.keys())
+        assert inject_enabled.get("value") == expected_value
+        if expected_value is not None:
+            assert inject_enabled.get("origin") == "env_var"
+
+    @pytest.mark.parametrize(
+        ("library_env", "expected_value"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": "true",
+                },
+                "true",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": "false",
+                },
+                "false",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_SERVICE": "service_test",
+                    "DD_INJECT_FORCE": None,
+                },
+                "none",
+            ),
+        ],
+    )
+    def test_inject_force(self, library_env, expected_value, test_agent, test_library):
+        """Ensure SSI DD_INJECT_FORCE configuration is captured by a telemetry event."""
+
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        # # Check that the tags name match the expected value
+        inject_force_telemetry_name = _mapped_telemetry_name(context, "ssi_forced_injection_enabled")
+        inject_force = configuration_by_name.get(inject_force_telemetry_name)
+        assert inject_force, ",\n".join(configuration_by_name.keys())
+        assert str(inject_force.get("value")).lower() == expected_value
+        if expected_value != "none":
+            assert inject_force.get("origin") == "env_var"
+
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "service_test"}])
+    def test_instrumentation_source_non_ssi(self, library_env, test_agent, test_library):
+        # Some libraries require a first span for telemetry to be emitted.
+        with test_library.dd_start_span("first_span"):
+            pass
+
+        test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
+        # Check that the tags name match the expected value
+        instrumentation_source_telemetry_name = _mapped_telemetry_name(context, "instrumentation_source")
+        instrumentation_source = configuration_by_name.get(instrumentation_source_telemetry_name)
+        assert instrumentation_source, ",\n".join(configuration_by_name.keys())
+        assert instrumentation_source.get("value").lower() != "ssi"
 
 
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")

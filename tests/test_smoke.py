@@ -2,13 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, features, missing_feature
+from utils import context, weblog, interfaces, features, missing_feature, bug
 
 
 @features.unix_domain_sockets_support_for_traces
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
+    @bug(context.agent_version > "7.65.1", reason="CONTINT-4688")
     def test_good_backend(self):
         """Agent reads and use DD_SITE env var"""
         interfaces.agent.assert_use_domain(context.dd_site)

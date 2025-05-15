@@ -16,7 +16,7 @@ touch "${LOGS_PHP[@]}"
 chown www-data:www-data "${LOGS_PHP[@]}"
 
 export APACHE_LOG_DIR="$SYSTEM_TESTS_LOGS/apache2"
-mkdir "$APACHE_LOG_DIR"
+mkdir -p "$APACHE_LOG_DIR"
 LOGS_APACHE=($APACHE_LOG_DIR/{access.log,error.log})
 touch "${LOGS_APACHE[@]}"
 chown root:adm "${LOGS_APACHE[@]}"
@@ -24,6 +24,10 @@ chown root:adm "${LOGS_APACHE[@]}"
 if [[ "$DD_TRACE_DEBUG" == "true" ]]; then
   # if DD_TRACE_DEBUG is activated, also active apache debug logs
   sed -i 's/LogLevel warn/LogLevel debug/' /etc/apache2/apache2.conf
+  # and appsec logs
+  sed -i 's/.*datadog\.appsec\.log_level.*/datadog.appsec.log_level=debug/' /etc/php/php.ini
+  # and helper debug logs
+  sed -i 's/.*datadog\.appsec\.helper_log_level.*/datadog.appsec.helper_log_level=debug/' /etc/php/php.ini
 fi
 
 # Enable core dumps, and write them in $SYSTEM_TESTS_LOGS

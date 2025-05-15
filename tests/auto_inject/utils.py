@@ -45,7 +45,22 @@ class AutoInjectBaseTest:
             warmup_weblog(vm_context_url)
             request_uuid = make_get_request(vm_context_url)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, profile=profile)
+
+        try:
+            wait_backend_trace_id(request_uuid, profile=profile)
+        except (TimeoutError, AssertionError) as e:
+            self._log_trace_debug_message(e, request_uuid)
+            raise
+
+    def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
+        logger.error(
+            f"❌ Exception during trace in backend verification: {exc}\n"
+            "🔍 Possible causes:\n"
+            "- A bug/problem in the tracer (check app logs in `/var/log/datadog_weblog`)\n"
+            "- A problem in the agent (check agent logs in `/var/log/datadog`)\n"
+            "- A problem in the Docker daemon?? (check logs in `/var/log/journalctl_docker.log`)\n"
+            f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
+        )
 
     def close_channel(self, channel) -> None:
         try:
