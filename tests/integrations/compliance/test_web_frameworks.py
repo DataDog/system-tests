@@ -1,7 +1,5 @@
 from utils import interfaces, weblog, context
-from .loader import load_schema
-from .validator import assert_required_keys
-from .report import generate_compliance_report
+from .utils import assert_required_keys, generate_compliance_report, load_schema
 
 
 class Test_WebFrameworks:
