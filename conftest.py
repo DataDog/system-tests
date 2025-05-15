@@ -554,7 +554,7 @@ def merge_compliance_reports(session: pytest.Session, data: dict) -> None:
         "testSource": "systemtests",
         "language": context.library.name,
         "variant": context.weblog_variant,
-        "reports": []
+        "reports": [],
     }
 
     # Collect all individual reports

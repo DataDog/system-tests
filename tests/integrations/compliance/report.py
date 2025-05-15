@@ -7,7 +7,6 @@ from utils import context
 def generate_compliance_report(
     category: str,
     name: str,
-    version: str | None = None,
     missing: list[str] | None = None,
     deprecated: list[str] | None = None,
 ) -> None:
