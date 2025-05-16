@@ -107,11 +107,6 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @flaky(
-        context.library == "nodejs"
-        and context.weblog_variant in ("express4", "express5", "uds-express4", "express4-typescript"),
-        reason="APMAPI-1252",
-    )
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sampling_rates(self):
         """Basic test"""
@@ -315,6 +310,7 @@ class Test_SampleRateFunction:
             # Map request results so that the test can validate them.
             self.requests_expected_decision.append((req, sampling_decision))
 
+    @missing_feature(library="nodejs", weblog_variant="nextjs", reason="/sample_rate_route is not implemented")
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
     def test_sample_rate_function(self):
         """Tests the sampling decision follows the one from the sampling function specification."""
