@@ -642,6 +642,7 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
+    Test_StandardTagsReferrerHostname: v1.9.0
     Test_StandardTagsRoute: missing_feature
     Test_StandardTagsStatusCode: v0.75.0
     Test_StandardTagsUrl: v0.76.0

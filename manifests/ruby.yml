@@ -889,6 +889,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.10.1
     Test_StandardTagsMethod: v1.8.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       "*": missing_feature
       rack: irrelevant (rack can not access route pattern)

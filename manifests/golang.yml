@@ -795,6 +795,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v1.39.0
     Test_StandardTagsStatusCode: v1.39.0
     Test_StandardTagsUrl: v1.40.0
