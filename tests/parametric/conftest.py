@@ -461,7 +461,7 @@ class _TestAgentAPI:
     def wait_for_rc_request(self, wait_loops: int = 30):
         """Wait for the first RemoteConfig request to be received by the test agent."""
         rc_reqs = []
-        for i in range(wait_loops):
+        for _ in range(wait_loops):
             try:
                 rc_reqs = self.rc_requests()
             except requests.exceptions.RequestException:

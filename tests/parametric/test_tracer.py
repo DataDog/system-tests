@@ -192,8 +192,7 @@ class Test_TracerSCITagging:
         ],
     )
     def test_git_metadata_is_sent_to_remote_config(self, library_env, test_agent, test_library):
-        """
-        Test that git commit SHA and repository URL are included in the remote config request when set via the DD_GIT_COMMIT_SHA and DD_GIT_REPOSITORY_URL environment variables
+        """Test that git commit SHA and repository URL are included in the remote config request when set via the DD_GIT_COMMIT_SHA and DD_GIT_REPOSITORY_URL environment variables
         At the moment, Dynamic Instrumentation is the only product that relies on this behavior, though that may change in the future
         """
 
