@@ -1176,7 +1176,7 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
       Test_APISecurityStandalone:
-        '*': v1.50.0
+        '*': v1.50.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
