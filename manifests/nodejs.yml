@@ -71,19 +71,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
-        Test_API_Security_Sampling_Different_Paths:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
-        Test_API_Security_Sampling_Different_Status:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: *ref_5_27_0
+        Test_API_Security_Sampling_Different_Paths: *ref_5_27_0
+        Test_API_Security_Sampling_Different_Status: *ref_5_27_0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
-        Test_API_Security_Sampling_With_Delay:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
+        Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_schemas.py:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
