@@ -1177,7 +1177,11 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone:
         '*': v1.50.0-SNAPSHOT
+        akka-http: bug (APPSEC-56888)
+        play: bug (APPSEC-56869)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: bug (APPSEC-56870)
+        vertx4: bug (APPSEC-56871)
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
