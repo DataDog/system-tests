@@ -1,7 +1,7 @@
 # if any change here, please update AgentContainer class
 ARG AGENT_IMAGE=datadog/agent:latest
 FROM $AGENT_IMAGE
-
+ARG ENABLE_GO_EBPF_SYSTEM_PROBE=false
 RUN set -eux;\
     apt-get update;\
     apt-get --no-install-recommends -y install ca-certificates --option=Dpkg::Options::=--force-confdef;\
@@ -37,6 +37,17 @@ otlp_config:\n\
   logs:\n\
     enabled: true\n\
 ' >> /etc/datadog-agent/datadog.yaml
+
+# Conditionally add eBPF system probe config
+RUN if [ "$ENABLE_GO_EBPF_SYSTEM_PROBE" = "true" ]; then \
+    cp /etc/datadog-agent/system-probe.yaml.example /etc/datadog-agent/system-probe.yaml && \
+    chmod 0640 /etc/datadog-agent/system-probe.yaml && \
+    echo 'network_config:\n\
+  enabled: true' >> /etc/datadog-agent/system-probe.yaml; \
+fi
+
+ENV DD_DYNAMIC_INSTRUMENTATION_ENABLED=$ENABLE_GO_EBPF_SYSTEM_PROBE
+ENV DD_PROCESS_AGENT_ENABLED=$ENABLE_GO_EBPF_SYSTEM_PROBE
 
 # Proxy conf
 COPY utils/scripts/install_mitm_certificate.sh .

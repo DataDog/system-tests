@@ -8,6 +8,48 @@ set -e
 set -u
 set -o pipefail
 
+LIMA_DOCKER_ACTIVE="false"
+configure_lima_docker_host_for_run() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        return
+    fi
+
+    # Must have limactl
+    if ! command -v limactl &>/dev/null; then
+        return
+    fi
+
+    local instance="docker-rootful"
+    local status sock
+    status=$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null || echo "Not Found")
+    if [[ $status != "Running" ]]; then
+        if ! limactl start docker-rootful.yaml --name "$instance" &>/dev/null; then
+            echo "WARN (build.sh): Failed to issue start command for '$instance'. Proceeding with default Docker environment."
+            return
+        fi
+
+        # wait up to 15s for it to actually show as Running
+        for _ in {1..15}; do
+            sleep 1
+            status=$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null || echo "Not Found")
+            [[ $status == "Running" ]] && break
+        done
+
+        if [[ $status != "Running" ]]; then
+            return
+        fi
+    fi
+
+    # Grab the Docker socket and validate
+    sock=$(limactl list "$instance" --format 'unix://{{.Dir}}/sock/docker.sock' 2>/dev/null)
+    if [[ -n $sock && $sock != "unix:///sock/docker.sock" && $sock != "unix://" ]]; then
+        export DOCKER_HOST="$sock"
+        echo "macOS with lima and qemu detected. DOCKER_HOST set to '$DOCKER_HOST'."
+    fi
+}
+
+configure_lima_docker_host_for_run
+
 function hint() {
     local program="${BASH_SOURCE[0]##*/}"
     echo "see ${program} ++help for documentation"
@@ -289,7 +331,6 @@ function main() {
                   hint
                   exit 64
                 fi
-                libraries+=("$2")
                 shift
                 ;;
             ++)
@@ -462,6 +503,38 @@ function main() {
 
     if [[ "${run_mode}" == "docker" ]]; then
         ensure_network >/dev/null
+    fi
+
+    # Check if current context is Golang for potential eBPF on Lima/macOS
+    IS_GOLANG_CONTEXT="false"
+    # Ensure libraries array is populated from TEST_LIBRARY env var if --library flag wasn't used
+    if [[ ${#libraries[@]} -eq 0 && -n "${TEST_LIBRARY:-}" ]]; then
+        IFS=',' read -r -a libraries <<< "${TEST_LIBRARY}"
+    fi
+
+    for lib_item in "${libraries[@]}"; do
+        if [[ "${lib_item}" == "golang" ]]; then
+            IS_GOLANG_CONTEXT="true"
+            break
+        fi
+    done
+
+    if [[ "${IS_GOLANG_CONTEXT}" == "true" && "${LIMA_DOCKER_ACTIVE}" == "true" ]]; then
+        echo "INFO (run.sh): Golang context on macOS with Lima detected. Setting SYSTEM_TESTS_GOLANG_LIMA_EBPF=true for tests."
+        export SYSTEM_TESTS_GOLANG_LIMA_EBPF="true"
+    else
+        # Ensure it's explicitly set to false if conditions aren't met, or if it was true from a previous run in the same shell.
+        export SYSTEM_TESTS_GOLANG_LIMA_EBPF="false"
+    fi
+
+    # Ensure Docker client is available.
+    # This will use DOCKER_HOST if set by the Lima integration.
+    if ! docker version &> /dev/null; then
+        if [[ -n "${DOCKER_HOST:-}" ]]; then # Check if DOCKER_HOST was set (implies Lima was attempted)
+            die "Docker (via Lima at DOCKER_HOST=${DOCKER_HOST}) is not responding. Please ensure Lima VM is started and Docker is accessible."
+        else
+            die "Docker is not responding. Please ensure Docker is running and accessible via 'docker version'."
+        fi
     fi
 
     for scenario in "${scenarios[@]}"; do

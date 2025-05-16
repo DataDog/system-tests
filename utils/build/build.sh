@@ -6,6 +6,55 @@
 
 set -eu
 
+# Lima is used to run the docker daemon inside a VM on macOS. This is needed to run the agent with eBPF capabilities
+# locally on macOS hosts. Specifically, this is needed to enable the Go eBPF Dynamic Instrumentation module to test
+# the debugger scenarios. It does require installing lima via `brew install lima`. For more information, see:
+#   https://github.com/lima-vm/lima
+# Note that you must run `./build.sh golang`, `./build.sh golang --images agent`, and `./build.sh golang --images proxy`
+# to make the system tests work with this configuration.
+LIMA_DOCKER_ACTIVE="false"
+configure_lima_docker_host_for_build() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        return
+    fi
+
+    # Must have limactl
+    if ! command -v limactl &>/dev/null; then
+        return
+    fi
+
+    local instance="docker-rootful"
+    local status sock
+    status=$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null || echo "Not Found")
+    if [[ $status != "Running" ]]; then
+        if ! limactl start docker-rootful.yaml --name "$instance" &>/dev/null; then
+            echo "WARN (build.sh): Failed to issue start command for '$instance'. Proceeding with default Docker environment."
+            return
+        fi
+
+        # wait up to 15s for it to actually show as Running
+        for _ in {1..15}; do
+            sleep 1
+            status=$(limactl list "$instance" --format '{{.Status}}' 2>/dev/null || echo "Not Found")
+            [[ $status == "Running" ]] && break
+        done
+
+        if [[ $status != "Running" ]]; then
+            return
+        fi
+    fi
+
+    # Grab the Docker socket and validate
+    sock=$(limactl list "$instance" --format 'unix://{{.Dir}}/sock/docker.sock' 2>/dev/null)
+    if [[ -n $sock && $sock != "unix:///sock/docker.sock" && $sock != "unix://" ]]; then
+        export DOCKER_HOST="$sock"
+        LIMA_DOCKER_ACTIVE="true"
+        echo "macOS with lima and qemu detected. DOCKER_HOST set to '$DOCKER_HOST'."
+    fi
+}
+
+configure_lima_docker_host_for_build
+
 # set .env if exists. Allow users to keep their conf via env vars
 if [[ -f "./.env" ]]; then
     source ./.env
@@ -201,6 +250,12 @@ build() {
 
                 echo "using $AGENT_BASE_IMAGE image for datadog agent"
 
+                AGENT_EBPF="false"
+                if [[ "${TEST_LIBRARY:-}" == "golang" ]] && [[ "${LIMA_DOCKER_ACTIVE}" == "true" ]] ; then
+                    echo "Building agent for Golang with system probe for eBPF."
+                    AGENT_EBPF="true"
+                fi
+
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
@@ -209,6 +264,7 @@ build() {
                     -t system_tests/agent \
                     --pull \
                     --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
+                    --build-arg ENABLE_GO_EBPF_SYSTEM_PROBE="$AGENT_EBPF" \
                     $EXTRA_DOCKER_ARGS \
                     .
 
