@@ -206,7 +206,7 @@ class Test_TracerSCITagging:
         ]
 
         for tag in required_tags:
-            assert any(tag in rc_tag for rc_tag in tags_in_rc_request), f"Missing tag: {tag}"
+            assert any(tag == rc_tag for rc_tag in tags_in_rc_request), f"Missing tag: {tag}"
 
 
 @scenarios.parametric
