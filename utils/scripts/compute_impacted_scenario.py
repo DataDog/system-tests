@@ -184,6 +184,7 @@ def main() -> None:
                     r"utils/scripts/parametric/.*": scenarios.parametric,
                     r"utils/virtual_machine/.*": scenario_groups.onboarding,
                     r"utils/.*": scenario_groups.all,
+                    r"docker-rootful.yaml": None,
                     r"\.dockerignore": None,
                     r"\.gitattributes": None,
                     r"\.gitignore": None,
