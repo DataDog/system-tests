@@ -46,7 +46,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "5ad55e67-f79b-4922-b2ed-04c9e33cd1ee",
+    "exceptionHash": "77534e91b7ec2999fd91e18b37d86581c4ae28b6ff422c67a7929daf324349c",
+    "frameIndex": "2",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -124,7 +126,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "5ad55e67-f79b-4922-b2ed-04c9e33cd1ee",
+    "exceptionHash": "77534e91b7ec2999fd91e18b37d86581c4ae28b6ff422c67a7929daf324349c",
+    "frameIndex": "1",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -206,7 +210,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "5ad55e67-f79b-4922-b2ed-04c9e33cd1ee",
+    "exceptionHash": "77534e91b7ec2999fd91e18b37d86581c4ae28b6ff422c67a7929daf324349c",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -292,7 +298,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "5ad55e67-f79b-4922-b2ed-04c9e33cd1ee",
+    "exceptionHash": "77534e91b7ec2999fd91e18b37d86581c4ae28b6ff422c67a7929daf324349c",
+    "frameIndex": "3",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {

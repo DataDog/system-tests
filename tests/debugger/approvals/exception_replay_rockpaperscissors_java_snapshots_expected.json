@@ -38,7 +38,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "83894c93-b3b6-4fd3-a681-567ce65df9bf",
+    "exceptionHash": "beca7eb7494f2e237215f4ea3541a83ac0c98476461e12a222d9a8db5b2b8c",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -104,7 +106,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "6f37dd9a-a09c-4b7c-bd2d-c0b1a4e74403",
+    "exceptionHash": "aae0c085917c142cad46e9cf937c62b2366dba84385bf0ba7947b5a8ccd56",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -170,7 +174,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "7a4de61c-b1a8-4930-ba0b-a50e71fa50c6",
+    "exceptionHash": "cffef6513f772bb2d325bac238ebc6822dc87395cf3f54330483fdbe51fd6",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
