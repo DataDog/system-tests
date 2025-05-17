@@ -445,6 +445,8 @@ tests/:
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: v2.53.0
   integrations/:
+    compliance/:
+      test_databases.py: missing_feature
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: v2.0.0
