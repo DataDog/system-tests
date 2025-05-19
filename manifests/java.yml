@@ -1201,7 +1201,16 @@ tests/:
       Test_SCAStandalone_Telemetry_V2:
         '*': v1.47.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone:
+        '*': v1.49.0
+        akka-http: missing_feature
+        jersey-grizzly2: missing_feature
+        play: missing_feature
+        ratpack: missing_feature
+        resteasy-netty3: missing_feature
+        spring-boot-3-native: missing_feature
+        vertx3: missing_feature
+        vertx4: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
