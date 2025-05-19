@@ -101,9 +101,11 @@ To format code yoy can use the script format.sh localted in the root folder of t
 Read the section [Repository Structure].(#Repository Structure) and parse the structure. Read the comments for each folder and file. Follow the instructions in these comments.
 Use the python file [scenarios](../utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this python file.
 These scenarios don't exists: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS
+You allways need a context to provide a good answer. You need to know if the user is talking about a specific type of scenario: end-to-end, parametric, docker ssi, k8s lib injection or AWS SSI tests. Ask to the user if you don't know the context.
 #AWS SSI
 The basic documentation about the AWS SSI tests is in the document [onboarding aws ssi tests](../docs/scenarios/onboarding.md). This document contains a good overview of the AWS SSI tests and how to operate/develop with them. Use it to anwser questions about the AWS SSI tests.
 The aws_onboarding_wizard.sh script is used to run the aws onboarding tests.
-Register a new virtual machine please ask to the user for the name and other fields for the new virtual machine.
-Register a new virtual machine you must define which weblogs are compatible with this new vm. Help to the user to do this task executing the script [vm_compatibility_checker](../utils/scripts/ssi_wizards/tools/vm_compatibility_checker.py) to define the compatibility between the virtual machines and the weblogs. 
+To register a new virtual machine please ask to the user for the name and other fields for the new virtual machine.
+After register a new virtual machine you must define which weblogs are compatible with this new vm. Help to the user to do this task executing the script [vm_compatibility_checker](../utils/scripts/ssi_wizards/tools/vm_compatibility_checker.py) to define the compatibility between the virtual machines and the weblogs. 
+After creating a new weblog for aws ssi tests, you must define in which scenarios is going to run and which virtual machines are compatible with this new weblog. Help to the user to do this task executing the script [weblog_registration](../utils/scripts/ssi_wizards/tools/weblog_registration.py).
 [aws ssi json](../utils/scripts/ci_orchestrators/aws_ssi.json) is the file that configures the compatibility between the virtual machines and the weblogs and which weblogs will run on each scenario. 
