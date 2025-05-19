@@ -27,7 +27,7 @@
 
 # Overall
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers auto-intrumenting Java, Python, Node.js, .NET, PHP or Ruby applications running on host or in docker environments.
+Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies, also called SSI (Single Step Instrumentation) the APM onboarding experience for customers auto-intrumenting Java, Python, Node.js, .NET, PHP or Ruby applications running on host or in docker environments.
 
 The target of this testing feature is to test the distinct injection environments.
 
@@ -504,7 +504,7 @@ Example:
 
 **NOTE:**
 
-After create a new virtual machine you should define which weblogs are compatible for this new machine. 
+After create a new virtual machine you should define which weblogs are compatible for this new machine.
 
 ---
 

@@ -6,39 +6,11 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 
 ```
 system-tests/
-|-- binaries/           # Contains binary files for specific versions of libraries
+|-- binaries/           # Folder to store binary tracer files for testing specific versions of libraries
 |-- docs/               # Documentation files
-|   |-- architecture/   # Architecture documentation
-|   |-- CI/             # CI pipeline documentation
-|   |-- edit/           # Documentation on how to edit tests
-|   |-- execute/        # Documentation on how to execute tests
-|   |-- internals/      # Internal implementation details
-|   |-- lib-injection/  # Library injection documentation
-|   |-- RFCs/           # Request for Comments documents
-|   |-- scenarios/      # Documentation about test scenarios
-|   |   |-- README.md           # Overview of all scenarios
-|   |   |-- docker_ssi.md       # Docker SSI scenario documentation
-|   |   |-- IPv6.md             # IPv6 scenario documentation
-|   |   |-- k8s_lib_injection.md # Kubernetes library injection details
-|   |   |-- lifecycle.md        # Scenario lifecycle documentation
-|   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation
-|   |   |-- parametric.md       # Parametric scenarios documentation
-|   |   |-- parametric_contributing.md # Contributing to parametric tests
-|   |   |-- external_processing.md # External processing documentation
-|   |-- weblog/         # Weblog service documentation
-|
-|-- lib-injection/      # Library injection code and resources
-|-- manifests/          # YAML config files for tracers
+|-- lib-injection/      # Weblog for testing library injection
+|-- manifests/          # YAML config files for tests activation (ie. a test will be activated after specific version of the tracer).
 |-- tests/              # Test implementations
-|   |-- apm_tracing_e2e/   # End-to-end APM tracing tests
-|   |-- appsec/         # Application security tests
-|   |-- auto_inject/    # Auto-instrumentation tests
-|   |-- docker_ssi/     # Docker SSI tests
-|   |-- integrations/   # Integration tests
-|   |-- k8s_lib_injection/ # K8s library injection tests
-|   |-- parametric/     # Parametric test implementations
-|   |-- perfs/          # Performance tests
-|
 |-- utils/              # Utility code and shared libraries
 |   |-- _context/       # Test context and scenario definitions
 |   |   |-- _scenarios/ # Scenario implementations
@@ -51,17 +23,16 @@ system-tests/
 |   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
 |   |-- assets/         # Images and other static assets
 |   |-- build/          # Build utilities and scripts
-|   |   |-- docker/     # Docker-related build utilities
-|   |   |-- injector-dev/ # Development files for the injector
-|   |   |-- ssi/        # SSI build utilities
-|   |   |-- virtual_machine/ # VM build configuration
-|   |   |   |-- provisions/ # VM provision definitions
-|   |   |   |-- weblogs/    # Weblog configurations for VMs
+|   |   |-- docker/     # Docker templates for weblogs used on end to end testing.
+|   |   |-- ssi/        # Docker SSI build utilities (includes weblogs)
+|   |   |-- virtual_machine/ # AWS SSI scenarios and weblog provisions
+|   |   |   |-- provisions/ # AWS SSI scenarios provision definitions
+|   |   |   |-- weblogs/    # AWS SSI weblog provision
 |   |-- docker_ssi/     # Docker SSI utilities
 |   |-- grpc/           # gRPC related utilities
 |   |-- interfaces/     # Interface definitions for components
 |   |-- k8s_lib_injection/ # Kubernetes lib injection utilities
-|   |-- onboarding/     # Onboarding utilities
+|   |-- onboarding/     # AWS SSI/Onboarding utilities
 |   |-- parametric/     # Parametric testing utilities
 |   |-- proxy/          # Proxy server implementation
 |   |-- scripts/        # Helper and utility scripts
@@ -69,9 +40,6 @@ system-tests/
 |   |   |-- parametric/ # Scripts for parametric tests
 |   |   |-- slack/      # Slack notification utilities
 |   |   |-- ssi_wizards/ # SSI wizard scripts
-|   |   |   |-- aws_onboarding_wizard.sh # AWS onboarding wizard
-|   |   |   |-- docker_ssi_wizard.sh # Docker SSI wizard
-|   |   |   |-- k8s_ssi_wizard.sh # K8s SSI wizard
 |   |-- telemetry/      # Telemetry utilities
 |   |-- virtual_machine/ # VM configuration and management
 |
@@ -147,7 +115,7 @@ Running system-tests involves a few key steps:
    ```bash
    # Install Python requirements and create a virtual environment
    ./build.sh -i runner
-   
+
    # Activate the virtual environment
    source venv/bin/activate
    ```
@@ -156,7 +124,7 @@ Running system-tests involves a few key steps:
    ```bash
    # Replace <library_name> with: java, nodejs, python, ruby, php, dotnet, cpp, or golang
    ./build.sh <library_name>
-   
+
    # Example for testing Python tracer
    ./build.sh python
    ```
@@ -165,13 +133,13 @@ Running system-tests involves a few key steps:
    ```bash
    # Run all default tests
    ./run.sh
-   
+
    # Run a specific scenario
    ./run.sh <SCENARIO_NAME>
-   
+
    # Run a specific test file
    ./run.sh tests/test_smoke.py
-   
+
    # Run a specific test class or method
    ./run.sh tests/parametric/test_waf.py::Test_WAFAddresses::test_post_json_value
    ```
