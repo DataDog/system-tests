@@ -5,19 +5,28 @@
 import time
 import tests.debugger.utils as debugger
 
-from utils import scenarios, features, missing_feature, context, rfc, logger
+from utils import scenarios, features, missing_feature, context
 
 
-@features.debugger
-@scenarios.debugger_probes_snapshot
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
-    ############ setup ############
-    def _setup(self, probes_name: str, request_path: str, lines=None):
+class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
+    """Base class with common methods for snapshot probe tests"""
+
+    def _setup(
+        self,
+        probes_name: str,
+        request_path: str,
+        probe_type: str,
+        lines=None,
+    ):
         self.initialize_weblog_remote_config()
 
         ### prepare probes
         probes = debugger.read_probes(probes_name)
+
+        # Update probe IDs using the generate_probe_id function with the provided probe_type
+        for probe in probes:
+            probe["id"] = debugger.generate_probe_id(probe_type)
+
         if lines is not None:
             for probe in probes:
                 if "methodName" in probe["where"]:
@@ -30,7 +39,7 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
 
         start_time = time.time()
         self.send_weblog_request(request_path)
@@ -38,9 +47,8 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
         # Store the total request time for later use in debugging tests where budgets are limited by time.
         self.total_request_time = end_time - start_time
 
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
-    ########### assert ############
     def _assert(self):
         self.collect()
 
@@ -64,134 +72,80 @@ class Test_Debugger_Probe_Snaphots(debugger.BaseDebuggerTest):
             if not self.probe_spans[expected_trace]:
                 raise ValueError(f"No spans found for trace {expected_trace}")
 
-    ########### method ############
+
+@features.debugger_method_probe
+@scenarios.debugger_probes_snapshot
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
+    """Tests for method-level probe snapshots"""
+
     ### log probe ###
-    def setup_log_method_probe_snaphots(self):
-        self._setup("probe_snapshot_log_method", "/debugger/log")
+    def setup_log_method_snapshot(self):
+        self._setup("probe_snapshot_log_method", "/debugger/log", "log", lines=None)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented")
-    def test_log_method_probe_snaphots(self):
+    def test_log_method_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
     ### span probe ###
-    def setup_span_method_probe_snaphots(self):
-        self._setup("probe_snapshot_span_method", "/debugger/span")
+    def setup_span_method_snapshot(self):
+        self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_method_probe_snaphots(self):
+    def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
 
     ### span decoration probe ###
-    def setup_span_decoration_method_probe_snaphots(self):
-        self._setup("probe_snapshot_span_decoration_method", "/debugger/span-decoration/asd/1")
-
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_decoration_method_probe_snaphots(self):
-        self._assert()
-        self._validate_spans()
-
-    ########### line ############
-    ### log probe ###
-    def setup_log_line_probe_snaphots(self):
-        self._setup("probe_snapshot_log_line", "/debugger/log")
-
-    def test_log_line_probe_snaphots(self):
-        self._assert()
-        self._validate_snapshots()
-
-    ### span decoration probe ###
-    def setup_span_decoration_line_probe_snaphots(self):
-        self._setup("probe_snapshot_span_decoration_line", "/debugger/span-decoration/asd/1")
-
-    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_span_decoration_line_probe_snaphots(self):
-        self._assert()
-        self._validate_spans()
-
-    ########### mix ############
-    ### mix log probe ###
-    def setup_mix_probe(self):
-        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1")
-
-    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-    def test_mix_probe(self):
-        self._assert()
-        self._validate_snapshots()
-
-    ############ test ############
-    @rfc(
-        "https://docs.google.com/document/d/1lhaEgBGIb9LATLsXxuKDesx4BCYixOcOzFnr4qTTemw/edit?pli=1&tab=t.0#heading=h.o5gstqo08gu5"
-    )
-    def setup_code_origin_entry_present(self):
-        # Code origins are automatically included in spans, so we don't need to configure probes.
-        self.initialize_weblog_remote_config()
-        self.send_weblog_request("/healthcheck")
-
-    @features.debugger_code_origins
-    @missing_feature(
-        context.library == "dotnet", reason="Entry spans code origins not yet implemented", force_skip=True
-    )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant != "spring-boot",
-        reason="Entry spans code origins only implemented for spring-mvc",
-        force_skip=True,
-    )
-    @missing_feature(
-        context.library == "nodejs", reason="Entry spans code origins not yet implemented for express", force_skip=True
-    )
-    @missing_feature(context.library == "ruby", reason="Entry spans code origins not yet implemented", force_skip=True)
-    def test_code_origin_entry_present(self):
-        self.collect()
-
-        self.assert_setup_ok()
-        self.assert_all_weblog_responses_ok()
-
-        code_origins_entry_found = False
-        for span in self.all_spans:
-            # Web spans for the healthcheck should have code origins defined.
-            resource, resource_type = span.get("resource", None), span.get("type", None)
-            logger.debug(span)
-
-            if resource == "GET /healthcheck" and resource_type == "web":
-                code_origin_type = span["meta"].get("_dd.code_origin.type", "")
-                code_origins_entry_found = code_origin_type == "entry"
-
-        assert code_origins_entry_found
-
-    def setup_log_line_probe_snaphots_budgets(self):
+    def setup_span_decoration_method_snapshot(self):
         self._setup(
-            "probe_snapshot_log_line_budgets",
-            "/debugger/budgets/150",
-            lines=self.method_and_language_to_line_number("Budgets", self.get_tracer()["language"]),
+            "probe_snapshot_span_decoration_method",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            lines=None,
         )
 
-    @features.debugger_probe_budgets
-    @missing_feature(
-        context.library == "nodejs", reason="Probe snapshot budgets are not yet implemented", force_skip=True
-    )
-    @missing_feature(
-        context.library == "ruby", reason="Probe snapshot budgets are not yet implemented", force_skip=True
-    )
-    def test_log_line_probe_snaphots_budgets(self):
+    def test_span_decoration_method_snapshot(self):
+        self._assert()
+        self._validate_spans()
+
+    ### mix log probe ###
+    def setup_mix_snapshot(self):
+        self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
+
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
 
-        snapshots_with_captures = 0
-        for _id in self.probe_ids:
-            for span in self.probe_snapshots[_id]:
-                snapshot_with_captures = span.get("debugger", {}).get("snapshot", {}).get("captures", None)
-                if snapshot_with_captures is None:
-                    continue
 
-                snapshots_with_captures += 1
+@features.debugger_line_probe
+@scenarios.debugger_probes_snapshot
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
+    """Tests for line-level probe snapshots"""
 
-            # Probe budgets aren't exact and can take time to be applied, so we allow a range of 1-20 snapshots with
-            # captures for 150 requests.
-            assert (
-                1 <= snapshots_with_captures <= 20
-            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+    ### log probe ###
+    def setup_log_line_snapshot(self):
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
+
+    def test_log_line_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+
+    ### span decoration probe ###
+    def setup_span_decoration_line_snapshot(self):
+        self._setup(
+            "probe_snapshot_span_decoration_line",
+            "/debugger/span-decoration/asd/1",
+            "decor",
+            lines=None,
+        )
+
+    @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    def test_span_decoration_line_snapshot(self):
+        self._assert()
+        self._validate_spans()

@@ -66,6 +66,33 @@ object AppSecRoutes {
           }
         }
       } ~
+      // Endpoint with five custom headers
+      path("customResponseHeaders") {
+        get {
+          val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Response with custom headers")
+          respondWithHeaders(
+            RawHeader("Content-Language", "en-US"),
+            RawHeader("X-Test-Header-1", "value1"),
+            RawHeader("X-Test-Header-2", "value2"),
+            RawHeader("X-Test-Header-3", "value3"),
+            RawHeader("X-Test-Header-4", "value4"),
+            RawHeader("X-Test-Header-5", "value5")
+          ) {
+            complete(entity)
+          }
+        }
+      } ~
+      // Endpoint exceeding default header budget with 50 headers
+      path("exceedResponseHeaders") {
+        get {
+          val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Response with more than 50 headers")
+          val extraHeaders = (1 to 50).map(i => RawHeader(s"X-Test-Header-$i", s"value$i"))
+          val allHeaders = RawHeader("Content-Language", "en-US") +: extraHeaders
+          respondWithHeaders(allHeaders.head, allHeaders.tail: _*) {
+            complete(entity)
+          }
+        }
+      } ~
       path("tag_value" / Segment / """\d{3}""".r) { (tag_value, status_code) =>
         get {
           parameter("content-language".?) { clo =>

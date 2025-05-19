@@ -2,7 +2,7 @@
     {
         "language": "",
         "type": "",
-        "id": "decor0aa-acda-4453-9111-1478a6method",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
@@ -42,7 +42,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "SpanDecorationProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

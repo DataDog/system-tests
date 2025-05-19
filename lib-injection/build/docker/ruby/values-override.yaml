@@ -1,3 +1,0 @@
-app_env_no_admission_controller:
-  - name: RUBYOPT
-    value: " -r/datadog-lib/auto_inject"

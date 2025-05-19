@@ -45,55 +45,23 @@ class Result:
         for name in scenario_names:
             self.scenarios.add(name)
 
-    def handle_labels(self, labels: list[str]) -> None:
-        if "run-all-scenarios" in labels:
-            self.add_scenario_group(scenario_groups.all)
-        else:
-            if "run-integration-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.integrations)
-            if "run-sampling-scenario" in labels:
-                self.add_scenario_group(scenario_groups.sampling)
-            if "run-profiling-scenario" in labels:
-                self.add_scenario_group(scenario_groups.profiling)
-            if "run-debugger-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.debugger)
-            if "run-appsec-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.appsec)
-            if "run-open-telemetry-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.open_telemetry)
-            if "run-parametric-scenario" in labels:
-                self.add_scenario(scenarios.parametric)
-            if "run-graphql-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.graphql)
-            if "run-docker-ssi-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.docker_ssi)
-            if "run-external-processing-scenarios" in labels:
-                self.add_scenario_group(scenario_groups.external_processing)
-
 
 def main() -> None:
     result = Result()
 
     if "GITLAB_CI" in os.environ:
-        event_name = os.environ["CI_PIPELINE_SOURCE"]
-        ref = os.environ["CI_COMMIT_REF_NAME"]
+        event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
+        ref = os.environ.get("CI_COMMIT_REF_NAME", "")
         print("CI_PIPELINE_SOURCE=" + event_name)
         print("CI_COMMIT_REF_NAME=" + ref)
-        is_gilab = True
     else:
         event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
         ref = os.environ.get("GITHUB_REF", "fake-branch-name")
-        is_gilab = False
 
     if event_name == "schedule" or ref == "refs/heads/main":
         result.add_scenario_group(scenario_groups.all)
 
     elif event_name in ("pull_request", "push"):
-        if not is_gilab and "GITHUB_PULL_REQUEST_LABELS" in os.environ:
-            labels = json.loads(os.environ["GITHUB_PULL_REQUEST_LABELS"])
-            label_names = [label["name"] for label in labels]
-            result.handle_labels(label_names)
-
         # this file is generated with
         # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
         with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
@@ -133,10 +101,7 @@ def main() -> None:
 
         for file in modified_files:
             if file.startswith("tests/"):
-                if file.startswith("tests/auto_inject"):
-                    # Nothing to do, onboarding test run on gitlab nightly or manually
-                    pass
-                elif file.endswith(("/utils.py", "/conftest.py", ".json")):
+                if file.endswith(("/utils.py", "/conftest.py", ".json")):
                     # particular use case for modification in tests/ of a file utils.py or conftest.py
                     # in that situation, takes all scenarios executed in tests/<path>/
 
@@ -213,6 +178,7 @@ def main() -> None:
                     ],
                     r"utils/scripts/check_version\.sh": None,
                     r"utils/scripts/compute_impacted_scenario\.py": None,
+                    r"utils/scripts/replay_scenarios\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,
@@ -235,6 +201,7 @@ def main() -> None:
                     r"NOTICE": None,
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
+                    r"static-analysis\.datadog\.yml": None,
                     r"README\.md": None,
                     r"requirements\.txt": scenario_groups.all,
                     r"run\.sh": scenario_groups.all,
