@@ -2162,6 +2162,7 @@ tests/:
       play: v1.22.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_StandardTagsMethod: v0.102.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v0.102.0
       akka-http: bug (AIDM-594)
