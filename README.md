@@ -8,7 +8,7 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 system-tests/
 |-- binaries/           # Folder to store binary tracer files for testing specific versions of libraries
 |-- docs/               # Documentation files
-|-- lib-injection/      # Weblog for testing library injection
+|-- lib-injection/      # Weblogs for testing library injection
 |-- manifests/          # YAML config files for tests activation (ie. a test will be activated after specific version of the tracer).
 |-- tests/              # Test implementations
 |-- utils/              # Utility code and shared libraries

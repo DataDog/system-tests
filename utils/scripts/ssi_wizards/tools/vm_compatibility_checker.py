@@ -14,8 +14,8 @@ from pathlib import Path
 SYSTEM_TESTS_DIR = Path(__file__).resolve().parents[3]
 
 # Define paths to required JSON files
-VM_JSON_PATH = SYSTEM_TESTS_DIR / "utils/virtual_machine/virtual_machines.json"
-AWS_SSI_JSON_PATH = SYSTEM_TESTS_DIR / "utils/scripts/ci_orchestrators/aws_ssi.json"
+VM_JSON_PATH = SYSTEM_TESTS_DIR / "virtual_machine/virtual_machines.json"
+AWS_SSI_JSON_PATH = SYSTEM_TESTS_DIR / "scripts/ci_orchestrators/aws_ssi.json"
 
 # Expected number of command-line arguments (script name + weblog name)
 EXPECTED_ARGS_COUNT = 2
