@@ -675,21 +675,33 @@ tests/:
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginFailureEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Metrics:
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Tags:
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Metrics:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Tags:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
