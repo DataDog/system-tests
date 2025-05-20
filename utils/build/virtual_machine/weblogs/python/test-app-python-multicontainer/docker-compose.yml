@@ -1,73 +1,67 @@
+---
 version: '2'
-
 services:
-    reverseproxy:
-        image: reverseproxy:latest
-        ports:
-            - 5985:8080
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.reverseproxy
-        healthcheck:
-            test: "curl -f http://localhost:8080"
-
-    python_3_12:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_12:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_12
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    python_3_11:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_11:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_11
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    python_3_10:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_10:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_10
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    python_3_9:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_9:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_9
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    python_3_8:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_8:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_8
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    python_3_7:
-        env_file: "scenario_app.env"
-        image: system-tests/python_3_7:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.python_3_7
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  reverseproxy:
+    image: reverseproxy:latest
+    ports:
+      - 5985:8080
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.reverseproxy
+    healthcheck:
+      test: "curl -f http://localhost:8080"
+  python_3_12:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_12:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_12
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  python_3_11:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_11:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_11
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  python_3_10:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_10:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_10
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  python_3_9:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_9:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_9
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  python_3_8:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_8:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_8
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  python_3_7:
+    env_file: "scenario_app.env"
+    image: system-tests/python_3_7:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.python_3_7
+    healthcheck:
+      test: "curl -f http://localhost:18080"

@@ -1,3 +1,4 @@
+---
 lang_variant:
   name: Ruby_3_0_2
   version: 3.0.2
@@ -14,7 +15,6 @@ lang_variant:
         rbenv install 3.0.2 --verbose
         rbenv global 3.0.2
         DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
-
     - os_type: linux
       os_distro: rpm
       remote-command: |
@@ -34,8 +34,6 @@ lang_variant:
         rbenv install 3.0.2 --verbose
         rbenv global 3.0.2
         DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
-
-
 weblog:
   name: test-app-ruby
   install:
@@ -43,14 +41,10 @@ weblog:
       copy_files:
         - name: copy-ruby-app
           local_path: lib-injection/build/docker/ruby/lib_injection_rails_app
-
         - name: copy-service
           local_path: utils/build/virtual_machine/weblogs/ruby/test-app.service
-
         - name: copy-service-run-script
           local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
         - name: copy-run-weblog-script-ruby
           local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh
-
       remote-command: sh test-app-ruby_run.sh

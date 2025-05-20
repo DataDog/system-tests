@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-dotnet-multicontainer
   nginx_config: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multicontainer/nginx.conf

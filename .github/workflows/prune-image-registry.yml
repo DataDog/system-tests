@@ -1,12 +1,12 @@
+---
 name: Prune Injection images
 on:
   schedule:
     - cron: '15 3 * * *'
   workflow_dispatch:
-
 jobs:
   prune-init-images:
-    if: ${{ false }} #Enable when Github support fix the problem related to the image versions.
+    if: ${{ false }}  #Enable when Github support fix the problem related to the image versions.
     name: Prune dd-lib-java-init docker images
     runs-on: ubuntu-latest
     permissions:
@@ -21,12 +21,12 @@ jobs:
       fail-fast: false
     steps:
       - name: Prune registry
-        uses: vlaurin/action-ghcr-prune@0a539594d122b915e71c59733a5b115bfaaf5d52 #v0.5.0
+        uses: vlaurin/action-ghcr-prune@0a539594d122b915e71c59733a5b115bfaaf5d52  #v0.5.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           organization: Datadog
           container: system-tests/${{ matrix.weblog-variant }}
-          keep-younger-than: 7 # days
+          keep-younger-than: 7  # days
           keep-last: 10
           keep-tags: |
             latest

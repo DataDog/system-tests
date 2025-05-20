@@ -1,5 +1,5 @@
 # Note: You must restart bin/webpack-dev-server for changes to take effect
-
+---
 default: &default
   source_path: app/javascript
   source_entry_path: packs
@@ -7,17 +7,13 @@ default: &default
   public_output_path: packs
   cache_path: tmp/cache/webpacker
   webpack_compile_output: true
-
   # Additional paths webpack should lookup modules
   # ['app/assets', 'engine/foo/app/assets']
   additional_paths: []
-
   # Reload manifest.json on all requests so we reload latest compiled packs
   cache_manifest: false
-
   # Extract and emit a css file
   extract_css: false
-
   static_assets_extensions:
     - .jpg
     - .jpeg
@@ -31,7 +27,6 @@ default: &default
     - .ttf
     - .woff
     - .woff2
-
   extensions:
     - .mjs
     - .js
@@ -46,11 +41,9 @@ default: &default
     - .gif
     - .jpeg
     - .jpg
-
 development:
-  <<: *default
+  !!merge <<: *default
   compile: true
-
   # Reference: https://webpack.js.org/configuration/dev-server/
   dev_server:
     https: false
@@ -70,23 +63,16 @@ development:
       'Access-Control-Allow-Origin': '*'
     watch_options:
       ignored: '**/node_modules/**'
-
-
 test:
-  <<: *default
+  !!merge <<: *default
   compile: true
-
   # Compile test packs to a separate directory
   public_output_path: packs-test
-
 production:
-  <<: *default
-
+  !!merge <<: *default
   # Production depends on precompilation of packs prior to booting for performance.
   compile: false
-
   # Extract and emit a css file
   extract_css: true
-
   # Cache manifest.json for performance
   cache_manifest: true

@@ -1,3 +1,4 @@
+---
 lang_variant:
   name: nodejs
   version: default
@@ -6,7 +7,6 @@ lang_variant:
     - os_type: linux
       os_distro: deb
       remote-command: sudo apt-get update && sudo apt-get install -y nodejs
-
     - os_type: linux
       os_distro: rpm
       os_branch: redhat
@@ -14,7 +14,6 @@ lang_variant:
         sudo dnf -y module enable nodejs:20
         sudo dnf -y module switch-to nodejs:20
         sudo dnf install -y nodejs
-
     - os_type: linux
       os_distro: rpm
       os_branch: centos_8_amd64
@@ -24,7 +23,6 @@ lang_variant:
         sudo dnf -y module enable nodejs:20
         sudo dnf -y module switch-to nodejs:20
         sudo dnf install -y nodejs
-
     - os_type: linux
       os_distro: rpm
       remote-command: |
@@ -38,7 +36,6 @@ lang_variant:
         nvm install --lts
         nvm use node
         n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
-
 weblog:
   name: test-app-nodejs
   install:
@@ -46,14 +43,10 @@ weblog:
       copy_files:
         - name: copy-service
           local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-
         - name: copy-service-run-script
           local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
         - name: copy-run-weblog-script
           local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
-
         - name: copy-binary
           local_path: lib-injection/build/docker/nodejs/sample-app/index.js
-
       remote-command: sh test-app-nodejs_run.sh

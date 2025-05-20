@@ -1,30 +1,30 @@
+---
 weblog:
-    name: test-app-php-multialpine
-    nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/docker-compose.yml
-          - name: copy-php-app
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
-          - name: copy-php_7_3-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_7_3-alpine
-          - name: copy-php_7_4-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_7_4-alpine
-          - name: copy-php_8_0-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_0-alpine
-          - name: copy-php_8_1-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_1-alpine
-          - name: copy-php_8_2-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_2-alpine
-          - name: copy-php_8_3-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_3-alpine
-
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
-        remote-command: sh create_and_run_app_multicontainer.sh
+  name: test-app-php-multialpine
+  nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/docker-compose.yml
+        - name: copy-php-app
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
+        - name: copy-php_7_3-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_7_3-alpine
+        - name: copy-php_7_4-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_7_4-alpine
+        - name: copy-php_8_0-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_0-alpine
+        - name: copy-php_8_1-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_1-alpine
+        - name: copy-php_8_2-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_2-alpine
+        - name: copy-php_8_3-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_8_3-alpine
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
+      remote-command: sh create_and_run_app_multicontainer.sh

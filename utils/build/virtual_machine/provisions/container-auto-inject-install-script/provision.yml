@@ -1,40 +1,33 @@
+---
 #Optional: Load the environment variables
 init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
-
 #Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
-
 #Optional: Extract the logs from the VM
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
-
 #Mandatory: Steps to install provision
 provision_steps:
-  - init-config #Very first machine actions, like disable auto updates
-  - prepare-docker #Prepare the docker environment
-  - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
-  - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  - install-agent #Install the agent (allways latest release)
-  - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
-
+  - init-config  #Very first machine actions, like disable auto updates
+  - prepare-docker  #Prepare the docker environment
+  - amazon-ecr-credential-helper  # Install AWS ECR helper to download images from ECR
+  - patch-docker-daemon  #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
+  - install-agent  #Install the agent (allways latest release)
+  - autoinjection_install_script  #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG'
 init-config:
   cache: true
   populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
-
 prepare-docker:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
-
 amazon-ecr-credential-helper:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/amazon-ecr-credential-helper.yml
-
 patch-docker-daemon:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
-
 install-agent:
   install:
     - os_type: linux
@@ -42,6 +35,5 @@ install-agent:
         - name: copy-agent-docker-compose
           local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
       remote-command: cat docker-compose-agent-prod.yml
-
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/container-auto-inject-install-script/auto-inject_container_script.yml

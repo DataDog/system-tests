@@ -1,3 +1,4 @@
+---
 lang_variant:
   name: OpenJDK8
   cache: true
@@ -9,20 +10,16 @@ lang_variant:
         echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
         sudo apt update
         sudo apt -y install openjdk-8-jdk-headless
-
     - os_type: linux
       os_distro: deb
       remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-8-jdk-headless
-
     - os_type: linux
       os_distro: rpm
       os_branch: amazon_linux2
       remote-command: sudo amazon-linux-extras enable corretto8 && sudo yum -y install java-1.8.0-amazon-corretto-devel
-
     - os_type: linux
       os_distro: rpm
       remote-command: sudo yum -y install java-1.8.0-amazon-corretto-devel || sudo yum -y install java-1.8.0-openjdk-devel
-
 weblog:
   name: test-app-java-multialpine
   nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf

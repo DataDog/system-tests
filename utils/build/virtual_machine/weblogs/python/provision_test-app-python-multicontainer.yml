@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-python-multicontainer
   nginx_config: utils/build/virtual_machine/weblogs/python/test-app-python-multicontainer/nginx.conf

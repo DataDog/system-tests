@@ -3,4 +3,4 @@ config_sources: LOCAL:/etc/datadog-agent/inject/debug_config.yaml
 library_inject: true
 log_level: debug
 output_paths:
-- stderr
+  - stderr

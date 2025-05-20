@@ -1,73 +1,67 @@
+---
 version: '2'
-
 services:
-    reverseproxy:
-        image: reverseproxy:latest
-        ports:
-            - 5985:8080
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.reverseproxy
-        healthcheck:
-            test: "curl -f http://localhost:8080"
-
-    php_7_3:
-        env_file: "scenario_app.env"
-        image: system-tests/php_7_3:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_7_3
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    php_7_4:
-        env_file: "scenario_app.env"
-        image: system-tests/php_7_4:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_7_4
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    php_8_0:
-        env_file: "scenario_app.env"
-        image: system-tests/php_8_0:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_8_0
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    php_8_1:
-        env_file: "scenario_app.env"
-        image: system-tests/php_8_1:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_8_1
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    php_8_2:
-        env_file: "scenario_app.env"
-        image: system-tests/php_8_2:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_8_2
-        healthcheck:
-            test: "curl -f http://localhost:18080"
-
-    php_8_3:
-        env_file: "scenario_app.env"
-        image: system-tests/php_8_3:latest
-        restart: always
-        build:
-            context: .
-            dockerfile: Dockerfile.php_8_3
-        healthcheck:
-            test: "curl -f http://localhost:18080"
+  reverseproxy:
+    image: reverseproxy:latest
+    ports:
+      - 5985:8080
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.reverseproxy
+    healthcheck:
+      test: "curl -f http://localhost:8080"
+  php_7_3:
+    env_file: "scenario_app.env"
+    image: system-tests/php_7_3:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_7_3
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  php_7_4:
+    env_file: "scenario_app.env"
+    image: system-tests/php_7_4:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_7_4
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  php_8_0:
+    env_file: "scenario_app.env"
+    image: system-tests/php_8_0:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_8_0
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  php_8_1:
+    env_file: "scenario_app.env"
+    image: system-tests/php_8_1:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_8_1
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  php_8_2:
+    env_file: "scenario_app.env"
+    image: system-tests/php_8_2:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_8_2
+    healthcheck:
+      test: "curl -f http://localhost:18080"
+  php_8_3:
+    env_file: "scenario_app.env"
+    image: system-tests/php_8_3:latest
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.php_8_3
+    healthcheck:
+      test: "curl -f http://localhost:18080"

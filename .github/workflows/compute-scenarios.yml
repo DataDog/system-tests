@@ -1,5 +1,5 @@
+---
 name: "Compute scenarios to run"
-
 on:
   workflow_call:
     # Map the workflow outputs to job outputs
@@ -10,7 +10,6 @@ on:
       scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
         value: ${{ jobs.main.outputs.scenarios_groups }}
-
 jobs:
   main:
     runs-on: ubuntu-latest

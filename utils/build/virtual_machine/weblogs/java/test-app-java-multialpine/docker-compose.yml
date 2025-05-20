@@ -1,13 +1,14 @@
+---
 version: '3'
 services:
   reverseproxy:
     image: reverseproxy:latest
     ports:
-        - 5985:8080
+      - 5985:8080
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.reverseproxy
+      context: .
+      dockerfile: Dockerfile.reverseproxy
     healthcheck:
     test: "curl -f http://localhost:8080"
   java_8_alpine:
@@ -15,47 +16,43 @@ services:
     image: system-tests/java_8_alpine:latest
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.jdk8-alpine
+      context: .
+      dockerfile: Dockerfile.jdk8-alpine
     healthcheck:
     test: "curl -f http://localhost:18080"
-
   java_11_alpine:
     env_file: "scenario_app.env"
     image: system-tests/java_11_alpine:latest
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.jdk11-alpine
+      context: .
+      dockerfile: Dockerfile.jdk11-alpine
     healthcheck:
     test: "curl -f http://localhost:18080"
-
   java_15_alpine:
     env_file: "scenario_app.env"
     image: system-tests/java_15_alpine:latest
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.jdk15-alpine
+      context: .
+      dockerfile: Dockerfile.jdk15-alpine
     healthcheck:
     test: "curl -f http://localhost:18080"
-
   java_17_alpine:
     env_file: "scenario_app.env"
     image: system-tests/java_17_alpine:latest
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.jdk17-alpine
+      context: .
+      dockerfile: Dockerfile.jdk17-alpine
     healthcheck:
     test: "curl -f http://localhost:18080"
-
   java_21_alpine:
     env_file: "scenario_app.env"
     image: system-tests/java_21_alpine:latest
     restart: always
     build:
-        context: .
-        dockerfile: Dockerfile.jdk21-alpine
+      context: .
+      dockerfile: Dockerfile.jdk21-alpine
     healthcheck:
     test: "curl -f http://localhost:18080"

@@ -1,10 +1,9 @@
+---
 name: Push Feature Parity Metrics to datadog
-
 on:
   workflow_dispatch: {}
   schedule:
     - cron: '30 23 * * *'
-
 jobs:
   push_metrics:
     runs-on: ubuntu-latest

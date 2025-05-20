@@ -1,8 +1,8 @@
- #Add initial configuration that it must do after start the machine
+---
+#Add initial configuration that it must do after start the machine
 - os_type: linux
   os_distro: deb
-  remote-command: |
-
+  remote-command: |2
     #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true
@@ -73,7 +73,7 @@
     echo "DONE"
 - os_type: linux
   os_distro: rpm
-  os_branch: centos_7_amd64 # CentOS override as the mirrors are not available anymore
+  os_branch: centos_7_amd64  # CentOS override as the mirrors are not available anymore
   remote-command: |
     sudo sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
     sudo sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
@@ -89,10 +89,9 @@
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
-
 - os_type: linux
   os_distro: rpm
-  os_branch: centos_8_amd64 # CentOS override as the mirrors are not available anymore
+  os_branch: centos_8_amd64  # CentOS override as the mirrors are not available anymore
   remote-command: |
     sudo sed -i s/mirror.centos.org/vault.centos.org/g /etc/yum.repos.d/*.repo
     sudo sed -i s/^#.*baseurl=http/baseurl=http/g /etc/yum.repos.d/*.repo
@@ -108,7 +107,6 @@
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
-
 - os_type: linux
   os_distro: rpm
   os_branch: oracle_linux
@@ -160,7 +158,6 @@
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
-
 - os_type: windows
   copy_files:
     - name: copy-tracer-debug-config

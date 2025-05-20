@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-ruby-multialpine
   nginx_config: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multialpine/nginx.conf

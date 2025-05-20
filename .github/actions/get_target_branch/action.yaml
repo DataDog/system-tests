@@ -1,3 +1,4 @@
+---
 name: Get_target_branch
 description: "Gets target branch from the PR description"
 inputs:
@@ -8,7 +9,6 @@ outputs:
   target-branch:
     description: "Target branch"
     value: ${{ steps.extract.outputs.target-branch }}
-
 runs:
   using: composite
   steps:
@@ -19,7 +19,6 @@ runs:
         branch=$(echo "${INPUTS_TEXT}" | grep -ioP '\[(?:java|dotnet|python|ruby|php|golang|cpp|agent|nodejs)@[^]]+(?=\])' | tr -d '[:space:]' || true)
 
         echo "target-branch=${branch#*@}" >> $GITHUB_OUTPUT
-
       # the preferred approach to handling untrusted input is to set the value of the expression to an intermediate environment variable
       env:
         INPUTS_TEXT: ${{ inputs.text }}

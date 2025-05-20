@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-python-container
   runtime_version: 3.12
@@ -12,5 +13,4 @@ weblog:
           local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
         - name: copy-python-app-dockerfile
           local_path: utils/build/virtual_machine/weblogs/python/test-app-python-container/Dockerfile.template
-
       remote-command: sh create_and_run_app_container.sh

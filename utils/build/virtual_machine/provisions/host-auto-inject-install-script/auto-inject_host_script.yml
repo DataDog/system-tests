@@ -1,10 +1,11 @@
+---
 #Execute script installation for lib-injection packages using install script
 - os_type: linux
   copy_files:
-      - name: copy-auto-install-script
-        local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
-      - name: copy-tracer-debug-config
-        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+    - name: copy-auto-install-script
+      local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+    - name: copy-tracer-debug-config
+      local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
   remote-command: |
     # Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
@@ -14,7 +15,6 @@
     export $(cat scenario_agent.env | xargs)
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for installation script yet. TODO."

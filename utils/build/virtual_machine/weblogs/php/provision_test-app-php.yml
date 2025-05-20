@@ -1,44 +1,39 @@
+---
 lang_variant:
-    name: PHP
-    version: 8.2
-    cache: true
-    install:
-      - os_type: linux
-        os_distro: deb
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
-        remote-command: sudo sh php_install.sh deb
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
-        remote-command: sudo sh php_install.sh amazon_linux_2
-      - os_type: linux
-        os_distro: rpm
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
-        remote-command: sudo sh php_install.sh rpm
-
+  name: PHP
+  version: 8.2
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: deb
+      copy_files:
+        - name: copy-auto-install-script
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+      remote-command: sudo sh php_install.sh deb
+    - os_type: linux
+      os_distro: rpm
+      os_branch: amazon_linux2
+      copy_files:
+        - name: copy-auto-install-script
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+      remote-command: sudo sh php_install.sh amazon_linux_2
+    - os_type: linux
+      os_distro: rpm
+      copy_files:
+        - name: copy-auto-install-script
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/php_install.sh
+      remote-command: sudo sh php_install.sh rpm
 weblog:
   name: test-app-php
   install:
     - os_type: linux
-
       copy_files:
         - name: copy-service
           local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-
         - name: copy-service-run-script
           local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
         - name: copy-run-weblog-script
           local_path: utils/build/virtual_machine/weblogs/php/test-app-php/test-app-php_run.sh
-
         - name: copy-php-app
           local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
-
       remote-command: sh test-app-php_run.sh

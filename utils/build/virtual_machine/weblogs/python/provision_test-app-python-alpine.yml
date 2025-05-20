@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-python-alpine
   runtime_version: 3.12
@@ -13,5 +14,4 @@ weblog:
         - name: copy-python-app-dockerfile
           local_path: utils/build/virtual_machine/weblogs/python/test-app-python-alpine/Dockerfile.template
           remote_path: Dockerfile.template
-
       remote-command: sh create_and_run_app_container.sh

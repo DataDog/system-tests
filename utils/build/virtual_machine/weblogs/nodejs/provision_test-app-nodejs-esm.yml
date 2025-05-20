@@ -1,3 +1,4 @@
+---
 weblog:
   name: test-app-nodejs-esm
   nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf

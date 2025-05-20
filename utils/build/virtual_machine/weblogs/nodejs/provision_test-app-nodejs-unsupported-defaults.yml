@@ -1,3 +1,4 @@
+---
 #Default nodejs installation for vms that are intalling an ussupported version of nodejs
 lang_variant:
   name: nodejs
@@ -7,7 +8,6 @@ lang_variant:
     - os_type: linux
       os_distro: deb
       remote-command: sudo apt-get install -y nodejs
-
     - os_type: linux
       os_distro: rpm
       os_branch: centos_7_amd64
@@ -16,8 +16,6 @@ lang_variant:
         #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-a-centos-7-server
         sudo yum -y install epel-release
         sudo yum -y install nodejs
-
-
 weblog:
   name: test-app-nodejs-unsupported-defaults
   install:
@@ -25,14 +23,10 @@ weblog:
       copy_files:
         - name: copy-service
           local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-
         - name: copy-service-run-script
           local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
         - name: copy-run-weblog-script
           local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
-
         - name: copy-binary
           local_path: lib-injection/build/docker/nodejs/sample-app/index.js
-
       remote-command: sh test-app-nodejs_run.sh

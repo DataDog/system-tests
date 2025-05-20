@@ -455,7 +455,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
-      Test_UpdateRuleFileWithRemoteConfig: v2.0.0-dev # Possibly earlier than this
+      Test_UpdateRuleFileWithRemoteConfig: v2.0.0-dev  # Possibly earlier than this
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0

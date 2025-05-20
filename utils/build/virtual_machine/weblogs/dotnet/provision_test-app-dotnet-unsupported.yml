@@ -1,3 +1,4 @@
+---
 lang_variant:
   name: dotnet
   cache: true
@@ -16,8 +17,6 @@ lang_variant:
         sudo apt-get install -y apt-transport-https
         sudo apt-get update
         sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-2.1
-
-
 weblog:
   name: test-app-dotnet-unsupported
   install:
@@ -25,14 +24,10 @@ weblog:
       copy_files:
         - name: copy-dotnet-app
           local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app-unsupported
-
         - name: copy-service
           local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-
         - name: copy-service-run-script
           local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
         - name: copy-run-weblog-script
           local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-unsupported/test-app-dotnet-unsupported_run.sh
-
       remote-command: sh test-app-dotnet-unsupported_run.sh
