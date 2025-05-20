@@ -240,7 +240,8 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet",
-                        "test-app-dotnet-container"
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
                     ],
                     "ruby": [
                         "test-app-ruby",
@@ -572,8 +573,8 @@
             },
             {
                 "name": "test-app-dotnet-iis",
-                "excluded_os_types": [
-                    "linux"
+                "exact_os_branches": [
+                    "windows"
                 ]
             }
         ],
