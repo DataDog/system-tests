@@ -98,6 +98,28 @@ app.get('/headers', (req, res) => {
   res.send('Hello, headers!')
 })
 
+app.get('/customResponseHeaders', (req, res) => {
+  res.set({
+    'content-type': 'text/plain',
+    'content-language': 'en-US',
+    'x-test-header-1': 'value1',
+    'x-test-header-2': 'value2',
+    'x-test-header-3': 'value3',
+    'x-test-header-4': 'value4',
+    'x-test-header-5': 'value5',
+  })
+  res.send('OK')
+})
+
+app.get('/exceedResponseHeaders', (req, res) => {
+  res.set('content-language', 'text/plain')
+  for (let i = 0; i < 50; i++) {
+    res.set(`x-test-header-${i}`, `value${i}`)
+  }
+  res.set('content-language', 'en-US')
+  res.send('OK')
+})
+
 app.get('/identify', (req, res) => {
   tracer.setUser({
     id: 'usr.id',
