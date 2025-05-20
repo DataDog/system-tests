@@ -2609,5 +2609,23 @@ class _Features:
         pytest.mark.features(feature_id=390)(test_object)
         return test_object
 
+    @staticmethod
+    def appsec_collect_request_body(test_object):
+        """Appsec collects request body
+
+        https://feature-parity.us1.prod.dog/#/?feature=391
+        """
+        pytest.mark.features(feature_id=391)(test_object)
+        return test_object
+
+    @staticmethod
+    def referrer_hostname(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=396
+        """
+        pytest.mark.features(feature_id=396)(test_object)
+        return test_object
+
 
 features = _Features()

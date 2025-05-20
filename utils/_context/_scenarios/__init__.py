@@ -644,10 +644,15 @@ class _Scenarios:
     tracing_config_nondefault_4 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         doc="",
+        rc_api_enabled=True,
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -918,7 +923,12 @@ class _Scenarios:
     )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
+        weblog_env={
+            "DD_APPSEC_RASP_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+            # added to test Test_ExtendedRequestBodyCollection
+            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+        },
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",

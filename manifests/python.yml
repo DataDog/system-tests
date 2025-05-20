@@ -51,13 +51,13 @@ tests/:
         test_code_injection.py:
           TestCodeInjection: v2.20.0
           TestCodeInjection_ExtendedLocation: v3.1.0.dev
-          TestCodeInjection_StackTrace: missing_feature
+          TestCodeInjection_StackTrace: v3.9.0.dev
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
             fastapi: v2.15.0
           TestCommandInjection_ExtendedLocation: v3.1.0.dev
-          TestCommandInjection_StackTrace: missing_feature
+          TestCommandInjection_StackTrace: v3.9.0.dev
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
           TestEmailHtmlInjection_ExtendedLocation: missing_feature
@@ -80,9 +80,7 @@ tests/:
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_ExtendedLocation: v3.1.0.dev
-          TestHeaderInjection_StackTrace:
-            '*': missing_feature
-            fastapi: missing_feature
+          TestHeaderInjection_StackTrace: v3.9.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -97,7 +95,7 @@ tests/:
             fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestInsecureCookieNameFilter: missing_feature
           TestInsecureCookie_ExtendedLocation: v3.1.0.dev
-          TestInsecureCookie_StackTrace: missing_feature
+          TestInsecureCookie_StackTrace: v3.9.0.dev
         test_ldap_injection.py:
           TestLDAPInjection: missing_feature
           TestLDAPInjection_ExtendedLocation: missing_feature
@@ -108,14 +106,14 @@ tests/:
             fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoHttponlyCookieNameFilter: missing_feature
           TestNoHttponlyCookie_ExtendedLocation: v3.1.0.dev
-          TestNoHttponlyCookie_StackTrace: missing_feature
+          TestNoHttponlyCookie_StackTrace: v3.9.0.dev
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie:
             '*': v1.19.0  (v3.1.0.dev, add telemetry metrics support)
             fastapi: v2.16.0-dev (v3.1.0.dev, add telemetry metrics support)
           TestNoSamesiteCookieNameFilter: missing_feature
           TestNoSamesiteCookie_ExtendedLocation: v3.1.0.dev
-          TestNoSamesiteCookie_StackTrace: missing_feature
+          TestNoSamesiteCookie_StackTrace: v3.9.0.dev
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: missing_feature
           TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
@@ -125,7 +123,7 @@ tests/:
             '*': v2.10.0
             fastapi: v2.15.0
           TestPathTraversal_ExtendedLocation: v3.1.0.dev
-          TestPathTraversal_StackTrace: missing_feature
+          TestPathTraversal_StackTrace: v3.9.0.dev
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
           TestReflectionInjection_ExtendedLocation: missing_feature
@@ -137,13 +135,13 @@ tests/:
             flask-poc: v1.18.0
             python3.12: v1.18.0
           TestSqlInjection_ExtendedLocation: v3.1.0.dev
-          TestSqlInjection_StackTrace: missing_feature
+          TestSqlInjection_StackTrace: v3.9.0.dev
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
             fastapi: v2.15.0
           TestSSRF_ExtendedLocation: v3.1.0.dev
-          TestSSRF_StackTrace: missing_feature
+          TestSSRF_StackTrace: v3.9.0.dev
         test_stacktrace_leak.py:
           TestStackTraceLeak:
             '*': v3.1.0.dev
@@ -174,19 +172,19 @@ tests/:
             '*': v1.18.0
             fastapi: v2.15.0
           TestWeakCipher_ExtendedLocation: v3.1.0.dev
-          TestWeakCipher_StackTrace: missing_feature
+          TestWeakCipher_StackTrace: v3.9.0.dev
         test_weak_hash.py:
           TestDeduplication:
             '*': v1.18.0
           TestWeakHash:
             '*': v1.18.0
           TestWeakHash_ExtendedLocation: v3.1.0.dev
-          TestWeakHash_StackTrace: missing_feature
+          TestWeakHash_StackTrace: v3.9.0.dev
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': v2.0.0
           TestWeakRandomness_ExtendedLocation: v3.1.0.dev
-          TestWeakRandomness_StackTrace: missing_feature
+          TestWeakRandomness_StackTrace: v3.9.0.dev
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
           Test_XContentSniffing_ExtendedLocation: missing_feature
@@ -199,7 +197,7 @@ tests/:
           TestXSS:
             '*': v3.0.0.dev
           TestXSS_ExtendedLocation: v3.1.0.dev
-          TestXSS_StackTrace: missing_feature
+          TestXSS_StackTrace: v3.9.0.dev
       source/:
         test_body.py:
           TestRequestBody:
@@ -484,7 +482,9 @@ tests/:
         uds-flask: bug (APPSEC-57145)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
-      Test_UserEventsStandalone: v3.2.0.dev
+      Test_UserEventsStandalone_Automated: v3.2.0.dev
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -655,6 +655,8 @@ tests/:
         '*': v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
@@ -761,6 +763,11 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        flask-poc: v3.7.0
+        uds-flask: v3.7.0
+        uwsgi-poc: v3.7.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
@@ -1183,6 +1190,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
+    Test_StandardTagsReferrerHostname: v3.4.0
     Test_StandardTagsRoute:
       '*': v1.6.0
     Test_StandardTagsStatusCode: v1.4.0-rc1
