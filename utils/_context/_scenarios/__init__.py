@@ -975,7 +975,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_ENABLED": "false"},
         doc="Test ato when appsec is diabled",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.end_to_end],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end],
     )
 
     appsec_ato_sdk = EndToEndScenario(
