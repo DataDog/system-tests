@@ -106,7 +106,7 @@ app.get('/customResponseHeaders', (req, res) => {
     'x-test-header-2': 'value2',
     'x-test-header-3': 'value3',
     'x-test-header-4': 'value4',
-    'x-test-header-5': 'value5',
+    'x-test-header-5': 'value5'
   })
   res.send('OK')
 })
