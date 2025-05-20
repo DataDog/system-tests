@@ -21,7 +21,7 @@ from docker.models.networks import Network
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, scenario_groups
 
 
 def _fail(message: str):
@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -354,7 +354,7 @@ def python_library_factory() -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd8924
+FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
 RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0

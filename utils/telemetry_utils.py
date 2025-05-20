@@ -9,6 +9,7 @@ class TelemetryUtils:
         "ruby": {"bundler": False},
         "python": {"requests": False},
         "golang": {"github.com/tinylib/msgp": False},
+        "php": {"weblog/acme": False},
     }
 
     @staticmethod

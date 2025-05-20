@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace"
 	"systemtests.weblog/_shared/common"
 	"systemtests.weblog/_shared/grpc"
 	"systemtests.weblog/_shared/rasp"
@@ -723,6 +724,21 @@ func main() {
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+
+	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := ddtracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`span not found in context`))
+			return
+		}
+		ddtrace.AddSpanEvent(span, "span.event", ddtrace.WithSpanEventAttributes(map[string]any{
+			"string": "value",
+			"int":    1,
+		}))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[Event added]`))
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",

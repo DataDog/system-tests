@@ -2,7 +2,7 @@ import argparse
 import json
 import sys
 
-from utils._context._scenarios import get_all_scenarios, ScenarioGroup, Scenario
+from utils._context._scenarios import get_all_scenarios, Scenario, scenario_groups as all_scenarios_groups
 from utils.scripts.ci_orchestrators.workflow_data import (
     get_aws_matrix,
     get_endtoend_definitions,
@@ -168,10 +168,7 @@ class CiData:
 
         # check that all groups provided by the user are valid
         for group in scenario_group_names:
-            try:
-                ScenarioGroup(group)
-            except ValueError as e:
-                raise ValueError(f"Valid groups are: {[item.value for item in ScenarioGroup]}") from e
+            _ = all_scenarios_groups[group]
 
         for scenario in existing_scenarios.values():
             # TODO change the variable "github_workflow" to "ci_workflow" in the scenario object
@@ -188,7 +185,7 @@ class CiData:
                 result[scenario.github_workflow].append(scenario.name)
             else:
                 for group in scenario_group_names:
-                    if ScenarioGroup(group) in scenario.scenario_groups:
+                    if all_scenarios_groups[group] in scenario.scenario_groups:
                         result[scenario.github_workflow].append(scenario.name)
                         break
 

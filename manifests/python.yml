@@ -55,10 +55,7 @@ tests/:
         test_command_injection.py:
           TestCommandInjection:
             '*': v2.10.0
-            django-poc: bug (APPSEC-57095)
-            django-py3.13: bug (APPSEC-57095)
             fastapi: v2.15.0
-            python3.12: bug (APPSEC-57095)
           TestCommandInjection_ExtendedLocation: v3.1.0.dev
           TestCommandInjection_StackTrace: missing_feature
         test_email_html_injection.py:
@@ -267,6 +264,8 @@ tests/:
           TestURI: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
+      test_vulnerability_schema.py:
+        TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
@@ -474,6 +473,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
@@ -484,7 +484,7 @@ tests/:
         uds-flask: bug (APPSEC-57145)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone: v3.2.0.dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -492,9 +492,21 @@ tests/:
       Test_V2_Login_Events_Anon: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V2_Login_Events_RC: irrelevant (was v2.11.0 but will be replaced by V3)
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
-      Test_V3_Login_Events: v2.20.0.dev
-      Test_V3_Login_Events_Anon: v2.20.0.dev
-      Test_V3_Login_Events_Blocking: v2.20.0.dev
+      Test_V3_Login_Events:
+        '*': v2.20.0.dev
+        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+      Test_V3_Login_Events_Anon:
+        '*': v2.20.0.dev
+        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+      Test_V3_Login_Events_Blocking:
+        '*': v2.20.0.dev
+        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
@@ -502,8 +514,16 @@ tests/:
         django-poc: v3.3.0.dev
         django-py3.13: v3.3.0.dev
         python3.12: v3.3.0.dev
-      Test_Automated_User_Blocking: v3.0.0.rc
-      Test_Automated_User_Tracking: v3.1.0.dev
+      Test_Automated_User_Blocking:
+        '*': v3.0.0.rc
+        'django-poc': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+      Test_Automated_User_Tracking:
+        '*': v3.1.0.dev
+        'django-poc': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -513,9 +533,11 @@ tests/:
         flask-poc: v1.10
       Test_Blocking_request_body:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+        python3.12: v3.7.0.dev (is v1.16.1.dev but weblog use new SDK now)
       Test_Blocking_request_body_multipart:
         '*': v1.16.1
         django-poc: v1.10
@@ -523,34 +545,46 @@ tests/:
         flask-poc: v1.10
       Test_Blocking_request_cookies:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_request_headers:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_request_method:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_request_path_params:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.13
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_request_query:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_request_uri:
         '*': v1.16.1
-        django-poc: v1.15
+        django-poc: v3.7.0.dev (is v1.15 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.15
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Blocking_response_headers:
         '*': v1.16.1
         django-poc: v1.10
@@ -563,10 +597,16 @@ tests/:
         flask-poc: v1.10
       Test_Blocking_user_id:
         '*': v1.16.1
-        django-poc: v1.10
+        django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
         fastapi: v2.4.0
         flask-poc: v1.10
-      Test_Suspicious_Request_Blocking: v2.4.0
+        python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
+      Test_Suspicious_Request_Blocking:
+        '*': v2.4.0
+        'django-poc': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -578,23 +618,45 @@ tests/:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
-      Test_CustomEvent: v1.10.0
+      Test_CustomEvent:
+        '*': v1.10.0
+        'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
       Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent:
         '*': v2.10.0
+        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
+        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Libddwaf:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Metrics:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Tags:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Libddwaf:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Metrics:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags:
+        '*': v3.7.0.dev
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
@@ -653,10 +715,20 @@ tests/:
       Test_ExternalWafRequestsIdentification: v2.9.0
       Test_RetainTraces: v1.1.0-rc2
     test_user_blocking_full_denylist.py:
-      Test_UserBlocking_FullDenylist: v2.11.0
+      Test_UserBlocking_FullDenylist:
+        '*': v2.11.0
+        'django-poc': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        'django-py3.13': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        'python3.12': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
@@ -691,14 +763,35 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        flask-poc: v3.7.0
+        uds-flask: v3.7.0
+        uwsgi-poc: v3.7.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots:
+      Test_Debugger_Line_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Snaphots:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses:
+      Test_Debugger_Line_Probe_Statuses:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Statuses:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -931,6 +1024,7 @@ tests/:
       Test_Stable_Configuration_Origin: v3.7.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
+      Test_TelemetrySSIConfigs: v3.8.0.dev
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
@@ -1071,9 +1165,9 @@ tests/:
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v3.6.0+dev
     Test_SamplingDeterminism: v2.8.0
     Test_SamplingRates: v2.8.0
   test_scrubbing.py:
@@ -1096,6 +1190,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
+    Test_StandardTagsReferrerHostname: v3.4.0
     Test_StandardTagsRoute:
       '*': v1.6.0
     Test_StandardTagsStatusCode: v1.4.0-rc1

@@ -73,24 +73,41 @@ save_to_env_file() {
 
 
 
-# Step 7: Prompt for missing environment variables
+# Step 7: Prompt for missing environment variables, with optional default
 check_and_set_env_var() {
     local var_name="$1"
     local help_message="$2"
+    local default_value="$3"
 
     if is_var_in_env_file "$var_name"; then
         echo "✅ $var_name is already stored in $ENV_FILE."
+
     elif is_var_set "$var_name"; then
         echo "✅ $var_name is already set in the environment."
         read -p "Do you want to save $var_name in $ENV_FILE? (y/n): " save_choice
         if [[ "$save_choice" =~ ^[Yy]$ ]]; then
             save_to_env_file "$var_name" "${!var_name}"
         fi
+
     else
         echo "❓ $var_name is missing."
-        echo "ℹ️ $help_message"
-        read -p "Enter value for $var_name: " user_value
+        echo -e "ℹ️ $help_message"
+
+        local user_value
+
+        if [[ -n "$default_value" ]]; then
+            read -p "Use default value for $var_name ('$default_value')? (y/n): " use_default
+            if [[ "$use_default" =~ ^[Yy]$ ]]; then
+                user_value="$default_value"
+            else
+                read -p "Enter value for $var_name: " user_value
+            fi
+        else
+            read -p "Enter value for $var_name: " user_value
+        fi
+
         export "$var_name=$user_value"
+
         read -p "Do you want to save $var_name in $ENV_FILE? (y/n): " save_choice
         if [[ "$save_choice" =~ ^[Yy]$ ]]; then
             save_to_env_file "$var_name" "$user_value"
@@ -151,8 +168,8 @@ verify_aws_environment
 check_and_set_env_var "PULUMI_CONFIG_PASSPHRASE" "Passphrase to store secure data in Pulumi."
 check_and_set_env_var "DD_API_KEY_ONBOARDING" "🔑 API Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
 check_and_set_env_var "DD_APP_KEY_ONBOARDING" "🔑 Application Key required for system-tests.\n🏢 You can retrieve this key from the Datadog system-tests organization.\n🔗 Access the organization page here: https://system-tests.datadoghq.com/dashboard/zqg-kqn-2mc?fromUser=false&refresh_mode=sliding&from_ts=1736776640739&to_ts=1739368640739&live=true"
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command"
-check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SUBNET_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "subnet-b89e00e2"
+check_and_set_env_var "ONBOARDING_AWS_INFRA_SECURITY_GROUPS_ID" "🌐 Networking configuration for AWS.\n📖 You can find this value in the internal documentation:\n🔗 https://datadoghq.atlassian.net/wiki/spaces/APMINT/pages/3487138295/Using+virtual+machines+to+test+your+software+components+against+different+operating+systems#Run-command" "sg-46506837,sg-7fedd80a"
 
 # Automatically set and offer to save some variables
 if ! is_var_in_env_file "ONBOARDING_LOCAL_TEST"; then

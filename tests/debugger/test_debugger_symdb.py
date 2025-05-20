@@ -7,7 +7,6 @@ import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
 
 
-@features.debugger
 @features.debugger_symdb
 @scenarios.debugger_symdb
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):

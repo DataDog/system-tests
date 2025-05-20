@@ -618,6 +618,9 @@ class Test_TelemetryV2:
         library="dotnet",
         reason="Re-enable when this automatically updates the dd-go files.",
     )
+    @irrelevant(
+        condition=True, reason="This test causes to many friction. It has been replaced by alerts on slack channels"
+    )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
 
@@ -737,7 +740,7 @@ class Test_ProductsDisabled:
         lang_configs = get_lang_configs()
         lang_configs["java"] = lang_configs["jvm"]
 
-        di_config, er_config = None, None
+        di_config, er_config, co_config = None, None, None
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
                 continue
@@ -764,9 +767,13 @@ class Test_ProductsDisabled:
             if normalized_config.get("exception_replay_enabled") is not None:
                 er_config = str(normalized_config["exception_replay_enabled"]).lower()
 
+            if normalized_config.get("code_origin_for_spans_enabled") is not None:
+                co_config = str(normalized_config["code_origin_for_spans_enabled"]).lower()
+
         assert data_found, "No app-started event found in telemetry data"
         assert di_config == "false", "DI should be disabled by default"
         assert er_config == "false", "Exception Replay should be disabled by default"
+        assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported

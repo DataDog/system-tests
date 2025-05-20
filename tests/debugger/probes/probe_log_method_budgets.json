@@ -13,7 +13,6 @@
       {
         "str": "log message received"
       }
-    ],
-    "evaluateAt": "EXIT"
+    ]
   }
 ]

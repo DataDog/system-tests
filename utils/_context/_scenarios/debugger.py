@@ -1,6 +1,6 @@
 import pytest
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
@@ -19,7 +19,7 @@ class DebuggerScenario(EndToEndScenario):
             rc_api_enabled=True,
             library_interface_timeout=5,
             weblog_env=base_weblog_env,
-            scenario_groups=[ScenarioGroup.DEBUGGER],
+            scenario_groups=[scenario_groups.debugger],
         )
 
     def configure(self, config: pytest.Config):

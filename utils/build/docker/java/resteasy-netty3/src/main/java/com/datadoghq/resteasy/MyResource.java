@@ -95,6 +95,39 @@ public class MyResource {
                 .entity("012345678901234567890123456789012345678901").build();
     }
 
+    /**
+     * Endpoint for sending a response with five custom headers.
+     */
+    @GET
+    @Path("/customResponseHeaders")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response customResponseHeaders() {
+        return Response.status(200)
+                .header("Content-Language", "en-US")
+                .header("X-Test-Header-1", "value1")
+                .header("X-Test-Header-2", "value2")
+                .header("X-Test-Header-3", "value3")
+                .header("X-Test-Header-4", "value4")
+                .header("X-Test-Header-5", "value5")
+                .entity("Response with custom headers").build();
+    }
+
+    /**
+     * Endpoint for sending a response with more than fifty headers.
+     */
+    @GET
+    @Path("/exceedResponseHeaders")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response exceedResponseHeaders() {
+        Response.ResponseBuilder builder = Response.status(200);
+        for (int i = 1; i <= 50; i++) {
+            builder.header("X-Test-Header-" + i, "value" + i);
+        }
+        builder.header("Content-Language", "en-US");
+        return builder
+                .entity("Response with more than 50 headers").build();
+    }
+
     @GET
     @Path("/tag_value/{tag_value}/{status_code}")
     public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code) {

@@ -1,5 +1,5 @@
 import json
-from utils import weblog, interfaces, context, logger
+from utils import weblog, interfaces, context, logger, irrelevant
 from utils._weblog import HttpResponse
 
 
@@ -289,8 +289,8 @@ def validate_extended_location_data(
 ) -> None:
     span = interfaces.library.get_root_span(request)
     iast = span.get("meta", {}).get("_dd.iast.json")
-    assert iast, "Expected at least one vulnerability"
-    assert iast["vulnerabilities"], "Expected at least one vulnerability"
+    assert iast, f"Expected at least one vulnerability in span {span.get('span_id')}"
+    assert iast["vulnerabilities"], f"Expected at least one vulnerability: {iast['vulnerabilities']}"
 
     # Filter by vulnerability
     if vulnerability_type:
@@ -300,13 +300,31 @@ def validate_extended_location_data(
     if not is_expected_location_required:
         return
 
+    logger.debug(f"Vulnerabilities: {json.dumps(vulns, indent=2)}")
+    assert len(vulns) == 1, "Expected a single vulnerability with the matching criteria"
+
     vuln = vulns[0]
     location = vuln["location"]
 
-    # Check extended data if stack trace exists
-    if "meta_struct" in span and "_dd.stack" in span["meta_struct"]:
-        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'exploit' not found in '_dd.stack'"
-        stack_trace = span["meta_struct"]["_dd.stack"]["vulnerability"][0]
+    stack_id = location.get("stackId")
+    # XXX: Backwards compatibility trick for tracers that got `stackId` outside location.
+    # The correct stackId location is tested else wher e.g. schema tests.
+    if not stack_id:
+        stack_id = vuln.get("stackId")
+
+    if not stack_id:
+        # If there is no stacktrace, just check for the presence of basic attributes.
+        assert all(field in location for field in ["path", "line"])
+
+        if context.library.name not in ("python", "nodejs"):
+            assert all(field in location for field in ["class", "method"])
+    else:
+        assert "vulnerability" in span["meta_struct"]["_dd.stack"], "'vulnerability' not found in '_dd.stack'"
+        stack_traces = span["meta_struct"]["_dd.stack"]["vulnerability"]
+        assert stack_traces, "No vulnerability stack traces found"
+        stack_traces = [s for s in stack_traces if s.get("id") == stack_id]
+        assert stack_traces, f"No vulnerability stack trace found for id {stack_id}"
+        stack_trace = stack_traces[0]
 
         assert "language" in stack_trace
         assert stack_trace["language"] in (
@@ -321,24 +339,26 @@ def validate_extended_location_data(
         assert "frames" in stack_trace
 
         # Verify frame matches location
+        def _norm(s: str | None) -> str | None:
+            return s if s else None
+
         location_match = False
         for frame in stack_trace["frames"]:
-            if (
-                frame.get("file", "").endswith(location["path"])
-                and location["line"] == frame["line"]
-                and location.get("class", "") == frame.get("class_name", "")
-                and location.get("method", "") == frame.get("function", "")
-            ):
+            logger.debug(frame)
+            if not frame.get("file", "").endswith(location["path"]):
+                logger.debug("path does not match")
+            elif frame["line"] != location["line"]:
+                logger.debug("line does not match")
+            elif _norm(location.get("class")) != _norm(frame.get("class_name")):
+                logger.debug("class does not match")
+            elif _norm(location.get("method")) != _norm(frame.get("function")):
+                logger.debug("method does not match")
+            else:
+                logger.debug("location match")
                 location_match = True
                 break
 
-        assert location_match, "location not found in stack trace"
-    # Check extended data if on location if stack trace do not exists
-    else:
-        assert all(field in location for field in ["path", "line"])
-
-        if context.library.name not in ("python", "nodejs"):
-            assert all(field in location for field in ["class", "method"])
+        assert location_match, f"location not found in stack trace, location={location}, stack_trace={stack_trace}"
 
 
 def get_hardcoded_vulnerabilities(vulnerability_type: str) -> list:
@@ -576,6 +596,10 @@ class BaseTestCookieNameFilter:
         self.req2 = weblog.post(self.endpoint, data={"cookieName": cookie_name_2, "cookieValue": "value2"})
         self.req3 = weblog.post(self.endpoint, data={"cookieName": cookie_name_3, "cookieValue": "value3"})
 
+    @irrelevant(
+        context.library >= "nodejs@5.50.0",
+        reason="cookie name filtering is not present anymore after the change on cookie vuln hash calculation.",
+    )
     def test_cookie_name_filter(self) -> None:
         assert_iast_vulnerability(
             request=self.req1,

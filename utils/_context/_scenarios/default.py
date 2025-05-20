@@ -1,5 +1,5 @@
 import pytest
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
@@ -53,7 +53,7 @@ class DefaultScenario(EndToEndScenario):
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             include_postgres_db=True,
-            scenario_groups=[ScenarioGroup.ESSENTIALS, ScenarioGroup.TELEMETRY],
+            scenario_groups=[scenario_groups.essentials, scenario_groups.telemetry],
             doc="Default scenario, spawn tracer, the Postgres databases and agent, and run most of exisiting tests",
         )
 

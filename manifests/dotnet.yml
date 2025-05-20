@@ -306,13 +306,14 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: v3.12.0
       Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: missing_feature
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone: v3.12.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
@@ -356,14 +357,18 @@ tests/:
       Test_UserLoginSuccessEvent: v2.27.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginFailureEventV2_Libddwaf: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics: v3.15.0
+      Test_UserLoginFailureEventV2_Tags: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags: v3.15.0
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v3.4.0
       Test_Fingerprinting_Endpoint_Capability: v3.4.0
@@ -415,6 +420,8 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0
     test_debugger_expression_language.py:
@@ -425,10 +432,14 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: v2.53.0
+      Test_Debugger_Method_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: v2.53.0
     test_debugger_telemetry.py:
@@ -523,6 +534,7 @@ tests/:
       Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
+      Test_TelemetrySSIConfigs: v2.53.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v2.46.0
       Test_Trace_Sampling_Globs: v2.46.0
@@ -621,7 +633,7 @@ tests/:
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.11.1  # real version unknown
     Test_SamplingDecisionAdded: v3.11.1  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v3.11.1  # real version unknown
     Test_SamplingDeterminism: v3.11.1  # real version unknown
     Test_SamplingRates: v3.11.1  # real version unknown
   test_scrubbing.py:
@@ -633,6 +645,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
     Test_StandardTagsMethod: v2.0.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v2.13.0
     Test_StandardTagsStatusCode: v2.0.0
     Test_StandardTagsUrl: v2.13.0

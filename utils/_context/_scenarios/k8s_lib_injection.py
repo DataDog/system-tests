@@ -19,7 +19,7 @@ from utils._context.containers import (
 )
 
 from utils._logger import logger
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, scenario_groups
 
 
 class K8sScenarioWithClusterProvider:
@@ -37,7 +37,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         weblog_env={},
         dd_cluster_feature={},
         with_datadog_operator=False,
-        scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+        scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
     ) -> None:
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
         self.use_uds = use_uds
@@ -189,7 +189,7 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
             name,
             doc=doc,
             github_workflow="libinjection",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.LIB_INJECTION],
+            scenario_groups=[scenario_groups.all, scenario_groups.lib_injection],
         )
         self.use_uds = use_uds
         self.weblog_env = weblog_env
