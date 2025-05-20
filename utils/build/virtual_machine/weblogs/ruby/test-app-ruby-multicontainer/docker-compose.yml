@@ -20,7 +20,7 @@ services:
             context: .
             dockerfile: Dockerfile.ruby_3_2
         healthcheck:
-            test: "curl -f http://localhost:18080/"  
+            test: "curl -f http://localhost:18080/"
 
     ruby_3_1:
         env_file: "scenario_app.env"
@@ -30,7 +30,7 @@ services:
             context: .
             dockerfile: Dockerfile.ruby_3_1
         healthcheck:
-            test: "curl -f http://localhost:18080/"  
+            test: "curl -f http://localhost:18080/"
 
     ruby_3_0:
         env_file: "scenario_app.env"
@@ -40,7 +40,7 @@ services:
             context: .
             dockerfile: Dockerfile.ruby_3_0
         healthcheck:
-            test: "curl -f http://localhost:18080/"  
+            test: "curl -f http://localhost:18080/"
 
     ruby_2_7:
         env_file: "scenario_app.env"
@@ -50,4 +50,4 @@ services:
             context: .
             dockerfile: Dockerfile.ruby_2_7
         healthcheck:
-            test: "curl -f http://localhost:18080/"  
+            test: "curl -f http://localhost:18080/"

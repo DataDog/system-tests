@@ -1,20 +1,20 @@
 weblog:
-    name: test-app-dotnet-container
-    runtime_version: 7
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-container-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+  name: test-app-dotnet-container
+  runtime_version: 7
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-container-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
 
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
 
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
-          - name: copy-dotnet-dockerfile
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile
-            remote_path: Dockerfile.template
+        - name: copy-dotnet-dockerfile
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app/Dockerfile
+          remote_path: Dockerfile.template
 
-        remote-command: sh create_and_run_app_container.sh
+      remote-command: sh create_and_run_app_container.sh

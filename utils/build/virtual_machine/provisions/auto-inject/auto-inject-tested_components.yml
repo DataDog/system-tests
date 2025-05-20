@@ -5,7 +5,7 @@
     - name: copy-glibc-script
       local_path: utils/build/virtual_machine/provisions/auto-inject/check_glibc.sh
   remote-command: |
-      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)" ]; then 
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)" ]; then
         export agent_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent);
       else
         export agent_path="$(readlink -f /opt/datadog-packages/datadog-agent/stable)"
@@ -14,7 +14,7 @@
         export agent_version="${agent_version%-1}"
       fi
 
-      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then 
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject)" ]; then
         export inject_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-inject);
       else
         export inject_path="$(readlink -f /opt/datadog-packages/datadog-apm-inject/stable)"
@@ -23,7 +23,7 @@
         export inject_version="${inject_version%-1}"
       fi
 
-      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then 
+      if [ -n "$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG)" ]; then
         export tracer_version=$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-apm-library-$DD_LANG);
       else
         export tracer_path="$(readlink -f /opt/datadog-packages/datadog-apm-library-$DD_LANG/stable)"
@@ -38,7 +38,7 @@
       export installer_version="${installer_version%-1}"
 
       #Extract glibc
-      sudo chmod 755 check_glibc.sh 
+      sudo chmod 755 check_glibc.sh
       . ./check_glibc.sh
 
       #Try to extract runtime version. Not allways possible (ie container app)
@@ -61,7 +61,7 @@
     - name: copy-glibc-script
       local_path: utils/build/virtual_machine/provisions/auto-inject/check_glibc.sh
   remote-command: |
-      if dpkg -s datadog-agent &> /dev/null; then 
+      if dpkg -s datadog-agent &> /dev/null; then
         export agent_version=$(dpkg -s datadog-agent | grep Version  | head -n 1);
         export agent_version=${agent_version//'Version:'/}
       else
@@ -71,7 +71,7 @@
         export agent_version="${agent_version%-1}"
       fi
 
-      if dpkg -s datadog-apm-inject &> /dev/null; then 
+      if dpkg -s datadog-apm-inject &> /dev/null; then
         export inject_version=$(dpkg -s datadog-apm-inject | grep Version);
         export inject_version=${inject_version//'Version:'/}
       else
@@ -81,7 +81,7 @@
         export inject_version="${inject_version%-1}"
       fi
 
-      if dpkg -s datadog-apm-library-$DD_LANG &> /dev/null; then 
+      if dpkg -s datadog-apm-library-$DD_LANG &> /dev/null; then
         export tracer_version=$(dpkg -s datadog-apm-library-$DD_LANG | grep Version);
         export tracer_version=${tracer_version//'Version:'/}
       else
@@ -95,9 +95,9 @@
       export installer_path="${installer_path%/}"
       export installer_version="${installer_path##*/}"
       export installer_version="${installer_version%-1}"
-      
+
       #Extract glibc
-      sudo chmod 755 check_glibc.sh 
+      sudo chmod 755 check_glibc.sh
       . ./check_glibc.sh
 
       #Try to extract runtime version. Not allways possible (ie container app)

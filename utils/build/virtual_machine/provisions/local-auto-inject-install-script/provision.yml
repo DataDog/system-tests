@@ -9,7 +9,7 @@ tested_components:
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
 
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
   - install-agent #Install the agent (allways latest release)

@@ -94,26 +94,26 @@ lang_variant:
 
 
 weblog:
-    name: test-app-dotnet
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+  name: test-app-dotnet
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
 
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
-        remote-command: sh test-app-dotnet_run.sh
+      remote-command: sh test-app-dotnet_run.sh
 
-      - os_type: windows
-        copy_files:
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-        remote-command: dir # TODO: run the app natively
+    - os_type: windows
+      copy_files:
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+      remote-command: dir # TODO: run the app natively

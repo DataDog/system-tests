@@ -145,7 +145,7 @@ jobs:
         with:
           repository: 'DataDog/system-tests'
       - name: Get binaries artifact
-        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        if: ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}

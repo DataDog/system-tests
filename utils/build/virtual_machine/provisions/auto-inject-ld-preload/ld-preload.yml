@@ -23,8 +23,8 @@
       - name: copy-helloworld-cpp
         local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
 
-  remote-command: | 
-    sudo yum groupinstall "Development Tools" -y 
+  remote-command: |
+    sudo yum groupinstall "Development Tools" -y
     echo "Compiling main.c to main.so"
     gcc -Wall -fPIC -shared -o main.so main.c -ldl
     sudo mv main.so /usr/local/lib/

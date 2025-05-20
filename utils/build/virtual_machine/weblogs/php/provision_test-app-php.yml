@@ -24,21 +24,21 @@ lang_variant:
         remote-command: sudo sh php_install.sh rpm
 
 weblog:
-    name: test-app-php
-    install:
-      - os_type: linux
+  name: test-app-php
+  install:
+    - os_type: linux
 
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/test-app-php_run.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/test-app-php_run.sh
 
-          - name: copy-php-app
-            local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
+        - name: copy-php-app
+          local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
 
-        remote-command: sh test-app-php_run.sh
+      remote-command: sh test-app-php_run.sh

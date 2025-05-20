@@ -122,63 +122,63 @@ jobs:
       - compute-matrix
     strategy:
       matrix:
-          weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-          lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-          exclude:
-            - weblog: {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+        lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+        exclude:
+          - weblog: {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          repository: 'DataDog/system-tests'
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        repository: 'DataDog/system-tests'
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
 
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v3
+    - name: Set up Docker Buildx
+      id: buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
-        with:
-          registry: ghcr.io/datadog
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Log in to the Container registry
+      uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+      with:
+        registry: ghcr.io/datadog
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build weblog init image validator
-        run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}
+    - name: Build weblog init image validator
+      run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}
 
-      - name: Install runner
-        uses: ./.github/actions/install_runner
+    - name: Install runner
+      uses: ./.github/actions/install_runner
 
-      - name: Perform lib injection
-        if:  matrix.weblog.supported == 'true'
-        run: |
-          echo "Testing lib injection init image: $LIB_INIT_IMAGE"
-          ./run.sh LIB_INJECTION_VALIDATION
+    - name: Perform lib injection
+      if: matrix.weblog.supported == 'true'
+      run: |
+        echo "Testing lib injection init image: $LIB_INIT_IMAGE"
+        ./run.sh LIB_INJECTION_VALIDATION
 
-      - name: Perform lib injection for not supported lang
-        if:  matrix.weblog.supported == 'false'
-        run: |
-          echo "Testing lib injection init image: $LIB_INIT_IMAGE"
-          ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
+    - name: Perform lib injection for not supported lang
+      if: matrix.weblog.supported == 'false'
+      run: |
+        echo "Testing lib injection init image: $LIB_INIT_IMAGE"
+        ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
 
-      - name: Compress logs
-        id: compress_logs
-        if: always()
-        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+    - name: Compress logs
+      id: compress_logs
+      if: always()
+      run: tar -czvf artifact.tar.gz $(ls | grep logs)
 
-      - name: Upload artifact
-        if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
-          path: artifact.tar.gz
+    - name: Upload artifact
+      if: always() && steps.compress_logs.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
+        path: artifact.tar.gz
 
   build-weblogs-k8s-lib-injection:
     if: inputs.build_lib_injection_app_images && (inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs')

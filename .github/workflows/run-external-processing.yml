@@ -44,7 +44,7 @@ jobs:
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
 
       - name: Get binaries artifact
-        if : ${{ inputs.binaries_artifact != '' }}
+        if: ${{ inputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.binaries_artifact }}

@@ -8,7 +8,7 @@ tested_components:
 #Optional: Extract the logs from the VM
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
-  
+
 #Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
@@ -39,11 +39,9 @@ install-agent:
   install:
     - os_type: linux
       copy_files:
-          - name: copy-agent-docker-compose
-            local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+        - name: copy-agent-docker-compose
+          local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
       remote-command: cat docker-compose-agent-prod.yml
 
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/container-auto-inject-install-script/auto-inject_container_script.yml
-
-

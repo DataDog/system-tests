@@ -3,7 +3,7 @@ init-environment: !include utils/build/virtual_machine/provisions/auto-inject/au
 
 # Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
-  install: 
+  install:
     - os_type: linux
       remote-command: echo "{'host':'$(hostname -I)','my_tested_component':'1.0.0'}"
 
@@ -19,6 +19,6 @@ init-config:
 
 demo-provision-step:
   cache: false #We don't want to cache this step, we'll always launch it
-  install: 
+  install:
     - os_type: linux
       remote-command: echo "Here I can still that I want"

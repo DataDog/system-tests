@@ -2,64 +2,60 @@ lang_variant:
     name: Python
     version: default
     cache: true
-    install: 
+    install:
+    - os_type: linux
+      os_distro: rpm
+      os_branch: centos_7_amd64
+      remote-command: |
+        sudo  yum install -y python3
+        #Remove the symlink to python2
+        sudo unlink /usr/bin/python
+        sudo ln -s /usr/bin/python3 /usr/bin/python
+        #Some fixes for the yum package manager (no compatible with python3)
+        sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/bin/yum
+        sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/libexec/urlgrabber-ext-down
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: centos_7_amd64
-        remote-command: |
-          sudo  yum install -y python3
-          #Remove the symlink to python2
-          sudo unlink /usr/bin/python
-          sudo ln -s /usr/bin/python3 /usr/bin/python
-          #Some fixes for the yum package manager (no compatible with python3)
-          sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/bin/yum
-          sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/libexec/urlgrabber-ext-down
+    - os_type: linux
+      os_distro: rpm
+      os_branch: centos_8_amd64
+      remote-command: |
+        sudo dnf install -y python3
+        sudo ln -s /usr/bin/python3 /usr/bin/python
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: centos_8_amd64
-        remote-command: |
-          sudo dnf install -y python3
-          sudo ln -s /usr/bin/python3 /usr/bin/python
+    - os_type: linux
+      os_distro: rpm
+      os_branch: redhat
+      remote-command: |
+        sudo dnf install -y python3
+        sudo ln -s /usr/bin/python3 /usr/bin/python || true
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: redhat
-        remote-command: |
-          sudo dnf install -y python3
-          sudo ln -s /usr/bin/python3 /usr/bin/python || true
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: rhel_7_amd64
-        remote-command: |
-          sudo  yum install -y python3
-          #Remove the symlink to python2
-          sudo unlink /usr/bin/python
-          sudo ln -s /usr/bin/python3 /usr/bin/python
-          #Some fixes for the yum package manager (no compatible with python3)
-          sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/bin/yum
-          sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/libexec/urlgrabber-ext-down
-
-
+    - os_type: linux
+      os_distro: rpm
+      os_branch: rhel_7_amd64
+      remote-command: |
+        sudo  yum install -y python3
+        #Remove the symlink to python2
+        sudo unlink /usr/bin/python
+        sudo ln -s /usr/bin/python3 /usr/bin/python
+        #Some fixes for the yum package manager (no compatible with python3)
+        sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/bin/yum
+        sudo sed -i '1s|.*|#!/usr/bin/python2|' /usr/libexec/urlgrabber-ext-down
 
 weblog:
-    name: test-app-python-unsupported-defaults
-    install:
-      - os_type: linux
+  name: test-app-python-unsupported-defaults
+  install:
+  - os_type: linux
+    copy_files:
+      - name: copy-service
+        local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+      - name: copy-service-run-script
+        local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+      - name: copy-run-weblog-script
+        local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
+      - name: copy-python-app
+        local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
 
-          - name: copy-python-app
-            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
-
-        remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
+    remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh

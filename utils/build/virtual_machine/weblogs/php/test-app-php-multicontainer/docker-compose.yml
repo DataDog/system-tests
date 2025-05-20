@@ -10,7 +10,7 @@ services:
             context: .
             dockerfile: Dockerfile.reverseproxy
         healthcheck:
-            test: "curl -f http://localhost:8080"  
+            test: "curl -f http://localhost:8080"
 
     php_7_3:
         env_file: "scenario_app.env"

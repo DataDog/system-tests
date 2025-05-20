@@ -1,59 +1,59 @@
 lang_variant:
-    name: nodejs
-    version: default
-    cache: true
-    install: 
-      - os_type: linux
-        os_distro: deb
-        remote-command: sudo apt-get update && sudo apt-get install -y nodejs
+  name: nodejs
+  version: default
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: deb
+      remote-command: sudo apt-get update && sudo apt-get install -y nodejs
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: redhat
-        remote-command: |
-          sudo dnf -y module enable nodejs:20
-          sudo dnf -y module switch-to nodejs:20
-          sudo dnf install -y nodejs
+    - os_type: linux
+      os_distro: rpm
+      os_branch: redhat
+      remote-command: |
+        sudo dnf -y module enable nodejs:20
+        sudo dnf -y module switch-to nodejs:20
+        sudo dnf install -y nodejs
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: centos_8_amd64
-        remote-command: |
-          #one of the default method for centos 8
-          #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
-          sudo dnf -y module enable nodejs:20
-          sudo dnf -y module switch-to nodejs:20
-          sudo dnf install -y nodejs
+    - os_type: linux
+      os_distro: rpm
+      os_branch: centos_8_amd64
+      remote-command: |
+        #one of the default method for centos 8
+        #https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-centos-8
+        sudo dnf -y module enable nodejs:20
+        sudo dnf -y module switch-to nodejs:20
+        sudo dnf install -y nodejs
 
-      - os_type: linux
-        os_distro: rpm
-        remote-command: |
-         #Default installation for amazon linux 2022 and 2023
-         #https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html
-          sudo yum install tar -y || sudo dnf install tar -y || true
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-          nvm install --lts
-          nvm use node
-          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local        
+    - os_type: linux
+      os_distro: rpm
+      remote-command: |
+        #Default installation for amazon linux 2022 and 2023
+        #https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/setting-up-node-on-ec2-instance.html
+        sudo yum install tar -y || sudo dnf install tar -y || true
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+        nvm install --lts
+        nvm use node
+        n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
 
 weblog:
-    name: test-app-nodejs
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+  name: test-app-nodejs
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
 
-          - name: copy-binary
-            local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+        - name: copy-binary
+          local_path: lib-injection/build/docker/nodejs/sample-app/index.js
 
-        remote-command: sh test-app-nodejs_run.sh
+      remote-command: sh test-app-nodejs_run.sh

@@ -1,7 +1,7 @@
 weblog:
     name: test-app-php-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/nginx.conf
-    install: 
+    install:
       - os_type: linux
         copy_files:
           - name: copy-multicontainer-run-script
@@ -10,7 +10,6 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/docker-compose.yml
           - name: copy-php-app
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php/index.php
-
           - name: copy-php_7_3-app-dockerfile
             local_path: utils/build/virtual_machine/weblogs/php/test-app-php-multialpine/Dockerfile.php_7_3-alpine
           - name: copy-php_7_4-app-dockerfile

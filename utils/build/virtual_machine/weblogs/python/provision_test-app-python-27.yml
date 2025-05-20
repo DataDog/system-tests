@@ -1,44 +1,43 @@
 lang_variant:
-    name: Python_2.7.18
-    version: 2.7.18
-    cache: true
-    install:
-      - os_type: linux
-        os_distro: deb
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
-        remote-command: sudo apt-get -y update && sudo apt-get -y install patch && sudo sh python_install.sh deb 2.7.18
+  name: Python_2.7.18
+  version: 2.7.18
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: deb
+      copy_files:
+        - name: copy-auto-install-script
+          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
+      remote-command: sudo apt-get -y update && sudo apt-get -y install patch && sudo sh python_install.sh deb 2.7.18
 
-      - os_type: linux
-        os_distro: rpm
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
-        remote-command: |
-          if ! command -v make &> /dev/null
-          then
-            sudo yum groupinstall "Development Tools" -y
-          fi
-          sudo yum -y install patch
-          sudo sh python_install.sh rpm 2.7.18
+    - os_type: linux
+      os_distro: rpm
+      copy_files:
+        - name: copy-auto-install-script
+          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
+      remote-command: |
+        if ! command -v make &> /dev/null
+        then
+          sudo yum groupinstall "Development Tools" -y
+        fi
+        sudo yum -y install patch
+        sudo sh python_install.sh rpm 2.7.18
 
 weblog:
-    name: test-app-python-27
-    install:
-      - os_type: linux
+  name: test-app-python-27
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/test-app-python_run.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/test-app-python_run.sh
+        - name: copy-python-app
+          local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django-27
 
-          - name: copy-python-app
-            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django-27
-
-        remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
+      remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh

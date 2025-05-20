@@ -2,7 +2,7 @@ lang_variant:
     name: Python
     version: default
     cache: true
-    install: 
+    install:
       - os_type: linux
         os_distro: deb
         remote-command: |
@@ -33,7 +33,7 @@ lang_variant:
         os_branch: alma_linux
         remote-command: |
           sudo dnf install python39 -y
-          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y
           sudo ln -s /usr/bin/python3 /usr/bin/python || true
           sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
 
@@ -42,10 +42,10 @@ lang_variant:
         os_branch: oracle_linux
         remote-command: |
           sudo dnf install python39 -y
-          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y
           sudo ln -s /usr/bin/python3.9 /usr/bin/python || true
           sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
-          
+
       - os_type: linux
         os_distro: rpm
         remote-command: |
@@ -53,21 +53,21 @@ lang_variant:
            sudo ln -s /usr/bin/python3 /usr/bin/python && sudo dnf install -y python-pip
 
 weblog:
-    name: test-app-python
-    install:
-      - os_type: linux
+  name: test-app-python
+  install:
+    - os_type: linux
 
-        copy_files:
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+      copy_files:
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
 
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
 
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
 
-          - name: copy-python-app
-            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+        - name: copy-python-app
+          local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
 
-        remote-command: sh test-app-python_run.sh
+      remote-command: sh test-app-python_run.sh

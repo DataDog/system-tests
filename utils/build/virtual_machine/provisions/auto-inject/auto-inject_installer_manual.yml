@@ -11,8 +11,8 @@
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
       export DD_SITE="datad0g.com"
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
-    else 
-      export DD_SITE="datadoghq.com" 
+    else
+      export DD_SITE="datadoghq.com"
     fi
 
     # Environment variables for the installer
@@ -48,8 +48,7 @@
     export $(cat scenario_agent.env | xargs)
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    
-    
+
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
     # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"

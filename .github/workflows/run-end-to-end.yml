@@ -75,7 +75,7 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
-      if : ${{ inputs.binaries_artifact != '' }}
+      if: ${{ inputs.binaries_artifact != '' }}
       uses: actions/download-artifact@v4
       with:
         name: ${{ inputs.binaries_artifact }}

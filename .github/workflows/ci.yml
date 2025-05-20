@@ -19,7 +19,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   lint:
     runs-on: ubuntu-latest
     steps:
@@ -32,17 +31,17 @@ jobs:
     name: Test the test
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install runner
-        uses: ./.github/actions/install_runner
-      # force /bin/bash in order to test against bash 3.2 on macOS
-      - name: Test the test (direct)
-        run: /bin/bash run.sh TEST_THE_TEST
-      - name: Test group parsing
-        run: |
-          /bin/bash run.sh ++dry APPSEC_SCENARIOS
-          /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    # force /bin/bash in order to test against bash 3.2 on macOS
+    - name: Test the test (direct)
+      run: /bin/bash run.sh TEST_THE_TEST
+    - name: Test group parsing
+      run: |
+        /bin/bash run.sh ++dry APPSEC_SCENARIOS
+        /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
 
   scenarios:
     name: Get scenarios and groups
@@ -55,14 +54,14 @@ jobs:
   fail-if-target-branch:
     name: Fail if target branch is specified
     needs:
-      - impacted_libraries
+    - impacted_libraries
     if: needs.impacted_libraries.outputs.target-branch != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Fail if PR title contains a target branch
-        run: |
-          echo "This PR can't be merged, due to the title specifying a target branch"
-          exit 1
+    - name: Fail if PR title contains a target branch
+      run: |
+        echo "This PR can't be merged, due to the title specifying a target branch"
+        exit 1
 
   system_tests:
     name: System Tests

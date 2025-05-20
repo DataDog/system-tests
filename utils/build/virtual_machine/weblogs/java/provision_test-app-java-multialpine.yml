@@ -1,58 +1,58 @@
 lang_variant:
-    name: OpenJDK8
-    cache: true
-    install:
-      - os_type: linux
-        os_distro: deb
-        os_branch: debian
-        remote-command: |
-          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
-          sudo apt update
-          sudo apt -y install openjdk-8-jdk-headless
+  name: OpenJDK8
+  cache: true
+  install:
+    - os_type: linux
+      os_distro: deb
+      os_branch: debian
+      remote-command: |
+        echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+        sudo apt update
+        sudo apt -y install openjdk-8-jdk-headless
 
-      - os_type: linux
-        os_distro: deb
-        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-8-jdk-headless
+    - os_type: linux
+      os_distro: deb
+      remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-8-jdk-headless
 
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: sudo amazon-linux-extras enable corretto8 && sudo yum -y install java-1.8.0-amazon-corretto-devel
+    - os_type: linux
+      os_distro: rpm
+      os_branch: amazon_linux2
+      remote-command: sudo amazon-linux-extras enable corretto8 && sudo yum -y install java-1.8.0-amazon-corretto-devel
 
-      - os_type: linux
-        os_distro: rpm
-        remote-command: sudo yum -y install java-1.8.0-amazon-corretto-devel || sudo yum -y install java-1.8.0-openjdk-devel
+    - os_type: linux
+      os_distro: rpm
+      remote-command: sudo yum -y install java-1.8.0-amazon-corretto-devel || sudo yum -y install java-1.8.0-openjdk-devel
 
 weblog:
-    name: test-app-java-multialpine
-    nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/docker-compose.yml
-          - name: copy-java-app
-            local_path: lib-injection/build/docker/java/jetty-app
-          - name: compile-app-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
-          - name: run-app-script
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
-          - name: copy-jdk8-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk8-alpine
-          - name: copy-jdk11-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk11-alpine
-          - name: copy-jdk15-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk15-alpine
-          - name: copy-jdk17-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk17-alpine
-          - name: copy-jdk21-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk21-alpine
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-        remote-command: |
-          sh compile_app.sh 18080
-          sh create_and_run_app_multicontainer.sh
+  name: test-app-java-multialpine
+  nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/docker-compose.yml
+        - name: copy-java-app
+          local_path: lib-injection/build/docker/java/jetty-app
+        - name: compile-app-script
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
+        - name: run-app-script
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
+        - name: copy-jdk8-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk8-alpine
+        - name: copy-jdk11-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk11-alpine
+        - name: copy-jdk15-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk15-alpine
+        - name: copy-jdk17-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk17-alpine
+        - name: copy-jdk21-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.jdk21-alpine
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
+      remote-command: |
+        sh compile_app.sh 18080
+        sh create_and_run_app_multicontainer.sh

@@ -10,7 +10,7 @@ services:
             context: .
             dockerfile: Dockerfile.reverseproxy
         healthcheck:
-            test: "curl -f http://localhost:8080"  
+            test: "curl -f http://localhost:8080"
 
     python_3_12:
         env_file: "scenario_app.env"
