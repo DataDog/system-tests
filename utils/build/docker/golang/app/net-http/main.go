@@ -43,6 +43,10 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
 )
 
+func LogProbe(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
 func main() {
 	ddtracer.Start()
 	defer ddtracer.Stop()
@@ -82,6 +86,8 @@ func main() {
 		}
 		w.WriteHeader(http.StatusOK)
 	})
+
+	mux.HandleFunc("/debugger/log", LogProbe)
 
 	mux.HandleFunc("/healthcheck", func(w http.ResponseWriter, r *http.Request) {
 

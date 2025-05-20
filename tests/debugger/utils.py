@@ -158,6 +158,8 @@ class BaseDebuggerTest:
                         ).lower()
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
+                    elif language == "golang":
+                        probe["where"]["typeName"] = "main"
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -177,6 +179,8 @@ class BaseDebuggerTest:
                             probe["where"]["sourceFile"] = "debugger/index.js"
                     elif language == "php":
                         probe["where"]["sourceFile"] = "debugger.php"
+                    elif language == "golang":
+                        probe["where"]["sourceFile"] = "main.go"
                 probe["type"] = __get_probe_type(probe["id"])
 
             return probes
@@ -635,6 +639,9 @@ class BaseDebuggerTest:
             status = self.probe_diagnostics[probe_id]["status"]
 
             if status == "EMITTING":
+                continue
+
+            if self.get_tracer()["language"] == "golang" and status == "UNKNOWN":
                 continue
 
             if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":

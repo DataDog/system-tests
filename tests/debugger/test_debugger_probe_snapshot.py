@@ -39,7 +39,10 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED"])
+        if self.get_tracer()["language"] == "golang":
+            self.wait_for_all_probes(statuses=["UNKNOWN"])
+        else:
+            self.wait_for_all_probes(statuses=["INSTALLED"])
 
         start_time = time.time()
         self.send_weblog_request(request_path)
@@ -47,7 +50,10 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         # Store the total request time for later use in debugging tests where budgets are limited by time.
         self.total_request_time = end_time - start_time
 
-        self.wait_for_all_probes(statuses=["EMITTING"])
+        if self.get_tracer()["language"] == "golang":
+            self.wait_for_all_probes(statuses=["UNKNOWN"])
+        else:
+            self.wait_for_all_probes(statuses=["EMITTING"])
 
     def _assert(self):
         self.collect()

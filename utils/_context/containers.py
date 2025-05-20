@@ -630,6 +630,27 @@ class AgentContainer(TestedContainer):
 
         self.agent_version: str | None = ""
 
+        if ".lima" in os.environ.get("DOCKER_HOST", ""):
+            # Required configuration for eBPF programs:
+            # - Privileged mode enabled
+            # - Mount points: /sys/kernel/tracing and /sys/kernel/debug
+            # - Capabilities: SYS_ADMIN, SYS_PTRACE, SYS_RESOURCE
+            # - Ulimits: memlock and core set to unlimited (-1)
+            # This will only work on Linux hosts (or inside a VM) if the host has the necessary kernel
+            # capabilities and the system is configured to allow eBPF programs.
+            self.privileged = True
+            self.ulimits = [
+                docker.types.Ulimit(name="memlock", soft=-1, hard=-1),
+                docker.types.Ulimit(name="core", soft=-1, hard=-1),
+            ]
+            self.cap_add = ["SYS_ADMIN", "SYS_PTRACE", "SYS_RESOURCE"]
+            self.volumes["/sys/kernel/tracing"] = {
+                "bind": "/sys/kernel/tracing",
+                "mode": "rw",
+                "propagation": "rshared",
+            }
+            self.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "rw", "propagation": "rshared"}
+
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         try:
             with open("binaries/agent-image", encoding="utf-8") as f:
