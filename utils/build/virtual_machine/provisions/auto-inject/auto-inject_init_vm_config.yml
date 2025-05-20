@@ -2,7 +2,7 @@
 #Add initial configuration that it must do after start the machine
 - os_type: linux
   os_distro: deb
-  remote-command: |2
+  remote-command: |
     #Disable auto updates. It could raise problems if the update proccess is launched just when we are trying to install de software
     sudo sed -i 's/1/0/g' /etc/apt/apt.conf.d/20auto-upgrades
     sudo sed -i 's/1/0/g'  /etc/apt/apt.conf.d/10periodic || true

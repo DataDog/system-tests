@@ -10,9 +10,9 @@ on:
       - synchronize
       - reopened
       - labeled
-  # push:
-  #   branches:
-  #   - main
+      # push:
+      #   branches:
+      #   - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
