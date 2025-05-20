@@ -93,7 +93,7 @@ app.get('/customResponseHeaders', (req: Request, res: Response) => {
     'x-test-header-4': 'value4',
     'x-test-header-5': 'value5',
   });
-  
+
   res.send('OK');
 });
 
@@ -103,7 +103,7 @@ app.get('/exceedResponseHeaders', (req: Request, res: Response) => {
     res.set(`x-test-header-${i}`, `value${i}`);
   }
   res.set('content-language', 'en-US');
-  
+
   res.send('OK');
 });
 
