@@ -929,7 +929,7 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
-        '*': *ref_5_48_0
+        '*': missing_feature
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': *ref_5_48_0
@@ -950,7 +950,7 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
-        '*': *ref_5_48_0
+        '*': missing_feature
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
         '*': *ref_5_48_0
