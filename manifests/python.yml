@@ -267,7 +267,7 @@ tests/:
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
+        TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
@@ -475,6 +475,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
@@ -654,6 +655,10 @@ tests/:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Tags:
         '*': v3.7.0.dev
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.11.0
       Test_Fingerprinting_Endpoint_Capability: v2.11.0
@@ -760,6 +765,11 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        flask-poc: v3.7.0
+        uds-flask: v3.7.0
+        uwsgi-poc: v3.7.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
@@ -1016,6 +1026,7 @@ tests/:
       Test_Stable_Configuration_Origin: v3.7.0.dev
       Test_TelemetryInstallSignature: v2.5.0
       Test_TelemetrySCAEnvVar: v2.9.0
+      Test_TelemetrySSIConfigs: v3.8.0.dev
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.9.0  # actual version unknown
       Test_Trace_Sampling_Globs: v2.8.0
@@ -1181,6 +1192,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
     Test_StandardTagsMethod: v1.2.1
+    Test_StandardTagsReferrerHostname: v3.4.0
     Test_StandardTagsRoute:
       '*': v1.6.0
     Test_StandardTagsStatusCode: v1.4.0-rc1

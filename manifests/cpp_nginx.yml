@@ -25,6 +25,8 @@ tests/:
     test_customconf.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking_v2.py: irrelevant (ASM is not implemented in C++)
+    test_extended_header_collection.py: irrelevant (ASM is not implemented in C++)
+    test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
     test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
     test_identify.py: irrelevant (ASM is not implemented in C++)
     test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
@@ -53,6 +55,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: irrelevant
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: irrelevant
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: irrelevant
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: irrelevant
     test_debugger_probe_snapshot.py:

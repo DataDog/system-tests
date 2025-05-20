@@ -5,7 +5,7 @@ from utils._logger import logger
 
 
 def exclude_telemetry_logs_filter(line):
-    return '"command":"telemetry"' not in line
+    return '"command":"telemetry"' not in line and '"caller":"telemetry/' not in line
 
 
 def command_injection_skipped(command_line, log_local_path):

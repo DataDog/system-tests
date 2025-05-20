@@ -654,6 +654,20 @@ def view_iast_source_path(request):
 
 @csrf_exempt
 def view_iast_sampling_by_route_method(request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
     if request.GET:
         param_tainted = request.GET.get("param")
         os.system(f"ls {param_tainted}")
@@ -690,7 +704,22 @@ def view_iast_sampling_by_route_method(request, id):
         os.system(f"ls {param_tainted}")
     return HttpResponse("OK", status=200)
 
+
 def view_iast_sampling_by_route_method_2(request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
     param_tainted = request.GET.get("param")
     os.system(f"ls {param_tainted}")
     os.system(f"ls {param_tainted}")
@@ -708,6 +737,7 @@ def view_iast_sampling_by_route_method_2(request, id):
     os.system(f"ls {param_tainted}")
     os.system(f"ls {param_tainted}")
     return HttpResponse("OK", status=200)
+
 
 @csrf_exempt
 def view_iast_source_path_parameter(request, table):

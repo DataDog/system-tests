@@ -10,7 +10,12 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v1.6.2
         Test_API_Security_RC_ASM_DD_scanners: v1.6.2
-      test_apisec_sampling.py: missing_feature
+      test_apisec_sampling.py:
+        Test_API_Security_Sampling_Different_Endpoints: v1.8.0
+        Test_API_Security_Sampling_Different_Paths: v1.8.0
+        Test_API_Security_Sampling_Different_Status: v1.8.0
+        Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
+        Test_API_Security_Sampling_With_Delay: v1.8.0
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
@@ -306,6 +311,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v1.6.2
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
@@ -353,6 +359,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
       Test_UserLoginSuccessEventV2_Metrics: missing_feature
       Test_UserLoginSuccessEventV2_Tags: missing_feature
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
       Test_Fingerprinting_Endpoint_Capability: missing_feature
@@ -411,6 +421,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
@@ -531,6 +542,7 @@ tests/:
       Test_Stable_Configuration_Origin: v1.9.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0
@@ -632,6 +644,7 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
+    Test_StandardTagsReferrerHostname: v1.9.0
     Test_StandardTagsRoute: missing_feature
     Test_StandardTagsStatusCode: v0.75.0
     Test_StandardTagsUrl: v0.76.0

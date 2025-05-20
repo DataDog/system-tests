@@ -1177,6 +1177,13 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
+      Test_APISecurityStandalone:
+        '*': v1.50.0-SNAPSHOT
+        akka-http: bug (APPSEC-56888)
+        play: bug (APPSEC-56869)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: bug (APPSEC-56870)
+        vertx4: bug (APPSEC-56871)
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
@@ -1502,6 +1509,14 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
@@ -1744,6 +1759,15 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.33.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
+        '*': missing_feature
+        spring-boot: v1.49.0
+        spring-boot-jetty: v1.49.0
+        spring-boot-openliberty: v1.49.0
+        spring-boot-payara: v1.49.0
+        spring-boot-undertow: v1.49.0
+        spring-boot-wildfly: v1.49.0
+        uds-spring-boot: v1.49.0
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         '*': missing_feature
@@ -1952,6 +1976,7 @@ tests/:
       Test_Stable_Configuration_Origin: v1.47.0-SNAPSHOT
       Test_TelemetryInstallSignature: v1.27.0
       Test_TelemetrySCAEnvVar: v1.34.0
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
       Test_Trace_Sampling_Globs: v1.25.0
@@ -2109,19 +2134,19 @@ tests/:
       spring-boot: v1.47.0
   test_sampling_rates.py:
     Test_SampleRateFunction:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisionAdded:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDecisions:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingDeterminism:
-      '*': missing_feature (Endpoint /sample_rate_route not implemented)
+      '*': v1.49.0
       spring-boot: v0.92.0
       spring-boot-3-native: v0.92.0
     Test_SamplingRates: v0.92.0
@@ -2139,6 +2164,7 @@ tests/:
       play: v1.22.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_StandardTagsMethod: v0.102.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v0.102.0
       akka-http: bug (AIDM-594)

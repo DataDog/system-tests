@@ -228,18 +228,17 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_runtime_activation
+@scenarios.appsec_and_rc_enabled
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.rc_state.reset().apply()
 
-        self.config_state_1 = rc.rc_state.set_config(*CONFIG_ENABLED).apply()
         self.r_create_session = weblog.get("/session/new")
         self.session_id = self.r_create_session.text
 
         BLOCK_SESSION_DATA[1]["rules_data"][0]["data"].append({"value": self.session_id, "expiration": 0})
-        self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
-        self.config_state_3 = rc.rc_state.set_config(*BLOCK_SESSION_DATA).apply()
+        self.config_state_1 = rc.rc_state.set_config(*BLOCK_SESSION).apply()
+        self.config_state_2 = rc.rc_state.set_config(*BLOCK_SESSION_DATA).apply()
         self.r_home_blocked = weblog.get(
             "/",
             cookies=self.r_create_session.cookies,
@@ -247,10 +246,10 @@ class Test_Automated_Session_Blocking:
 
     @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
     def test_session_blocking(self):
-        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.r_create_session.status_code == 200
 
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+
         interfaces.library.assert_waf_attack(self.r_home_blocked, pattern=self.session_id, rule="block-sessions")
         assert self.r_home_blocked.status_code == 403

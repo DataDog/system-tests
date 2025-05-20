@@ -350,6 +350,7 @@ tests/:
         echo: v1.36.0
         gin: v1.37.0
     test_asm_standalone.py:
+      Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -426,6 +427,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Metrics: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.69.0
       Test_Fingerprinting_Endpoint_Capability: v1.69.0
@@ -512,6 +517,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature (feature not implented)
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implented)
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
@@ -679,6 +685,7 @@ tests/:
       Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
+      Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v1.37.0  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v1.60.0
@@ -744,7 +751,12 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLQueryErrorReporting:
+      '*': irrelevant
+      gqlgen: v1.73.0
+      graph-gophers: v1.73.0
+      graphql-go: v1.73.0
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1
@@ -775,10 +787,17 @@ tests/:
     Test_UrlQuery: v1.40.0
   test_semantic_conventions.py:
     Test_Meta: v1.45.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_span_events.py:
+    Test_SpanEvents_WithAgentSupport:
+      "*": irrelevant
+      net-http: v1.73.0
+    Test_SpanEvents_WithoutAgentSupport:
+      "*": irrelevant
+      net-http: v1.73.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v1.39.0
     Test_StandardTagsStatusCode: v1.39.0
     Test_StandardTagsUrl: v1.40.0
