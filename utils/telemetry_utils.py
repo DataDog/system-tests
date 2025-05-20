@@ -10,6 +10,7 @@ class TelemetryUtils:
         "python": {"requests": False},
         "golang": {"github.com/tinylib/msgp": False},
         "php": {"weblog/acme": False},
+        "php": {"weblog/acme": False},
     }
 
     @staticmethod
