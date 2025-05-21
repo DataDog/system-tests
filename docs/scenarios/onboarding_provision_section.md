@@ -49,7 +49,7 @@ tested_components:
       os_distro: rpm
       remote-command: |
           echo "{'agent':'$(rpm -qa --queryformat '%{VERSION}-%{RELEASE}' datadog-agent)'}"
-    
+
     - os_type: linux
       os_distro: deb
       remote-command: |
@@ -212,14 +212,14 @@ install-prerequisites:
       os_distro: rpm
       remote-command: |
         sudo yum install -y curl wget
-        
+
     # For ARM64 architecture on Debian
     - os_type: linux
       os_distro: deb
       os_cpu: arm64
       remote-command: |
         # ARM64-specific commands
-        
+
     # For specific OS branch (like Debian)
     - os_type: linux
       os_distro: deb
@@ -298,7 +298,7 @@ install-docker:
         sudo systemctl start docker
         sudo systemctl enable docker
         sudo usermod -aG docker $USER
-        
+
     # For RPM-based systems
     - os_type: linux
       os_distro: rpm
@@ -324,7 +324,7 @@ install-agent:
         DD_AGENT_MAJOR_VERSION=$DD_agent_major_version \
         DD_API_KEY=$DD_API_KEY_ONBOARDING \
         bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
-        
+
         # Configure the agent
         sudo mv datadog.yaml /etc/datadog-agent/datadog.yaml
         sudo systemctl restart datadog-agent
@@ -346,14 +346,14 @@ lang_variant:
           echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
           sudo apt update
           sudo apt -y install default-jdk
-          
+
       - os_type: linux
         os_distro: deb
         remote-command: sudo apt-get -y update && sudo apt-get -y install default-jdk
 
       - os_type: linux
         os_distro: rpm
-        remote-command: | 
+        remote-command: |
           sudo yum install tar -y || sudo dnf install tar -y || true
           sudo sudo dnf -y install java-devel || sudo yum -y install java-devel
 
