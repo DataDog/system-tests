@@ -1081,7 +1081,7 @@ class Test_UserEventsStandalone_Automated:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+        assert meta["_dd.appsec.usr.login"] == INVALID_USER
 
     def setup_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
@@ -1091,6 +1091,7 @@ class Test_UserEventsStandalone_Automated:
         context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
         reason="no signup events in Python except for django",
     )
+    @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)

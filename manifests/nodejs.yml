@@ -418,6 +418,8 @@ tests/:
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
@@ -616,7 +618,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
       Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
-      Test_UserEventsStandalone_Automated: missing_feature
+      Test_UserEventsStandalone_Automated:
+        '*': *ref_5_40_0
+        nextjs: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
