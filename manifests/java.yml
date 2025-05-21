@@ -1709,8 +1709,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v1.33.0
-        uds-spring-boot: v1.33.0
+        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
