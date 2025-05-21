@@ -181,6 +181,8 @@ Some properties of the provisions in system-tests are as follows:
 * All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions must define a step that extracts the names and versions of installed components we want to test.
 * The same provision must be able to be installed on different operating systems and architectures.
 
+For a comprehensive understanding of the provision system, including detailed examples and troubleshooting tips, see the [Provisions Documentation](onboarding_provision_section.md).
+
 This is an example of provision file:
 
 ```yaml
@@ -251,6 +253,8 @@ install-agent:
       remote-command: |
         REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 ```
+
+For more details about provisions, including examples for each section, advanced targeting options, and troubleshooting tips, see the [Provisions Documentation](onboarding_provision_section.md).
 
 Some of the sections listed above are detailed as follows:
 
