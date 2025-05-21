@@ -383,7 +383,9 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library != "php"
     else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "true" if context.library in ["java", "ruby"] else "false",  # Enabled by default in Java and Ruby
+    "dd_logs_injection": "true"
+    if context.library in ["java", "ruby"]
+    else "false",  # Enabled by default in Java and Ruby
 }
 
 
