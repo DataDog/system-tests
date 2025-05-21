@@ -616,6 +616,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
     @missing_feature(
         context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
         reason="UST stable config is phase 2",
+        force_skip=True,
     )
     @pytest.mark.parametrize(
         "library_extra_command_arguments",

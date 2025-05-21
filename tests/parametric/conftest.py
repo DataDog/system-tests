@@ -767,7 +767,6 @@ class StableConfigWriter:
         # Now execute the shell command to decode and write to the file
         cmd = f'bash -c "mkdir -p {Path(path).parent!s} && echo {encoded} | base64 -d > {path}"'
 
-        # cmd = f'bash -c "mkdir -p {Path(path).parent!s} && cat > {path} << \'EOT\'\n{stable_config_content}\nEOT"'
         if test_library.lang == "php":
             cmd = "sudo " + cmd
         success, message = test_library.container_exec_run(cmd)
