@@ -374,9 +374,28 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "true",
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
+            # added to test Test_ExtendedHeaderCollection
+            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
+            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
+    )
+
+    # Combined scenario for API Security in standalone mode
+    appsec_standalone_api_security = EndToEndScenario(
+        "APPSEC_STANDALONE_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
+        doc="Scenario to test API Security in AppSec standalone mode",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
     appsec_standalone_experimental = EndToEndScenario(
@@ -625,10 +644,15 @@ class _Scenarios:
     tracing_config_nondefault_4 = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT_4",
         weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "true",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
+            "DD_DYNAMIC_INSTRUMENTATION_REDACTION_EXCLUDED_IDENTIFIERS": "_2fa,cookie,sessionid",
             "DD_LOGS_INJECTION": "true",
             "DD_TRACE_128_BIT_TRACEID_LOGGING_ENABLED": "false",
         },
         doc="",
+        rc_api_enabled=True,
     )
 
     parametric = ParametricScenario("PARAMETRIC", doc="WIP")
@@ -884,12 +908,27 @@ class _Scenarios:
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
         doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-
+    docker_ssi_servicenaming = DockerSSIScenario(
+        "DOCKER_SSI_SERVICENAMING",
+        doc="Validates the installer and the ssi service naming features on a docker environment",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
+    docker_ssi_crashtracking = DockerSSIScenario(
+        "DOCKER_SSI_CRASHTRACKING",
+        doc="Validates the crashtracking for ssi on a docker environment",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
+        weblog_env={
+            "DD_APPSEC_RASP_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+            # added to test Test_ExtendedRequestBodyCollection
+            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+        },
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",

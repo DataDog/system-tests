@@ -364,11 +364,11 @@ class Test_Config_Dogstatsd:
             resp = t.config()
         assert resp["dd_dogstatsd_host"] == "192.168.10.1"
 
-    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "randomname"}])
+    @parametrize("library_env", [{"DD_DOGSTATSD_HOST": "127.0.0.1"}])
     def test_dogstatsd_custom_hostname(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
-        assert resp["dd_dogstatsd_host"] == "randomname"
+        assert resp["dd_dogstatsd_host"] == "127.0.0.1"
 
     @parametrize("library_env", [{"DD_DOGSTATSD_PORT": "8150"}])
     def test_dogstatsd_custom_port(self, library_env, test_agent, test_library):
@@ -383,7 +383,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library != "php"
     else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "java" else "true",
+    "dd_logs_injection": "true" if context.library in ["java", "ruby"] else "false",  # Enabled by default in Java and Ruby
 }
 
 
@@ -425,18 +425,18 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
                     "dd_data_streams_enabled": "true"
-                    if context.library != "php"
-                    else "false",  # PHP does not support data streams
+                    if context.library not in ("php", "ruby")
+                    else "false",  # PHP and Ruby do not support data streams
                 },
             ),
             (
                 "logs_injection",
                 {
-                    "DD_LOGS_INJECTION": True,
+                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": "true",
+                    "dd_logs_injection": "true" if context.library != "ruby" else "false",
                 },
             ),
         ],

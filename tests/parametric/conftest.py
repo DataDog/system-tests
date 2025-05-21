@@ -407,7 +407,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, clear: bool = False) -> dict[str, str]:
+    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
         """Waits for and returns the latest configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
@@ -427,6 +427,8 @@ class _TestAgentAPI:
         events.sort(key=lambda r: r["tracer_time"])
         # Extract configuration data from relevant telemetry events
         for event in events:
+            if service is not None and event["application"]["service_name"] != service:
+                continue
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
