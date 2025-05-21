@@ -18,8 +18,9 @@
 # * PHP:        ghcr.io/datadog/dd-trace-php
 # * Node.js:    Direct from github source
 # * C++:        Direct from github source
-# * Python:     Clone  locally the githu repo
+# * Python:     Clone  locally the github repo
 # * Ruby:       Direct from github source
+# * Rust:       Clone  locally the github repo
 # * WAF:        Direct from github source, but not working, as this repo is now private
 ##########################################################################################
 
@@ -262,6 +263,25 @@ elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
     echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
+
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+
+    rm -rf dd-trace-rs/
+
+    # cloning here because repo is private
+    #curl -L \
+    #    -H "Authorization: token $GH_TOKEN" \
+    #    -H "Accept: application/vnd.github+json" \
+    #    --output dd-trace-rs.tar \
+    #    https://api.github.com/repos/Datadog/dd-trace-rs/tarball/$TARGET_BRANCH
+    #cat dd-trace-rs.tar
+    #tar xzvf dd-trace-rs.tar --one-top-level=dd-trace-rs --strip-components 1
+
+    echo "$TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
