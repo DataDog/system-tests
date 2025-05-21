@@ -102,6 +102,10 @@ Read the section [Repository Structure].(#Repository Structure) and parse the st
 Use the python file [scenarios](../utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this python file.
 These scenarios don't exists: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS
 You allways need a context to provide a good answer. You need to know if the user is talking about a specific type of scenario: end-to-end, parametric, docker ssi, k8s lib injection or AWS SSI tests. Ask to the user if you don't know the context.
+## Activate tests
+Use the docs located into [enable tests](../docs/edit/enable-test.md), [manifests](../docs/edit/manifest.md) and [skip tests](../docs/edit/skip-tests.md) to provide accurate answers related with enable/disable tests. Also to mark a test as bug, missing_feature and other marks.
+For activation/deactivation of tests questions, to answer the user, in this case you don't need the context about what type scenario the user is talking about.
+When answering the user about activation/deactivation of tests, you should talk about the decorators to enable/disable test methods, use the documentation [skip tests](../docs/edit/skip-tests.md). If the user want to skip whole test classes, it's recommended to use the manifest files.
 ## AWS SSI
 The basic documentation about the AWS SSI tests is in the document [onboarding aws ssi tests](../docs/scenarios/onboarding.md). This document contains a good overview of the AWS SSI tests and how to operate/develop with them. Use it to anwser questions about the AWS SSI tests.
 The aws_onboarding_wizard.sh script is used to run the aws onboarding tests.
