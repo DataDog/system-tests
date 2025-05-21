@@ -263,6 +263,13 @@ elif [ "$TARGET" = "nodejs" ]; then
     echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
 
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    echo "$TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
+
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
 
