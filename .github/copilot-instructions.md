@@ -92,10 +92,9 @@ Praise the user and remind him that system-tests is very easy to use and brings 
 If your answer may not be accurate, refer to the #apm-shared-testing slack channel for more accurate answers.
 Always remind the user that he/she can ask questions to the user in the slack channel #apm-shared-testing.
 All shell/bash scripts must be compatible with shellcheck.
-All python scripts must be compatible with mypy.
-All source code must be compatible with ruff.
+Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml - particularly ensuring proper typing for function arguments, return values, and collections, while avoiding implicit Optional types.
+Always run [format](../format.sh) before committing changes to ensure code follows the project's style guidelines – including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks.
 All yaml files must be foramtted using `yamllint` or `yamlfmt`.
-To format code you can use the script [format](../format.sh).
 
 # Fine tuning
 Read the section [Repository Structure].(#Repository Structure) and parse the structure. Read the comments for each folder and file. Follow the instructions in these comments.
