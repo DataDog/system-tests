@@ -50,15 +50,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                             logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
                             yield data, payload, chunk, span, appsec_data
 
-    def assert_use_domain(self, expected_domain: str):
-        # TODO: Move this in test class
-
-        for data in self.get_data():
-            domain = data["host"][-len(expected_domain) :]
-
-            if domain != expected_domain:
-                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
-
     def get_profiling_data(self):
         yield from self.get_data(path_filters="/api/v2/profile")
 
