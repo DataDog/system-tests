@@ -48,6 +48,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     @missing_feature(library="dotnet", reason="weblog does not respond")
     @missing_feature(library="java", reason="weblog does not respond")
     @missing_feature(library="nodejs", reason="weblog does not respond")
+    @missing_feature(library="python", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
@@ -66,6 +67,7 @@ class TestUnvalidatedHeader(BaseSinkTestWithoutTelemetry):
     @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "resteasy-netty3", reason="Endpoint responds 405")
     @missing_feature(context.weblog_variant == "vertx3", reason="Endpoint responds 403")
+    @missing_feature(library="nodejs", reason="weblog does not respond")
     def test_secure(self):
         return super().test_secure()
 
