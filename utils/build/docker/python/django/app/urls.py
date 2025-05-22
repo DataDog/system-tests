@@ -740,7 +740,6 @@ def view_iast_sampling_by_route_method_2(request, id):
     return HttpResponse("OK", status=200)
 
 
-
 @csrf_exempt
 def view_iast_unvalidated_redirect_insecure(request):
     location = request.POST.get("location")
