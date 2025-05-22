@@ -232,6 +232,7 @@ class ParametricScenario(Scenario):
             if docker is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
+            env = os.environ.copy()
             root_path = ".."
             cmd = [
                 docker,
@@ -239,18 +240,19 @@ class ParametricScenario(Scenario):
                 "--progress=plain",  # use plain output to assist in debugging
                 "-t",
                 apm_test_server_definition.container_tag,
-                "--ssh",
-                "default",
                 "-f",
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
+
+            if env.get("DOCKER_BUILDKIT") == "1":
+                idx = cmd.index("-f")
+                cmd[idx:idx] = ["--ssh", "default"]
+
             log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
-            env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
-            env["DOCKER_BUILDKIT"] = "1"
 
             # python tracer takes more than 5mn to build
             timeout = default_subprocess_run_timeout if apm_test_server_definition.lang != "python" else 600
