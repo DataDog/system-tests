@@ -28,7 +28,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
+              "lineNumber": 55
             },
             {
               "<runtime>": "<scrubbed>"
@@ -57,7 +57,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
+        "lineNumber": 55
       },
       {
         "<runtime>": "<scrubbed>"
@@ -94,7 +94,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
+              "lineNumber": 55
             },
             {
               "<runtime>": "<scrubbed>"
@@ -123,7 +123,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
+        "lineNumber": 55
       },
       {
         "<runtime>": "<scrubbed>"
@@ -160,7 +160,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
+              "lineNumber": 55
             },
             {
               "<runtime>": "<scrubbed>"
@@ -189,7 +189,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
+        "lineNumber": 55
       },
       {
         "<runtime>": "<scrubbed>"
