@@ -1,7 +1,16 @@
 // Force the initialization of the tracer
 _ = Datadog.Trace.Tracer.Instance;
 
-var builder = WebApplication.CreateBuilder(args);
+var switchMappings = new Dictionary<string, string>
+{
+    { "-Darg1", "Darg1" }
+};
+
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    Args = args,
+    CommandLineSwitchMappings = switchMappings
+});
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.ApmTestApi>>();
