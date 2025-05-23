@@ -1513,7 +1513,7 @@ tests/:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection:
-        '*': missing_feature
+        '*': v1.50.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
