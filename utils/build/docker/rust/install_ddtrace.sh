@@ -27,8 +27,8 @@ if [ -e /binaries/dd-trace-rs ]; then
 
     echo "install from /binaries/dd-trace-rs"
 else
-    cargo add --git https://github.com/DataDog/dd-trace-rs datadog-opentelemetry
-    cargo add --git https://github.com/DataDog/dd-trace-rs dd-trace
+    CARGO_NET_GIT_FETCH_WITH_CLI=true cargo add --git https://github.com/DataDog/dd-trace-rs datadog-opentelemetry
+    CARGO_NET_GIT_FETCH_WITH_CLI=true cargo add --git https://github.com/DataDog/dd-trace-rs dd-trace
 
     echo "install from https://github.com/DataDog/dd-trace-rs"
 
