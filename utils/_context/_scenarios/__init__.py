@@ -736,7 +736,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
     )
 
-    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario(
+        "FUZZER",
+        doc="Fake scenario for fuzzing (launch without pytest)",
+        github_workflow=None,
+        scenario_groups=[scenario_groups.exotics],
+    )
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 

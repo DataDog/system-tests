@@ -9,7 +9,6 @@ on:
     - opened
     - synchronize
     - reopened
-    - labeled
   # push:
   #   branches:
   #   - main
@@ -109,7 +108,7 @@ jobs:
 
   exotics:
     name: Exotics scenarios
-    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
+    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
