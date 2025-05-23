@@ -43,6 +43,7 @@
     # Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
+    echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_agent.env
     export $(cat scenario_agent.env | xargs)
