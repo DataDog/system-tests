@@ -1,3 +1,4 @@
+---
 #Extract machine logs (only datadog stuff)
 - os_type: linux
   remote-command: |

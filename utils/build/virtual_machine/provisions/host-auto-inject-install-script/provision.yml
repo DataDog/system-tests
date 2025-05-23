@@ -1,23 +1,19 @@
+---
 #Optional: Load the environment variables
 init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
-
 #Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
-
 #Optional: Extract the logs from the VM
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
-  
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
-  - init-config #Very first machine actions, like disable auto updates
-  - autoinjection_install_script #Install the injector, the agent, and the tracing library using the install script
-
+  - init-config  #Very first machine actions, like disable auto updates
+  - autoinjection_install_script  #Install the injector, the agent, and the tracing library using the install script
 init-config:
   cache: true
   populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
-
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/host-auto-inject-install-script/auto-inject_host_script.yml

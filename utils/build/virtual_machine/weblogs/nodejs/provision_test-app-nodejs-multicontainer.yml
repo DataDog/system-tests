@@ -1,33 +1,34 @@
+---
 weblog:
-    name: test-app-nodejs-multicontainer
-    nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/docker-compose.yml
-          - name: copy-nodejs-app
-            local_path: lib-injection/build/docker/nodejs/sample-app
-          - name: copy-node18-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18
-          - name: copy-node20-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20
-          - name: copy-node22-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22
-          - name: copy-nodejs-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node
-          - name: copy-node18-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18-alpine
-          - name: copy-node20-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20-alpine
-          - name: copy-node22-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22-alpine
-          - name: copy-nodejs-alpine-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node-alpine
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
-        remote-command: sh create_and_run_app_multicontainer.sh
+  name: test-app-nodejs-multicontainer
+  nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/docker-compose.yml
+        - name: copy-nodejs-app
+          local_path: lib-injection/build/docker/nodejs/sample-app
+        - name: copy-node18-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18
+        - name: copy-node20-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20
+        - name: copy-node22-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22
+        - name: copy-nodejs-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node
+        - name: copy-node18-alpine-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node18-alpine
+        - name: copy-node20-alpine-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node20-alpine
+        - name: copy-node22-alpine-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node22-alpine
+        - name: copy-nodejs-alpine-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.node-alpine
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-multicontainer/nginx.conf
+      remote-command: sh create_and_run_app_multicontainer.sh

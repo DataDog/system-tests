@@ -1,6 +1,7 @@
-    - os_type: linux
-      remote-command: |
-        # Patch docker daemon to avoid conflicts with ddbuild runners IP
-        sudo mkdir -p /etc/docker && echo '{"bip": "192.168.16.1/24", "default-address-pools":[{"base":"192.168.32.0/24", "size":24}]}' | sudo tee /etc/docker/daemon.json
-    - os_type: windows
-      remote_command: echo "Unsupported OS"
+---
+- os_type: linux
+  remote-command: |
+    # Patch docker daemon to avoid conflicts with ddbuild runners IP
+    sudo mkdir -p /etc/docker && echo '{"bip": "192.168.16.1/24", "default-address-pools":[{"base":"192.168.32.0/24", "size":24}]}' | sudo tee /etc/docker/daemon.json
+- os_type: windows
+  remote_command: echo "Unsupported OS"

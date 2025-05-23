@@ -1,3 +1,4 @@
+---
 targetSystem: "linux"
 agents:
   enabled: false
@@ -10,26 +11,23 @@ datadog:
     tlsVerify: "false"
 clusterAgent:
   enabled: true
-
   livenessProbe:
     initialDelaySeconds: 15
     periodSeconds: 15
     timeoutSeconds: 10
     successThreshold: 1
     failureThreshold: 12
-
   readinessProbe:
     initialDelaySeconds: 15
     periodSeconds: 15
     timeoutSeconds: 10
     successThreshold: 1
     failureThreshold: 12
-
   image:
-   #comment name, tag and repository to test cluster-agent for local Mac M1
-   # name: ""
-   # tag: master
-   # repository: datadog/cluster-agent-dev
+    #comment name, tag and repository to test cluster-agent for local Mac M1
+    # name: ""
+    # tag: master
+    # repository: datadog/cluster-agent-dev
     pullPolicy: Always
     doNotCheckTag: true
   admissionController:

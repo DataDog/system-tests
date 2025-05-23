@@ -1,34 +1,28 @@
+---
 #Optional: Load the environment variables
 init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
-
 #Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
-
 #Optional: Extract the logs from the VM
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
-
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
-  - init-config #Very first machine actions, like disable auto updates
-  - install-agent #Install the agent (allways latest release)
-  - autoinjection_install_script #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG' using the agent install script
+  - init-config  #Very first machine actions, like disable auto updates
+  - install-agent  #Install the agent (allways latest release)
+  - autoinjection_install_script  #Install the auto-injection softaware 'datadog-apm-inject' and 'datadog-apm-library-$DD_LANG' using the agent install script
   - install-local-apm-library
-
 init-config:
   cache: true
   populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
-
 install-agent:
   install:
     - os_type: linux
       remote-command: |
         REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
-
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/host-auto-inject-install-script/auto-inject_host_script.yml
-
 install-local-apm-library:
   install: !include utils/build/virtual_machine/provisions/local-auto-inject-install-script/auto-inject_apm_libraries_from_binaries.yml

@@ -1,21 +1,22 @@
+---
 weblog:
-    name: test-app-dotnet-multialpine
-    nginx_config: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/nginx.conf
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/docker-compose.yml
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-          - name: copy-dotnet_8-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_8-alpine
-          - name: copy-dotnet_6-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_6-alpine
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/nginx.conf
-        remote-command: sh create_and_run_app_multicontainer.sh
+  name: test-app-dotnet-multialpine
+  nginx_config: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/docker-compose.yml
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        - name: copy-dotnet_8-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_8-alpine
+        - name: copy-dotnet_6-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.dotnet_6-alpine
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-multialpine/nginx.conf
+      remote-command: sh create_and_run_app_multicontainer.sh

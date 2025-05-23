@@ -1,3 +1,4 @@
+---
 #This variables will be populated as env variables in all commands for each provision installation
 - env: dev
   agent_repo_url: datadoghq.com
@@ -8,7 +9,6 @@
   deb_repo_name: beta
   rpm_repo_name: datadog-staging
   installer_site: datad0g.com
-
 - env: prod
   agent_repo_url: datadoghq.com
   agent_dist_channel: stable

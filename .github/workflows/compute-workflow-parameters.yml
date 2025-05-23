@@ -1,5 +1,5 @@
+---
 name: "Compute workflow, scenarios and weblogs to run"
-
 on:
   workflow_call:
     inputs:
@@ -44,7 +44,6 @@ on:
         default: ''
         required: false
         type: string
-
     # Map the workflow outputs to job outputs
     outputs:
       endtoend_scenarios:  # legacy
@@ -83,7 +82,6 @@ on:
       binaries_artifact:
         description: ""
         value: ${{ jobs.main.outputs.binaries_artifact }}
-
 jobs:
   main:
     name: Get parameters
@@ -103,51 +101,49 @@ jobs:
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: main
-      id: main
-      run: |
-        source venv/bin/activate
-        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
-          -t ${{ inputs.desired_execution_time }} \
-          -s "${{ inputs.scenarios }}" \
-          -g "${{ inputs.scenarios_groups }}" \
-          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
-          --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
-          --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
-          --output $GITHUB_OUTPUT
-    - name: log
-      run: |
-        source venv/bin/activate
-        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
-          -t ${{ inputs.desired_execution_time }} \
-          -s "${{ inputs.scenarios }}" \
-          -g "${{ inputs.scenarios_groups }}" \
-          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
-          --parametric-job-count ${{ inputs.parametric_job_count }} \
-          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
-          --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
-          --format json | jq
-
-    - name: Get dev artifacts
-      if: ${{ inputs._system_tests_dev_mode }}
-      run: |
-        ./utils/scripts/load-binary.sh agent
-        ./utils/scripts/load-binary.sh ${{ inputs.library }}
-      env:
-        TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Upload artifact
-      if: ${{ inputs._system_tests_dev_mode }}
-      uses: actions/upload-artifact@v4
-      with:
-        name: binaries_dev_${{ inputs.library }}
-        path: binaries/
-        include-hidden-files: ${{ inputs.library == 'python' }}
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: main
+        id: main
+        run: |
+          source venv/bin/activate
+          python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+            -t ${{ inputs.desired_execution_time }} \
+            -s "${{ inputs.scenarios }}" \
+            -g "${{ inputs.scenarios_groups }}" \
+            --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+            --parametric-job-count ${{ inputs.parametric_job_count }} \
+            --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
+            --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+            --output $GITHUB_OUTPUT
+      - name: log
+        run: |
+          source venv/bin/activate
+          python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+            -t ${{ inputs.desired_execution_time }} \
+            -s "${{ inputs.scenarios }}" \
+            -g "${{ inputs.scenarios_groups }}" \
+            --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+            --parametric-job-count ${{ inputs.parametric_job_count }} \
+            --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
+            --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+            --format json | jq
+      - name: Get dev artifacts
+        if: ${{ inputs._system_tests_dev_mode }}
+        run: |
+          ./utils/scripts/load-binary.sh agent
+          ./utils/scripts/load-binary.sh ${{ inputs.library }}
+        env:
+          TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload artifact
+        if: ${{ inputs._system_tests_dev_mode }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries_dev_${{ inputs.library }}
+          path: binaries/
+          include-hidden-files: ${{ inputs.library == 'python' }}

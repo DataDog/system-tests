@@ -1,3 +1,4 @@
+---
 rulesets:
   - python-security:
     rules:

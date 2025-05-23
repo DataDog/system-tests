@@ -6,7 +6,8 @@ package graph
 
 import (
 	"context"
-	"weblog/gqlgen/graph/model"
+
+	"systemtests.weblog/gqlgen/graph/model"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
 )

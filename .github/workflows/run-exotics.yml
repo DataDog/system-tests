@@ -1,43 +1,41 @@
+---
 name: Exotic scenarios
-
 on:
   workflow_call:
-
 jobs:
   peformances:
     runs-on: ubuntu-latest
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Setup python 3.12
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.12'
-    - name: Run
-      run: ./tests/perfs/run.sh golang
-    - name: Display
-      run: |
-        source venv/bin/activate
-        python tests/perfs/process.py
-
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Setup python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run
+        run: ./tests/perfs/run.sh golang
+      - name: Display
+        run: |
+          source venv/bin/activate
+          python tests/perfs/process.py
   fuzzer:
     runs-on: ubuntu-latest
     env:
       DD_API_KEY: ${{ secrets.DD_API_KEY }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        repository: 'DataDog/system-tests'
-    - name: Install runner
-      uses: ./.github/actions/install_runner
-    - name: Build
-      run: |
-        ./build.sh -i agent
-        ./build.sh golang -i weblog
-    - name: Run
-      run: ./tests/fuzzer/run.sh
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: Build
+        run: |
+          ./build.sh -i agent
+          ./build.sh golang -i weblog
+      - name: Run
+        run: ./tests/fuzzer/run.sh

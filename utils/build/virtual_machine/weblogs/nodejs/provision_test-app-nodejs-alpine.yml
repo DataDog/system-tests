@@ -1,20 +1,17 @@
+---
 weblog:
-    name: test-app-nodejs-alpine
-    runtime_version: 18
-    install: 
-      - os_type: linux
-        copy_files:
-          - name: copy-container-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
-
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
-
-          - name: copy-nodejs-app
-            local_path: lib-injection/build/docker/nodejs/sample-app
-
-          - name: copy-nodejs-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.template
-            remote_path: Dockerfile.template
-
-        remote-command: sh create_and_run_app_container.sh
+  name: test-app-nodejs-alpine
+  runtime_version: 18
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-container-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+        - name: copy-nodejs-app
+          local_path: lib-injection/build/docker/nodejs/sample-app
+        - name: copy-nodejs-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-alpine/Dockerfile.template
+          remote_path: Dockerfile.template
+      remote-command: sh create_and_run_app_container.sh
