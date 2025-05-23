@@ -27,10 +27,10 @@ if [ -e /binaries/dd-trace-rs ]; then
 
     echo "install from /binaries/dd-trace-rs"
 else
-    cargo add datadog-opentelemetry
-    cargo add dd-trace
+    cargo add --git https://github.com/DataDog/dd-trace-rs datadog-opentelemetry
+    cargo add --git https://github.com/DataDog/dd-trace-rs dd-trace
 
-    echo "install from crates.io"
+    echo "install from https://github.com/DataDog/dd-trace-rs"
 
 fi
 
