@@ -691,7 +691,7 @@
             "os_branch": "windows",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "Rocky_Linux_8_amd64",
