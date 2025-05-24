@@ -54,7 +54,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "bc3df722-9034-44bc-9c10-517863820df2",
+    "exceptionHash": "291b2af9246f187556bcc3c598253df517afff6ec78b98c79f42b55fa103c",
+    "frameIndex": "4",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -140,7 +142,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "bc3df722-9034-44bc-9c10-517863820df2",
+    "exceptionHash": "291b2af9246f187556bcc3c598253df517afff6ec78b98c79f42b55fa103c",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -242,7 +246,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "bc3df722-9034-44bc-9c10-517863820df2",
+    "exceptionHash": "291b2af9246f187556bcc3c598253df517afff6ec78b98c79f42b55fa103c",
+    "frameIndex": "1",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -340,7 +346,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "bc3df722-9034-44bc-9c10-517863820df2",
+    "exceptionHash": "291b2af9246f187556bcc3c598253df517afff6ec78b98c79f42b55fa103c",
+    "frameIndex": "2",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -434,7 +442,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "bc3df722-9034-44bc-9c10-517863820df2",
+    "exceptionHash": "291b2af9246f187556bcc3c598253df517afff6ec78b98c79f42b55fa103c",
+    "frameIndex": "3",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
