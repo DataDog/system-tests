@@ -212,6 +212,7 @@ if __name__ == "__main__":
             "java_otel",
             "nodejs_otel",
             "python_otel",
+            "rust",
         ],
     )
 

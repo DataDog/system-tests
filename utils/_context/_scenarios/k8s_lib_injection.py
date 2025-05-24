@@ -338,7 +338,7 @@ class WeblogInjectionScenario(Scenario):
         self._required_containers.append(self._weblog_injection)
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
-        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby"
+        assert "TEST_LIBRARY" in os.environ, "TEST_LIBRARY must be set: java,python,nodejs,dotnet,ruby,rust"
         self._library = ComponentVersion(os.environ["TEST_LIBRARY"], "0.0")
 
         assert "LIB_INIT_IMAGE" in os.environ, "LIB_INIT_IMAGE must be set"

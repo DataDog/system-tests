@@ -105,7 +105,19 @@ if __name__ == "__main__":
         "-l",
         type=str,
         help="One of the supported Datadog languages",
-        choices=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+        choices=[
+            "cpp",
+            "cpp_httpd",
+            "cpp_nginx",
+            "dotnet",
+            "python",
+            "ruby",
+            "golang",
+            "java",
+            "nodejs",
+            "php",
+            "rust",
+        ],
     )
     parser.add_argument(
         "--repo-slug",

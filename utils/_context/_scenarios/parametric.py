@@ -147,6 +147,7 @@ class ParametricScenario(Scenario):
             "php": php_library_factory,
             "python": python_library_factory,
             "ruby": ruby_library_factory,
+            "rust": rust_library_factory,
         }[library]
 
         self.apm_test_server_definition = factory()
@@ -160,7 +161,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby", "dotnet"):
+        if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -231,6 +232,7 @@ class ParametricScenario(Scenario):
             if docker is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
+            env = os.environ.copy()
             root_path = ".."
             cmd = [
                 docker,
@@ -242,10 +244,14 @@ class ParametricScenario(Scenario):
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
+
+            if env.get("DOCKER_BUILDKIT") == "1":
+                idx = cmd.index("-f")
+                cmd[idx:idx] = ["--ssh", "default"]
+
             log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
-            env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
             # python tracer takes more than 5mn to build
@@ -641,6 +647,51 @@ RUN mkdir /parametric-tracer-logs
         container_img=dockerfile_content,
         container_cmd=["parametric-http-server"],
         container_build_dir=cpp_absolute_appdir,
+        container_build_context=_get_base_directory(),
+        env={},
+    )
+
+
+def rust_library_factory() -> APMLibraryTestServer:
+    rust_appdir = os.path.join("utils", "build", "docker", "rust", "parametric")
+    rust_absolute_appdir = os.path.join(_get_base_directory(), rust_appdir)
+    rust_reldir = rust_appdir.replace("\\", "/")
+
+    return APMLibraryTestServer(
+        lang="rust",
+        container_name="rust-test-client",
+        container_tag="rust-test-client",
+        container_img=f"""
+FROM rust:1.82.0-slim-bookworm AS builder
+WORKDIR /usr/app
+COPY {rust_reldir} .
+COPY {rust_reldir}/../install_ddtrace.sh ./binaries/ /binaries/
+COPY {rust_reldir}/Cargo.toml /usr/app/
+COPY {rust_reldir}/src /usr/app/
+
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
+RUN --mount=type=ssh \
+    mkdir -p -m 0600 ~/.ssh && \
+    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+RUN --mount=type=ssh \
+    /binaries/install_ddtrace.sh
+
+RUN \
+    --mount=type=ssh \
+    --mount=type=cache,target=/usr/app/target/ \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release && cp ./target/release/ddtrace-rs-client /usr/app
+
+FROM debian:bookworm-slim AS final
+COPY --from=builder /usr/app/ddtrace-rs-client /usr/app/ddtrace-rs-client
+COPY --from=builder /usr/app/Cargo.lock /usr/app/Cargo.lock
+COPY {rust_reldir}/system_tests_library_version.sh /usr/app/system_tests_library_version.sh
+RUN mkdir /parametric-tracer-logs
+WORKDIR /usr/app
+            """,
+        container_cmd=["./ddtrace-rs-client"],
+        container_build_dir=rust_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
     )
