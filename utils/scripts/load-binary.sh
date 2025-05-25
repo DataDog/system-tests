@@ -258,8 +258,8 @@ elif [ "$TARGET" = "agent" ]; then
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
-    # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    # NPM builds the package, so we put a trigger file that tells install script to get package from github#main
     echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
 
