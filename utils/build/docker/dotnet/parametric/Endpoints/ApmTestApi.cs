@@ -27,6 +27,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+        app.MapPost("/trace/span/add_event", AddEvent);
     }
 
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
@@ -387,5 +388,22 @@ public abstract class ApmTestApi
                 return json;
             }
         }
+    }
+
+    private static async Task AddEvent(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
+
+        var name = requestJson.GetProperty("name").GetString() ??
+                  throw new InvalidOperationException("name is null in request json.");
+
+        var timestamp = requestJson.GetProperty("timestamp").GetInt64();
+        var attributes = requestJson.GetProperty("attributes").EnumerateObject()
+            .Select(p => new KeyValuePair<string, string>(p.Name, p.Value.GetString() ?? ""))
+            .ToList();
+
+        var spanEvent = new SpanEvent(name, DateTimeOffset.FromUnixTimeMicroseconds(timestamp), attributes);
+        span.AddEvent(spanEvent);
     }
 }
