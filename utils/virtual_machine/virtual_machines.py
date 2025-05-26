@@ -224,7 +224,7 @@ class _VirtualMachine:
         if self.agent_env:
             agent_env_values = ""
             for key, value in self.agent_env.items():
-                agent_env_values += f"{key}={value} \r"
+                agent_env_values += f"{key}={value}\n"
             command_env["DD_AGENT_ENV"] = agent_env_values
         if self.app_env:
             app_env_values = ""
