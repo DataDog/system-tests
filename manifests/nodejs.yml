@@ -747,7 +747,9 @@ tests/:
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
-      Test_ExtendedRequestBodyCollection: *ref_5_54_0
+      Test_ExtendedRequestBodyCollection:
+        '*': *ref_5_54_0
+        nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
