@@ -322,8 +322,8 @@ class RequestMutator:
     ]
 
     # These items causes false positive, never test them
-    invalid_methods: tuple[str, ...]
-    invalid_header_keys: tuple[str, ...]
+    invalid_methods: tuple[str, ...] = ()
+    invalid_header_keys: tuple[str, ...] = ()
 
     def __init__(self, *, no_mutation=False):
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
