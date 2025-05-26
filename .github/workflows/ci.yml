@@ -108,7 +108,7 @@ jobs:
 
   exotics:
     name: Exotics scenarios
-    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics')
+    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
