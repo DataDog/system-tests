@@ -2643,6 +2643,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=470
         """
         pytest.mark.features(feature_id=470)(test_object)
+        return test_object
 
 
 features = _Features()
