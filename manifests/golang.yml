@@ -196,6 +196,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
@@ -355,7 +357,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: v2.0.0-dev
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone_Automated: missing_feature
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: missing_feature
       Test_Login_Events_Extended: missing_feature
@@ -796,6 +800,7 @@ tests/:
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
     Test_StandardTagsMethod: v1.39.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v1.39.0
     Test_StandardTagsStatusCode: v1.39.0
     Test_StandardTagsUrl: v1.40.0

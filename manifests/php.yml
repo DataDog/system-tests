@@ -186,6 +186,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
@@ -317,7 +319,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v1.8.0
-      Test_UserEventsStandalone: v1.8.0
+      Test_UserEventsStandalone_Automated: v1.8.0
+      Test_UserEventsStandalone_SDK_V1: v1.8.0
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -643,6 +647,7 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
+    Test_StandardTagsReferrerHostname: v1.9.0
     Test_StandardTagsRoute: missing_feature
     Test_StandardTagsStatusCode: v0.75.0
     Test_StandardTagsUrl: v0.76.0
