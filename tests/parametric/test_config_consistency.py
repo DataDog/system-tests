@@ -389,6 +389,21 @@ SDK_DEFAULT_STABLE_CONFIG = {
 }
 
 
+class QuotedStr(str):
+    __slots__ = ()
+
+
+def quoted_presenter(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+
+class CustomDumper(yaml.Dumper):
+    pass
+
+
+CustomDumper.add_representer(QuotedStr, quoted_presenter)
+
+
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
@@ -629,35 +644,23 @@ class Test_Stable_Config_Default(StableConfigWriter):
     def test_process_arguments(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
-            self.write_stable_config(
-                {
-                    "apm_configuration_rules": [
-                        {
-                            "selectors": [
-                                {
-                                    "origin": "process_arguments",
-                                    "key": "-Darg1",
-                                    "operator": "exists",
-                                }
-                            ],
-                            "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},
-                        }
-                    ]
-                },
-                path,
-                test_library,
-            )
+            config = {
+                "apm_configuration_rules": [
+                    {
+                        "selectors": [
+                            {
+                                "origin": "process_arguments",
+                                "key": "-Darg1",
+                                "operator": "exists",
+                            }
+                        ],
+                        "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},
+                    }
+                ]
+            }
+            # Use custom dumper for this specific test
+            stable_config_content = yaml.dump(config, Dumper=CustomDumper)
+            self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
             config = test_library.config()
             assert config["dd_service"] == "value", f"Service name is '{config["dd_service"]}' instead of 'value'"
-
-
-class QuotedStr(str):
-    __slots__ = ()
-
-
-def quoted_presenter(dumper, data):
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
-
-
-yaml.add_representer(QuotedStr, quoted_presenter)
