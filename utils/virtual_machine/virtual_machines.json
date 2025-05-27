@@ -690,7 +690,7 @@
             "os_distro": "2022",
             "os_branch": "windows",
             "os_cpu": "amd64",
-            "default_vm": false,
+            "default_vm": true,
             "disabled": false
         },
         {

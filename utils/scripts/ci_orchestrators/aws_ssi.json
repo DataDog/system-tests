@@ -529,7 +529,8 @@
                     "ubuntu21",
                     "centos_7_amd64",
                     "debian",
-                    "amazon_linux2022"
+                    "amazon_linux2022",
+                    "windows"
                 ],
                 "excluded_os_names": [
                     "Ubuntu_24_10_amd64",
