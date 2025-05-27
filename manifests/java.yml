@@ -1518,7 +1518,9 @@ tests/:
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': v1.50.0-SNAPSHOT
+        akka-http: missing_feature (APPSEC-56196)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (APPSEC-54966)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
