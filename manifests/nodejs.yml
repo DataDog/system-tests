@@ -418,6 +418,8 @@ tests/:
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
@@ -608,9 +610,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone:
-        '*': *ref_5_52_0
-        nextjs: missing_feature
+      Test_APISecurityStandalone: *ref_5_52_0
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
@@ -618,7 +618,11 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
       Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone_Automated:
+        '*': *ref_5_40_0
+        nextjs: missing_feature
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -1172,6 +1176,7 @@ tests/:
       '*': *ref_3_6_0
       nextjs: missing_feature  # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v2.11.0
       nextjs: missing_feature  # http.route not added in nextjs

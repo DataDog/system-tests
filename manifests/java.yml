@@ -721,6 +721,8 @@ tests/:
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
             vertx3: missing_feature
             vertx4: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
@@ -1175,7 +1177,13 @@ tests/:
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone:
+        '*': v1.50.0-SNAPSHOT
+        akka-http: bug (APPSEC-56888)
+        play: bug (APPSEC-56869)
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        vertx3: bug (APPSEC-56870)
+        vertx4: bug (APPSEC-56871)
       Test_AppSecStandalone_NotEnabled: missing_feature
       Test_AppSecStandalone_UpstreamPropagation:
         '*': v1.36.0
@@ -1195,7 +1203,9 @@ tests/:
       Test_SCAStandalone_Telemetry_V2:
         '*': v1.47.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone_Automated: missing_feature
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v1.36.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v1.36.0 but will be replaced by V2)
@@ -1503,7 +1513,7 @@ tests/:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection:
-        '*': missing_feature
+        '*': v1.50.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
@@ -1701,8 +1711,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v1.33.0
-        uds-spring-boot: v1.33.0
+        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -2014,12 +2024,12 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_baggage.py:
-    Test_Baggage_Headers_Basic: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Malformed: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Malformed2: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Max_Bytes: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Max_Items: missing_feature (feature not completed yet)
-    Test_Only_Baggage_Header: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Basic: v1.50.0
+    Test_Baggage_Headers_Malformed: v1.50.0
+    Test_Baggage_Headers_Malformed2: v1.50.0
+    Test_Baggage_Headers_Max_Bytes: v1.50.0
+    Test_Baggage_Headers_Max_Items: v1.50.0
+    Test_Only_Baggage_Header: v1.50.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0
@@ -2156,6 +2166,7 @@ tests/:
       play: v1.22.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_StandardTagsMethod: v0.102.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v0.102.0
       akka-http: bug (AIDM-594)

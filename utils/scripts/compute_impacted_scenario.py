@@ -138,6 +138,7 @@ def main() -> None:
                     r"\.github/workflows/run-lib-injection\.yml": scenario_groups.lib_injection,
                     r"\.github/workflows/run-open-telemetry\.yml": scenario_groups.open_telemetry,
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
+                    r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
                     r"\.github/.*": None,
                     r"\.gitlab/aws_gitlab-ci.yml": scenario_groups.onboarding,
                     r"\.gitlab/k8s_gitlab-ci.yml": scenario_groups.lib_injection,
