@@ -583,43 +583,133 @@ async def view_iast_sampling_by_route_method(request: Request, id):
     """
     if request.query_params:
         param_tainted = request.query_params.get("param")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
     else:
         form_data = await request.form()
         param_tainted = form_data.get("param")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
-        os.system(f"ls {param_tainted}")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
     return PlainTextResponse("OK")
 
 
-@app.route("/iast/sampling-by-route-method-count-2/{id}/", methods=["GET", "POST"])
+@app.get("/iast/sampling-by-route-method-count-2/{id}", response_class=PlainTextResponse)
 async def view_iast_sampling_by_route_method_2(request: Request, id):
     """Secondary test function for IAST vulnerability sampling algorithm.
 
@@ -636,22 +726,67 @@ async def view_iast_sampling_by_route_method_2(request: Request, id):
         HttpResponse with 200 status code
     """
     param_tainted = request.query_params.get("param")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    os.system(f"ls {param_tainted}")
-    return Response("OK", status=200)
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    return PlainTextResponse("OK")
 
 
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
