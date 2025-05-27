@@ -619,7 +619,7 @@ async def view_iast_sampling_by_route_method(request: Request, id):
     return PlainTextResponse("OK")
 
 
-@app.route("/iast/sampling-by-route-method-count-2/<str:id>/", methods=["GET", "POST"])
+@app.route("/iast/sampling-by-route-method-count-2/{id}/", methods=["GET", "POST"])
 async def view_iast_sampling_by_route_method_2(request: Request, id):
     """Secondary test function for IAST vulnerability sampling algorithm.
 
