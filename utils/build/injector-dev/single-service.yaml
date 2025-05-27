@@ -33,7 +33,7 @@ helm:
             value: "true"
   versions:
     agent: "7.64.0"
-    cluster_agent: "7.64.0"
+    cluster_agent: "1.0.0"
     injector: "0.35.0"
   config:
     datadog:
