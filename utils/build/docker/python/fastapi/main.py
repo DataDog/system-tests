@@ -564,6 +564,96 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
     return "OK"
 
 
+@app.get("/iast/sampling-by-route-method-count/<str:id>/", response_class=PlainTextResponse)
+@app.post("/iast/sampling-by-route-method-count/<str:id>/", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method(request: Request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.query_params:
+        param_tainted = request.query_params.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    else:
+        form_data = await request.form()
+        param_tainted = form_data.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return PlainTextResponse("OK")
+
+
+@app.route("/iast/sampling-by-route-method-count-2/<str:id>/", methods=["GET", "POST"])
+async def view_iast_sampling_by_route_method_2(request: Request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.query_params.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return Response("OK", status=200)
+
+
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
     try:
