@@ -27,11 +27,13 @@ def specify_span_tags() -> pytest.MarkDecorator:
     }
     return parametrize("library_env", [env])
 
+
 def specify_span_tags_with_asterisk() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_BAGGAGE_TAG_KEYS": "account.id,feature*flag=xyz",
     }
     return parametrize("library_env", [env])
+
 
 def all_span_tags() -> pytest.MarkDecorator:
     env = {
