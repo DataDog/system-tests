@@ -2627,6 +2627,7 @@ class _Features:
         pytest.mark.features(feature_id=391)(test_object)
         return test_object
 
+    @staticmethod
     def referrer_hostname(test_object):
         """Enforces standardized behaviors for configurations across the tracing libraries.
 
