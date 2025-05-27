@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, rfc, features
+from utils import weblog, interfaces, scenarios, rfc, features, bug
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
@@ -44,6 +44,7 @@ class Test_ExtendedRequestBodyCollection:
     def setup_request_body_truncated(self):
         self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd" + "A" * 5000})
 
+    @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
     def test_request_body_truncated(self):
         assert self.r.status_code == 403
         interfaces.library.assert_rasp_attack(
