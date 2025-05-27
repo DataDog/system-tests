@@ -360,15 +360,15 @@ tests/:
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v1.10.0
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v1.10.0
       Test_UserLoginFailureEventV2_Libddwaf: v1.10.0
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v1.10.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v1.10.0
       Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v1.10.0
       Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v1.10.0
       Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v1.10.0
       Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v1.10.0
       Test_UserLoginSuccessEventV2_Libddwaf: v1.10.0
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v1.10.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v1.10.0
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.10.0
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.10.0
     test_extended_header_collection.py:
