@@ -27,6 +27,11 @@ def specify_span_tags() -> pytest.MarkDecorator:
     }
     return parametrize("library_env", [env])
 
+def specify_span_tags_with_asterisk() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "account.id,feature*flag=xyz",
+    }
+    return parametrize("library_env", [env])
 
 def all_span_tags() -> pytest.MarkDecorator:
     env = {
@@ -310,7 +315,7 @@ class Test_Headers_Baggage:
             assert header_size <= max_bytes
 
 
-@features.datadog_headers_propagation
+@features.baggage_span_tags
 @scenarios.parametric
 class Test_Headers_Baggage_Span_Tags:
     def test_baggage_span_tags_default(self, test_agent, test_library):
@@ -411,3 +416,23 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.session.id") is None
         assert meta.get("baggage.account.id") is None
         assert meta.get("baggage.locale") is None
+
+    @specify_span_tags_with_asterisk()
+    def test_baggage_span_tags_key_with_asterisk(self, test_agent, test_library):
+        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,account.id=testaccount,foo=bar,feature*flag=xyz"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.account.id") == "testaccount"
+        assert meta.get("baggage.foo") is None
+        assert meta.get("baggage.feature*flag") == "xyz"

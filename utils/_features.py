@@ -2618,5 +2618,14 @@ class _Features:
         pytest.mark.features(feature_id=391)(test_object)
         return test_object
 
+    @staticmethod
+    def baggage_span_tags(test_object):
+        """Automatically add baggage to span tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=470
+        """
+        pytest.mark.features(feature_id=470)(test_object)
+        return test_object
+
 
 features = _Features()
