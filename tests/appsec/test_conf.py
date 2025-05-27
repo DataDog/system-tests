@@ -104,8 +104,9 @@ class Test_ConfigurationVariables:
 @scenarios.appsec_blocking
 class Test_ConfigurationVariables_New_Obfuscation:
     """Check for new obfuscation features in libddwaf 1.25.0 and later
-       Requires libddwaf 1.25.0 or later and updated obfuscation regex for values
+    Requires libddwaf 1.25.0 or later and updated obfuscation regex for values
     """
+
     SECRET_WITH_HIDDEN_VALUE = "hide_value"
 
     def setup_partial_obfuscation_parameter_value(self):
@@ -123,4 +124,3 @@ class Test_ConfigurationVariables_New_Obfuscation:
         # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
         interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
         interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
-
