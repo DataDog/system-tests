@@ -1,4 +1,4 @@
----
+git ---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -613,8 +613,9 @@ tests/:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
       Test_ConfigurationVariables:
-        '*': v1.1.2
+        '*': v1.5.0rc1.dev
         fastapi: v2.4.0
+      Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
       Test_CorruptedRules_Telemetry: missing_feature
