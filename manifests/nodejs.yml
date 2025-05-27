@@ -59,6 +59,7 @@ refs:
   - &ref_5_47_0 '>=5.47.0'
   - &ref_5_48_0 '>=5.48.0'
   - &ref_5_52_0 '>=5.52.0'
+  - &ref_5_54_0 '>=5.54.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -419,7 +420,9 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
       test_sampling_by_route_method_count.py:
-        TestSamplingByRouteMethodCount: missing_feature
+        TestSamplingByRouteMethodCount:
+          '*': *ref_5_54_0
+          nextjs: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
