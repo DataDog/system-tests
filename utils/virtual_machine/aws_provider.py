@@ -442,7 +442,9 @@ class AWSCommander(Commander):
                 # logger.debug(f"Creating remote folder: {destination}")
 
                 # Use different mkdir commands based on OS type
-                mkdir_cmd = "mkdir -p" if not vm or vm.os_type != "windows" else "New-Item -ItemType Directory -Force -Path"
+                mkdir_cmd = (
+                    "mkdir -p" if not vm or vm.os_type != "windows" else "New-Item -ItemType Directory -Force -Path"
+                )
                 quee_depends_on.insert(
                     0,
                     command.remote.Command(
