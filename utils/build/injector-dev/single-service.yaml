@@ -1,0 +1,55 @@
+helm:
+  apps:
+    - name: python-injection
+      namespace: application
+      values:
+        service:
+          port: 8080
+        image:
+          repository: registry.ddbuild.io/ci/injector-dev/python
+          tag: 2cd78ded
+        podLabels:
+          tags.datadoghq.com/env: local
+          app: "billing-service"
+        env:
+          - name: DD_TRACE_DEBUG
+            value: "true"
+          - name: DD_APM_INSTRUMENTATION_DEBUG
+            value: "true"
+    - name: python-no-injection
+      namespace: application
+      values:
+        service:
+          port: 8080
+        image:
+          repository: registry.ddbuild.io/ci/injector-dev/python
+          tag: 2cd78ded
+        podLabels:
+          tags.datadoghq.com/env: local
+        env:
+          - name: DD_TRACE_DEBUG
+            value: "true"
+          - name: DD_APM_INSTRUMENTATION_DEBUG
+            value: "true"
+  versions:
+    agent: "7.64.0"
+    cluster_agent: "7.64.0"
+    injector: "0.35.0"
+  config:
+    datadog:
+      apm:
+        instrumentation:
+          enabled: true
+          targets:
+            - name: "billing-service"
+              podSelector:
+                matchLabels:
+                  app: "billing-service"
+              namespaceSelector:
+                matchNames:
+                  - "application"
+              ddTraceVersions:
+                python: "default"
+              ddTraceConfigs:
+                - name: "DD_PROFILING_ENABLED"
+                  value: "true"

@@ -16,6 +16,7 @@ from .debugger import DebuggerScenario
 from .test_the_test import TestTheTestScenario
 from .auto_injection import InstallerAutoInjectionScenario
 from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkScenario, K8sManualInstrumentationScenario
+from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
@@ -904,6 +905,13 @@ class _Scenarios:
         scenario_groups=[scenario_groups.all, scenario_groups.lib_injection_profiling],
     )
     k8s_lib_injection_spark_djm = K8sSparkScenario("K8S_LIB_INJECTION_SPARK_DJM", doc="Kubernetes lib injection DJM")
+
+    # K8s Injector dev scenarios
+    k8s_injector_dev_single_service = K8sInjectorDevScenario(
+        "K8S_INJECTOR_DEV_SINGLE_SERVICE",
+        doc="Kubernetes Injector Dev Scenario",
+        scenario_provision="single-service.yaml",
+    )
 
     docker_ssi = DockerSSIScenario(
         "DOCKER_SSI",
