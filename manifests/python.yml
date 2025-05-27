@@ -160,17 +160,17 @@ tests/:
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
           TestUnvalidatedHeader_ExtendedLocation:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
           TestUnvalidatedHeader_StackTrace:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
           TestUnvalidatedRedirect:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
           TestUnvalidatedRedirect_ExtendedLocation:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
           TestUnvalidatedRedirect_StackTrace:
-            '*': v3.1.0.dev
+            '*': v3.9.0.dev
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
