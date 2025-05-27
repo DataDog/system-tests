@@ -1257,7 +1257,6 @@ def view_iast_unvalidated_redirect_secure_header():
     return response
 
 
-
 @app.route("/iast/code_injection/test_secure", methods=["POST"])
 def view_iast_code_injection_secure():
     import operator
