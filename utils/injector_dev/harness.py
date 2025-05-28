@@ -55,38 +55,61 @@ class Deployment:
 class Harness:
     """Harness is a testing harness for injector-dev tests."""
 
-    def __init__(self, scenario_provision: str, k8s_client: dict[str, k8s.client.ApiClient], scenario: dict[str, Any]):
+    def __init__(
+        self, scenario_provision: str | Path, k8s_client: dict[str, k8s.client.ApiClient], scenario: dict[str, Any]
+    ):
+        """Initialize a new Harness instance.
+
+        Args:
+            scenario_provision: Path to the scenario provision file (can be string or Path object)
+            k8s_client: Kubernetes client APIs
+            scenario: The loaded scenario data
+
+        """
+        # Convert Path to string if needed
+        self.t = str(scenario_provision)
         self.k8s = k8s_client
-        self.t = scenario_provision
         self.scenario = scenario
 
     @staticmethod
-    def new(scenario_provision: str) -> tuple["Harness", Exception | None]:
-        """Create a new testing harness."""
+    def new(scenario_provision: str | Path) -> tuple["Harness", Exception | None]:
+        """Create a new testing harness.
+
+        Args:
+            scenario_provision: Path to the scenario provision file (can be string or Path object)
+
+        Returns:
+            A tuple containing the harness and any error that occurred
+
+        """
+        k8s_client = {}  # Initialize outside try block to avoid unbound local error
+
         try:
+            # Convert Path to string if needed
+            scenario_provision_str = str(scenario_provision)
+
             # Load Kubernetes config
             k8s.config.load_kube_config()
             k8s_client = {
                 "core": k8s.client.CoreV1Api(),
                 "apps": k8s.client.AppsV1Api(),
             }
-            # utils/build/injector-dev/{self.scenario_provision}"
-            # Find scenario.yaml in the same directory as the test file
-            scenario_path = Path("utils/build/injector-dev") / scenario_provision
 
             # Load the scenario
-            with open(scenario_path, "r") as f:
+            with open(scenario_provision_str, "r") as f:
                 scenario = yaml.safe_load(f)
 
             # Validate scenario (simplified here)
             if not scenario:
-                return Harness(scenario_provision, k8s_client, {}), ValueError("Empty scenario")
+                return Harness(scenario_provision_str, k8s_client, {}), ValueError("Empty scenario")
 
-            logging.info(f"Loaded scenario at {scenario_path}")
-            return Harness(scenario_provision, k8s_client, scenario), None
+            logging.info(f"Loaded scenario at {scenario_provision_str}")
+            return Harness(scenario_provision_str, k8s_client, scenario), None
 
         except Exception as e:
-            return Harness(scenario_provision, k8s_client, {}), e
+            # Make sure we convert Path to string here too
+            scenario_provision_str = str(scenario_provision)
+            return Harness(scenario_provision_str, k8s_client, {}), e
 
     @staticmethod
     def must(harness_tuple: tuple[Optional["Harness"], Exception | None]) -> "Harness":

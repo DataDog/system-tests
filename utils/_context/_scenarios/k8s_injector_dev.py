@@ -32,7 +32,10 @@ class K8sInjectorDevScenario(Scenario):
         if scenario_groups is None:
             scenario_groups = DEFAULT_SCENARIO_GROUPS
         super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
+        # provision template
         self.scenario_provision = scenario_provision
+        # Used to store the path to the actual scenario provision file (with injected component images/log folder)
+        self.current_scenario_provision: Path | None = None
 
     def configure(self, config: pytest.Config):
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
@@ -113,14 +116,23 @@ class K8sInjectorDevScenario(Scenario):
         updater = ScenarioProvisionUpdater(logs_dir=logs_dir)
 
         # Update the scenario file with the component images
-        updated_scenario_path = updater.update_scenario(
-            self.scenario_provision, self.k8s_cluster_img, self.k8s_injector_img
+        self.current_scenario_provision = updater.update_scenario(
+            self.scenario_provision,
+            self.k8s_cluster_img,
+            self.k8s_injector_img,
+            self.k8s_weblog_img,  # Include the weblog image
         )
 
-        logger.info(f"Updated scenario file written to {updated_scenario_path}")
+        logger.info(f"Updated scenario file written to {self.current_scenario_provision}")
 
         # Apply the updated scenario
-        self.injector_client.apply_scenario(updated_scenario_path, wait=True, debug=True)
+        if self.current_scenario_provision:
+            self.injector_client.apply_scenario(self.current_scenario_provision, wait=True, debug=True)
+        else:
+            # Fallback to the original scenario file if update failed
+            source_scenario_path = Path("utils") / "build" / "injector-dev" / self.scenario_provision
+            logger.warning(f"Using original scenario file at {source_scenario_path}")
+            self.injector_client.apply_scenario(source_scenario_path, wait=True, debug=True)
 
     @property
     def library(self):

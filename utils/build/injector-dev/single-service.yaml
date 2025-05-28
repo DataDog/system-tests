@@ -1,10 +1,10 @@
 helm:
   apps:
-    - name: python-injection
+    - name: app-injection
       namespace: application
       values:
         service:
-          port: 8080
+          port: 18080
         image:
           repository: registry.ddbuild.io/ci/injector-dev/python
           tag: 2cd78ded
@@ -16,11 +16,11 @@ helm:
             value: "true"
           - name: DD_APM_INSTRUMENTATION_DEBUG
             value: "true"
-    - name: python-no-injection
+    - name: app-no-injection
       namespace: application
       values:
         service:
-          port: 8080
+          port: 18080
         image:
           repository: registry.ddbuild.io/ci/injector-dev/python
           tag: 2cd78ded
@@ -49,7 +49,7 @@ helm:
                 matchNames:
                   - "application"
               ddTraceVersions:
-                python: "default"
+                python: "latest"
               ddTraceConfigs:
                 - name: "DD_PROFILING_ENABLED"
                   value: "true"

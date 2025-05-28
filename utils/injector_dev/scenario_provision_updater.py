@@ -44,6 +44,7 @@ class ScenarioProvisionUpdater:
         scenario_filename: str,
         cluster_agent_image: K8sComponentImage,
         injector_image: K8sComponentImage,
+        weblog_image: K8sComponentImage | None = None,
     ) -> Path:
         """Update a scenario YAML file with K8s component image information.
 
@@ -51,13 +52,14 @@ class ScenarioProvisionUpdater:
             scenario_filename: Name of the scenario YAML file
             cluster_agent_image: K8sComponentImage object for the cluster agent
             injector_image: K8sComponentImage object for the injector
+            weblog_image: Optional K8sComponentImage object for the weblog/application images
 
         Returns:
             Path to the updated YAML file
 
         Raises:
             FileNotFoundError: If the scenario file doesn't exist
-            ValueError: If the YAML file doesn't have the expected structure
+            TypeError: If the YAML file doesn't have the expected structure
 
         """
         source_path = self.source_dir / scenario_filename
@@ -97,6 +99,15 @@ class ScenarioProvisionUpdater:
             "repository": injector_image.main_url,
             "tag": injector_image.tag,
         }
+
+        # Update app images if weblog_image is provided
+        if weblog_image and "apps" in scenario_yaml.get("helm", {}):
+            for app in scenario_yaml["helm"]["apps"]:
+                if "values" in app and "image" in app["values"]:
+                    # Update image repository and tag for all apps
+                    app["values"]["image"]["repository"] = weblog_image.main_url
+                    app["values"]["image"]["tag"] = weblog_image.tag
+                    logger.info(f"Updated image for app {app.get('name', 'unknown')}")
 
         # Write the updated YAML to the destination file
         try:
