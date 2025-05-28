@@ -159,22 +159,22 @@ tests/:
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817
-            uds-flask: bug (APPSEC-57817
-            uwsgi-poc: bug (APPSEC-57817
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
           TestUnvalidatedHeader_ExtendedLocation:
             '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817
-            uds-flask: bug (APPSEC-57817
-            uwsgi-poc: bug (APPSEC-57817
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
           TestUnvalidatedHeader_StackTrace:
             '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817
-            uds-flask: bug (APPSEC-57817
-            uwsgi-poc: bug (APPSEC-57817
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
           TestUnvalidatedRedirect:
             '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817
+            flask-poc: bug (APPSEC-57817)
             uds-flask: bug (APPSEC-57817)
             uwsgi-poc: bug (APPSEC-57817)
           TestUnvalidatedRedirect_ExtendedLocation:
