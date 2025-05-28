@@ -282,6 +282,34 @@ public class Main {
                         }
                     });
                 });
+        // Custom response headers endpoint
+        router.get("/customResponseHeaders")
+                .handler(ctx -> {
+                    // Set a standard header
+                    ctx.response().putHeader("content-language", "en-US");
+                    // Set a content-type header as expected by system tests
+                    ctx.response().putHeader("content-type", "text/html");
+                    // Add five custom test headers
+                    for (int i = 1; i <= 5; i++) {
+                        ctx.response().putHeader("X-Test-Header-" + i, "value" + i);
+                    }
+                    ctx.response().end("Response with custom headers");
+                });
+
+        // Exceed response headers endpoint
+        router.get("/exceedResponseHeaders")
+                .handler(ctx -> {
+                    // Add fifty custom test headers
+                    io.vertx.core.http.HttpServerResponse resp = ctx.response();
+                    for (int i = 1; i <= 50; i++) {
+                        resp.putHeader("X-Test-Header-" + i, "value" + i);
+                    }
+                    // Ensure content-language is included
+                    resp.putHeader("content-language", "en-US");
+                    // Set a content-type header as expected by system tests
+                    resp.putHeader("content-type", "text/html");
+                    resp.end("Response with more than 50 headers");
+                });
         router.get("/returnheaders")
                 .handler(ctx -> {
                     JsonObject headersJson = new JsonObject();

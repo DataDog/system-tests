@@ -186,6 +186,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
@@ -317,7 +319,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v1.8.0
-      Test_UserEventsStandalone: v1.8.0
+      Test_UserEventsStandalone_Automated: v1.8.0
+      Test_UserEventsStandalone_SDK_V1: v1.8.0
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -342,6 +346,9 @@ tests/:
       Test_Suspicious_Request_Blocking: v1.6.2
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
+    test_conf.py:
+      Test_ConfigurationVariables: missing_feature (unknown version)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
     test_event_tracking.py:
@@ -357,6 +364,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
       Test_UserLoginSuccessEventV2_Metrics: missing_feature
       Test_UserLoginSuccessEventV2_Tags: missing_feature
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
       Test_Fingerprinting_Endpoint_Capability: missing_feature
@@ -415,6 +426,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: missing_feature
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
@@ -637,6 +649,7 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsMethod: v0.75.0
+    Test_StandardTagsReferrerHostname: v1.9.0
     Test_StandardTagsRoute: missing_feature
     Test_StandardTagsStatusCode: v0.75.0
     Test_StandardTagsUrl: v0.76.0
