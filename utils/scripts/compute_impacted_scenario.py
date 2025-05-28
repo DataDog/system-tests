@@ -182,6 +182,7 @@ def main() -> None:
                     r"utils/scripts/replay_scenarios\.sh": None,
                     r"utils/scripts/get-nightly-logs\.py": None,
                     r"utils/scripts/get-workflow-summary\.py": None,
+                    r"utils/scripts/grep-nightly-logs.py\.py": None,
                     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,
                     r"utils/scripts/parametric/.*": scenarios.parametric,
                     r"utils/virtual_machine/.*": scenario_groups.onboarding,
