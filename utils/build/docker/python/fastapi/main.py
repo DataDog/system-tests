@@ -564,8 +564,8 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
     return "OK"
 
 
-@app.get("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
 @app.post("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+@app.get("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
 async def view_iast_sampling_by_route_method(request: Request, id):
     """Test function for IAST vulnerability sampling algorithm.
 
