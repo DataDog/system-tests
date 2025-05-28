@@ -736,7 +736,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
     )
 
-    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario(
+        "FUZZER",
+        doc="Fake scenario for fuzzing (launch without pytest)",
+        github_workflow=None,
+        scenario_groups=[scenario_groups.exotics],
+    )
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 
@@ -923,7 +928,12 @@ class _Scenarios:
     )
     appsec_rasp = EndToEndScenario(
         "APPSEC_RASP",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json"},
+        weblog_env={
+            "DD_APPSEC_RASP_ENABLED": "true",
+            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+            # added to test Test_ExtendedRequestBodyCollection
+            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+        },
         weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
         doc="Enable APPSEC RASP",
         github_workflow="endtoend",

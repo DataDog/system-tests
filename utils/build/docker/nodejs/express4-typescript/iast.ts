@@ -237,6 +237,68 @@ function initSinkRoutes (app: Express): void {
     res.send('<html><body><h1>Test</h1></html>')
   })
 
+
+
+  app.get('/iast/sampling-by-route-method-count/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.get('/iast/sampling-by-route-method-count-2/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.post('/iast/sampling-by-route-method-count/:key', (req: Request, res: Response): void => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
   app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
   app.post(
     '/iast/mongodb-nosql-injection/test_secure',

@@ -29,6 +29,7 @@ class _ScenarioGroups:
     appsec_rasp = ScenarioGroup()
     debugger = ScenarioGroup()
     end_to_end = ScenarioGroup()
+    exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     ipv6 = ScenarioGroup()

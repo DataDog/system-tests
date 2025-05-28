@@ -345,3 +345,67 @@ class Test_StandardTagsClientIp:
     def _get_root_span_meta(self, request):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})
+
+
+@features.referrer_hostname
+@scenarios.default
+class Test_StandardTagsReferrerHostname:
+    """Tests to verify that libraries annotate spans with correct http.referrer_hostname tags"""
+
+    def setup_referrer_hostname(self):
+        self.test_cases = [
+            # (request, expected_hostname)
+            (
+                weblog.get("/status?code=200", headers={"referer": "https://app.datadoghq.com/path"}),
+                "app.datadoghq.com",
+            ),
+            (
+                weblog.get(
+                    "/status?code=200",
+                    headers={"referer": "https://user:pass@example.com:8080/path?query=123#fragment"},
+                ),
+                "example.com",
+            ),
+            (
+                weblog.get("/status?code=200"),  # No referer header
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": ""}),  # Empty referer
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": "invalid-referer"}),  # Invalid referer
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": "file:///path/to/file"}),  # File scheme
+                None,
+            ),
+            (
+                weblog.get(
+                    "/status?code=200", headers={"referer": "https://192.0.2.1:8080/path?query=123#fragment"}
+                ),  # IP address
+                "192.0.2.1",
+            ),
+        ]
+
+    def test_referrer_hostname(self):
+        """Test http.referrer_hostname is correctly extracted from the referer header"""
+        for i, (request, expected_hostname) in enumerate(self.test_cases, 1):
+            meta = self._get_root_span_meta(request)
+            if expected_hostname is None:
+                assert (
+                    "http.referrer_hostname" not in meta
+                ), f'Test case #{i}: Expected no referrer hostname, but got "{meta.get('http.referrer_hostname')}"'
+            else:
+                assert (
+                    "http.referrer_hostname" in meta
+                ), f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
+                assert (
+                    meta["http.referrer_hostname"] == expected_hostname
+                ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+
+    def _get_root_span_meta(self, request):
+        span = interfaces.library.get_root_span(request)
+        return span.get("meta", {})

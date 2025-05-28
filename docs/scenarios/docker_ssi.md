@@ -148,10 +148,10 @@ Other component to be defined is the installable runtime versions of the languag
 class JavaRuntimeInstallableVersions:
     """Java runtime versions that can be installed automatically"""
 
-    JAVA_22 = RuntimeInstallableVersion("JAVA_22", "22.0.2-zulu")
-    JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.4-zulu")
-    JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.12-zulu")
-    JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.24-zulu")
+    JAVA_24 = RuntimeInstallableVersion("JAVA_24", "24.0.1-zulu")
+    JAVA_21 = RuntimeInstallableVersion("JAVA_21", "21.0.7-zulu")
+    JAVA_17 = RuntimeInstallableVersion("JAVA_17", "17.0.15-zulu")
+    JAVA_11 = RuntimeInstallableVersion("JAVA_11", "11.0.27-zulu")
 
 class PHPRuntimeInstallableVersions:
     """PHP runtime versions that can be installed automatically"""
