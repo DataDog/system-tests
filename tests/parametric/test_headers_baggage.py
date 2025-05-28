@@ -321,7 +321,6 @@ class Test_Headers_Baggage:
 @scenarios.parametric
 class Test_Headers_Baggage_Span_Tags:
     def test_baggage_span_tags_default(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -340,7 +339,6 @@ class Test_Headers_Baggage_Span_Tags:
 
     @specify_span_tags()
     def test_baggage_span_tags_specific_keys(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -360,7 +358,6 @@ class Test_Headers_Baggage_Span_Tags:
 
     @all_span_tags()
     def test_baggage_span_tags_all(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -380,7 +377,6 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.region") == "us-east-1"
 
     def test_baggage_span_tags_malformed_header(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -401,7 +397,6 @@ class Test_Headers_Baggage_Span_Tags:
 
     @disable_span_tags()
     def test_baggage_span_tags_disabled(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
@@ -421,7 +416,6 @@ class Test_Headers_Baggage_Span_Tags:
 
     @specify_span_tags_with_asterisk()
     def test_baggage_span_tags_key_with_asterisk(self, test_agent, test_library):
-        """Ensure baggage is enabled as a default setting and that it does not interfere with Datadog headers."""
         with test_library:
             _ = test_library.dd_make_child_span_and_get_headers(
                 [
