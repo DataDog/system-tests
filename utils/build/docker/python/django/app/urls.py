@@ -17,6 +17,7 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from moto import mock_aws
@@ -740,6 +741,34 @@ def view_iast_sampling_by_route_method_2(request, id):
 
 
 @csrf_exempt
+def view_iast_unvalidated_redirect_insecure(request):
+    location = request.POST.get("location")
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure_header(request):
+    location = request.POST.get("location")
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure(request):
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure_header(request):
+    location = "http://dummy.location.com"
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
@@ -1129,6 +1158,10 @@ urlpatterns = [
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
     path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
     path("iast/sampling-by-route-method-count-2/<str:id>/", view_iast_sampling_by_route_method_2),
+    path("iast/unvalidated_redirect/test_insecure_redirect", view_iast_unvalidated_redirect_insecure),
+    path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
+    path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
+    path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

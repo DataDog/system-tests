@@ -33,6 +33,7 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import redirect
 from flask import render_template_string
 from flask import request
 from flask import request as flask_request
@@ -1226,6 +1227,34 @@ def view_iast_code_injection_insecure():
     _ = eval(code_string)
     resp = Response("OK")
     return resp
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure():
+    location = flask_request.form["location"]
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure_header():
+    location = flask_request.form["location"]
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
 
 
 @app.route("/iast/code_injection/test_secure", methods=["POST"])
