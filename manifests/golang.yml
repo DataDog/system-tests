@@ -410,6 +410,9 @@ tests/:
       Test_Suspicious_Request_Blocking: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
+    test_conf.py:
+      Test_ConfigurationVariables: missing_feature (unknown version)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
