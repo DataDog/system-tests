@@ -164,14 +164,29 @@ tests/:
             uwsgi-poc: bug (APPSEC-11488)
           TestUnvalidatedHeader_ExtendedLocation:
             '*': v3.9.0.dev
+            uds-flask: bug (APPSEC-11488)
+            flask-poc: bug (APPSEC-11488)
+            uwsgi-poc: bug (APPSEC-11488)
           TestUnvalidatedHeader_StackTrace:
             '*': v3.9.0.dev
+            uds-flask: bug (APPSEC-11488)
+            flask-poc: bug (APPSEC-11488)
+            uwsgi-poc: bug (APPSEC-11488)
           TestUnvalidatedRedirect:
             '*': v3.9.0.dev
+            uds-flask: bug (APPSEC-11488)
+            flask-poc: bug (APPSEC-11488)
+            uwsgi-poc: bug (APPSEC-11488)
           TestUnvalidatedRedirect_ExtendedLocation:
             '*': v3.9.0.dev
+            uds-flask: bug (APPSEC-11488)
+            flask-poc: bug (APPSEC-11488)
+            uwsgi-poc: bug (APPSEC-11488)
           TestUnvalidatedRedirect_StackTrace:
             '*': v3.9.0.dev
+            uds-flask: bug (APPSEC-11488)
+            flask-poc: bug (APPSEC-11488)
+            uwsgi-poc: bug (APPSEC-11488)
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
