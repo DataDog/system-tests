@@ -16,7 +16,9 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -136,6 +138,36 @@ async def iast_header_injection_secure(request: Request):
     response = PlainTextResponse("OK")
     # label iast_header_injection
     response.headers["Vary"] = header_value
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_redirect")
+async def view_iast_unvalidated_redirect_insecure(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_header", response_class=RedirectResponse)
+async def view_iast_unvalidated_redirect_insecure_header(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_redirect")
+async def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_header", response_class=RedirectResponse)
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
     return response
 
 
