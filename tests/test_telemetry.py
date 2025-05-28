@@ -326,7 +326,6 @@ class Test_Telemetry:
     @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
-    @flaky(library="ruby", reason="APMAPI-226")
     @flaky(context.library >= "java@1.39.0", reason="APMAPI-723")
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
