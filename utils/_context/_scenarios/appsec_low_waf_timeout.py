@@ -1,6 +1,6 @@
 import pytest
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import EndToEndScenario
 
 
@@ -9,7 +9,7 @@ class AppsecLowWafTimeout(EndToEndScenario):
         super().__init__(
             name,
             doc="Appsec with a very low WAF timeout",
-            scenario_groups=[ScenarioGroup.APPSEC],
+            scenario_groups=[scenario_groups.appsec],
         )
 
     def configure(self, config: pytest.Config):

@@ -1,7 +1,6 @@
+---
 include:
- # - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_tests_new_aws_account/single-step-instrumentation-tests.yml
-
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
 stages:
   - configure
   - nodejs
@@ -12,12 +11,10 @@ stages:
   - ruby
   - pipeline-status
   - system-tests-utils
-
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
-    TEST: 1
-
+  # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
+  KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests  #helm-charts
+  TEST: 1
 compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
@@ -72,7 +69,6 @@ compute_pipeline:
       - python_ssi_gitlab_pipeline.yml
       - php_ssi_gitlab_pipeline.yml
       - ruby_ssi_gitlab_pipeline.yml
-
 nodejs_ssi_pipeline:
   stage: nodejs
   needs: ["compute_pipeline"]
@@ -87,7 +83,6 @@ nodejs_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 java_ssi_pipeline:
   stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
@@ -102,7 +97,6 @@ java_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 dotnet_ssi_pipeline:
   stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
@@ -117,7 +111,6 @@ dotnet_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 python_ssi_pipeline:
   stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
@@ -132,7 +125,6 @@ python_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 php_ssi_pipeline:
   stage: php
   needs: ["compute_pipeline", "python_ssi_pipeline"]
@@ -147,7 +139,6 @@ php_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 ruby_ssi_pipeline:
   stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
@@ -162,7 +153,6 @@ ruby_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 check_pipeline_status:
   stage: pipeline-status
   image: registry.ddbuild.io/images/ci_docker_base
@@ -170,7 +160,6 @@ check_pipeline_status:
   script:
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
-
     # Function to fetch all jobs from a paginated GitLab API endpoint
     - |
       fetch_all_jobs() {
@@ -205,7 +194,6 @@ check_pipeline_status:
 
         echo "$failed_count"
       }
-
     # Fetch failed jobs in the parent pipeline
     - |
       FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
@@ -225,13 +213,11 @@ check_pipeline_status:
         echo "❌ Pipeline failed: $TOTAL_FAILED job(s) did not succeed."
         exit 1
       fi
-
     - echo "✅ All jobs and child pipelines passed!"
   when: always
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
 delete_amis:
   extends: .base_job_onboarding
   stage: system-tests-utils
@@ -240,44 +226,42 @@ delete_amis:
     AMI_RETENTION_DAYS: 10
     AMI_LAST_LAUNCHED_DAYS: 10
   script:
-        - ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis"'
   after_script: echo "Finish"
   timeout: 3h
-
 delete_amis_by_name_or_lang:
   extends: .base_job_onboarding
   stage: system-tests-utils
   allow_failure: false
   script:
-        - |
-          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
-            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
-            exit 1
-          fi
-          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
-        - ./build.sh -i runner
-        - source venv/bin/activate
-        - |
-          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
+    - |
+      if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+        echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+        exit 1
+      fi
+      echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - |
+      CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
 
-          if [ -n "$AMI_NAME" ]; then
-            CMD="$CMD --ami-name $AMI_NAME"
-          fi
+      if [ -n "$AMI_NAME" ]; then
+        CMD="$CMD --ami-name $AMI_NAME"
+      fi
 
-          if [ -n "$AMI_LANG" ]; then
-            CMD="$CMD --ami-lang $AMI_LANG"
-          fi
+      if [ -n "$AMI_LANG" ]; then
+        CMD="$CMD --ami-lang $AMI_LANG"
+      fi
 
-          echo "Running: $CMD"
-          eval $CMD
+      echo "Running: $CMD"
+      eval $CMD
   rules:
     - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
   after_script: echo "Finish"
-
 delete_ec2_instances:
   extends: .base_job_onboarding
   stage: system-tests-utils
@@ -285,30 +269,27 @@ delete_ec2_instances:
   variables:
     EC2_AGE_MINUTES: 45
   script:
-        - ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
   rules:
     - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
   after_script: echo "Finish"
-
 count_amis:
   extends: .base_job_onboarding
   stage: system-tests-utils
   allow_failure: false
   script:
-        - ./build.sh -i runner
-        - source venv/bin/activate
-        - python utils/scripts/pulumi_clean_up.py --component amis_count
+    - ./build.sh -i runner
+    - source venv/bin/activate
+    - python utils/scripts/pulumi_clean_up.py --component amis_count
   rules:
     - if: '$SCHEDULED_JOB == "count_amis"'
   after_script: echo "Finish"
-
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
-
   stage: system-tests-utils
   allow_failure: true
   before_script:
@@ -316,11 +297,10 @@ check_merge_labels:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-    -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
+    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
     - ./utils/scripts/get_pr_merged_labels.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
-
 generate_system_tests_images:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
@@ -332,16 +312,15 @@ generate_system_tests_images:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
-      - ./utils/build/build_tracer_buddies.sh --push
-      - ./utils/build/build_python_base_images.sh --push
-      - ./lib-injection/build/build_lib_injection_images.sh
+    - echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
+    - ./utils/build/build_tracer_buddies.sh --push
+    - ./utils/build/build_python_base_images.sh --push
+    - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
-
 .delayed_base_job:
-    image: registry.ddbuild.io/images/ci_docker_base
-    tags: ["arch:amd64"]
-    script:
-        - echo "⏳ Waiting before triggering the child pipeline..."
-    when: delayed
-    start_in: 5 minutes
+  image: registry.ddbuild.io/images/ci_docker_base
+  tags: ["arch:amd64"]
+  script:
+    - echo "⏳ Waiting before triggering the child pipeline..."
+  when: delayed
+  start_in: 5 minutes

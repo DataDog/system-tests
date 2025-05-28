@@ -1,8 +1,8 @@
+---
 # Installs the installer package (only, no agent no ssi)
 #Our goal is to cache the installer and its dependencies, in the next steps (no cached steps) we will get a fresh copy of the installer
 - os_type: linux
   remote-command: |
-    
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
     # standard exec: DD_INSTALL_ONLY=true DD_INSTALLER=true bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
@@ -22,6 +22,5 @@
         exit 1
     fi
     DD_INSTALL_ONLY=true DD_INSTALLER=true  bash -c "$(cat install_script.sh)"
-
 - os_type: windows
   remote_command: echo "Unsupported step"

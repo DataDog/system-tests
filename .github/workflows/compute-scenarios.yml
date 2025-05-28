@@ -1,5 +1,5 @@
+---
 name: "Compute scenarios to run"
-
 on:
   workflow_call:
     # Map the workflow outputs to job outputs
@@ -10,7 +10,6 @@ on:
       scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
         value: ${{ jobs.main.outputs.scenarios_groups }}
-
 jobs:
   main:
     runs-on: ubuntu-latest
@@ -33,7 +32,7 @@ jobs:
       - name: Get scenario map
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Get list of modified files
-        run:  |
+        run: |
           git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
           git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
           cat modified_files.txt
@@ -46,6 +45,3 @@ jobs:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          GITHUB_PULL_REQUEST_LABELS: ${{ toJSON(github.event.pull_request.labels) }}
-          TEMP_TEST: ${{ toJSON(github.doesntexists) }}
-

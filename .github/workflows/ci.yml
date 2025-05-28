@@ -1,33 +1,29 @@
+---
 name: Testing the test
 on:
   workflow_dispatch: {}
-
   pull_request:
     branches:
-    - '**'
+      - '**'
     types:
-    - opened
-    - synchronize
-    - labeled
-    - unlabeled
-  # push:
-  #   branches:
-  #   - main
-
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      # push:
+      #   branches:
+      #   - main
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
 jobs:
-
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Run lints
-      uses: ./.github/actions/lint_code
-
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run lints
+        uses: ./.github/actions/lint_code
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
@@ -43,15 +39,12 @@ jobs:
         run: |
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
           /bin/bash run.sh ++dry TRACER_RELEASE_SCENARIOS
-
   scenarios:
     name: Get scenarios and groups
     uses: ./.github/workflows/compute-scenarios.yml
-
   impacted_libraries:
     name: Get impacted libraries
     uses: ./.github/workflows/compute-impacted-libraries.yml
-
   fail-if-target-branch:
     name: Fail if target branch is specified
     needs:
@@ -63,18 +56,16 @@ jobs:
         run: |
           echo "This PR can't be merged, due to the title specifying a target branch"
           exit 1
-
   system_tests:
     name: System Tests
     needs:
-    - lint
-    - test_the_test
-    - scenarios
-    - impacted_libraries
+      - lint
+      - test_the_test
+      - scenarios
+      - impacted_libraries
     strategy:
       matrix:
         include: ${{ fromJson(needs.impacted_libraries.outputs.library_matrix) }}
-
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
@@ -94,55 +85,51 @@ jobs:
       desired_execution_time: 3600  # 60 minutes
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
-
   system_tests_docker_mode:
     name: Ruby Docker Mode
     needs:
-    - lint
-    - test_the_test
-    - impacted_libraries
+      - lint
+      - test_the_test
+      - impacted_libraries
     if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     permissions:
       packages: write
     secrets: inherit
-
   exotics:
     name: Exotics scenarios
     if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
-
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
-    name: All jobs are green
+    # name: All jobs are green  # DO NOT SET A NAME
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      statuses: read
+      actions: read
     needs:
-    - system_tests
+      - system_tests
     if: '!cancelled()'
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - run: pip install requests
-    - run: python utils/scripts/get-workflow-summary.py DataDog/system-tests ${{ github.run_id }} -o $GITHUB_STEP_SUMMARY
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    - name: Fail if any job failed
-      if: needs.system_tests.result != 'success'
-      run: exit 1
-
+      - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
+        with:
+          # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
+          polling-interval-seconds: '60'
+          max-retries: '120'
+          ignored-name-patterns: |
+            dd-gitlab/.*
   update-CI-visibility:
     name: Update CI Visibility Dashboard
     runs-on: ubuntu-latest
     needs:
-    - system_tests
+      - system_tests
     if: always() && github.ref == 'refs/heads/main'
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Update CI Dashboard
-      run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      env:
-        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update CI Dashboard
+        run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+        env:
+          DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+          DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}

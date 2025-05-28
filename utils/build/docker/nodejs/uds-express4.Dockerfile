@@ -30,7 +30,7 @@ ENV UDS_WEBLOG=1
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=5
+ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh

@@ -1,119 +1,114 @@
+---
 include:
- # - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include-wip/robertomonteromiguel/onboarding_tests_new_aws_account/single-step-instrumentation-tests.yml
-
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
 stages:
   - SSI_TESTS
   - DOCKER_SSI
   - K8S_LIB_INJECTION
-
 ssi_tests:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["arch:amd64"]
   stage: SSI_TESTS
   script:
     - echo "NO AWS TESTS TO RUN"
-
 .base_docker_ssi_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
-    needs: []
-    allow_failure: false
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-    after_script: |
-        SCENARIO_SUFIX=$(echo "DOCKER_SSI" | tr "[:upper:]" "[:lower:]")
-        mkdir -p reports/
-        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-            cp -R logs_"${SCENARIO_SUFIX}" reports/
-        else
-            cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
-        fi
-        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-          for folder in reports/logs*/ ; do
-            echo "Checking folder: ${folder}"
-            for filename in ./${folder}feature_parity.json; do
-              if [ -e ${filename} ]
-              then
-                echo "Processing report: ${filename}"
-                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
-              fi
-            done
-          done
-        fi
-    retry:
-      max: 2
-      when:
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      #Timeout 124
-      exit_codes:
-        - 3
-        - 124
-    artifacts:
-      when: always
-      paths:
-        - reports/
-
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
+  needs: []
+  allow_failure: false
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  after_script: |
+    SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+    mkdir -p reports/
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        cp -R logs_"${SCENARIO_SUFIX}" reports/
+    else
+        cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
+    fi
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+        for filename in ./${folder}feature_parity.json; do
+          if [ -e ${filename} ]
+          then
+            echo "Processing report: ${filename}"
+            curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+          fi
+        done
+      done
+    fi
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    #Timeout 124
+    exit_codes:
+      - 3
+      - 124
+  artifacts:
+    when: always
+    paths:
+      - reports/
 .base_job_onboarding_system_tests:
-    extends: .base_job_onboarding
-    needs: []
-    allow_failure: false
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-    script:
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
-        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
-    after_script: |
-        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
-        mkdir -p reports/
-        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-            cp -R logs_"${SCENARIO_SUFIX}" reports/
-        else
-            cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
-        fi
-        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-          for folder in reports/logs*/ ; do
-            echo "Checking folder: ${folder}"
-            for filename in ./${folder}*_feature_parity.json; do
-              if [ -e ${filename} ]
-              then
-                echo "Processing report: ${filename}"
-                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
-              fi
-            done
-          done
-        fi
-    retry:
-      max: 2
-      when:
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      exit_codes:
-        - 3
-    artifacts:
-        when: always
-        paths:
-            - reports/
-
+  extends: .base_job_onboarding
+  needs: []
+  allow_failure: false
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  script:
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+    - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+  after_script: |
+    SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+    mkdir -p reports/
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        cp -R logs_"${SCENARIO_SUFIX}" reports/
+    else
+        cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
+    fi
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+        for filename in ./${folder}*_feature_parity.json; do
+          if [ -e ${filename} ]
+          then
+            echo "Processing report: ${filename}"
+            curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+          fi
+        done
+      done
+    fi
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    exit_codes:
+      - 3
+  artifacts:
+    when: always
+    paths:
+      - reports/
 .k8s_lib_injection_base:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
-  tags: [ "runner:docker" ]
+  tags: ["runner:docker"]
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
@@ -124,7 +119,7 @@ ssi_tests:
     export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
     export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
   script:
-    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner # rebuild runner in case there were changes
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner  # rebuild runner in case there were changes
     - source venv/bin/activate
     - python --version
     - pip freeze
@@ -133,9 +128,9 @@ ssi_tests:
     kind delete clusters --all || true
     mkdir -p reports
     if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-        cp -R logs_*/ reports/
+      cp -R logs_*/ reports/
     else
-        cp -R system-tests/logs_*/ reports/
+      cp -R system-tests/logs_*/ reports/
     fi
     if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
       export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
@@ -145,8 +140,8 @@ ssi_tests:
          for filename in ./${folder}feature_parity.json; do
            if [ -e ${filename} ]
            then
-              echo "Processing report: ${filename}"
-              curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+            echo "Processing report: ${filename}"
+            curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
            fi
         done
       done

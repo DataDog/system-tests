@@ -1,5 +1,5 @@
+---
 name: Lib-injection tests
-
 on:
   workflow_call:
     inputs:
@@ -18,9 +18,7 @@ on:
         type: string
 env:
   REGISTRY: ghcr.io
-
 jobs:
-
   compute-matrix:
     name: Get weblogs for Lib-Injection tests
     runs-on: ubuntu-latest
@@ -31,86 +29,85 @@ jobs:
       matrix_skip_basic: ${{ steps.compute-matrix.outputs.matrix_skip_basic }}
       init_image: ${{ steps.compute-matrix.outputs.init_image }}
     steps:
-    - name: Compute matrix
-      id: compute-matrix
-      shell: python
-      run: |
-        import json
-        import os
+      - name: Compute matrix
+        id: compute-matrix
+        shell: python
+        run: |
+          import json
+          import os
 
-        weblogs={
-          "cpp": [],
-          "dotnet": [{"name":"dd-lib-dotnet-init-test-app","supported":"true"}],
-          "golang": [],
-          "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},
-                   {"name":"jdk7-app","supported":"false"},
-                   {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}],
-          "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
-          "php": [],
-          "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
-                     {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"},
-                     {"name":"dd-lib-python-init-test-django-gunicorn-alpine","supported":"true"},
-                     {"name":"dd-lib-python-init-test-django-preinstalled","supported":"true","skip-profiling":"true"},
-                     {"name":"dd-lib-python-init-test-django-unsupported-package-force","supported":"true"},
-                     {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"},
-                     {"name":"dd-lib-python-init-test-protobuf-old","supported":"true"}],
-          "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
-        }
+          weblogs={
+            "cpp": [],
+            "dotnet": [{"name":"dd-lib-dotnet-init-test-app","supported":"true"}],
+            "golang": [],
+            "java": [{"name":"dd-lib-java-init-test-app","supported":"true"},
+                     {"name":"jdk7-app","supported":"false"},
+                     {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}],
+            "nodejs": [{"name":"sample-app","supported":"true"},{"name":"sample-app-node13","supported":"false"}],
+            "php": [],
+            "python": [{"name":"dd-lib-python-init-test-django","supported":"true"},
+                       {"name":"dd-lib-python-init-test-django-gunicorn", "supported":"true"},
+                       {"name":"dd-lib-python-init-test-django-gunicorn-alpine","supported":"true"},
+                       {"name":"dd-lib-python-init-test-django-preinstalled","supported":"true","skip-profiling":"true"},
+                       {"name":"dd-lib-python-init-test-django-unsupported-package-force","supported":"true"},
+                       {"name":"dd-lib-python-init-test-django-uvicorn","supported":"true"},
+                       {"name":"dd-lib-python-init-test-protobuf-old","supported":"true"}],
+            "ruby": [{"name":"dd-lib-ruby-init-test-rails","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-explicit","supported":"true"}, {"name":"dd-lib-ruby-init-test-rails-gemsrb","supported":"true"}]
+          }
 
-        prod_init_images={
-          "cpp": [],
-          "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest"],
-          "golang": [],
-          "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
-          "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
-          "php": [],
-          "python": ["gcr.io/datadoghq/dd-lib-python-init:latest"],
-          "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
-        }
+          prod_init_images={
+            "cpp": [],
+            "dotnet": ["gcr.io/datadoghq/dd-lib-dotnet-init:latest"],
+            "golang": [],
+            "java": ["gcr.io/datadoghq/dd-lib-java-init:latest"],
+            "nodejs": ["gcr.io/datadoghq/dd-lib-js-init:latest"],
+            "php": [],
+            "python": ["gcr.io/datadoghq/dd-lib-python-init:latest"],
+            "ruby": ["gcr.io/datadoghq/dd-lib-ruby-init:latest"],
+          }
 
-        dev_init_images={
-          "cpp": [],
-          "dotnet": ["ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
-          "golang": [],
-          "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
-          "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
-          "php": [],
-          "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
-          "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
-        }
-        #All weblog variants
-        result = weblogs["${{ inputs.library }}"]
-        #Only supported weblog variants
-        results_supported_langs = []
-        results_profiling_supported = []
-        results_skip_basic = []
-        for weblog in weblogs["${{ inputs.library }}"]:
-          if weblog["supported"] == "true":
-            results_supported_langs.append(weblog["name"])
-          if "skip-profiling" not in weblog or weblog["skip-profiling"] != "true":
-            results_profiling_supported.append(weblog["name"])
-          if "skip-basic" in weblog and weblog["skip-basic"] == "true":
-            results_skip_basic.append(weblog["name"])
+          dev_init_images={
+            "cpp": [],
+            "dotnet": ["ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"],
+            "golang": [],
+            "java": ["ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"],
+            "nodejs": ["ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"],
+            "php": [],
+            "python": ["ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"],
+            "ruby": ["ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"],
+          }
+          #All weblog variants
+          result = weblogs["${{ inputs.library }}"]
+          #Only supported weblog variants
+          results_supported_langs = []
+          results_profiling_supported = []
+          results_skip_basic = []
+          for weblog in weblogs["${{ inputs.library }}"]:
+            if weblog["supported"] == "true":
+              results_supported_langs.append(weblog["name"])
+            if "skip-profiling" not in weblog or weblog["skip-profiling"] != "true":
+              results_profiling_supported.append(weblog["name"])
+            if "skip-basic" in weblog and weblog["skip-basic"] == "true":
+              results_skip_basic.append(weblog["name"])
 
-        #Use the latest init image for prod version, latest_snapshot init image for dev version
-        if "${{ inputs.version }}" == 'prod':
-          result_init_image = prod_init_images["${{ inputs.library }}"]
-        else:
-          result_init_image = dev_init_images["${{ inputs.library }}"]
+          #Use the latest init image for prod version, latest_snapshot init image for dev version
+          if "${{ inputs.version }}" == 'prod':
+            result_init_image = prod_init_images["${{ inputs.library }}"]
+          else:
+            result_init_image = dev_init_images["${{ inputs.library }}"]
 
-        with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
-            print(f'matrix={json.dumps(result)}', file=fh)
-            print(f'init_image={json.dumps(result_init_image)}', file=fh)
-            print(f'matrix_supported_langs={json.dumps(results_supported_langs)}', file=fh)
-            print(f'matrix_profiling_supported={json.dumps(results_profiling_supported)}', file=fh)
-            print(f'matrix_skip_basic={json.dumps(results_skip_basic)}', file=fh)
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              print(f'matrix={json.dumps(result)}', file=fh)
+              print(f'init_image={json.dumps(result_init_image)}', file=fh)
+              print(f'matrix_supported_langs={json.dumps(results_supported_langs)}', file=fh)
+              print(f'matrix_profiling_supported={json.dumps(results_profiling_supported)}', file=fh)
+              print(f'matrix_skip_basic={json.dumps(results_skip_basic)}', file=fh)
 
-        print(json.dumps(result, indent=2))
-        print(json.dumps(result_init_image, indent=2))
-        print(json.dumps(results_supported_langs, indent=2))
-        print(json.dumps(results_profiling_supported, indent=2))
-        print(json.dumps(results_skip_basic, indent=2))
-
+          print(json.dumps(result, indent=2))
+          print(json.dumps(result_init_image, indent=2))
+          print(json.dumps(results_supported_langs, indent=2))
+          print(json.dumps(results_profiling_supported, indent=2))
+          print(json.dumps(results_skip_basic, indent=2))
   lib-injection-init-image-validator:
     if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
     runs-on:
@@ -122,10 +119,10 @@ jobs:
       - compute-matrix
     strategy:
       matrix:
-          weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
-          lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
-          exclude:
-            - weblog: {"name":"dd-djm-spark-test-app", "supported":"true", "skip-profiling":"true", "skip-basic":"true"}
+        weblog: ${{ fromJson(needs.compute-matrix.outputs.matrix) }}
+        lib_init_image: ${{ fromJson(needs.compute-matrix.outputs.init_image) }}
+        exclude:
+          - weblog: {"name": "dd-djm-spark-test-app", "supported": "true", "skip-profiling": "true", "skip-basic": "true"}
       fail-fast: false
     env:
       TEST_LIBRARY: ${{ inputs.library }}
@@ -135,51 +132,41 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
-
       - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d  # 3.0.0
         with:
           registry: ghcr.io/datadog
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build weblog init image validator
         run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}
-
       - name: Install runner
         uses: ./.github/actions/install_runner
-
       - name: Perform lib injection
-        if:  matrix.weblog.supported == 'true'
+        if: matrix.weblog.supported == 'true'
         run: |
           echo "Testing lib injection init image: $LIB_INIT_IMAGE"
           ./run.sh LIB_INJECTION_VALIDATION
-
       - name: Perform lib injection for not supported lang
-        if:  matrix.weblog.supported == 'false'
+        if: matrix.weblog.supported == 'false'
         run: |
           echo "Testing lib injection init image: $LIB_INIT_IMAGE"
           ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
-
       - name: Compress logs
         id: compress_logs
         if: always()
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
-
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
-
   build-weblogs-k8s-lib-injection:
     if: inputs.build_lib_injection_app_images && (inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs')
     runs-on:
@@ -208,27 +195,23 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
-
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
         with:
-          version: v0.12.1 # 0.13.0 is causing the builds to fail
+          version: v0.12.1  # 0.13.0 is causing the builds to fail
           install: true
           buildkitd-config-inline: |
             [worker.oci]
               max-parallelism = 1
-
       - name: Log in to the Container registry
-        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d  # 3.0.0
         with:
           registry: ghcr.io/datadog
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Build weblog base images (PR)
         id: build
         run: |

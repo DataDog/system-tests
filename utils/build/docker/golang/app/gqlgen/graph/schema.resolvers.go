@@ -8,6 +8,8 @@ import (
 	"context"
 
 	"systemtests.weblog/gqlgen/graph/model"
+
+	"github.com/vektah/gqlparser/v2/gqlerror"
 )
 
 // User is the resolver for the user field.
@@ -31,6 +33,21 @@ func (r *queryResolver) UserByName(ctx context.Context, name *string) ([]*model.
 		}
 	}
 	return result, nil
+}
+
+// WithError is the resolver for the withError field.
+func (r *queryResolver) WithError(ctx context.Context) (*string, error) {
+	return nil, &gqlerror.Error{
+		Message: "test error",
+		Extensions: map[string]any{
+			"int":          1,
+			"float":        1.1,
+			"str":          "1",
+			"bool":         true,
+			"other":        []any{1, "foo"},
+			"not_captured": "nope",
+		},
+	}
 }
 
 // Query returns QueryResolver implementation.

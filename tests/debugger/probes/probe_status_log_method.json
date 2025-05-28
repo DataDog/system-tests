@@ -2,25 +2,23 @@
     {
       "language": "",
       "type": "",
-      "id": "loga0cf2-meth-45cf-9f39-591received",
+      "id": "",
       "version": 0,
       "where": {
         "typeName": "NotReallyExists",
         "methodName": "SomeMethod",
         "sourceFile": null
-      },
-      "evaluateAt": "EXIT"
+      }
     },
     {
       "language": "",
       "type": "",
-      "id": "loga0cf2-meth-45cf-9f39-59installed",
+      "id": "",
       "version": 0,
       "where": {
         "typeName": "ACTUAL_TYPE_NAME",
         "methodName": "LogProbe",
         "sourceFile": null
-      },
-      "evaluateAt": "EXIT"
+      }
     }
   ]

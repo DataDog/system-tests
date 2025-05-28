@@ -28,8 +28,13 @@ def read_probes(test_name: str) -> list:
         return json.load(f)
 
 
-def generate_probe_id(probe_type: str) -> str:
-    return probe_type + str(uuid.uuid4())[len(probe_type) :]
+def generate_probe_id(probe_type: str, suffix: str = "") -> str:
+    uuid_str = str(uuid.uuid4())
+    if suffix:
+        # Replace the last len(suffix) characters of the UUID with the suffix
+        uuid_str = uuid_str[: -len(suffix)] + suffix
+
+    return probe_type + uuid_str[len(probe_type) :]
 
 
 def extract_probe_ids(probes: dict | list) -> list:
@@ -127,6 +132,7 @@ class BaseDebuggerTest:
 
             for probe in probes:
                 probe["language"] = language
+                probe["evaluateAt"] = "EXIT"
 
                 # PHP validates that the segments field is present.
                 if "segments" not in probe:
@@ -240,21 +246,17 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes_installed(self, timeout: int = 30) -> bool:
+    def wait_for_all_probes(self, statuses: list[str], timeout: int = 30) -> bool:
         self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="INSTALLED"), timeout=timeout)
+        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
 
-    def wait_for_all_probes_emitting(self, timeout: int = 30) -> bool:
-        self._wait_successful = False
-        interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, status="EMITTING"), timeout=timeout)
-        return self._wait_successful
-
-    def _wait_for_all_probes(self, data: dict, status: str):
+    def _wait_for_all_probes(self, data: dict, statuses: list[str]):
         found_ids = set()
 
-        def _check_all_probes_status(probe_diagnostics: dict, status: str):
-            logger.debug(f"Waiting for these probes to be {status}: {self.probe_ids}")
+        def _check_all_probes_status(probe_diagnostics: dict, statuses: list[str]):
+            statuses = statuses + ["ERROR"]
+            logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
 
             for expected_id in self.probe_ids:
                 if expected_id not in probe_diagnostics:
@@ -263,11 +265,11 @@ class BaseDebuggerTest:
                 probe_status = probe_diagnostics[expected_id]["status"]
                 logger.debug(f"Probe {expected_id} observed status is {probe_status}")
 
-                if probe_status in (status, "ERROR"):
+                if probe_status in statuses:
                     found_ids.add(expected_id)
                     continue
 
-                if self.get_tracer()["language"] == "dotnet" and status == "INSTALLED":
+                if self.get_tracer()["language"] == "dotnet" and statuses[0] == "INSTALLED":
                     probe = next(p for p in self.probe_definitions if p["id"] == expected_id)
                     # EMITTING is not implemented for dotnet span probe
                     if probe["type"] == "SPAN_PROBE":
@@ -292,7 +294,7 @@ class BaseDebuggerTest:
                 logger.debug("Probes diagnostics is empty")
                 return False
 
-            self._wait_successful = _check_all_probes_status(probe_diagnostics, status)
+            self._wait_successful = _check_all_probes_status(probe_diagnostics, statuses)
 
         return self._wait_successful
 
@@ -420,6 +422,7 @@ class BaseDebuggerTest:
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
 
+            logger.debug(f"Reading data from {path}")
             return list(interfaces.agent.get_data(path))
 
         all_data = _read_data()
@@ -442,6 +445,7 @@ class BaseDebuggerTest:
                 probe_id = diagnostics["probeId"]
                 status = diagnostics["status"]
 
+                logger.debug(f"Processing probe diagnostics: {probe_id} - {status}")
                 if probe_id in probe_diagnostics:
                     current_status = probe_diagnostics[probe_id]["status"]
                     if _should_update_status(current_status, status):
@@ -488,7 +492,7 @@ class BaseDebuggerTest:
     def _collect_spans(self):
         def _get_spans_hash():
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_TRACES_PATH))
-            span_hash = {}
+            span_hash: dict[str, list[dict]] = {}
 
             span_decoration_line_key = None
             if self.get_tracer()["language"] == "dotnet" or self.get_tracer()["language"] == "python":
@@ -506,17 +510,26 @@ class BaseDebuggerTest:
 
                                 is_span_decoration_method = span["name"] == "dd.dynamic.span"
                                 if is_span_decoration_method:
-                                    span_hash[span["meta"]["debugger.probeid"]] = span
+                                    probe_id = span["meta"]["debugger.probeid"]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
                                 is_span_decoration_line = span_decoration_line_key in span["meta"]
                                 if is_span_decoration_line:
-                                    span_hash[span["meta"][span_decoration_line_key]] = span
+                                    probe_id = span["meta"][span_decoration_line_key]
+                                    if probe_id not in span_hash:
+                                        span_hash[probe_id] = []
+                                    span_hash[probe_id].append(span)
                                     continue
 
                                 has_exception_id = "_dd.debug.error.exception_id" in span["meta"]
                                 if has_exception_id:
-                                    span_hash[span["meta"]["_dd.debug.error.exception_id"]] = span
+                                    exception_id = span["meta"]["_dd.debug.error.exception_id"]
+                                    if exception_id not in span_hash:
+                                        span_hash[exception_id] = []
+                                    span_hash[exception_id].append(span)
                                     continue
 
                                 has_exception_capture_id = "_dd.debug.error.exception_capture_id" in span["meta"]
@@ -530,11 +543,16 @@ class BaseDebuggerTest:
                                         if has_stack_trace:
                                             for key in span["meta"]:
                                                 if key.startswith("_dd.debug.error.") and key.endswith(".snapshot_id"):
-                                                    span_hash[span["meta"][key]] = span
-                                                    break
+                                                    snapshot_id = span["meta"][key]
+                                                    if snapshot_id not in span_hash:
+                                                        span_hash[snapshot_id] = []
+                                                    span_hash[snapshot_id].append(span)
                                             continue
                                     else:
-                                        span_hash[span["meta"]["_dd.debug.error.exception_capture_id"]] = span
+                                        capture_id = span["meta"]["_dd.debug.error.exception_capture_id"]
+                                        if capture_id not in span_hash:
+                                            span_hash[capture_id] = []
+                                        span_hash[capture_id].append(span)
                                     continue
 
                                 # For Python, we need to look for spans with stack trace information

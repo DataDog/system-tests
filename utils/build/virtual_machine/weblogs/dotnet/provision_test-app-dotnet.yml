@@ -1,119 +1,105 @@
+---
 lang_variant:
-    name: dotnet
-    cache: true
-    version: 6
-    install:
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu24
-        remote-command: |
-          sudo add-apt-repository -y ppa:dotnet/backports
-          sudo apt-get update
-          sudo apt-get install -y dotnet-sdk-6.0
-          sudo apt-get install -y dotnet-runtime-6.0
+  name: dotnet
+  cache: true
+  version: 6
+  install:
+    - os_type: linux
+      os_distro: deb
+      os_branch: ubuntu24
+      remote-command: |
+        sudo add-apt-repository -y ppa:dotnet/backports
+        sudo apt-get update
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y dotnet-runtime-6.0
+    - os_type: linux
+      os_distro: deb
+      os_branch: ubuntu22_arm64
+      remote-command: |
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y dotnet-runtime-6.0
+    - os_type: linux
+      os_distro: deb
+      os_branch: ubuntu20_amd64
+      remote-command: |
+        wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        rm packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y dotnet-runtime-6.0
+    - os_type: linux
+      os_distro: deb
+      os_branch: ubuntu23
+      remote-command: |
+        sudo apt-get update
+        sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y dotnet-runtime-6.0
+    - os_type: linux
+      os_distro: deb
+      remote-command: |
+        sudo apt-get install -y dotnet-sdk-6.0
+        sudo apt-get install -y dotnet-runtime-6.0
+    - os_type: linux
+      os_distro: rpm
+      os_branch: amazon_linux2
+      remote-command: |
+        sudo yum install -y libicu60 krb5-libs openssl-libs zlib
+        #This works for amd 64, but not for arm64 because arm64 is installing a version < 6.0.12. No crash, but the app isn't instrumented
+        #sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
+        #sudo yum install -y dotnet-sdk-6.0
+        #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+        export DD_APM_INSTRUMENTATION_DEBUG=false
+        wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+        chmod +x ./dotnet-install.sh
+        sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+        sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+        sudo ln -s /opt/dotnet /usr/bin/dotnet
+    - os_type: linux
+      os_distro: rpm
+      os_branch: rhel_7_amd64
+      remote-command: |
+        sudo yum install -y libicu krb5-libs openssl-libs zlib
+        #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
+        export DD_APM_INSTRUMENTATION_DEBUG=false
+        wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
+        chmod +x ./dotnet-install.sh
+        sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
+        sudo ln -s /opt/dotnet /usr/local/bin/dotnet
+        sudo ln -s /opt/dotnet /usr/bin/dotnet
+    - os_type: linux
+      os_distro: rpm
+      remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
+    - os_type: windows
+      remote-command: |
+        # Install chocolatey
+        Write-Host "Installing Chocolatey..."
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+        Write-Host "Successfully installed Chocolatey"
 
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu22_arm64
-        remote-command: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          sudo apt-get install -y dotnet-sdk-6.0
-          sudo apt-get install -y dotnet-runtime-6.0
-
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu20_amd64
-        remote-command: |
-          wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-          sudo dpkg -i packages-microsoft-prod.deb
-          rm packages-microsoft-prod.deb
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          sudo apt-get install -y dotnet-sdk-6.0
-          sudo apt-get install -y dotnet-runtime-6.0
-
-      - os_type: linux
-        os_distro: deb
-        os_branch: ubuntu23
-        remote-command: |
-          sudo apt-get update
-          sudo apt-get install -y ca-certificates libc6 libgcc-s1 libgssapi-krb5-2 libicu70 liblttng-ust1 libssl3 libstdc++6 libunwind8 zlib1g
-          sudo apt-get install -y dotnet-sdk-6.0
-          sudo apt-get install -y dotnet-runtime-6.0
-
-      - os_type: linux
-        os_distro: deb
-        remote-command: |
-          sudo apt-get install -y dotnet-sdk-6.0
-          sudo apt-get install -y dotnet-runtime-6.0
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: amazon_linux2
-        remote-command: |
-          sudo yum install -y libicu60 krb5-libs openssl-libs zlib
-          #This works for amd 64, but not for arm64 because arm64 is installing a version < 6.0.12. No crash, but the app isn't instrumented
-          #sudo rpm -Uvh https://packages.microsoft.com/config/centos/7/packages-microsoft-prod.rpm
-          #sudo yum install -y dotnet-sdk-6.0
-          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
-          export DD_APM_INSTRUMENTATION_DEBUG=false
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: rpm
-        os_branch: rhel_7_amd64
-        remote-command: |
-          sudo yum install -y libicu krb5-libs openssl-libs zlib
-          #Disable the DEBUG traces due to https://datadoghq.atlassian.net/browse/AIT-10255
-          export DD_APM_INSTRUMENTATION_DEBUG=false
-          wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-          chmod +x ./dotnet-install.sh
-          sudo ./dotnet-install.sh --channel 6.0 -InstallDir /opt
-          sudo ln -s /opt/dotnet /usr/local/bin/dotnet
-          sudo ln -s /opt/dotnet /usr/bin/dotnet
-
-      - os_type: linux
-        os_distro: rpm
-        remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
-
-      - os_type: windows
-        remote-command: |
-          # Install chocolatey
-          Write-Host "Installing Chocolatey..."
-          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-          Write-Host "Successfully installed Chocolatey"
-
-          Write-Host "Installing dependencies through Chocolatey..."
-          choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
-          Write-Host "Successfully installed dependencies through Chocolatey"
-
-
+        Write-Host "Installing dependencies through Chocolatey..."
+        choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
+        Write-Host "Successfully installed dependencies through Chocolatey"
 weblog:
-    name: test-app-dotnet
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
-          - name: copy-run-weblog-script
-            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
-
-        remote-command: sh test-app-dotnet_run.sh
-
-      - os_type: windows
-        copy_files:
-          - name: copy-dotnet-app
-            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-        remote-command: dir # TODO: run the app natively
+  name: test-app-dotnet
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        - name: copy-service
+          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+        - name: copy-service-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+        - name: copy-run-weblog-script
+          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
+      remote-command: sh test-app-dotnet_run.sh
+    - os_type: windows
+      copy_files:
+        - name: copy-dotnet-app
+          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+      remote-command: dir  # TODO: run the app natively

@@ -1,3 +1,4 @@
+---
 # Installs the installer package
 - os_type: linux
   copy_files:
@@ -5,18 +6,17 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
-
   remote-command: |
     if [ "${DD_env}" == "dev" ]; then
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
       export DD_SITE="datad0g.com"
       export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
-    else 
-      export DD_SITE="datadoghq.com" 
+    else
+      export DD_SITE="datadoghq.com"
     fi
 
     # Environment variables for the installer
-    export DD_APM_INSTRUMENTATION_ENABLED=all
+    export DD_APM_INSTRUMENTATION_ENABLED=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
     export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
@@ -48,8 +48,7 @@
     export $(cat scenario_agent.env | xargs)
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    
-    
+
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
     # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
@@ -76,7 +75,7 @@
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-    sudo datadog-installer apm instrument
+    for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
 - os_type: windows
   remote-command: |
     Set-ExecutionPolicy Bypass -Scope Process -Force;

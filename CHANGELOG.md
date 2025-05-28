@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-04 (137 PR merged)
+
+* 2025-04-22 [Add an option to exclude some scenarios in system-tests.yml](https://github.com/DataDog/system-tests/pull/4546) by @cbeauchesne
+* 2025-04-04 [Introduce a way to add extra argument to library cmd on parametric scenario](https://github.com/DataDog/system-tests/pull/4470) by @cbeauchesne
+
 
 ### 2025-03 (175 PR merged)
 

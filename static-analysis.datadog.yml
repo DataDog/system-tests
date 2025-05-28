@@ -1,0 +1,7 @@
+---
+rulesets:
+  - python-security:
+    rules:
+      os-system:
+        ignore:
+          - "utils/build/docker/python/django/app/urls.py"

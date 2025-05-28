@@ -1,22 +1,22 @@
+---
 #installation for lib-injection packages, using install script
 - os_type: linux
   copy_files:
-      - name: copy-auto-install-script
-        local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
-      - name: copy-docker-config
-        local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
-      - name: copy-tracer-debug-config
-        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
-      - name: copy-agent-docker-compose
-        local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
+    - name: copy-auto-install-script
+      local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+    - name: copy-docker-config
+      local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+    - name: copy-tracer-debug-config
+      local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+    - name: copy-agent-docker-compose
+      local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml
   remote-command: |
-    #Env variables set on the scenario definition. Write to file and load  
+    #Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs) 
-    
+    export $(cat scenario_agent.env | xargs)
     sudo mkdir -p /var/run/datadog-installer
     sudo mkdir -p /opt/datadog/apm/inject/run
     sudo chmod 777 /opt/datadog/apm/inject/run

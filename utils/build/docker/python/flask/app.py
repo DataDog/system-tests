@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
@@ -1336,6 +1337,36 @@ def login():
     return Response("login failure", status=401)
 
 
+@app.route("/user_login_success_event_v2", methods=["POST"])
+def user_login_success_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return Response("OK", status=200)
+
+
+@app.route("/user_login_failure_event_v2", methods=["POST"])
+def user_login_failure_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return Response("OK", status=200)
+
+
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
@@ -1504,21 +1535,15 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 

@@ -1,25 +1,26 @@
+---
 weblog:
-    name: test-app-ruby-multicontainer
-    nginx_config: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/nginx.conf
-    install:
-      - os_type: linux
-        copy_files:
-          - name: copy-multicontainer-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-          - name: copy-docker-compose-file
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/docker-compose.yml
-          - name: copy-ruby-app
-            local_path: lib-injection/build/docker/ruby
-          - name: copy-ruby3_2-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_2
-          - name: copy-ruby3_1-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_1
-          - name: copy-ruby3_0-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_0
-          - name: copy-ruby2_7-app-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_2_7
-          - name: copy-reverseproxy-dockerfile
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.reverseproxy
-          - name: copy-reverseproxy-conf
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/nginx.conf
-        remote-command: sh create_and_run_app_multicontainer.sh
+  name: test-app-ruby-multicontainer
+  nginx_config: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/nginx.conf
+  install:
+    - os_type: linux
+      copy_files:
+        - name: copy-multicontainer-run-script
+          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+        - name: copy-docker-compose-file
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/docker-compose.yml
+        - name: copy-ruby-app
+          local_path: lib-injection/build/docker/ruby
+        - name: copy-ruby3_2-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_2
+        - name: copy-ruby3_1-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_1
+        - name: copy-ruby3_0-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_3_0
+        - name: copy-ruby2_7-app-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.ruby_2_7
+        - name: copy-reverseproxy-dockerfile
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/Dockerfile.reverseproxy
+        - name: copy-reverseproxy-conf
+          local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/nginx.conf
+      remote-command: sh create_and_run_app_multicontainer.sh

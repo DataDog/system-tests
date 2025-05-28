@@ -2258,6 +2258,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def ssi_service_tracking(test_object):
+        """SSI service tracking feature
+
+        https://feature-parity.us1.prod.dog/#/?feature=327
+        """
+        pytest.mark.features(feature_id=327)(test_object)
+        return test_object
+
+    @staticmethod
     def serverless_span_pointers(test_object):
         """Serverless : Span Pointers are correctly incorporated in spans
 
@@ -2412,6 +2421,24 @@ class _Features:
         return test_object
 
     @staticmethod
+    def debugger_method_probe(test_object):
+        """Method-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=392
+        """
+        pytest.mark.features(feature_id=392)(test_object)
+        return test_object
+
+    @staticmethod
+    def debugger_line_probe(test_object):
+        """Line-level Probes
+
+        https://feature-parity.us1.prod.dog/#/?feature=393
+        """
+        pytest.mark.features(feature_id=393)(test_object)
+        return test_object
+
+    @staticmethod
     def debugger_symdb(test_object):
         """Probe Budgets
 
@@ -2562,6 +2589,42 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=387
         """
         pytest.mark.features(feature_id=387)(test_object)
+        return test_object
+
+    @staticmethod
+    def iast_schema(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=394
+        """
+        pytest.mark.features(feature_id=394)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_collect_all_headers(test_object):
+        """Appsec collects all headers
+
+        https://feature-parity.us1.prod.dog/#/?feature=390
+        """
+        pytest.mark.features(feature_id=390)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_collect_request_body(test_object):
+        """Appsec collects request body
+
+        https://feature-parity.us1.prod.dog/#/?feature=391
+        """
+        pytest.mark.features(feature_id=391)(test_object)
+        return test_object
+
+    @staticmethod
+    def referrer_hostname(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=396
+        """
+        pytest.mark.features(feature_id=396)(test_object)
         return test_object
 
 
