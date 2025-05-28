@@ -121,6 +121,8 @@ class K8sInjectorDevScenario(Scenario):
             self.k8s_cluster_img,
             self.k8s_injector_img,
             self.k8s_weblog_img,  # Include the weblog image
+            self.k8s_lib_init_img,  # Include the library init image
+            self._library.name,  # Specify the language being tested
         )
 
         logger.info(f"Updated scenario file written to {self.current_scenario_provision}")
@@ -129,10 +131,7 @@ class K8sInjectorDevScenario(Scenario):
         if self.current_scenario_provision:
             self.injector_client.apply_scenario(self.current_scenario_provision, wait=True, debug=True)
         else:
-            # Fallback to the original scenario file if update failed
-            source_scenario_path = Path("utils") / "build" / "injector-dev" / self.scenario_provision
-            logger.warning(f"Using original scenario file at {source_scenario_path}")
-            self.injector_client.apply_scenario(source_scenario_path, wait=True, debug=True)
+            raise RuntimeError("No scenario provision file found. Please ensure the scenario is properly configured.")
 
     @property
     def library(self):

@@ -45,6 +45,8 @@ class ScenarioProvisionUpdater:
         cluster_agent_image: K8sComponentImage,
         injector_image: K8sComponentImage,
         weblog_image: K8sComponentImage | None = None,
+        k8s_lib_init_img: K8sComponentImage | None = None,
+        language: str | None = None,
     ) -> Path:
         """Update a scenario YAML file with K8s component image information.
 
@@ -53,6 +55,8 @@ class ScenarioProvisionUpdater:
             cluster_agent_image: K8sComponentImage object for the cluster agent
             injector_image: K8sComponentImage object for the injector
             weblog_image: Optional K8sComponentImage object for the weblog/application images
+            k8s_lib_init_img: Optional K8sComponentImage object for the library init image
+            language: Optional language to update in ddTraceVersions (e.g., 'python', 'java')
 
         Returns:
             Path to the updated YAML file
@@ -108,6 +112,32 @@ class ScenarioProvisionUpdater:
                     app["values"]["image"]["repository"] = weblog_image.main_url
                     app["values"]["image"]["tag"] = weblog_image.tag
                     logger.info(f"Updated image for app {app.get('name', 'unknown')}")
+
+        # Update ddTraceVersions nodes if language and k8s_lib_init_img are provided
+        if language and k8s_lib_init_img and "config" in scenario_yaml.get("helm", {}):
+            # Check if the datadog.apm.instrumentation.targets structure exists
+            datadog_config = scenario_yaml["helm"]["config"].get("datadog", {})
+            apm_config = datadog_config.get("apm", {})
+            instrumentation_config = apm_config.get("instrumentation", {})
+            targets = instrumentation_config.get("targets", [])
+
+            if targets:
+                logger.info(f"Found {len(targets)} instrumentation targets")
+
+                # Update ddTraceVersions for each target
+                for target in targets:
+                    # Check if ddTraceVersions exists, if not create it
+                    if "ddTraceVersions" not in target:
+                        target["ddTraceVersions"] = {}
+
+                    # Update the specific language version
+                    target["ddTraceVersions"][language] = k8s_lib_init_img.tag
+                    logger.info(
+                        f"Updated ddTraceVersions.{language} = {k8s_lib_init_img.tag} "
+                        f"for target {target.get('name', 'unknown')}"
+                    )
+            else:
+                logger.warning("No instrumentation targets found in the scenario YAML")
 
         # Write the updated YAML to the destination file
         try:
