@@ -3,7 +3,7 @@ _ = Datadog.Trace.Tracer.Instance;
 
 var switchMappings = new Dictionary<string, string>
 {
-    { "-Darg1", "Darg1" }
+    { "-Darg1=", "Darg1" }
 };
 
 var builder = WebApplication.CreateBuilder(args);
