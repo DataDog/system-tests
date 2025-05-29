@@ -49,6 +49,13 @@ def disable_span_tags() -> pytest.MarkDecorator:
     return parametrize("library_env", [env])
 
 
+def span_tag_config() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "account.id,,",
+    }
+    return parametrize("library_env", [env])
+
+
 @features.datadog_headers_propagation
 @scenarios.parametric
 class Test_Headers_Baggage:
@@ -432,3 +439,21 @@ class Test_Headers_Baggage_Span_Tags:
         assert meta.get("baggage.account.id") == "testaccount"
         assert meta.get("baggage.foo") is None
         assert meta.get("baggage.feature*flag") == "xyz"
+
+    @span_tag_config()
+    def test_baggage_span_tags_config_with_empty_keys(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "account.id=12345,foo=bar,test=config"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.account.id") == "12345"
+        assert meta.get("baggage.foo") is None
+        assert meta.get("baggage.test") is None
