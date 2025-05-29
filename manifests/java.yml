@@ -1444,6 +1444,7 @@ tests/:
         '*': v0.100.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_ConfRuleSet:
         '*': v0.93.0
@@ -1513,12 +1514,14 @@ tests/:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection:
-        '*': missing_feature
+        '*': v1.50.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
-        '*': missing_feature
+        '*': v1.50.0-SNAPSHOT
+        akka-http: missing_feature (APPSEC-56196)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (APPSEC-54966)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
@@ -1711,8 +1714,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v1.33.0
-        uds-spring-boot: v1.33.0
+        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature

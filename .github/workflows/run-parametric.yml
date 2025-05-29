@@ -30,8 +30,6 @@ on:
         type: string
       ref:
         description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
-        default: 'main'
-        required: false
         type: string
       force_execute_tests:
         description: "Array of tests to force-execute, separated by commas"
@@ -71,7 +69,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          repository: 'DataDog/system-tests'
+          repository: DataDog/system-tests
           ref: ${{ inputs.ref }}
       - name: Install runner
         uses: ./.github/actions/install_runner

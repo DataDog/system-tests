@@ -157,12 +157,36 @@ tests/:
           TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
-          TestUnvalidatedHeader: missing_feature
-          TestUnvalidatedHeader_ExtendedLocation: missing_feature
-          TestUnvalidatedHeader_StackTrace: missing_feature
-          TestUnvalidatedRedirect: missing_feature
-          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
-          TestUnvalidatedRedirect_StackTrace: missing_feature
+          TestUnvalidatedHeader:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
+          TestUnvalidatedHeader_ExtendedLocation:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
+          TestUnvalidatedHeader_StackTrace:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
+          TestUnvalidatedRedirect:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
+          TestUnvalidatedRedirect_ExtendedLocation:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
+          TestUnvalidatedRedirect_StackTrace:
+            '*': v3.9.0.dev
+            flask-poc: bug (APPSEC-57817)
+            uds-flask: bug (APPSEC-57817)
+            uwsgi-poc: bug (APPSEC-57817)
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
@@ -613,8 +637,9 @@ tests/:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
       Test_ConfigurationVariables:
-        '*': v1.1.2
+        '*': v1.5.0rc1.dev
         fastapi: v2.4.0
+      Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
       Test_CorruptedRules_Telemetry: missing_feature
