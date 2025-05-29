@@ -1959,6 +1959,7 @@ tests/:
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.35.2

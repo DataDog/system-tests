@@ -1006,6 +1006,7 @@ tests/:
       Test_Headers_B3multi: v2.8.0
     test_headers_baggage.py:
       Test_Headers_Baggage: v2.16.0
+      Test_Headers_Baggage_Span_Tags: v3.7.0
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
