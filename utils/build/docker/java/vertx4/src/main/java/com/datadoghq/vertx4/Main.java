@@ -8,6 +8,7 @@ import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx4.iast.routes.IastSourceRouteProvider;
+import com.datadoghq.vertx4.iast.routes.IastSamplingRouteProvider;
 import com.datadoghq.vertx4.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
@@ -370,7 +371,11 @@ public class Main {
     }
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
-        return Stream.of(new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), new IastSourceRouteProvider(DATA_SOURCE));
+        return Stream.of(
+            new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), 
+            new IastSourceRouteProvider(DATA_SOURCE),
+            new IastSamplingRouteProvider()
+        );
     }
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
