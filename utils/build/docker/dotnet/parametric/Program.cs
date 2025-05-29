@@ -6,11 +6,9 @@ var switchMappings = new Dictionary<string, string>
     { "-Darg1", "Darg1" }
 };
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    CommandLineSwitchMappings = switchMappings
-});
+var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddCommandLine(args, switchMappings);
+
 var app = builder.Build();
 
 var logger = app.Services.GetRequiredService<ILogger<ApmTestApi.Endpoints.ApmTestApi>>();
