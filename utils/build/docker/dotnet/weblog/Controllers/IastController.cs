@@ -806,8 +806,8 @@ namespace weblog
             static byte[] GetSHA1_13() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
             static byte[] GetSHA1_14() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
             static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
-        }        
-        
+        }
+
         [HttpPost("sampling-by-route-method-count/{count}")]
         public IActionResult TestSecureEmailHtmlInjection_Post([FromForm] int count)
         {
@@ -843,6 +843,7 @@ namespace weblog
             static byte[] GetSHA1_12() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
             static byte[] GetSHA1_13() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
             static byte[] GetSHA1_14() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
-            static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }        }
+            static byte[] GetSHA1_15() { return SHA1.Create().ComputeHash([0, 1, 2, 3]); }
+        }
     }
 }
