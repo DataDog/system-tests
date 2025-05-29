@@ -1147,7 +1147,7 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
-@app.route("/iast/sampling-by-route-method-count/<str:id>", methods=["GET", "POST"])
+@app.route("/iast/sampling-by-route-method-count/<string:id>", methods=["GET", "POST"])
 def view_iast_sampling_by_route_method(id):
     """Test function for IAST vulnerability sampling algorithm.
 
@@ -1200,7 +1200,7 @@ def view_iast_sampling_by_route_method(id):
     return Response("OK")
 
 
-@app.route("/iast/sampling-by-route-method-count-2/<str:id>", methods=["GET", "POST"])
+@app.route("/iast/sampling-by-route-method-count-2/<string:id>", methods=["GET", "POST"])
 def view_iast_sampling_by_route_method_2(id):
     """Secondary test function for IAST vulnerability sampling algorithm.
 
