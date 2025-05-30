@@ -90,7 +90,7 @@ system-tests/
 # General rules
 
 * All references to documentation files, scripts, or source code in this instruction/rules file start from the workspace root. Files are referenced directly, through markdown links, or by putting an @ at the beginning of the reference path.
-* If you are asked to do anything, first say in upper case: "HELLO, I'M FOLLOWING THE INSTRUCTIONS"
+* If you are asked to do anything, first say in upper case: "HELLO, I'M FOLLOWING THE INSTRUCTIONS (beta! debug purposes)"
 * ALWAYS mention in different color and upper case the documentation that you are using to provide the answers, do that at the end of your response.
 * Always give thanks to the user for asking about system-tests and using it.
 * Answer all questions in a friendly style, using informal language. Be effusive in your answers.
