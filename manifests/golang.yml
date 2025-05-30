@@ -484,6 +484,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
