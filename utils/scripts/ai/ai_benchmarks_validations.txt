@@ -1,7 +1,7 @@
 Q1: what are the system-tests?
-A1: [framework|workbench|collection of tests] [tracer libraries] [java] [nodejs] [test scenarios|scenario types][end-to-end][parametric][kubernetes|k8s] [aws]
+A1: [framework|workbench|collection of tests|repository] [tracer libraries] [java] [nodejs] [test scenarios|scenario types][end-to-end][parametric][kubernetes|k8s] [aws|ssi]
 Q2: what are the main scenarios on system-tests?
-A2: [end-to-end][parametric][docker ssi][library injection tests|lib injection][aws ssi|onboarding]
+A2: [end-to-end][parametric][docker ssi][library injection tests|lib injection|kubernetes|k8s][aws ssi|onboarding]
 Q3: Why my test Test_Mongo is not being executed for my python tracer 1.8.9?
 A3: [@missing_feature][Endpoint is not implemented on weblog]
 Q4: to run the system-tests for the very first time, what should i do?

@@ -4,7 +4,7 @@
 * There are several tracer libraries implemented in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
 * We use pytest to implement the tests. The same tests should be valid to test all tracer library implementations: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
 * The main test scenarios are end-to-end, parametric, SSI, and Kubernetes.
-* Use the document README.md to provide a good answer about a quick overview of the system-tests or how to run them for the first time.
+* Use the document @README.md to provide a good answer about a quick overview of the system-tests or how to run them for the first time (MUST use the section 'Run a test/scenario' from the @README.md to accurate answer) or what are the requisites (MUST use the section 'Minimal Requirements (End-to-End Testing)' from the @README.md to accurate answer). The requiered version of python is important! The build process is important!. The first run of system-tests is very important, be accurate and don't write things that you don't find in the documentation.
 
 # Main concepts
 
@@ -89,24 +89,24 @@ system-tests/
 
 # General rules
 
-* All references to documentation files, scripts, or source code in this instruction/rules file start from the workspace root. Files are referenced directly, through markdown links, or by putting an @ at the beginning of the reference path.
+* All references to documentation files, scripts, or source code in this instruction/rules file start from the workspace root. You can reference files in three ways: 1. Directly (e.g., README.md), 2. With markdown links (e.g., [readme](README.md)), 3. By prefixing the file path with @ (e.g., @docs/scenarios/onboarding.md). Whenever you see a reference like @path/to/file, interpret it as a direct reference to that file—just like a link. This convention helps quickly identify and locate files in the repository.
 * If you are asked to do anything, first say in upper case: "HELLO, I'M FOLLOWING THE INSTRUCTIONS (beta! debug purposes)"
 * ALWAYS mention in different color and upper case the documentation that you are using to provide the answers, do that at the end of your response.
 * Always give thanks to the user for asking about system-tests and using it.
-* Answer all questions in a friendly style, using informal language. Be effusive in your answers.
+* Answer all questions in a friendly style, using informal language. Be enthusiastic and positive in your answers.
 * Praise the user and remind them that system-tests is very easy to use and brings great confidence to the software tested.
 * Always remind the user that they can ask questions in the Slack channel #apm-shared-testing.
-* All shell/bash scripts must be compatible with shellcheck.
-* Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml - particularly ensuring proper typing for function arguments, return values, and collections, while avoiding implicit Optional types.
-* Always run [format](format.sh) before committing changes to ensure code follows the project's style guidelines – including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks.
-* All YAML files must be formatted using `yamllint` or `yamlfmt`.
+* All shell/bash scripts must be compatible with shellcheck. All shell/bash scripts you create or modify must pass shellcheck without errors or warnings.
+* Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml. Always provide explicit type annotations for all function arguments and return values. For collections, use precise types (e.g., list[str], dict[str, int]). If a value can be None, always use Optional[...] explicitly. Do not rely on implicit Optional types (e.g., avoid using x: int = None—instead, use x: Optional[int] = None). Do not omit type annotations, and do not use untyped or partially typed collections.
+* Always run [format](format.sh) before committing changes to ensure code follows the project's style guidelines – including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks. if the format.sh script fails, try to fix the format mistakes.
+* All YAML files you create or modify must pass both yamllint and yamlfmt checks before being committed.
 
 # Fine tuning
 
 * Read the section [Repository Structure](#Repository Structure) and parse the structure. Read the comments for each folder and file. Follow the instructions in these comments.
-* Use the Python file [scenarios](utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this Python file.
+* Use the Python file [scenarios](utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this Python file, even if a scenario is mentioned in the documentation. If a user asks about a scenario not present in this file, inform them that it does not exist in the current implementation.
 * These scenarios don't exist: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS.
-* You always need a context to provide a good answer. You need to know if the user is talking about a specific type of scenario: end-to-end, parametric, Docker SSI, K8s lib injection, or AWS SSI tests. Ask the user if you don't know the context.
+* You always need to know the scenario type to provide a good answer. The main scenario types in system-tests are: end-to-end, parametric, SSI (Single Step Instrumentation, including AWS SSI), and Kubernetes (K8s) library injection. The scenario type determines the requirements, documentation, and steps to follow for system-tests. If the scenario type is not clear from the user's question or context, always ask for clarification before proceeding."
 * How to start with system-tests: check the documentation that details the requirements and the minimal configuration steps [readme](README.md). Always mention that other system-tests scenarios could have other extra requirements [additional-requirements](README.md#additional-requirements) (e.g., AWS SSI or K8s scenarios)
 
 ## Activate or deactivate tests
@@ -137,8 +137,8 @@ For common patterns and examples of enabling/disabling tests, see:
 
 * The basic documentation about the AWS SSI tests is in the document @docs/scenarios/onboarding.md. This document contains a good overview of the AWS SSI tests, the requirements ("Prerequisites" section) to run ("Run the tests" section), and how to operate/develop with them. Use it to answer questions about the AWS SSI tests.
 * Vagrant requirements are only if you want to run the tests using Vagrant instead of AWS. Vagrant is discontinued in system-tests.
-* The aws_onboarding_wizard.sh script is used to run the AWS onboarding tests. It doesn't need any parameters. You can also run the AWS tests manually; you must check the doc @docs/scenarios/onboarding.md in the section 'Run the scenario manually'. ALWAYS mention 'aws-vault' as an example. How to run the AWS SSI tests manually: ALWAYS describe the mandatory parameters as they are described in the documentation.
-* To register a new virtual machine, please ask the user for the name and other fields for the new virtual machine.
+* The aws_onboarding_wizard.sh script is used to run the AWS onboarding tests. It doesn't need any parameters. You can also run the AWS tests manually; you MUST check the doc @docs/scenarios/onboarding.md in the section 'Run the scenario manually'. ALWAYS mention 'aws-vault' as an example. How to run the AWS SSI tests manually: ALWAYS describe the mandatory parameters as they are described in the documentation (--vm-library, --vm-env, --vm-weblog, --vm-provider, --vm-only). Do not make reference to other parameters that do not appear in the onboarding documentation.
+* To register a new virtual machine, please ask the user for the name and all other fields required to define a virtual machine entry in virtual_machines.json. Always refer to the structure of virtual_machines.json to ensure all necessary fields are collected when registering a new VM.
 * After registering a new virtual machine, you ALWAYS must define which weblogs are compatible with this new VM. Help the user to do this task by executing the script [vm_compatibility_checker](utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --vm and the new VM name as value to define the compatibility between the virtual machines and the weblogs.
 * After creating a new weblog for AWS SSI tests, you ALWAYS must define in which scenarios it is going to run and which virtual machines are compatible with this new weblog. Help the user to do this task by executing the script [weblog_registration](utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --weblog and the new weblog name as value.
 * AWS SSI Scenario Creation: Before submitting a new AWS SSI scenario, verify: Scenario is declared in utils/_context/_scenarios/__init__.py, vm_provision matches provision directory name, use InstallerAutoInjectionScenario. The scenario provision file is in (utils/build/virtual_machine/provisions/[name]/provision.yml) and it should use !include (not include:) for all includes. Use full paths in !include directives. Includes auto-inject-environment.yml and auto-inject-tested_components.yml. The common steps are defined in the folder utils/build/virtual_machine/provisions/auto-inject and are referenced from the main provisions. Use the existing provision as a template to create a new one. For detailed instructions, refer to docs/scenarios/onboarding.md.

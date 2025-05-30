@@ -20,25 +20,12 @@ We want to make sure our LLMs are actually following the instructions! Here's ho
 ### Manual Validation
 
 1. **Open the Benchmark Questions**: Check out `ai_benchmarks_questions.txt`. Each line is a separate question or action for the LLM to perform. Each question is labeled (e.g., `Q1:`).
-2. **Manual Validation**: In your chosen LLM tool (like Copilot or Cursor), ask each question from the file one at a time, in a fresh chat or thread for each. This ensures unbiased, isolated answers.
-3. **Log the Results**: For each question, copy both the question and the LLM's answer into a new file called `logs/responses.txt`. Format it like this:
+2. **Write the Benchmark Validations**: Edit `ai_benchmarks_validations.txt`. This file contains the expected validations for each benchmark question. It defines what a correct answer should look like for each question in `ai_benchmarks_questions.txt`
+3. **Copy the task validation text into the chat**: ''' Please read the file "utils/scripts/ai/ai_benchmarks_questions.txt" line by line. Each line is a question or action that you should do. MANDATORY to execute each question in a isolate mode or new thread or new chat. Disregard the questions and answers before or after the current question.. Each line is identified by "Qx:". All the actions that you perform shouldn't require interact with the user. Write in other text file called logs/responses.txt the query and the associated response you provided. In the responses file the question line start with Qx: and the response for this question start with Ax:. Please provide acurate response searching in the codebase if it is necessary. Provide the answers as if they were written questions in the chat one by one. For each question use the instructions or rules. Perform ALWASYS any of additional searches to make the answers even more accurate. ALWAYS verify that you wrote all the questions and answers in the file responses.txt.'''.
+4. **Check logged results**: For each question, LLM will copy both the question and the LLM's answer into a new file called `logs/responses.txt`. Format it like this:
    - The question line starts with `Qx:`
    - The answer line starts with `Ax:`
-4. **Be Thorough**: Make sure you answer every question, and that each answer is based on the current codebase and instructions. Double-check for accuracy!
-
-### Automated Validation
-
-To make things even easier, you can use the automated validation tools provided:
-
-- **`ai_benchmarks_validations.txt`**: This file contains the expected validations for each benchmark question. It defines what a correct answer should look like for each question in `ai_benchmarks_questions.txt`.
-- **`ai_benchmarks_validate_responses.py`**: Run this script to automatically compare your logged responses in `logs/responses.txt` against the expected validations in `ai_benchmarks_validations.txt`. This helps you quickly spot any discrepancies and ensure your LLM is following the rules!
-
-## Best Practices & Tips
-
-- **Keep it Friendly**: Our instructions are meant to be welcoming and easy to follow—just like our community!
-- **Stay Up to Date**: Always run the update script after changing the template, so all tools get the latest rules.
-- **Be Precise**: When validating, make sure the LLM's answers are correct and reference the right parts of the codebase or docs.
-- **Ask for Help**: If you're stuck, reach out in the #apm-shared-testing Slack channel. We're here to help!
+5. - **`ai_benchmarks_validate_responses.py`**: Run this script to automatically compare your logged responses in `logs/responses.txt` against the expected validations in `ai_benchmarks_validations.txt`. This helps you quickly spot any discrepancies and ensure your LLM is following the rules!
 
 ## File Overview
 
