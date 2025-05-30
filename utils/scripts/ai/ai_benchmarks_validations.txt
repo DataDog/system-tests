@@ -1,0 +1,12 @@
+Q1: what are the system-tests?
+A1: [framework|workbench|collection of tests] [tracer libraries] [java] [nodejs] [test scenarios|scenario types][end-to-end][parametric][kubernetes] [aws]
+Q2: what are the main scenarios on system-tests?
+A2: [end-to-end][parametric][docker ssi][library injection tests|lib injection][aws ssi|onboarding]
+Q3: Why my test Test_Mongo is not being executed for my python tracer 1.8.9?
+A3: [@missing_feature][Endpoint is not implemented on weblog]
+Q4: to run the system-tests for the very first time, what should i do?
+A4: [build.sh -i runner][source venv/bin/activate][build.sh <library_name>][run.sh][docker][python3.12|python 3.12][bash][aws ssi]
+Q5: I want to run the aws ssi tests
+A5: [pulumi][environment variables|environment][wizard script|wizard][manual][aws-vault][--vm-only]
+Q6: I want to run the onboarding tests
+A6: [pulumi][environment variables|environment][wizard script|wizard][manual]

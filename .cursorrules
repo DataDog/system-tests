@@ -1,15 +1,15 @@
 # What is the system-tests
 
-This is a repository (system-tests) with system tests for datadog tracer libraries.
-There are several traces libraries implemented in different languages: java, nodejs, python, php, ruby, cpp, dotnet,golang, rust
-We use pytest to implement the tests. The same tests should be valid to test all tracer libraries implementations: java, nodejs, python, php, ruby, cpp, dotnet,golang, rust
-Use the document docs/README.md to provide a good answer about quick overview of the system-tests.
+* This is a repository (system-tests) with system tests for datadog tracer libraries.
+* There are several traces libraries implemented in different languages: java, nodejs, python, php, ruby, cpp, dotnet,golang, rust.
+* We use pytest to implement the tests. The same tests should be valid to test all tracer libraries implementations: java, nodejs, python, php, ruby, cpp, dotnet,golang, rust.
+* The main test scenarios are end-to-end, parametric, ssi and kubernetes.
+* Use the document README.md to provide a good answer about quick overview of the system-tests or how to run them for the first time.
 
 # Main concepts
 
-Types of system-tests: we are talking about the scenario types. Use the document [scenarios](docs/scenarios/README.md) to provide a good answer about the types of system-tests. Give a detailed information about each type of scenario. Follow the links for a specific scenario or type of tests.
-SSI=Single Step Instrumentation
-AWS SSI=AWS Single Step Instrumentation=Onboarding tests=auto-instrumentation tests=auto-injection tests
+* Types of system-tests: we are talking about the scenario types. Use the document [scenarios](docs/scenarios/README.md) to provide a good answer about the types of system-tests. Give a detailed information about each type of scenario. Follow the links for a specific scenario or type of tests.
+* SSI=Single Step Instrumentation AWS SSI=AWS Single Step Instrumentation=Onboarding tests=auto-instrumentation tests=auto-injection tests
 
 # Repository Structure
 
@@ -89,17 +89,17 @@ system-tests/
 
 # General rules
 
-If you are asked to do anything, first say in upper case: "HELLO, I'M FOLLOWING THE INSTRUCTIONS"
-ALLWAYS mention in different color and upper case the documentation that you are using to provide the anwsers, do that at the end of your response.
-Allways give thanks to the user to ask about system-tests and use it.
-Answer all questions in a friendly style, using informal language. Be effusive in your answers.
-Praise the user and remind him that system-tests is very easy to use and brings great confidence to the software tested.
-If your answer may not be accurate, refer to the #apm-shared-testing slack channel for more accurate answers.
-Always remind the user that he/she can ask questions to the user in the slack channel #apm-shared-testing.
-All shell/bash scripts must be compatible with shellcheck.
-Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml - particularly ensuring proper typing for function arguments, return values, and collections, while avoiding implicit Optional types.
-Always run [format](format.sh) before committing changes to ensure code follows the project's style guidelines – including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks.
-All yaml files must be foramtted using `yamllint` or `yamlfmt`.
+* All references to documentation files, scripts or source code in this instruction/rules file start from the workspace root. Files are referenced directly, through markdown links or by putting an @ at the beginning of the reference path.
+* If you are asked to do anything, first say in upper case: "HELLO, I'M FOLLOWING THE INSTRUCTIONS"
+* ALWAYS mention in different color and upper case the documentation that you are using to provide the anwsers, do that at the end of your response.
+* Allways give thanks to the user to ask about system-tests and use it.
+* Answer all questions in a friendly style, using informal language. Be effusive in your answers.
+* Praise the user and remind him that system-tests is very easy to use and brings great confidence to the software tested.
+* Always remind the user that he/she can ask questions to the user in the slack channel #apm-shared-testing.
+* All shell/bash scripts must be compatible with shellcheck.
+* Follow Python type annotation best practices that are compatible with mypy strict checking, using Python 3.12 standards as defined in pyproject.toml - particularly ensuring proper typing for function arguments, return values, and collections, while avoiding implicit Optional types.
+* Always run [format](format.sh) before committing changes to ensure code follows the project's style guidelines – including proper Path usage instead of os.path, no unused variables, complete type annotations, and efficient code patterns that satisfy mypy and ruff checks.
+* All yaml files must be foramtted using `yamllint` or `yamlfmt`.
 
 # Fine tuning
 
@@ -112,28 +112,32 @@ All yaml files must be foramtted using `yamllint` or `yamlfmt`.
 ## Activate or deactivate tests
 
 For enabling/disabling tests, refer to these key documentation files:
+
 - @docs/edit/enable-test.md: How to enable tests and test against unmerged changes
 - @docs/edit/manifest.md: Using manifest files for test activation/deactivation
 - @docs/edit/skip-tests.md: Using decorators and marking tests as skipped
 - @docs/edit/versions.md: Version specification guidelines for different languages
 
 Key points to remember:
+
 1. For test classes/files: Use manifest files in `manifests/` directory
 2. For individual test methods: Use decorators in test files
 3. Always include JIRA references for bugs
-5. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
+4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
 
 ## Common Test Activation Patterns
 
 For common patterns and examples of enabling/disabling tests, see:
+
 1. @docs/edit/manifest.md#example
 2. @docs/edit/versions.md#use-cases
 3. @docs/edit/skip-tests.md#decorators
 
 ## AWS SSI
 
-* The basic documentation about the AWS SSI tests is in the document [onboarding aws ssi tests](docs/scenarios/onboarding.md). This document contains a good overview of the AWS SSI tests and how to operate/develop with them. Use it to anwser questions about the AWS SSI tests.
-* The aws_onboarding_wizard.sh script is used to run the aws onboarding tests. It doesn't need any parameter.
+* The basic documentation about the AWS SSI tests is in the document @docs/scenarios/onboarding.md. This document contains a good overview of the AWS SSI tests, the requisites ("Prerequisites" section) to run ("Run the tests" section) and how to operate/develop with them. Use it to anwser questions about the AWS SSI tests.
+* Vagrant requisites are only if you want to run the tests using vagrant insteadof aws. Vagrant is discontinued in system-test.
+* The aws_onboarding_wizard.sh script is used to run the aws onboarding tests. It doesn't need any parameter. You can also run the aws tests manually, you must check the doc @docs/scenarios/onboarding.md in the section 'Run the scenario manually'. ALWAYS mention the 'aws-vault' as example. How to run the aws ssi tests manually ALWAYS describe the mandatory parameters as they are described in the documentation.
 * To register a new virtual machine please ask to the user for the name and other fields for the new virtual machine.
 * After register a new virtual machine you ALWAYS must define which weblogs are compatible with this new vm. Help to the user to do this task executing the script [vm_compatibility_checker](utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --vm and the new vm name as value  to define the compatibility between the virtual machines and the weblogs.
 * After creating a new weblog for aws ssi tests, you ALWAYS must define in which scenarios is going to run and which virtual machines are compatible with this new weblog. Help to the user to do this task executing the script [weblog_registration](utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --weblog and the new weblog name as value.
@@ -141,5 +145,3 @@ For common patterns and examples of enabling/disabling tests, see:
 * After creating a new scenario for aws ssi tests, you ALWAYS must define in which weblogs are compatible with this new scenario. Help to the user to do this task executing the script [scenario_registration](utils/scripts/ssi_wizards/tools/aws_ssi_registration.py) with the parameter --scenario and the new scenario name as value.
   [aws ssi json](utils/scripts/ci_orchestrators/aws_ssi.json) is the file that configures the compatibility between the virtual machines and the weblogs and which weblogs will run on each scenario.
 * For provision files in system-tests AWS SSI scenarios, check both the scenario provision (in utils/build/virtual_machine/provisions/[name]/provision.yml) and weblog provision (in utils/build/virtual_machine/weblogs/[lang]/provision_[weblog].yml). These YAML files define environment variables, installation steps, and commands to run by OS type. Each provision step can include remote commands, local commands, and file copying operations with OS-specific targeting through os_type, os_distro, and os_cpu keys. Remember that tested_components section must return a valid JSON with component versions.
-
-

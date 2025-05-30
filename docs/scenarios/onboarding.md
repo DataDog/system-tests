@@ -443,6 +443,12 @@ export ONBOARDING_LOCAL_TEST="true"
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
 
+The following line shows an example of command line to run the tests on a secure environment using 'aws-vault':
+
+```bash
+ aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+ ```
+
 # How to develop tests
 
 Developing new tests might involve one or several operations:
