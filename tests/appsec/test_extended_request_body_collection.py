@@ -12,17 +12,21 @@ class Test_ExtendedRequestBodyCollection:
     @staticmethod
     def assert_feature_is_enabled(response) -> None:
         assert response.status_code == 403
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             response,
-            "rasp-932-110",
+            "rasp-934-100",
             {
                 "resource": {
-                    "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/touch /tmp/passwd",
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/touch /tmp/passwd",
+                    "value": "169.254.169.254",
                 },
             },
         )
@@ -30,13 +34,10 @@ class Test_ExtendedRequestBodyCollection:
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
-        if context.library.name == "nodejs":
-            assert body.get("command") == "/usr/bin/touch /tmp/passwd"
-        if context.library.name == "java":
-            assert body.get("command")[0] == "/usr/bin/touch /tmp/passwd"
+        assert body.get("domain") == "169.254.169.254"
 
     def setup_feature_is_enabled(self):
-        self.check_r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd"})
+        self.check_r = weblog.post("/rasp/ssrf", data={"domain": "169.254.169.254"})
 
     def setup_if_rasp_event_collect_request_body(self):
         self.setup_feature_is_enabled()
@@ -45,22 +46,27 @@ class Test_ExtendedRequestBodyCollection:
         self.assert_feature_is_enabled(self.check_r)
 
     def setup_request_body_truncated(self):
-        self.r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd" + "A" * 5000})
+        self.r = weblog.post("/rasp/ssrf", data={"domain": "169.254.169.254", "additional_data": "A" * 5000})
 
     @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
     def test_request_body_truncated(self):
         assert self.r.status_code == 403
+
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
-            "rasp-932-110",
+            "rasp-934-100",
             {
                 "resource": {
-                    "address": "server.sys.exec.cmd",
-                    "value": "/usr/bin/touch /tmp/passwd" + "A" * 4070,
+                    "address": "server.io.net.url",
+                    "value": expected_http_value,
                 },
                 "params": {
                     "address": "server.request.body",
-                    "value": "/usr/bin/touch /tmp/passwd" + "A" * 4070,
+                    "value": "169.254.169.254",
                 },
             },
         )
@@ -68,10 +74,9 @@ class Test_ExtendedRequestBodyCollection:
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
-        if context.library.name == "nodejs":
-            assert body.get("command") == "/usr/bin/touch /tmp/passwd" + "A" * 4070
-        if context.library.name == "java":
-            assert body.get("command")[0] == "/usr/bin/touch /tmp/passwd" + "A" * 4070
+        print(body)
+        assert body.get("domain") == "169.254.169.254"
+        assert body.get("additional_data") == "A" * 4096
         meta = span.get("meta", {})
         assert meta.get("_dd.appsec.rasp.request_body_size.exceeded") == "true"
 
