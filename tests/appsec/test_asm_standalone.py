@@ -1017,7 +1017,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
-class Test_UserEventsStandalone:
+class Test_UserEventsStandalone_Automated:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
     def _get_test_headers(self, trace_id):
@@ -1081,7 +1081,7 @@ class Test_UserEventsStandalone:
         trace_id = 1212121212121212122
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
-        assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
+        assert meta["_dd.appsec.usr.login"] == INVALID_USER
 
     def setup_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
@@ -1091,8 +1091,134 @@ class Test_UserEventsStandalone:
         context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
         reason="no signup events in Python except for django",
     )
+    @missing_feature(context.library == "nodejs", reason="no signup events in passport")
     def test_user_signup_event_generates_asm_event(self):
         trace_id = 1212121212121212133
         meta = self._get_standalone_span_meta(trace_id)
         assert meta is not None
         assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
+
+
+@rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_UserEventsStandalone_SDK_V1:
+    """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def _get_test_headers(self, trace_id):
+        return {
+            "x-datadog-trace-id": str(trace_id),
+            "x-datadog-parent-id": str(34343434),
+            "x-datadog-origin": "rum",
+            "x-datadog-sampling-priority": "-1",
+            "x-datadog-tags": "_dd.p.other=1",
+        }
+
+    def _get_standalone_span_meta(self, trace_id):
+        tested_meta = {
+            "_dd.p.ts": "02",
+        }
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
+            assert span["trace_id"] == trace_id
+            assert trace[0]["trace_id"] == trace_id
+
+            # Some tracers use true while others use yes
+            assert any(
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+            )
+            return span["meta"]
+
+        return None
+
+    def _call_endpoint(self, endpoint, trace_id):
+        self.r = weblog.post(
+            endpoint,
+            headers=self._get_test_headers(trace_id),
+        )
+
+    def setup_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        self._call_endpoint("/user_login_success_event", trace_id)
+
+    def test_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert "appsec.events.users.login.success.usr.login" in meta
+
+    def setup_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        self._call_endpoint("/user_login_failure_event", trace_id)
+
+    def test_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert "appsec.events.users.login.failure.usr.exists" in meta
+
+
+@rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
+@features.appsec_standalone
+@scenarios.appsec_standalone
+class Test_UserEventsStandalone_SDK_V2:
+    """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
+
+    def _get_test_headers(self, trace_id):
+        return {
+            "x-datadog-trace-id": str(trace_id),
+            "x-datadog-parent-id": str(34343434),
+            "x-datadog-origin": "rum",
+            "x-datadog-sampling-priority": "-1",
+            "x-datadog-tags": "_dd.p.other=1",
+        }
+
+    def _get_standalone_span_meta(self, trace_id):
+        tested_meta = {
+            "_dd.p.ts": "02",
+        }
+        for data, trace, span in interfaces.library.get_spans(request=self.r):
+            assert assert_tags(trace[0], span, "meta", tested_meta)
+
+            assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
+            assert span["trace_id"] == trace_id
+            assert trace[0]["trace_id"] == trace_id
+
+            # Some tracers use true while others use yes
+            assert any(
+                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+            )
+            return span["meta"]
+
+        return None
+
+    def _call_endpoint(self, endpoint, data, trace_id):
+        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), data=data)
+
+    def setup_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        data = {"login": "test_login", "user_id": "test_user_id", "metadata": {"foo": "bar"}}
+        self._call_endpoint("/user_login_success_event_v2", data, trace_id)
+
+    def test_user_login_success_event_generates_asm_event(self):
+        trace_id = 1212121212121212111
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["_dd.appsec.events.users.login.success.sdk"] == "true"
+        assert "appsec.events.users.login.success.usr.login" in meta
+
+    def setup_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        data = {"login": "test_login", "exists": "true", "metadata": {"foo": "bar"}}
+        self._call_endpoint("/user_login_failure_event_v2", data, trace_id)
+
+    def test_user_login_failure_event_generates_asm_event(self):
+        trace_id = 1212121212121212122
+        meta = self._get_standalone_span_meta(trace_id)
+        assert meta is not None
+        assert meta["_dd.appsec.events.users.login.failure.sdk"] == "true"
+        assert "appsec.events.users.login.failure.usr.exists" in meta
