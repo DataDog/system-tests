@@ -45,9 +45,10 @@ ensure_directory() {
 # Function to backup existing file
 backup_file() {
     local file_path="$1"
+    local backup_path
 
     if [[ -f "$file_path" ]]; then
-        local backup_path="${file_path}.backup.$(date +%Y%m%d_%H%M%S)"
+        backup_path="${file_path}.backup.$(date +%Y%m%d_%H%M%S)"
         echo "Backing up existing file: $file_path -> $backup_path"
         cp "$file_path" "$backup_path"
     fi
