@@ -35,7 +35,7 @@ ensure_directory() {
     local file_path="$1"
     local dir_path
     dir_path=$(dirname "$file_path")
-    
+
     if [[ ! -d "$dir_path" ]]; then
         echo "Creating directory: $dir_path"
         mkdir -p "$dir_path"
@@ -45,7 +45,7 @@ ensure_directory() {
 # Function to backup existing file
 backup_file() {
     local file_path="$1"
-    
+
     if [[ -f "$file_path" ]]; then
         local backup_path="${file_path}.backup.$(date +%Y%m%d_%H%M%S)"
         echo "Backing up existing file: $file_path -> $backup_path"
@@ -56,18 +56,18 @@ backup_file() {
 # Function to update a target file
 update_file() {
     local target_file="$1"
-    
+
     echo "Updating $target_file..."
-    
+
     # Ensure directory exists
     ensure_directory "$target_file"
-    
+
     # Backup existing file if it exists
     backup_file "$target_file"
-    
+
     # Copy content from template
     cp "$TEMPLATE_FILE" "$target_file"
-    
+
     echo "✅ Successfully updated $target_file"
 }
 
@@ -76,14 +76,14 @@ main() {
     echo "🤖 Updating AI instructions across tools..."
     echo "Template source: $TEMPLATE_FILE"
     echo ""
-    
+
     # Check if template file exists
     check_template_file
-    
+
     # Update both target files
     update_file "$CURSOR_RULES_FILE"
     update_file "$COPILOT_INSTRUCTIONS_FILE"
-    
+
     echo ""
     echo "🎉 All AI instruction files have been updated successfully!"
     echo ""
@@ -103,4 +103,4 @@ if [[ "${1:-}" == "-h" ]] || [[ "${1:-}" == "--help" ]]; then
 fi
 
 # Run main function
-main "$@" 
+main "$@"
