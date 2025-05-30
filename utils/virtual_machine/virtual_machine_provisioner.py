@@ -118,7 +118,8 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        ci_commit_branch = os.getenv("GITLAB_CI")
+        # Use GIT does not work for windows machines
+        ci_commit_branch = os.getenv("GITLAB_CI") if os_type != "windows" else None
         installation = self._get_installation(
             env,
             library_name,

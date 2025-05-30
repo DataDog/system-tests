@@ -119,11 +119,11 @@
     # Works only for .NET today
     $data = @{
         host                    = (hostname).Trim()
-        agent                   = (ls 'C:\ProgramData\Datadog Installer\packages\datadog-agent' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+        agent                   = (ls 'C:\ProgramData\Datadog\Installer\packages\datadog-agent' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
         "datadog-apm-inject"    = "N/A (Windows IIS)"
-        "datadog-apm-library-dotnet" = (ls 'C:\ProgramData\Datadog Installer\packages\datadog-apm-library-dotnet' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+        "datadog-apm-library-dotnet" = (ls 'C:\ProgramData\Datadog\Installer\packages\datadog-apm-library-dotnet' | Where-Object { $_ -notmatch "(experiment|stable)" } | Select-String '(\d+\.\d+\.\d+.*)' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
         docker                  = "N/A (Windows)"
-        "datadog-installer"     = (& 'C:\Program Files\Datadog\Datadog Installer\datadog-installer.exe' version).Trim()
+        "datadog-installer"     = (& 'C:\Program Files\Datadog\Datadog Agent\bin\datadog-installer.exe' version).Trim()
         glibc_type              = "N/A (Windows)"
         glibc                   = "N/A (Windows)"
         runtime_version         = (& 'C:\Program Files\dotnet\dotnet.exe' --info | Select-String '(.*)\[C:\\Program Files\\dotnet\\sdk\]' | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()

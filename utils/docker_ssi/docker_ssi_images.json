@@ -11,16 +11,6 @@
       "architecture": "linux/arm64"
     },
     {
-      "name": "Ubuntu_16_amd64",
-      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
-      "architecture": "linux/amd64"
-    },
-    {
-      "name": "Ubuntu_16_arm64",
-      "image": "public.ecr.aws/docker/library/ubuntu:16.04",
-      "architecture": "linux/arm64"
-    },
-    {
       "name": "CentOS_7_amd64",
       "image": "public.ecr.aws/docker/library/centos:7",
       "architecture": "linux/amd64"

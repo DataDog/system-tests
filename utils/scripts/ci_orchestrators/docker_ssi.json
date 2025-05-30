@@ -74,18 +74,6 @@
                         ]
                     },
                     {
-                        "name": "Ubuntu_16_amd64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
-                        "name": "Ubuntu_16_arm64",
-                        "allowed_runtime_versions": [
-                            "*"
-                        ]
-                    },
-                    {
                         "name": "OracleLinux_9_3_arm64",
                         "allowed_runtime_versions": [
                             "*"
