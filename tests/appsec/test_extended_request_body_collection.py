@@ -4,11 +4,13 @@
 
 from utils import weblog, interfaces, scenarios, rfc, features, bug, context
 
-def assert_body_property(body, property, expectedValue) -> None:
+
+def assert_body_property(body, prop, expected_value) -> None:
     if context.library.name == "nodejs":
-        assert body.get(property) == expectedValue
+        assert body.get(prop) == expected_value
     if context.library.name == "java":
-        assert body.get(property)[0] == expectedValue
+        assert body.get(prop)[0] == expected_value
+
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_request_body
