@@ -248,8 +248,8 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             expected_snapshots = self.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
-                "exceptionId" in snapshot for snapshot in snapshots
-            ), "One or more snapshots don't have 'exceptionId' field"
+                "exceptionCaptureId" in snapshot for snapshot in snapshots
+            ), "One or more snapshots don't have 'exceptionCaptureId' field"
 
         assert snapshots, "Snapshots not found"
 

@@ -25,7 +25,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "3b76ee9d-b94a-4729-9b61-99b81cbcb928",
+    "exceptionHash": "deebd58eea91f994d019f1d46d8fc725dc437972305579b4c4eb86942c5ac3a8",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
