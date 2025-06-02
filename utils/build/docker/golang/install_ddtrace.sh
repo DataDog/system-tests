@@ -21,7 +21,7 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     echo "Install from go get"
     # Read the file into an array to ensure we capture all lines
     mapfile -t lines < /binaries/golang-load-from-go-get
-    
+
     for line in "${lines[@]}"; do
         path="${line%@*}"
         commit="${line#*@}"
