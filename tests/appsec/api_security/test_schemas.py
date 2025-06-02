@@ -281,7 +281,7 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        expcted_cookies: list[dict] = [
+        expected_cookies: list[dict] = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
@@ -293,14 +293,14 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        expcted_headers: list[dict] = [
+        expected_headers: list[dict] = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]
 
         for schema, expected in [
-            (schema_cookies[0], expcted_cookies),
-            (schema_headers[0], expcted_headers),
+            (schema_cookies[0], expected_cookies),
+            (schema_headers[0], expected_headers),
         ]:
             for key in expected[0]:
                 assert key in schema
