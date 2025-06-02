@@ -59,7 +59,6 @@ refs:
   - &ref_5_47_0 '>=5.47.0'
   - &ref_5_48_0 '>=5.48.0'
   - &ref_5_52_0 '>=5.52.0'
-  - &ref_5_54_0 '>=5.54.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -69,12 +68,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: 
-         '*': *ref_5_3_0
-         fastify: *ref_5_54_0
-        Test_API_Security_RC_ASM_DD_scanners: 
-          '*': *ref_5_3_0
-          fastify: *ref_5_54_0
+        Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
+        Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: *ref_5_27_0
         Test_API_Security_Sampling_Different_Paths: *ref_5_27_0
@@ -87,18 +82,13 @@ tests/:
         Test_Schema_Request_FormUrlEncoded_Body:
           '*': *ref_4_21_0
           nextjs: *ref_5_3_0
-          fastify: *ref_5_54_0
         Test_Schema_Request_Headers: *ref_4_21_0
-        Test_Schema_Request_Json_Body: 
-          '*': *ref_4_21_0
-          fastify: *ref_5_54_0
+        Test_Schema_Request_Json_Body: *ref_4_21_0
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
           express5: *ref_5_29_0
           nextjs: missing_feature
-        Test_Schema_Request_Query_Parameters:
-          '*': *ref_4_21_0
-          fastify: *ref_5_54_0
+        Test_Schema_Request_Query_Parameters: *ref_4_21_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
           express5: *ref_5_29_0
@@ -556,16 +546,13 @@ tests/:
         Test_BodyJson:
           '*': v2.2.0
           nextjs: *ref_4_17_0
-          fastify: *ref_5_54_0
         Test_BodyRaw: missing_feature
         Test_BodyUrlEncoded:
           '*': v2.2.0
           nextjs: *ref_5_3_0
-          fastify: *ref_5_54_0
         Test_BodyXml:
           '*': v2.2.0
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
-          fastify: *ref_5_54_0
         Test_Cookies: v2.0.0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
@@ -581,86 +568,45 @@ tests/:
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
           '*': v2.0.0
-          fastify: *ref_5_54_0
           nextjs: *ref_4_17_0
         Test_UrlQueryKey:
           '*': v2.6.0
-          fastify: *ref_5_54_0
           nextjs: *ref_4_17_0
         Test_UrlRaw: v2.0.0
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: *ref_3_19_0
-        Test_Blocking_strip_response_headers: 
-          '*': *ref_5_17_0
-          fastify: *ref_5_54_0
+        Test_Blocking_strip_response_headers: *ref_5_17_0
         Test_CustomBlockingResponse: *ref_5_15_0
       test_custom_rules.py:
-        Test_CustomRules: 
-          '*': *ref_4_1_0
-          fastify: *ref_5_54_0
+        Test_CustomRules: *ref_4_1_0
       test_exclusions.py:
         Test_Exclusions: *ref_3_19_0
       test_miscs.py:
         Test_404: v2.0.0
-        Test_CorrectOptionProcessing: 
-          '*': *ref_3_19_0
-          fastify: *ref_5_54_0
-        Test_MultipleAttacks: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_MultipleHighlight: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
+        Test_CorrectOptionProcessing: *ref_3_19_0  # probably sooner, but bugged
+        Test_MultipleAttacks: v2.0.0
+        Test_MultipleHighlight: v2.0.0
       test_reports.py:
-        Test_Monitoring: 
-          '*': v2.8.0
-          fastify: *ref_5_54_0
+        Test_Monitoring: v2.8.0
       test_rules.py:
-        Test_CommandInjection: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_DiscoveryScan: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_HttpProtocol: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_JavaCodeInjection: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_JsInjection: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_LFI: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_NoSqli: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_PhpCodeInjection: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_RFI: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_SQLI: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_SSRF: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_Scanners: 
-          '*': v2.0.0
-          fastify: *ref_5_54_0
-        Test_XSS: 
-          '*': v2.0.0
+        Test_CommandInjection: v2.0.0
+        Test_DiscoveryScan: v2.0.0
+        Test_HttpProtocol: v2.0.0
+        Test_JavaCodeInjection: v2.0.0
+        Test_JsInjection: v2.0.0
+        Test_LFI: v2.0.0
+        Test_NoSqli: v2.0.0
+        Test_PhpCodeInjection: v2.0.0
+        Test_RFI: v2.0.0
+        Test_SQLI: v2.0.0
+        Test_SSRF: v2.0.0
+        Test_Scanners: v2.0.0
+        Test_XSS: v2.0.0
       test_telemetry.py:
         Test_TelemetryMetrics: *ref_4_17_0
       test_truncation.py:
-        Test_Truncation: 
-          '*': *ref_5_43_0
-          fastify: missing_feature
+        Test_Truncation: *ref_5_43_0
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
@@ -675,7 +621,6 @@ tests/:
       Test_UserEventsStandalone_Automated:
         '*': *ref_5_40_0
         nextjs: missing_feature
-        fastify: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
@@ -688,19 +633,15 @@ tests/:
       Test_V3_Login_Events:
         '*': *ref_5_29_0
         nextjs: missing_feature
-        fastify: missing_feature
       Test_V3_Login_Events_Anon:
         '*': *ref_5_29_0
         nextjs: missing_feature
-        fastify: missing_feature
       Test_V3_Login_Events_Blocking:
         '*': *ref_5_29_0
         nextjs: missing_feature
-        fastify: missing_feature
       Test_V3_Login_Events_RC:
         '*': *ref_5_29_0
         nextjs: missing_feature
-        fastify: missing_feature
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
         '*': *ref_5_39_0
@@ -719,27 +660,22 @@ tests/:
       Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
-        fastify: *ref_5_54_0
         nextjs: missing_feature
       Test_Blocking_request_body_multipart:
         '*': *ref_5_25_0
-        fastify: missing_feature
         nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
-        fastify: missing_feature
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
       Test_Blocking_request_path_params:
         '*': *ref_5_24_0
         express5: *ref_5_29_0
-        fastify: missing_feature
         nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
         express5: *ref_5_29_0
-        fastify: *ref_5_54_0
         nextjs: missing_feature
       Test_Blocking_request_uri: *ref_3_19_0
       Test_Blocking_response_headers: *ref_5_17_0
