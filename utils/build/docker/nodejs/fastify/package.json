@@ -1,0 +1,29 @@
+{
+  "name": "fastify",
+  "version": "1.0.0",
+  "description": "",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint ."
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^1.30.1",
+    "sinon": "^17.0.1",
+    "fastify": "^5.0.1",
+    "@fastify/formbody": "^8.0.0",
+    "axios": "1.2.3",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.53.0",
+    "eslint-config-standard": "^17.1.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-plugin-mocha": "^10.2.0",
+    "eslint-plugin-n": "^16.2.0",
+    "eslint-plugin-promise": "^6.1.1"
+  }
+}
