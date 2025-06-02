@@ -5,7 +5,6 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 System tests is a test workbench that allows any kind of functional testing over libraries (AKA tracers) and agents. It's built with several key principles:
 
 * *Black box testing*: only components' interfaces are checked. As those interfaces are very stable, our tests can make assertions without any assumptions regarding underlying implementations. "Check that the car moves, regardless of the engine"
-* *No test isolation*: Yes, it's surprising. But it allows to be very fast. So never hesitate to add a new test. And if you need a very specific test case, we can run it separately.
 
 ## Repository Structure
 

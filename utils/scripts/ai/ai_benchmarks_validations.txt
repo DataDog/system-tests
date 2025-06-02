@@ -11,7 +11,7 @@ A5: [pulumi][environment variables|environment][wizard script|wizard][manual][aw
 Q6: I want to run the onboarding tests
 A6: [pulumi][environment variables|environment][wizard script|wizard][manual]
 Q7: Create a new virtual machine for aws ssi tests
-A7: [more information][AMI ID][branch][virtual_machines.json]
+A7: [more information|required fields|Mandatory Fields][AMI ID][branch][virtual_machines.json]
 Q8: Create a new virtual machine for aws ssi tests with the name 'newvm' ami id ami-14567843, type linux debian, amd64, user test, branch mynewbranch
 A8: [virtual_machines.json]["ami_id": "ami-14567843"][aws_ssi_registration.py --vm]
 Q9: Create a python weblog named 'my-python-weblog' for the aws ssi tests
