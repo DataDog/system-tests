@@ -5,6 +5,8 @@ A workbench designed to run advanced tests (integration, smoke, functional, fuzz
 System tests is a test workbench that allows any kind of functional testing over libraries (AKA tracers) and agents. It's built with several key principles:
 
 * *Black box testing*: only components' interfaces are checked. As those interfaces are very stable, our tests can make assertions without any assumptions regarding underlying implementations. "Check that the car moves, regardless of the engine"
+* Tests multiple tracer library implementations in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust
+* Uses pytest to implement tests that are valid across ALL tracer library implementations
 
 ## Repository Structure
 
@@ -116,6 +118,7 @@ Specific scenarios may require additional tools:
 Running system-tests involves a few key steps:
 
 1. **Set up the Python environment**:
+
    ```bash
    # Install Python requirements and create a virtual environment
    ./build.sh -i runner
@@ -123,8 +126,8 @@ Running system-tests involves a few key steps:
    # Activate the virtual environment
    source venv/bin/activate
    ```
-
 2. **Build necessary images** for the language you want to test:
+
    ```bash
    # Replace <library_name> with: java, nodejs, python, ruby, php, dotnet, cpp, or golang
    ./build.sh <library_name>
@@ -132,8 +135,8 @@ Running system-tests involves a few key steps:
    # Example for testing Python tracer
    ./build.sh python
    ```
-
 3. **Run the tests** using one of these approaches:
+
    ```bash
    # Run all default tests
    ./run.sh
@@ -149,6 +152,7 @@ Running system-tests involves a few key steps:
    ```
 
 For more advanced options:
+
 - See the [run documentation](docs/execute/run.md) for test selection details
 - Check the [build documentation](docs/execute/build.md) for customizing images and weblog variants
 - Learn how disabled tests are managed in [skip-tests.md](docs/edit/skip-tests.md) and [enable-test.md](docs/edit/enable-test.md)
