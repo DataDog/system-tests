@@ -81,8 +81,16 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
-          TestHeaderInjection_StackTrace: v3.9.0.dev
+          TestHeaderInjection_ExtendedLocation:
+            '*': irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
+          TestHeaderInjection_StackTrace:
+            '*': irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
