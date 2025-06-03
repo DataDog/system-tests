@@ -134,6 +134,15 @@ For common test activation patterns and examples of enabling/disabling tests, se
 2. @docs/edit/versions.md#use-cases
 3. @docs/edit/skip-tests.md#decorators
 
+# End-to-End
+
+* You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](docs/weblog/README.md).
+* All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](docs/weblog/README.md).
+* To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
+* A new end-to-end weblog must be referenced in the document [build script documentation](docs/execute/build.md).
+* if you create a new weblog there are two options: 1) Create all existing endpoints inside the new weblog. 2) Use the manifest files to skip the tests.
+
+
 # AWS SSI
 
 * The basic documentation about the AWS SSI tests is in the document @docs/scenarios/onboarding.md. This document contains a good overview of the AWS SSI tests, the requirements ("Prerequisites" section) to run ("Run the tests" section), and how to operate/develop with them. Use it to answer questions about the AWS SSI tests.
