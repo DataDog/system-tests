@@ -231,7 +231,7 @@ function run_scenario() {
 function main() {
 
     local docker="${DOCKER_MODE:-0}"
-    local verbosity=0
+    local verbosity=1
     local dry=0
     local scenario_args=()
     local libraries=()
