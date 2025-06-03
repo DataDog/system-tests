@@ -1,0 +1,108 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "virtual_machines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "aws_config": {
+            "type": "object",
+            "properties": {
+              "ami_id": {
+                "type": "string"
+              },
+              "ami_instance_type": {
+                "type": "string",
+                "enum": [
+                  "t3.medium",
+                  "t4g.medium"
+                ]
+              },
+              "user": {
+                "type": "string"
+              },
+              "volume_size": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "ami_id",
+              "ami_instance_type",
+              "user"
+            ]
+          },
+          "os_type": {
+            "type": "string",
+            "enum": [
+              "linux",
+              "windows"
+            ]
+          },
+          "os_distro": {
+            "type": "string",
+            "enum": [
+              "deb",
+              "rpm"
+            ]
+          },
+          "os_branch": {
+            "type": "string"
+          },
+          "os_cpu": {
+            "type": "string",
+            "enum": [
+              "amd64",
+              "arm64"
+            ]
+          },
+          "default_vm": {
+            "type": "boolean"
+          },
+          "disabled": {
+            "type": "boolean"
+          },
+          "vagrant_config": {
+            "type": "object",
+            "properties": {
+              "box_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "box_name"
+            ]
+          },
+          "krunvm_config": {
+            "type": "object",
+            "properties": {
+              "oci_image_name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "oci_image_name"
+            ]
+          }
+        },
+        "required": [
+          "name",
+          "aws_config",
+          "os_type",
+          "os_distro",
+          "os_branch",
+          "os_cpu",
+          "default_vm",
+          "disabled"
+        ]
+      }
+    }
+  },
+  "required": [
+    "virtual_machines"
+  ]
+}
