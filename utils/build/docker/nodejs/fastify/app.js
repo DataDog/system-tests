@@ -170,99 +170,6 @@ fastify.get('/make_distant_call', async (request, reply) => {
   })
 })
 
-fastify.all('/tag_value/:tag_value/:status_code', async (request, reply) => {
-  const web = require('dd-trace/packages/dd-trace/src/plugins/util/web')
-  web.root(request.raw).setTag('appsec.events.system_tests_appsec_event.value', request.params.tag_value)
-
-  for (const [k, v] of Object.entries(request.query)) {
-    reply.header(k, v)
-  }
-
-  reply.status(parseInt(request.params.status_code) || 200)
-
-  if (request.params.tag_value.startsWith?.('payload_in_response_body') && request.method === 'POST') {
-    return { payload: request.body }
-  } else {
-    return 'Value tagged'
-  }
-})
-
-fastify.get('/flush', async (request, reply) => {
-  // doesn't have a callback :(
-  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
-  tracer.dogstatsd?.flush?.()
-  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
-
-  // does have a callback :)
-  const promises = []
-
-  try {
-    const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
-    if (profiler?._collect) {
-      promises.push(profiler._collect('on_shutdown'))
-    }
-  } catch (err) {
-    console.error('Unable to flush profiler:', err)
-  }
-
-  if (tracer._tracer?._exporter?._writer?.flush) {
-    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err))())
-  }
-
-  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
-    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
-  }
-
-  try {
-    await Promise.all(promises)
-    reply.status(200)
-    return 'OK'
-  } catch (err) {
-    reply.status(500)
-    return err
-  }
-})
-
-fastify.get('/requestdownstream', async (request, reply) => {
-  try {
-    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
-    return resFetch.data
-  } catch (e) {
-    reply.status(500)
-    return e
-  }
-})
-
-fastify.get('/vulnerablerequestdownstream', async (request, reply) => {
-  try {
-    crypto.createHash('md5').update('password').digest('hex')
-    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
-    return resFetch.data
-  } catch (e) {
-    reply.status(500)
-    return e
-  }
-})
-
-fastify.get('/returnheaders', async (request, reply) => {
-  return { ...request.headers }
-})
-
-fastify.get('/log/library', (request, reply) => {
-  const msg = request.query.msg || 'msg'
-  switch (request.query.level) {
-    case 'warn':
-      logger.warn(msg)
-      break
-    case 'error':
-      logger.error(msg)
-      break
-    default:
-      logger.info(msg)
-  }
-  return 'OK'
-})
-
 fastify.get('/user_login_success_event', async (request, reply) => {
   const userId = request.query.event_user_id || 'system_tests_user'
 
@@ -334,98 +241,6 @@ fastify.get('/users', async (request, reply) => {
   }
 })
 
-fastify.get('/read_file', async (request, reply) => {
-  const path = request.query.file
-
-  return new Promise((resolve, reject) => {
-    const fs = require('fs')
-    fs.readFile(path, (err, data) => {
-      if (err) {
-        console.error(err)
-        reply.status(500)
-        resolve('ko')
-      } else {
-        resolve(data)
-      }
-    })
-  })
-})
-
-fastify.get('/set_cookie', async (request, reply) => {
-  const name = request.query.name
-  const value = request.query.value
-
-  reply.header('Set-Cookie', `${name}=${value}`)
-  return 'OK'
-})
-
-fastify.get('/createextraservice', async (request, reply) => {
-  const serviceName = request.query.serviceName
-
-  const span = tracer.scope().active()
-  span.setTag('service.name', serviceName)
-
-  return 'OK'
-})
-
-fastify.get('/load_dependency', async (request, reply) => {
-  console.log('Load dependency endpoint')
-  require('glob')
-  return 'Loaded a dependency'
-})
-
-fastify.post('/shell_execution', async (request, reply) => {
-  const { spawnSync } = require('child_process')
-  const options = { shell: !!request?.body?.options?.shell }
-  const reqArgs = request?.body?.args
-
-  let args
-  if (typeof reqArgs === 'string') {
-    args = reqArgs.split(' ')
-  } else {
-    args = reqArgs
-  }
-
-  const response = spawnSync(request?.body?.command, args, options)
-  return response
-})
-
-fastify.get('/otel_drop_in_default_propagator_extract', async (request, reply) => {
-  const api = require('@opentelemetry/api')
-  const ctx = api.propagation.extract(api.context.active(), request.headers)
-  const spanContext = api.trace.getSpan(ctx).spanContext()
-
-  const result = {}
-  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
-  result.span_id = parseInt(spanContext.spanId, 16)
-  result.tracestate = spanContext.traceState.serialize()
-
-  return result
-})
-
-fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) => {
-  const api = require('@opentelemetry/api')
-  const otelTracer = api.trace.getTracer('my-application', '0.1.0')
-  const span = otelTracer.startSpan('main')
-  const result = {}
-
-  api.propagation.inject(
-    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()),
-    result,
-    api.defaultTextMapSetter
-  )
-  return result
-})
-
-fastify.get('/add_event', async (request, reply) => {
-  const rootSpan = tracer.scope().active().context()._trace.started[0]
-
-  rootSpan.addEvent('span.event', { string: 'value', int: 1 }, Date.now())
-
-  reply.status(200)
-  return { message: 'Event added' }
-})
-
 fastify.get('/stub_dbm', async (request, reply) => {
   const integration = request.query.integration
   const operation = request.query.operation
@@ -444,18 +259,17 @@ fastify.get('/stub_dbm', async (request, reply) => {
   }
 })
 
-fastify.get('/db', async (request, reply) => {
-  console.log('Service: ' + request.query.service)
-  console.log('Operation: ' + request.query.operation)
+try {
+  dsm.initRoutes(fastify, tracer)
+} catch (e) {
+  console.error('DSM routes initialization has failed', e)
+}
 
-  if (request.query.service === 'postgresql') {
-    return await pgsql.doOperation(request.query.operation)
-  } else if (request.query.service === 'mysql') {
-    return await mysql.doOperation(request.query.operation)
-  } else if (request.query.service === 'mssql') {
-    return await mssql.doOperation(request.query.operation)
-  }
-})
+try {
+  apiGateway.initRoutes(fastify)
+} catch (e) {
+  console.error('Api Gateway routes initialization has failed', e)
+}
 
 fastify.get('/kafka/produce', async (request, reply) => {
   const topic = request.query.topic
@@ -484,6 +298,21 @@ fastify.get('/kafka/consume', async (request, reply) => {
     reply.status(500)
     return 'Internal Server Error during Kafka consume'
   }
+})
+
+fastify.get('/log/library', (request, reply) => {
+  const msg = request.query.msg || 'msg'
+  switch (request.query.level) {
+    case 'warn':
+      logger.warn(msg)
+      break
+    case 'error':
+      logger.error(msg)
+      break
+    default:
+      logger.info(msg)
+  }
+  return 'OK'
 })
 
 fastify.get('/sqs/produce', async (request, reply) => {
@@ -619,20 +448,190 @@ fastify.get('/rabbitmq/consume', async (request, reply) => {
   }
 })
 
-// Initialize integrations
-try {
-  dsm.initRoutes(fastify, tracer)
-} catch (e) {
-  console.error('DSM routes initialization has failed', e)
-}
+fastify.get('/load_dependency', async (request, reply) => {
+  console.log('Load dependency endpoint')
+  require('glob')
+  return 'Loaded a dependency'
+})
 
-try {
-  apiGateway.initRoutes(fastify)
-} catch (e) {
-  console.error('Api Gateway routes initialization has failed', e)
-}
+fastify.all('/tag_value/:tag_value/:status_code', async (request, reply) => {
+  const web = require('dd-trace/packages/dd-trace/src/plugins/util/web')
+  web.root(request.raw).setTag('appsec.events.system_tests_appsec_event.value', request.params.tag_value)
+
+  for (const [k, v] of Object.entries(request.query)) {
+    reply.header(k, v)
+  }
+
+  reply.status(parseInt(request.params.status_code) || 200)
+
+  if (request.params.tag_value.startsWith?.('payload_in_response_body') && request.method === 'POST') {
+    return { payload: request.body }
+  } else {
+    return 'Value tagged'
+  }
+})
+
+fastify.get('/read_file', async (request, reply) => {
+  const path = request.query.file
+
+  return new Promise((resolve, reject) => {
+    const fs = require('fs')
+    fs.readFile(path, (err, data) => {
+      if (err) {
+        console.error(err)
+        reply.status(500)
+        resolve('ko')
+      } else {
+        resolve(data)
+      }
+    })
+  })
+})
+
+fastify.get('/db', async (request, reply) => {
+  console.log('Service: ' + request.query.service)
+  console.log('Operation: ' + request.query.operation)
+
+  if (request.query.service === 'postgresql') {
+    return await pgsql.doOperation(request.query.operation)
+  } else if (request.query.service === 'mysql') {
+    return await mysql.doOperation(request.query.operation)
+  } else if (request.query.service === 'mssql') {
+    return await mssql.doOperation(request.query.operation)
+  }
+})
+
+fastify.get('/otel_drop_in_default_propagator_extract', async (request, reply) => {
+  const api = require('@opentelemetry/api')
+  const ctx = api.propagation.extract(api.context.active(), request.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
+
+  const result = {}
+  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
+  result.span_id = parseInt(spanContext.spanId, 16)
+  result.tracestate = spanContext.traceState.serialize()
+
+  return result
+})
+
+fastify.get('/otel_drop_in_default_propagator_inject', async (request, reply) => {
+  const api = require('@opentelemetry/api')
+  const otelTracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = otelTracer.startSpan('main')
+  const result = {}
+
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()),
+    result,
+    api.defaultTextMapSetter
+  )
+  return result
+})
+
+fastify.post('/shell_execution', async (request, reply) => {
+  const { spawnSync } = require('child_process')
+  const options = { shell: !!request?.body?.options?.shell }
+  const reqArgs = request?.body?.args
+
+  let args
+  if (typeof reqArgs === 'string') {
+    args = reqArgs.split(' ')
+  } else {
+    args = reqArgs
+  }
+
+  const response = spawnSync(request?.body?.command, args, options)
+  return response
+})
+
+fastify.get('/createextraservice', async (request, reply) => {
+  const serviceName = request.query.serviceName
+
+  const span = tracer.scope().active()
+  span.setTag('service.name', serviceName)
+
+  return 'OK'
+})
 
 di.initRoutes(fastify)
+
+fastify.get('/flush', async (request, reply) => {
+  // doesn't have a callback :(
+  // tracer._tracer?._dataStreamsProcessor?.writer?.flush?.()
+  tracer.dogstatsd?.flush?.()
+  tracer._pluginManager?._pluginsByName?.openai?.metrics?.flush?.()
+
+  // does have a callback :)
+  const promises = []
+
+  try {
+    const { profiler } = require('dd-trace/packages/dd-trace/src/profiling/')
+    if (profiler?._collect) {
+      promises.push(profiler._collect('on_shutdown'))
+    }
+  } catch (err) {
+    console.error('Unable to flush profiler:', err)
+  }
+
+  if (tracer._tracer?._exporter?._writer?.flush) {
+    promises.push(promisify((err) => tracer._tracer._exporter._writer.flush(err))())
+  }
+
+  if (tracer._pluginManager?._pluginsByName?.openai?.logger?.flush) {
+    promises.push(promisify((err) => tracer._pluginManager._pluginsByName.openai.logger.flush(err))())
+  }
+
+  try {
+    await Promise.all(promises)
+    reply.status(200)
+    return 'OK'
+  } catch (err) {
+    reply.status(500)
+    return err
+  }
+})
+
+fastify.get('/requestdownstream', async (request, reply) => {
+  try {
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return resFetch.data
+  } catch (e) {
+    reply.status(500)
+    return e
+  }
+})
+
+fastify.get('/vulnerablerequestdownstream', async (request, reply) => {
+  try {
+    crypto.createHash('md5').update('password').digest('hex')
+    const resFetch = await axios.get('http://127.0.0.1:7777/returnheaders')
+    return resFetch.data
+  } catch (e) {
+    reply.status(500)
+    return e
+  }
+})
+
+fastify.get('/returnheaders', async (request, reply) => {
+  return { ...request.headers }
+})
+
+fastify.get('/set_cookie', async (request, reply) => {
+  const name = request.query.name
+  const value = request.query.value
+
+  reply.header('Set-Cookie', `${name}=${value}`)
+  return 'OK'
+})
+
+fastify.get('/add_event', async (request, reply) => {
+  const rootSpan = tracer.scope().active().context()._trace.started[0]
+
+  rootSpan.addEvent('span.event', { string: 'value', int: 1 }, Date.now())
+
+  reply.status(200)
+  return { message: 'Event added' }
+})
 
 const startServer = async () => {
   try {
@@ -648,7 +647,7 @@ const startServer = async () => {
 const graphQLEnabled = false
 const initGraphQL = () => {
   return graphQLEnabled
-    ? require('./graphql')(fastify)
+    ? require('./graphql')(fastify) // TODO: create graphql folder
     : Promise.resolve()
 }
 
