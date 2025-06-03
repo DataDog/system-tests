@@ -73,8 +73,10 @@ tests/:
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
-            '*': v2.10.0
-            fastapi: v2.20.0.dev
+            '*': irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature

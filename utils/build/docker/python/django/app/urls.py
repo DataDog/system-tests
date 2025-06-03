@@ -779,8 +779,9 @@ def view_iast_source_path_parameter(request, table):
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
+    # This line is deprecated, it's kept for backward compatibility with older versions
     response.headers["Header-Injection"] = header
+    response.headers._store["Header-Injection".lower()] = ("Header-Injection", header)
     return response
 
 
