@@ -1063,49 +1063,37 @@ tests/:
       Test_Debugger_Exception_Replay: missing_feature (feature not implented)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
-        '*': irrelevant
-        express4: v5.48.0
-        express4-typescript: v5.48.0
-        uds-express4: v5.48.0
+        '*': *ref_5_48_0
+        nextjs: irrelevant
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+        '*': *ref_5_39_0
+        nextjs: irrelevant
       Test_Debugger_PII_Redaction_Excluded_Identifiers:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+        '*': *ref_5_39_0
+        nextjs: irrelevant
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+        '*': *ref_5_39_0
+        nextjs: irrelevant
       Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+        '*': *ref_5_39_0
+        nextjs: irrelevant
       Test_Debugger_Method_Probe_Statuses: missing_feature
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry:
-        '*': irrelevant
-        express4: v5.39.0
-        express4-typescript: v5.39.0
-        uds-express4: v5.39.0
+        '*': *ref_5_39_0
+        nextjs: irrelevant
   integrations/:
     crossed_integrations/:
       test_kafka.py:
@@ -1118,59 +1106,71 @@ tests/:
           '*': irrelevant
           express4: *ref_5_3_0
           express5: *ref_5_3_0
+          fastify: *ref_5_3_0
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           '*': irrelevant
           express4: v0.1  # real version not known
           express5: v0.1  # real version not known
+          fastify: v0.1  # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           '*': irrelevant
           express4: *ref_5_20_0
           express5: *ref_5_20_0
+          fastify: *ref_5_20_0
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           '*': irrelevant
           express4: v0.1  # real version not known
           express5: v0.1  # real version not known
+          fastify: v0.1  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
           express4: v0.1  # real version not known
           express5: v0.1  # real version not known
+          fastify: v0.1  # real version not known
     test_db_integrations_sql.py:
       Test_MsSql:
         '*': missing_feature
         express4: v1.0.0
         express5: v1.0.0
+        fastify: v1.0.0
       Test_MySql:
         '*': missing_feature
         express4: v1.0.0
         express5: v1.0.0
+        fastify: v1.0.0
       Test_Postgres:
         '*': missing_feature
         express4: v1.0.0
         express5: v1.0.0
+        fastify: v1.0.0
     test_dbm.py:
       Test_Dbm: missing_feature
       Test_Dbm_Comment_NodeJS_mysql2:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
         express5: *ref_5_13_0
+        fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
       Test_Dbm_Comment_NodeJS_pg:
         '*': missing_feature (Missing on weblog)
         express4: *ref_5_13_0
         express5: *ref_5_13_0
+        fastify: *ref_5_13_0
         uds-express4: *ref_5_13_0
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
         express5: *ref_5_6_0
+        fastify: *ref_5_6_0
       Test_DsmContext_Injection_Base64:
         '*': irrelevant
         express4: *ref_5_6_0
         express5: *ref_5_6_0
+        fastify: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         '*': *ref_5_25_0
@@ -1179,47 +1179,58 @@ tests/:
         '*': irrelevant
         express4: *ref_5_2_0
         express5: *ref_5_2_0
+        fastify: *ref_5_2_0
       Test_DsmRabbitmq:
         '*': irrelevant
         express4: *ref_5_3_0
         express5: *ref_5_3_0
+        fastify: *ref_5_3_0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
         express4: missing_feature
         express5: missing_feature
+        fastify: missing_feature
       Test_DsmRabbitmq_TopicExchange:
         '*': irrelevant
         express4: missing_feature
         express5: missing_feature
+        fastify: missing_feature
       Test_DsmSNS:
         '*': irrelevant
         express4: *ref_5_20_0
         express5: *ref_5_20_0
+        fastify: *ref_5_20_0
       Test_DsmSQS:
         '*': irrelevant
         express4: *ref_5_2_0
         express5: *ref_5_2_0
+        fastify:  *ref_5_2_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
         express4: *ref_5_20_0
         express5: *ref_5_20_0
+        fastify: *ref_5_20_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
         express4: *ref_5_20_0
         express5: *ref_5_20_0
+        fastify: *ref_5_20_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
         express4: *ref_5_37_0
         express5: *ref_5_37_0
+        fastify: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         '*': irrelevant
         express4: *ref_5_37_0
         express5: *ref_5_37_0
+        fastify: *ref_5_37_0
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         '*': irrelevant
         express4: *ref_5_37_0
         express5: *ref_5_37_0
+        fastify: *ref_5_37_0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
   otel/:
@@ -1228,6 +1239,7 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         express4: *ref_5_26_0
         express5: *ref_5_26_0
+        fastify: *ref_5_26_0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_3_0_0
@@ -1418,10 +1430,12 @@ tests/:
       "*": irrelevant
       express4: *ref_5_43_0
       express5: *ref_5_43_0
+      fastify: *ref_5_43_0
     Test_SpanEvents_WithoutAgentSupport:
       "*": irrelevant
       express4: *ref_5_17_0
       express5: *ref_5_17_0
+      fastify: *ref_5_17_0
   test_standard_tags.py:
     Test_StandardTagsClientIp:
       '*': *ref_3_6_0
