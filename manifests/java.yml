@@ -2000,6 +2000,9 @@ tests/:
       Test_RemoteConfigurationExtraServices:
         '*': v1.31.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RemoteConfigurationSemVer:
+        '*': v1.4.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceASMDD:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
