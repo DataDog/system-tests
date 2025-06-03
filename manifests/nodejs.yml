@@ -1204,7 +1204,7 @@ tests/:
         '*': irrelevant
         express4: *ref_5_2_0
         express5: *ref_5_2_0
-        fastify:  *ref_5_2_0
+        fastify: *ref_5_2_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
         express4: *ref_5_20_0
