@@ -515,6 +515,7 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount:
           '*': *ref_5_54_0
+          fastify: missing_feature
           nextjs: missing_feature
       test_security_controls.py:
         TestSecurityControls:
@@ -972,6 +973,7 @@ tests/:
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_54_0
+        fastify: missing_feature
         nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
