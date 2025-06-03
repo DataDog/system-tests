@@ -969,7 +969,9 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
-      Test_ExtendedHeaderCollection: *ref_5_54_0
+      Test_ExtendedHeaderCollection:
+        '*': *ref_5_54_0
+        fastify: missing_feature
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_54_0
