@@ -1,0 +1,162 @@
+# YAML Schema for Weblog Provision Files
+# This schema validates the structure of provision_*.yml files in utils/build/virtual_machine/weblogs/[lang]/
+# Based on documentation: docs/scenarios/onboarding_provision_section.md (Weblog Provision Structure section)
+
+$schema: http://json-schema.org/draft-07/schema#
+type: object
+title: Weblog Provision Schema
+description: Schema for validating weblog provision files used in AWS SSI tests
+
+properties:
+  # Optional section for host-based applications that need language runtime installation
+  lang_variant:
+    type: object
+    description: Language runtime installation configuration (only for host-based applications)
+    properties:
+      name:
+        type: string
+        description: Name of the language variant (e.g., Python, nodejs, DefaultJDK, dotnet)
+        examples: ["Python", "nodejs", "DefaultJDK", "dotnet"]
+      
+      version:
+        type: [string, number]
+        description: Version of the language runtime
+        examples: ["default", "6", "18", "20"]
+      
+      cache:
+        type: boolean
+        description: Whether this installation step can be cached for faster execution
+        default: false
+      
+      install:
+        type: array
+        description: Array of installation steps for different operating systems
+        items:
+          $ref: "#/definitions/installation_step"
+        minItems: 1
+    
+    required: ["name", "install"]
+    additionalProperties: false
+  
+  # Mandatory section defining weblog installation and execution
+  weblog:
+    type: object
+    description: Weblog application installation and execution configuration
+    properties:
+      name:
+        type: string
+        description: Name of the weblog (should match the weblog name used in --vm-weblog parameter)
+        pattern: "^[a-zA-Z0-9_-]+$"
+      
+      runtime_version:
+        type: [string, number]
+        description: Runtime version for container-based applications
+        examples: ["18", "6", "default"]
+      
+      install:
+        type: array
+        description: Array of installation steps for different operating systems
+        items:
+          $ref: "#/definitions/installation_step"
+        minItems: 1
+    
+    required: ["name", "install"]
+    additionalProperties: false
+
+required: ["weblog"]
+additionalProperties: false
+
+definitions:
+  # Installation step definition used by both lang_variant and weblog sections
+  installation_step:
+    type: object
+    description: Single installation step with OS targeting and commands
+    properties:
+      os_type:
+        type: string
+        description: Operating system type
+        enum: ["linux", "windows"]
+      
+      os_distro:
+        type: string
+        description: Linux distribution type
+        enum: ["deb", "rpm"]
+      
+      os_branch:
+        type: string
+        description: Distribution branch or version
+        examples: ["ubuntu20", "ubuntu22_arm64", "ubuntu23", "ubuntu24", "debian", "redhat", "fedora", "alma_linux", "oracle_linux", "centos_8_amd64", "amazon_linux2", "amazon_linux2022", "amazon_linux2023_arm64", "amazon_linux2023_amd64", "rhel_7_amd64"]
+      
+      os_cpu:
+        type: string
+        description: CPU architecture
+        enum: ["amd64", "arm64"]
+      
+      remote-command:
+        type: string
+        description: Commands to execute on the remote virtual machine (supports multi-line with YAML | syntax)
+      
+      local-command:
+        type: string
+        description: Commands to execute on the local machine before copying files
+      
+      copy_files:
+        type: array
+        description: Files to copy from local machine to remote virtual machine
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Descriptive name for this copy operation
+              pattern: "^[a-zA-Z0-9_-]+$"
+            
+            local_path:
+              type: string
+              description: Path to the local file or directory to copy
+              pattern: "^[a-zA-Z0-9_/.-]+$"
+          
+          required: ["name", "local_path"]
+          additionalProperties: false
+        minItems: 1
+    
+    # At least one of these must be present in each installation step
+    anyOf:
+      - required: ["remote-command"]
+      - required: ["local-command"]
+      - required: ["copy_files"]
+    
+    additionalProperties: false
+
+# Examples of valid structures:
+examples:
+  - # Host-based weblog with language runtime
+    lang_variant:
+      name: "Python"
+      version: "default"
+      cache: true
+      install:
+        - os_type: "linux"
+          os_distro: "deb"
+          remote-command: |
+            sudo apt-get update
+            sudo apt install -y python-is-python3
+    weblog:
+      name: "my-python-weblog"
+      install:
+        - os_type: "linux"
+          copy_files:
+            - name: "copy-service"
+              local_path: "utils/build/virtual_machine/weblogs/common/test-app.service"
+          remote-command: "sh my-python-weblog_run.sh"
+  
+  - # Container-based weblog without language runtime
+    weblog:
+      name: "test-app-nodejs-container"
+      runtime_version: 18
+      install:
+        - os_type: "linux"
+          copy_files:
+            - name: "copy-container-run-script"
+              local_path: "utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh"
+          remote-command: "sh create_and_run_app_container.sh" 
