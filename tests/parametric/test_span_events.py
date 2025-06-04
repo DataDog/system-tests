@@ -199,3 +199,14 @@ class Test_Span_Events:
         assert len(event["attributes"]) == 2
         assert event["attributes"].get("int").get("int_value") == 1
         assert event["attributes"].get("string").get("string_value") == "bar"
+
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    def test_span_record_exception(self, test_agent, test_library):
+        """Tests the Datadog Span.RecordException API and its serialization
+        into the Datadog 'events' tag and 'span' tag
+        """
+

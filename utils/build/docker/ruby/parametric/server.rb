@@ -248,6 +248,22 @@ class TraceSpanAddLinkReturn
   end
 end
 
+class TraceSpanRecordExceptionArgs
+  attr_accessor :span_id, :name, :attributes
+
+  def initialize(params)
+    @span_id = params['span_id']
+    @parent_id = params['name']
+    @attributes = params['attributes']
+  end
+end
+
+class TraceSpanRecordExceptionReturn
+  def to_json(*_args)
+    {}.to_json
+  end
+end
+
 class HttpClientRequestArgs
   attr_accessor :method, :url, :headers, :body
 
@@ -581,6 +597,8 @@ class MyApp
       handle_trace_span_add_link(req, res)
     when '/trace/span/add_event'
       handle_trace_span_add_event(req, res)
+    when '/trace/span/record_exception'
+      handle_trace_span_record_exception(req, res)
     when '/trace/otel/start_span'
       handle_trace_otel_start_span(req, res)
     when '/trace/otel/add_event'
@@ -747,6 +765,14 @@ class MyApp
     res.write(TraceSpanAddEventReturn.new.to_json)
   end
 
+  def handle_trace_span_record_exception(req, res)
+    args = TraceSpanRecordExceptionArgs(new(JSON.parse(req.body.read)))
+    span = find_span(args.span_id)
+
+    span.record_exception(args.exception, args.attributes)
+
+    res.write(TraceSpanRecordExceptionReturn.new.to_json)
+  end
   def handle_trace_crash(_req, res)
     STDOUT.puts "Crashing server..."
     Process.kill('SEGV', Process.pid)
