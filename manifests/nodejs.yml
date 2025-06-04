@@ -979,6 +979,7 @@ tests/:
         '*': *ref_5_24_0
       Test_Fingerprinting_Endpoint_Preprocessor:
         '*': *ref_5_24_0
+        fastify: missing_feature
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
@@ -1034,9 +1035,7 @@ tests/:
       Test_AppSecObfuscator:
         '*': v2.6.0
       Test_CollectDefaultRequestHeader: *ref_5_18_0
-      Test_CollectRespondHeaders:
-        '*': v2.0.0
-        fastify: missing_feature
+      Test_CollectRespondHeaders: v2.0.0
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:

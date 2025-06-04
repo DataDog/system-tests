@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, missing_feature
 
 
 @features.support_in_app_waf_metrics_report
@@ -188,6 +188,7 @@ class Test_Monitoring:
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenarios.appsec_rules_monitoring_with_errors
+    @missing_feature(context.weblog_variant == "fastify", reason="Not supported yet")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
