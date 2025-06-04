@@ -761,7 +761,6 @@ tests/:
       test_exclusions.py:
         Test_Exclusions:
           '*': *ref_3_19_0
-          fastify: missing_feature
       test_miscs.py:
         Test_404: v2.0.0
         Test_CorrectOptionProcessing:
@@ -769,14 +768,12 @@ tests/:
           fastify: missing_feature
         Test_MultipleAttacks:
           '*': v2.0.0
-          fastify: missing_feature
         Test_MultipleHighlight:
           '*': v2.0.0
           fastify: missing_feature
       test_reports.py:
         Test_Monitoring:
           '*': v2.8.0
-          fastify: missing_feature
       test_rules.py:
         Test_CommandInjection:
           '*': v2.0.0
@@ -793,7 +790,6 @@ tests/:
           fastify: missing_feature
         Test_LFI:
           '*': v2.0.0
-          fastify: missing_feature
         Test_NoSqli: v2.0.0
         Test_PhpCodeInjection:
           '*': v2.0.0
@@ -907,7 +903,6 @@ tests/:
       Test_Blocking_response_status: *ref_5_17_0
       Test_Blocking_user_id:
         '*': *ref_3_19_0
-        fastify: missing_feature
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
@@ -971,7 +966,6 @@ tests/:
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection:
         '*': *ref_5_54_0
-        fastify: missing_feature
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_54_0
@@ -983,10 +977,8 @@ tests/:
         fastify: missing_feature
       Test_Fingerprinting_Endpoint_Capability:
         '*': *ref_5_24_0
-        fastify: missing_feature
       Test_Fingerprinting_Endpoint_Preprocessor:
         '*': *ref_5_24_0
-        fastify: missing_feature
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
@@ -997,7 +989,6 @@ tests/:
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability:
         '*': *ref_5_39_0
-        fastify: missing_feature
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
         fastify: missing_feature
@@ -1040,7 +1031,6 @@ tests/:
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v2.0.0
-        fastify: missing_feature
       Test_AppSecObfuscator:
         '*': v2.6.0
         fastify: missing_feature
