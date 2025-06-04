@@ -2654,5 +2654,14 @@ class _Features:
         pytest.mark.features(feature_id=470)(test_object)
         return test_object
 
+    @staticmethod
+    def remote_config_semantic_versioning(test_object):
+        """Semantic version 2 is reported in remote config
+
+        https://feature-parity.us1.prod.dog/#/?feature=472
+        """
+        pytest.mark.features(feature_id=472)(test_object)
+        return test_object
+
 
 features = _Features()
