@@ -95,11 +95,10 @@ fastify.get('/params/:value', async (request, reply) => {
 })
 
 fastify.get('/headers', async (request, reply) => {
-  reply.headers({
-    'content-type': 'text/plain',
-    'content-length': '42',
-    'content-language': 'en-US'
-  })
+  reply.raw.setHeader('content-type', 'text/plain')
+  reply.raw.setHeader('content-length', '42')
+  reply.raw.setHeader('content-language', 'en-US')
+
   return 'Hello, headers!'
 })
 

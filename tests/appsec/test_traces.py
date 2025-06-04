@@ -88,7 +88,6 @@ class Test_AppSecEventSpanTags:
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
-    @missing_feature(context.weblog_variant == "fastify", reason="Not supported yet")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.

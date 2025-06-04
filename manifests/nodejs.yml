@@ -1033,7 +1033,6 @@ tests/:
         '*': v2.0.0
       Test_AppSecObfuscator:
         '*': v2.6.0
-        fastify: missing_feature
       Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders:
         '*': v2.0.0
