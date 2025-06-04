@@ -1157,10 +1157,10 @@ tests/:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
   test_sampling_rates.py:
-    Test_SampleRateFunction: v6.0.0-pre
+    Test_SampleRateFunction: *ref_5_54_0
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
-    Test_SamplingDecisions: v6.0.0-pre
-    Test_SamplingDeterminism: v6.0.0-pre
+    Test_SamplingDecisions: *ref_5_54_0
+    Test_SamplingDeterminism: *ref_5_54_0
     Test_SamplingRates: *ref_5_17_0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
