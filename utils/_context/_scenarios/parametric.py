@@ -165,6 +165,7 @@ class ParametricScenario(Scenario):
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["./system_tests_library_version.sh"],
+                volumes=self.compute_volumes(self.apm_test_server_definition.volumes),
             )
         else:
             output = _get_client().containers.run(
@@ -287,6 +288,20 @@ class ParametricScenario(Scenario):
 
         raise ValueError(f"Unexpected worker_id: {worker_id}")
 
+    @staticmethod
+    def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
+        """Convert volumes to the format expected by the docker-py API"""
+        fixed_volumes: dict[str, dict] = {}
+        for key, value in volumes.items():
+            if isinstance(value, dict):
+                fixed_volumes[key] = value
+            elif isinstance(value, str):
+                fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            else:
+                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
+
+        return fixed_volumes
+
     @contextlib.contextmanager
     def docker_run(
         self,
@@ -300,16 +315,6 @@ class ParametricScenario(Scenario):
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-        # Convert volumes to the format expected by the docker-py API
-        fixed_volumes: dict[str, dict] = {}
-        for key, value in volumes.items():
-            if isinstance(value, dict):
-                fixed_volumes[key] = value
-            elif isinstance(value, str):
-                fixed_volumes[key] = {"bind": value, "mode": "rw"}
-            else:
-                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
-
         logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
         try:
@@ -317,7 +322,7 @@ class ParametricScenario(Scenario):
                 image,
                 name=name,
                 environment=env,
-                volumes=fixed_volumes,
+                volumes=self.compute_volumes(volumes),
                 network=network,
                 ports={f"{container_port}/tcp": host_port},
                 command=command,

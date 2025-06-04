@@ -38,5 +38,6 @@ ENV APP_EXTRA_ARGS="--port 7777"
 ENV HZ_PHONE_HOME_ENABLED=false
 # https://blog.payara.fish/faster-payara-micro-startup-times-with-openj9
 ENV payaramicro_noCluster=true
+ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

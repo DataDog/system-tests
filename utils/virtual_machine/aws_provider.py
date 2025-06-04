@@ -441,12 +441,16 @@ class AWSCommander(Commander):
                     destination = str(p.relative_to(*p.parts[:2]))
                 # logger.debug(f"Creating remote folder: {destination}")
 
+                # Use different mkdir commands based on OS type
+                mkdir_cmd = (
+                    "mkdir -p" if not vm or vm.os_type != "windows" else "New-Item -ItemType Directory -Force -Path"
+                )
                 quee_depends_on.insert(
                     0,
                     command.remote.Command(
                         "mkdir-" + destination + "-" + str(uuid.uuid4()) + "-" + command_id,
                         connection=connection,
-                        create=f"mkdir -p {destination}",
+                        create=f"{mkdir_cmd} {destination}",
                         opts=pulumi.ResourceOptions(depends_on=[quee_depends_on.pop()], retain_on_delete=True),
                     ),
                 )

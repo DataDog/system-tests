@@ -2,7 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, rfc, features, bug
+from utils import weblog, interfaces, scenarios, rfc, features, bug, context
+
+
+def assert_body_property(body, prop, expected_value) -> None:
+    if context.library.name == "nodejs":
+        assert body.get(prop) == expected_value
+    if context.library.name == "java":
+        assert body.get(prop)[0] == expected_value
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
@@ -30,7 +37,7 @@ class Test_ExtendedRequestBodyCollection:
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
-        assert body.get("command")[0] == "/usr/bin/touch /tmp/passwd"
+        assert_body_property(body, "command", "/usr/bin/touch /tmp/passwd")
 
     def setup_feature_is_enabled(self):
         self.check_r = weblog.post("/rasp/cmdi", data={"command": "/usr/bin/touch /tmp/passwd"})
@@ -65,7 +72,7 @@ class Test_ExtendedRequestBodyCollection:
         meta_struct = span.get("meta_struct", {})
         body = meta_struct.get("http.request.body")
         assert body is not None
-        assert body.get("command")[0] == "/usr/bin/touch /tmp/passwd" + "A" * 4070
+        assert_body_property(body, "command", "/usr/bin/touch /tmp/passwd" + "A" * 4070)
         meta = span.get("meta", {})
         assert meta.get("_dd.appsec.rasp.request_body_size.exceeded") == "true"
 
