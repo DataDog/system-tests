@@ -96,7 +96,7 @@ tests/:
         Test_Schema_Request_Headers: *ref_4_21_0
         Test_Schema_Request_Json_Body:
           '*': *ref_4_21_0
-          fastify:  *ref_5_55_0
+          fastify: *ref_5_55_0
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
           express5: *ref_5_29_0
@@ -104,7 +104,7 @@ tests/:
           nextjs: missing_feature
         Test_Schema_Request_Query_Parameters:
           '*': *ref_4_21_0
-          fastify:  *ref_5_55_0
+          fastify: *ref_5_55_0
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
           express5: *ref_5_29_0
@@ -986,7 +986,7 @@ tests/:
         fastify: *ref_5_55_0
       Test_Fingerprinting_Endpoint_Preprocessor:
         '*': *ref_5_24_0
-        fastify:  *ref_5_55_0
+        fastify: *ref_5_55_0
       Test_Fingerprinting_Header_And_Network: *ref_5_24_0
       Test_Fingerprinting_Header_And_Network_Preprocessor: *ref_5_24_0
       Test_Fingerprinting_Header_Capability: *ref_5_24_0
