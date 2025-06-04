@@ -147,9 +147,9 @@ For common test activation patterns and examples of enabling/disabling tests, se
 * To know how to add a new end to end tests case use the document [how to add a new end to end test](docs/edit/add-new-test.md).
 * The logs folder structure for the end to end scenarios is explained in the document [logs folder structure end to end scenarios](docs/execute/logs.md).
 * End to End scenarios store and validate messages:
-  * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](utils/interfaces/_library/core.py).
-  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](utils/interfaces/_agent.py).
-  * Returned by the datadog backend API. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The "backend interface" implemented as class "_BackendInterfaceValidator" in the [backend interface core implementation](utils/interfaces/_backend.py) exposes methods to interact with the datadog backend API.
+  * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](utils/interfaces/_library/core.py). For details use the [library interface](docs/internals/library-interface-validation-methods.md) documentation.
+  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](utils/interfaces/_agent.py). For details use the [agent interface](docs/internals/agent-interface-validation-methods.md) documentation.
+  * Returned by the datadog backend API. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The "backend interface" implemented as class "_BackendInterfaceValidator" in the [backend interface core implementation](utils/interfaces/_backend.py) exposes methods to interact with the datadog backend API. For details use the [backend interface](docs/internals/backend-interface-validation-methods.md) documentation.
 * The library interface, agent interface and backend interface are instantiated as singleton in [validation interfaces](utils/interfaces/__init__.py) and they can be used by the end to end test cases as following example:
 
 ```
@@ -165,6 +165,7 @@ class my_test_class
     interfaces.agent.<validation method>
     <interfaces.backend.<validation method>
 ```
+
 * The class "SchemaValidator" from [schema validator](file utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
 * if the user wants to create a new scenario, you MUST validate or ask to the user the context of this scenario is for: end to end, parametric, kubernetes or ssi.
 * After adding a new scenario on [scenarios](utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
