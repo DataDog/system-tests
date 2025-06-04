@@ -405,6 +405,11 @@ class TraceSpanAddEventsArgs(BaseModel):
     timestamp: int
     attributes: dict
 
+class TraceSpanRecordExceptionArgs(BaseModel):
+    span_id: int
+    message: str
+    attributes: dict
+
 
 class TraceSpanAddLinkReturn(BaseModel):
     pass
@@ -413,6 +418,8 @@ class TraceSpanAddLinkReturn(BaseModel):
 class TraceSpanAddEventReturn(BaseModel):
     pass
 
+class TraceSpanRecordExceptionReturn(BaseModel):
+    exception_type: str
 
 @app.post("/trace/span/add_link")
 def trace_span_add_link(args: TraceSpanAddLinksArgs) -> TraceSpanAddLinkReturn:
@@ -432,6 +439,15 @@ def trace_span_add_event(args: TraceSpanAddEventsArgs) -> TraceSpanAddEventRetur
     span = spans[args.span_id]
     span.add_event(args.name, args.attributes, args.timestamp)
     return TraceSpanAddEventReturn()
+
+@app.post("/trace/span/record_exception")
+def trace_span_record_exception(args: TraceSpanRecordExceptionArgs) -> TraceSpanRecordExceptionReturn:
+    span = spans[args.span_id]
+    try:
+        raise ValueError(args.message)
+    except Exception as e:
+        span.record_exception(e, args.attributes)
+        return TraceSpanRecordExceptionReturn(exception_type=type(e).__name__)
 
 
 class TraceSpanCurrentReturn(BaseModel):

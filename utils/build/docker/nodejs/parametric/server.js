@@ -215,6 +215,18 @@ app.post('/trace/span/remove_all_baggage', (req, res) => {
   res.json({});
 });
 
+app.post('/trace/span/record_exception', (req, res) => {
+  const request = req.body;
+  const span = spans[request.span_id];
+
+  try {
+    throw new Error(request.message);
+  } catch (e) {
+    span.record_exception(e, request.attributes);
+    res.json({ exception_type: exception.constructor.name });
+  }
+});
+
 app.post('/trace/otel/start_span', (req, res) => {
   const request = req.body;
   const otelTracer = tracerProvider.getTracer()

@@ -234,6 +234,28 @@ func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Req
 	w.WriteHeader(http.StatusOK)
 }
 
+func (s *apmClientServer) spanRecordExceptionHandler(w http.ResponseWriter, r *http.Request) {
+	var args SpanRecordExceptionArgs
+	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
+		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)
+		return
+	}
+
+	span, exists := s.spans[args.SpanId]
+	if !exists {
+		http.Error(w, "Span not found", http.StatusNotFound)
+		return
+	}
+
+	exception := fmt.Errorf(args.Message)
+	span.RecordException(exception, args.Attributes)
+
+	response := SpanRecordExceptionReturn{ExceptionType: "*errors.errorString"}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}
+
 type CustomLogger struct {
 	*logrus.Logger
 	globalConfig map[string]string

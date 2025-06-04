@@ -236,10 +236,23 @@ public class OpenTracingController implements Closeable {
     LOGGER.info("Removing all baggage items for OT span: {}", args);
     Span span = getSpan(args.spanId());
     if (span != null) {
-      for (var entry : span.context().baggageItems()) {
-        span.setBaggageItem(entry.getKey(), null);
+      span.setBaggageItem("", null);
+    }
+  }
+
+  @PostMapping("record_exception")
+  public SpanRecordExceptionResult recordException(@RequestBody SpanRecordExceptionArgs args) {
+    LOGGER.info("Recording exception for OT span: {}", args);
+    Span span = getSpan(args.spanId());
+    if (span != null) {
+      try {
+        throw new Exception(args.message());
+      } catch (Exception e) {
+        span.recordException(e, args.attributes);
+        return new SpanRecordExceptionResult(e.getClass().getSimpleName());
       }
     }
+    return SpanRecordExceptionResult.error();
   }
 
   private Span getSpan(long spanId) {

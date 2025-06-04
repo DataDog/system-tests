@@ -27,6 +27,7 @@ public abstract class ApmTestApi
         app.MapPost("/trace/span/set_metric", SpanSetMetric);
         app.MapPost("/trace/span/finish", FinishSpan);
         app.MapPost("/trace/span/flush", FlushSpans);
+        app.MapPost("/trace/span/record_exception", SpanRecordException);
     }
 
     private const BindingFlags CommonBindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public;
@@ -175,6 +176,25 @@ public abstract class ApmTestApi
         span.SetTag(Tags.ErrorType, type);
         span.SetTag(Tags.ErrorMsg, message);
         span.SetTag(Tags.ErrorStack, stack);
+    }
+
+    private static async Task<string> SpanRecordException(HttpRequest request)
+    {
+        var requestJson = await ParseJsonAsync(request.Body);
+        var span = FindSpan(requestJson);
+        var message = requestJson.GetProperty("message").GetString() ?? "TestException";
+        var attributes = requestJson.GetProperty("attributes");
+
+        try
+        {
+            throw new Exception(message);
+        }
+        catch (Exception e)
+        {
+            exceptionType = e.GetType().Name;
+            span.RecordException(e, attributes);
+            return Result(new { exception_type = exceptionType });
+        }
     }
 
     private static async Task<string> ExtractHeaders(HttpRequest request)

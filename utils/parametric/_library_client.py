@@ -246,6 +246,17 @@ class APMLibraryClient:
             },
         )
 
+    def span_record_exception(self, span_id: int, message: str, attributes: dict | None = None) -> dict:
+        resp = self._session.post(
+            self._url("/trace/span/record_exception"),
+            json={
+                "span_id": span_id,
+                "message": message,
+                "attributes": attributes or {},
+            }
+        )
+        return resp.json()
+
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
         data = resp.json()
@@ -441,6 +452,9 @@ class _TestSpan:
 
     def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
+
+    def record_exception(self, message: str, attributes: dict | None = None) -> dict:
+        return self._client.span_record_exception(self.span_id, message, attributes)
 
     def finish(self):
         self._client.finish_span(self.span_id)

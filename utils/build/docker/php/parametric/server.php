@@ -222,6 +222,18 @@ $router->addRoute('POST', '/trace/span/add_link', new ClosureRequestHandler(func
     $span->links[] = $link;
     return jsonResponse([]);
 }));
+$router->addRoute('POST', '/trace/span/record_exception', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans) {
+    $span = $spans[arg($req, 'span_id')];
+    $message = arg($req, 'message');
+    $attributes = arg($req, 'attributes');
+
+    try {
+        throw new Exception($message);
+    } catch (Exception $e) {
+        $span->record_exception($e, $attributes);
+        return jsonResponse(['exception_type' => get_class($e)]);
+    }
+}));
 $router->addRoute('POST', '/trace/span/finish', new ClosureRequestHandler(function (Request $req) use (&$spans, &$closed_spans, &$activeSpan, &$spansDistributedTracingHeaders) {
     $span_id = arg($req, 'span_id');
 

@@ -785,6 +785,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def record_exception(test_object):
+        """Record Exception
+
+        https://feature-parity.us1.prod.dog/#/?feature=476
+        """
+        pytest.mark.features(feature_id=476)(test_object)
+        return test_object
+
+    @staticmethod
     def span_links(test_object):
         """Span Links
 

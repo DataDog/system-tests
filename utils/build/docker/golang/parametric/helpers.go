@@ -107,6 +107,16 @@ type SpanSetErrorArgs struct {
 	Stack   string `json:"stack"`
 }
 
+type SpanRecordExceptionArgs struct {
+	SpanId     uint64           `json:"span_id"`
+	Message    string           `json:"message"`
+	Attributes AttributeKeyVals `json:"attributes"`
+}
+
+type SpanRecordExceptionReturn struct {
+	ExceptionType string `json:"exception_type"`
+}
+
 type OtelStartSpanArgs struct {
 	Name       string           `json:"name"`
 	ParentId   *uint64          `json:"parent_id"`
