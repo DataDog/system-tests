@@ -108,6 +108,7 @@ tests/:
       Test_StandardTagsClientIp: missing_feature (Standard logs not implemented)
     test_conf.py:
       Test_ConfigurationVariables: v1.2.0
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature (requires libddwaf 1.25.0)
     test_customconf.py:
       Test_ConfRuleSet: v1.2.0
       Test_CorruptedRules: v1.2.0
