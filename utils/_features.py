@@ -920,6 +920,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def appsec_service_activation_origin_metric(test_object):
+        """Appsec service activation origin metric
+
+        https://feature-parity.us1.prod.dog/#/?feature=471
+        """
+        pytest.mark.features(feature_id=471)(test_object)
+        return test_object
+
+    @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
         """Serialize WAF rules without limiting their sizes
 

@@ -37,6 +37,7 @@ tests/:
     test_reports.py: irrelevant (ASM is not implemented in C++)
     test_request_blocking.py: irrelevant (ASM is not implemented in C++)
     test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
+    test_service_activation_metric.py: irrelevant (ASM is not implemented in C++)
     test_shell_execution.py: irrelevant (ASM is not implemented in C++)
     test_suspicious_attacker_blocking.py: irrelevant (ASM is not implemented in C++)
     test_traces.py: irrelevant (ASM is not implemented in C++)
