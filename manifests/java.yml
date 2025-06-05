@@ -1652,8 +1652,8 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationEnvVarMetric: v1.50.0-SNAPSHOT
+      TestServiceActivationRemoteConfigMetric: v1.50.0-SNAPSHOT
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
