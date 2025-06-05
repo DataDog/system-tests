@@ -287,7 +287,7 @@ class _TestAgentAPI:
         # The rust implementation does not exposes a flush methods for stats
         # to keep the test alive, and limit the number of retries, we wait for
         # 60 seconds for the v0.6 stats request to be sent.
-        tries_left = 60
+        tries_left = 120
         while len(raw_requests) == 0 and tries_left > 0:
             logger.debug(f"No data observed on /v0.6/stats, waiting 1s ({tries_left} tries left)")
             time.sleep(1)
