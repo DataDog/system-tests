@@ -36,21 +36,17 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
         self._assert_debugger_controller_exists()
 
     def _assert_symbols_have_depth(self):
-        def has_nested_scopes(scope):
-            nested_scopes = scope.get("scopes", [])
-            if nested_scopes:
-                return True
-            return False
-
         has_depth = False
+
         for symbol in self.symbols:
             content = symbol.get("content", {})
             if isinstance(content, dict):
                 scopes = content.get("scopes", [])
                 for scope in scopes:
-                    if has_nested_scopes(scope):
+                    if scope.get("scopes", []):
                         has_depth = True
                         break
+
             if has_depth:
                 break
 
