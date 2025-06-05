@@ -43,6 +43,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
         """When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
