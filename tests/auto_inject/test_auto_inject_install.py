@@ -85,6 +85,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
+@irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
 class TestContainerAutoInjectInstallScriptCrashTracking_NoZombieProcess(base.AutoInjectBaseTest):
     @irrelevant(
         context.weblog_variant
@@ -165,6 +166,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
+    @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
     def test_install_uninstall(self):
         virtual_machine = context.virtual_machine
         logger.info(f"Launching test_install_uninstall for : [{virtual_machine.name}]...")
@@ -173,6 +175,13 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(f"Check uninstall for : [{virtual_machine.name}]...")
         self._test_uninstall(virtual_machine)
         logger.info(f"Done test_install_uninstall for : [{virtual_machine.name}]...")
+
+    @irrelevant(condition=context.weblog_variant != "test-app-dotnet-iis")
+    def test_install(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_install for : [{virtual_machine.name}]...")
+        self._test_install(virtual_machine)
+        logger.info(f"Done test_install for : [{virtual_machine.name}]...")
 
 
 @features.installer_auto_instrumentation

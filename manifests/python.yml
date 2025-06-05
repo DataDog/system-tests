@@ -73,14 +73,24 @@ tests/:
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
-            '*': v2.10.0
-            fastapi: v2.20.0.dev
+            '*': irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
-          TestHeaderInjection_StackTrace: v3.9.0.dev
+          TestHeaderInjection_ExtendedLocation:
+            '*': irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
+          TestHeaderInjection_StackTrace:
+            '*': irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -285,7 +295,7 @@ tests/:
         test_uri.py:
           TestURI: missing_feature
       test_sampling_by_route_method_count.py:
-        TestSamplingByRouteMethodCount: missing_feature
+        TestSamplingByRouteMethodCount: v3.9.0.dev
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
@@ -497,7 +507,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v3.9.0.dev
       Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
@@ -726,6 +736,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -1006,6 +1019,7 @@ tests/:
       Test_Headers_B3multi: v2.8.0
     test_headers_baggage.py:
       Test_Headers_Baggage: v2.16.0
+      Test_Headers_Baggage_Span_Tags: v3.7.0
     test_headers_datadog.py:
       Test_Headers_Datadog: v2.8.0
     test_headers_none.py:
