@@ -200,6 +200,7 @@ class Test_Library_Tracestats:
 
         requests = test_agent.get_v06_stats_requests()
         assert len(requests) > 0
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
@@ -336,6 +337,8 @@ class Test_Library_Tracestats:
         assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
         requests = test_agent.get_v06_stats_requests()
+        assert len(requests) != 0, "Stats request should be sent"
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
