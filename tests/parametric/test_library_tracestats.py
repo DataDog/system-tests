@@ -53,7 +53,7 @@ class Test_Library_Tracestats:
             pass
 
         raw_requests = test_agent.requests()
-        decoded_stats_requests = test_agent.v06_stats_requests()
+        decoded_stats_requests = test_agent.get_v06_stats_requests()
 
         # find stats request (trace and stats requests are sent in different order between clients)
         raw_stats = None
@@ -155,7 +155,7 @@ class Test_Library_Tracestats:
         if test_library.lang == "golang":
             test_library.dd_flush()
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Exactly one stats request is expected"
         request = requests[0]["body"]
         buckets = request["Stats"]
@@ -198,7 +198,7 @@ class Test_Library_Tracestats:
             with test_library.dd_start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
                 pass
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) > 0
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         logger.debug([_human_stats(s) for s in stats])
@@ -233,7 +233,7 @@ class Test_Library_Tracestats:
         ):
             pass
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
@@ -291,7 +291,7 @@ class Test_Library_Tracestats:
             ) as span:
                 span.set_error(message="Unable to load resources")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
@@ -335,7 +335,7 @@ class Test_Library_Tracestats:
         traces = test_agent.traces()
         assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -449,5 +449,5 @@ class Test_Library_Tracestats:
             span.set_meta(key="_dd.origin", val="synthetics")
             span.set_meta(key="http.status_code", val="200")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
