@@ -328,6 +328,9 @@ class Test_AsmDdMultiConfiguration:
         self.config_state_4 = rc.rc_state.del_config(SECOND_RULE_FILE[0]).apply()
         self.response_4a = weblog.get("/waf/", headers={"User-Agent": "Anubis/v1"})
         self.response_4b = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
+        
+        # Reset the RC State
+        rc.rc_state.reset().apply()
 
     def test_update_rules(self):
         # Arachni using the default rule file
