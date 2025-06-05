@@ -356,27 +356,23 @@ tests/:
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_SDK_V2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection: v0.103.0
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Libddwaf: v0.103.0
+      Test_UserLoginFailureEventV2_Metrics: v0.103.0
       Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
       Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_Tags: v0.103.0
       Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection: v0.103.0
       Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Libddwaf: v0.103.0
+      Test_UserLoginSuccessEventV2_Metrics: v0.103.0
       Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
       Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_Tags: v0.103.0
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
     test_event_tracking_v2_appsec_disabled.py:
-      Test_SDK_V2_Metrics_AppsecDisabled: missing_feature
       Test_UserLoginFailureEventV2_AppsecDisabled: missing_feature
       Test_UserLoginSuccessEventV2_AppsecDisabled: missing_feature
     test_extended_header_collection.py:

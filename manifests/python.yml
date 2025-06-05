@@ -666,32 +666,25 @@ tests/:
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_SDK_V2_Metrics_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginFailureEventV2_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginFailureEventV2_HeaderCollection: v3.7.0.dev
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginFailureEventV2_Libddwaf: v3.7.0.dev
-      Test_UserLoginFailureEventV2_Metrics: v3.7.0.dev
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginFailureEventV2_Tags: v3.7.0.dev
-      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_HeaderCollection: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Libddwaf: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Metrics: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Tags: v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.7.0.dev
+      Test_UserLoginFailureEventV2_HeaderCollection: v1.20.6
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v1.20.6
+      Test_UserLoginFailureEventV2_Libddwaf: v1.20.6
+      Test_UserLoginFailureEventV2_Metrics: v1.20.6
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v1.20.6
+      Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled: v1.20.6
+      Test_UserLoginFailureEventV2_Tags: v1.20.6
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v1.20.6
+      Test_UserLoginSuccessEventV2_HeaderCollection: v1.20.6
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v1.20.6
+      Test_UserLoginSuccessEventV2_Libddwaf: v1.20.6
+      Test_UserLoginSuccessEventV2_Metrics: v1.20.6
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v1.20.6
+      Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled: v1.20.6
+      Test_UserLoginSuccessEventV2_Tags: v1.20.6
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.20.6
     test_event_tracking_v2_appsec_disabled.py:
-      Test_SDK_V2_Metrics_AppsecDisabled:
-        '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_AppsecDisabled:
-        '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_AppsecDisabled:
-        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_AppsecDisabled: v3.7.0.dev
+      Test_UserLoginSuccessEventV2_AppsecDisabled: v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:

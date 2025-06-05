@@ -424,8 +424,6 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
       Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
     test_event_tracking_v2.py:
-      Test_SDK_V2_Metrics_AppsecDisabled: v2.1.0-dev
-      Test_UserLoginFailureEventV2_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_HeaderCollection: v2.1.0-dev
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
@@ -434,7 +432,6 @@ tests/:
       Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_Tags: v2.1.0-dev
       Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v2.1.0-dev
-      Test_UserLoginSuccessEventV2_AppsecDisabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_HeaderCollection: v2.1.0-dev
       Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
@@ -444,7 +441,6 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v2.1.0-dev
     test_event_tracking_v2_appsec_disabled.py:
-      Test_SDK_V2_Metrics_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_AppsecDisabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_AppsecDisabled: v2.1.0-dev
     test_extended_header_collection.py:
