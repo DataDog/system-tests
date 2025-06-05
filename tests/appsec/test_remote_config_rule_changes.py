@@ -294,7 +294,7 @@ SECOND_RULE_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_request_blocking
+@scenarios.appsec_and_rc_enabled
 @features.appsec_rc_asm_dd_multiconfig
 class Test_AsmDdMultiConfiguration:
     """A library should support multiple configurations through ASM_DD
