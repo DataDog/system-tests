@@ -368,6 +368,9 @@ class Test_Library_Tracestats:
             durations.append(span["duration"])
 
         requests = test_agent.get_v06_stats_requests()
+
+        assert len(requests) != 0, "Stats request should be sent"
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
 
