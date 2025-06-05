@@ -117,5 +117,35 @@ namespace weblog
         {
             return await AsyncThrow();
         }
+
+        [HttpGet("outofmemory")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayOutOfMemory()
+        {
+            throw new System.OutOfMemoryException("outofmemory");
+        }
+
+        [HttpGet("stackoverflow")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayStackOverflow()
+        {
+            throw new System.StackOverflowException("stackoverflow");
+        }
+
+        private static bool _firstHitExceptionThrown = false;
+
+        [HttpGet("firsthit")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayFirstHit()
+        {
+            if (!_firstHitExceptionThrown)
+            {
+                _firstHitExceptionThrown = true;
+                throw new System.InvalidOperationException("firsthit");
+            }
+
+            return Content("Exception was already thrown on first hit, no exception on subsequent calls");
+        }
+
     }
 }
