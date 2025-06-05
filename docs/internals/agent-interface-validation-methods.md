@@ -17,15 +17,15 @@ class MyTestClass:
     def setup_my_test(self):
         # Generate traces by making requests
         self.r = weblog.get("/endpoint")
-    
+
     def test_my_validation(self):
         # Use validation methods to verify intercepted data
         interfaces.agent.assert_trace_exists(self.r)
-        
+
         # Validate custom span data
         def span_validator(span):
             return span.get("service") == "my-service"
-        
+
         spans = list(interfaces.agent.get_spans(self.r))
         assert any(span_validator(span) for _, span in spans)
 ```
@@ -36,7 +36,7 @@ These methods help you retrieve intercepted data for analysis:
 
 ### `get_spans(request=None)`
 - **Purpose**: Get spans that the agent submits to the backend
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse | None` - Filter spans by request ID
 - **Returns**: Iterator of `(data, span)` tuples
 - **Usage**: Fetch all spans or those related to a specific request
@@ -44,7 +44,7 @@ These methods help you retrieve intercepted data for analysis:
 
 ### `get_spans_list(request)`
 - **Purpose**: Get a list of spans for a specific request
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse` - Required request object
 - **Returns**: List of span dictionaries
 - **Usage**: Convenience method to get spans as a list instead of iterator
@@ -180,11 +180,11 @@ The agent interface differs from the library interface in several important ways
 def test_agent_trace_forwarding(self):
     r = weblog.get("/")
     interfaces.agent.assert_trace_exists(r)
-    
+
     # Verify spans reach the backend with correct structure
     spans = list(interfaces.agent.get_spans(r))
     assert len(spans) > 0
-    
+
     for _, span in spans:
         assert "trace_id" in span
         assert "span_id" in span
@@ -194,10 +194,10 @@ def test_agent_trace_forwarding(self):
 ```python
 def test_appsec_agent_forwarding(self):
     r = weblog.get("/", headers={"X-Attack": "' OR 1=1--"})
-    
+
     def appsec_validator(data, payload, chunk, span, appsec_data):
         return "triggers" in appsec_data
-    
+
     interfaces.agent.validate_appsec(r, appsec_validator)
 ```
 
@@ -205,11 +205,11 @@ def test_appsec_agent_forwarding(self):
 ```python
 def test_agent_metrics_collection(self):
     r = weblog.get("/")
-    
+
     # Check that metrics are properly collected and forwarded
     metrics = list(interfaces.agent.get_metrics())
     assert len(metrics) > 0
-    
+
     for _, metric in metrics:
         assert "metric" in metric
         assert "points" in metric
@@ -219,11 +219,11 @@ def test_agent_metrics_collection(self):
 ```python
 def test_agent_stats_aggregation(self):
     r = weblog.get("/")
-    
+
     # Verify stats are aggregated by resource
     stats = list(interfaces.agent.get_stats(resource="/"))
     assert len(stats) > 0
-    
+
     for stat in stats:
         assert stat["Resource"] == "/"
         assert "Hits" in stat
@@ -236,7 +236,7 @@ def test_agent_telemetry_forwarding(self):
     def telemetry_validator(data):
         content = data["request"]["content"]
         return content.get("request_type") == "generate-metrics"
-    
+
     interfaces.agent.validate_telemetry(telemetry_validator)
 ```
 
@@ -244,19 +244,19 @@ def test_agent_telemetry_forwarding(self):
 ```python
 def test_custom_span_processing(self):
     r = weblog.get("/")
-    
+
     def span_validator(data):
         content = data["request"]["content"]
         if "tracerPayloads" not in content:
             return False
-            
+
         for payload in content["tracerPayloads"]:
             for chunk in payload["chunks"]:
                 for span in chunk["spans"]:
                     if span.get("service") == "my-service":
                         return True
         return False
-    
+
     interfaces.agent.add_traces_validation(span_validator)
 ```
 
@@ -292,4 +292,4 @@ This means:
 - [Interface Initialization](../../utils/interfaces/__init__.py)
 - [Library Interface Validation Methods](./library-interface-validation-methods.md)
 - [End-to-End Testing Guide](../execute/README.md)
-- [Adding New Tests](../edit/add-new-test.md) 
+- [Adding New Tests](../edit/add-new-test.md)
