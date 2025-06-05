@@ -489,7 +489,7 @@ class Test_Telemetry:
                 configurations_present = []
 
                 configs_with_no_seq_id = []
-                highest_seq_by_name = {}  # for sdks sending config payloads with seq_id
+                highest_seq_by_name: dict[str, dict] = {}  # for sdks sending config payloads with seq_id
 
                 for cnf in configurations:
                     if "seq_id" in cnf:
@@ -546,39 +546,40 @@ class Test_Telemetry:
         },  # in order from lowest to highest precedence
     }
 
-    def _config_chaining_not_implemented_decorator(func):
-        """Decorator factory for config chaining tests not implemented in most languages"""
-        decorators = [
-            missing_feature(context.library == "dotnet", reason="Not implemented"),
-            missing_feature(context.library == "java", reason="Not implemented"),
-            missing_feature(context.library == "ruby", reason="Not implemented"),
-            missing_feature(context.library == "php", reason="Not implemented"),
-            missing_feature(context.library == "cpp", reason="Not implemented"),
-            missing_feature(context.library == "python", reason="Not implemented"),
-            missing_feature(context.library == "golang", reason="Not implemented"),
-            missing_feature(context.library == "nodejs", reason="Not implemented"),
-            scenarios.telemetry_app_started_config_chaining,
-        ]
-        for decorator in reversed(decorators):
-            func = decorator(func)
-        return func
-
-    @_config_chaining_not_implemented_decorator
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
         """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
         self._validate_config_chaining(require_seq_id=True)
 
-    @_config_chaining_not_implemented_decorator
+    @missing_feature(context.library == "dotnet", reason="Not implemented")
+    @missing_feature(context.library == "java", reason="Not implemented")
+    @missing_feature(context.library == "ruby", reason="Not implemented")
+    @missing_feature(context.library == "php", reason="Not implemented")
+    @missing_feature(context.library == "cpp", reason="Not implemented")
+    @missing_feature(context.library == "python", reason="Not implemented")
+    @missing_feature(context.library == "golang", reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining_no_seq_id(self):
-        """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration 
-        are sent with the app-started event in the correct order"""
+        """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration
+        are sent with the app-started event in the correct order
+        """
         self._validate_config_chaining(require_seq_id=False)
 
-    def _validate_config_chaining(self, require_seq_id: bool = True) -> None:
+    def _validate_config_chaining(self, *, require_seq_id: bool = True) -> None:
         """Common validation logic for configuration chaining tests
-        
+
         Args:
             require_seq_id: Whether to require and validate seq_id presence and ordering
+
         """
         nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
 
@@ -602,25 +603,27 @@ class Test_Telemetry:
                 # Sort by name to have a consistent order for comparison
                 configurations.sort(key=lambda cnf: cnf.get("name", ""))
 
-            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id)
+            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
 
         self.validate_library_telemetry_data(validator)
 
-    def _validate_configuration_chains(self, configurations: list, expected_config: dict, require_seq_id: bool) -> None:
+    def _validate_configuration_chains(
+        self, configurations: list, expected_config: dict, *, require_seq_id: bool
+    ) -> None:
         """Validate individual configuration chains against expected values
-        
+
         Args:
             configurations: Actual configurations from telemetry data
             expected_config: Expected configuration structure
             require_seq_id: Whether to validate seq_id ordering
+
         """
         for cnf_name, expected_chain in expected_config.items():
             # Filter actual entries for this configuration name
             actual_chain = [cnf for cnf in configurations if cnf["name"] == cnf_name]
 
             assert len(actual_chain) == len(expected_chain), (
-                f"Config '{cnf_name}': expected {len(expected_chain)} items, "
-                f"found {len(actual_chain)}"
+                f"Config '{cnf_name}': expected {len(expected_chain)} items, " f"found {len(actual_chain)}"
             )
 
             for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
@@ -629,7 +632,7 @@ class Test_Telemetry:
                     f"Config '{cnf_name}[{i}]': origin mismatch - "
                     f"expected '{expected['origin']}', got '{actual['origin']}'"
                 )
-                
+
                 # Validate value
                 assert actual["value"] == expected["value"], (
                     f"Config '{cnf_name}[{i}]': value mismatch - "
