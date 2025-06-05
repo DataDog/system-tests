@@ -1648,6 +1648,9 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
@@ -1999,6 +2002,9 @@ tests/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices:
         '*': v1.31.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RemoteConfigurationSemVer:
+        '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceASMDD:
         '*': v1.4.0

@@ -920,6 +920,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def appsec_service_activation_origin_metric(test_object):
+        """Appsec service activation origin metric
+
+        https://feature-parity.us1.prod.dog/#/?feature=471
+        """
+        pytest.mark.features(feature_id=471)(test_object)
+        return test_object
+
+    @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
         """Serialize WAF rules without limiting their sizes
 
@@ -2643,6 +2652,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=470
         """
         pytest.mark.features(feature_id=470)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_config_semantic_versioning(test_object):
+        """Semantic version 2 is reported in remote config
+
+        https://feature-parity.us1.prod.dog/#/?feature=472
+        """
+        pytest.mark.features(feature_id=472)(test_object)
         return test_object
 
 
