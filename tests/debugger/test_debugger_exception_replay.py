@@ -6,7 +6,7 @@ import re
 import os
 import tests.debugger.utils as debugger
 import time
-from utils import scenarios, features, bug, context, flaky, irrelevant, logger
+from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
 
 
 def get_env_bool(env_var_name, *, default=False) -> bool:
@@ -24,6 +24,10 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
