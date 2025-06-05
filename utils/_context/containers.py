@@ -530,6 +530,7 @@ class ImageInfo:
                 self._image = _get_client().images.pull(self.name)
             except docker.errors.ImageNotFound:
                 # Sometimes pull returns ImageNotFound, internal race?
+                time.sleep(5)
                 self._image = _get_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
