@@ -10,6 +10,8 @@ from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
 from utils import missing_feature, context, scenarios, features, logger
 
+from .conftest import _TestAgentAPI
+
 parametrize = pytest.mark.parametrize
 
 
@@ -342,7 +344,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(reason="relative error test is broken")
     @enable_tracestats()
-    def test_relative_error_TS008(self, library_env, test_agent, test_library):
+    def test_relative_error_TS008(self, library_env, test_agent: _TestAgentAPI, test_library):
         """When trace stats are computed for traces
             The stats should be accurate to within 1% of the real values
 
@@ -365,7 +367,7 @@ class Test_Library_Tracestats:
             assert span is not None
             durations.append(span["duration"])
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
 
@@ -387,7 +389,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library):
+    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent: _TestAgentAPI, test_library):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
@@ -415,7 +417,7 @@ class Test_Library_Tracestats:
             span2.set_meta(key="_dd.origin", val="not_synthetics")
             span2.set_meta(key="http.status_code", val="202")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
 
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]

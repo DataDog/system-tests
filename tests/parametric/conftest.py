@@ -281,8 +281,19 @@ class _TestAgentAPI:
         self._write_log("tracerflares", resp_json)
         return resp_json
 
-    def v06_stats_requests(self) -> list[AgentRequestV06Stats]:
+    def get_v06_stats_requests(self) -> list[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
+        # APMSP-2074
+        # The rust implementation does not exposes a flush methods for stats
+        # to keep the test alive, and limit the number of retries, we wait for
+        # 60 seconds for the v0.6 stats request to be sent.
+        tries_left = 60
+        while len(raw_requests) == 0 and tries_left > 0:
+            logger.debug(f"No data observed on /v0.6/stats, waiting 1s ({tries_left} tries left)")
+            time.sleep(1)
+            raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
+            tries_left -= 1
+
         agent_requests = []
         for raw in raw_requests:
             agent_requests.append(
