@@ -799,7 +799,7 @@ class WeblogContainer(TestedContainer):
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
-            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate}])
+            base_environment["DD_TRACE_SAMPLING_RULES"] = json.dumps([{"sample_rate": tracer_sampling_rate, "target_span": "any"}])
 
         if use_proxy:
             # set the tracer to send data to runner (it will forward them to the agent)
