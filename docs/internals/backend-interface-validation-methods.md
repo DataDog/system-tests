@@ -25,12 +25,12 @@ class MyTestClass:
     def setup_my_test(self):
         # Generate traces by making requests
         self.r = weblog.get("/endpoint")
-    
+
     def test_my_validation(self):
         # Verify traces reach the backend
         traces = interfaces.backend.assert_library_traces_exist(self.r)
         assert len(traces) >= 1
-        
+
         # Verify spans are searchable
         spans = interfaces.backend.assert_request_spans_exist(
             self.r, "service:weblog", min_spans_len=1
@@ -190,11 +190,11 @@ Built-in retry mechanisms for eventual consistency:
 ```python
 def test_end_to_end_trace_ingestion(self):
     r = weblog.get("/")
-    
+
     # Verify traces reach backend
     traces = interfaces.backend.assert_library_traces_exist(r)
     assert len(traces) == 1
-    
+
     # Verify trace structure
     trace = traces[0]
     assert len(trace) > 0  # Has spans
@@ -205,14 +205,14 @@ def test_end_to_end_trace_ingestion(self):
 ```python
 def test_span_search(self):
     r = weblog.get("/user/123")
-    
+
     # Search for spans with specific resource
     spans = interfaces.backend.assert_request_spans_exist(
-        r, 
+        r,
         query_filter="@http.url_details.path:/user/* @http.method:GET",
         min_spans_len=1
     )
-    
+
     # Validate span content
     assert any(span["content"]["resource"] == "GET /user/123" for span in spans)
 ```
@@ -224,7 +224,7 @@ def test_otlp_trace_ingestion(self):
     r = weblog.get("/")
     otel_trace_ids = list(interfaces.open_telemetry.get_otel_trace_id(r))
     assert len(otel_trace_ids) == 1
-    
+
     # Verify it reaches the backend
     trace = interfaces.backend.assert_otlp_trace_exist(r, otel_trace_ids[0])
     assert trace is not None
@@ -234,13 +234,13 @@ def test_otlp_trace_ingestion(self):
 ```python
 def test_custom_metric_ingestion(self):
     import time
-    
+
     start_time = int(time.time()) - 300  # 5 minutes ago
     end_time = int(time.time())
-    
+
     r = weblog.get("/")
     rid = r.get_rid()
-    
+
     # Query for custom metric
     series = interfaces.backend.query_timeseries(
         rid=rid,
@@ -248,7 +248,7 @@ def test_custom_metric_ingestion(self):
         end=end_time,
         metric="custom.metric.name"
     )
-    
+
     assert len(series["series"]) > 0
 ```
 
@@ -256,10 +256,10 @@ def test_custom_metric_ingestion(self):
 ```python
 def test_single_span_instrumentation(self):
     r = weblog.get("/single-span-endpoint")
-    
+
     # Verify single spans are created
     single_spans = interfaces.backend.assert_single_spans_exist(r, min_spans_len=1)
-    
+
     # Validate single span properties
     assert len(single_spans) >= 1
     for span in single_spans:
@@ -271,13 +271,13 @@ def test_single_span_instrumentation(self):
 def test_log_ingestion(self):
     r = weblog.get("/")
     rid = r.get_rid()
-    
+
     # Search for application logs
     log = interfaces.backend.get_logs(
         query=f"service:weblog status:info",
         rid=rid
     )
-    
+
     assert log is not None
     assert "weblog" in log["attributes"]["service"]
 ```
@@ -340,4 +340,4 @@ Rate limit hit, sleeping N seconds
 - [Library Interface Validation Methods](./library-interface-validation-methods.md)
 - [Agent Interface Validation Methods](./agent-interface-validation-methods.md)
 - [End-to-End Testing Guide](../execute/README.md)
-- [Datadog API Documentation](https://docs.datadoghq.com/api/latest/) 
+- [Datadog API Documentation](https://docs.datadoghq.com/api/latest/)

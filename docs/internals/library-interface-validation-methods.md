@@ -17,12 +17,12 @@ class MyTestClass:
     def setup_my_test(self):
         # Generate traces by making requests
         self.r = weblog.get("/endpoint")
-    
+
     def test_my_validation(self):
         # Use validation methods to verify intercepted data
         interfaces.library.assert_trace_exists(self.r)
         interfaces.library.add_span_tag_validation(
-            request=self.r, 
+            request=self.r,
             tags={"http.status_code": "200"}
         )
 ```
@@ -33,7 +33,7 @@ These methods help you retrieve intercepted data for analysis:
 
 ### `get_traces(request=None)`
 - **Purpose**: Get all traces, optionally filtered by a specific request
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse | GrpcResponse | None` - Filter traces by request ID
 - **Returns**: Iterator of `(data, trace)` tuples
 - **Usage**: Iterate over all traces or those related to a specific request
@@ -47,13 +47,13 @@ These methods help you retrieve intercepted data for analysis:
 
 ### `get_root_spans(request=None)`
 - **Purpose**: Get only root spans (spans with no parent)
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse | None` - Filter by request
 - **Returns**: Iterator of `(data, span)` tuples
 
 ### `get_root_span(request)`
 - **Purpose**: Get exactly one root span for a request (fails if 0 or >1 found)
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse` - Required request object
 - **Returns**: Single span dictionary
 - **Note**: Asserts exactly one root span exists
@@ -67,7 +67,7 @@ These methods help you retrieve intercepted data for analysis:
 
 ### `get_legacy_appsec_events(request=None)`
 - **Purpose**: Get legacy AppSec events from dedicated endpoints
-- **Parameters**: 
+- **Parameters**:
   - `request`: `HttpResponse | None` - Filter by request
 - **Returns**: Iterator of `(data, event)` tuples
 
@@ -277,10 +277,10 @@ def test_waf_attack(self):
 ```python
 def test_custom_validation(self):
     r = weblog.get("/")
-    
+
     def custom_validator(span):
         return span.get("service") == "my-service"
-    
+
     interfaces.library.validate_spans(r, validator=custom_validator)
 ```
 
@@ -289,4 +289,4 @@ def test_custom_validation(self):
 - [Library Interface Core Implementation](../../utils/interfaces/_library/core.py)
 - [Interface Initialization](../../utils/interfaces/__init__.py)
 - [End-to-End Testing Guide](../execute/README.md)
-- [Adding New Tests](../edit/add-new-test.md) 
+- [Adding New Tests](../edit/add-new-test.md)
