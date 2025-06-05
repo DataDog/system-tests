@@ -6,13 +6,13 @@ on:
     branches:
       - '**'
     types:
-      - opened
-      - synchronize
-      - reopened
-      - labeled
-      # push:
-      #   branches:
-      #   - main
+    - opened
+    - synchronize
+    - reopened
+  # push:
+  #   branches:
+  #   - main
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -82,7 +82,7 @@ jobs:
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      desired_execution_time: 3600  # 60 minutes
+      # desired_execution_time: 3600  # 60 minutes
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
   system_tests_docker_mode:
@@ -98,7 +98,9 @@ jobs:
     secrets: inherit
   exotics:
     name: Exotics scenarios
-    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
+    needs:
+      - scenarios
+    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
   all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py

@@ -4,6 +4,7 @@
 
 import json
 from collections import defaultdict
+import semantic_version
 
 from utils import (
     ValidationError,
@@ -466,3 +467,32 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
             return False
 
         interfaces.library.validate_remote_configuration(validator=validate)
+
+
+# XXX: This test can run in any scenario with rc_api_enabled=True. Default will not work, as /v0.7/config is not reported by the agent,
+# which will make some tracers (e.g. Ruby) not use RC.
+@scenarios.appsec_and_rc_enabled
+@features.remote_config_semantic_versioning
+class Test_RemoteConfigurationSemVer:
+    """Tests that semantic versioning is reported in remote config"""
+
+    def test_semantic_versioning(self):
+        """Test semantic versioning is reported in remote config"""
+        messages = list(interfaces.library.get_data(path_filters=r"/v\d+.\d+/config"))
+        assert messages, "No remote config messages found"
+        logger.info(f"Found {len(messages)} remote config messages")
+        for message in messages:
+            content = message["request"]["content"]
+            client = content.get("client")
+            assert client, "Client is required"
+            client_tracer = client.get("client_tracer")
+            assert client_tracer, "Client tracer is required"
+            tracer_version = client_tracer.get("tracer_version")
+            assert tracer_version, "Tracer version is required"
+            if tracer_version.startswith("v"):
+                # A v prefix is not strictly semver, but it is accepted by our RC backend.
+                # dd-trace-go uses this.
+                tracer_version = tracer_version[1:]
+            # This will raise ValueError if the version is invalid semver
+            # See: https://pypi.org/project/semantic-version/
+            semantic_version.Version(tracer_version)

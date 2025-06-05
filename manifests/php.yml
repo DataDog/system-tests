@@ -22,7 +22,7 @@ tests/:
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
         Test_Schema_Request_Json_Body: v0.98.1
-        Test_Schema_Request_Path_Parameters: missing_feature
+        Test_Schema_Request_Path_Parameters: v1.10.0
         Test_Schema_Request_Query_Parameters: v0.94.0
         Test_Schema_Response_Body: v0.99.1
         Test_Schema_Response_Body_env_var: v1.6.2
@@ -186,6 +186,8 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: missing_feature
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
@@ -317,7 +319,9 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v1.8.0
-      Test_UserEventsStandalone: v1.8.0
+      Test_UserEventsStandalone_Automated: v1.8.0
+      Test_UserEventsStandalone_SDK_V1: v1.8.0
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v0.89.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v0.89.0 but will be replaced by V2)
@@ -342,6 +346,9 @@ tests/:
       Test_Suspicious_Request_Blocking: v1.6.2
     test_client_ip.py:
       Test_StandardTagsClientIp: v0.81.0
+    test_conf.py:
+      Test_ConfigurationVariables: missing_feature (unknown version)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
     test_event_tracking.py:
@@ -392,6 +399,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v1.6.2
       Test_RuntimeDeactivation: v1.6.2
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_suspicious_attacker_blocking.py:
@@ -508,6 +518,7 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
     test_otel_api_interoperability.py:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:

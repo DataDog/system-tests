@@ -15,6 +15,8 @@
     export $(cat scenario_agent.env | xargs)
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+    echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere
+
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for installation script yet. TODO."
