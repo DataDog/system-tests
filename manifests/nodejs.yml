@@ -1009,7 +1009,7 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_headers_baggage.py:
-      Test_Headers_Baggage: *ref_5_29_0
+      Test_Headers_Baggage: irrelevant (uses weblog tests)
       Test_Headers_Baggage_Span_Tags: *ref_5_54_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
