@@ -128,6 +128,7 @@ Key points to remember:
 2. For individual test methods: Use decorators in test files
 3. Always include JIRA references for bugs
 4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
+5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest ALWASYS run the "TEST_THE_TESTS" scenario before committing changes to ensure code follows the manifest rules.
 
 For common test activation patterns and examples of enabling/disabling tests, see:
 
@@ -137,12 +138,14 @@ For common test activation patterns and examples of enabling/disabling tests, se
 
 # End-to-End
 
+* To run the tests associated to an end to end scenario use the document [run the tests](docs/execute/run.md).
 * You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](docs/weblog/README.md).
 * All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](docs/weblog/README.md).
 * To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
 * A new end-to-end weblog must be referenced in the document [build script documentation](docs/execute/build.md).
 * if you create a new end to end weblog, create it always with one example endpoint.
 * if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](docs/weblog/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
+* After creating a new end to end weblog ALWAYS check the compatible scenarios on [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) using the method "_is_supported".
 * The end to end scenario test cases use the "weblog" object defined in the python file [weblog object](utils/_weblog.py) to make request to the endpoints (weblog.request, weblog.get, weblog.post, etc).
 * To know how to add a new end to end tests case use the document [how to add a new end to end test](docs/edit/add-new-test.md).
 * The logs folder structure for the end to end scenarios is explained in the document [logs folder structure end to end scenarios](docs/execute/logs.md).
@@ -169,6 +172,9 @@ class my_test_class
 * The class "SchemaValidator" from [schema validator](file utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
 * if the user wants to create a new scenario, you MUST validate or ask to the user the context of this scenario is for: end to end, parametric, kubernetes or ssi.
 * After adding a new scenario on [scenarios](utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
+* After adding a new end to end scenario ask to the user if needs help to include the scenario in the CI GitHub Workflow.
+* Use [github end to end ci](.github/workflows/run-end-to-end.yml) and [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) to register a new end to end scenario.
+
 
 # AWS SSI
 

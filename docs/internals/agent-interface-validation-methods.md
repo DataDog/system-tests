@@ -30,127 +30,29 @@ class MyTestClass:
         assert any(span_validator(span) for _, span in spans)
 ```
 
-## Data Retrieval Methods
+## Methods
 
-These methods help you retrieve intercepted data for analysis:
+### Data Retrieval Methods
+- `get_spans(request=None)` - Get spans submitted to backend, optionally filtered by request
+- `get_spans_list(request)` - Get spans for a specific request as a list
+- `get_appsec_data(request)` - Get AppSec data from spans for a specific request
+- `get_telemetry_data(*, flatten_message_batches=True)` - Get telemetry data sent to backend
+- `get_profiling_data()` - Get profiling data from `/api/v2/profile` endpoint
+- `get_metrics()` - Get metrics submitted to `/api/v2/series` endpoint
+- `get_sketches()` - Get distribution sketches from `/api/beta/sketches` endpoint
+- `get_stats(resource="")` - Get APM stats from `/api/v0.2/stats`, optionally filtered by resource
+- `get_dsm_data()` - Get Data Streams Monitoring data from `/api/v0.1/pipeline_stats`
 
-### `get_spans(request=None)`
-- **Purpose**: Get spans that the agent submits to the backend
-- **Parameters**:
-  - `request`: `HttpResponse | None` - Filter spans by request ID
-- **Returns**: Iterator of `(data, span)` tuples
-- **Usage**: Fetch all spans or those related to a specific request
-- **Note**: When request is provided, only spans sampled during that request's execution are returned
+### Validation Methods
+- `assert_trace_exists(request)` - Assert at least one trace exists for request
+- `validate_appsec(request, validator)` - Validate AppSec data using custom validator function
+- `validate_telemetry(validator, *, success_by_default=False)` - Validate telemetry data with custom validator
+- `validate_profiling(validator, *, success_by_default=False)` - Validate profiling data with custom validator
+- `add_traces_validation(validator, *, success_by_default=False)` - Add validation applied to all trace data
 
-### `get_spans_list(request)`
-- **Purpose**: Get a list of spans for a specific request
-- **Parameters**:
-  - `request`: `HttpResponse` - Required request object
-- **Returns**: List of span dictionaries
-- **Usage**: Convenience method to get spans as a list instead of iterator
-
-### `get_appsec_data(request)`
-- **Purpose**: Get AppSec data from spans submitted to the backend
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that generated AppSec events
-- **Returns**: Iterator of `(data, payload, chunk, span, appsec_data)` tuples
-- **Usage**: Extract AppSec events from agent traces
-
-### `get_telemetry_data(*, flatten_message_batches=True)`
-- **Purpose**: Get telemetry data sent from agent to backend
-- **Parameters**:
-  - `flatten_message_batches`: `bool` - Whether to flatten batched telemetry messages
-- **Returns**: Iterator of telemetry data
-- **Usage**: Access telemetry information sent through the agent
-
-### `get_profiling_data()`
-- **Purpose**: Get profiling data sent from agent to backend
-- **Returns**: Iterator of profiling data from `/api/v2/profile` endpoint
-- **Usage**: Validate profiling data flow through the agent
-
-### `get_metrics()`
-- **Purpose**: Get metrics that the agent submits to the backend
-- **Returns**: Iterator of `(data, point)` tuples
-- **Usage**: Validate metrics collection and submission
-- **Endpoint**: Monitors `/api/v2/series` endpoint
-
-### `get_sketches()`
-- **Purpose**: Get distribution sketches that the agent submits to the backend
-- **Returns**: Iterator of `(data, point)` tuples
-- **Usage**: Validate distribution metrics (histograms, timing data)
-- **Endpoint**: Monitors `/api/beta/sketches` endpoint
-
-### `get_stats(resource="")`
-- **Purpose**: Get APM stats that the agent submits to the backend
-- **Parameters**:
-  - `resource`: `str` - Optional resource filter (empty string means all resources)
-- **Returns**: Iterator of grouped statistics
-- **Usage**: Validate APM statistics aggregation and submission
-- **Endpoint**: Monitors `/api/v0.2/stats` endpoint
-
-### `get_dsm_data()`
-- **Purpose**: Get Data Streams Monitoring (DSM) data
-- **Returns**: Iterator of DSM data from `/api/v0.1/pipeline_stats` endpoint
-- **Usage**: Validate data pipeline statistics
-
-## Validation Methods
-
-### `assert_trace_exists(request)`
-- **Purpose**: Assert that at least one trace exists for a specific request
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that should have generated traces
-- **Raises**: `ValueError` if no traces are found for the request
-- **Usage**: Ensure basic trace collection is working
-
-### `validate_appsec(request, validator)`
-- **Purpose**: Validate AppSec data using a custom validator function
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that generated AppSec events
-  - `validator`: `Callable` - Function that takes `(data, payload, chunk, span, appsec_data)` and returns boolean
-- **Raises**: `ValueError` if no data validates the test
-- **Usage**: Custom validation of AppSec events at the agent level
-
-### `validate_telemetry(validator, *, success_by_default=False)`
-- **Purpose**: Validate telemetry data using a custom validator function
-- **Parameters**:
-  - `validator`: `Callable` - Function to validate telemetry data
-  - `success_by_default`: `bool` - Whether to succeed if no telemetry found
-- **Note**: Automatically skips APM onboarding events
-- **Usage**: Custom validation of telemetry messages
-
-### `validate_profiling(validator, *, success_by_default=False)`
-- **Purpose**: Validate profiling data using a custom validator function
-- **Parameters**:
-  - `validator`: `Callable` - Function to validate profiling data
-  - `success_by_default`: `bool` - Whether to succeed if no profiling data found
-- **Usage**: Custom validation of profiling submissions
-
-### `add_traces_validation(validator, *, success_by_default=False)`
-- **Purpose**: Add a trace validation that applies to all trace data
-- **Parameters**:
-  - `validator`: `Callable` - Validation function for trace data
-  - `success_by_default`: `bool` - Default success behavior
-- **Usage**: Apply validation across all trace submissions
-
-## Header Validation Methods
-
-### `assert_headers_presence(path_filter, request_headers=(), response_headers=(), check_condition=None)`
-- **Purpose**: Validate the presence of HTTP headers in agent communications
-- **Parameters**:
-  - `path_filter`: `Iterable[str] | str | None` - Path filters to check
-  - `request_headers`: `Iterable[str]` - Headers to validate in requests
-  - `response_headers`: `Iterable[str]` - Headers to validate in responses
-  - `check_condition`: `Callable | None` - Additional condition function
-- **Usage**: Ensure required headers are present in agent communications
-
-### `assert_headers_match(path_filter, request_headers=None, response_headers=None, check_condition=None)`
-- **Purpose**: Validate that HTTP headers match expected values
-- **Parameters**:
-  - `path_filter`: `list[str] | str | None` - Path filters to check
-  - `request_headers`: `dict | None` - Headers and expected values for requests
-  - `response_headers`: `dict | None` - Headers and expected values for responses
-  - `check_condition`: `Callable | None` - Additional condition function
-- **Usage**: Ensure headers have correct values in agent communications
+### Header Validation Methods
+- `assert_headers_presence(path_filter, request_headers=(), response_headers=(), check_condition=None)` - Validate presence of HTTP headers in agent communications
+- `assert_headers_match(path_filter, request_headers=None, response_headers=None, check_condition=None)` - Validate HTTP headers match expected values
 
 ## Key Differences from Library Interface
 
@@ -164,13 +66,9 @@ The agent interface differs from the library interface in several important ways
 ## Best Practices
 
 1. **Use request filtering**: Always filter by specific requests when possible to avoid interference from other tests
-
 2. **Understand data flow**: Agent interface data represents what reaches the backend, which may be sampled, aggregated, or modified by the agent
-
 3. **Combine with library validation**: Use both library and agent interfaces together to validate the complete data pipeline
-
 4. **Check data transformation**: Verify that data transformations performed by the agent are correct
-
 5. **Validate aggregations**: Use stats and metrics methods to ensure proper aggregation by the agent
 
 ## Common Patterns

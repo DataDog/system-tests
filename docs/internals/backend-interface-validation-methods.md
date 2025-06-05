@@ -56,95 +56,22 @@ Supported DD_SITE values:
 - `us3.datadoghq.com`
 - `us5.datadoghq.com`
 
-## Trace Validation Methods
+## Methods
 
-### `assert_library_traces_exist(request, min_traces_len=1)`
-- **Purpose**: Verify that traces from the library/tracer reach the Datadog backend
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that generated the traces
-  - `min_traces_len`: `int` - Minimum number of traces expected (default: 1)
-- **Returns**: List of trace dictionaries from the backend
-- **Usage**: End-to-end validation that traces are ingested
-- **API**: Uses `/api/v1/trace/{trace_id}` endpoint
+### Trace Validation Methods
+- `assert_library_traces_exist(request, min_traces_len=1)` - Verify traces from library reach backend via `/api/v1/trace/{trace_id}`
+- `assert_otlp_trace_exist(request, dd_trace_id, dd_api_key=None, dd_app_key=None)` - Verify OpenTelemetry traces reach backend with specific trace ID
 
-### `assert_otlp_trace_exist(request, dd_trace_id, dd_api_key=None, dd_app_key=None)`
-- **Purpose**: Verify that OpenTelemetry traces reach the backend with a specific trace ID
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that generated the trace
-  - `dd_trace_id`: `int` - Datadog trace ID to verify
-  - `dd_api_key`: `str | None` - Optional API key override
-  - `dd_app_key`: `str | None` - Optional application key override
-- **Returns**: Trace dictionary from the backend
-- **Usage**: Validate OpenTelemetry integration specifically
+### Span Search Methods
+- `assert_spans_exist(query_filter, min_spans_len=1, limit=100, retries=5)` - Search spans using Event Platform with custom query
+- `assert_request_spans_exist(request, query_filter, min_spans_len=1, limit=100, retries=5)` - Search spans for specific request with additional filters
+- `assert_single_spans_exist(request, min_spans_len=1, limit=100)` - Verify single span events exist for request (auto-searches `@single_span:true`)
 
-## Span Search Methods
+### Metrics Validation Methods
+- `query_timeseries(rid, start, end, metric, dd_api_key=None, dd_app_key=None, retries=12, sleep_interval_multiplier=2.0, initial_delay_s=10.0)` - Query metric timeseries data via `/api/v1/query`
 
-### `assert_spans_exist(query_filter, min_spans_len=1, limit=100, retries=5)`
-- **Purpose**: Search for spans using the Event Platform with a custom query
-- **Parameters**:
-  - `query_filter`: `str` - Search query (same format as UI trace search)
-  - `min_spans_len`: `int` - Minimum number of spans expected
-  - `limit`: `int` - Maximum number of spans to return
-  - `retries`: `int` - Number of retry attempts
-- **Returns**: List of span event dictionaries
-- **Usage**: Flexible span searching with custom filters
-- **API**: Uses Event Platform analytics API
-
-### `assert_request_spans_exist(request, query_filter, min_spans_len=1, limit=100, retries=5)`
-- **Purpose**: Search for spans related to a specific request with additional filters
-- **Parameters**:
-  - `request`: `HttpResponse` - Request to filter spans by
-  - `query_filter`: `str` - Additional search criteria
-  - `min_spans_len`: `int` - Minimum number of spans expected
-  - `limit`: `int` - Maximum number of spans to return
-  - `retries`: `int` - Number of retry attempts
-- **Returns**: List of span event dictionaries
-- **Usage**: Combine request filtering with custom search criteria
-- **Note**: Automatically adds request ID to the query filter
-
-### `assert_single_spans_exist(request, min_spans_len=1, limit=100)`
-- **Purpose**: Verify that single span events exist for a specific request
-- **Parameters**:
-  - `request`: `HttpResponse` - Request that should have generated single spans
-  - `min_spans_len`: `int` - Minimum number of single spans expected
-  - `limit`: `int` - Maximum number of spans to return
-- **Returns**: List of single span event dictionaries
-- **Usage**: Validate single span instrumentation
-- **Filter**: Automatically searches for `@single_span:true`
-
-## Metrics Validation Methods
-
-### `query_timeseries(rid, start, end, metric, dd_api_key=None, dd_app_key=None, retries=12, sleep_interval_multiplier=2.0, initial_delay_s=10.0)`
-- **Purpose**: Query metric timeseries data from the backend
-- **Parameters**:
-  - `rid`: `str` - Request ID to filter metrics
-  - `start`: `int` - Start time (Unix timestamp)
-  - `end`: `int` - End time (Unix timestamp)
-  - `metric`: `str` - Metric name to query
-  - `dd_api_key`: `str | None` - Optional API key override
-  - `dd_app_key`: `str | None` - Optional application key override
-  - `retries`: `int` - Number of retry attempts
-  - `sleep_interval_multiplier`: `float` - Multiplier for retry delay
-  - `initial_delay_s`: `float` - Initial delay before first attempt
-- **Returns**: Metric series data from backend
-- **Usage**: Validate custom metrics ingestion
-- **API**: Uses `/api/v1/query` endpoint
-- **Note**: Metrics take longer to be available, hence the initial delay
-
-## Logs Validation Methods
-
-### `get_logs(query, rid, dd_api_key=None, dd_app_key=None, retries=10, sleep_interval_multiplier=2.0)`
-- **Purpose**: Search for logs in the backend using a query
-- **Parameters**:
-  - `query`: `str` - Log search query
-  - `rid`: `str` - Request ID to validate in logs
-  - `dd_api_key`: `str | None` - Optional API key override
-  - `dd_app_key`: `str | None` - Optional application key override
-  - `retries`: `int` - Number of retry attempts
-  - `sleep_interval_multiplier`: `float` - Multiplier for retry delay
-- **Returns**: Log entry dictionary if found
-- **Usage**: Validate log ingestion and content
-- **API**: Uses `/api/v2/logs/events` endpoint
+### Logs Validation Methods
+- `get_logs(query, rid, dd_api_key=None, dd_app_key=None, retries=10, sleep_interval_multiplier=2.0)` - Search logs via `/api/v2/logs/events` with query and request ID
 
 ## Key Features
 
