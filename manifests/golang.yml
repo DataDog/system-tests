@@ -461,7 +461,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55377)
     test_reports.py:
