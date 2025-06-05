@@ -132,7 +132,7 @@ class _Scenarios:
             "CONFIG_CHAINING_TEST": "true",
         },
         doc="Test telemetry for environment variable configurations",
-        scenario_groups=[ScenarioGroup.TELEMETRY],
+        scenario_groups=[scenario_groups.telemetry],
     )
 
     telemetry_log_generation_disabled = EndToEndScenario(
