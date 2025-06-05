@@ -28,9 +28,15 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version: 20
-    - name: 'Run nodejs lint'
+    - name: 'Run nodejs express lint'
       shell: bash
       working-directory: ./utils/build/docker/nodejs/express
+      run: |
+        npm install
+        npm run lint
+    - name: 'Run nodejs fastify lint'
+      shell: bash
+      working-directory: ./utils/build/docker/nodejs/fastify
       run: |
         npm install
         npm run lint
