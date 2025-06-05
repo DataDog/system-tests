@@ -491,14 +491,29 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
+      Test_SDK_V2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_AppsecDisabled: missing_feature
       Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
       Test_UserLoginFailureEventV2_Metrics: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled: missing_feature
       Test_UserLoginFailureEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_AppsecDisabled: missing_feature
       Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
       Test_UserLoginSuccessEventV2_Metrics: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled: missing_feature
       Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
+    test_event_tracking_v2_appsec_disabled.py:
+      Test_SDK_V2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_AppsecDisabled: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -531,10 +546,8 @@ tests/:
         sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra30: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
+        sinatra40: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
     test_identify.py:
       Test_Basic: v1.0.0

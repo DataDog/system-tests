@@ -720,29 +720,72 @@ tests/:
         '*': *ref_5_45_0
         nextjs: missing_feature
     test_event_tracking_v2.py:
+      Test_SDK_V2_Metrics_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
       Test_UserLoginFailureEventV2_HeaderCollection:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Metrics:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Tags:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_HeaderCollection:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Metrics:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Tags:
-        '*': *ref_5_48_0
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+    test_event_tracking_v2_appsec_disabled.py:
+      Test_SDK_V2_Metrics_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_AppsecDisabled:
+        "*": *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_AppsecDisabled:
+        "*": *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0

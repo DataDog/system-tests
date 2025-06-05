@@ -467,3 +467,344 @@ class Test_UserLoginFailureEventV2_Libddwaf:
 
         interfaces.library.assert_waf_attack(self.r, rule="001_trigger_on_usr_login")
         interfaces.library.assert_waf_attack(self.r, rule="004_trigger_on_login_failure")
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+    """Test tags created in AppSec User Login Success Event SDK v2 when AppSec is disabled"""
+
+    def get_user_login_success_tags_validator_appsec_disabled(
+        self, login, user_id, metadata=None, unexpected_metadata=None
+    ):
+        def validate(span):
+            expected_tags = {
+                "appsec.events.users.login.success.usr.login": login,
+                "appsec.events.users.login.success.usr.id": user_id,
+                "usr.id": user_id,
+                "appsec.events.users.login.success.track": "true",
+                "_dd.appsec.events.users.login.success.sdk": "true",
+                "_dd.appsec.user.collection_mode": "sdk",
+            }
+
+            return validate_tags_and_metadata(
+                span, "appsec.events.users.login.success", expected_tags, metadata, unexpected_metadata
+            )
+
+        return validate
+
+    def setup_user_login_success_event_strings_metadata_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE, "metadata": metadata}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
+
+    def test_user_login_success_event_strings_metadata_appsec_disabled(self):
+        # Call the user login success SDK with AppSec disabled and validate tags
+
+        assert self.r.status_code == 200
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        interfaces.library.validate_spans(
+            self.r,
+            validator=self.get_user_login_success_tags_validator_appsec_disabled(
+                LOGIN_SAFE, USER_ID_SAFE, metadata=metadata
+            ),
+        )
+
+    def setup_user_login_success_event_no_metadata_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
+
+    def test_user_login_success_event_no_metadata_appsec_disabled(self):
+        # Call the user login success SDK with no metadata when AppSec is disabled and validate tags
+
+        assert self.r.status_code == 200
+
+        interfaces.library.validate_spans(
+            self.r, validator=self.get_user_login_success_tags_validator_appsec_disabled(LOGIN_SAFE, USER_ID_SAFE)
+        )
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+    """Test that headers are NOT collected in AppSec User Login Success Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_success_header_collection_appsec_disabled(self):
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
+
+    def test_user_login_success_header_collection_appsec_disabled(self):
+        # Validate that headers are NOT collected when AppSec is disabled and login success SDK is used
+
+        assert self.r.status_code == 200
+
+        def validate_user_login_success_no_header_collection(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            # When AppSec is disabled, headers should NOT be collected
+            for header in HEADERS:
+                key = f"http.request.headers.{header.lower()}"
+                # Assert that headers are NOT present in the span
+                assert key not in span.get("meta", {}), f"Header {key} should not be collected when AppSec is disabled"
+
+            return True
+
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_no_header_collection)
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
+    """Test metrics created in AppSec User Login Success Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_success_event_appsec_disabled(self):
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data)
+
+    def test_user_login_success_event_appsec_disabled(self):
+        # Call the user login success SDK when AppSec is disabled and validate metrics
+
+        assert self.r.status_code == 200
+
+        # Metrics should still be sent even when AppSec is disabled
+        def validate_login_success_metrics(log):
+            metric = log.get("metric")
+            if metric is not None and metric.get("name") == "appsec.sdk.event":
+                return validate_metric_type_and_version("login_success", "v2", metric)
+            return False
+
+        interfaces.library.validate_telemetry(validate_login_success_metrics)
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled:
+    """Test that libddwaf is NOT called in AppSec User Login Success Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_success_no_libddwaf_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        # Use safe values - when AppSec is disabled, libddwaf should not be called regardless
+        data = {"login": LOGIN_SAFE, "user_id": USER_ID_SAFE}
+
+        self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
+
+    def test_user_login_success_no_libddwaf_appsec_disabled(self):
+        # Call the user login success SDK when AppSec is disabled and validate no libddwaf calls
+
+        assert self.r.status_code == 200
+
+        # No security events should be generated when AppSec is disabled
+        def validate_no_security_events(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            # Ensure no appsec security events are present
+            meta = span.get("meta", {})
+            for key in meta:
+                assert not key.startswith(
+                    "_dd.appsec.event_rules"
+                ), f"Security event {key} should not be present when AppSec is disabled"
+
+            return True
+
+        interfaces.library.validate_spans(self.r, validator=validate_no_security_events)
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+    """Test tags created in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
+
+    def get_user_login_failure_tags_validator_appsec_disabled(
+        self, login, exists, metadata=None, unexpected_metadata=None
+    ):
+        def validate(span):
+            expected_tags = {
+                "appsec.events.users.login.failure.usr.login": login,
+                "appsec.events.users.login.failure.usr.exists": exists,
+                "appsec.events.users.login.failure.track": "true",
+                "_dd.appsec.events.users.login.failure.sdk": "true",
+            }
+
+            return validate_tags_and_metadata(
+                span, "appsec.events.users.login.failure", expected_tags, metadata, unexpected_metadata
+            )
+
+        return validate
+
+    def setup_user_login_failure_event_exists_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        data = {"login": LOGIN_SAFE, "exists": True, "metadata": metadata}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
+
+    def test_user_login_failure_event_exists_appsec_disabled(self):
+        # Call the user login failure SDK with existing account when AppSec is disabled and validate tags
+
+        assert self.r.status_code == 200
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        interfaces.library.validate_spans(
+            self.r,
+            validator=self.get_user_login_failure_tags_validator_appsec_disabled(LOGIN_SAFE, "true", metadata=metadata),
+        )
+
+    def setup_user_login_failure_event_does_not_exist_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        data = {"login": LOGIN_SAFE, "exists": False, "metadata": metadata}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
+
+    def test_user_login_failure_event_does_not_exist_appsec_disabled(self):
+        # Call the user login failure SDK with account that does not exist when AppSec is disabled and validate tags
+
+        assert self.r.status_code == 200
+
+        metadata = {"metadata0": "value0", "metadata1": "value1"}
+
+        interfaces.library.validate_spans(
+            self.r,
+            validator=self.get_user_login_failure_tags_validator_appsec_disabled(
+                LOGIN_SAFE, "false", metadata=metadata
+            ),
+        )
+
+    def setup_user_login_failure_event_no_metadata_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        data = {"login": LOGIN_SAFE, "exists": True}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
+
+    def test_user_login_failure_event_no_metadata_appsec_disabled(self):
+        # Call the user login failure SDK with no metadata when AppSec is disabled and validate tags
+
+        assert self.r.status_code == 200
+
+        interfaces.library.validate_spans(
+            self.r, validator=self.get_user_login_failure_tags_validator_appsec_disabled(LOGIN_SAFE, "true")
+        )
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+    """Test that headers are NOT collected in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_failure_header_collection_appsec_disabled(self):
+        data = {"login": LOGIN_SAFE, "exists": True}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=HEADERS)
+
+    def test_user_login_failure_header_collection_appsec_disabled(self):
+        # Validate that headers are NOT collected when AppSec is disabled and user login failure SDK is used
+
+        assert self.r.status_code == 200
+
+        def validate_user_login_failure_no_header_collection(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            # When AppSec is disabled, headers should NOT be collected
+            for header in HEADERS:
+                key = f"http.request.headers.{header.lower()}"
+                # Assert that headers are NOT present in the span
+                assert key not in span.get("meta", {}), f"Header {key} should not be collected when AppSec is disabled"
+
+            return True
+
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_no_header_collection)
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
+    """Test metrics created in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_failure_event_appsec_disabled(self):
+        data = {"login": LOGIN_SAFE, "exists": True}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data)
+
+    def test_user_login_failure_event_appsec_disabled(self):
+        # Call the user login failure SDK when AppSec is disabled and validate metrics
+
+        assert self.r.status_code == 200
+
+        # Metrics should still be sent even when AppSec is disabled
+        def validate_login_failure_metrics(log):
+            metric = log.get("metric")
+            if metric is not None and metric.get("name") == "appsec.sdk.event":
+                return validate_metric_type_and_version("login_failure", "v2", metric)
+            return False
+
+        interfaces.library.validate_telemetry(validate_login_failure_metrics)
+
+
+@features.event_tracking_sdk_v2
+@scenarios.ato_sdk
+class Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled:
+    """Test that libddwaf is NOT called in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
+
+    def setup_user_login_failure_no_libddwaf_appsec_disabled(self):
+        headers = {
+            "X-Forwarded-For": "1.2.3.4",
+        }
+
+        # Use safe values - when AppSec is disabled, libddwaf should not be called regardless
+        data = {"login": LOGIN_SAFE, "exists": True}
+
+        self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
+
+    def test_user_login_failure_no_libddwaf_appsec_disabled(self):
+        # Call the user login failure SDK when AppSec is disabled and validate no libddwaf calls
+
+        assert self.r.status_code == 200
+
+        # No security events should be generated when AppSec is disabled
+        def validate_no_security_events(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            # Ensure no appsec security events are present
+            meta = span.get("meta", {})
+            for key in meta:
+                assert not key.startswith(
+                    "_dd.appsec.event_rules"
+                ), f"Security event {key} should not be present when AppSec is disabled"
+
+            return True
+
+        interfaces.library.validate_spans(self.r, validator=validate_no_security_events)

@@ -1488,29 +1488,72 @@ tests/:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_event_tracking_v2.py:
+      Test_SDK_V2_Metrics_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginFailureEventV2_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginFailureEventV2_HeaderCollection:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginFailureEventV2_Libddwaf:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginFailureEventV2_Metrics:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginFailureEventV2_NoLibddwaf_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginFailureEventV2_Tags:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginSuccessEventV2_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginSuccessEventV2_HeaderCollection:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginSuccessEventV2_Libddwaf:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginSuccessEventV2_Metrics:
-        '*': v1.48.0
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginSuccessEventV2_NoLibddwaf_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
       Test_UserLoginSuccessEventV2_Tags:
-        '*': v1.48.0
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM tracing support)
+    test_event_tracking_v2_appsec_disabled.py:
+      Test_SDK_V2_Metrics_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_AppsecDisabled:
+        "*": v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_AppsecDisabled:
+        "*": v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection:
