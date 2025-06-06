@@ -164,7 +164,7 @@ ruby_ssi_pipeline:
 
 check_pipeline_status:
   stage: pipeline-status
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   script:
     - set -e  # Exit immediately if any command fails
@@ -306,7 +306,7 @@ count_amis:
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
 
   stage: system-tests-utils
@@ -322,7 +322,7 @@ check_merge_labels:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
 generate_system_tests_images:
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   needs: []
   stage: system-tests-utils
@@ -339,7 +339,7 @@ generate_system_tests_images:
   when: manual
 
 .delayed_base_job:
-    image: registry.ddbuild.io/images/ci_docker_base
+    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
     tags: ["arch:amd64"]
     script:
         - echo "⏳ Waiting before triggering the child pipeline..."
