@@ -46,6 +46,7 @@ tests/:
         Test_Schema_Response_Headers:
           '*': v2.1.0
           fastapi: v2.5.0
+        Test_Schema_Response_on_Block: v3.10.0.dev
     iast/:
       sink/:
         test_code_injection.py:
