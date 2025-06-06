@@ -167,6 +167,7 @@ check_pipeline_status:
   image: registry.ddbuild.io/images/ci_docker_base
   tags: ["runner:docker"]
   script:
+    - set -e  # Exit immediately if any command fails
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
 
