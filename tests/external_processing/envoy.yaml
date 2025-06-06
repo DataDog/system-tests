@@ -1,4 +1,3 @@
----
 static_resources:
   listeners:
     - name: listener_0
@@ -49,6 +48,7 @@ static_resources:
                     socket_address:
                       address: http-app
                       port_value: 8080
+
     - name: ext_proc_cluster
       connect_timeout: 0.25s
       type: STRICT_DNS
