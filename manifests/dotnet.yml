@@ -421,6 +421,9 @@ tests/:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v3.4.0
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0

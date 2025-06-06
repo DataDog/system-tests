@@ -1667,6 +1667,9 @@ tests/:
       Test_Suspicious_Attacker_Blocking:
         '*': v1.39.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
