@@ -141,32 +141,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
-        test_header_injection.py:
-          TestHeaderInjection:
-            '*': *ref_4_21_0
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionAccessControlAllow:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionContentEncoding:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionPragma:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionTransferEncoding:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjection_ExtendedLocation:
-            '*': *ref_5_37_0
-            nextjs: missing_feature
-          TestHeaderInjection_StackTrace:
-            '*': *ref_5_39_0
-            nextjs: missing_feature
+        test_header_injection.py: irrelevant (Header Injection detection was removed)
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': *ref_4_8_0
