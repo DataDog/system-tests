@@ -1,5 +1,5 @@
----
 name: "Compute libraries impacted by the change"
+
 on:
   workflow_call:
     outputs:
@@ -9,16 +9,17 @@ on:
       library_matrix:
         description: "List of couple library + dev/prod to run"
         value: ${{ jobs.main.outputs.library_matrix }}
+
 jobs:
   main:
     runs-on: ubuntu-latest
     outputs:
-      library_matrix: ${{ steps.compute.outputs.library_matrix }}
-      libraries_with_dev: ${{ steps.compute.outputs.libraries_with_dev }}
+      library_matrix:  ${{ steps.compute.outputs.library_matrix }}
+      libraries_with_dev:  ${{ steps.compute.outputs.libraries_with_dev }}
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - uses: actions/checkout@v4
-      - run: |
+      - run:  |
           git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
           git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
           cat modified_files.txt
@@ -96,8 +97,10 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
               print(f"library_matrix={json.dumps(populated_result)}", file=fh)
               print(f"libraries_with_dev={json.dumps([item['library'] for item in populated_result if item['version'] == 'dev'])}", file=fh)
+
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
+
       - name: Get target branch
         uses: ./.github/actions/get_target_branch
         id: get-target-branch

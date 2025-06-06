@@ -1,4 +1,3 @@
----
 name: Parametric
 on:
   workflow_call:
@@ -52,9 +51,11 @@ on:
         default: '{ "group": "APM Larger Runners" }'
         required: false
         type: string
+
 env:
   REGISTRY: ghcr.io
 jobs:
+
   parametric:
     runs-on: ${{ fromJson( inputs._experimental_runs_on ) }}
     strategy:
@@ -73,7 +74,7 @@ jobs:
       - name: Install runner
         uses: ./.github/actions/install_runner
       - name: Get binaries artifact
-        if: ${{ inputs.binaries_artifact != '' }}
+        if : ${{ inputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.binaries_artifact }}
@@ -92,8 +93,8 @@ jobs:
         with:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
           path: artifact.tar.gz
-    # - name: Upload results CI Visibility
-    #   if: ${{ always() }}
-    #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-    #   env:
-    #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+      # - name: Upload results CI Visibility
+      #   if: ${{ always() }}
+      #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
+      #   env:
+      #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}

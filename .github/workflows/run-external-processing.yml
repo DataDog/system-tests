@@ -1,5 +1,5 @@
----
 name: External-processing tests
+
 on:
   workflow_call:
     inputs:
@@ -18,15 +18,20 @@ on:
         default: false
         required: false
         type: boolean
+
 env:
   REGISTRY: ghcr.io
+
+
 jobs:
   external-processing:
     runs-on:
       group: "APM Larger Runners"
+
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,30 +39,38 @@ jobs:
           repository: 'DataDog/system-tests'
       - name: Install runner
         uses: ./.github/actions/install_runner
+
       - name: Log in to the Container registry
         run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
+
       - name: Get binaries artifact
-        if: ${{ inputs.binaries_artifact != '' }}
+        if : ${{ inputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
+
       - name: Pull images
         uses: ./.github/actions/pull_images
         with:
           library: golang
           weblog: golang-dummy
           scenarios: '["EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"]'
+
       - name: Build proxy image
         if: inputs.build_proxy_image
         run: ./build.sh -i proxy
+
       - name: Build agent image
         id: build
         run: ./build.sh -i agent
+
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
+
       - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
         run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
+
       - name: Compress logs
         id: compress_logs
         if: always() && steps.build.outcome == 'success'
