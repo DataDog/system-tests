@@ -1,4 +1,3 @@
----
 name: Lint
 description: "Run lints checks for project"
 runs:
@@ -13,11 +12,12 @@ runs:
       run: ./format.sh --check
     - if: ${{ failure() }}
       shell: bash
-      run: 'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md"
+      run:
+        'echo "Lint fails, please have a look on https://github.com/DataDog/system-tests/blob/main/docs/edit/format.md"
 
         exit 1
 
-'
+        '
     - name: 'Install shellcheck'
       shell: bash
       run: sudo apt-get install -y shellcheck
