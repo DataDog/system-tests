@@ -12,7 +12,7 @@
 #
 # * Agent:      Docker hub datadog/agent-dev:master-py3
 # * cpp_httpd:  Github action artifact
-# * Golang:     gopkg.in/DataDog/dd-trace-go.v1@main
+# * Golang:     github.com/DataDog/dd-trace-go/v2@main
 # * .NET:       ghcr.io/datadog/dd-trace-dotnet
 # * Java:       ghcr.io/datadog/dd-trace-java
 # * PHP:        ghcr.io/datadog/dd-trace-php
@@ -218,12 +218,23 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
     set -o pipefail
 
-    TARGET_BRANCH="${TARGET_BRANCH:-v1-maintenance}"
+    TARGET_BRANCH="${TARGET_BRANCH:-main}"
     echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
     COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
 
-    echo "Using gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID"
-    echo "gopkg.in/DataDog/dd-trace-go.v1@$COMMIT_ID" > golang-load-from-go-get
+    echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
+    echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/database/sql/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/net/http/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image

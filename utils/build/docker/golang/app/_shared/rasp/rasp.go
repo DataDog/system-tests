@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"os"
 
-	_ "github.com/mattn/go-sqlite3"
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec/events"
-	sqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/database/sql"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
+	sqltrace "github.com/DataDog/dd-trace-go/contrib/database/sql/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	"github.com/DataDog/dd-trace-go/v2/appsec/events"
+
+	_ "github.com/mattn/go-sqlite3" // To register the driver
 )
 
 func parseRASPRequest(r *http.Request, key string) string {

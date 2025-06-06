@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, missing_feature, context
+from utils import weblog, interfaces, features, missing_feature, context, irrelevant
 from tests.appsec.utils import find_series
 
 HEADERS = {
@@ -116,6 +116,7 @@ class Test_UserLoginFailureEvent:
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
+    @irrelevant(context.library >= "golang@2.0.0-rc.1", reason="implementation deprecated")
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 

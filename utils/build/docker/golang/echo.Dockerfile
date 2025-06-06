@@ -1,27 +1,40 @@
-FROM golang:1.23
+FROM golang:1.23 AS build
 
 # print important lib versions
 RUN go version && curl --version
 
-# download go dependencies
-RUN mkdir -p /app
-COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
+# install jq
+RUN apt-get update && apt-get -y install jq
+
+# build application binary
+COPY utils/build/docker/golang/app/ /app/
 WORKDIR /app
-RUN go mod download && go mod verify
 
-# copy the app code
-COPY utils/build/docker/golang/app /app
+ENV GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/go/pkg/mod
+RUN --mount=type=cache,target=${GOMODCACHE}                                     \
+    --mount=type=cache,target=${GOCACHE}                                        \
+    --mount=type=tmpfs,target=/tmp                                              \
+    --mount=type=bind,source=utils/build/docker/golang,target=/utils            \
+    --mount=type=bind,source=binaries,target=/binaries                          \
+  go mod download && go mod verify &&                                           \
+  /utils/install_ddtrace.sh &&                                                  \
+  go build -v -tags=appsec -o=./weblog ./echo
 
-# download the proper tracer version
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-ENV DD_TRACE_HEADER_TAGS='user-agent'
+# ==============================================================================
 
-RUN go build -v -tags appsec -o weblog ./echo
+FROM golang:1.23
 
-RUN echo "#!/bin/bash\nexec ./weblog" > app.sh
-RUN chmod +x app.sh
-CMD ["./app.sh"]
+COPY --from=build /app/weblog /app/weblog
+COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+
+WORKDIR /app
 
 # Datadog setup
-ENV DD_LOGGING_RATE=0
+ENV DD_TRACE_HEADER_TAGS='user-agent' \
+    DD_DATA_STREAMS_ENABLED=true \
+    DD_LOGGING_RATE=0
+
+RUN printf "#!/bin/bash\nexec ./weblog" > app.sh
+RUN chmod +x app.sh
+CMD ["./app.sh"]
