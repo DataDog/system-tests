@@ -42,6 +42,7 @@ func newServer() *apmClientServer {
 }
 
 func main() {
+	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
 		if err := recover(); err != nil {
