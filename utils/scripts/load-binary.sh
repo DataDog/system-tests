@@ -234,7 +234,7 @@ elif [ "$TARGET" = "golang" ]; then
     echo "github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
-	echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
+    echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
 
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
