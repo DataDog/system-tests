@@ -127,6 +127,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
