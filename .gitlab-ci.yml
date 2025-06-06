@@ -155,9 +155,10 @@ ruby_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
 check_pipeline_status:
   stage: pipeline-status
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   script:
+    - set -e  # Exit immediately if any command fails
     - echo "Checking for failed jobs in parent and child pipelines..."
     - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
     # Function to fetch all jobs from a paginated GitLab API endpoint
@@ -288,7 +289,7 @@ count_amis:
   after_script: echo "Finish"
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   stage: system-tests-utils
   allow_failure: true
@@ -302,7 +303,7 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 generate_system_tests_images:
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   needs: []
   stage: system-tests-utils
@@ -318,9 +319,9 @@ generate_system_tests_images:
     - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 .delayed_base_job:
-  image: registry.ddbuild.io/images/ci_docker_base
-  tags: ["arch:amd64"]
-  script:
-    - echo "⏳ Waiting before triggering the child pipeline..."
-  when: delayed
-  start_in: 5 minutes
+    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+    tags: ["arch:amd64"]
+    script:
+        - echo "⏳ Waiting before triggering the child pipeline..."
+    when: delayed
+    start_in: 5 minutes

@@ -6,7 +6,7 @@ stages:
   - DOCKER_SSI
   - K8S_LIB_INJECTION
 ssi_tests:
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["arch:amd64"]
   stage: SSI_TESTS
   script:
