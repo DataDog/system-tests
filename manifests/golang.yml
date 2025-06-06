@@ -12,8 +12,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: v2.0.0-dev
-        Test_API_Security_RC_ASM_DD_scanners: v2.0.0-dev
+        Test_API_Security_RC_ASM_DD_processors: v2.0.0
+        Test_API_Security_RC_ASM_DD_scanners: v2.0.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
@@ -24,7 +24,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
-        Test_Scanners: v2.0.0-dev
+        Test_Scanners: v2.0.0
         Test_Schema_Request_Cookies: v1.60.0
         Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
         Test_Schema_Request_Headers: v1.60.0
@@ -35,7 +35,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: v2.0.0-dev
+        Test_Schema_Response_Body_env_var: v2.0.0
         Test_Schema_Response_Headers: v1.60.0
     iast/:
       sink/:
@@ -356,7 +356,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: v2.0.0-dev
+      Test_SCAStandalone_Telemetry_V2: v2.0.0
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
@@ -463,7 +463,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
-      Test_UpdateRuleFileWithRemoteConfig: v2.0.0-dev  # Possibly earlier than this
+      Test_UpdateRuleFileWithRemoteConfig: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
