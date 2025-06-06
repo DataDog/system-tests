@@ -167,14 +167,14 @@ class my_test_class
     #Use the interfaces instances to validate the json intercepted messages
     interfaces.library.<validation method>
     interfaces.agent.<validation method>
-    <interfaces.backend.<validation method>
+    interfaces.backend.<validation method>
 ```
 
-* The class "SchemaValidator" from [schema validator](file utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
-* if the user wants to create a new scenario, you MUST validate or ask to the user the context of this scenario is for: end to end, parametric, kubernetes or ssi.
+* The class "SchemaValidator" from [schema validator](utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
+* if the user wants to create a new scenario, you MUST validate or ask to the user the context if this scenario is for: end to end, parametric, kubernetes or ssi.
 * After adding a new scenario on [scenarios](utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
 * After adding a new end to end scenario ask to the user if needs help to include the scenario in the CI GitHub Workflow.
-* Use [github end to end ci](.github/workflows/run-end-to-end.yml) and [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) to register a new end to end scenario.
+* Use [github end to end ci](.github/workflows/run-end-to-end.yml) and [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) to register a new end to end scenario on Github CI.
 
 
 # AWS SSI
