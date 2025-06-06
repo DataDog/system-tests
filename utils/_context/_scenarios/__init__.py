@@ -969,6 +969,15 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
+    ato_sdk = EndToEndScenario(
+        "ATO_SDK",
+        weblog_env={"DD_APPSEC_ENABLED": "false"},
+        appsec_enabled=False,
+        doc="ATO SDK tests with AppSec disabled (DD_APPSEC_ENABLED=false)",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
