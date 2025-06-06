@@ -1,13 +1,12 @@
----
 #Execute script installation for lib-injection packages using install script
 - os_type: linux
   copy_files:
-    - name: copy-binaries
-      local_path: binaries
-    - name: copy-start-agent-script
-      local_path: utils/build/virtual_machine/microvm/microvm_agent_restart_retry.sh
+      - name: copy-binaries
+        local_path: binaries
+      - name: copy-start-agent-script
+        local_path: utils/build/virtual_machine/microvm/microvm_agent_restart_retry.sh
   remote-command: |
-    mkdir /shared_volume/datadog-apm-library
-    find /shared_volume -name "datadog-apm-library*.tar" -exec sh -c 'tar xvf {} -C /shared_volume/datadog-apm-library' \;
-    sudo datadog-installer install file:///shared_volume/datadog-apm-library
-    bash /shared_volume/microvm_agent_restart_retry.sh
+   mkdir /shared_volume/datadog-apm-library
+   find /shared_volume -name "datadog-apm-library*.tar" -exec sh -c 'tar xvf {} -C /shared_volume/datadog-apm-library' \;
+   sudo datadog-installer install file:///shared_volume/datadog-apm-library
+   bash /shared_volume/microvm_agent_restart_retry.sh

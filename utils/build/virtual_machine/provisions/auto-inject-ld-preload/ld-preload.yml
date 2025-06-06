@@ -1,10 +1,11 @@
----
 #Manual installation for lib-injection packages
 - os_type: linux
   os_distro: deb
+
   copy_files:
-    - name: copy-helloworld-cpp
-      local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
+      - name: copy-helloworld-cpp
+        local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
+
   remote-command: |
     echo "Installing gcc"
     sudo apt install -y gcc
@@ -14,17 +15,21 @@
     echo "Adding new data to /etc/ld.so.preload"
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
     echo "Done"
+
 - os_type: linux
   os_distro: rpm
+
   copy_files:
-    - name: copy-helloworld-cpp
-      local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
-  remote-command: |
-    sudo yum groupinstall "Development Tools" -y
+      - name: copy-helloworld-cpp
+        local_path: utils/build/virtual_machine/provisions/auto-inject-ld-preload/main.c
+
+  remote-command: | 
+    sudo yum groupinstall "Development Tools" -y 
     echo "Compiling main.c to main.so"
     gcc -Wall -fPIC -shared -o main.so main.c -ldl
     sudo mv main.so /usr/local/lib/
     sudo bash -c "echo /usr/local/lib/main.so >> /etc/ld.so.preload"
+
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for chaos testing."

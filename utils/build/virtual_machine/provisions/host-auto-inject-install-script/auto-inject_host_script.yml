@@ -1,18 +1,18 @@
----
 #Execute script installation for lib-injection packages using install script
 - os_type: linux
   copy_files:
-    - name: copy-auto-install-script
-      local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
-    - name: copy-tracer-debug-config
-      local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+      - name: copy-auto-install-script
+        local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
+      - name: copy-tracer-debug-config
+        local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
   remote-command: |
-    # Env variables set on the scenario definition. Write to file and load
+    # Env variables set on the scenario definition. Write to file and load  
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
     echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
     echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
     cat scenario_agent.env
-    export $(cat scenario_agent.env | xargs)
+    export $(cat scenario_agent.env | xargs) 
+
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
     echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere

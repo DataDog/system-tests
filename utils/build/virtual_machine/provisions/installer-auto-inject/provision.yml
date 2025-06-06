@@ -1,35 +1,43 @@
----
 # Optional: Load the environment variables
 init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
+
 # Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
 tested_components:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
+
 #Optional: Extract the logs from the VM
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
+
 # Mandatory: Steps to provision VM
 provision_steps:
-  - init-config  # Init the VM configuration
-  - prepare-docker  # Install docker
-  - amazon-ecr-credential-helper  # Install AWS ECR helper to download images from ECR
-  - patch-docker-daemon  #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  - pre-install-installer  # we install only the installer and we cached it. The goal is to force download the required deps for the installer and cache them
-  - install-installer  # Install the installer
+  - init-config # Init the VM configuration
+  - prepare-docker # Install docker
+  - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
+  - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
+  - pre-install-installer # we install only the installer and we cached it. The goal is to force download the required deps for the installer and cache them
+  - install-installer # Install the installer
+
 init-config:
   cache: true
   populate_env: false
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
 prepare-docker:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/auto-inject_prepare_docker.yml
+
 amazon-ecr-credential-helper:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/amazon-ecr-credential-helper.yml
+
 patch-docker-daemon:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
+  
 pre-install-installer:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_pre_installer_manual.yml
+
 install-installer:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml

@@ -1,54 +1,54 @@
----
 lang_variant:
-  name: dotnet
-  cache: true
-  version: 7
-  excluded_os_types: [linux]
-  install:
-    - os_type: windows
-      remote-command: |
-        # Install IIS
-        Write-Host "Installing IIS..."
-        Install-WindowsFeature -Name Web-Asp-Net
-        Write-Host "Successfully installed IIS"
+    name: dotnet
+    cache: true
+    version: 7
+    excluded_os_types: [linux]
+    install:
+      - os_type: windows
+        remote-command: |
+          # Install IIS
+          Write-Host "Installing IIS..."
+          Install-WindowsFeature -Name Web-Asp-Net
+          Write-Host "Successfully installed IIS"
 
-        # Install chocolatey
-        Write-Host "Installing Chocolatey..."
-        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
-        Write-Host "Successfully installed Chocolatey"
+          # Install chocolatey
+          Write-Host "Installing Chocolatey..."
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          Write-Host "Successfully installed Chocolatey"
 
-        Write-Host "Installing dependencies through Chocolatey..."
-        choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
-        Write-Host "Successfully installed dependencies through Chocolatey"
+          Write-Host "Installing dependencies through Chocolatey..."
+          choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
+          Write-Host "Successfully installed dependencies through Chocolatey"
+
 weblog:
-  name: test-app-dotnet-iis
-  excluded_os_types: [linux]
-  install:
-    - os_type: windows
-      copy_files:
-        - name: copy-dotnet-app
-          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
-      remote-command: |
-        # Somehow copying directly into C:\Users\Administrator\app doesn't work
-        mkdir app
-        mv MinimalWebApp.csproj app
-        mv Program.cs app
-        mv .\appsettings.json app
+    name: test-app-dotnet-iis
+    excluded_os_types: [linux]
+    install:
+      - os_type: windows
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        remote-command: |
+          # Somehow copying directly into C:\Users\Administrator\app doesn't work
+          mkdir app
+          mv MinimalWebApp.csproj app
+          mv Program.cs app
+          mv .\appsettings.json app
 
-        # Create app pool & app
-        $testAppPath = "C:\inetpub\wwwroot\TestApp"
-        if (-Not (Test-Path -Path $testAppPath)) {
-          New-Item -Path $testAppPath -ItemType Directory
-          Write-Host "Created directory: $testAppPath"
-        } else {
-          Write-Host "Directory already exists: $testAppPath"
-        }
-        New-WebAppPool -Name "TestAppPool"
-        New-WebSite -Name "TestApp" -PhysicalPath $testAppPath -Port 5985 -ApplicationPool "TestAppPool"
+          # Create app pool & app
+          $testAppPath = "C:\inetpub\wwwroot\TestApp"
+          if (-Not (Test-Path -Path $testAppPath)) {
+            New-Item -Path $testAppPath -ItemType Directory
+            Write-Host "Created directory: $testAppPath"
+          } else {
+            Write-Host "Directory already exists: $testAppPath"
+          }
+          New-WebAppPool -Name "TestAppPool"
+          New-WebSite -Name "TestApp" -PhysicalPath $testAppPath -Port 5985 -ApplicationPool "TestAppPool"
 
-        # Publish app into IIS
-        & 'C:\Program Files\dotnet\dotnet.exe' publish --configuration Release --output $testAppPath C:\Users\Administrator\app
+          # Publish app into IIS
+          & 'C:\Program Files\dotnet\dotnet.exe' publish --configuration Release --output $testAppPath C:\Users\Administrator\app
 
-        New-NetFirewallRule -DisplayName "Allow HTTP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5985
+          New-NetFirewallRule -DisplayName "Allow HTTP" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 5985
 
-        Start-Website -Name "TestApp"
+          Start-Website -Name "TestApp"

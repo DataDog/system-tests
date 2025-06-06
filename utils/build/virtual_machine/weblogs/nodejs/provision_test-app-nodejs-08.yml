@@ -1,29 +1,33 @@
----
 lang_variant:
-  name: node08
-  version: 0.8
-  cache: true
-  install:
-    - os_type: linux
-      remote-command: |
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-        [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-        nvm install --no-progress 0.8
-        nvm use node
-        n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+    name: node08
+    version: 0.8
+    cache: true
+    install: 
+      - os_type: linux
+        remote-command: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+          nvm install --no-progress 0.8
+          nvm use node
+          n=$(which node);n=${n%/bin/node}; chmod -R 755 $n/bin/*; sudo cp -r $n/{bin,lib,share} /usr/local
+
 weblog:
-  name: test-app-nodejs-08
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-service
-          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-        - name: copy-service-run-script
-          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-        - name: copy-run-weblog-script
-          local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
-        - name: copy-binary
-          local_path: lib-injection/build/docker/nodejs/sample-app/index.js
-      remote-command: sh test-app-nodejs_run.sh
+    name: test-app-nodejs-08
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs/test-app-nodejs_run.sh
+
+          - name: copy-binary
+            local_path: lib-injection/build/docker/nodejs/sample-app/index.js
+
+        remote-command: sh test-app-nodejs_run.sh

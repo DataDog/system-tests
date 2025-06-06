@@ -1,24 +1,28 @@
----
 lang_variant:
-  name: OpenJDK11
-  cache: true
-  install:
-    - os_type: linux
-      os_distro: deb
-      remote-command: sudo apt-get -y update && (sudo apt-get -y install openjdk-11-jdk-headless || sudo apt-get -y install openjdk-17-jre-headless)
-    - os_type: linux
-      os_distro: rpm
-      remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+    name: OpenJDK11
+    cache: true
+    install:
+      - os_type: linux
+        os_distro: deb
+        remote-command: sudo apt-get -y update && (sudo apt-get -y install openjdk-11-jdk-headless || sudo apt-get -y install openjdk-17-jre-headless)
+
+      - os_type: linux
+        os_distro: rpm
+        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+
 weblog:
-  name: test-app-java-buildpack
-  runtime_version: 11
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-run-weblog-script
-          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-buildpack/test-app-java_docker_compose_run_buildpack.sh
-        - name: copy-docker-compose-file
-          local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
-        - name: copy-java-app
-          local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
-      remote-command: sh test-app-java_docker_compose_run_buildpack.sh
+    name: test-app-java-buildpack
+    runtime_version: 11
+    install:
+      - os_type: linux
+        copy_files:
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-buildpack/test-app-java_docker_compose_run_buildpack.sh
+
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+
+          - name: copy-java-app
+            local_path: lib-injection/build/docker/java/dd-lib-java-init-test-app
+
+        remote-command: sh test-app-java_docker_compose_run_buildpack.sh

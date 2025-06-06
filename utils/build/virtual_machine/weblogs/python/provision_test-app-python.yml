@@ -1,63 +1,73 @@
----
 lang_variant:
-  name: Python
-  version: default
-  cache: true
-  install:
-    - os_type: linux
-      os_distro: deb
-      remote-command: |
-        sudo apt-get update
-        sudo apt install -y python-is-python3
-        sudo apt install -y python3-pip
-        sudo apt install -y python3-django || true
-    - os_type: linux
-      os_distro: rpm
-      os_branch: redhat
-      remote-command: |
-        #Redhat 9 is going to install python 3.9.
-        sudo dnf install -y python3
-        sudo ln -s /usr/bin/python3 /usr/bin/python || true
-        sudo dnf install -y python-pip
-    - os_type: linux
-      os_distro: rpm
-      os_branch: fedora
-      remote-command: |
-        sudo dnf install -y python3
-        sudo ln -s /usr/bin/python3 /usr/bin/python || true
-        sudo dnf install -y python-pip || sudo dnf install -y python3-pip
-    - os_type: linux
-      os_distro: rpm
-      os_branch: alma_linux
-      remote-command: |
-        sudo dnf install python39 -y
-        sudo dnf install python39-pip -y || sudo dnf install python3-pip -y
-        sudo ln -s /usr/bin/python3 /usr/bin/python || true
-        sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
-    - os_type: linux
-      os_distro: rpm
-      os_branch: oracle_linux
-      remote-command: |
-        sudo dnf install python39 -y
-        sudo dnf install python39-pip -y || sudo dnf install python3-pip -y
-        sudo ln -s /usr/bin/python3.9 /usr/bin/python || true
-        sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
-    - os_type: linux
-      os_distro: rpm
-      remote-command: |
-        #works for: amazon_linux2022, amazon_linux2023_arm64 and amazon_linux2023_amd64
-         sudo ln -s /usr/bin/python3 /usr/bin/python && sudo dnf install -y python-pip
+    name: Python
+    version: default
+    cache: true
+    install: 
+      - os_type: linux
+        os_distro: deb
+        remote-command: |
+          sudo apt-get update
+          sudo apt install -y python-is-python3
+          sudo apt install -y python3-pip
+          sudo apt install -y python3-django || true
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: redhat
+        remote-command: |
+          #Redhat 9 is going to install python 3.9.
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: fedora
+        remote-command: |
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip || sudo dnf install -y python3-pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: alma_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: oracle_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo ln -s /usr/bin/python3.9 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
+          
+      - os_type: linux
+        os_distro: rpm
+        remote-command: |
+          #works for: amazon_linux2022, amazon_linux2023_arm64 and amazon_linux2023_amd64
+           sudo ln -s /usr/bin/python3 /usr/bin/python && sudo dnf install -y python-pip
+
 weblog:
-  name: test-app-python
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-service
-          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-        - name: copy-service-run-script
-          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-        - name: copy-run-weblog-script
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
-        - name: copy-python-app
-          local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
-      remote-command: sh test-app-python_run.sh
+    name: test-app-python
+    install:
+      - os_type: linux
+
+        copy_files:
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python/test-app-python_run.sh
+
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+
+        remote-command: sh test-app-python_run.sh

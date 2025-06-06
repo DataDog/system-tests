@@ -1,44 +1,54 @@
----
 lang_variant:
-  name: OpenJDK11
-  cache: true
-  install:
-    - os_type: linux
-      os_distro: deb
-      os_branch: debian
-      remote-command: |
-        echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
-        sudo apt update
-        sudo apt -y install openjdk-11-jdk
-    - os_type: linux
-      os_distro: deb
-      remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
-    - os_type: linux
-      os_distro: rpm
-      os_branch: amazon_linux2
-      remote-command: sudo yum -y install java-11-amazon-corretto-headless
-    - os_type: linux
-      os_distro: rpm
-      remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+    name: OpenJDK11
+    cache: true
+    install:
+      - os_type: linux
+        os_distro: deb
+        os_branch: debian
+        remote-command: |
+          echo 'deb http://deb.debian.org/debian unstable main non-free contrib' | sudo tee -a /etc/apt/sources.list
+          sudo apt update
+          sudo apt -y install openjdk-11-jdk
+
+      - os_type: linux
+        os_distro: deb
+        remote-command: sudo apt-get -y update && sudo apt-get -y install openjdk-11-jdk-headless
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: amazon_linux2
+        remote-command: sudo yum -y install java-11-amazon-corretto-headless
+        
+      - os_type: linux
+        os_distro: rpm
+        remote-command: sudo amazon-linux-extras install java-openjdk11 || sudo dnf -y install java-11-amazon-corretto-devel || sudo yum -y install java-11-openjdk-devel
+
 weblog:
-  name: test-app-java-container
-  runtime_version: 11
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-container-run-script
-          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
-        - name: copy-docker-file
-          local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/Dockerfile.jdk11
-          remote_path: Dockerfile.template
-        - name: copy-docker-compose-file
-          local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
-        - name: copy-java-app
-          local_path: lib-injection/build/docker/java/jetty-app
-        - name: compile-app-script
-          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
-        - name: run-app-script
-          local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
-      remote-command: |
-        sh compile_app.sh 18080
-        sh create_and_run_app_container.sh
+    name: test-app-java-container
+    runtime_version: 11
+    install:
+      - os_type: linux
+        copy_files:
+
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+
+          - name: copy-docker-file
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java-multicontainer/Dockerfile.jdk11
+            remote_path: Dockerfile.template
+
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+
+          - name: copy-java-app
+            local_path: lib-injection/build/docker/java/jetty-app
+
+          - name: compile-app-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/compile_app.sh
+
+          - name: run-app-script
+            local_path: utils/build/virtual_machine/weblogs/java/test-app-java/run_app.sh
+
+        remote-command: |
+          sh compile_app.sh 18080
+          sh create_and_run_app_container.sh

@@ -1,33 +1,38 @@
----
 lang_variant:
-  name: dotnet
-  cache: true
-  version: 3
-  install:
-    - os_type: linux
-      os_distro: deb
-      os_branch: ubuntu20_amd64
-      remote-command: |
-        sudo apt-get update
-        sudo apt-get install -y wget
-        wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-        sudo dpkg -i packages-microsoft-prod.deb
-        rm packages-microsoft-prod.deb
-        sudo apt-get update;
-        sudo apt-get install -y apt-transport-https
-        sudo apt-get update
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-2.1
+    name: dotnet
+    cache: true
+    version: 3
+    install:
+      - os_type: linux
+        os_distro: deb
+        os_branch: ubuntu20_amd64
+        remote-command: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          rm packages-microsoft-prod.deb
+          sudo apt-get update;
+          sudo apt-get install -y apt-transport-https
+          sudo apt-get update 
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y dotnet-sdk-2.1
+
+
 weblog:
-  name: test-app-dotnet-unsupported
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-dotnet-app
-          local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app-unsupported
-        - name: copy-service
-          local_path: utils/build/virtual_machine/weblogs/common/test-app.service
-        - name: copy-service-run-script
-          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-        - name: copy-run-weblog-script
-          local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-unsupported/test-app-dotnet-unsupported_run.sh
-      remote-command: sh test-app-dotnet-unsupported_run.sh
+    name: test-app-dotnet-unsupported
+    install:
+      - os_type: linux
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app-unsupported
+
+          - name: copy-service
+            local_path: utils/build/virtual_machine/weblogs/common/test-app.service
+
+          - name: copy-service-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
+
+          - name: copy-run-weblog-script
+            local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet-unsupported/test-app-dotnet-unsupported_run.sh
+
+        remote-command: sh test-app-dotnet-unsupported_run.sh

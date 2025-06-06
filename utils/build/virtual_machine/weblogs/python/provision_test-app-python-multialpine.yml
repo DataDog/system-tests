@@ -1,28 +1,27 @@
----
 weblog:
-  name: test-app-python-multialpine
-  nginx_config: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
-  install:
-    - os_type: linux
-      copy_files:
-        - name: copy-multicontainer-run-script
-          local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
-        - name: copy-docker-compose-file
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/docker-compose.yml
-        - name: copy-python-app
-          local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
-        - name: copy-python3_12-app-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_12-alpine
-        - name: copy-python3_11-app-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_11-alpine
-        - name: copy-python3_10-app-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_10-alpine
-        - name: copy-python3_9-app-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_9-alpine
-        - name: copy-python3_7-app-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_7-alpine
-        - name: copy-reverseproxy-dockerfile
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.reverseproxy
-        - name: copy-reverseproxy-conf
-          local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
-      remote-command: sh create_and_run_app_multicontainer.sh
+    name: test-app-python-multialpine
+    nginx_config: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-multicontainer-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/docker-compose.yml
+          - name: copy-python-app
+            local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
+          - name: copy-python3_12-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_12-alpine
+          - name: copy-python3_11-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_11-alpine
+          - name: copy-python3_10-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_10-alpine
+          - name: copy-python3_9-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_9-alpine
+          - name: copy-python3_7-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.python_3_7-alpine
+          - name: copy-reverseproxy-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/Dockerfile.reverseproxy
+          - name: copy-reverseproxy-conf
+            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-multialpine/nginx.conf
+        remote-command: sh create_and_run_app_multicontainer.sh
