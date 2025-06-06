@@ -83,6 +83,29 @@ class Test_TraceTaggingRules:
         interfaces.library.assert_waf_attack(self.r_tt3, rule="ttr-000-003")
         interfaces.library.validate_spans(self.r_tt3, validator=validate)
 
+    def setup_rule_with_attributes_no_keep_event(self):
+        self.r_tt4 = weblog.get("/waf/", headers={"User-Agent": "TraceTagging/v4"})
+
+    def test_rule_with_attributes_no_keep_event(self):
+        """Test trace-tagging rule with attributes and an event, but no sampling priority change"""
+
+        def validate(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            assert "_dd.appsec.trace.agent" in span["meta"], "Missing _dd.appsec.trace.agent from span's meta"
+            assert "_dd.appsec.trace.integer" in span["metrics"], "Missing _dd.appsec.trace.integer from span's metrics"
+
+            assert span["meta"]["_dd.appsec.trace.agent"].startswith("TraceTagging/v4")
+            assert span["metrics"]["_dd.appsec.trace.integer"] == 1729
+            assert span["metrics"].get("_sampling_priority_v1") < SamplingPriority.USER_KEEP
+
+            return True
+
+        assert self.r_tt4.status_code == 200
+        interfaces.library.assert_waf_attack(self.r_tt4, rule="ttr-000-004")
+        interfaces.library.validate_spans(self.r_tt4, validator=validate)
+
 
 @scenarios.appsec_and_rc_enabled
 @features.appsec_trace_tagging_rules
