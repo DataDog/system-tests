@@ -722,7 +722,13 @@ tests/:
             vertx3: missing_feature
             vertx4: missing_feature
       test_sampling_by_route_method_count.py:
-        TestSamplingByRouteMethodCount: v1.50.0-SNAPSHOT
+        TestSamplingByRouteMethodCount:
+          '*': v1.50.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
+          play: bug (APPSEC-56869)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: bug (APPSEC-56870)
+          vertx4: bug (APPSEC-56871)
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
