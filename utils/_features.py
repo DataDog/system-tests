@@ -2663,5 +2663,14 @@ class _Features:
         pytest.mark.features(feature_id=472)(test_object)
         return test_object
 
+    @staticmethod
+    def appsec_rc_asm_dd_multiconfig(test_object):
+        """Appsec supports multiple configurations through ASM_DD
+
+        https://feature-parity.us1.prod.dog/#/?feature=473
+        """
+        pytest.mark.features(feature_id=473)(test_object)
+        return test_object
+
 
 features = _Features()

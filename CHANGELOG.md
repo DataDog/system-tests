@@ -1,6 +1,14 @@
 ## Change Log
 
 All notable changes to this project will be documented in this file.
+### 2025-05 (110 PR merged)
+
+* 2025-05-27 [add a script that adds a label on tickets referenced in system-tests](https://github.com/DataDog/system-tests/pull/4697) by @cbeauchesne
+* 2025-05-22 [Allow parametric tests to run against an arbitrary system-tests ref](https://github.com/DataDog/system-tests/pull/4685) by @cbeauchesne
+* 2025-05-21 [do not require ca-certificate for agent image #4676](https://github.com/DataDog/system-tests/pull/4677) by @cbeauchesne
+* 2025-05-05 [Use ensure-ci-success for all-green gatekeeper](https://github.com/DataDog/system-tests/pull/4573) by @cbeauchesne
+* 2025-05-09 [ssi: track ssi configurations via telemetry](https://github.com/DataDog/system-tests/pull/4543) by @mabdinur
+
 
 ### 2025-04 (137 PR merged)
 

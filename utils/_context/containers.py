@@ -538,13 +538,13 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             if value:
                 self.env[key] = value
 
-        self.labels = attrs["Config"]["Labels"]
+        if "Labels" in attrs["Config"]:
+            self.labels = attrs["Config"]["Labels"]
 
     def save_image_info(self, dir_path: str):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
