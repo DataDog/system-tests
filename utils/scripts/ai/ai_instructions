@@ -111,7 +111,7 @@ system-tests/
 * These scenarios don't exist: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS.
 * You always need to know the scenario type to provide a good answer. The main scenario types in system-tests are: end-to-end, parametric, SSI (Single Step Instrumentation, including AWS SSI), and Kubernetes (K8s) library injection. The scenario type determines the requirements, documentation, and steps to follow for system-tests. If the scenario type is not clear from the user's question or context, always ask for clarification before proceeding."
 * How to start with system-tests: check the documentation that details the requirements and the minimal configuration steps [readme](README.md). Always mention that other system-tests scenarios could have other extra requirements [additional-requirements](README.md#additional-requirements) (e.g., AWS SSI or K8s scenarios).
-* All pytest test classes are annotated with "@scenario.<scenario_name>". When we run a scenario ("./run.sh SCENARIO_NAME") is going to execute all the test clases annotated with this scenario name. If a pytest test class doesn't contain a scenario annotation, it means that the test class is going to be executed for the default scenario.
+* All pytest test classes are annotated with "@scenario.<scenario_name>". When we run a scenario ("./run.sh SCENARIO_NAME") is going to execute all the test clases annotated with this scenario name. If a pytest test class doesn't contain a scenario annotation, it means that the test class is going to be executed for the DEFAULT scenario.
 
 # Activate or deactivate tests
 
@@ -122,13 +122,14 @@ For enabling/disabling tests, refer to these key documentation files:
 - @docs/edit/skip-tests.md: Using decorators and marking tests as skipped
 - @docs/edit/versions.md: Version specification guidelines for different languages
 
-Key points to remember:
+Key points to remember to activate or deactivate tests:
 
 1. For test classes/files: Use manifest files in `manifests/` directory
 2. For individual test methods: Use decorators in test files
 3. Always include JIRA references for bugs
 4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
-5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest ALWASYS run the "TEST_THE_TESTS" scenario before committing changes to ensure code follows the manifest rules.
+5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest file ALWAYS run the scenario "TEST_THE_TEST" and format.sh before committing changes to ensure code follows the manifest rules.
+6. When using @missing_feature/@irrelevant decorators, the condition specifies when to SKIP the test.
 
 For common test activation patterns and examples of enabling/disabling tests, see:
 

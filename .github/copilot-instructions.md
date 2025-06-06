@@ -122,13 +122,14 @@ For enabling/disabling tests, refer to these key documentation files:
 - @docs/edit/skip-tests.md: Using decorators and marking tests as skipped
 - @docs/edit/versions.md: Version specification guidelines for different languages
 
-Key points to remember:
+Key points to remember to activate or deactivate tests:
 
 1. For test classes/files: Use manifest files in `manifests/` directory
 2. For individual test methods: Use decorators in test files
 3. Always include JIRA references for bugs
 4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
-5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest ALWASYS run the "TEST_THE_TESTS" scenario before committing changes to ensure code follows the manifest rules.
+5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest file ALWAYS run the scenario "TEST_THE_TESTS" and format.sh before committing changes to ensure code follows the manifest rules.
+6. When using @missing_feature/@irrelevant decorators, the condition specifies when to SKIP the test.
 
 For common test activation patterns and examples of enabling/disabling tests, see:
 
