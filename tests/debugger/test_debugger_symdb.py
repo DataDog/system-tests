@@ -7,7 +7,6 @@ import tests.debugger.utils as debugger
 from utils import features, scenarios, bug, context
 
 
-@features.debugger
 @features.debugger_symdb
 @scenarios.debugger_symdb
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
@@ -33,7 +32,25 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
                 )
 
         assert not errors, "Found system-tests-errors:\n" + "\n".join(f"- {err}" for err in errors)
+        self._assert_symbols_have_depth()
         self._assert_debugger_controller_exists()
+
+    def _assert_symbols_have_depth(self):
+        has_depth = False
+
+        for symbol in self.symbols:
+            content = symbol.get("content", {})
+            if isinstance(content, dict):
+                scopes = content.get("scopes", [])
+                for scope in scopes:
+                    if scope.get("scopes", []):
+                        has_depth = True
+                        break
+
+            if has_depth:
+                break
+
+        assert has_depth, "No symbols with at least 1 level deep (nested scopes) were found"
 
     def _assert_debugger_controller_exists(self):
         pattern = r"[Dd]ebugger[_]?[Cc]ontroller"

@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import random
+import shlex
 import subprocess
 import xmltodict
 import sys
@@ -16,6 +17,7 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from moto import mock_aws
@@ -31,7 +33,22 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
-from ddtrace.appsec import trace_utils as appsec_trace_utils
+
+try:
+    from ddtrace.appsec import track_user_sdk
+except ImportError:
+    # fallback for when the new SDK is not available
+    class TUS:
+        def track_login_success(self, *args, **kwargs):
+            pass
+
+        def track_login_failure(self, *args, **kwargs):
+            pass
+
+        def track_custom_event(self, *args, **kwargs):
+            pass
+
+    track_user_sdk = TUS()
 
 try:
     from ddtrace.trace import Pin, tracer
@@ -98,8 +115,7 @@ def healthcheck(request):
 @csrf_exempt
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
-        appsec_trace_utils.track_custom_event(
-            tracer,
+        track_user_sdk.track_custom_event(
             event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
             metadata={"value": kwargs["tag_value"]},
         )
@@ -430,22 +446,16 @@ def view_iast_weak_randomness_secure(request):
 @csrf_exempt
 def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
-    subp.communicate()
-    subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(cmd + " -la " + filename)
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    cmd = " ".join([cmd, "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(cmd, shell=True)
-    # subp.communicate()
-    # subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return HttpResponse("OK")
 
 
@@ -644,6 +654,121 @@ def view_iast_source_path(request):
 
 
 @csrf_exempt
+def view_iast_sampling_by_route_method(request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.GET:
+        param_tainted = request.GET.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    elif request.POST:
+        param_tainted = request.POST.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return HttpResponse("OK", status=200)
+
+
+def view_iast_sampling_by_route_method_2(request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.GET.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return HttpResponse("OK", status=200)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure(request):
+    location = request.POST.get("location")
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure_header(request):
+    location = request.POST.get("location")
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure(request):
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure_header(request):
+    location = "http://dummy.location.com"
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
@@ -654,7 +779,8 @@ def view_iast_source_path_parameter(request, table):
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
+    response.headers._store["Header-Injection".lower()] = ("Header-Injection", header)
+    # This line is deprecated, it's kept for backward compatibility with older versions
     response.headers["Header-Injection"] = header
     return response
 
@@ -663,7 +789,6 @@ def view_iast_header_injection_insecure(request):
 def view_iast_header_injection_secure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
     response.headers["Vary"] = header
     return response
 
@@ -722,15 +847,15 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    track_user_sdk.track_login_success(login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
+    track_user_sdk.track_login_failure(
+        login=_TRACK_USER,
         exists=True,
+        user_id=_TRACK_USER,
         metadata=_TRACK_METADATA,
     )
     return HttpResponse("OK")
@@ -756,15 +881,33 @@ def login(request):
         sdk_mail = request.GET.get("sdk_mail")
         sdk_user_exists = request.GET.get("sdk_user_exists")
         if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            track_user_sdk.track_login_success(login=sdk_user, user_id=sdk_user, metadata={"email": sdk_mail})
             is_logged_in = True
         elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
-            )
+            track_user_sdk.track_login_failure(login=sdk_user, exists=sdk_user_exists, metadata={"email": sdk_mail})
     if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
+
+
+@csrf_exempt
+def user_login_success_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def user_login_failure_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return HttpResponse("OK")
 
 
 @csrf_exempt
@@ -794,7 +937,8 @@ def session_new(request):
 def session_user(request):
     user = request.GET.get("sdk_user", "")
     if user and request.COOKIES.get("session_id", "") == MAGIC_SESSION_KEY:
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+        # track_user_sdk.track_login_success(user_id=user, session_id=f"session_{user}")
+        track_user_sdk.track_login_success(login=user, user_id=user, session_id=f"session_{user}")
     return HttpResponse("OK")
 
 
@@ -802,7 +946,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    track_user_sdk.track_custom_event(event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -967,6 +1111,8 @@ urlpatterns = [
     path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
+    path("user_login_success_event_v2", user_login_success_event),
+    path("user_login_failure_event_v2", user_login_failure_event),
     path("identify-propagate", identify_propagate),
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),
@@ -1010,6 +1156,14 @@ urlpatterns = [
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
+    path("iast/sampling-by-route-method-count/<str:id>", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>", view_iast_sampling_by_route_method_2),
+    path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>/", view_iast_sampling_by_route_method_2),
+    path("iast/unvalidated_redirect/test_insecure_redirect", view_iast_unvalidated_redirect_insecure),
+    path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
+    path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
+    path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

@@ -5,9 +5,12 @@ import static java.util.Collections.emptyMap;
 
 import com.datadoghq.system_tests.iast.utils.*;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -30,6 +33,7 @@ import java.util.List;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -269,6 +273,46 @@ public class MyResource {
         return "ok";
     }
 
+    @POST
+    @Path("/user_login_success_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
+    public String userLoginSuccessV2(final JsonValue body) {
+        final JsonObject data = body.asJsonObject();
+        final String login = data.getString("login");
+        final String userId = data.getString("user_id");
+        final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
+        EventTrackerV2.trackUserLoginSuccess(login, userId, meta);
+        return "<html><body>ok</body></html>";
+    }
+
+    @POST
+    @Path("/user_login_failure_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_HTML)
+    public String userLoginFailureV2(final JsonValue body) {
+        final JsonObject data = body.asJsonObject();
+        final String login = data.getString("login");
+        final boolean exists = Boolean.parseBoolean(data.getString("exists"));
+        final Map<String, String> meta = asMap(data.getJsonObject("metadata"));
+        EventTrackerV2.trackUserLoginFailure(login, exists, meta);
+        return "<html><body>ok</body></html>";
+    }
+
+    private static Map<String, String> asMap(final JsonObject object) {
+        if (object == null) {
+            return emptyMap();
+        }
+        return object.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> {
+            final JsonValue value = e.getValue();
+            if (value instanceof JsonString) {
+                return ((JsonString) value).getString();
+            } else {
+                return value.toString();
+            }
+        }));
+    }
+
     @XmlRootElement(name = "string")
     public static class XmlObject {
         @XmlValue
@@ -366,6 +410,34 @@ public class MyResource {
     public String createextraservice(@QueryParam("serviceName") String serviceName) {
         setRootSpanTag("service", serviceName);
         return "ok";
+    }
+
+    @GET
+    @Path("/customResponseHeaders")
+    public Response customResponseHeaders() {
+        return Response.ok("Response with custom headers")
+                .header("content-type", "text/plain")
+                .header("content-language", "en-US")
+                .header("X-Test-Header-1", "value1")
+                .header("X-Test-Header-2", "value2")
+                .header("X-Test-Header-3", "value3")
+                .header("X-Test-Header-4", "value4")
+                .header("X-Test-Header-5", "value5")
+                .build();
+    }
+
+    @GET
+    @Path("/exceedResponseHeaders")
+    public Response exceedResponseHeaders() {
+        Response.ResponseBuilder builder = Response.ok("Response with more than 50 headers")
+                .header("content-type", "text/plain");
+        // Añadir 50 headers
+        for (int i = 1; i <= 50; i++) {
+            builder.header("X-Test-Header-" + i, "value" + i);
+        }
+        // Header estándar adicional
+        builder.header("content-language", "en-US");
+        return builder.build();
     }
 
     public static final class DistantCallResponse {

@@ -5,7 +5,7 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import string
-from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, flaky, logger
+from utils import weblog, interfaces, context, bug, rfc, irrelevant, missing_feature, features, scenarios, logger
 from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
@@ -143,7 +143,7 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
-    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
@@ -186,7 +186,7 @@ class Test_LibraryHeaders:
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
     @missing_feature(library="dotnet", reason="not implemented yet")
     @missing_feature(library="java", reason="not implemented yet")
-    @missing_feature(library="nodejs", reason="not implemented yet")
+    @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="php", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
     @missing_feature(context.library < "golang@1.73.0-dev", reason="Implemented in v1.72.0")
@@ -230,7 +230,6 @@ class Test_Agent:
             header_value_pattern="application/json",
         )
 
-    @flaky(condition=True, reason="APMSP-1811")
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""
 
@@ -239,13 +238,31 @@ class Test_Agent:
         for _, span in interfaces.agent.get_spans():
             trace_ids_reported_by_agent.add(int(span["traceID"]))
 
+        def get_span_with_sampling_data(trace):
+            # The root span is not necessarily the span wherein the sampling priority can be found.
+            # If present, the root will take precedence, and otherwise the first span with the
+            # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
+            span_with_sampling_data = None
+            for span in trace:
+                if span.get("metrics", {}).get("_sampling_priority_v1", None) is not None:
+                    if span.get("parent_id") in (0, None):
+                        return span
+                    elif span_with_sampling_data is None:
+                        span_with_sampling_data = span
+
+            return span_with_sampling_data
+
         all_traces_are_reported = True
         trace_ids_reported_by_tracer = set()
         # check that all traces reported by the tracer are also reported by the agent
-        for data, span in interfaces.library.get_root_spans():
+        for data, trace in interfaces.library.get_traces():
+            span = get_span_with_sampling_data(trace)
+            if not span:
+                continue
+
             metrics = span["metrics"]
             sampling_priority = metrics.get("_sampling_priority_v1")
-            if sampling_priority in (None, SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
+            if sampling_priority in (SamplingPriority.AUTO_KEEP, SamplingPriority.USER_KEEP):
                 trace_ids_reported_by_tracer.add(span["trace_id"])
                 if span["trace_id"] not in trace_ids_reported_by_agent:
                     logger.error(f"Trace {span['trace_id']} has not been reported ({data['log_filename']})")

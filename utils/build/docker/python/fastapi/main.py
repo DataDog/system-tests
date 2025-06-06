@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import typing
@@ -15,7 +16,9 @@ from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from fastapi.responses import HTMLResponse
-from fastapi.responses import PlainTextResponse, Response
+from fastapi.responses import RedirectResponse
+from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -135,6 +138,36 @@ async def iast_header_injection_secure(request: Request):
     response = PlainTextResponse("OK")
     # label iast_header_injection
     response.headers["Vary"] = header_value
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_redirect")
+async def view_iast_unvalidated_redirect_insecure(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_header", response_class=RedirectResponse)
+async def view_iast_unvalidated_redirect_insecure_header(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_redirect")
+async def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_header", response_class=RedirectResponse)
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
     return response
 
 
@@ -563,6 +596,231 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
     return "OK"
 
 
+@app.post("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+@app.get("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method(request: Request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.query_params:
+        param_tainted = request.query_params.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    else:
+        form_data = await request.form()
+        param_tainted = form_data.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    return PlainTextResponse("OK")
+
+
+@app.get("/iast/sampling-by-route-method-count-2/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method_2(request: Request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.query_params.get("param")
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    return PlainTextResponse("OK")
+
+
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
 async def view_iast_path_traversal_insecure(path: typing.Annotated[str, Form()]):
     try:
@@ -672,6 +930,36 @@ async def login(request: Request):
     if success:
         return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
+
+
+@app.post("/user_login_success_event_v2", response_class=PlainTextResponse)
+async def user_login_success_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
+@app.post("/user_login_failure_event_v2", response_class=PlainTextResponse)
+async def user_login_failure_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
 
 
 MAGIC_SESSION_KEY = "random_session_id"
@@ -867,21 +1155,14 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-
-    subp = subprocess.Popen(args=[cmd, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.system(cmd + " -la " + filename)
     return "OK"
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])  # noqa F841
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return "OK"
 
 

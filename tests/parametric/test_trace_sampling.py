@@ -435,17 +435,31 @@ def tag_sampling_env(tag_glob_pattern):
 @features.trace_sampling
 @features.adaptive_sampling
 class Test_Trace_Sampling_Tags_Feb2024_Revision:
-    def assert_matching_span(self, test_agent, trace_id, span_id, **kwargs):
+    def assert_matching_span(self, test_agent, trace_id, span_id, name: str | None = None, service: str | None = None):
         matching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
         assert matching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert matching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1.0
 
-    def assert_mismatching_span(self, test_agent, trace_id, span_id, **kwargs):
+        if name is not None:
+            assert matching_span["name"] == name
+
+        if service is not None:
+            assert matching_span["service"] == service
+
+    def assert_mismatching_span(
+        self, test_agent, trace_id, span_id, name: str | None = None, service: str | None = None
+    ):
         mismatching_span = find_span_in_traces(test_agent.wait_for_num_traces(1), trace_id, span_id)
 
         assert mismatching_span["metrics"].get(SAMPLING_PRIORITY_KEY) == -1
         assert mismatching_span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 0.0
+
+        if name is not None:
+            assert mismatching_span["name"] == name
+
+        if service is not None:
+            assert mismatching_span["service"] == service
 
     @pytest.mark.parametrize(
         "library_env",

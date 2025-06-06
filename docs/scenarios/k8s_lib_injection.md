@@ -302,7 +302,7 @@ The following image ilustrates the DJM scenario:
 
 ## How to use a MiniKube implementation
 
-The K8s lib injection tests use the Kind cluster by default, but you can change this behaivour in order to use a MiniKube implemntation. To do that you only need:
+The K8s lib injection tests use the Kind cluster by default, but you can change this behaviour in order to use a MiniKube implementation. To do that you only need:
 
 * Install Minikube locally: [Install MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
 * Run the scenario adding the parameter "*--k8s-provider minikube*"
@@ -347,19 +347,19 @@ An example of a Kubernetes test:
 
 ```python
 
-from tests.k8s_lib_injection.utils import get_dev_agent_traces
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 
 @features.k8s_admission_controller
 @scenarios.k8s_lib_injection
 class TestExample:
     def test_example(self):
         logger.info(
-            f"Test config: Weblog - [{context.scenario.k8s_cluster_provider.get_cluster_info().get_weblog_port()}] Agent - [{context.scenario.k8s_cluster_provider.get_cluster_info().get_agent_port()}]"
+            f"Test config: Weblog - [{get_cluster_info().get_weblog_port()}] Agent - [{get_cluster_info().get_agent_port()}]"
         )
         #This test will be executed after the k8s starts and after deploy all the tested components on the cluster
 
         #Check that app was auto instrumented
-        traces_json = get_dev_agent_traces(context.scenario.k8s_cluster_provider.get_cluster_info())
+        traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
 ```
 

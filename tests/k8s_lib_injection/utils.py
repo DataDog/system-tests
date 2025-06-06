@@ -1,8 +1,9 @@
 import time
 
 import requests
-from utils import logger
+from utils import logger, context
 from utils.k8s_lib_injection.k8s_cluster_provider import K8sClusterInfo
+from utils._context._scenarios.k8s_lib_injection import K8sScenarioWithClusterProvider
 
 
 def get_dev_agent_traces(k8s_cluster_info: K8sClusterInfo, retry: int = 10) -> list:
@@ -17,3 +18,9 @@ def get_dev_agent_traces(k8s_cluster_info: K8sClusterInfo, retry: int = 10) -> l
             return traces_json
         time.sleep(2)
     return []
+
+
+def get_cluster_info() -> K8sClusterInfo:
+    assert isinstance(context.scenario, K8sScenarioWithClusterProvider)
+
+    return context.scenario.k8s_cluster_provider.get_cluster_info()

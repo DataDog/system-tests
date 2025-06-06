@@ -81,7 +81,7 @@ class Test_ConfRuleSet:
     def test_log(self):
         # Check if it's implemented for the weblog variant
         if context.library == "java":
-            stdout.assert_presence("AppSec is FULLY_ENABLED with powerwaf")
+            stdout.assert_presence(r"AppSec is FULLY_ENABLED with (ddwaf|powerwaf)")
         # Check there is no error reported in logs
         stdout.assert_absence("AppSec could not read the rule file")
         stdout.assert_absence("failed to parse rule")

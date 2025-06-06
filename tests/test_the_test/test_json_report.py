@@ -16,7 +16,7 @@ class Test_Json_Report:
     report: dict
 
     @classmethod
-    def setup_class(cls):
+    def setup_class(cls) -> None:
         stream = os.popen("./run.sh MOCK_THE_TEST")
         output = stream.read()
 

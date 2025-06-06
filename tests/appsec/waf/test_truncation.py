@@ -64,18 +64,3 @@ class Test_Truncation:
 
         assert input_truncated["type"] == "count"
         assert "truncation_reason:7" in input_truncated["tags"]
-
-        distribution_series = find_series("distributions", "appsec", ["waf.truncated_value_size"])
-
-        assert (
-            len(distribution_series) == 3
-        ), "Not all telemetry data received for metric appsec.waf.truncated_value_size"
-
-        long_string = [d for d in distribution_series if "truncation_reason:1" in d["tags"]]
-        assert long_string, "No distribution for long string truncation"
-
-        large_container = [d for d in distribution_series if "truncation_reason:2" in d["tags"]]
-        assert large_container, "No distribution for large container truncation"
-
-        deep_container = [d for d in distribution_series if "truncation_reason:4" in d["tags"]]
-        assert deep_container, "No distribution for deep container truncation"

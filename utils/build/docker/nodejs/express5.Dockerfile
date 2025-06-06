@@ -13,8 +13,8 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install
-RUN npm install "express@5.0.1"
+RUN npm install || npm install
+RUN npm install "express@5.0.1" || npm install "express@5.0.1"
 
 EXPOSE 7777
 
@@ -26,7 +26,7 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=5
+ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh

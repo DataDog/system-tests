@@ -2,6 +2,8 @@ import os
 import re
 import stat
 import json
+from typing import cast
+from http import HTTPStatus
 from pathlib import Path
 from subprocess import run
 import time
@@ -122,6 +124,21 @@ class TestedContainer:
         self.user = user
         self.cap_add = cap_add
         self.security_opt = security_opt
+        self.ulimits: list | None = None
+        self.privileged = False
+
+    def enable_core_dumps(self) -> None:
+        """Modify container options to enable the possibility of core dumps"""
+
+        self.cap_add = self.cap_add if self.cap_add is not None else []
+
+        if "SYS_PTRACE" not in self.cap_add:
+            self.cap_add.append("SYS_PTRACE")
+        if "SYS_ADMIN" not in self.cap_add:
+            self.cap_add.append("SYS_ADMIN")
+
+        self.privileged = True
+        self.ulimits = [docker.types.Ulimit(name="core", soft=-1, hard=-1)]
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
         """Returns the image list that will be loaded to be able to run/build the container"""
@@ -201,6 +218,8 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
+            privileged=self.privileged,
+            ulimits=self.ulimits,
         )
 
         self.healthy = self.wait_for_health()
@@ -418,6 +437,31 @@ class TestedContainer:
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
 
+    def _set_aws_auth_environment(self):
+        # copy SYSTEM_TESTS_AWS env variables from local env to docker image
+
+        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
+            prefix = "SYSTEM_TESTS_AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key.replace("SYSTEM_TESTS_", "")] = value
+        else:
+            prefix = "AWS"
+            for key, value in os.environ.items():
+                if prefix in key:
+                    self.environment[key] = value
+
+        # Set default AWS values if specific keys are not present
+        if "AWS_REGION" not in self.environment:
+            self.environment["AWS_REGION"] = "us-east-1"
+            self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
+
+        if "AWS_SECRET_ACCESS_KEY" not in self.environment:
+            self.environment["AWS_SECRET_ACCESS_KEY"] = "not-secret"  # noqa: S105
+
+        if "AWS_ACCESS_KEY_ID" not in self.environment:
+            self.environment["AWS_ACCESS_KEY_ID"] = "not-secret"
+
 
 class SqlDbTestedContainer(TestedContainer):
     def __init__(
@@ -426,6 +470,7 @@ class SqlDbTestedContainer(TestedContainer):
         *,
         image_name: str,
         host_log_folder: str,
+        db_user: str,
         environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
         healthcheck: dict | None = None,
@@ -435,7 +480,6 @@ class SqlDbTestedContainer(TestedContainer):
         user: str | None = None,
         volumes: dict | None = None,
         cap_add: list[str] | None = None,
-        db_user: str | None = None,
         db_password: str | None = None,
         db_instance: str | None = None,
         db_host: str | None = None,
@@ -494,13 +538,13 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             if value:
                 self.env[key] = value
 
-        self.labels = attrs["Config"]["Labels"]
+        if "Labels" in attrs["Config"]:
+            self.labels = attrs["Config"]["Labels"]
 
     def save_image_info(self, dir_path: str):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
@@ -640,7 +684,7 @@ class BuddyContainer(TestedContainer):
             },
         )
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
     @property
     def interface(self) -> LibraryInterfaceValidator:
@@ -718,7 +762,7 @@ class WeblogContainer(TestedContainer):
         volumes = {} if volumes is None else volumes
         volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
-        base_environment = {
+        base_environment: dict[str, str | None] = {
             # Datadog setup
             "DD_SERVICE": "weblog",
             "DD_VERSION": "1.0.0",
@@ -843,7 +887,7 @@ class WeblogContainer(TestedContainer):
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
-        _set_aws_auth_environment(self)
+        self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
 
@@ -854,6 +898,10 @@ class WeblogContainer(TestedContainer):
             header_tags = "user-agent"
         else:
             header_tags = ""
+
+        if library == "ruby" and "rails" in self.weblog_variant:
+            # Ensure ruby on rails apps log to stdout
+            self.environment["RAILS_LOG_TO_STDOUT"] = "true"
 
         if len(self.additional_trace_header_tags) != 0:
             header_tags += f',{",".join(self.additional_trace_header_tags)}'
@@ -883,6 +931,8 @@ class WeblogContainer(TestedContainer):
                 self.environment["DD_TRACE_PROPAGATION_STYLE_EXTRACT"] = extract_config.replace("baggage", "").strip(
                     ","
                 )
+            # specify if the scenario is DD_TRACE_PROPAGATION_DEFAULT
+            # then use the default configuration values
 
         if library == "nodejs":
             try:
@@ -895,6 +945,9 @@ class WeblogContainer(TestedContainer):
                     }
             except Exception:
                 logger.info("No local dd-trace-js found")
+
+        if library == "php":
+            self.enable_core_dumps()
 
     def post_start(self):
         from utils import weblog
@@ -1160,7 +1213,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             try:
                 r = requests.get(f"http://{self._otel_host}:{self._otel_port}", timeout=1)
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {r}")
-                if r.status_code == 200:
+                if r.status_code == HTTPStatus.OK:
                     return True
             except Exception as e:
                 logger.debug(f"Healthcheck #{i} on {self._otel_host}:{self._otel_port}: {e}")
@@ -1245,7 +1298,16 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 
 class DockerSSIContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self, host_log_folder: str, extra_env_vars: dict | None = None) -> None:
+        environment = {
+            "DD_DEBUG": "true",
+            "DD_TRACE_DEBUG": "true",
+            "DD_TRACE_SAMPLE_RATE": "1",
+            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5",
+            "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.5",
+        }
+        if extra_env_vars is not None:
+            environment.update(extra_env_vars)
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
@@ -1253,11 +1315,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment={
-                "DD_DEBUG": "true",
-                "DD_TRACE_SAMPLE_RATE": "1",
-                "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "0.5",
-            },
+            environment=cast(dict[str, str | None], environment),
             volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
 
@@ -1350,23 +1408,3 @@ class ExternalProcessingContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
-
-
-def _set_aws_auth_environment(image: TestedContainer):
-    # copy SYSTEM_TESTS_AWS env variables from local env to docker image
-
-    if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-        prefix = "SYSTEM_TESTS_AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key.replace("SYSTEM_TESTS_", "")] = value
-    else:
-        prefix = "AWS"
-        for key, value in os.environ.items():
-            if prefix in key:
-                image.environment[key] = value
-
-    # Set default AWS values if specific keys are not present
-    if "AWS_REGION" not in image.environment:
-        image.environment["AWS_REGION"] = "us-east-1"
-        image.environment["AWS_DEFAULT_REGION"] = "us-east-1"

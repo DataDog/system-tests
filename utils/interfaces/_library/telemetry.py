@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from time import time
 
 
@@ -33,7 +34,7 @@ class _NoSkippedSeqId:
         self.seq_ids = []
 
     def __call__(self, data: dict):
-        if 200 <= data["response"]["status_code"] < 300:
+        if HTTPStatus(data["response"]["status_code"]).is_success:
             seq_id = data["request"]["content"]["seq_id"]
             self.seq_ids.append((seq_id, data["log_filename"]))
 

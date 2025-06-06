@@ -2,13 +2,12 @@
     {
         "language": "",
         "type": "",
-        "id": "log170aa-acda-4453-9111-1478a6method",
+        "id": "",
         "version": 0,
         "where": {
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "LogProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

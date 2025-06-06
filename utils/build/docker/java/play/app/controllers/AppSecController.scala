@@ -20,6 +20,7 @@ import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
 import com.datadoghq.system_tests.iast.utils.CryptoExamples
+import datadog.appsec.api.login.EventTrackerV2
 import datadog.appsec.api.user.User.setUser
 
 import scala.jdk.CollectionConverters._
@@ -72,6 +73,35 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Ok("012345678901234567890123456789012345678901")
       .as("text/plain; charset=utf-8")
       .withHeaders("Content-Language" -> "en-US")
+  }
+
+  /**
+   * Endpoint for testing custom headers. Adds five custom headers to the response.
+   */
+  def customResponseHeaders = Action {
+    Results.Ok("Response with custom headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(
+        "Content-Language"      -> "en-US",
+        "X-Test-Header-1"       -> "value1",
+        "X-Test-Header-2"       -> "value2",
+        "X-Test-Header-3"       -> "value3",
+        "X-Test-Header-4"       -> "value4",
+        "X-Test-Header-5"       -> "value5"
+      )
+  }
+
+  /**
+   * Endpoint exceeding default header budget with 50 custom headers.
+   */
+  def exceedResponseHeaders = Action {
+    // Generate 50 custom headers
+    val customHeaders = (1 to 50).map { i => s"X-Test-Header-$i" -> s"value$i" }
+    // Prepend the standard Content-Language header
+    val allHeaders = ("Content-Language" -> "en-US") +: customHeaders
+    Results.Ok("Response with more than 50 headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(allHeaders: _*)
   }
 
 
@@ -214,6 +244,28 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def loginSuccessV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val userId = (data \ "user_id").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginSuccess(login, userId, javaMeta)
+    }
+    Results.Ok("OK")
+  }
+
+  def loginFailureV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val exists = (data \ "exists").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginFailure(login, exists.toBoolean, javaMeta)
+    }
+    Results.Ok("OK")
   }
 
   def requestdownstream =  Action.async {

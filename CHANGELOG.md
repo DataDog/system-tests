@@ -1,6 +1,33 @@
 ## Change Log
 
 All notable changes to this project will be documented in this file.
+### 2025-05 (110 PR merged)
+
+* 2025-05-27 [add a script that adds a label on tickets referenced in system-tests](https://github.com/DataDog/system-tests/pull/4697) by @cbeauchesne
+* 2025-05-22 [Allow parametric tests to run against an arbitrary system-tests ref](https://github.com/DataDog/system-tests/pull/4685) by @cbeauchesne
+* 2025-05-21 [do not require ca-certificate for agent image #4676](https://github.com/DataDog/system-tests/pull/4677) by @cbeauchesne
+* 2025-05-05 [Use ensure-ci-success for all-green gatekeeper](https://github.com/DataDog/system-tests/pull/4573) by @cbeauchesne
+* 2025-05-09 [ssi: track ssi configurations via telemetry](https://github.com/DataDog/system-tests/pull/4543) by @mabdinur
+
+
+### 2025-04 (137 PR merged)
+
+* 2025-04-22 [Add an option to exclude some scenarios in system-tests.yml](https://github.com/DataDog/system-tests/pull/4546) by @cbeauchesne
+* 2025-04-04 [Introduce a way to add extra argument to library cmd on parametric scenario](https://github.com/DataDog/system-tests/pull/4470) by @cbeauchesne
+
+
+### 2025-03 (175 PR merged)
+
+* 2025-03-28 [Add core dump on PHP weblogs](https://github.com/DataDog/system-tests/pull/4411) by @cbeauchesne
+* 2025-03-24 [Create cpp_nginx library](https://github.com/DataDog/system-tests/pull/4371) by @cbeauchesne
+* 2025-03-20 [onboarding: force the apm instrumentation after install the installer.](https://github.com/DataDog/system-tests/pull/4350) by @robertomonteromiguel
+* 2025-03-30 [retry npm install when it fails](https://github.com/DataDog/system-tests/pull/4334) by @rochdev
+* 2025-03-18 [Add library cpp_httpd](https://github.com/DataDog/system-tests/pull/4328) by @cbeauchesne
+* 2025-03-18 [Allow manifest to declare skips on entire folder](https://github.com/DataDog/system-tests/pull/4325) by @cbeauchesne
+* 2025-03-19 [Add order checking to format.sh](https://github.com/DataDog/system-tests/pull/4320) by @bm1549
+* 2025-03-10 [support for TARGET_BRANCH load_binary.sh golang](https://github.com/DataDog/system-tests/pull/4236) by @eliottness
+* 2025-03-12 [Add parallel mode in CI #4035](https://github.com/DataDog/system-tests/pull/4158) by @cbeauchesne
+* 2025-03-04 [Onboarding: gitlab ci](https://github.com/DataDog/system-tests/pull/4132) by @robertomonteromiguel
 
 
 ### 2025-02 (236 PR merged)

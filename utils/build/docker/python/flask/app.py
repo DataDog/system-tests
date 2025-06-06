@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
@@ -16,6 +17,7 @@ import mock
 import urllib3
 import xmltodict
 import graphene
+import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -31,6 +33,7 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import redirect
 from flask import render_template_string
 from flask import request
 from flask import request as flask_request
@@ -102,8 +105,8 @@ logging.basicConfig(
     level=logging.INFO,
     format=(
         "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s] "
-        "- %(message)s"
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
+        " %(message)s"
     ),
 )
 
@@ -468,6 +471,16 @@ def format_error(errors):
             }
         )
     return {"errors": formatted_errors}
+
+
+@app.route("/add_event", methods=["GET", "POST"])
+def add_event():
+    span = tracer.current_root_span()
+    assert span
+    name = "span_event"
+    attributes = {"string": "value", "int": 1}
+    span._add_event(name=name, attributes=attributes)
+    return {"message": "event added", "status_code": 200}
 
 
 @app.route("/read_file", methods=["GET"])
@@ -1134,6 +1147,94 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/sampling-by-route-method-count/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method(id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if flask_request.args:
+        param_tainted = flask_request.args.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    elif flask_request.form:
+        param_tainted = flask_request.form.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
+@app.route("/iast/sampling-by-route-method-count-2/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method_2(id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = flask_request.args.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
 @app.route("/iast/source/path/test", methods=["GET", "POST"])
 def view_iast_source_path():
     table = flask_request.path
@@ -1214,6 +1315,34 @@ def view_iast_code_injection_insecure():
     _ = eval(code_string)
     resp = Response("OK")
     return resp
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure():
+    location = flask_request.form["location"]
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure_header():
+    location = flask_request.form["location"]
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
 
 
 @app.route("/iast/code_injection/test_secure", methods=["POST"])
@@ -1323,6 +1452,36 @@ def login():
     if success:
         return Response("OK")
     return Response("login failure", status=401)
+
+
+@app.route("/user_login_success_event_v2", methods=["POST"])
+def user_login_success_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return Response("OK", status=200)
+
+
+@app.route("/user_login_failure_event_v2", methods=["POST"])
+def user_login_failure_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return Response("OK", status=200)
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
@@ -1493,21 +1652,15 @@ def test_stacktrace_leak_secure():
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 

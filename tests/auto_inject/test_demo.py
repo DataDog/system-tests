@@ -10,7 +10,7 @@ class TestDemoAws:
 
     def test_demo_provision_weblog(self):
         """Simple demo test to check if the weblog is running"""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         # http request configuration
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
@@ -25,7 +25,7 @@ class TestDemoAws:
 
     def test_run_simple_command(self):
         """Simple demo test to run a command on the virtual machine"""
-        virtual_machine = context.scenario.virtual_machine
+        virtual_machine = context.virtual_machine
         ssh_client = virtual_machine.get_ssh_connection()
         check_folder_command = "ls -la /"
         _, stdout, stderr = ssh_client.exec_command(check_folder_command)

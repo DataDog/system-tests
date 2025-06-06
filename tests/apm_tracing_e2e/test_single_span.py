@@ -10,6 +10,7 @@ from utils.dd_constants import (
 
 @rfc("ATI-2419")
 @missing_feature(context.agent_version < "7.40", reason="Single Spans is not available in agents pre 7.40.")
+@missing_feature(context.library in ["java", "golang"], reason="todo: review the tests for java and golang")
 @scenarios.apm_tracing_e2e_single_span
 @features.single_span_ingestion_control
 class Test_SingleSpan:
@@ -17,7 +18,7 @@ class Test_SingleSpan:
     Read more about Single Span at https://docs.datadoghq.com/tracing/trace_pipeline/ingestion_mechanisms/?tab=java#single-spans
 
     The tests below depend on the `.single_span_submitted` suffix to be part of the `DD_SPAN_SAMPLING_RULES`
-    configuration defined for this scenario in `run.sh`.
+    configuration defined for this scenario in `run.sh`
     """
 
     def setup_parent_span_is_single_span(self):

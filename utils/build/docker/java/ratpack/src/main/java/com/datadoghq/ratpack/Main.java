@@ -5,6 +5,7 @@ import static java.util.Collections.emptyMap;
 
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -129,6 +130,29 @@ public class Main {
                                         .add("content-language", "en-US");
                                 response.send("text/plain", "012345678901234567890123456789012345678901");
                             })
+                            // Endpoint with five custom headers
+                            .get("customResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Standard header
+                                response.getHeaders().add("Content-Language", "en-US");
+                                // Five test headers
+                                response.getHeaders().add("X-Test-Header-1", "value1");
+                                response.getHeaders().add("X-Test-Header-2", "value2");
+                                response.getHeaders().add("X-Test-Header-3", "value3");
+                                response.getHeaders().add("X-Test-Header-4", "value4");
+                                response.getHeaders().add("X-Test-Header-5", "value5");
+                                response.send("text/plain", "Response with custom headers");
+                            })
+                            // Endpoint exceeding default header budget with 50 headers
+                            .get("exceedResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Add 50 test headers
+                                for (int i = 1; i <= 50; i++) {
+                                    response.getHeaders().add("X-Test-Header-" + i, "value" + i);
+                                }
+                                response.getHeaders().add("content-language", "en-US");
+                                response.send("text/plain", "Response with more than 50 headers");
+                            })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
                                     String url = ctx.getRequest().getQueryParams().get("url");
@@ -251,6 +275,24 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .post("user_login_success_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    String userId = (String) data.getOrDefault("user_id", "system_tests_id");
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
+                            })
+                            .post("user_login_failure_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    boolean exists = Boolean.parseBoolean((String) data.getOrDefault("exists", "true"));
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
                             })
                             .get("requestdownstream", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {

@@ -1,7 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-
+import re
 from utils import context, weblog, interfaces, features, missing_feature
 
 
@@ -9,9 +9,22 @@ from utils import context, weblog, interfaces, features, missing_feature
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
+    @missing_feature(context.agent_version < "7.67.0-dev")
     def test_good_backend(self):
         """Agent reads and use DD_SITE env var"""
-        interfaces.agent.assert_use_domain(context.dd_site)
+        expected_domain: str = context.dd_site
+
+        # if DD_SITE is set to a known datadog backend, then the agent adds a tailing '.' at the end
+        # to make it a FQDN, and save useless DNS requests. See https://github.com/DataDog/datadog-agent/pull/36972
+
+        if re.match(r"(?:datadoghq|datad0g)\.(?:com|eu)$|ddog-gov\.com$", expected_domain):
+            expected_domain = expected_domain + "."
+
+        for data in interfaces.agent.get_data():
+            domain: str = data["host"][-len(expected_domain) :]
+
+            if not domain.endswith(expected_domain):
+                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
 
 
 @features.unix_domain_sockets_support_for_traces

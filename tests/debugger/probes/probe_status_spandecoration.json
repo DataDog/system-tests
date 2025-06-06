@@ -2,13 +2,14 @@
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-591received",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
             {
+                "tags": [],
                 "when": {
-                    "dsl" : "",
+                    "dsl": "",
                     "json": {
                         "gt": [
                             {
@@ -26,17 +27,17 @@
             "typeName": "NotReallyExists",
             "methodName": "SomeMethod",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
+        }
     },
     {
         "language": "",
         "type": "",
-        "id": "decorcf2-meth-45cf-9f39-59installed",
+        "id": "",
         "version": 0,
         "targetSpan": "ACTIVE",
         "decorations": [
             {
+                "tags": [],
                 "when": {
                     "dsl" : "",
                     "json": {
@@ -56,40 +57,6 @@
             "typeName": "ACTUAL_TYPE_NAME",
             "methodName": "SpanDecorationProbe",
             "sourceFile": null
-        },
-        "evaluateAt": "EXIT"
-    },
-    {
-        "language": "",
-        "type": "",
-        "id": "decorcf2-line-45cf-9f39-59installed",
-        "version": 0,
-        "targetSpan": "ACTIVE",
-        "decorations": [
-            {
-                "when": {
-                    "dsl" : "",
-                    "json": {
-                        "gt": [
-                            {
-                                "ref": "intLocal"
-                            },
-                            {
-                                "ref": "intArg"
-                            }
-                        ]
-                    }
-                }
-            }
-        ],
-        "where": {
-            "typeName": null,
-            "dsl" : "",
-            "sourceFile": "ACTUAL_SOURCE_FILE",
-            "lines": [
-                "44"
-            ]
-        },
-        "evaluateAt": "EXIT"
+        }
     }
 ]

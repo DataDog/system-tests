@@ -10,6 +10,7 @@ import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
@@ -21,21 +22,18 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.http.HttpClient;
 
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
-import java.net.http.HttpResponse;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import java.io.BufferedReader;
@@ -216,6 +214,26 @@ public class Main {
                             .trackCustomEvent(event_name, METADATA);
                     ctx.response().end("ok");
                 });
+        router.post("/user_login_success_event_v2")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final JsonObject body = ctx.getBodyAsJson();
+                    final String login = body.getString("login", "system_tests_login");
+                    final String userId = body.getString("user_id", "system_tests_user_id");
+                    final Map<String, String> metadata = asMetadataMap(body.getJsonObject("metadata"));
+                    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+                    ctx.response().end("ok");
+                });
+        router.post("/user_login_failure_event_v2")
+                .handler(BodyHandler.create())
+                .handler(ctx -> {
+                    final JsonObject body = ctx.getBodyAsJson();
+                    final String login = body.getString("login", "system_tests_login");
+                    final String exists = body.getString("exists", "true");
+                    final Map<String, String> metadata = asMetadataMap(body.getJsonObject("metadata"));
+                    EventTrackerV2.trackUserLoginFailure(login, Boolean.parseBoolean(exists), metadata);
+                    ctx.response().end("ok");
+                });
         router.get("/requestdownstream")
                 .handler(ctx -> {
                     String url = "http://localhost:7777/returnheaders";
@@ -263,6 +281,35 @@ public class Main {
                         }
                     });
                 });
+        // Custom response headers endpoint
+        router.get("/customResponseHeaders")
+                .handler(ctx -> {
+                    // Set a standard header
+                    ctx.response().putHeader("content-language", "en-US");
+                    // Set a content-type header as expected by system tests
+                    ctx.response().putHeader("content-type", "text/html");
+                    // Add five custom test headers
+                    for (int i = 1; i <= 5; i++) {
+                        ctx.response().putHeader("X-Test-Header-" + i, "value" + i);
+                    }
+                    ctx.response().end("Response with custom headers");
+                });
+
+        // Exceed response headers endpoint
+        router.get("/exceedResponseHeaders")
+                .handler(ctx -> {
+                    // Add fifty custom test headers
+                    io.vertx.core.http.HttpServerResponse resp = ctx.response();
+                    for (int i = 1; i <= 50; i++) {
+                        resp.putHeader("X-Test-Header-" + i, "value" + i);
+                    }
+                    // Ensure content-language is included
+                    resp.putHeader("content-language", "en-US");
+                    // Set a content-type header as expected by system tests
+                    resp.putHeader("content-type", "text/html");
+                    resp.end("Response with more than 50 headers");
+                });
+
         router.get("/returnheaders")
                 .handler(ctx -> {
                     JsonObject headersJson = new JsonObject();
@@ -311,6 +358,18 @@ public class Main {
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
         return Stream.of(new RaspRouteProvider(DATA_SOURCE));
+    }
+
+    private static Map<String, String> asMetadataMap(final JsonObject metadata) {
+        if (metadata == null) {
+            return emptyMap();
+        }
+        return metadata.stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().toString()
+
+                ));
     }
 
     private static final Map<String, String> METADATA = createMetadata();
@@ -365,8 +424,8 @@ public class Main {
         JsonObject jsonResponse = new JsonObject(response);
 
         context.response()
-            .putHeader("content-type", "application/json")
-            .end(jsonResponse.encode());
+                .putHeader("content-type", "application/json")
+                .end(jsonResponse.encode());
     }
 
     private static Optional<String> getVersion() {

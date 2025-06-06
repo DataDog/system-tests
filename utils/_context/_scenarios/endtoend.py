@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http import HTTPStatus
 import os
 import sys
 import pytest
@@ -34,7 +35,7 @@ from utils._context.containers import (
 
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 @dataclass
@@ -147,7 +148,7 @@ class DockerScenario(Scenario):
                 return container
         return None
 
-    def _start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
+    def start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
         class Event(FileSystemEventHandler):
             def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
                 super().__init__()
@@ -272,9 +273,11 @@ class EndToEndScenario(DockerScenario):
         include_buddies: bool = False,
         require_api_key: bool = False,
     ) -> None:
-        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
-            scenario_groups or []
-        )
+        scenario_groups = [
+            all_scenario_groups.all,
+            all_scenario_groups.end_to_end,
+            all_scenario_groups.tracer_release,
+        ] + (scenario_groups or [])
 
         super().__init__(
             name,
@@ -442,8 +445,8 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _start_interface_watchdog(self):
-        super()._start_interfaces_watchdog(
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog(
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
@@ -472,7 +475,7 @@ class EndToEndScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
@@ -539,7 +542,7 @@ class EndToEndScenario(DockerScenario):
                 # for weblogs who supports it, call the flush endpoint
                 try:
                     r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == 200
+                    assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
                     logger.stdout(
@@ -573,13 +576,12 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/debugger/v1/diagnostics",
-            #     data_path="$",
-            #     condition=context.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
             _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
@@ -619,6 +621,12 @@ class EndToEndScenario(DockerScenario):
                 ticket="APMRP-360",
             ),
             _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=self.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            _SchemaBug(
                 endpoint="/symdb/v1/input",
                 data_path=None,
                 condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
@@ -630,17 +638,22 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library > "php@1.7.3",
                 ticket="APMAPI-1270",
             ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/api/v2/debugger",
-            #     data_path="$",
-            #     condition=self.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
@@ -680,6 +693,12 @@ class EndToEndScenario(DockerScenario):
                 data_path="$.payload",
                 condition=self.library > "php@1.7.3",
                 ticket="XXX-1234",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)

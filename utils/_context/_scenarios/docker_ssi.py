@@ -3,7 +3,6 @@ import os
 import random
 import socket
 import time
-
 import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
@@ -19,7 +18,6 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.docker_ssi.docker_ssi_definitions import SupportedImages
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -31,13 +29,12 @@ class DockerSSIScenario(Scenario):
 
     _network: Network = None
 
-    def __init__(self, name, doc, scenario_groups=None) -> None:
+    def __init__(self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
-
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder)
 
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
+        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, extra_env_vars=extra_env_vars)
         self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
@@ -165,10 +162,32 @@ class DockerSSIScenario(Scenario):
         # TODO The best way is to push the images from pipeline instead of from test runtime
         self.ssi_image_builder.push_base_image()
 
+    def find_image_name(self, image: str, architecture: str) -> str | None:
+        """Search for the image name given its image URL and architecture.
+
+        Args:
+            json_path (str): Path to the JSON file.
+            image (str): The image URL (e.g., "public.ecr.aws/lts/ubuntu:22.04").
+            architecture (str): The architecture (e.g., "linux/amd64").
+
+        Returns:
+            Optional[str]: The matching name, or None if not found.
+
+        """
+        json_path = "utils/docker_ssi/docker_ssi_images.json"
+        with open(json_path, "r") as f:
+            data = json.load(f)
+
+        for entry in data.get("docker_ssi_images", []):
+            if entry["image"] == image and entry["architecture"] == architecture:
+                return entry["name"]
+
+        return None
+
     def fill_context(self, json_tested_components):
         """After extract the components from the weblog, fill the context with the data"""
 
-        image_internal_name = SupportedImages().get_internal_name_from_base_image(self._base_image, self._arch)
+        image_internal_name = self.find_image_name(self._base_image, self._arch)
         self.configuration["os"] = image_internal_name
         self.configuration["arch"] = self._arch.replace("linux/", "")
 
@@ -200,16 +219,40 @@ class DockerSSIScenario(Scenario):
         for conf in self.configuration:
             logger.stdout(f"{conf}: {self.configuration[conf]}")
 
-    def post_setup(self, session):  # noqa: ARG002
-        logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
-        data = None
-        attempts = 0
-        while attempts < 30 and not data:
-            attempts += 1
-            data = interfaces.test_agent.collect_data(
-                f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+    def check_installed_components(self):
+        """Check the the injector and library versions are present"""
+        is_valid = True
+        if not self.components.get("datadog-apm-library"):
+            is_valid = False
+            logger.stdout(
+                "❌ Library version not found. Could not get the tracer image or the version of the library could not be extracted"
             )
-            time.sleep(5)
+            if self._custom_library_version:
+                logger.stdout(
+                    f"🛠️ You have specified a custom version of the library (--ssi-library-version), please check that the reference [{self._custom_library_version}] is correct."
+                )
+        if not self._datadog_apm_inject_version:
+            is_valid = False
+            logger.stdout(
+                "❌ Injector version not found. Could not get the injector image or the version of the injector could not be extracted"
+            )
+            if self._custom_injector_version:
+                logger.stdout(
+                    f"🛠️ You have specified a custom version of the injector (--ssi-injector-version), please check that the reference [{self._custom_injector_version}] is correct."
+                )
+        if not is_valid:
+            logger.stdout(f"🌍 You have set the environment to [{self._env}]. Check the docker build logs.\n\n\n")
+            raise ValueError("❌ Error: Could not get the library or injector version. ❌")
+        logger.stdout("✅ All components are installed correctly. ✅")
+
+    def post_setup(self, session):  # noqa: ARG002
+        self.check_installed_components()
+
+        logger.stdout("--- Waiting for all traces and telemetry to be sent to test agent ---")
+        time.sleep(15)
+        interfaces.test_agent.collect_data(
+            f"{self.host_log_folder}/interfaces/test_agent", agent_host=self.agent_host, agent_port=self.agent_port
+        )
 
     @property
     def library(self):
@@ -449,33 +492,33 @@ class DockerSSIImageBuilder:
 
     def print_docker_build_logs(self, image_tag, build_logs):
         """Print the docker build logs to docker_build.log file"""
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             f"    Building docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
 
         for chunk in build_logs:
             if "stream" in chunk:
                 for line in chunk["stream"].splitlines():
-                    vm_logger(self.scenario_name, "docker_build", log_folder=self.host_log_folder).info(line)
+                    vm_logger(self.host_log_folder, "docker_build", log_folder=self.host_log_folder).info(line)
 
     def print_docker_push_logs(self, image_tag, push_logs):
         """Print the docker push logs to docker_push.log file"""
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             f"    Push docker image with tag: {image_tag}   "
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(
             "***************************************************************"
         )
-        vm_logger(self.scenario_name, "docker_push", log_folder=self.host_log_folder).info(push_logs)
+        vm_logger(self.host_log_folder, "docker_push", log_folder=self.host_log_folder).info(push_logs)
 
 
 def _get_free_port():

@@ -277,6 +277,22 @@ This endpoint should set the header whose name comes in the `reflected` field of
 
 Same behaviour as `/iast/header_injection/reflected/exclusion` but with separate specific cases to obtain a different vulnerability location to avoid deduplication.
 
+### GET /iast/sampling-by-route-method-count/:key
+
+This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
+
+### GET /iast/sampling-by-route-method-count-2/:key
+
+Exactly the same content as the previous one, in different route and with different vulnerability hashes.
+
+This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
+
+### POST /iast/sampling-by-route-method-count/:key
+
+Exactly the same content as the previous one, but POST instead of GET and with different vulnerability hashes.
+
+This endpoint must contain 15 different vulnerabilities, each on a separate line of code, regardless of their type, to test IAST vulnerability sampling and ensure different hash values are generated.
+
 ### \[GET, POST\] /iast/source/*
 
 This group of endpoints should trigger vulnerabilities detected by IAST with untrusted data coming from certain sources. The used vulnerability is irrelevant. It could be a command injection, SQL injection, or something else.
@@ -588,6 +604,26 @@ By default, the generated event has the following specification:
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
 Values can be changed with the query params called `event_name`.
+
+### POST /user_login_success_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login success with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `user_id`: String with user identifier
+- `metadata`: Objet with the metadata
+
+### POST /user_login_failure_event_v2
+
+This endpoint calls the v2 of appsec event tracking SDK function used for user login failure with
+the data coming in the request body.
+
+The parameters in the body are:
+- `login`: String with the login data
+- `exists`: String with "true" or "false" value
+- `metadata`: Objet with the metadata
 
 ### GET '/inferred-proxy/span-creation'
 
@@ -929,3 +965,35 @@ stripped (accounting for a quirk in the boto3 library).
 Examples:
 - `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
+
+### \[GET\] /mock_s3/copy_object
+
+This endpoint is used to test the s3 integration. It creates a bucket if
+necessary based on the `original_bucket` query parameter and puts an object at
+the `original_key` query parameter. The body of the object is just the bytes of
+the key, encoded with utf-8. The method then creates another `bucket` if
+necessary and copies the object into the `key` location. Returns a result
+object with an `object` JSON object field containing the `e_tag` field with the
+ETag of the copied object. The `e_tag` field has any extra double-quotes
+stripped (accounting for a quirk in the boto3 library).
+
+Examples:
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
+
+
+### \[GET\] /protobuf/serialize
+
+This endpoint serializes a constant protobuf message. Returns the serialized message as a base64 encoded string. It is meant to be used to test the protobuf serialization integration.
+
+Examples:
+- `GET`: `/protobuf/serialize`
+
+### \[GET\] /protobuf/deserialize
+
+This endpoint deserializes a protobuf message from a base64 encoded string provided in the query parameters. Returns "ok" if deserialization is successful. The simplest way to use it is to pass the output of the `/protobuf/serialize` endpoint to it. It is meant to be used to test the protobuf deserialization integration.
+
+Expected query params:
+- `msg`: Base64 encoded protobuf message to deserialize
+
+Examples:
+- `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`

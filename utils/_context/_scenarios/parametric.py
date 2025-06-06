@@ -21,7 +21,7 @@ from docker.models.networks import Network
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, scenario_groups
 
 
 def _fail(message: str):
@@ -120,7 +120,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.TRACER_RELEASE],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -165,6 +165,7 @@ class ParametricScenario(Scenario):
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["./system_tests_library_version.sh"],
+                volumes=self.compute_volumes(self.apm_test_server_definition.volumes),
             )
         else:
             output = _get_client().containers.run(
@@ -287,6 +288,20 @@ class ParametricScenario(Scenario):
 
         raise ValueError(f"Unexpected worker_id: {worker_id}")
 
+    @staticmethod
+    def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
+        """Convert volumes to the format expected by the docker-py API"""
+        fixed_volumes: dict[str, dict] = {}
+        for key, value in volumes.items():
+            if isinstance(value, dict):
+                fixed_volumes[key] = value
+            elif isinstance(value, str):
+                fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            else:
+                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
+
+        return fixed_volumes
+
     @contextlib.contextmanager
     def docker_run(
         self,
@@ -300,16 +315,6 @@ class ParametricScenario(Scenario):
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-        # Convert volumes to the format expected by the docker-py API
-        fixed_volumes: dict[str, dict] = {}
-        for key, value in volumes.items():
-            if isinstance(value, dict):
-                fixed_volumes[key] = value
-            elif isinstance(value, str):
-                fixed_volumes[key] = {"bind": value, "mode": "rw"}
-            else:
-                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
-
         logger.info(f"Run container {name} from image {image} with host port {host_port}")
 
         try:
@@ -317,7 +322,7 @@ class ParametricScenario(Scenario):
                 image,
                 name=name,
                 environment=env,
-                volumes=fixed_volumes,
+                volumes=self.compute_volumes(volumes),
                 network=network,
                 ports={f"{container_port}/tcp": host_port},
                 command=command,
@@ -354,7 +359,7 @@ def python_library_factory() -> APMLibraryTestServer:
         container_name="python-test-library",
         container_tag="python-test-library",
         container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:9e3bd1fb9e42a4aa143cae661547517c7fbd8924
+FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
 RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
@@ -364,7 +369,7 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
-        container_cmd="ddtrace-run python3.11 -m apm_test_client".split(" "),
+        container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
@@ -393,16 +398,13 @@ def node_library_factory() -> APMLibraryTestServer:
 FROM node:18.10-slim
 RUN apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
-COPY {nodejs_reldir}/../app.sh /usr/app/
-RUN printf 'node server.js' >> app.sh
-RUN chmod +x app.sh
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
 COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install
+RUN npm install || npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -507,7 +509,6 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 ENV DD_TRACE_Grpc_ENABLED=false
 ENV DD_TRACE_AspNetCore_ENABLED=false
 ENV DD_TRACE_Process_ENABLED=false
-ENV DD_TRACE_OTEL_ENABLED=false
 
 # copy custom tool used to get library version (built above)
 COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
@@ -517,9 +518,8 @@ COPY --from=build-version-tool /app/out /app
 COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
-CMD ["./ApmTestApi"]
 """,
-        container_cmd=[],
+        container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
         container_build_context=_get_base_directory(),
     )
@@ -566,6 +566,7 @@ def php_library_factory() -> APMLibraryTestServer:
         container_tag="php-test-library",
         container_img=f"""
 FROM datadog/dd-trace-ci:php-8.2_buster
+RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
 ADD {php_reldir}/composer.json .
@@ -581,7 +582,7 @@ ADD {php_reldir}/server.php .
         container_cmd=[
             "bash",
             "-c",
-            "php server.php || sleep 2s",
+            "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
         ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
         container_build_context=_get_base_directory(),

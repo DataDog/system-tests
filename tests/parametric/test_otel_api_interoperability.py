@@ -7,10 +7,7 @@ from utils.parametric._library_client import APMLibrary
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
-#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
-pytestmark = pytest.mark.parametrize(
-    "library_env", [{"DD_TRACE_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1"}]
-)
+pytestmark = pytest.mark.parametrize("library_env", [{"DD_TRACE_OTEL_ENABLED": "true"}])
 
 TEST_TRACE_ID = "ff0000000000051791e0000000000041"
 TEST_TRACE_ID_HIGH = 18374686479671624983  # ff00000000000517
