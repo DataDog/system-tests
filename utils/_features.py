@@ -2672,5 +2672,14 @@ class _Features:
         pytest.mark.features(feature_id=473)(test_object)
         return test_object
 
+    @staticmethod
+    def appsec_trace_tagging_rules(test_object):
+        """Appsec supports trace-tagging rules
+
+        https://feature-parity.us1.prod.dog/#/?feature=474
+        """
+        pytest.mark.features(feature_id=474)(test_object)
+        return test_object
+
 
 features = _Features()
