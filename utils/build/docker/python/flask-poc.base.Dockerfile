@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
+RUN apt-get update && apt-get install -y curl git gcc g++ make cmake patchelf
 
 # print versions
 RUN python --version && curl --version
