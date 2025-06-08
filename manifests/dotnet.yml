@@ -538,7 +538,7 @@ tests/:
       Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
     test_process_discovery.py: missing_feature
-    test_span_events.py: missing_feature
+    # test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
@@ -654,7 +654,6 @@ tests/:
     Test_UrlQuery: v2.13.0
   test_semantic_conventions.py:
     Test_MetricsStandardTags: v2.6.0
-  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
     Test_StandardTagsMethod: v2.0.0
