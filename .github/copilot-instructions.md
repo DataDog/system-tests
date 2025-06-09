@@ -110,7 +110,8 @@ system-tests/
 * Use the Python file [scenarios](utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this Python file, even if a scenario is mentioned in the documentation. If a user asks about a scenario not present in this file, inform them that it does not exist in the current implementation.
 * These scenarios don't exist: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS.
 * You always need to know the scenario type to provide a good answer. The main scenario types in system-tests are: end-to-end, parametric, SSI (Single Step Instrumentation, including AWS SSI), and Kubernetes (K8s) library injection. The scenario type determines the requirements, documentation, and steps to follow for system-tests. If the scenario type is not clear from the user's question or context, always ask for clarification before proceeding."
-* How to start with system-tests: check the documentation that details the requirements and the minimal configuration steps [readme](README.md). Always mention that other system-tests scenarios could have other extra requirements [additional-requirements](README.md#additional-requirements) (e.g., AWS SSI or K8s scenarios)
+* How to start with system-tests: check the documentation that details the requirements and the minimal configuration steps [readme](README.md). Always mention that other system-tests scenarios could have other extra requirements [additional-requirements](README.md#additional-requirements) (e.g., AWS SSI or K8s scenarios).
+* All pytest test classes are annotated with "@scenario.<scenario_name>". When we run a scenario ("./run.sh SCENARIO_NAME") is going to execute all the test clases annotated with this scenario name. If a pytest test class doesn't contain a scenario annotation, it means that the test class is going to be executed for the default scenario.
 
 # Activate or deactivate tests
 
@@ -121,18 +122,60 @@ For enabling/disabling tests, refer to these key documentation files:
 - @docs/edit/skip-tests.md: Using decorators and marking tests as skipped
 - @docs/edit/versions.md: Version specification guidelines for different languages
 
-Key points to remember:
+Key points to remember to activate or deactivate tests:
 
 1. For test classes/files: Use manifest files in `manifests/` directory
 2. For individual test methods: Use decorators in test files
 3. Always include JIRA references for bugs
 4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
+5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest file ALWAYS run the scenario "TEST_THE_TESTS" and format.sh before committing changes to ensure code follows the manifest rules.
+6. When using @missing_feature/@irrelevant decorators, the condition specifies when to SKIP the test.
 
 For common test activation patterns and examples of enabling/disabling tests, see:
 
 1. @docs/edit/manifest.md#example
 2. @docs/edit/versions.md#use-cases
 3. @docs/edit/skip-tests.md#decorators
+
+# End-to-End
+
+* To run the tests associated to an end to end scenario use the document [run the tests](docs/execute/run.md).
+* You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](docs/weblog/README.md).
+* All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](docs/weblog/README.md).
+* To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
+* A new end-to-end weblog must be referenced in the document [build script documentation](docs/execute/build.md).
+* if you create a new end to end weblog, create it always with one example endpoint.
+* if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](docs/weblog/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
+* After creating a new end to end weblog ALWAYS check the compatible scenarios on [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) using the method "_is_supported".
+* The end to end scenario test cases use the "weblog" object defined in the python file [weblog object](utils/_weblog.py) to make request to the endpoints (weblog.request, weblog.get, weblog.post, etc).
+* To know how to add a new end to end tests case use the document [how to add a new end to end test](docs/edit/add-new-test.md).
+* The logs folder structure for the end to end scenarios is explained in the document [logs folder structure end to end scenarios](docs/execute/logs.md).
+* End to End scenarios store and validate messages:
+  * Intercepted between instrumented application (instrumented by library/datadog tracer) and datadog agent. these messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/library. These intercepted json messages are parsed and validated using the "library interface" implemented as class "LibraryInterfaceValidator" in the [Libray interface core implementation](utils/interfaces/_library/core.py). For details use the [library interface](docs/internals/library-interface-validation-methods.md) documentation.
+  * Intercepted between datadog agent and datadog backend. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/agent. These intercepted json messages are parsed and validated using the "agent interface" implemented as class "AgentInterfaceValidator" in the [agent interface core implementation](utils/interfaces/_agent.py). For details use the [agent interface](docs/internals/agent-interface-validation-methods.md) documentation.
+  * Returned by the datadog backend API. These messages are stored as json files in the logs folder: logs_<scenario_name>/interfaces/backend/files. The "backend interface" implemented as class "_BackendInterfaceValidator" in the [backend interface core implementation](utils/interfaces/_backend.py) exposes methods to interact with the datadog backend API. For details use the [backend interface](docs/internals/backend-interface-validation-methods.md) documentation.
+* The library interface, agent interface and backend interface are instantiated as singleton in [validation interfaces](utils/interfaces/__init__.py) and they can be used by the end to end test cases as following example:
+
+```
+from utils import interfaces, weblog, scenarios@scenarios.scenario
+class my_test_class
+  def setup_mytestcase(self):
+    #The system-tests framework will execute the setup method before the test method
+    weblog.request("/url_that_perform_and_action_and_generate_traces_to_be_intercepted")
+  def test_mytestcase(self):
+    #The traces/messages should be generated in the setup method and intercepted by the library, agent or backend interfaces and stored in the log folder
+    #Use the interfaces instances to validate the json intercepted messages
+    interfaces.library.<validation method>
+    interfaces.agent.<validation method>
+    <interfaces.backend.<validation method>
+```
+
+* The class "SchemaValidator" from [schema validator](file utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
+* if the user wants to create a new scenario, you MUST validate or ask to the user the context of this scenario is for: end to end, parametric, kubernetes or ssi.
+* After adding a new scenario on [scenarios](utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
+* After adding a new end to end scenario ask to the user if needs help to include the scenario in the CI GitHub Workflow.
+* Use [github end to end ci](.github/workflows/run-end-to-end.yml) and [workflow datada](utils/scripts/ci_orchestrators/workflow_data.py) to register a new end to end scenario.
+
 
 # AWS SSI
 

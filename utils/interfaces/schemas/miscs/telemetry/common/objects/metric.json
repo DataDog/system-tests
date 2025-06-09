@@ -47,7 +47,7 @@
       "if": {
         "properties": {
           "type": {
-            "enum": ["gauge", "rate"]
+            "const": "rate"
           }
         }
       },

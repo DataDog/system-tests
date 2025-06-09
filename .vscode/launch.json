@@ -225,6 +225,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run EXTERNAL_PROCESSING scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "EXTERNAL_PROCESSING"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Compute impacted scenarios",
             "type": "debugpy",
             "request": "launch",

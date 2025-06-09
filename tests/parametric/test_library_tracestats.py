@@ -8,7 +8,9 @@ import pytest
 from utils.parametric.spec.trace import SPAN_MEASURED_KEY
 from utils.parametric.spec.trace import V06StatsAggr
 from utils.parametric.spec.trace import find_root_span
-from utils import missing_feature, context, scenarios, features, logger
+from utils import missing_feature, context, scenarios, features, logger, bug
+
+from .conftest import _TestAgentAPI
 
 parametrize = pytest.mark.parametrize
 
@@ -41,6 +43,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_metrics_msgpack_serialization_TS001(self, library_env, test_agent, test_library):
         """When spans are finished
         Each trace has stats metrics computed for it serialized properly in msgpack format with required fields
@@ -51,7 +54,7 @@ class Test_Library_Tracestats:
             pass
 
         raw_requests = test_agent.requests()
-        decoded_stats_requests = test_agent.v06_stats_requests()
+        decoded_stats_requests = test_agent.get_v06_stats_requests()
 
         # find stats request (trace and stats requests are sent in different order between clients)
         raw_stats = None
@@ -94,6 +97,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_distinct_aggregationkeys_TS003(self, library_env, test_agent, test_library):
         """When spans are created with a unique set of dimensions
         Each span has stats computed for it and is in its own bucket
@@ -153,7 +157,7 @@ class Test_Library_Tracestats:
         if test_library.lang == "golang":
             test_library.dd_flush()
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Exactly one stats request is expected"
         request = requests[0]["body"]
         buckets = request["Stats"]
@@ -175,6 +179,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_measured_spans_TS004(self, library_env, test_agent, test_library):
         """When spans are marked as measured
         Each has stats computed for it
@@ -196,8 +201,9 @@ class Test_Library_Tracestats:
             with test_library.dd_start_span(name="child.op3", resource="", service="webserver", parent_id=span.span_id):
                 pass
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) > 0
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         logger.debug([_human_stats(s) for s in stats])
         assert len(stats) == 3
@@ -216,6 +222,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_top_level_TS005(self, library_env, test_agent, test_library):
         """When top level (service entry) spans are created
         Each top level span has trace stats computed for it.
@@ -231,7 +238,7 @@ class Test_Library_Tracestats:
         ):
             pass
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
@@ -267,6 +274,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_successes_errors_recorded_separately_TS006(self, library_env, test_agent, test_library):
         """When spans are marked as errors
         The errors count is incremented appropriately and the stats are aggregated into the ErrorSummary
@@ -289,7 +297,7 @@ class Test_Library_Tracestats:
             ) as span:
                 span.set_error(message="Unable to load resources")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
         for key in ("Hostname", "Env", "Version", "Stats"):
@@ -322,6 +330,7 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats(sample_rate=0.0)
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
     def test_sample_rate_0_TS007(self, library_env, test_agent, test_library):
         """When the sample rate is 0 and trace stats is enabled
         non-P0 traces should be dropped
@@ -333,7 +342,9 @@ class Test_Library_Tracestats:
         traces = test_agent.traces()
         assert len(traces) == 0, "No traces should be emitted with the sample rate set to 0"
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
+        assert len(requests) != 0, "Stats request should be sent"
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
         web_stats = [s for s in stats if s["Name"] == "web.request"][0]
@@ -342,7 +353,7 @@ class Test_Library_Tracestats:
 
     @missing_feature(reason="relative error test is broken")
     @enable_tracestats()
-    def test_relative_error_TS008(self, library_env, test_agent, test_library):
+    def test_relative_error_TS008(self, library_env, test_agent: _TestAgentAPI, test_library):
         """When trace stats are computed for traces
             The stats should be accurate to within 1% of the real values
 
@@ -365,7 +376,10 @@ class Test_Library_Tracestats:
             assert span is not None
             durations.append(span["duration"])
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
+
+        assert len(requests) != 0, "Stats request should be sent"
+        assert len(requests[0]["body"]["Stats"]) != 0, "Stats should be computed"
         stats = requests[0]["body"]["Stats"][0]["Stats"]
         assert len(stats) == 1, "Only one stats aggregation is expected"
 
@@ -387,7 +401,8 @@ class Test_Library_Tracestats:
     @missing_feature(context.library == "php", reason="php has not implemented stats computation yet")
     @missing_feature(context.library == "ruby", reason="ruby has not implemented stats computation yet")
     @enable_tracestats()
-    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent, test_library):
+    @bug(context.library >= "dotnet@3.19.0", reason="APMSP-2074")
+    def test_metrics_computed_after_span_finsh_TS009(self, library_env, test_agent: _TestAgentAPI, test_library):
         """When trace stats are computed for traces
         Metrics must be computed after spans are finished, otherwise components of the aggregation key may change after
         contribution to aggregates.
@@ -415,7 +430,7 @@ class Test_Library_Tracestats:
             span2.set_meta(key="_dd.origin", val="not_synthetics")
             span2.set_meta(key="http.status_code", val="202")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
 
         assert len(requests) == 1, "Only one stats request is expected"
         request = requests[0]["body"]
@@ -447,5 +462,5 @@ class Test_Library_Tracestats:
             span.set_meta(key="_dd.origin", val="synthetics")
             span.set_meta(key="http.status_code", val="200")
 
-        requests = test_agent.v06_stats_requests()
+        requests = test_agent.get_v06_stats_requests()
         assert len(requests) == 0, "No stats were computed"
