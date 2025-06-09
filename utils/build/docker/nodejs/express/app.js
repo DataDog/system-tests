@@ -5,6 +5,7 @@ const opts = {
   flushInterval: 5000
 }
 
+// This mimics a scenario where a user has one config setting set in multiple sources so that config chaining data is sent
 if (process.env.CONFIG_CHAINING_TEST) {
   opts.logInjection = true
 }
