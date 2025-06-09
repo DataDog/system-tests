@@ -97,7 +97,7 @@ class Test_Defaults:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
-            ("logs_injection_enabled", ("false", False, "true", True, None)),
+            ("logs_injection_enabled", ("false", False, "true", True, "structured")),
             ("trace_header_tags", ""),
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),
