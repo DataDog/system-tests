@@ -482,38 +482,38 @@ class Test_Telemetry:
         }
         configuration_map = test_configuration[context.library.name]
 
-        # Use test_agent.get_telemetry_configurations to get all configurations from
-        # message-batch, app-started, and app-client-config-changed request types
-        # This is more robust since app-started can be sent before all configs are lazily loaded
-        configurations = interfaces.test_agent.get_telemetry_configurations()
-        configurations_present = []
+        def validator(data):
+            if get_request_type(data) == "app-started":
+                content = data["request"]["content"]
+                configurations = content["payload"]["configuration"]
+                configurations_present = []
+                for cnf in configurations:
+                    configuration_name = cnf["name"]
+                    if context.library.name == "java":
+                        # support for older versions of Java Tracer
+                        configuration_name = configuration_name.replace(".", "_")
+                    if configuration_name in configuration_map:
+                        expected_value = str(configuration_map.get(configuration_name))
+                        configuration_value = str(cnf["value"])
+                        if configuration_value != expected_value:
+                            raise Exception(
+                                "Client Configuration "
+                                + configuration_name
+                                + " expected value is "
+                                + str(expected_value)
+                                + " but found "
+                                + str(configuration_value)
+                            )
+                        configurations_present.append(configuration_name)
+                for cnf in configuration_map:
+                    if cnf not in configurations_present:
+                        raise Exception(
+                            "Client Configuration information is not accurately reported, "
+                            + cnf
+                            + " is not present in configuration on app-started event"
+                        )
 
-        for cnf_name, cnf in configurations.items():
-            configuration_name = cnf_name
-            if context.library.name == "java":
-                # support for older versions of Java Tracer
-                configuration_name = configuration_name.replace(".", "_")
-            if configuration_name in configuration_map:
-                expected_value = str(configuration_map.get(configuration_name))
-                configuration_value = str(cnf["value"])
-                if configuration_value != expected_value:
-                    raise Exception(
-                        "Client Configuration "
-                        + configuration_name
-                        + " expected value is "
-                        + str(expected_value)
-                        + " but found "
-                        + str(configuration_value)
-                    )
-                configurations_present.append(configuration_name)
-
-        for cnf in configuration_map:
-            if cnf not in configurations_present:
-                raise Exception(
-                    "Client Configuration information is not accurately reported, "
-                    + cnf
-                    + " is not present in configuration on app-started event"
-                )
+        self.validate_library_telemetry_data(validator)
 
     def setup_app_product_change(self):
         weblog.get("/enable_product")
