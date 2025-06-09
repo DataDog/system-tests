@@ -1,13 +1,7 @@
 // Force the initialization of the tracer
 _ = Datadog.Trace.Tracer.Instance;
 
-var switchMappings = new Dictionary<string, string>
-{
-    { "-Darg1=", "Darg1" }
-};
-
-var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddCommandLine(args, switchMappings);
+var builder = WebApplication.CreateBuilder();
 
 var app = builder.Build();
 
