@@ -724,12 +724,12 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount:
           '*': v1.50.0-SNAPSHOT
-          akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
-          ratpack: bug (HTTP-ROUTE)
+          akka-http: bug (APPSEC-57926)
+          play: bug (APPSEC-57926)
+          ratpack: bug (APPSEC-57926)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: bug (APPSEC-57926)
+          vertx4: bug (APPSEC-57926)
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
