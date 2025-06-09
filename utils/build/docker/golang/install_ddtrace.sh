@@ -29,10 +29,10 @@ else
     echo "Installing production dd-trace-version"
     TARGET="latest"
     echo "Install from go get -v $MAIN_MODULE@$TARGET"
-    go mod edit -replace "$MAIN_MODULE=$MAIN_MODULE@$TARGET"
+    go get -v "$MAIN_MODULE@$TARGET"
     for contrib in $CONTRIBS; do
         echo "Install contrib $contrib from go get -v $contrib@$TARGET"
-        go mod edit -replace "$contrib=$contrib@$TARGET"
+        go get -v "$contrib@$TARGET"
     done
 fi
 
