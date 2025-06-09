@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import pytest
-from utils import weblog, interfaces, scenarios, features, missing_feature
+from utils import weblog, interfaces, scenarios, features, missing_feature, bug, context
 from utils._context.header_tag_vars import (
     CONFIG_COLON_LEADING,
     CONFIG_COLON_TRAILING,
@@ -589,6 +589,7 @@ class Test_ExtractBehavior_Ignore:
         library="cpp",
         reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
     )
+    @bug(context.library == "nodejs", reason="APMAPI-1439")
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -627,6 +628,7 @@ class Test_ExtractBehavior_Ignore:
         library="cpp",
         reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
     )
+    @bug(context.library == "nodejs", reason="APMAPI-1439")
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -675,6 +677,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         library="cpp",
         reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
     )
+    @bug(context.library == "nodejs", reason="APMAPI-1439")
     def test_single_tracecontext(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -725,6 +728,7 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         library="cpp",
         reason="baggage is not implemented, also remove DD_TRACE_PROPAGATION_STYLE_EXTRACT workaround in containers.py",
     )
+    @bug(context.library == "nodejs", reason="APMAPI-1439")
     def test_multiple_tracecontexts(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
