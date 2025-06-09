@@ -2185,7 +2185,6 @@ tests/:
     Test_StandardTagsUrl: v0.107.1
     Test_StandardTagsUserAgent: v0.107.1
   test_telemetry.py:
-    Test_TelemetryConfigurationChaining: missing_feature
     Test_DependencyEnable: v1.7.0
     Test_Log_Generation: missing_feature
     Test_MessageBatch:
@@ -2203,5 +2202,6 @@ tests/:
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0

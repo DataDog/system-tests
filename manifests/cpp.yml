@@ -1,7 +1,5 @@
 ---
 tests/:
-  test_telemetry.py:
-    Test_TelemetryConfigurationChaining: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.0.1.dev
@@ -72,6 +70,7 @@ tests/:
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
       Test_Stable_Configuration_Origin: missing_feature
+      Test_TelemetryConfigurationChaining: missing_feature
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: missing_feature
       Test_TelemetrySSIConfigs: missing_feature

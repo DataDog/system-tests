@@ -556,6 +556,18 @@ class Test_Telemetry:
 class Test_TelemetryConfigurationChaining:
     """Test that configuration sources are sent with app-started event in correct precedence order"""
 
+    # Official configuration origin precedence order (from lowest to highest precedence)
+    # Based on Node.js tracer implementation
+    _ORIGIN_PRECEDENCE_ORDER = [
+        "default",
+        "calculated",
+        "local_stable_config",
+        "env_var",
+        "fleet_stable_config",
+        "code",
+        "remote_config",
+    ]
+
     # Test configuration constant for config chaining tests
     _CONFIG_CHAINING_TEST_CONFIG = {
         "nodejs": {
@@ -566,8 +578,18 @@ class Test_TelemetryConfigurationChaining:
                     {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
-        },  # in order from lowest to highest precedence
+        },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
     }
+
+    @classmethod
+    def get_origin_precedence_order(cls) -> list[str]:
+        """Get the official configuration origin precedence order (lowest to highest)
+
+        Returns:
+            List of origin names in precedence order from lowest to highest
+
+        """
+        return cls._ORIGIN_PRECEDENCE_ORDER.copy()
 
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
@@ -624,6 +646,28 @@ class Test_TelemetryConfigurationChaining:
         for data in telemetry_data:
             validator(data)
 
+    def _validate_precedence_order(self, chain: list) -> None:
+        """Validate that a configuration chain follows the official precedence order
+
+        Args:
+            chain: List of configuration items with 'origin' keys
+
+        """
+        precedence_map = {origin: i for i, origin in enumerate(self._ORIGIN_PRECEDENCE_ORDER)}
+
+        for i in range(len(chain) - 1):
+            current_origin = chain[i]["origin"]
+            next_origin = chain[i + 1]["origin"]
+
+            current_precedence = precedence_map.get(current_origin, -1)
+            next_precedence = precedence_map.get(next_origin, -1)
+
+            assert current_precedence < next_precedence, (
+                f"Configuration precedence order violation: '{current_origin}' "
+                f"(precedence {current_precedence}) should come before '{next_origin}' "
+                f"(precedence {next_precedence}) according to {self._ORIGIN_PRECEDENCE_ORDER}"
+            )
+
     def _validate_configuration_chains(
         self, configurations: list, expected_config: dict, *, require_seq_id: bool
     ) -> None:
@@ -642,6 +686,12 @@ class Test_TelemetryConfigurationChaining:
             assert len(actual_chain) == len(expected_chain), (
                 f"Config '{cnf_name}': expected {len(expected_chain)} items, " f"found {len(actual_chain)}"
             )
+
+            # Validate that the expected chain follows precedence order
+            self._validate_precedence_order(expected_chain)
+
+            # Validate that the actual chain follows precedence order
+            self._validate_precedence_order(actual_chain)
 
             for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
                 # Validate origin
