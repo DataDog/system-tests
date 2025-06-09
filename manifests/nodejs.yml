@@ -60,6 +60,7 @@ refs:
   - &ref_5_48_0 '>=5.48.0'
   - &ref_5_52_0 '>=5.52.0'
   - &ref_5_54_0 '>=5.54.0'
+  - &ref_5_55_0 '>=5.55.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -773,8 +774,8 @@ tests/:
       Test_RuntimeActivation: *ref_3_9_0
       Test_RuntimeDeactivation: *ref_3_9_0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationEnvVarMetric: *ref_5_55_0
+      TestServiceActivationRemoteConfigMetric: *ref_5_55_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
