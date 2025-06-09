@@ -37,6 +37,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: v2.0.0
         Test_Schema_Response_Headers: v1.60.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
