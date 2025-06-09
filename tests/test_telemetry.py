@@ -477,7 +477,7 @@ class Test_Telemetry:
             "cpp_nginx": {"trace_agent_port": trace_agent_port},
             "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
-            "ruby": {"agent_transport": "TCP"},  # DD_AGENT_TRANSPORT gets normalized to agent_transport
+            "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
             "golang": {"lambda_mode": False},
         }
         configuration_map = test_configuration[context.library.name]
