@@ -66,11 +66,11 @@ public class Main {
         });
 
         // Register resources
-        deployment.getRegistry().addPerRequestResource(MyResource.class);
-        deployment.getRegistry().addPerRequestResource(RaspResource.class);
-        deployment.getRegistry().addPerRequestResource(IastSinkResource.class);
-        deployment.getRegistry().addPerRequestResource(IastSourceResource.class);
-        deployment.getRegistry().addPerRequestResource(IastSamplingResource.class);
+//        deployment.getRegistry().addPerRequestResource(MyResource.class);
+//        deployment.getRegistry().addPerRequestResource(RaspResource.class);
+//        deployment.getRegistry().addPerRequestResource(IastSinkResource.class);
+//        deployment.getRegistry().addPerRequestResource(IastSourceResource.class);
+//        deployment.getRegistry().addPerRequestResource(IastSamplingResource.class);
 
         // we override start/stop to listen on 0.0.0.0
         var netty = new NettyJaxrsServer() {
