@@ -482,56 +482,79 @@ class Test_Telemetry:
         }
         configuration_map = test_configuration[context.library.name]
 
-        def validator(data):
-            if get_request_type(data) == "app-started":
+        # Use test_agent.get_telemetry_configurations to get all configurations from
+        # message-batch, app-started, and app-client-config-changed request types
+        # This is more robust since app-started can be sent before all configs are lazily loaded
+        configurations = interfaces.test_agent.get_telemetry_configurations()
+        configurations_present = []
+
+        for cnf_name, cnf in configurations.items():
+            configuration_name = cnf_name
+            if context.library.name == "java":
+                # support for older versions of Java Tracer
+                configuration_name = configuration_name.replace(".", "_")
+            if configuration_name in configuration_map:
+                expected_value = str(configuration_map.get(configuration_name))
+                configuration_value = str(cnf["value"])
+                if configuration_value != expected_value:
+                    raise Exception(
+                        "Client Configuration "
+                        + configuration_name
+                        + " expected value is "
+                        + str(expected_value)
+                        + " but found "
+                        + str(configuration_value)
+                    )
+                configurations_present.append(configuration_name)
+
+        for cnf in configuration_map:
+            if cnf not in configurations_present:
+                raise Exception(
+                    "Client Configuration information is not accurately reported, "
+                    + cnf
+                    + " is not present in configuration on app-started event"
+                )
+
+    def setup_app_product_change(self):
+        weblog.get("/enable_product")
+
+    @missing_feature(
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
+        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
+    )
+    def test_app_product_change(self):
+        """Test product change data when product is enabled"""
+
+        telemetry_data = list(interfaces.library.get_telemetry_data())
+        if len(telemetry_data) == 0:
+            raise Exception("No telemetry data to validate on")
+
+        app_product_change_event_found = False
+        for data in telemetry_data:
+            if get_request_type(data) == "app-product-change":
                 content = data["request"]["content"]
-                configurations = content["payload"]["configuration"]
-                configurations_present = []
+                app_product_change_event_found = True
+                products = content["payload"]["products"]
+                for product in products:
+                    appsec_enabled = product["appsec"]["enabled"]
+                    profiler_enabled = product["profiler"]["enabled"]
+                    dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
+                    assert (
+                        appsec_enabled is True
+                    ), "Product appsec Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
+                    assert (
+                        dynamic_instrumentation_enabled is False
+                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
 
-                configs_with_no_seq_id = []
-                highest_seq_by_name: dict[str, dict] = {}  # for sdks sending config payloads with seq_id
+        if app_product_change_event_found is False:
+            raise Exception("app-product-change is not emitted when product change is enabled")
 
-                for cnf in configurations:
-                    if "seq_id" in cnf:
-                        name = cnf["name"]
-                        # Track only the highest seq_id per name
-                        if name not in highest_seq_by_name or cnf["seq_id"] > highest_seq_by_name[name]["seq_id"]:
-                            highest_seq_by_name[name] = cnf
-                    else:
-                        configs_with_no_seq_id.append(cnf)
 
-                configs_with_seq_id = list(highest_seq_by_name.values())
-
-                configs_with_seq_id.sort(key=lambda x: x["seq_id"])
-                configurations = configs_with_seq_id + configs_with_no_seq_id
-
-                for cnf in configurations:
-                    configuration_name = cnf["name"]
-                    if context.library.name == "java":
-                        # support for older versions of Java Tracer
-                        configuration_name = configuration_name.replace(".", "_")
-                    if configuration_name in configuration_map:
-                        expected_value = str(configuration_map.get(configuration_name))
-                        configuration_value = str(cnf["value"])
-                        if configuration_value != expected_value:
-                            raise Exception(
-                                "Client Configuration "
-                                + configuration_name
-                                + " expected value is "
-                                + str(expected_value)
-                                + " but found "
-                                + str(configuration_value)
-                            )
-                        configurations_present.append(configuration_name)
-                for cnf in configuration_map:
-                    if cnf not in configurations_present:
-                        raise Exception(
-                            "Client Configuration information is not accurately reported, "
-                            + cnf
-                            + " is not present in configuration on app-started event"
-                        )
-
-        self.validate_library_telemetry_data(validator)
+@features.telemetry_app_started_event
+@scenarios.telemetry_app_started_config_chaining
+class Test_TelemetryConfigurationChaining:
+    """Test that configuration sources are sent with app-started event in correct precedence order"""
 
     # Test configuration constant for config chaining tests
     _CONFIG_CHAINING_TEST_CONFIG = {
@@ -546,27 +569,11 @@ class Test_Telemetry:
         },  # in order from lowest to highest precedence
     }
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
         """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
         self._validate_config_chaining(require_seq_id=True)
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
-    @missing_feature(context.library == "java", reason="Not implemented")
-    @missing_feature(context.library == "ruby", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "cpp", reason="Not implemented")
-    @missing_feature(context.library == "python", reason="Not implemented")
-    @missing_feature(context.library == "golang", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining_no_seq_id(self):
         """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration
@@ -606,6 +613,16 @@ class Test_Telemetry:
             self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
 
         self.validate_library_telemetry_data(validator)
+
+    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+        """Reuse telemetry validation method from Test_Telemetry"""
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+
+        if len(telemetry_data) == 0 and not success_by_default:
+            raise ValueError("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            validator(data)
 
     def _validate_configuration_chains(
         self, configurations: list, expected_config: dict, *, require_seq_id: bool
@@ -647,41 +664,6 @@ class Test_Telemetry:
                         f"item[{i}] seq_id={actual['seq_id']} should be less than "
                         f"item[{i+1}] seq_id={next_item['seq_id']}"
                     )
-
-    def setup_app_product_change(self):
-        weblog.get("/enable_product")
-
-    @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
-        reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
-    )
-    def test_app_product_change(self):
-        """Test product change data when product is enabled"""
-
-        telemetry_data = list(interfaces.library.get_telemetry_data())
-        if len(telemetry_data) == 0:
-            raise Exception("No telemetry data to validate on")
-
-        app_product_change_event_found = False
-        for data in telemetry_data:
-            if get_request_type(data) == "app-product-change":
-                content = data["request"]["content"]
-                app_product_change_event_found = True
-                products = content["payload"]["products"]
-                for product in products:
-                    appsec_enabled = product["appsec"]["enabled"]
-                    profiler_enabled = product["profiler"]["enabled"]
-                    dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
-                    assert (
-                        appsec_enabled is True
-                    ), "Product appsec Product profiler enabled was expected to be True, found False"
-                    assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
-                    assert (
-                        dynamic_instrumentation_enabled is False
-                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
-
-        if app_product_change_event_found is False:
-            raise Exception("app-product-change is not emitted when product change is enabled")
 
 
 @features.telemetry_instrumentation

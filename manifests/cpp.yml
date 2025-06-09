@@ -1,5 +1,7 @@
 ---
 tests/:
+  test_telemetry.py:
+    Test_TelemetryConfigurationChaining: missing_feature
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.0.1.dev
