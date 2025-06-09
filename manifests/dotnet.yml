@@ -27,6 +27,7 @@ tests/:
         Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v2.46.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -401,6 +402,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:

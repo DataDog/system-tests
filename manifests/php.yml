@@ -27,6 +27,7 @@ tests/:
         Test_Schema_Response_Body: v0.99.1
         Test_Schema_Response_Body_env_var: v1.6.2
         Test_Schema_Response_Headers: v0.94.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -389,6 +390,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v1.6.2
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
