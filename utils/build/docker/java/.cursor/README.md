@@ -58,9 +58,14 @@ Test file: tests/appsec/iast/test_sqli.py
 Before using this prompt, make sure you have:
 
 1. **Cursor IDE** installed and configured
-2. **Java 11+** installed on your system
+2. **System-tests** [minimal requirements](../../../../README.md#minimal-requirements-end-to-end-testing) met:
+   - **Python 3.12** (required)
+   - **Docker 20.10+** (recommended)
+   - **Bash** (for running scripts)
 3. **System-tests** cloned locally
 4. **Basic knowledge** of the supported Java frameworks
+
+> **Note**: You don't need Java installed locally - the Docker containers handle Java runtime (Java 11) internally.
 
 ## 🔧 Manual Setup
 
@@ -227,16 +232,6 @@ If you find patterns or rules that should be added:
 1. **Edit** `java-endpoint-prompt.mdc`
 2. **Test** the changes with various frameworks
 3. **Document** the changes in this README
-4. **Share** in #apm-shared-testing
-
-### Reporting Issues
-
-If you find bugs or inconsistencies:
-
-1. **Describe** the specific problem
-2. **Include** the framework and affected endpoint
-3. **Provide** error logs
-4. **Report** in #apm-shared-testing
 
 ## 📚 Additional Resources
 
@@ -247,12 +242,4 @@ If you find bugs or inconsistencies:
 
 ---
 
-## 🎉 Congratulations!
-
-Thanks for using **system-tests**! This prompt will help you develop Java endpoints efficiently and consistently. Remember that system-tests is very easy to use and brings great confidence to the software you test.
-
-**Have questions?** Ask in the Slack channel **#apm-shared-testing**!
-
----
-
-**📋 DOCUMENTATION USED**: @java-endpoint-prompt.mdc, @docs/weblog/, @docs/scenarios/ 
+**📋 DOCUMENTATION USED**: @java-endpoint-prompt.mdc, @docs/weblog/, @docs/scenarios/
