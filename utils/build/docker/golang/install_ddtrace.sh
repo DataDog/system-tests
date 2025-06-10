@@ -31,12 +31,13 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
     done
 else
     echo "Installing production dd-trace-version"
-    TARGET="latest"
-    echo "Install from go get -v $MAIN_MODULE@$TARGET"
-    go get -v "$MAIN_MODULE@$TARGET"
+    echo "Install from go get -v $MAIN_MODULE@latest"
+    version=$(go list -m -json "$MAIN_MODULE@latest" | jq -r .Version)
+    go mod edit -replace "$MAIN_MODULE=$MAIN_MODULE@$version"
     for contrib in $CONTRIBS; do
-        echo "Install contrib $contrib from go get -v $contrib@$TARGET"
-        go get -v "$contrib@$TARGET"
+        echo "Install contrib $contrib from go get -v $contrib@latest"
+        version=$(go list -m -json "$contrib@latest" | jq -r .Version)
+        go mod edit -replace "$contrib=$contrib@$version"
     done
 fi
 

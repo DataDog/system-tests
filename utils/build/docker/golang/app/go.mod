@@ -4,18 +4,18 @@ go 1.23.0
 
 require (
 	github.com/99designs/gqlgen v0.17.70
-	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.1.0-dev.0.20250327105809-1fd1443aa0d4
-	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.1.0-dev.0.20250327101827-0de8fa8c3b32
-	github.com/DataDog/dd-trace-go/v2 v2.1.0-dev.2
+	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/gin-gonic/gin/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/go-chi/chi.v5/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/google.golang.org/grpc/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/graph-gophers/graphql-go/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0
+	github.com/DataDog/dd-trace-go/v2 v2.0.0
 	github.com/IBM/sarama v1.40.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.2.1
@@ -44,7 +44,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/util/scrubber v0.64.1 // indirect
 	github.com/DataDog/datadog-agent/pkg/version v0.64.1 // indirect
 	github.com/DataDog/datadog-go/v5 v5.6.0 // indirect
-	github.com/DataDog/go-libddwaf/v4 v4.1.0 // indirect
+	github.com/DataDog/go-libddwaf/v3 v3.5.4 // indirect
 	github.com/DataDog/go-runtime-metrics-internal v0.0.4-0.20250319104955-81009b9bad14 // indirect
 	github.com/DataDog/go-sqllexer v0.1.6 // indirect
 	github.com/DataDog/go-tuf v1.1.0-0.5.2 // indirect
@@ -113,6 +113,7 @@ require (
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/richardartoul/molecule v1.0.1-0.20240531184615-7ca0df43c0b3 // indirect
+	github.com/rogpeppe/go-internal v1.14.1 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.9.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.25.2 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
