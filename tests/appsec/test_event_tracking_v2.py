@@ -399,6 +399,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=HEADERS)
 
+    @bug(library="golang", reason="LANGPLAT-583")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
