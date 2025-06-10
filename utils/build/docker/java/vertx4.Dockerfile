@@ -28,5 +28,6 @@ RUN chmod +x /app/app.sh
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # FIXME: Fails on DEFAULT scenario, see APPSEC-51407
 # ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
+ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

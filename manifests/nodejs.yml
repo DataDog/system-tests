@@ -59,6 +59,8 @@ refs:
   - &ref_5_47_0 '>=5.47.0'
   - &ref_5_48_0 '>=5.48.0'
   - &ref_5_52_0 '>=5.52.0'
+  - &ref_5_54_0 '>=5.54.0'
+  - &ref_5_55_0 '>=5.55.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -71,19 +73,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: *ref_5_3_0
         Test_API_Security_RC_ASM_DD_scanners: *ref_5_3_0
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
-        Test_API_Security_Sampling_Different_Paths:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
-        Test_API_Security_Sampling_Different_Status:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: *ref_5_27_0
+        Test_API_Security_Sampling_Different_Paths: *ref_5_27_0
+        Test_API_Security_Sampling_Different_Status: *ref_5_27_0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
-        Test_API_Security_Sampling_With_Delay:
-          '*': *ref_5_27_0
-          nextjs: missing_feature
+        Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_schemas.py:
         Test_Scanners: *ref_4_21_0
         Test_Schema_Request_Cookies: *ref_4_21_0
@@ -103,6 +97,7 @@ tests/:
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: *ref_4_21_0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -148,32 +143,7 @@ tests/:
             '*': *ref_5_37_0
             nextjs: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
-        test_header_injection.py:
-          TestHeaderInjection:
-            '*': *ref_4_21_0
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionAccessControlAllow:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionContentEncoding:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionPragma:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjectionExclusionTransferEncoding:
-            '*': *ref_5_26_0
-            express5: *ref_5_29_0  # test uses querystring
-            nextjs: missing_feature
-          TestHeaderInjection_ExtendedLocation:
-            '*': *ref_5_37_0
-            nextjs: missing_feature
-          TestHeaderInjection_StackTrace:
-            '*': *ref_5_39_0
-            nextjs: missing_feature
+        test_header_injection.py: irrelevant (Header Injection detection was removed)
         test_hsts_missing_header.py:
           Test_HstsMissingHeader:
             '*': *ref_4_8_0
@@ -426,6 +396,10 @@ tests/:
             nextjs: missing_feature
         test_uri.py:
           TestURI: missing_feature
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount:
+          '*': *ref_5_54_0
+          nextjs: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
@@ -616,9 +590,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v2.0.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone:
-        '*': *ref_5_52_0
-        nextjs: missing_feature
+      Test_APISecurityStandalone: *ref_5_52_0
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
@@ -626,7 +598,11 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
       Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
-      Test_UserEventsStandalone: missing_feature
+      Test_UserEventsStandalone_Automated:
+        '*': *ref_5_40_0
+        nextjs: missing_feature
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -695,6 +671,7 @@ tests/:
       Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_CorruptedRules_Telemetry: *ref_5_44_0
@@ -745,7 +722,11 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
-      Test_ExtendedHeaderCollection: missing_feature
+      Test_ExtendedHeaderCollection: *ref_5_54_0
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection:
+        '*': *ref_5_54_0
+        nextjs: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
@@ -776,6 +757,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
@@ -791,6 +773,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: *ref_3_9_0
       Test_RuntimeDeactivation: *ref_3_9_0
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: *ref_5_55_0
+      TestServiceActivationRemoteConfigMetric: *ref_5_55_0
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
@@ -825,6 +810,11 @@ tests/:
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
+        '*': irrelevant
+        express4: v5.39.0
+        express4-typescript: v5.39.0
+        uds-express4: v5.39.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers:
         '*': irrelevant
         express4: v5.39.0
         express4-typescript: v5.39.0
@@ -997,7 +987,8 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: *ref_5_4_0
       TestDynamicConfigV2: *ref_4_23_0
     test_headers_baggage.py:
-      Test_Headers_Baggage: *ref_5_29_0
+      Test_Headers_Baggage: irrelevant (uses weblog tests)
+      Test_Headers_Baggage_Span_Tags: *ref_5_54_0
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
@@ -1144,10 +1135,10 @@ tests/:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: *ref_5_54_0
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
-    Test_SamplingDeterminism: bug (APMAPI-736)
+    Test_SamplingDecisions: *ref_5_54_0
+    Test_SamplingDeterminism: *ref_5_54_0
     Test_SamplingRates: *ref_5_17_0  # real version unknown
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
@@ -1173,6 +1164,7 @@ tests/:
       '*': *ref_3_6_0
       nextjs: missing_feature  # nextjs makes some internal requests, so we have more than 1 rootspans
     Test_StandardTagsMethod: v2.11.0
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v2.11.0
       nextjs: missing_feature  # http.route not added in nextjs
@@ -1190,5 +1182,6 @@ tests/:
       '*': *ref_3_2_0
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: *ref_4_21_0

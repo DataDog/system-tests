@@ -2,20 +2,20 @@
   "docker_ssi_runtimes": {
     "java": [
       {
-        "version_id": "JAVA_22",
-        "version": "22.0.2-zulu"
+        "version_id": "JAVA_24",
+        "version": "24.0.1-zulu"
       },
       {
         "version_id": "JAVA_21",
-        "version": "21.0.4-zulu"
+        "version": "21.0.7-zulu"
       },
       {
         "version_id": "JAVA_17",
-        "version": "17.0.12-zulu"
+        "version": "17.0.15-zulu"
       },
       {
         "version_id": "JAVA_11",
-        "version": "11.0.24-zulu"
+        "version": "11.0.27-zulu"
       }
     ],
     "nodejs": [

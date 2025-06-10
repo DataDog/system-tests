@@ -920,6 +920,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def appsec_service_activation_origin_metric(test_object):
+        """Appsec service activation origin metric
+
+        https://feature-parity.us1.prod.dog/#/?feature=471
+        """
+        pytest.mark.features(feature_id=471)(test_object)
+        return test_object
+
+    @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
         """Serialize WAF rules without limiting their sizes
 
@@ -2601,12 +2610,66 @@ class _Features:
         return test_object
 
     @staticmethod
+    def iast_vuln_sampling_route_method_count_algorithm(test_object):
+        """Vulnerability sampling algorithm by route, method and counts for IAST.
+
+        https://feature-parity.us1.prod.dog/#/?feature=395
+        """
+        pytest.mark.features(feature_id=395)(test_object)
+        return test_object
+
+    @staticmethod
     def appsec_collect_all_headers(test_object):
         """Appsec collects all headers
 
         https://feature-parity.us1.prod.dog/#/?feature=390
         """
         pytest.mark.features(feature_id=390)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_collect_request_body(test_object):
+        """Appsec collects request body
+
+        https://feature-parity.us1.prod.dog/#/?feature=391
+        """
+        pytest.mark.features(feature_id=391)(test_object)
+        return test_object
+
+    @staticmethod
+    def referrer_hostname(test_object):
+        """Enforces standardized behaviors for configurations across the tracing libraries.
+
+        https://feature-parity.us1.prod.dog/#/?feature=396
+        """
+        pytest.mark.features(feature_id=396)(test_object)
+        return test_object
+
+    @staticmethod
+    def baggage_span_tags(test_object):
+        """Automatically add baggage to span tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=470
+        """
+        pytest.mark.features(feature_id=470)(test_object)
+        return test_object
+
+    @staticmethod
+    def remote_config_semantic_versioning(test_object):
+        """Semantic version 2 is reported in remote config
+
+        https://feature-parity.us1.prod.dog/#/?feature=472
+        """
+        pytest.mark.features(feature_id=472)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_rc_asm_dd_multiconfig(test_object):
+        """Appsec supports multiple configurations through ASM_DD
+
+        https://feature-parity.us1.prod.dog/#/?feature=473
+        """
+        pytest.mark.features(feature_id=473)(test_object)
         return test_object
 
 

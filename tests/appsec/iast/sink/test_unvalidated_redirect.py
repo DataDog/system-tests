@@ -48,6 +48,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     @missing_feature(library="dotnet", reason="weblog does not respond")
     @missing_feature(library="java", reason="weblog does not respond")
     @missing_feature(library="nodejs", reason="weblog does not respond")
+    @missing_feature(library="python", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 

@@ -107,12 +107,8 @@ class Test_SamplingRates:
             self.paths.append(p)
             weblog.get(p)
 
-    @flaky(
-        context.library == "nodejs"
-        and context.weblog_variant in ("express4", "express5", "uds-express4", "express4-typescript"),
-        reason="APMAPI-1252",
-    )
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
+    @flaky(context.library >= "nodejs@5.55.0", reason="APMAPI-1441")
     def test_sampling_rates(self):
         """Basic test"""
         assert_all_traces_requests_forwarded(self.paths)

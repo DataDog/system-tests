@@ -240,7 +240,8 @@
                     ],
                     "dotnet": [
                         "test-app-dotnet",
-                        "test-app-dotnet-container"
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
                     ],
                     "ruby": [
                         "test-app-ruby",
@@ -528,7 +529,8 @@
                     "ubuntu21",
                     "centos_7_amd64",
                     "debian",
-                    "amazon_linux2022"
+                    "amazon_linux2022",
+                    "windows"
                 ],
                 "excluded_os_names": [
                     "Ubuntu_24_10_amd64",
@@ -572,8 +574,8 @@
             },
             {
                 "name": "test-app-dotnet-iis",
-                "excluded_os_types": [
-                    "linux"
+                "exact_os_branches": [
+                    "windows"
                 ]
             }
         ],

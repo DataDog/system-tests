@@ -60,9 +60,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
     parser.addoption(
-        "--k8s-cluster-version", type=str, action="store", help="DEPRECATED. Set the datadog cluster version"
-    )
-    parser.addoption(
         "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
     )
 

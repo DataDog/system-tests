@@ -1,0 +1,145 @@
+$schema: http://json-schema.org/draft-07/schema#
+title: AWS SSI Scenario Provision Schema
+description: Schema for validating AWS SSI scenario provision YAML files
+type: object
+
+properties:
+  # Optional: Environment variables section
+  init-environment:
+    description: Environment variables that will be available during the installation process
+    oneOf:
+      - type: string
+        pattern: "^!include\\s+"
+        description: Include directive referencing external YAML file
+      - type: array
+        items:
+          type: object
+          properties:
+            env:
+              type: string
+              enum: ["dev", "prod"]
+              description: Environment name (dev/prod)
+          additionalProperties:
+            type: string
+            description: Environment variable value
+          required: ["env"]
+        minItems: 1
+
+  # Mandatory: Scripts to extract installed component versions
+  tested_components:
+    type: object
+    properties:
+      install:
+        oneOf:
+          - type: string
+            pattern: "^!include\\s+"
+            description: Include directive referencing external YAML file
+          - type: array
+            items:
+              $ref: "#/definitions/installCommand"
+            minItems: 1
+    required: ["install"]
+    additionalProperties: false
+
+  # Optional: VM logs extraction
+  vm_logs:
+    type: object
+    properties:
+      install:
+        oneOf:
+          - type: string
+            pattern: "^!include\\s+"
+            description: Include directive referencing external YAML file
+          - type: array
+            items:
+              $ref: "#/definitions/installCommand"
+            minItems: 1
+    required: ["install"]
+    additionalProperties: false
+
+  # Mandatory: Steps to provision VM
+  provision_steps:
+    type: array
+    items:
+      type: string
+      description: Name of the provision step
+    minItems: 1
+    description: Ordered list of provision steps to execute
+
+# Pattern properties for installation steps referenced in provision_steps
+patternProperties:
+  "^[a-zA-Z][a-zA-Z0-9_-]*$":
+    type: object
+    properties:
+      cache:
+        type: boolean
+        description: Whether this step can be cached for faster execution
+      populate_env:
+        type: boolean
+        description: Whether to populate environment variables for this step
+      install:
+        oneOf:
+          - type: string
+            pattern: "^!include\\s+"
+            description: Include directive referencing external YAML file
+          - type: array
+            items:
+              $ref: "#/definitions/installCommand"
+            minItems: 1
+    required: ["install"]
+    additionalProperties: false
+
+required:
+  - tested_components
+  - provision_steps
+
+definitions:
+  installCommand:
+    type: object
+    properties:
+      os_type:
+        type: string
+        enum: ["linux", "windows", "macos"]
+        description: Target operating system type
+      os_distro:
+        type: string
+        enum: ["rpm", "deb", "alpine", "arch"]
+        description: Operating system distribution type
+      os_branch:
+        type: string
+        description: Specific OS branch (e.g., centos_7_amd64, fedora, oracle_linux)
+      os_cpu:
+        type: string
+        enum: ["amd64", "arm64", "x86"]
+        description: Target CPU architecture
+      remote-command:
+        type: string
+        description: Command to execute on the remote virtual machine
+      local-command:
+        type: string
+        description: Command to execute on the local machine
+      copy_files:
+        type: array
+        items:
+          type: object
+          properties:
+            name:
+              type: string
+              description: Name identifier for this file copy operation
+            local_path:
+              type: string
+              description: Path to the local file to copy
+            remote_path:
+              type: string
+              description: Optional destination path on remote machine
+          required: ["name", "local_path"]
+          additionalProperties: false
+        description: Files to copy from local to remote machine
+    # At least one of these commands must be present
+    anyOf:
+      - required: ["remote-command"]
+      - required: ["local-command"]
+      - required: ["copy_files"]
+    additionalProperties: false
+
+additionalProperties: false 

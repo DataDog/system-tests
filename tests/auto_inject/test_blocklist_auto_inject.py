@@ -31,6 +31,7 @@ class _AutoInjectBlockListBaseTest:
 
 @features.host_block_list
 @scenarios.installer_auto_injection
+@irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
 class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
     builtin_args_commands_block = {
         "java": ["java -version", "MY_ENV_VAR=hello java -version"],

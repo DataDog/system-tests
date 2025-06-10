@@ -15,9 +15,14 @@ from utils._context.containers import (
     MountInjectionVolume,
     create_inject_volume,
     TestedContainer,
-    _get_client as get_docker_client,
 )
 
+from utils.k8s.k8s_component_image import (
+    K8sComponentImage,
+    extract_library_version,
+    extract_injector_version,
+    extract_cluster_agent_version,
+)
 from utils._logger import logger
 from .core import Scenario, scenario_groups
 
@@ -54,42 +59,32 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
             self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
             self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
         self.k8s_weblog = config.option.k8s_weblog
-        self.k8s_weblog_img = config.option.k8s_weblog_img
-        # By default we are going to use kind cluster provider
-        self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
-        # Get Lib init version
-        self._library = ComponentVersion(
-            config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
+        # Get component images: weblog, lib init, cluster agent, injector
+        self.k8s_weblog_img = K8sComponentImage(config.option.k8s_weblog_img, lambda _: "weblog-version-1.0")
+
+        self.k8s_lib_init_img = K8sComponentImage(config.option.k8s_lib_init_img, extract_library_version)
+
+        self.k8s_cluster_img = K8sComponentImage(config.option.k8s_cluster_img, extract_cluster_agent_version)
+
+        self.k8s_injector_img = K8sComponentImage(
+            config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest",
+            extract_injector_version,
         )
-        self.k8s_lib_init_img = config.option.k8s_lib_init_img
+
+        # Get component versions: lib init, cluster agent, injector
+        self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
-
-        # Cluster agent version
-        if config.option.k8s_cluster_version is not None and config.option.k8s_cluster_img is not None:
-            raise ValueError("You mustn't set both k8s_cluster_version and k8s_cluster_img")
-        if config.option.k8s_cluster_version is None and config.option.k8s_cluster_img is None:
-            raise ValueError("You must set either k8s_cluster_version or k8s_cluster_img")
-        if config.option.k8s_cluster_version is not None:
-            logger.stdout("WARNING: The k8s_cluster_version is going to be deprecated, use k8s_cluster_img instead")
-            self.k8s_cluster_img = None
-            self.k8s_cluster_version = config.option.k8s_cluster_version
-            self.components["cluster_agent"] = self.k8s_cluster_version
-        else:
-            self.k8s_cluster_img = config.option.k8s_cluster_img
-            self.k8s_cluster_version = extract_cluster_agent_version(self.k8s_cluster_img)
-            self.components["cluster_agent"] = self.k8s_cluster_version
-
-        # Injector image version
-        self.k8s_injector_img = (
-            config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest"
-        )
-        self._datadog_apm_inject_version = f"v{extract_injector_version(self.k8s_injector_img)}"
+        self.components["cluster_agent"] = self.k8s_cluster_img.version
+        self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
         self.components["datadog-apm-inject"] = self._datadog_apm_inject_version
 
         # Configure the K8s cluster provider
+        # By default we are going to use kind cluster provider
+        self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
         self.k8s_cluster_provider.configure()
         self.print_context()
@@ -103,17 +98,17 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
-            dd_cluster_version=self.k8s_cluster_version,
-            dd_cluster_img=self.k8s_cluster_img,
+            dd_cluster_version=self.k8s_cluster_img.version,
+            dd_cluster_img=self.k8s_cluster_img.registry_url,
             api_key=self._api_key if self.with_datadog_operator else None,
             app_key=self._app_key if self.with_datadog_operator else None,
         )
         # Weblog handler (the lib init and injector imgs are set in weblog/pod as annotations)
         self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img,
+            self.k8s_weblog_img.registry_url,
             self.library.name,
-            self.k8s_lib_init_img,
-            self.k8s_injector_img,
+            self.k8s_lib_init_img.registry_url,
+            self.k8s_injector_img.registry_url,
             self.host_log_folder,
         )
         self.test_weblog.configure(
@@ -123,13 +118,13 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     def print_context(self):
         logger.stdout(f".:: K8s Lib injection test components ::.")
         logger.stdout(f"Weblog: {self.k8s_weblog}")
-        logger.stdout(f"Weblog image: {self.k8s_weblog_img}")
+        logger.stdout(f"Weblog image: {self.k8s_weblog_img.registry_url}")
         logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"Lib init image: {self.k8s_lib_init_img}")
-        logger.stdout(f"Cluster agent version: {self.k8s_cluster_version}")
-        logger.stdout(f"Cluster agent image: {self.k8s_cluster_img}")
+        logger.stdout(f"Lib init image: {self.k8s_lib_init_img.registry_url}")
+        logger.stdout(f"Cluster agent version: {self.k8s_cluster_img.version}")
+        logger.stdout(f"Cluster agent image: {self.k8s_cluster_img.registry_url}")
         logger.stdout(f"Injector version: {self._datadog_apm_inject_version}")
-        logger.stdout(f"Injector image: {self.k8s_injector_img}")
+        logger.stdout(f"Injector image: {self.k8s_injector_img.registry_url}")
 
     def get_warmups(self):
         warmups = super().get_warmups()
@@ -170,7 +165,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
 
     @property
     def k8s_cluster_agent_version(self):
-        return Version(self.k8s_cluster_version)
+        return Version(self.k8s_cluster_img.version)
 
     @property
     def dd_apm_inject_version(self):
@@ -196,18 +191,20 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
 
     def configure(self, config: pytest.Config):
         self.k8s_weblog = config.option.k8s_weblog
-        self.k8s_weblog_img = config.option.k8s_weblog_img
-        # By default we are going to use kind cluster provider
-        self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
 
-        # Get Lib init version
-        self._library = ComponentVersion(
-            config.option.k8s_library, extract_library_version(config.option.k8s_lib_init_img)
+        self.k8s_weblog_img = K8sComponentImage(
+            config.option.k8s_weblog_img,
+            lambda _: "weblog-version-1.0",  # Always returns a fixed version
         )
-        self.k8s_lib_init_img = config.option.k8s_lib_init_img
+
+        self.k8s_lib_init_img = K8sComponentImage(config.option.k8s_lib_init_img, extract_library_version)
+        # Get Lib init version
+        self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = str(self._library)
 
         # Configure the K8s cluster provider
+        # By default we are going to use kind cluster provider
+        self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
         self.k8s_cluster_provider.configure()
         self.print_context()
@@ -220,9 +217,9 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
         self.k8s_datadog.configure(self.k8s_cluster_provider.get_cluster_info())
         # Weblog handler
         self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img,
+            self.k8s_weblog_img.registry_url,
             self.library.name,
-            self.k8s_lib_init_img,
+            self.k8s_lib_init_img.registry_url,
             None,
             self.host_log_folder,
         )
@@ -232,9 +229,9 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
 
     def print_context(self):
         logger.stdout(f"K8s Weblog: {self.k8s_weblog}")
-        logger.stdout(f"K8s Weblog image: {self.k8s_weblog_img}")
+        logger.stdout(f"K8s Weblog image: {self.k8s_weblog_img.registry_url}")
         logger.stdout(f"Library: {self._library}")
-        logger.stdout(f"K8s Lib init image: {self.k8s_lib_init_img}")
+        logger.stdout(f"K8s Lib init image: {self.k8s_lib_init_img.registry_url}")
 
     def get_warmups(self):
         warmups = []
@@ -282,22 +279,22 @@ class K8sSparkScenario(K8sScenario):
 
     def configure(self, config: pytest.Config):
         super().configure(config)
-        self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img
+        self.weblog_env["LIB_INIT_IMAGE"] = self.k8s_lib_init_img.registry_url
 
         self.k8s_datadog = K8sDatadog(self.host_log_folder)
         self.k8s_datadog.configure(
             self.k8s_cluster_provider.get_cluster_info(),
             dd_cluster_feature=self.dd_cluster_feature,
             dd_cluster_uds=self.use_uds,
-            dd_cluster_version=self.k8s_cluster_version,
-            dd_cluster_img=self.k8s_cluster_img,
+            dd_cluster_version=self.k8s_cluster_img.version,
+            dd_cluster_img=self.k8s_cluster_img.registry_url,
         )
 
         self.test_weblog = K8sWeblog(
-            self.k8s_weblog_img,
+            self.k8s_weblog_img.registry_url,
             self.library.name,
-            self.k8s_lib_init_img,
-            self.k8s_injector_img,
+            self.k8s_lib_init_img.registry_url,
+            self.k8s_injector_img.registry_url,
             self.host_log_folder,
         )
         self.test_weblog.configure(
@@ -388,50 +385,3 @@ class WeblogInjectionScenario(Scenario):
     @property
     def weblog_variant(self):
         return self._weblog_variant
-
-
-def extract_library_version(library_init_image):
-    """Pull the library init image and extract the version of the library"""
-    logger.info("Get lib init tracer version")
-    try:
-        lib_init_docker_image = get_docker_client().images.pull(library_init_image)
-        result = get_docker_client().containers.run(
-            image=lib_init_docker_image, command=f"cat /datadog-init/package/version", remove=True
-        )
-        version = result.decode("utf-8")
-        logger.info(f"Library version: {version}")
-        return version
-    except Exception as e:
-        logger.error(f"The library init image failed to pull is: {library_init_image}")
-        raise ValueError(f"Failed to pull and extract library version: {e}")
-
-
-def extract_injector_version(injector_image):
-    """Pull the injector image and extract the version of the injector"""
-    logger.info(f"Get injector version from image: {injector_image}")
-    try:
-        injector_docker_image = get_docker_client().images.pull(injector_image)
-        # TODO review this. The version is a folder name under /opt/datadog-packages/datadog-apm-inject/
-        result = get_docker_client().containers.run(
-            image=injector_docker_image, command="ls /opt/datadog-packages/datadog-apm-inject/", remove=True
-        )
-        version = result.decode("utf-8").split("\n")[0]
-
-        logger.info(f"Injector version: {version}")
-        return version
-    except Exception as e:
-        logger.error(f"The failed injector image failed to pull is: {injector_image}")
-        raise ValueError(f"Failed to pull and extract injector version: {e}")
-
-
-def extract_cluster_agent_version(cluster_image):
-    """Pull the datadog cluster image  and extract the version from labels"""
-    logger.info("Get cluster agent version")
-    try:
-        cluster_docker_image = get_docker_client().images.pull(cluster_image)
-        version = cluster_docker_image.labels["org.opencontainers.image.version"]
-        logger.info(f"Cluster agent version: {version}")
-        return version
-    except Exception as e:
-        logger.error(f"The cluster agent images tried to pull is: {cluster_image}")
-        raise ValueError(f"Failed to pull and extract cluster agent version: {e}")
