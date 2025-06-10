@@ -987,8 +987,12 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         time.sleep(4)  # Wait for the sampling window to expire
 
         self.endpoint = "/api_security/sampling/200"
-        self.window1_request1 = weblog.get(self.endpoint, headers=self._get_headers())
-        self.window1_request2 = weblog.get(self.endpoint, headers=self._get_headers())
+
+        with weblog.get_session() as session:
+            # using a weblog session to ensure requests are sent to the same thread
+            self.window1_request1 = session.get(self.endpoint, headers=self._get_headers())
+            self.window1_request2 = session.get(self.endpoint, headers=self._get_headers())
+
         time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
         self.window2_request1 = weblog.get(self.endpoint, headers=self._get_headers())
 
