@@ -132,20 +132,11 @@ namespace weblog
             throw new System.StackOverflowException("stackoverflow");
         }
 
-        private static bool _firstHitExceptionThrown = false;
-
         [HttpGet("firsthit")]
         [Consumes("application/json", "application/xml")]
         public IActionResult ExceptionReplayFirstHit()
         {
-            if (!_firstHitExceptionThrown)
-            {
-                _firstHitExceptionThrown = true;
-                throw new System.InvalidOperationException("firsthit");
-            }
-
-            return Content("Exception was already thrown on first hit, no exception on subsequent calls");
+            throw new System.InvalidOperationException("firsthit");
         }
-
     }
 }

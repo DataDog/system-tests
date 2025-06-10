@@ -525,7 +525,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_outofmemory(self):
         self._setup_no_capture_exception("outofmemory")
 
-    @irrelevant(context.library != "dotnet", reason="Test specific for.NET")
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
     def test_exception_replay_outofmemory(self):
         self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
 
@@ -533,7 +533,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_stackoverflow(self):
         self._setup_no_capture_exception("stackoverflow")
 
-    @irrelevant(context.library != "dotnet", reason="Test specific for.NET")
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
     @bug(context.library == "dotnet", reason="DEBUG-3999")
     def test_exception_replay_stackoverflow(self):
         self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
@@ -542,6 +542,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def setup_exception_replay_firsthit(self):
         self._setup_no_capture_exception("firsthit")
 
-    @irrelevant(context.library != "dotnet", reason="Test specific for.NET")
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
     def test_exception_replay_firsthit(self):
         self._test_no_capture_exception("firsthit", "FirstOccurrence")
