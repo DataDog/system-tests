@@ -10,9 +10,12 @@ Validation Pattern Syntax:
 
 Usage:
     python ai_benchmark_validate_responses.py
+    python ai_benchmark_validate_responses.py end_to_end
+    python ai_benchmark_validate_responses.py --validation-type end_to_end
 """
 
 import re
+import argparse
 from pathlib import Path
 from dataclasses import dataclass
 from rich.console import Console
@@ -260,8 +263,44 @@ def print_validation_report(results: list[ValidationResult]) -> None:
 
 def main() -> None:
     """Main function to run the validation."""
+    parser = argparse.ArgumentParser(
+        description="Validate AI benchmark responses against expected patterns",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python ai_benchmark_validate_responses.py
+  python ai_benchmark_validate_responses.py end_to_end
+  python ai_benchmark_validate_responses.py --validation-type parametric
+        """,
+    )
+    parser.add_argument(
+        "validation_type",
+        nargs="?",
+        default="",
+        help=(
+            "Type of validation to use (e.g., 'end_to_end', 'parametric'). "
+            "If not specified, uses default validation file."
+        ),
+    )
+    parser.add_argument(
+        "--validation-type",
+        dest="validation_type_flag",
+        help="Alternative way to specify validation type using flag format",
+    )
+
+    args = parser.parse_args()
+
+    # Determine validation type (prioritize flag over positional argument)
+    validation_type = args.validation_type_flag or args.validation_type
+
     script_dir = Path(__file__).parent
-    validation_file = script_dir / "ai_benchmarks_validations.txt"
+
+    # Construct validation file path based on validation type
+    if validation_type:
+        validation_file = script_dir / f"ai_benchmarks_{validation_type}_validations.txt"
+    else:
+        validation_file = script_dir / "ai_benchmarks_validations.txt"
+
     responses_file = Path("logs/responses.txt")
 
     if not validation_file.exists():
@@ -272,11 +311,14 @@ def main() -> None:
         rprint(f"[red]Error: Responses file not found at {responses_file}[/red]")
         return
 
+    # Print which validation file is being used
+    console = Console()
+    console.print(f"[bold yellow]Using validation file:[/bold yellow] {validation_file}")
+
     validations = read_validation_file(validation_file)
     responses = read_responses_file(responses_file)
 
     # Debug information
-    console = Console()
     console.print("\n[bold yellow]Debug Information:[/bold yellow]")
     console.print("\n[bold]Validation Questions:[/bold]")
     for q in validations:

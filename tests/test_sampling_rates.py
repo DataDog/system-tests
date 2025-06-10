@@ -9,7 +9,7 @@ from random import randint, seed
 from typing import Any
 from urllib.parse import urlparse
 
-from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger
+from utils import weblog, interfaces, context, scenarios, features, missing_feature, logger, flaky
 from utils.dd_constants import SamplingPriority
 
 """Those are the constants used by the sampling algorithm in all the tracers
@@ -108,6 +108,7 @@ class Test_SamplingRates:
             weblog.get(p)
 
     @missing_feature(library="cpp_httpd", reason="/sample_rate_route is not implemented")
+    @flaky(context.library >= "nodejs@5.55.0", reason="APMAPI-1441")
     def test_sampling_rates(self):
         """Basic test"""
         assert_all_traces_requests_forwarded(self.paths)
