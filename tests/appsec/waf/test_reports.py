@@ -188,7 +188,7 @@ class Test_Monitoring:
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenarios.appsec_rules_monitoring_with_errors
-    @bug(library="golang", reason="missing spans")
+    @bug(library="golang", reason="LANGPLAT-584")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point

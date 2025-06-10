@@ -188,7 +188,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
 
-    @bug(library="golang", reason="missing headers in span's meta, unable to reproduce in main")
+    @bug(library="golang", reason="LANGPLAT-583")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on login success SDK
 
