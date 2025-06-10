@@ -217,7 +217,6 @@ func main() {
 		}
 
 		appsec.TrackUserLoginSuccess(ctx.Request.Context(), data.Login, data.UserID, data.Metadata)
-		ctx.Status(http.StatusNoContent)
 	})
 
 	r.GET("/user_login_failure_event", func(ctx *gin.Context) {
@@ -257,7 +256,6 @@ func main() {
 		}
 
 		appsec.TrackUserLoginFailure(ctx.Request.Context(), data.Login, exists, data.Metadata)
-		ctx.Status(http.StatusNoContent)
 	})
 
 	r.GET("/custom_event", func(ctx *gin.Context) {

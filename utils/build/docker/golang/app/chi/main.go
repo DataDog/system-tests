@@ -233,7 +233,6 @@ func main() {
 		}
 
 		appsec.TrackUserLoginSuccess(r.Context(), data.Login, data.UserID, data.Metadata)
-		w.WriteHeader(http.StatusNoContent)
 	})
 
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
@@ -274,7 +273,6 @@ func main() {
 		}
 
 		appsec.TrackUserLoginFailure(r.Context(), data.Login, exists, data.Metadata)
-		w.WriteHeader(http.StatusNoContent)
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
