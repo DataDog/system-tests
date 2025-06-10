@@ -671,5 +671,6 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0
