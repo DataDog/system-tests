@@ -8,6 +8,9 @@ RUN apt-get update && apt-get -y install jq
 
 # build application binary
 COPY utils/build/docker/golang/app/ /app/
+# Note: this is a workaround to avoid the orchestrion build to fail, as using
+# WORKDIR /app will fail with the following error:
+# main module (systemtests.weblog) does not contain package systemtests.weblog/net-http-orchestrion
 WORKDIR /app/net-http-orchestrion
 
 ENV GOCACHE=/root/.cache/go-build \
@@ -27,7 +30,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 FROM golang:1.23
 
 COPY --from=build /app/weblog /app/weblog
-COPY --from=build /app/*_VERSION /app/
+COPY --from=build /app/net-http-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 
 WORKDIR /app
 
