@@ -70,10 +70,9 @@ async fn start_span(
     }
 
     // hack to prevent libdatadog from dropping trace chunks
-    builder = builder.with_attributes(vec![opentelemetry::KeyValue::new(
-        "_dd.top_level".to_string(),
-        1,
-    )]);
+    let mut attributes = vec![opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1)];
+    attributes.append(&mut parse_attributes(args.attributes.as_ref()));
+    builder = builder.with_attributes(attributes);
 
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let spans = state.contexts.lock().unwrap();
