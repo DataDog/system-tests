@@ -821,5 +821,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1
