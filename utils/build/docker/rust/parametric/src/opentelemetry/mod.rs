@@ -49,7 +49,7 @@ async fn start_span(
         }
     }
     if let Some(timestamp) = args.timestamp {
-        builder = builder.with_start_time(system_time_from_millis(timestamp));
+        builder = builder.with_start_time(system_time_from_micros(timestamp));
     }
     if let Some(links) = args.links {
         let mut valid_links = vec![];
@@ -69,8 +69,13 @@ async fn start_span(
         }
     }
 
-    // hack to prevent libdatadog from dropping trace chunks
-    let mut attributes = vec![opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1)];
+    let mut attributes = vec![
+        // hack to prevent libdatadog from dropping trace chunks
+        opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1),
+
+        // hack to fix some test_otel_span_methods.py with wrong resorce name
+        opentelemetry::KeyValue::new("datadog.resource".to_string(), args.name),
+    ];
     attributes.append(&mut parse_attributes(args.attributes.as_ref()));
     builder = builder.with_attributes(attributes);
 
@@ -235,7 +240,7 @@ async fn add_event(State(state): State<AppState>, Json(args): Json<AddEventArgs>
         if let Some(timestamp) = args.timestamp {
             span.add_event_with_timestamp(
                 args.name,
-                system_time_from_millis(timestamp),
+                system_time_from_micros(timestamp),
                 parse_attributes(args.attributes.as_ref()),
             );
         } else {
@@ -262,7 +267,7 @@ async fn end_span(State(state): State<AppState>, Json(args): Json<EndSpanArgs>) 
         let span = ctx.span();
         debug!("end_span: span {span_id:?} found");
         if let Some(timestamp) = args.timestamp {
-            span.end_with_timestamp(system_time_from_millis(timestamp));
+            span.end_with_timestamp(system_time_from_micros(timestamp));
         } else {
             span.end();
         }

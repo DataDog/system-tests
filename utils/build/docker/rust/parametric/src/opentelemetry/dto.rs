@@ -160,11 +160,11 @@ impl StartSpanResult {
     }
 }
 
-pub fn system_time_from_millis(millis: i64) -> SystemTime {
-    if millis >= 0 {
-        UNIX_EPOCH + Duration::from_millis(millis as u64)
+pub fn system_time_from_micros(micros: i64) -> SystemTime {
+    if micros >= 0 {
+        UNIX_EPOCH + Duration::from_micros(micros as u64)
     } else {
-        UNIX_EPOCH - Duration::from_millis((-millis) as u64)
+        UNIX_EPOCH - Duration::from_micros((-micros) as u64)
     }
 }
 
