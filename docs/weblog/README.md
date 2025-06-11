@@ -1,7 +1,7 @@
-# Weblog
+# End-to-End Weblogs
 
 A weblog is a web app that system uses to test the library. It mimics what would be a real instrumented HTTP application. A weblog app is required for each platform that the system tests will test. The weblog must implement a number of different endpoints.
-Weblog implementations are located in `utils/docker/`.
+Weblog implementations are located in `utils/docker/<language>`.
 
 > Note: a separate document describes [GraphQL Weblog](./graphql_weblog.md).
 
@@ -108,7 +108,6 @@ The response body may contain the following text:
 OK\n
 ```
 
-
 ### GET /spans
 
 The endpoint may accept two query string parameters:
@@ -187,7 +186,6 @@ Then the response should contain json with the format:
 
 where payload is the parsed body of the request
 
-
 Make sure to specify the Content-Type header as `application/json`
 
 #### Example
@@ -195,6 +193,7 @@ Make sure to specify the Content-Type header as `application/json`
 ```
 /tag_value/tainted_value/418?Content-Language=fr&custom_field=myvalue
 ```
+
 must set the appropriate tag in the span to `tainted_value` and return a response with the teapot code with response headers populated with `Content-Language=fr` and `custom_field=myvalue`.
 
 The goal is to be able to easily test if a request was blocked before reaching the server code or after by looking at the span and also test security rules on response status code or response header content.
@@ -332,6 +331,7 @@ A GET request using a cookie with name `table` and any value. The value must be 
 A GET request using a cookie with name `table` and any value. The name must be used in the vulnerability.
 
 #### POST /iast/source/multipart/test
+
 A multipart request uploading a file (with a file name).
 
 #### POST /iast/source/body/test
@@ -409,25 +409,27 @@ This endpoint executes database queries for [DBM supported libraries](https://do
 is executed successfully.
 
 Expected SQL query:
+
 - For SqlServer: `SELECT @@version`
 - For PostgreSQL & MySQL: `SELECT version()`
 
 Expected query params:
-  - `integration`: Name of DBM supported library
-    - Possible Values: `psycopg`
-  - `operation`: Method used to execute database statements
-    - Possible Values: `execute`, `executemany`
 
+- `integration`: Name of DBM supported library
+  - Possible Values: `psycopg`
+- `operation`: Method used to execute database statements
+  - Possible Values: `execute`, `executemany`
 
 Supported Libraries:
-  - Python:
-    - [pyscopg](https://www.psycopg.org/docs/index.html) (Python PostgreSQL adapter)
-  - .NET:
-    - [npgsql](https://www.nuget.org/packages/npgsql) (ADO.NET Data Provider for PostgreSQL)
-    - [mysql](https://www.nuget.org/packages/MySql.Data) (ADO.NET driver for MySQL)
-  - PHP:
-    - [pdo](https://www.php.net/manual/en/book.pdo.php) (Data Objects for accessing multiple databases)
-    - [mysqli](https://www.php.net/manual/en/book.mysqli.php) (Extension that interacts with MySQL)
+
+- Python:
+  - [pyscopg](https://www.psycopg.org/docs/index.html) (Python PostgreSQL adapter)
+- .NET:
+  - [npgsql](https://www.nuget.org/packages/npgsql) (ADO.NET Data Provider for PostgreSQL)
+  - [mysql](https://www.nuget.org/packages/MySql.Data) (ADO.NET driver for MySQL)
+- PHP:
+  - [pdo](https://www.php.net/manual/en/book.pdo.php) (Data Objects for accessing multiple databases)
+  - [mysqli](https://www.php.net/manual/en/book.mysqli.php) (Extension that interacts with MySQL)
 
 ### GET /dsm
 
@@ -436,102 +438,113 @@ if the produce and consume calls for the specified tech are started successfully
 be returned.
 
 Expected query params:
-  - `integration`: Name of messaging tech
-    - Possible Values: `kafka`, `rabbitmq`, `sqs`, `kinesis`, `sns`
-  - `message`: Specific message to produce and consume
-  - `topic`: Name of messaging topic (if using `integration=sns`)
-  - `queue`: Name of messaging queue (if using `integration=kafka|rabbitmq|sqs|sns (for sns->sqs tests)`)
-  - `stream`: Name of messaging stream (if using `integration=kinesis`)
-  - `exchange`: Name of messaging exchange (if using `integration=rabbitmq`)
-  - `routingKey`: Name of message routing key (if using `integration=rabbitmq`)
-  - `timeout`: Timeout in seconds
+
+- `integration`: Name of messaging tech
+  - Possible Values: `kafka`, `rabbitmq`, `sqs`, `kinesis`, `sns`
+- `message`: Specific message to produce and consume
+- `topic`: Name of messaging topic (if using `integration=sns`)
+- `queue`: Name of messaging queue (if using `integration=kafka|rabbitmq|sqs|sns (for sns->sqs tests)`)
+- `stream`: Name of messaging stream (if using `integration=kinesis`)
+- `exchange`: Name of messaging exchange (if using `integration=rabbitmq`)
+- `routingKey`: Name of message routing key (if using `integration=rabbitmq`)
+- `timeout`: Timeout in seconds
 
 ### GET /kafka/produce
 
 This endpoint triggers Kafka producer calls.
 
 Expected query params:
-  - `topic`: Name of the Kafka topic to which the message will be produced.
+
+- `topic`: Name of the Kafka topic to which the message will be produced.
 
 ### GET /kafka/consume
 
 This endpoint triggers Kafka consumer calls.
 
 Expected query params:
-  - `topic`: Name of the Kafka topic from which the message will be consumed.
-  - `timeout`: Timeout in seconds for the consumer operation.
+
+- `topic`: Name of the Kafka topic from which the message will be consumed.
+- `timeout`: Timeout in seconds for the consumer operation.
 
 ### GET /sqs/produce
 
 This endpoint triggers SQS producer calls.
 
 Expected query params:
-  - `queue`: Name of the SQS queue to which the message will be produced.
-  - `message`: Specific message to be produced to the SQS queue.
+
+- `queue`: Name of the SQS queue to which the message will be produced.
+- `message`: Specific message to be produced to the SQS queue.
 
 ### GET /sqs/consume
 
 This endpoint triggers SQS consumer calls.
 
 Expected query params:
-  - `queue`: Name of the SQS queue from which the message will be consumed.
-  - `timeout`: Timeout in seconds for the consumer operation.
-  - `message`: Specific message to be consumed from the SQS queue.
+
+- `queue`: Name of the SQS queue from which the message will be consumed.
+- `timeout`: Timeout in seconds for the consumer operation.
+- `message`: Specific message to be consumed from the SQS queue.
 
 ### GET /sns/produce
 
 This endpoint triggers SNS producer calls.
 
 Expected query params:
-  - `queue`: Name of the SQS queue associated with the SNS topic for message production.
-  - `topic`: Name of the SNS topic to which the message will be produced.
-  - `message`: Specific message to be produced to the SNS topic.
+
+- `queue`: Name of the SQS queue associated with the SNS topic for message production.
+- `topic`: Name of the SNS topic to which the message will be produced.
+- `message`: Specific message to be produced to the SNS topic.
 
 ### GET /sns/consume
 
 This endpoint triggers SNS consumer calls.
 
 Expected query params:
-  - `queue`: Name of the SQS queue associated with the SNS topic for message consumption.
-  - `timeout`: Timeout in seconds for the consumer operation.
-  - `message`: Specific message to be consumed from the SNS topic.
+
+- `queue`: Name of the SQS queue associated with the SNS topic for message consumption.
+- `timeout`: Timeout in seconds for the consumer operation.
+- `message`: Specific message to be consumed from the SNS topic.
 
 ### GET /kinesis/produce
 
 This endpoint triggers Kinesis producer calls.
 
 Expected query params:
-  - `stream`: Name of the Kinesis stream to which the message will be produced.
-  - `timeout`: Timeout in seconds for the producer operation.
-  - `message`: Specific message to be produced to the Kinesis stream.
+
+- `stream`: Name of the Kinesis stream to which the message will be produced.
+- `timeout`: Timeout in seconds for the producer operation.
+- `message`: Specific message to be produced to the Kinesis stream.
 
 ### GET /kinesis/consume
 
 This endpoint triggers Kinesis consumer calls.
 
 Expected query params:
-  - `stream`: Name of the Kinesis stream from which the message will be consumed.
-  - `timeout`: Timeout in seconds for the consumer operation.
-  - `message`: Specific message to be consumed from the Kinesis stream.
+
+- `stream`: Name of the Kinesis stream from which the message will be consumed.
+- `timeout`: Timeout in seconds for the consumer operation.
+- `message`: Specific message to be consumed from the Kinesis stream.
 
 ### GET /rabbitmq/produce
 
 This endpoint triggers RabbitMQ producer calls.
 
 Expected query params:
-  - `queue`: Name of the RabbitMQ queue to which the message will be produced.
-  - `exchange`: Name of the RabbitMQ exchange to which the message will be produced.
-  - `routing_key`: Name of the RabbitMQ routing key for message production.
+
+- `queue`: Name of the RabbitMQ queue to which the message will be produced.
+- `exchange`: Name of the RabbitMQ exchange to which the message will be produced.
+- `routing_key`: Name of the RabbitMQ routing key for message production.
 
 ### GET /rabbitmq/consume
 
 This endpoint triggers RabbitMQ consumer calls.
 
 Expected query params:
-  - `queue`: Name of the RabbitMQ queue from which the message will be consumed.
-  - `exchange`: Name of the RabbitMQ exchange from which the message will be consumed.
-  - `routing_key`: Name of the RabbitMQ routing key for message consumption.
-  - `timeout`: Timeout in seconds for the consumer operation.
+
+- `queue`: Name of the RabbitMQ queue from which the message will be consumed.
+- `exchange`: Name of the RabbitMQ exchange from which the message will be consumed.
+- `routing_key`: Name of the RabbitMQ routing key for message consumption.
+- `timeout`: Timeout in seconds for the consumer operation.
 
 ### GET /dsm/manual/produce
 
@@ -540,8 +553,9 @@ base64 encoded context: `dd-pathway-ctx-base64`, which is returned within the re
 messages will be returned.
 
 Expected query params:
-  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
-  - `target`: Target queue name
+
+- `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+- `target`: Target queue name
 
 ### GET /dsm/manual/produce_with_thread
 
@@ -550,8 +564,9 @@ API works cross-thread.  A 200 response with "ok" is returned along with the bas
 `dd-pathway-ctx-base64`, which is returned within the response headers. Otherwise, error messages will be returned.
 
 Expected query params:
-  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
-  - `target`: Target queue name
+
+- `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+- `target`: Target queue name
 
 ### GET /dsm/manual/consume
 
@@ -560,8 +575,9 @@ should be included in the request headers under the `_datadog` header tag as a J
 text "ok" is returned upon success. Otherwise, error messages will be returned.
 
 Expected query params:
-  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
-  - `target`: Target queue name
+
+- `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+- `target`: Target queue name
 
 ### GET /dsm/manual/consume_with_thread
 
@@ -571,14 +587,16 @@ under the `_datadog` header tag as a JSON formatted string. A 200 response with 
 Otherwise, error messages will be returned.
 
 Expected query params:
-  - `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
-  - `target`: Target queue name
+
+- `type`: Type of DSM checkpoint, typically the system name such as 'kafka'
+- `target`: Target queue name
 
 ### GET /user_login_success_event
 
 This endpoint calls the appsec event tracking SDK function used for user login success.
 
 By default, the generated event has the following specification:
+
 - User ID: `system_tests_user`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
@@ -589,6 +607,7 @@ Values can be changed with the query params called `event_user_id`.
 This endpoint calls the appsec event tracking SDK function used for user login failure.
 
 By default, the generated event has the following specification:
+
 - User ID: `system_tests_user`
 - Exists: `true`
 - Metadata: `{metadata0: value0, metadata1: value1}`
@@ -600,6 +619,7 @@ Values can be changed with the query params called `event_user_id` and `event_us
 This endpoint calls the appsec event tracking SDK function used for custom events.
 
 By default, the generated event has the following specification:
+
 - Event name: `system_tests_event`
 - Metadata: `{metadata0: value0, metadata1: value1}`
 
@@ -611,6 +631,7 @@ This endpoint calls the v2 of appsec event tracking SDK function used for user l
 the data coming in the request body.
 
 The parameters in the body are:
+
 - `login`: String with the login data
 - `user_id`: String with user identifier
 - `metadata`: Objet with the metadata
@@ -621,6 +642,7 @@ This endpoint calls the v2 of appsec event tracking SDK function used for user l
 the data coming in the request body.
 
 The parameters in the body are:
+
 - `login`: String with the login data
 - `exists`: String with "true" or "false" value
 - `metadata`: Objet with the metadata
@@ -632,15 +654,16 @@ spans for routers such as AWS API Gateway. Not including the headers means a spa
 if the feature exists.
 
 The endpoint supports the following query parameters:
- - `status_code`: str containing status code to used in API response
+
+- `status_code`: str containing status code to used in API response
 
 The headers necessary to create a span with example values:
-  `x-dd-proxy-request-time-ms`: start time in milliseconds
-  `x-dd-proxy-path`: "/api/data",
-  `x-dd-proxy-httpmethod`: "GET",
-  `x-dd-proxy-domain-name`: "system-tests-api-gateway.com",
-  `x-dd-proxy-stage`: "staging",
-  `x-dd-proxy`: "aws-apigateway",
+`x-dd-proxy-request-time-ms`: start time in milliseconds
+`x-dd-proxy-path`: "/api/data",
+`x-dd-proxy-httpmethod`: "GET",
+`x-dd-proxy-domain-name`: "system-tests-api-gateway.com",
+`x-dd-proxy-stage`: "staging",
+`x-dd-proxy`: "aws-apigateway",
 
 ### GET /users
 
@@ -648,6 +671,7 @@ This endpoint calls the appsec blocking SDK functions used for blocking users. I
 the possible values the WAF will return the proper action.
 
 Expected query parameters:
+
 - `user`: user id.
   - Possible values: `blockedUser`
 
@@ -661,6 +685,7 @@ the `dependencies-loaded` event is appropriately triggered.
 This endpoint facilitates logging a message using a logging library. It is primarily designed for testing log injection functionality. Weblog apps must log using JSON format.
 
 The following query parameters are optional:
+
 - `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
 - `level`: Specifies the log level to be used. If not provided, the default log level is "info".
 
@@ -671,10 +696,12 @@ The spans created are not sub-spans of the main root span automatically created 
 they will have the same `user-agent` containing the request ID in order to allow assertions on them.
 
 The following query parameters are required:
+
 - `parentName`: The name of the parent span (root-span).
 - `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
 
 The following query parameters are optional:
+
 - `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
 
 This endpoint is used for the Single Spans tests (`test_single_span.py`).
@@ -686,23 +713,28 @@ The spans created are not sub-spans of the main root span automatically created 
 they will have the same `user-agent` containing the request ID in order to allow assertions on them.
 
 The following query parameters are required:
+
 - `parentName`: The name of the parent span (root-span).
 - `childName`: The name of the child span (the parent of this span is the root-span identified by `parentName`).
 
 The following query parameters are optional:
+
 - `shouldIndex`: Valid values are `1` and `0`. When `shouldIndex=1` is provided, special tags are added in the spans that will force their indexation in the APM backend, without explicit retention filters needed.
 
 This endpoint is used for the OTel API tests (`test_otel.py`). In the body of the endpoint, multiple properties are set on the span to verify that the API works correctly.
 To read more about the specific values being used, check `test_otel.py` for up-to-date information.
 
 ### \[GET,POST\] /login
+
 This endpoint is used to authenticate a user.
 Body fields accepted in POST method:
+
 - `username`: the login name for the user.
 - `password`: password for the user.
 
 It also supports HTTP authentication by using GET method and the authorization header.
 Additionally, both methods support the following query parameters to use the sdk functions along with the authentication framework:
+
 - `sdk_trigger`: when to call the sdk function, `after` or `before` the automated login event (by default `after`)
 - `sdk_event`: login event type: `success` or `failure`.
 - `sdk_user`: user id to be used in the sdk call.
@@ -710,36 +742,45 @@ Additionally, both methods support the following query parameters to use the sdk
 - `sdk_user_exists`: `true` of `false` to indicate whether the current user exists and populate the corresponding tag.
 
 ### \[POST\] /signup
+
 This endpoint is used to create a new user. Do not keep the user in memory for later use, only call the framework method to pretend to do so.
 Body fields accepted in POST method:
+
 - `username`: the login name for the user.
 - `password`: password for the user.
 
 Additionally, the method supports the following query parameters to use the sdk functions along with the authentication framework:
+
 - `sdk_event`: login event type: `signup`.
 - `sdk_user`: user id to be used in the sdk call.
 - `sdk_mail`: user's mail to be used in the sdk call.
 
 ### GET /debugger/*
+
 These endpoints are used for the `Dynamic Instrumentation` tests.
 
 #### GET /exceptionreplay/*
+
 These endpoints will be used for `Exception Replay` tests.
 
 ### GET /createextraservice
+
 should rename the trace service, creating a "fake" service
 
 The parameter `serviceName` is required and should be a string with the name for the fake service
 
 ### POST /shell_execution
+
 This endpoint is used to spawn a new process and test that shell execution span is properly sent.
 It supports the following body fields:
+
 - `command`: the program or script to be executed.
 - `options`: a record with the following options:
   - `shell`: boolean in order to instruct if the program should be executed within a shell.
 - `args`: arguments passed to the program.
 
 ### GET /flush
+
 This endpoint is OPTIONAL and not related to any test, but to the testing process. When called, it should flush any remaining data from the library to the respective outputs, usually the agent. See more in `docs/internals/flushing.md`.
 
 ### \[GET,POST\] /rasp/lfi
@@ -747,19 +788,23 @@ This endpoint is OPTIONAL and not related to any test, but to the testing proces
 This endpoint is used to test for local file inclusion / path traversal attacks, consequently it must perform an operation on a file or directory, e.g. `open` with a relative path. The chosen operation must be injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
+
 - `file`: containing the string to inject on the file operation.
 
 The endpoint should support the following content types in the `POST` method:
+
 - `application/x-www-form-urlencoded`
 - `application/xml`
 - `application/json`
 
 The chosen operation must use the file as provided, without any alterations, e.g.:
+
 ```
 open($file);
 ```
 
 Examples:
+
 - `GET`: `/rasp/lfi?file=../etc/passwd`
 - `POST`: `{"file": "../etc/passwd"}`
 
@@ -768,19 +813,23 @@ Examples:
 This endpoint is used to test for server side request forgery attacks, consequently it must perform a network operation, e.g. an HTTP request. The chosen operation must be partially injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
+
 - `domain`: containing the string to partially inject on the network operation.
 
 The endpoint should support the following content types:
+
 - `application/x-www-form-urlencoded`
 - `application/xml`
 - `application/json`
 
 The url used in the network operation should be similar to the following:
+
 ```
 http://$domain
 ```
 
 Examples:
+
 - `GET`: `/rasp/ssrf?domain=169.254.169.254`
 - `POST`: `{"domain": "169.254.169.254"}`
 
@@ -789,9 +838,11 @@ Examples:
 This endpoint is used to test for SQL injection attacks, consequently it must perform a database query. The chosen operation must be partially injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
+
 - `user_id`: containing the string to partially inject on the SQL query.
 
 The endpoint should support the following content types:
+
 - `application/x-www-form-urlencoded`
 - `application/xml`
 - `application/json`
@@ -803,10 +854,12 @@ SELECT * FROM users WHERE id='$user_id';
 ```
 
 Examples:
+
 - `GET`: `/rasp/ssrf?user_id="' OR 1 = 1 --"`
 - `POST`: `{"user_id": "' OR 1 = 1 --"}`
 
 ### \[GET\] /rasp/multiple
+
 The idea of this endpoint is to have an endpoint where multiple rasp operation take place. All of them will generate a MATCH on the WAF but none of them will block. The goal of this endpoint is to verify that the `rasp.rule.match` telemetry entry is updated properly. While this seems easy, the WAF requires that data given on `call` is passed as ephemeral and not as persistent.
 
 In order to make the test easier, the operation used here need to generate LFI matches. The request will have two get parameters(`file1`, `file2`) which will contain a path that needs to be used as the parameters of the chosen lfi function. Then there will be another call to the lfi function with a harcoded parameter `'../etc/passwd'`. This will make `rasp.rule.match` to be equal to 3. A code example look like:
@@ -818,12 +871,15 @@ lfi_operation('../etc/passwd') //This one is harcoded
 ```
 
 ### GET /dsm/inject
+
 This endpoint is used to validate DSM context injection injects the correct encoding to a header carrier.
 
 ### GET /dsm/extract
+
 This endpoint is used to validate DSM context extraction works correctly when provided a headers carrier with the context already present within the headers.
 
 ### \[GET,POST\] /requestdownstream
+
 This endpoint is used to test ASM Standalone propagation, by calling `/returnheaders` and returning its value (the headers received) to inspect them, looking for
 distributed tracing propagation headers.
 
@@ -832,9 +888,11 @@ distributed tracing propagation headers.
 Similar to `/requestdownstream`. This is used to test standalone IAST downstream propagation. It should call `/returnheaders` and return the resulting json data structure from `/returnheaders` in its response.
 
 ### \[GET,POST\] /returnheaders
+
 This endpoint returns the headers received in order to be able to assert about distributed tracing propagation headers
 
 ### \[GET\] /stats-unique
+
 The endpoint must accept a query string parameter `code`, which should be an integer. This parameter will be the status code of the response message, default to 200 OK.
 This endpoint is used for client-stats tests to provide a separate "resource" via the endpoint path `stats-unique` to disambiguate those tests from other
 stats generating tests.
@@ -858,19 +916,23 @@ Returns a JSON dict, with those values :
 This endpoint is used to test for shell injection attacks, consequently it must call a shell command by using a function or method which results in an actual shell being launched (e.g. /bin/sh). The chosen operation must be injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
+
 - `list_dir`: containing the string to inject on the shell command.
 
 The endpoint should support the following content types in the `POST` method:
+
 - `application/x-www-form-urlencoded`
 - `application/xml`
 - `application/json`
 
 The chosen operation must use the file as provided, without any alterations, e.g.:
+
 ```
 system("ls $list_dir");
 ```
 
 Examples:
+
 - `GET`: `/rasp/shi?list_dir=$(cat /etc/passwd 1>&2 ; echo .)
 - `POST`: `{"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"}`
 
@@ -880,19 +942,23 @@ This endpoint is used to test for command injection attacks by executing a comma
 The chosen operation must be injected with the `GET` or `POST` parameter.
 
 Query parameters and body fields required in the `GET` and `POST` method:
+
 - `command`: containing string or an array of strings to be executed as a command.
 
 The endpoint should support the following content types in the `POST` method:
+
 - `application/x-www-form-urlencoded`
 - `application/xml`
 - `application/json`
 
 The chosen operation must use the file as provided, without any alterations, e.g.:
+
 ```
 system("$command");
 ```
 
 Examples:
+
 - `GET`: `/rasp/cmdi?command=/usr/bin/touch /tmp/passwd
 - `POST`: `{"command": ["/usr/bin/touch", "/tmp/passwd"]}`
 
@@ -911,6 +977,7 @@ c377db41-b664-4e30-af57-5df2e803bec7
 ```
 
 Examples:
+
 - `GET`: `/session/new`
 
 ### **UNUSED** \[GET\] /session/user
@@ -918,9 +985,11 @@ Examples:
 Once a session has been established, a new call to `/session/user` must be made in order to generate a session fingerprint with the session id provided by the web client (e.g. cookie) and the user id provided as a parameter.
 
 Query parameters required in the `GET` method:
+
 - `sdk_user`: user id used in the WAF login event triggered during the execution of the request.
 
 Examples:
+
 - `GET`: `/session/user?sdk_user=sdkUser`
 
 ### \[GET\] /mock_s3/put_object
@@ -933,8 +1002,8 @@ with utf-8. Returns a result object with an `object` JSON object field containin
 extra double-quotes stripped (accounting for a quirk in the boto3 library).
 
 Examples:
-- `GET`: `/mock_s3/put_object?bucket=somebucket&key=somekey`
 
+- `GET`: `/mock_s3/put_object?bucket=somebucket&key=somekey`
 
 ### \[GET\] /mock_s3/copy_object
 
@@ -948,8 +1017,8 @@ ETag of the copied object. The `e_tag` field has any extra double-quotes
 stripped (accounting for a quirk in the boto3 library).
 
 Examples:
-- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
 ### \[GET\] /mock_s3/multipart_upload
 
@@ -963,8 +1032,8 @@ CompleteMultipartUpload call. The `e_tag` field has any extra double-quotes
 stripped (accounting for a quirk in the boto3 library).
 
 Examples:
-- `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
+- `GET`: `/mock_s3/multipart_upload?bucket=somebucket&key=somekey`
 
 ### \[GET\] /mock_s3/copy_object
 
@@ -978,14 +1047,15 @@ ETag of the copied object. The `e_tag` field has any extra double-quotes
 stripped (accounting for a quirk in the boto3 library).
 
 Examples:
-- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
+- `GET`: `/mock_s3/copy_object?original_bucket=somebucket&original_key=somekey&bucket=someotherbucket&key=someotherkey`
 
 ### \[GET\] /protobuf/serialize
 
 This endpoint serializes a constant protobuf message. Returns the serialized message as a base64 encoded string. It is meant to be used to test the protobuf serialization integration.
 
 Examples:
+
 - `GET`: `/protobuf/serialize`
 
 ### \[GET\] /protobuf/deserialize
@@ -993,7 +1063,52 @@ Examples:
 This endpoint deserializes a protobuf message from a base64 encoded string provided in the query parameters. Returns "ok" if deserialization is successful. The simplest way to use it is to pass the output of the `/protobuf/serialize` endpoint to it. It is meant to be used to test the protobuf deserialization integration.
 
 Expected query params:
+
 - `msg`: Base64 encoded protobuf message to deserialize
 
 Examples:
+
 - `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`
+
+## Weblog specification
+
+There are several rules shared between all the existing end-to-end weblogs.
+
+### Directory structure
+
+* **Location:** Place your weblog in utils/build/docker/\<language>/
+* **Naming:** Use descriptive names like <framework>-<version> (e.g., spring-boot, express4, rails70)
+* Structure: Each weblog needs:
+
+  utils/build/docker/\<language>/
+  ├── \<weblog-name>.Dockerfile          # Main Docker configuration
+  ├── \<weblog-name>/                     # Application source code directory
+  │   ├── app.sh                         # Startup script
+  │   ├── main.py/app.java/server.js     # Main application file
+  │   └── [framework-specific files]     # Dependencies, configs, etc.
+  └── install_ddtrace.sh                 # Shared tracer installation script
+
+### Dockerfile requirements
+
+* **Multi-stage builds**: Use when possible for optimization (build → runtime).
+* **Base images**: Use official language images or existing system-tests base images.
+* **Port**: Must expose port 7777 for consistency
+* **Tracer installation**: Always call the install_ddtrace.sh script.
+* Environment variables**: Set essential DD environment variables:
+
+```
+ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent\'
+ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
+ENV DD_DATA_STREAMS_ENABLED=true
+ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
+
+```
+
+### Naming Conventions & Patterns
+
+* Framework + Version: rails70, spring-boot-3-native, express4.
+* Special Variants:
+  * uds-\<framework> for Unix Domain Sockets
+  * \<framework>-<server> for specific servers (e.g., spring-boot-undertow).
+  * \<framework>-otel for OpenTelemetry variants.
+* Language Consistency: Follow existing patterns in your language folder.

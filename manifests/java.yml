@@ -76,6 +76,7 @@ tests/:
           akka-http: bug (APPSEC-56888)
           play: bug (APPSEC-56869)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-57921)
           vertx3: bug (APPSEC-56870)
           vertx4: bug (APPSEC-56871)
         Test_Schema_Request_Cookies:
@@ -127,6 +128,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -1604,6 +1606,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1648,6 +1651,9 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
@@ -1714,8 +1720,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
-        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        spring-boot: v1.50.0
+        uds-spring-boot: v1.50.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -2000,6 +2006,9 @@ tests/:
       Test_RemoteConfigurationExtraServices:
         '*': v1.31.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RemoteConfigurationSemVer:
+        '*': v1.4.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceASMDD:
         '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -2196,5 +2205,6 @@ tests/:
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0

@@ -231,6 +231,38 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@scenarios.appsec_api_security
+@features.api_security_schemas
+class Test_Schema_Response_on_Block:
+    """Test API Security - Response Schemas with urlencoded body
+    Check that response body schema is only sent when the request is not blocked
+    """
+
+    def setup_request_method(self):
+        self.request_noblock = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            headers={"user-agent": "dd-test-scanner-log-block"},
+        )
+
+    def test_request_method(self):
+        """Can provide response body schema"""
+        assert self.request_noblock.status_code == 200
+        assert self.request.status_code == 403
+
+        schema = get_schema(self.request_noblock, "res.body")
+        assert schema is not None, "_dd.appsec.s.res.body meta tag should be present"
+        schema = get_schema(self.request, "res.body")
+        assert schema is None, f"_dd.appsec.s.res.body meta tag should not be present, got {schema}"
+        schema = get_schema(self.request, "res.headers")
+        assert schema is None, f"_dd.appsec.s.res.headers meta tag should not be present, got {schema}"
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:

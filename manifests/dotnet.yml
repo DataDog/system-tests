@@ -27,6 +27,7 @@ tests/:
         Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v2.46.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -401,6 +402,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:
@@ -413,6 +415,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -666,5 +671,6 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0
