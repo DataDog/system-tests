@@ -71,6 +71,11 @@ on:
         default: -1
         required: false
         type: number
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
+        required: false
+        default: 'main'
       _experimental_parametric_job_count:
         description: "*DEPRECATED*"
         default: 1
@@ -144,6 +149,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
