@@ -2,6 +2,7 @@ package com.datadoghq.ratpack;
 
 import static datadog.appsec.api.user.User.setUser;
 import static java.util.Collections.emptyMap;
+import static ratpack.jackson.Jackson.json;
 
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
@@ -122,7 +123,7 @@ public class Main {
                                 response.put("status", "ok");
                                 response.put("library", library);
 
-                                ctx.render(Jackson.json(response));
+                                ctx.render(json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
@@ -199,9 +200,22 @@ public class Main {
                             .path("tag_value/:tag_value/:status_code", ctx -> {
                                 final String value = ctx.getPathTokens().get("tag_value");
                                 final int code = Integer.parseInt(ctx.getPathTokens().get("status_code"));
+                                final String xOption = ctx.getRequest().getQueryParams().get("X-option");
                                 WafPostHandler.consumeParsedBody(ctx).then(v -> {
                                     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-                                    ctx.getResponse().status(code).send("Value tagged");
+                                    if (xOption != null) {
+                                        ctx.getResponse().getHeaders().add("X-option", xOption);
+                                    }
+                                    ctx.getResponse().status(code);
+                                    if (value.startsWith("payload_in_response_body")) {
+                                        ctx.getResponse().contentType("application/json");
+                                        final Map<String, Object> responseBody = new HashMap<>();
+                                        responseBody.put("payload", v);
+                                        ctx.render(json(responseBody));
+                                    } else {
+                                        ctx.getResponse().contentType("text/plain");
+                                        ctx.render("Value tagged");
+                                    }
                                 });
                             })
                             .get("sample_rate_route/:i", ctx -> {
