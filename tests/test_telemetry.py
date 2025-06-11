@@ -500,17 +500,21 @@ class Test_Telemetry:
                     # Check if any configuration entry matches the expected name and value
                     config_found = False
                     for cnf in configurations:
-                        if cnf["name"] == config_name_to_check and str(cnf["value"]) == expected_value_str:
-                            config_found = True
-                            configurations_present.append(expected_config_name)
-                            break
+                        # Handle different configuration structures - some might not have 'value' key
+                        if cnf.get("name") == config_name_to_check:
+                            config_value = cnf.get("value")
+                            if config_value is not None and str(config_value) == expected_value_str:
+                                config_found = True
+                                configurations_present.append(expected_config_name)
+                                break
 
                     if not config_found:
                         # For debugging, show all entries with this config name
-                        matching_entries = [cnf for cnf in configurations if cnf["name"] == config_name_to_check]
+                        matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
                         if matching_entries:
                             values_found = [
-                                f"{cnf['value']} (origin: {cnf.get('origin', 'unknown')})" for cnf in matching_entries
+                                f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})" 
+                                for cnf in matching_entries
                             ]
                             raise Exception(
                                 f"Client Configuration {expected_config_name} expected value is {expected_value_str} "
