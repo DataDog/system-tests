@@ -8,6 +8,7 @@ class TelemetryUtils:
         "java": {"org.apache.httpcomponents:httpclient": False},
         "ruby": {"bundler": False},
         "python": {"requests": False},
+        "golang": {"github.com/tinylib/msgp": False},
         "php": {"weblog/acme": False},
     }
 
