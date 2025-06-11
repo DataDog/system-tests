@@ -47,7 +47,6 @@ class Test_MultipleAttacks:
     def setup_basic(self):
         self.r_basic = weblog.get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     def test_basic(self):
         """Basic test with more than one attack"""
         interfaces.library.assert_waf_attack(self.r_basic, pattern="/../")

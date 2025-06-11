@@ -146,7 +146,6 @@ class Test_AppSecObfuscator:
             params={"pwd": f"{self.SECRET_VALUE_WITH_SENSITIVE_KEY} select pg_sleep"},
         )
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     def test_appsec_obfuscator_key(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -196,7 +195,6 @@ class Test_AppSecObfuscator:
         )
 
     @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain VALUE_WITH_SECRET value.

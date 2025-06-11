@@ -944,8 +944,7 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
-      Test_ExtendedHeaderCollection:
-        '*': *ref_5_54_0
+      Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_54_0
@@ -1018,13 +1017,13 @@ tests/:
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v2.0.0
-        fastify: missing_feature
+        fastify: *ref_5_56_0
       Test_AppSecObfuscator:
         '*': v2.6.0
       Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders:
         '*': v2.0.0
-        fastify: missing_feature
+        fastify: *ref_5_56_0
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:
