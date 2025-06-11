@@ -191,6 +191,7 @@ class Test_Monitoring:
     @scenarios.appsec_rules_monitoring_with_errors
     @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     @bug(library="golang", reason="LANGPLAT-584")
+    @irrelevant(context.library >= "ruby@v2.17.1-dev", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
