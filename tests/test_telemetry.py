@@ -513,7 +513,7 @@ class Test_Telemetry:
                         matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
                         if matching_entries:
                             values_found = [
-                                f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})" 
+                                f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})"
                                 for cnf in matching_entries
                             ]
                             raise Exception(
