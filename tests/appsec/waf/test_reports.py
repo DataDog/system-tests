@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, missing_feature, bug
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
 
 
 @features.support_in_app_waf_metrics_report

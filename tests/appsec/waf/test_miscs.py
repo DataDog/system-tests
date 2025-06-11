@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
+from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")

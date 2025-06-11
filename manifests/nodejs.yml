@@ -882,7 +882,6 @@ tests/:
       Test_Blocking_response_status: *ref_5_17_0
       Test_Blocking_user_id:
         '*': *ref_3_19_0
-        fastify: *ref_5_56_0
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
@@ -954,9 +953,7 @@ tests/:
       Test_Fingerprinting_Endpoint:
         '*': *ref_5_24_0
         fastify: missing_feature
-      Test_Fingerprinting_Endpoint_Capability:
-        '*': *ref_5_24_0
-        fastify: *ref_5_56_0
+      Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
       Test_Fingerprinting_Endpoint_Preprocessor:
         '*': *ref_5_24_0
         fastify: *ref_5_56_0
@@ -968,9 +965,7 @@ tests/:
         '*': *ref_5_39_0
         fastify: missing_feature
         nextjs: missing_feature
-      Test_Fingerprinting_Session_Capability:
-        '*': *ref_5_39_0
-        fastify: *ref_5_56_0
+      Test_Fingerprinting_Session_Capability: *ref_5_39_0
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
         fastify: missing_feature
