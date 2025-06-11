@@ -6,6 +6,9 @@ on:
         description: "Library to test"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
@@ -71,11 +74,6 @@ on:
         default: -1
         required: false
         type: number
-      ref:
-        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
-        type: string
-        required: false
-        default: 'main'
       _experimental_parametric_job_count:
         description: "*DEPRECATED*"
         default: 1
@@ -98,6 +96,7 @@ jobs:
     uses: ./.github/workflows/compute-workflow-parameters.yml
     with:
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
@@ -115,6 +114,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
@@ -132,6 +132,7 @@ jobs:
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       version: ${{ needs.compute_parameters.outputs.ci_environment }}
 
   build_end_to_end:
@@ -185,6 +186,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.job.library }}
+      ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
@@ -201,6 +203,7 @@ jobs:
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
+      ref: ${{ inputs.ref }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
