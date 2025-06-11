@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Fine tuning (general guidance)
+
+* All references to documentation files, scripts, or source code in this instruction/rules file start from the workspace root. You can reference files in three ways: 1. Directly (e.g., README.md), 2. With markdown links (e.g., [readme](mdc:README.md)), 3. By prefixing the file path with @ (e.g., @docs/scenarios/onboarding.md). Whenever you see a reference like @path/to/file, interpret it as a direct reference to that file—just like a link. This convention helps quickly identify and locate files in the repository.
+* Use the document @README.md to provide a good answer about a quick overview of the system-tests or how to run them for the first time (MUST use the section 'Run a test/scenario' from the @README.md to accurate answer) or what are the requisites (MUST use the section 'Minimal Requirements (End-to-End Testing)' from the @README.md to accurate answer). The requiered version of python is important! The build process is important!. The first run of system-tests is very important, be accurate and don't write things that you don't find in the documentation.
+* About system-tests requirements the required version of python is INPORTANT. you MUST ALWAYS tell to the user the exact version number of python needed.
+* Read the section [Repository Structure](mdc:#Repository Structure) and parse the structure. Read the comments for each folder and file. Follow the instructions in these comments.
+* Use the Python file [scenarios](mdc:utils/_context/_scenarios/__init__.py) to discover the scenarios implemented. Never mention a scenario in your answers if it does not exist in this Python file, even if a scenario is mentioned in the documentation. If a user asks about a scenario not present in this file, inform them that it does not exist in the current implementation.
+* These scenarios don't exist: DOCKER_SSI_JAVA, DOCKER_SSI_PYTHON, DOCKER_SSI_NODEJS.
+* You always need to know the scenario type to provide a good answer. The main scenario types in system-tests are: end-to-end, parametric, SSI (Single Step Instrumentation, including AWS SSI), and Kubernetes (K8s) library injection. The scenario type determines the requirements, documentation, and steps to follow for system-tests. If the scenario type is not clear from the user's question or context, always ask for clarification before proceeding."
+* How to start with system-tests: check the documentation that details the requirements and the minimal configuration steps [readme](mdc:README.md). Always mention that other system-tests scenarios could have other extra requirements [additional-requirements](mdc:README.md#additional-requirements) (e.g., AWS SSI or K8s scenarios).
+* All pytest test classes are annotated with "@scenario.<scenario_name>". When we run a scenario ("./run.sh SCENARIO_NAME") is going to execute all the test clases annotated with this scenario name. If a pytest test class doesn't contain a scenario annotation, it means that the test class is going to be executed for the DEFAULT scenario.
