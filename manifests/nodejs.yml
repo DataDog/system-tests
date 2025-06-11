@@ -1007,6 +1007,9 @@ tests/:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v2.0.0
