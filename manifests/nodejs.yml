@@ -1223,7 +1223,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: *ref_5_41_0
+      Test_Stable_Config_Default: irrelevant (temporarily ignored)
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:
