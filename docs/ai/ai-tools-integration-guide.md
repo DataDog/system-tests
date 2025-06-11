@@ -22,9 +22,9 @@ The predefined rules within the `system-tests` repository are optimized specific
    ```
    Parse all files within the .cursor/rules directory, combine their contents into a single new file at .github/copilot-instructions.md, and remove any occurrences of the text:
     ---
-    description: 
-    globs: 
-    alwaysApply: 
+    description:
+    globs:
+    alwaysApply:
     ---
    ```
 
