@@ -24,6 +24,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v1.15.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -549,6 +550,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: missing_feature
       Test_UpdateRuleFileWithRemoteConfig: missing_feature
     test_reports.py:
@@ -558,6 +560,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -912,5 +917,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.22.0
     Test_Telemetry: v1.4.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.11

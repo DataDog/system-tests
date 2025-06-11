@@ -30,7 +30,7 @@ telemetry_name_mapping = {
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
-        "nodejs": "DD_LOG_INJECTION",
+        "nodejs": "DD_LOG_INJECTION",  # TODO: rename to DD_LOGS_INJECTION in subsequent PR
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
     },
@@ -97,7 +97,7 @@ class Test_Defaults:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
-            ("logs_injection_enabled", ("false", False, "true", True)),
+            ("logs_injection_enabled", ("false", False, "true", True, "structured")),
             ("trace_header_tags", ""),
             ("trace_tags", ""),
             ("trace_enabled", ("true", True)),

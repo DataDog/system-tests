@@ -46,6 +46,7 @@ tests/:
         Test_Schema_Response_Headers:
           '*': v2.1.0
           fastapi: v2.5.0
+        Test_Schema_Response_on_Block: v3.10.0.dev
     iast/:
       sink/:
         test_code_injection.py:
@@ -73,14 +74,24 @@ tests/:
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection:
-            '*': v2.10.0
-            fastapi: v2.20.0.dev
+            '*': irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_ExtendedLocation: v3.1.0.dev
-          TestHeaderInjection_StackTrace: v3.9.0.dev
+          TestHeaderInjection_ExtendedLocation:
+            '*': irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
+          TestHeaderInjection_StackTrace:
+            '*': irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
+            'django-poc': v3.10.0.dev
+            'django-py3.13': v3.10.0.dev
+            'python3.12': v3.10.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -497,7 +508,7 @@ tests/:
         '*': v1.1.0-rc2
         fastapi: v2.4.0
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v3.9.0.dev
       Test_AppSecStandalone_NotEnabled: v2.12.3
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
@@ -712,6 +723,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
     test_reports.py:
@@ -726,6 +738,9 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -990,7 +1005,7 @@ tests/:
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
-      Test_Stable_Config_Default: v3.2.0.dev
+      Test_Stable_Config_Default: v3.11.0  # default value of log injection changed in v3.10.0
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -1233,5 +1248,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3
