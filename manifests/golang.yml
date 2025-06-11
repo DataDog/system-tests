@@ -413,7 +413,7 @@ tests/:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
       Test_ConfigurationVariables: missing_feature (unknown version)
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables_New_Obfuscation: v2.1.0-dev
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
@@ -494,8 +494,8 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v1.69.0
     test_trace_tagging.py:
-      Test_TraceTaggingRules: missing_feature
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRules: v2.1.0-dev
+      Test_TraceTaggingRulesRcCapability: v2.1.0-dev
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
