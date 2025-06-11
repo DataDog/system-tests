@@ -15,6 +15,7 @@ import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
@@ -31,6 +32,7 @@ import java.io.InputStream;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -91,13 +93,23 @@ public class Main {
                         .end("012345678901234567890123456789012345678901"));
         router.route("/tag_value/:tag_value/:status_code")
                 .handler(BodyHandler.create())
-                .produces("text/plain")
                 .handler(ctx -> {
-                    consumeParsedBody(ctx);
-                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("tag_value"));
-                    ctx.response()
-                            .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
-                            .end("Value tagged");
+                    final Object body = consumeParsedBody(ctx);
+                    final String value = ctx.pathParam("tag_value");
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                    ctx.response().setStatusCode(Integer.parseInt(ctx.pathParam("status_code")));
+                    final String xOption = ctx.request().getParam("X-option");
+                    if (xOption != null) {
+                        ctx.response().putHeader("X-option", xOption);
+                    }
+                    if (value.startsWith("payload_in_response_body")) {
+                        ctx.response().putHeader("Content-Type", "application/json");
+                        ctx.json(new JsonObject().put("payload", body));
+                    } else {
+                        ctx.response()
+                                .putHeader("Content-Type", "text/plain")
+                                .end("Value tagged");
+                    }
                 });
         router.get("/sample_rate_route/:i")
                 .handler(ctx -> {
@@ -394,18 +406,23 @@ public class Main {
         }
     }
 
-    private static void consumeParsedBody(final RoutingContext ctx) {
+    private static Object consumeParsedBody(final RoutingContext ctx) {
         String contentType = ctx.request().getHeader("Content-Type");
         if (contentType == null) {
-            return;
+            return ctx.body().asString();
         }
         contentType = contentType.toLowerCase(Locale.ROOT);
         if (contentType.contains("json")) {
-            ctx.getBodyAsJson();
+            return ctx.body().asJsonObject();
         } else if (contentType.equals("application/x-www-form-urlencoded")) {
-            ctx.request().formAttributes();
+            final Map<String, List<String>> result = new HashMap<>();
+            final MultiMap form = ctx.request().formAttributes();
+            for (final String key : form.names()) {
+                result.put(key, form.getAll(key));
+            }
+            return result;
         } else {
-            ctx.getBodyAsString();
+            return ctx.body().asString();
         }
     }
 
