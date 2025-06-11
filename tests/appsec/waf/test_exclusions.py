@@ -11,7 +11,7 @@ class Test_Exclusions:
         self.r_iexnt2 = weblog.get("/waf/", params={"excluded_key": "true", "activate_exclusion": "false"})
 
     @bug(context.library <= "ruby@1.12.1", reason="APMRP-360")
-    @missing_feature(context.weblog_variant == "fastify", reason="Not supported yet")
+    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     def test_input_exclusion_negative_test(self):
         assert self.r_iexnt1.status_code == 200, "Request failed"
         assert self.r_iexnt2.status_code == 200, "Request failed"
@@ -32,7 +32,7 @@ class Test_Exclusions:
         self.r_rent1 = weblog.get("/waf/", params={"foo": "bbbb"})
         self.r_rent2 = weblog.get("/waf/", params={"foo": "bbbb", "activate_exclusion": "false"})
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Not supported yet")
+    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     def test_rule_exclusion_negative_test(self):
         assert self.r_rent1.status_code == 200, "Request failed"
         assert self.r_rent2.status_code == 200, "Request failed"
