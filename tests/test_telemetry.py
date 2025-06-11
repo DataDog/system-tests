@@ -503,7 +503,7 @@ class Test_Telemetry:
                         # Handle different configuration structures - some might not have 'value' key
                         if cnf.get("name") == config_name_to_check:
                             config_value = cnf.get("value")
-                            if config_value is not None and str(config_value) == expected_value_str:
+                            if config_value is not None and str(config_value).lower() == expected_value_str:
                                 config_found = True
                                 configurations_present.append(expected_config_name)
                                 break
