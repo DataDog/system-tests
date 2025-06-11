@@ -14,7 +14,7 @@ The default and recommended AI tool for developing with system-tests is Cursor A
 
 The predefined rules within the `system-tests` repository are optimized specifically for **Cursor AI**, but you can effortlessly adapt them for **GitHub Copilot** using Copilot itself.
 
-**To adapt rules for GitHub Copilot:**
+To adapt rules for GitHub Copilot:
 
 1. Activate Copilot's **Agent Mode**.
 2. Open the Copilot chat and input the following instruction:
@@ -30,16 +30,9 @@ The predefined rules within the `system-tests` repository are optimized specific
 
 **Important Reminders:**
 
-* **Do not commit** the `.github/copilot-instructions.md` file.
-* To add new rules or instructions, always use Cursor AI’s standard rule files located at:
-
-  ```
-  .cursor/rules
-  ```
-
-**Continuous Improvement:**
-
-If you introduce new instructions or modify existing documentation, always include new tests. These tests are essential for validating the impact and effectiveness of your changes on the AI assistant’s functionality. Please refer to section [Prompt validation](ai-tools-prompt-validation.md) to know about the ai prompt validations.
+* Do not commit the `.github/copilot-instructions.md` file.
+* To add new rules or instructions, always use Cursor AI’s standard rule files located at ".cursor/rules"
+* If you introduce new instructions or modify existing documentation, always include new tests. These tests are essential for validating the impact and effectiveness of your changes on the AI assistant’s functionality. Please refer to section [Prompt validation](ai-tools-prompt-validation.md) to know about the ai prompt validations.
 
 ### Cursor
 
