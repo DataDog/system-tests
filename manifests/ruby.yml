@@ -10,7 +10,7 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
-      test_apisec_sampling.py: missing_feature
+      test_apisec_sampling.py: v2.17.1-dev
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v1.15.0

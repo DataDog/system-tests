@@ -964,11 +964,12 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         self.verify_trace_sampling(self.first_request, should_be_retained=True, should_have_schema=True)
 
     def setup_different_endpoints(self):
-        self.request1 = weblog.get("/api_security/sampling/200", headers=self._get_headers())
-        self.request2 = weblog.get("/api_security_sampling/1", headers=self._get_headers())
-        self.subsequent_requests = [
-            weblog.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
-        ]
+        with weblog.get_session() as session:
+            self.request1 = session.get("/api_security/sampling/200", headers=self._get_headers())
+            self.request2 = session.get("/api_security_sampling/1", headers=self._get_headers())
+            self.subsequent_requests = [
+                session.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
+            ]
 
     def test_different_endpoints(self):
         # First requests to different endpoints retained with schema
@@ -989,12 +990,10 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         self.endpoint = "/api_security/sampling/200"
 
         with weblog.get_session() as session:
-            # using a weblog session to ensure requests are sent to the same thread
             self.window1_request1 = session.get(self.endpoint, headers=self._get_headers())
             self.window1_request2 = session.get(self.endpoint, headers=self._get_headers())
-
-        time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
-        self.window2_request1 = weblog.get(self.endpoint, headers=self._get_headers())
+            time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
+            self.window2_request1 = session.get(self.endpoint, headers=self._get_headers())
 
     def test_sampling_window_renewal(self):
         """Verify that endpoint sampling resets after the sampling window expires"""
@@ -1024,9 +1023,10 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         headers["x-datadog-tags"] = f"{self.propagated_tag()}={self.propagated_tag_value()}"
 
         # Make multiple requests to same endpoint that would normally be sampled out
-        self.request1 = weblog.get(self.endpoint, headers=headers)
-        self.request2 = weblog.get(self.endpoint, headers=headers)
-        self.request3 = weblog.get(self.endpoint, headers=headers)
+        with weblog.get_session() as session:
+            self.request1 = session.get(self.endpoint, headers=headers)
+            self.request2 = session.get(self.endpoint, headers=headers)
+            self.request3 = session.get(self.endpoint, headers=headers)
 
     def test_appsec_propagation_does_not_force_schema_collection(self):
         """Test that spans with USER_KEEP priority do not force schema collection"""
