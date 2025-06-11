@@ -63,13 +63,13 @@ tests/:
       Test_TelemetrySCAEnvVar: missing_feature
       Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: missing_feature
-      Test_Trace_Sampling_Globs: missing_feature
-      Test_Trace_Sampling_Globs_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_Resource: missing_feature
-      Test_Trace_Sampling_Tags: missing_feature
-      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
-      Test_Trace_Sampling_With_W3C: missing_feature
+      Test_Trace_Sampling_Basic: *ref_0_0_1
+      Test_Trace_Sampling_Globs: *ref_0_0_1
+      Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_0_0_1
+      Test_Trace_Sampling_Resource: *ref_0_0_1
+      Test_Trace_Sampling_Tags: *ref_0_0_1
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_0_0_1
+      Test_Trace_Sampling_With_W3C: *ref_0_0_1
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:

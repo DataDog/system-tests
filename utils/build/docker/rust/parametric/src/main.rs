@@ -1,6 +1,6 @@
 use ::opentelemetry::global::{self, BoxedTracer};
 use anyhow::{Context, Result};
-use axum::{body::Body, extract::Request, Router};
+use axum::{body::Body, extract::Request, Router, http::StatusCode};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use serde::Deserialize;
 use serde_json::json;
@@ -26,6 +26,7 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 mod opentelemetry;
 mod opentracing;
+mod datadog;
 
 pub(crate) fn get_tracer() -> &'static BoxedTracer {
     static TRACER: OnceLock<BoxedTracer> = OnceLock::new();
@@ -124,8 +125,8 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
     };
 
     let app = Router::new()
-        .nest("/trace", opentracing::app())
         .nest("/trace/otel", opentelemetry::app())
+        .fallback(datadog::app().nest("/trace", Router::new()))
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http().make_span_with(make_span)))
         .with_state(state);
 
