@@ -487,31 +487,40 @@ class Test_Telemetry:
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
-                for cnf in configurations:
-                    configuration_name = cnf["name"]
+
+                # validator is updated to handle tracers sending configuration chaining data
+                for expected_config_name, expected_value in configuration_map.items():
+                    config_name_to_check = expected_config_name
                     if context.library.name == "java":
                         # support for older versions of Java Tracer
-                        configuration_name = configuration_name.replace(".", "_")
-                    if configuration_name in configuration_map:
-                        expected_value = str(configuration_map.get(configuration_name))
-                        configuration_value = str(cnf["value"])
-                        if configuration_value != expected_value:
+                        config_name_to_check = expected_config_name.replace(".", "_")
+
+                    expected_value_str = str(expected_value)
+
+                    # Check if any configuration entry matches the expected name and value
+                    config_found = False
+                    for cnf in configurations:
+                        if cnf["name"] == config_name_to_check and str(cnf["value"]) == expected_value_str:
+                            config_found = True
+                            configurations_present.append(expected_config_name)
+                            break
+
+                    if not config_found:
+                        # For debugging, show all entries with this config name
+                        matching_entries = [cnf for cnf in configurations if cnf["name"] == config_name_to_check]
+                        if matching_entries:
+                            values_found = [
+                                f"{cnf['value']} (origin: {cnf.get('origin', 'unknown')})" for cnf in matching_entries
+                            ]
                             raise Exception(
-                                "Client Configuration "
-                                + configuration_name
-                                + " expected value is "
-                                + str(expected_value)
-                                + " but found "
-                                + str(configuration_value)
+                                f"Client Configuration {expected_config_name} expected value is {expected_value_str} "
+                                f"but found values: {values_found}"
                             )
-                        configurations_present.append(configuration_name)
-                for cnf in configuration_map:
-                    if cnf not in configurations_present:
-                        raise Exception(
-                            "Client Configuration information is not accurately reported, "
-                            + cnf
-                            + " is not present in configuration on app-started event"
-                        )
+                        else:
+                            raise Exception(
+                                f"Client Configuration information is not accurately reported, "
+                                f"{expected_config_name} is not present in configuration on app-started event"
+                            )
 
         self.validate_library_telemetry_data(validator)
 
