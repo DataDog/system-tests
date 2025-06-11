@@ -495,7 +495,7 @@ class Test_Telemetry:
                         # support for older versions of Java Tracer
                         config_name_to_check = expected_config_name.replace(".", "_")
 
-                    expected_value_str = str(expected_value)
+                    expected_value_str = str(expected_value).lower()
 
                     # Check if any configuration entry matches the expected name and value
                     config_found = False
