@@ -30,15 +30,17 @@ For more information, visit the [official Promptfoo documentation](https://www.p
 
 ## Promptfoo - system-tests structure
 
+```
 system-tests/
-├── 📄 promptfooconfig.yaml             # Main configuration file
+├── 📄 promptfooconfig.yaml              # Main configuration file
 ├── 📄 promptfoo-errors.log             # Error logs
-└── 📁 .promptfoo/                      # Promptfoo test directory
-├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
-├── 📄 tests_overview.yaml          # Tests for general system-tests overview
-├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
-├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
-├── 📄 tests_activate_tests.yaml    # Tests for test activation/deactivation
+└── 📁 .promptfoo/                       # Promptfoo test directory
+    ├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
+    ├── 📄 tests_overview.yaml          # Tests for general system-tests overview
+    ├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
+    ├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
+    ├── 📄 tests_activate_tests.yaml    # Tests for test activation/deactivation
+```
 
 ### Key Components
 
@@ -75,7 +77,7 @@ Delete the logs/responses.yaml file if exists. Parse ONLY the file .promptfoo/te
 ```
 ### Evaluate Responses
 
-Once you've generated the logs/responses.txt file, you're ready to run the Promptfoo evaluation to assess the accuracy and quality of your assistant’s responses.
+Once you've generated the logs/responses.txt file, you're ready to run the Promptfoo evaluation to assess the accuracy and quality of your assistant's responses.
 
 ```bash
 promptfoo eval
