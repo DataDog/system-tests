@@ -89,7 +89,7 @@ class Test_AppSecEventSpanTags:
     @bug(
         context.library < "nodejs@5.57.0",
         weblog_variant="fastify",
-        reason="Response headers collection not supported yet",
+        reason="APPSEC-57432",  # Response headers collection not supported yet
     )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
