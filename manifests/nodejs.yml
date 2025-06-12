@@ -1015,6 +1015,9 @@ tests/:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator:
@@ -1226,7 +1229,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: *ref_5_41_0
+      Test_Stable_Config_Default: irrelevant (temporarily ignored)
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:

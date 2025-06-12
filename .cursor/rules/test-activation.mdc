@@ -1,0 +1,29 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Activate or deactivate tests
+
+For enabling/disabling tests, refer to these key documentation files:
+
+- @docs/edit/enable-test.md: How to enable tests and test against unmerged changes
+- @docs/edit/manifest.md: Using manifest files for test activation/deactivation
+- @docs/edit/skip-tests.md: Using decorators and marking tests as skipped
+- @docs/edit/versions.md: Version specification guidelines for different languages
+
+Key points to remember to activate or deactivate tests:
+
+1. For test classes/files: Use manifest files in `manifests/` directory
+2. For individual test methods: Use decorators in test files
+3. Always include JIRA references for bugs
+4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
+5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest file ALWAYS run the scenario "TEST_THE_TEST" and format.sh before committing changes to ensure code follows the manifest rules.
+6. When using @missing_feature/@irrelevant decorators, the condition specifies when to SKIP the test.
+7. For update a manifest yml file, never add fields that don't exist in any other manifests files. Use the documentation [manifests files specification](mdc:docs/edit/manifest.md) to be accurate in your modifications.
+
+For common test activation patterns and examples of enabling/disabling tests, see:
+
+1. @docs/edit/manifest.md#example
+2. @docs/edit/versions.md#use-cases
+3. @docs/edit/skip-tests.md#decorators

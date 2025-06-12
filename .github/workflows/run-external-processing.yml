@@ -3,6 +3,9 @@ name: External-processing tests
 on:
   workflow_call:
     inputs:
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -37,6 +40,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
       - name: Install runner
         uses: ./.github/actions/install_runner
 
