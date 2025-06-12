@@ -349,12 +349,26 @@ lib_injection_docker_build:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-    - echo "RUNNING THE JOB"
-  rules:
-    - changes:
-        - lib-injection/build/docker/**/*
-      when: on_success
-    - when: never
+    - echo "🔍 Pipeline context  Source $CI_PIPELINE_SOURCE, Branch $CI_COMMIT_BRANCH"
+    - echo "📁 Checking for changes in lib-injection/build/docker/"
+    - |
+      # Check if lib-injection/build/docker files were modified
+      if [ -n "$CI_COMMIT_BEFORE_SHA" ] && [ "$CI_COMMIT_BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+        CHANGED_FILES=$(git diff --name-only $CI_COMMIT_BEFORE_SHA $CI_COMMIT_SHA)
+        echo "Changed files:"
+        echo "$CHANGED_FILES"
+        
+        if echo "$CHANGED_FILES" | grep -q "^lib-injection/build/docker/"; then
+          echo "✅ Found changes in lib-injection/build/docker/, proceeding with build"
+        else
+          echo "ℹ️ No changes detected in lib-injection/build/docker/, skipping build"
+          exit 0
+        fi
+      else
+        echo "⚠️ Cannot determine changed files, skipping build"
+        exit 0
+      fi
+
 
 .delayed_base_job:
     image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
