@@ -225,7 +225,11 @@ public class App {
     }
 
     @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<?> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-Option", required = false) String xOption, @RequestBody JsonNode body) {
+    ResponseEntity<?> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestBody Map<String, Object> json) {
+        ObjectNode body = null;
+        if (json != null) {
+            body = new ObjectMapper().valueToTree(json);
+        }
         return handleTagValue(tag_value, status_code, xOption, body);
     }
 
