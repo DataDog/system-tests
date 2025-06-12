@@ -1,6 +1,6 @@
 FROM node:18
 
-# Create app directory
+# Create app directory.
 WORKDIR /usr/src/app
 
 COPY . .
