@@ -207,6 +207,7 @@ def main() -> None:
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,
                     r"NOTICE": None,
+                    r"promptfooconfig\.yaml": None,
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
                     r"static-analysis\.datadog\.yml": None,
