@@ -338,6 +338,24 @@ generate_system_tests_images:
       - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 
+lib_injection_docker_build:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+  tags: ["runner:docker"]
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
+  before_script:
+    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
+    - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+  script:
+    - echo "RUNNING THE JOB"
+  rules:
+    - changes:
+        - lib-injection/build/docker/**/*
+      when: on_success
+    - when: never
+
 .delayed_base_job:
     image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
     tags: ["arch:amd64"]
