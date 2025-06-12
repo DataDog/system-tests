@@ -19,6 +19,11 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_instance:
+        description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -69,7 +74,7 @@ env:
 
 jobs:
   main:
-    name: ${{ inputs.weblog }}
+    name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
     runs-on: ubuntu-latest
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
