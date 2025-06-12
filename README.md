@@ -188,3 +188,9 @@ flowchart TD
     OUTPUT[Test output in bash]
     LOGS[Logs directory per scenario]
 ```
+
+## AI Integration Guidelines: Supported Tools and Implementation Guide
+
+The `system-tests` repository includes built-in rules designed to enhance developer productivity when implementing new tests and troubleshooting issues. These default rules streamline workflows, minimize common pitfalls, and leverage best practices, helping you achieve faster, more reliable testing outcomes.
+
+Explore the full capabilities and learn how to maximize the potential of these tools by visiting [AI Tools Integration Guide](docs/ai/ai-tools-integration-guide.md)

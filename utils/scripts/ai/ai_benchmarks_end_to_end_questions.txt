@@ -1,5 +1,0 @@
-Q1: I want to create a new end to end weblog for nodejs using fastify.
-Q2: what end to end scenarios include the endpoint /shell_execution
-Q3: I want to create a new scenario with name "not_sure_scenario"
-Q4: I want to create a new scenario called "my_new_appsec_scenario" that populates these env variables into the weblog: "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key", "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value"
-Q5: I want to create a new test case for the new scenario "my_new_appsec_scenario" that perform a request to /waf endpoint with header that it's key it should be obfuscated. validate in the library interface that key doesn't appear in the appsec data/messages
