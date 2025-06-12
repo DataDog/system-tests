@@ -148,9 +148,10 @@ public class MyResource {
     public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, MultivaluedMap<String, String> form) {
         ObjectNode body = null;
         if (form != null) {
-            body = new ObjectMapper().createObjectNode();
+            final ObjectMapper mapper = new ObjectMapper();
+            body = mapper.createObjectNode();
             for (final String key : form.keySet()) {
-                final ArrayNode payloadValue =  new ObjectMapper().createArrayNode();
+                final ArrayNode payloadValue = mapper.createArrayNode();
                 for (final String formValue : form.get(key)) {
                     payloadValue.add(formValue);
                 }
