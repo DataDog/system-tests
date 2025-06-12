@@ -69,10 +69,10 @@ async fn start_span(
         }
     }
 
+    // TODO: review!
     let mut attributes = vec![
         // hack to prevent libdatadog from dropping trace chunks
         opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1),
-
         // hack to fix some test_otel_span_methods.py with wrong resorce name
         opentelemetry::KeyValue::new("datadog.resource".to_string(), args.name),
     ];
@@ -227,8 +227,9 @@ async fn set_attributes(State(state): State<AppState>, Json(args): Json<SetAttri
     let span_id = args.span_id;
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&span_id) {
         let span = ctx.span();
-        debug!("set_attributes span found: {span_id}");
-        span.set_attributes(parse_attributes(args.attributes.as_ref()));
+        let attributes = parse_attributes(args.attributes.as_ref());
+        debug!("set_attributes span found: {span_id} {attributes:#?}");
+        span.set_attributes(attributes);
     } else {
         debug!("set_attributes: span {span_id:?} NOT found");
     }
@@ -253,10 +254,12 @@ async fn record_exception(State(state): State<AppState>, Json(args): Json<Record
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
         let span = ctx.span();
         if span.is_recording() {
-            let mut attributes = vec![KeyValue::new("exception.message", args.message)];
+            let mut attributes = vec![
+                KeyValue::new("exception.message", args.message),
+                KeyValue::new("exception.type", "panic"), // no exception type in rust
+            ];
             attributes.append(&mut parse_attributes(args.attributes.as_ref()));
             span.add_event("exception", attributes);
-            span.set_status(parse_status(2, None));
         }
     }
 }
