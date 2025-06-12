@@ -96,28 +96,29 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def propagated_tag_and_value(self):
         return self.propagated_tag() + "=" + self.propagated_tag_value()
 
-    def setup_product_is_enabled(self):
+    def setup_product_is_enabled(self, session=None):
         headers = {}
         if self.tested_product == "appsec":
             headers = {
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             }
-        self.check_r = weblog.get(self.request_downstream_url, headers=headers)
+        self.check_r = session.get(self.request_downstream_url, headers=headers)
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-sampling-priority": "-1",
-                "x-datadog-origin": "rum",
-                "x-datadog-tags": "_dd.p.other=1",
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-sampling-priority": "-1",
+                    "x-datadog-origin": "rum",
+                    "x-datadog-tags": "_dd.p.other=1",
+                },
+            )
 
     @bug(
         condition=(
@@ -157,19 +158,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-sampling-priority": "0",
-                "x-datadog-origin": "rum",
-                "x-datadog-tags": "_dd.p.other=1",
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-sampling-priority": "0",
+                    "x-datadog-origin": "rum",
+                    "x-datadog-tags": "_dd.p.other=1",
+                },
+            )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
@@ -202,19 +204,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-sampling-priority": "1",
-                "x-datadog-origin": "rum",
-                "x-datadog-tags": "_dd.p.other=1",
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-sampling-priority": "1",
+                    "x-datadog-origin": "rum",
+                    "x-datadog-tags": "_dd.p.other=1",
+                },
+            )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
@@ -247,19 +250,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert "X-Datadog-Trace-Id" not in downstream_headers
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-sampling-priority": "2",
-                "x-datadog-origin": "rum",
-                "x-datadog-tags": "_dd.p.other=1",
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-sampling-priority": "2",
+                    "x-datadog-origin": "rum",
+                    "x-datadog-tags": "_dd.p.other=1",
+                },
+            )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
@@ -380,19 +384,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-origin": "rum",
-                "x-datadog-sampling-priority": "0",
-                "x-datadog-tags": self.propagated_tag_and_value(),
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-origin": "rum",
+                    "x-datadog-sampling-priority": "0",
+                    "x-datadog-tags": self.propagated_tag_and_value(),
+                },
+            )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
@@ -424,19 +429,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-origin": "rum",
-                "x-datadog-sampling-priority": "1",
-                "x-datadog-tags": self.propagated_tag_and_value(),
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-origin": "rum",
+                    "x-datadog-sampling-priority": "1",
+                    "x-datadog-tags": self.propagated_tag_and_value(),
+                },
+            )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
@@ -468,19 +474,20 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         assert downstream_headers["X-Datadog-Trace-Id"] == "1212121212121212121"
 
     def setup_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
-        self.setup_product_is_enabled()
-        trace_id = 1212121212121212121
-        parent_id = 34343434
-        self.r = weblog.get(
-            "/requestdownstream",
-            headers={
-                "x-datadog-trace-id": str(trace_id),
-                "x-datadog-parent-id": str(parent_id),
-                "x-datadog-origin": "rum",
-                "x-datadog-sampling-priority": "2",
-                "x-datadog-tags": self.propagated_tag_and_value(),
-            },
-        )
+        with weblog.get_session() as session:
+            self.setup_product_is_enabled(session)
+            trace_id = 1212121212121212121
+            parent_id = 34343434
+            self.r = session.get(
+                "/requestdownstream",
+                headers={
+                    "x-datadog-trace-id": str(trace_id),
+                    "x-datadog-parent-id": str(parent_id),
+                    "x-datadog-origin": "rum",
+                    "x-datadog-sampling-priority": "2",
+                    "x-datadog-tags": self.propagated_tag_and_value(),
+                },
+            )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
