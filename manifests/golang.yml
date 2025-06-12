@@ -41,7 +41,7 @@ tests/:
           net-http: v2.1.0-dev  # Using SDK-style
         Test_Schema_Response_Body_env_var: v2.0.0
         Test_Schema_Response_Headers: v1.60.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block: v2.1.0-dev
     iast/:
       sink/:
         test_code_injection.py:
