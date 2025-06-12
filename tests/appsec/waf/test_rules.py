@@ -55,6 +55,10 @@ class Test_LFI:
         self.r_2 = weblog.get("/waf/0x5c0x2e0x2e0x2f")
         self.r_3 = weblog.get("/waf/", params={"attack": "/.htaccess"})
 
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_lfi(self):
         """AppSec catches LFI attacks"""
         interfaces.library.assert_waf_attack(self.r_1, waf_rules.lfi)

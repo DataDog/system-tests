@@ -61,8 +61,7 @@ refs:
   - &ref_5_52_0 '>=5.52.0'
   - &ref_5_54_0 '>=5.54.0'
   - &ref_5_55_0 '>=5.55.0'
-  - &ref_5_56_0 '>=5.56.0'
-  - &ref_5_57_0 '>=5.57.0'
+  - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -748,7 +747,7 @@ tests/:
       test_reports.py:
         Test_Monitoring:
           '*': v2.8.0
-          fastify: *ref_5_56_0
+          fastify: *ref_5_57_0
       test_rules.py:
         Test_CommandInjection:
           '*': v2.0.0
@@ -944,7 +943,9 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
-      Test_ExtendedHeaderCollection: *ref_5_56_0
+      Test_ExtendedHeaderCollection:
+        '*': *ref_5_54_0
+        fastify: *ref_5_57_0
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_54_0
@@ -953,8 +954,10 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': *ref_5_24_0
-        fastify: missing_feature
-      Test_Fingerprinting_Endpoint_Capability: *ref_5_24_0
+        fastify: *ref_5_57_0
+      Test_Fingerprinting_Endpoint_Capability:
+        '*': *ref_5_24_0
+        fastify: *ref_5_57_0
       Test_Fingerprinting_Endpoint_Preprocessor:
         '*': *ref_5_24_0
         fastify: *ref_5_57_0
@@ -966,7 +969,9 @@ tests/:
         '*': *ref_5_39_0
         fastify: missing_feature
         nextjs: missing_feature
-      Test_Fingerprinting_Session_Capability: *ref_5_39_0
+      Test_Fingerprinting_Session_Capability:
+        '*': *ref_5_39_0
+        fastify: *ref_5_57_0
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
         fastify: missing_feature
@@ -1011,15 +1016,13 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_traces.py:
-      Test_AppSecEventSpanTags:
-        '*': v2.0.0
-        fastify: *ref_5_56_0
+      Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator:
         '*': v2.6.0
       Test_CollectDefaultRequestHeader: *ref_5_18_0
       Test_CollectRespondHeaders:
         '*': v2.0.0
-        fastify: *ref_5_56_0
+        fastify: *ref_5_57_0
       Test_ExternalWafRequestsIdentification: *ref_5_7_0
       Test_RetainTraces: v2.0.0
     test_user_blocking_full_denylist.py:

@@ -86,6 +86,10 @@ class Test_AppSecEventSpanTags:
 
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
+    @bug(
+        context.weblog_variant == "fastify" and context.library < "nodejs@5.57.0",
+        reason="Response headers collection not supported yet",
+    )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
@@ -147,7 +151,7 @@ class Test_AppSecObfuscator:
         )
 
     @missing_feature(
-        context.library < "nodejs@5.56.0" and context.weblog_variant == "fastify",
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
     )
     def test_appsec_obfuscator_key(self):
@@ -200,7 +204,7 @@ class Test_AppSecObfuscator:
 
     @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
     @missing_feature(
-        context.library < "nodejs@5.56.0" and context.weblog_variant == "fastify",
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
     )
     def test_appsec_obfuscator_value(self):

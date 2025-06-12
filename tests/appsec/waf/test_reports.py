@@ -4,7 +4,7 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, context, interfaces, irrelevant, scenarios, features, missing_feature, bug
 
 
 @features.support_in_app_waf_metrics_report
@@ -189,6 +189,10 @@ class Test_Monitoring:
 
     @scenarios.appsec_rules_monitoring_with_errors
     @bug(library="golang", reason="LANGPLAT-584")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point
