@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"strings"
 
 	"go.opentelemetry.io/otel/attribute"
 )
@@ -72,6 +73,26 @@ type SpanSetMetaArgs struct {
 	SpanId uint64 `json:"span_id"`
 	Key    string `json:"key"`
 	Value  string `json:"value"`
+}
+
+// InferredValue returns the inferred value of the meta key.
+// This is needed because Python and the HTTP API are not typed.
+// Some keys have side effects, but only when they are set with
+// a value of specific type.
+func (ssma SpanSetMetaArgs) InferredValue() interface{} {
+	switch ssma.Key {
+	// Supported boolean keys
+	case "manual.keep", "manual.drop", "analytics.event":
+		value := strings.TrimSpace(ssma.Value)
+		value = strings.ToLower(value)
+		switch value {
+		case "true", "1":
+			return true
+		default:
+			return false
+		}
+	}
+	return ssma.Value
 }
 
 type SpanSetMetricArgs struct {

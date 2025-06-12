@@ -1,0 +1,79 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Repository Structure
+
+```
+system-tests/
+|-- binaries/           # Users copy here the binaries of the libraries to test on end-to-end scenarios and parametric tests
+|-- docs/               # Documentation files. Folder to provide good and accurate answers. Follow the links.
+|   |-- architecture/   # Architecture documentation
+|   |-- CI/             # CI pipelines documentation
+|   |-- edit/           # Documentation on how to edit tests
+|   |-- execute/        # Documentation on how to execute tests
+|   |-- internals/      # Internal implementation details
+|   |-- lib-injection/  # Library injection documentation
+|   |-- RFCs/           # Request for Comments documents
+|   |-- scenarios/      # Documentation about test scenarios
+|   |   |-- README.md           # Overview of the main types of scenarios
+|   |   |-- docker_ssi.md       # Docker SSI scenario documentation
+|   |   |-- IPv6.md             # End-to-End IPv6 scenario documentation
+|   |   |-- k8s_lib_injection.md # Kubernetes library injection tests details
+|   |   |-- lifecycle.md        # Scenario lifecycle documentation
+|   |   |-- onboarding.md       # Onboarding/AWS SSI tests scenario documentation. You can find here the details about the onboarding tests and how to operate with them. i.e., how to run the tests, how to create a new virtual machine, a new weblog, create provisions...
+|   |   |-- parametric.md       # Parametric scenarios documentation
+|   |   |-- external_processing.md # External processing documentation
+|   |-- weblog/         # Weblog service documentation
+|
+|-- lib-injection/      # Weblog applications used for all SSI tests: AWS SSI, Docker SSI, K8s lib injection
+|-- manifests/          # YAML config files for test activation (i.e., a test will be activated after a specific version of the tracer).
+|-- tests/              # Test implementations
+|   |-- apm_tracing_e2e/   # End-to-end APM tracing tests
+|   |-- appsec/         # Application security tests
+|   |-- auto_inject/    # Auto-instrumentation tests. This is the same as onboarding tests, auto-injection tests, AWS SSI tests
+|   |-- docker_ssi/     # Docker SSI tests
+|   |-- integrations/   # Integration tests
+|   |-- k8s_lib_injection/ # K8s library injection tests
+|   |-- parametric/     # Parametric test implementations
+|   |-- perfs/          # Performance tests
+|
+|-- utils/              # Utility code and shared libraries
+|   |-- _context/       # Test context and scenario definitions
+|   |   |-- _scenarios/ # Scenario implementations
+|   |   |   |-- __init__.py # Here you can find all the scenarios implemented. Parse this file to discover the scenarios implemented.
+|   |   |   |-- appsec_low_waf_timeout.py # AppSec WAF timeout scenario
+|   |   |   |-- auto_injection.py # Auto-injection scenario
+|   |   |   |-- default.py       # Default scenario implementation
+|   |   |   |-- docker_ssi.py    # Docker SSI scenario
+|   |   |   |-- endtoend.py      # End-to-end testing framework
+|   |   |   |-- parametric.py    # Parametric scenario
+|   |   |   |-- k8s_lib_injection.py # K8s lib injection scenario
+|   |-- assets/         # Images and other static assets
+|   |-- build/          # Build utilities and scripts
+|   |   |-- docker/     # Here you can find the Docker applications (weblogs) for the end-to-end tests and parametric tests
+|   |   |-- ssi/        # Docker SSI build utilities. This folder contains the Docker build templates and the tools/scripts to build the images for Docker SSI tests.
+|   |   |-- virtual_machine/ # VM build configuration
+|   |   |   |-- provisions/ # VM provision definitions
+|   |   |   |-- weblogs/    # Weblog configurations for VMs
+|   |-- docker_ssi/     # Docker SSI utilities
+|   |-- grpc/           # gRPC related utilities
+|   |-- interfaces/     # Interface definitions for components
+|   |-- k8s_lib_injection/ # Kubernetes lib injection utilities
+|   |-- onboarding/     # Onboarding utilities
+|   |-- parametric/     # Parametric testing utilities
+|   |-- proxy/          # Proxy server implementation
+|   |-- scripts/        # Helper and utility scripts
+|   |   |-- ci_orchestrators/ # CI pipeline scripts
+|   |   |-- parametric/ # Scripts for parametric tests
+|   |   |-- slack/      # Slack notification utilities
+|   |   |-- ssi_wizards/ # SSI wizard scripts
+|   |   |   |-- aws_onboarding_wizard.sh # AWS onboarding wizard
+|   |   |   |-- docker_ssi_wizard.sh # Docker SSI wizard
+|   |   |   |-- k8s_ssi_wizard.sh # K8s SSI wizard
+|   |-- telemetry/      # Telemetry utilities
+|   |-- virtual_machine/ # Utilities for AWS SSI tests
+|
+|-- build.sh            # Script to build test environment
+|-- run.sh              # Script to run tests and scenarios

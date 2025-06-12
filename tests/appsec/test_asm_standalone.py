@@ -1158,7 +1158,7 @@ class Test_UserEventsStandalone_SDK_V1:
         return None
 
     def _call_endpoint(self, endpoint, trace_id):
-        self.r = weblog.post(
+        self.r = weblog.get(
             endpoint,
             headers=self._get_test_headers(trace_id),
         )

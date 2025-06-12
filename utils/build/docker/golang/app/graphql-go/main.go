@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
+	"systemtests.weblog/_shared/common"
 
-	graphqltrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/graphql-go/graphql"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	graphqltrace "github.com/DataDog/dd-trace-go/contrib/graphql-go/graphql/v2"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 
 	"github.com/graphql-go/graphql"
 	"github.com/graphql-go/handler"

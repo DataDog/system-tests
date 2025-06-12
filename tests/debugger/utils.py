@@ -335,6 +335,48 @@ class BaseDebuggerTest:
         logger.debug(f"Snapshot found: {self._snapshot_found}")
         return self._snapshot_found
 
+    _no_capture_reason_span_found = False
+
+    def wait_for_no_capture_reason_span(self, error_message: str, timeout: int) -> bool:
+        self._error_message = error_message
+        self._no_capture_reason_span_found = False
+
+        interfaces.agent.wait_for(self._wait_for_no_capture_reason_span, timeout=timeout)
+        return self._no_capture_reason_span_found
+
+    def _wait_for_no_capture_reason_span(self, data: dict):
+        if data["path"] == _TRACES_PATH:
+            logger.debug(
+                "Reading "
+                + data["log_filename"]
+                + ", looking for '_dd.debug.error.no_capture_reason' with error message '"
+                + self._error_message
+                + "'"
+            )
+            content = data["request"]["content"]
+
+            if content:
+                for payload in content["tracerPayloads"]:
+                    for chunk in payload["chunks"]:
+                        for span in chunk["spans"]:
+                            meta = span.get("meta", {})
+
+                            if "_dd.debug.error.no_capture_reason" in meta:
+                                error_msg = meta.get("error.msg", "").lower()
+
+                                logger.debug(
+                                    f"Found span with _dd.debug.error.no_capture_reason: {meta['_dd.debug.error.no_capture_reason']}, error.msg: {error_msg}"
+                                )
+
+                                if self._error_message == error_msg:
+                                    logger.debug(f"Error message '{self._error_message}' matches span error")
+
+                                    self._no_capture_reason_span_found = True
+                                    return True
+
+        logger.debug(f"No capture reason span found: {self._no_capture_reason_span_found}")
+        return self._no_capture_reason_span_found
+
     def wait_for_code_origin_span(self, timeout: int = 5) -> bool:
         self._span_found = False
 
@@ -553,6 +595,14 @@ class BaseDebuggerTest:
                                         if capture_id not in span_hash:
                                             span_hash[capture_id] = []
                                         span_hash[capture_id].append(span)
+                                    continue
+
+                                has_no_capture_reason = "_dd.debug.error.no_capture_reason" in span["meta"]
+                                if has_no_capture_reason:
+                                    error_msg = span["meta"].get("error.msg", "")
+                                    if error_msg not in span_hash:
+                                        span_hash[error_msg] = []
+                                    span_hash[error_msg].append(span)
                                     continue
 
                                 # For Python, we need to look for spans with stack trace information
