@@ -50,10 +50,10 @@ on:
         required: false
         type: boolean
       build_lib_injection_app_images:
-          description: "Shall we build and push k8s lib injection weblog images"
-          default: false
-          required: false
-          type: boolean
+        description: "Shall we build and push k8s lib injection weblog images"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -74,6 +74,11 @@ on:
         default: -1
         required: false
         type: number
+      enable_replay_scenarios:
+        description: "Enable replay scenarios, should only used in system-tests CI"
+        default: false
+        required: false
+        type: boolean
       _experimental_parametric_job_count:
         description: "*DEPRECATED*"
         default: 1
@@ -194,6 +199,7 @@ jobs:
       binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
+      enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}
 
   external_processing:

@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      enable_replay_scenarios:
+        description: "Enable replay scenarios, should only used in system-tests CI"
+        default: false
+        required: false
+        type: boolean
       logs_artifact_name:
         description: "The name of the artifact to use for logs"
         required: true
@@ -391,6 +396,7 @@ jobs:
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run all scenarios in replay mode
+      if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
       env:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}
