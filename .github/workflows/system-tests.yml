@@ -193,6 +193,7 @@ jobs:
       library: ${{ matrix.job.library }}
       ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
+      weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
