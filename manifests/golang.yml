@@ -34,7 +34,11 @@ tests/:
           net-http: irrelevant (net-http cannot list path params)
           net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
-        Test_Schema_Response_Body: missing_feature
+        Test_Schema_Response_Body:
+          '*': missing_feature
+          echo: v2.1.0-dev     # Fully transparent
+          gin: v2.1.0-dev      # Using response helper function
+          net-http: v2.1.0-dev # Using SDK-style
         Test_Schema_Response_Body_env_var: v2.0.0
         Test_Schema_Response_Headers: v1.60.0
         Test_Schema_Response_on_Block: missing_feature
