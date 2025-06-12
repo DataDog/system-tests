@@ -8,6 +8,8 @@ using Serilog;
 using Serilog.Formatting.Compact;
 using weblog.IdentityStores;
 using weblog.ModelBinders;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Metrics;
 
 namespace weblog
 {
@@ -15,6 +17,13 @@ namespace weblog
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetry()
+                .ConfigureResource(r => r.AddService(OpenTelemetryInstrumentation.ServiceName))
+                .WithMetrics(builder => builder
+                    .AddMeter(OpenTelemetryInstrumentation.MeterName)
+                    .AddConsoleExporter()
+                    .AddOtlpExporter());
+
             services.AddSerilog((services, lc) => lc
                 .Enrich.FromLogContext()
                 .WriteTo.Console(new CompactJsonFormatter()));

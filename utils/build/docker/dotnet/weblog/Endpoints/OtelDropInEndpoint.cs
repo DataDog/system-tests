@@ -15,6 +15,9 @@ namespace weblog
         {
             routeBuilder.MapGet("/otel_drop_in_default_propagator_extract", async context =>
             {
+                OpenTelemetryInstrumentation.LongCounter.Add(1);
+                // _logger?.LogInformation("OtelStartSpanReturn: Called {CounterName}", Instrumentation.LongCounter.Name);
+
                 var parentContext = OpenTelemetryInstrumentation.Propagator.Extract(default, context.Request.Headers, (carrier, key) =>
                 {
                     return carrier.TryGetValue(key, out var value) && value.Count >= 1 ? new[] { value[0] } : null;
@@ -36,6 +39,9 @@ namespace weblog
 
             routeBuilder.MapGet("/otel_drop_in_default_propagator_inject", async context =>
             {
+                OpenTelemetryInstrumentation.LongCounter.Add(1);
+                // _logger?.LogInformation("OtelStartSpanReturn: Called {CounterName}", Instrumentation.LongCounter.Name);
+
                 var headersDict = new Dictionary<string,string>();
                 OpenTelemetryInstrumentation.Propagator.Inject(new PropagationContext(Activity.Current.Context, Baggage.Current), headersDict, (carrier, key, value) =>
                 {
