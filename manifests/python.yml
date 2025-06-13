@@ -1190,10 +1190,10 @@ tests/:
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0-rc1
   test_library_conf.py:
-    Test_ExtractBehavior_Default: missing_feature (trace context with only baggage should still be propagated)
-    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Default: v2.20.0
+    Test_ExtractBehavior_Ignore: v2.20.0
+    Test_ExtractBehavior_Restart: v2.20.0
+    Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
