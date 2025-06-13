@@ -24,7 +24,7 @@ class ExternalProcessingScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="externalprocessing",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing, scenario_groups.all],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )

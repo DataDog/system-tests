@@ -129,6 +129,7 @@ def main() -> None:
                 #
                 # please keep this keys sorted as they would have been in a file explorer
                 files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
+                    r"\.cursor/rules/.*": None,
                     r"\.circleci/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/CODEOWNERS": None,
@@ -145,6 +146,7 @@ def main() -> None:
                         scenario_groups.lib_injection,
                         scenario_groups.docker_ssi,
                     ],
+                    r"\.promptfoo/.*": None,
                     r"binaries/.*": None,
                     r"docs/.*": None,
                     r"lib-injection/.*": scenario_groups.lib_injection,
@@ -207,6 +209,7 @@ def main() -> None:
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,
                     r"NOTICE": None,
+                    r"promptfooconfig\.yaml": None,
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
                     r"static-analysis\.datadog\.yml": None,
