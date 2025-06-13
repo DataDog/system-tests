@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/1bfa809193052d23f9037f47454e86fb734848f30f6152da3777186eedfea594/single-step-instrumentation-tests.yml
 
 stages:
   - SSI_TESTS
@@ -111,19 +111,13 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  #image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
-  #tags: [ "runner:docker" ]
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests-pulumi:52556819
-  tags: [ "runner:docker" ]
+  extends: base_job_k8s
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
   variables:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
-  before_script: |
-    export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
-    export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
   script:
     - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
