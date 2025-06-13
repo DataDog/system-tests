@@ -111,7 +111,7 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  extends: base_job_k8s
+  extends: .base_job_k8s
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
