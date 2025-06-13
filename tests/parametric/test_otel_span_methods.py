@@ -121,6 +121,7 @@ class Test_Otel_Span_Methods:
     @missing_feature(context.library > "dotnet@2.52.0", reason="Old array encoding no longer supported")
     @missing_feature(context.library == "nodejs", reason="New operation name mapping not yet implemented")
     @missing_feature(context.library == "python", reason="New operation name mapping not yet implemented")
+    @missing_feature(context.library == "rust", reason="Old array encoding not supported")
     def test_otel_set_attributes_different_types_legacy(self, test_agent, test_library):
         """- Set attributes of multiple types for an otel span
         This tests legacy behavior. The new behavior is tested in
@@ -762,9 +763,13 @@ class Test_Otel_Span_Methods:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         root_span = find_span(trace, span.span_id)
-        assert "events" in root_span["meta"]
+        assert "events" in root_span["meta"] or "span_events" in root_span
 
-        events = json.loads(root_span.get("meta", {}).get("events"))
+        otel_events = "span_events" in root_span
+
+        logger.debug(f"{root_span.get("span_events")}")
+
+        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
 
         event1 = events[0]
@@ -774,17 +779,31 @@ class Test_Otel_Span_Methods:
         event2 = events[1]
         assert event2.get("name") == "second_event"
         assert abs(event2.get("time_unix_nano") - event2_timestamp_ns) < 100000  # reduce the precision tested
-        assert event2["attributes"].get("string_val") == "value"
+
+        
+        if otel_events:
+            assert event2["attributes"].get("string_val").get("string_value") == "value"
+        else:
+            assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
         assert event3.get("name") == "third_event"
         assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
-        assert event3["attributes"].get("int_val") == 1
-        assert event3["attributes"].get("string_val") == "2"
-        assert event3["attributes"].get("int_array")[0] == 3
-        assert event3["attributes"].get("int_array")[1] == 4
-        assert event3["attributes"].get("string_array")[0] == "5"
-        assert event3["attributes"].get("string_array")[1] == "6"
+
+        if otel_events:
+            assert event3["attributes"].get("int_val").get("int_value") == 1
+            assert event3["attributes"].get("string_val").get("string_value") == "2"
+            assert event3["attributes"].get("int_array.0").get("int_value") == 3
+            assert event3["attributes"].get("int_array.1").get("int_value") == 4
+            assert event3["attributes"].get("string_array.0").get("string_value") == "5"
+            assert event3["attributes"].get("string_array.1").get("string_value") == "6"
+        else:
+            assert event3["attributes"].get("int_val") == 1
+            assert event3["attributes"].get("string_val") == "2"
+            assert event3["attributes"].get("int_array")[0] == 3
+            assert event3["attributes"].get("int_array")[1] == 4
+            assert event3["attributes"].get("string_array")[0] == "5"
+            assert event3["attributes"].get("string_array")[1] == "6"
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library < "php@1.3.0", reason="Not implemented")
@@ -825,9 +844,11 @@ class Test_Otel_Span_Methods:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         root_span = find_span(trace, span.span_id)
-        assert "events" in root_span["meta"]
+        assert "events" in root_span["meta"] or "span_events" in root_span
 
-        events = json.loads(root_span.get("meta", {}).get("events"))
+        otel_events = "span_events" in root_span
+
+        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
         event1 = events[0]
         assert (
@@ -871,20 +892,33 @@ class Test_Otel_Span_Methods:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         root_span = find_span(trace, span.span_id)
-        assert "events" in root_span["meta"]
+        assert "events" in root_span["meta"] or "span_events" in root_span
 
-        events = json.loads(root_span.get("meta", {}).get("events"))
+        otel_events = "span_events" in root_span
+
+        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
         event1 = events[0]
-        assert event1["attributes"].get("string_val") == "value"
-        assert event1["attributes"].get("exception.message") == "woof1"
-        assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
+        if otel_events:
+            assert event1["attributes"].get("string_val").get("string_value") == "value"
+            assert event1["attributes"].get("exception.message").get("string_value") == "woof1"
+            assert event1["attributes"].get("exception.stacktrace").get("string_value") == "stacktrace1"
+        else:
+            assert event1["attributes"].get("string_val") == "value"
+            assert event1["attributes"].get("exception.message") == "woof1"
+            assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
 
         event2 = events[1]
-        assert event2["attributes"].get("exception.stacktrace") == "non-error"
+        if otel_events:
+            assert event2["attributes"].get("exception.stacktrace").get("string_value") == "non-error"
+        else:
+            assert event2["attributes"].get("exception.stacktrace") == "non-error"
 
         event3 = events[2]
-        assert event3["attributes"].get("exception.message") == "message override"
+        if otel_events:
+            assert event3["attributes"].get("exception.message").get("string_value") == "message override"
+        else:
+            assert event3["attributes"].get("exception.message") == "message override"
 
         # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
         # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
