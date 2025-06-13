@@ -305,7 +305,8 @@ function main() {
                 ;;
             -*)
                 # unknown flag probably to be passed to pytest
-                pytest_args+=("$1 $2")
+                pytest_args+=("$1")
+                shift
                 ;;
             *)
                 # handle positional arguments
