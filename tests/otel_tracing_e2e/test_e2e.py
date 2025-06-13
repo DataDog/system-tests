@@ -31,6 +31,51 @@ def validate_example_counter(counter_metric: dict) -> None:
     assert len(counter_series["pointlist"]) == 1
     assert counter_series["pointlist"][0][1] == 11.0
 
+def validate_example_counter_new(metric: dict) -> None:
+    assert metric["metric"] == "example.counter"
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 11.0
+    assert metric["type"] == "COUNT"
+
+def validate_example_async_counter_new(metric: dict) -> None:
+    assert metric["metric"] == "example.async.counter"
+    assert len(metric["points"]) == 1
+
+    # The first reported metric should report a value of 22.0
+    # The later reported metrics may not have a value
+    assert metric["points"][0]["value"] == 22.0
+    assert metric["type"] == "COUNT"
+
+def validate_example_histogram_new(metric: dict) -> None:
+    assert metric["metric"].startswith("example.histogram")
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 33.0 if metric["metric"] != "example.histogram.count" else 1.0
+    assert metric["type"] == "COUNT" if (metric["metric"] == "example.histogram.count" or metric["metric"] == "example.histogram.sum") else "GAUGE"
+
+def validate_example_upDownCounter_new(metric: dict) -> None:
+    assert metric["metric"] == "example.upDownCounter"
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 55.0
+    assert metric["type"] == "GAUGE"
+
+def validate_example_async_upDownCounter_new(metric: dict) -> None:
+    assert metric["metric"] == "example.async.upDownCounter"
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 66.0
+    assert metric["type"] == "GAUGE"
+
+def validate_example_gauge_new(metric: dict) -> None:
+    assert metric["metric"] == "example.gauge"
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 77.0
+    assert metric["type"] == "GAUGE"
+
+def validate_example_async_gauge_new(metric: dict) -> None:
+    assert metric["metric"] == "example.async.gauge"
+    assert len(metric["points"]) == 1
+    assert metric["points"][0]["value"] == 88.0
+    assert metric["type"] == "GAUGE"
+
 
 def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
     assert len(histogram_metric["series"]) == 1
@@ -173,6 +218,71 @@ class Test_OTelMetricE2E:
         validate_metrics(metrics_agent, metrics_collector, "Agent", "Collector")
         validate_metrics(metrics_agent, metrics_intake, "Agent", "Intake")
 
+    def setup_agent_otlp_upload(self):
+        self.start = int(time.time())
+        self.r = weblog.get(path="/basic/metric")
+        self.expected_metrics = [
+            "example.counter",
+            "example.async.counter",
+            "example.gauge",
+            "example.async.gauge",
+            "example.upDownCounter",
+            "example.async.upDownCounter",
+            "example.histogram.sum",
+            "example.histogram.count",
+            "example.histogram.min",
+            "example.histogram.max",
+        ]
+
+    def test_agent_otlp_upload(self):
+        end = int(time.time())
+        rid = self.r.get_rid().lower()
+        seen = set()
+        try:
+            metrics_agent = []
+            for _, metric in interfaces.agent.get_metrics():
+                if metric["metric"].startswith("example"):
+                    # Asynchronous instruments report on each metric read, so we need to deduplicate
+                    # Also, the UpDownCounter instrument (in addition to the AsyncUpDownCounter instrument) is cumulative, so we need to deduplicate
+                    if metric["metric"].startswith("example.async") or metric["metric"] == "example.upDownCounter":
+                        if metric["metric"] not in seen:
+                            metrics_agent.append(metric)
+                            seen.add(metric["metric"])
+                    else:
+                        metrics_agent.append(metric)
+
+        except ValueError as e:
+            logger.warning("Backend does not provide series")
+            logger.warning(e)
+            return
+
+        print(metrics_agent)
+
+        assert len(metrics_agent) == len(self.expected_metrics), "Agent metrics should match expected"
+
+        for metric in metrics_agent:
+            if metric["metric"] == "example.counter":
+                validate_example_counter_new(metric)
+            elif metric["metric"] == "example.async.counter":
+                validate_example_async_counter_new(metric)
+            elif metric["metric"] == "example.histogram.sum":
+                validate_example_histogram_new(metric)
+            elif metric["metric"] == "example.histogram.count":
+                validate_example_histogram_new(metric)
+            elif metric["metric"] == "example.histogram.min":
+                validate_example_histogram_new(metric)
+            elif metric["metric"] == "example.histogram.max":
+                validate_example_histogram_new(metric)
+            elif metric["metric"] == "example.upDownCounter":
+                validate_example_upDownCounter_new(metric)
+            elif metric["metric"] == "example.async.upDownCounter":
+                validate_example_async_upDownCounter_new(metric)
+            elif metric["metric"] == "example.gauge":
+                validate_example_gauge_new(metric)
+            elif metric["metric"] == "example.async.gauge":
+                validate_example_async_gauge_new(metric)
+            else:
+                assert False, f"Metric {metric['metric']} not expected"
 
 @scenarios.otel_log_e2e
 @irrelevant(context.library != "java_otel")
