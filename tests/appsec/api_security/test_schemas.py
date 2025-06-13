@@ -278,7 +278,7 @@ class Test_Schema_Response_Body_env_var:
 
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Parsing response body not supported yet",
+        reason="Response body not supported yet",
     )
     def test_request_method(self):
         """Can provide response body schema"""
