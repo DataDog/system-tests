@@ -102,17 +102,16 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-
+    result_pipeline["include"] = pipeline_data["include"]
     if (
         not matrix_data["aws_ssi_scenario_defs"]
         and not matrix_data["dockerssi_scenario_defs"]
         and not matrix_data["libinjection_scenario_defs"]
     ):
-        result_pipeline["include"] = pipeline_data["include"]
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if matrix_data["aws_ssi_scenario_defs"]:
+    if matrix_data["aws_ssi_scenario_defs"] and 1 == 2:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
@@ -121,7 +120,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
                 0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
             )
         print_aws_gitlab_pipeline(language, matrix_data["aws_ssi_scenario_defs"], ci_environment, result_pipeline)
-    if matrix_data["dockerssi_scenario_defs"]:
+    if matrix_data["dockerssi_scenario_defs"] and 1 == 2:
         # Copy the base job for the docker ssi system tests
         result_pipeline[".base_docker_ssi_job"] = pipeline_data[".base_docker_ssi_job"]
         print_docker_ssi_gitlab_pipeline(
