@@ -126,7 +126,7 @@ ssi_tests:
     - aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
     - |
       if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
-        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH")
+        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
         echo "TAG_NAME ${TAG_NAME}"
         echo "K8S_WEBLOG ${K8S_WEBLOG}"
         echo "TEST_LIBRARY ${TEST_LIBRARY}"
