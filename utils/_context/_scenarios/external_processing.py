@@ -112,7 +112,7 @@ class ExternalProcessingScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "envoyproxy-go-control-plane"
+        return "gcp-service-extension"
 
     @property
     def library(self):

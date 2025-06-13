@@ -1381,7 +1381,7 @@ class ExternalProcessingContainer(TestedContainer):
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:system-tests-latest"
 
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",
