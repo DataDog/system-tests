@@ -1,10 +1,14 @@
 use axum::{
     routing::{get, post, Router},
     Json,
+    extract::State,
 };
 use serde::{Deserialize, Serialize};
+use tracing::debug;
+use opentelemetry::{Context, KeyValue};
+use opentelemetry::trace::{Tracer, TraceContextExt, Span};
 
-use crate::AppState;
+use crate::{AppState, get_tracer};
 
 #[derive(Debug, Deserialize)]
 struct StartSpanArgs {
@@ -21,6 +25,11 @@ struct StartSpanArgs {
 struct StartSpanReturn {
     span_id: u64,
     trace_id: u64,
+}
+
+#[derive(Debug, Deserialize)]
+struct FinishSpanArgs {
+    span_id: u64,
 }
 
 pub fn app() -> Router<AppState> {
@@ -55,38 +64,35 @@ pub fn app() -> Router<AppState> {
 }
 
 async fn trace_span_start(
+    State(state): State<AppState>,
     Json(args): Json<StartSpanArgs>,
 ) -> Json<StartSpanReturn> {
-    let mut builder = get_tracer().span_builder(args.name.clone());
-    // hack to prevent libdatadog from dropping trace chunks
-    let mut attributes = vec![opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1)];
-    attributes.append(&mut parse_attributes(args.attributes.as_ref()));
+    let tracer = get_tracer();
+    let mut builder = tracer.span_builder(args.name.clone());
+    let mut attributes = vec![];
     
-    // Add span tags to attributes
-    for (key, value) in args.span_tags {
-        attributes.push(opentelemetry::KeyValue::new(key, value));
+    // the issue is that we want to vary the service name for each span
+    // but the service name is set permanently on the tracer...
+
+    // Add service name as an attribute which for now will
+    // be evaluated before resource for the sampling value
+    if let Some(service) = args.service {
+        attributes.push(KeyValue::new("service.name", service));
     }
     
-    // Add operation name as an attribute, maybe can remove this
-    attributes.push(opentelemetry::KeyValue::new("operation.name", args.name.clone()));
+    for (key, value) in args.span_tags {
+        attributes.push(KeyValue::new(key, value));
+    }
+    
+    attributes.push(KeyValue::new("operation.name", args.name.clone()));
+
+    if let Some(resource) = args.resource {
+        attributes.push(KeyValue::new("resource.name", resource));
+    }
     
     builder = builder.with_attributes(attributes);
-    
-    // Add service name as a resource if provided
-    if let Some(service) = args.service {
-        let resource = opentelemetry::Resource::new(vec![
-            opentelemetry::KeyValue::new("service.name", service),
-        ]);
-        builder = builder.with_resource(resource);
-    }
 
-    // Add resource name as a resource if provided
-    if let Some(resource) = args.resource {
-        let resource = opentelemetry::Resource::new(vec![
-            opentelemetry::KeyValue::new("resource.name", resource),
-        ]);
-        builder = builder.with_resource(resource);
-    }
+    let span = builder.start(tracer);
     let id = span.span_context().span_id();
     let span_id = u64::from_be_bytes(id.to_bytes());
     let trace_id = u64::from_be_bytes(
@@ -95,21 +101,33 @@ async fn trace_span_start(
             .unwrap(),
     );
 
-    let ctx = Context::current_with_span(span);
+    let ctx = Context::current().with_span(span);
     state.current_context.lock().unwrap().clone_from(&ctx);
     state.contexts.lock().unwrap().insert(span_id, ctx);
 
-    debug!("created otel span {span_id}");
+    debug!("created span {span_id}");
     
-    builder.start(get_tracer())
     Json(StartSpanReturn {
-        span_id: 0,
-        trace_id: 0,
+        span_id,
+        trace_id,
     })
 }
 
 async fn trace_crash() {}
-async fn trace_span_finish() {}
+
+async fn trace_span_finish(
+    State(state): State<AppState>,
+    Json(args): Json<FinishSpanArgs>,
+) {
+    if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
+        let span = ctx.span();
+        debug!("end_span: span {:?} found", &args.span_id);
+        span.end();
+    } else {
+        debug!("end_span: span {:?} NOT found", &args.span_id);
+    };
+}
+
 async fn trace_span_set_meta() {}
 async fn trace_span_set_resource() {}
 async fn trace_span_set_metric() {}
