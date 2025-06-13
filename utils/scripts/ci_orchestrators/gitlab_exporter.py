@@ -108,6 +108,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         and not matrix_data["dockerssi_scenario_defs"]
         and not matrix_data["libinjection_scenario_defs"]
     ):
+        result_pipeline["include"] = pipeline_data["include"]
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
