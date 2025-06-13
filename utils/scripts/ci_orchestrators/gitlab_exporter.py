@@ -158,7 +158,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["parallel"] = {"matrix": []}
         cluster_agent_versions_scenario = None
         for weblog_name, cluster_agent_versions in weblogs.items():
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", f"ghcr.io/datadog/system-tests/{weblog_name}")
+            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/{weblog_name}")
             if cluster_agent_versions:
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
