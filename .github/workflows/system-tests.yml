@@ -166,8 +166,6 @@ jobs:
         if: inputs.library == 'python' && inputs.build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
-      - name: Build agent
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent -s
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s

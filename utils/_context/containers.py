@@ -629,7 +629,7 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
-            image_name="system_tests/agent",
+            image_name=self._get_image_name(),
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
@@ -638,22 +638,24 @@ class AgentContainer(TestedContainer):
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,
-            local_image_only=True,
+            volumes={
+                # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
+            },
         )
 
         self.agent_version: str | None = ""
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
+    def _get_image_name(self) -> str:
         try:
             with open("binaries/agent-image", encoding="utf-8") as f:
-                return [
-                    f.read().strip(),
-                ]
+                return f.read().strip()
         except FileNotFoundError:
-            # not the cleanest way to do it, but we save ARG parsing
-            return [
-                "datadog/agent:latest",
-            ]
+            return "datadog/agent:latest"
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
