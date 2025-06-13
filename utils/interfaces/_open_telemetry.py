@@ -38,3 +38,20 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                             attr_val = attribute.get("value").get("stringValue")
                             if attr_key == "http.request.headers.user-agent" and rid in attr_val:
                                 yield span.get("traceId")
+
+    def get_metrics(self, host: str = ""):
+        """Attempts to fetch the metrics sent from the OTLP-generating application."""
+
+        for data in self.get_data(path_filters="/v1/metrics"):
+            if (not host) or (host == data["host"]):
+                if "resourceMetrics" not in data["request"]["content"]:
+                    raise ValueError("resourceMetrics property is missing in metrics payload")
+
+                content = data["request"]["content"]["resourceMetrics"]
+
+                # Since there's only one source of data, we expect to only have one entry in the ResourceMetrics field
+                scope_metrics = content[0]["scopeMetrics"]
+
+                for scope_metric in scope_metrics:
+                    for metric in scope_metric["metrics"]:
+                        yield data, metric
