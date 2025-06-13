@@ -540,7 +540,7 @@ class Test_UserLoginFailureEventV2_Metrics_AppsecEnabled(BaseUserLoginFailureEve
 @features.event_tracking_sdk_v2
 @scenarios.ato_sdk
 class Test_UserLoginFailureEventV2_Metrics_AppsecDisabled(BaseUserLoginFailureEventV2Metrics):
-    """Test metrics in AppSec User Login Failure Event SDK v2 when appsec is disabled"""
+    """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
 
 
 @features.event_tracking_sdk_v2
