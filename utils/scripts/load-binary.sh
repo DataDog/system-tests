@@ -236,9 +236,8 @@ elif [ "$TARGET" = "golang" ]; then
     echo "github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2@$COMMIT_ID" >> golang-load-from-go-get
     echo "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2@$COMMIT_ID" >> golang-load-from-go-get
 
-    #echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
-    #echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
-    # As it's commented, it will use the default image which is set to the tag "system-tests-latest"
+    echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
+    echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
     echo "Using github.com/DataDog/orchestrion@main"
     echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
