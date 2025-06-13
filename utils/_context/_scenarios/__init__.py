@@ -973,7 +973,7 @@ class _Scenarios:
     ato_sdk = EndToEndScenario(
         "ATO_SDK",
         weblog_env={"DD_APPSEC_ENABLED": "false"},
-        doc="Test ato when appsec is diabled",
+        doc="Test when AppSec ATO is disabled",
         github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end],
     )
