@@ -388,6 +388,7 @@ class _Scenarios:
             # added to test Test_ExtendedHeaderCollection
             "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
