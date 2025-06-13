@@ -65,10 +65,6 @@ jobs:
         if: inputs.build_proxy_image
         run: ./build.sh -i proxy
 
-      - name: Build agent image
-        id: build
-        run: ./build.sh -i agent
-
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
 
