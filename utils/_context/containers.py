@@ -594,6 +594,10 @@ class ProxyContainer(TestedContainer):
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
+            healthcheck={
+                "test": f"python -c \"import socket; s=socket.socket(); s.settimeout(2); s.connect(('localhost', {ProxyPorts.weblog})); s.close()\"",
+                "retries": 30,
+            },
         )
 
 
