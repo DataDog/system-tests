@@ -1,6 +1,3 @@
-include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
-
 stages:
   - configure
   - nodejs

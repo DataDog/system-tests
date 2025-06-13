@@ -103,12 +103,6 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
 
-    result_pipeline["include"] = [
-        {
-            "remote": "https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml"
-        }
-    ]
-
     if (
         not matrix_data["aws_ssi_scenario_defs"]
         and not matrix_data["dockerssi_scenario_defs"]
