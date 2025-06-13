@@ -57,7 +57,7 @@ ask_load_k8s_requirements(){
 select_weblog_img(){
     spacer
     echo -e "${YELLOW}📌 Step: Select weblog img registry${NC}"
-    WEBLOG_IMAGE="ghcr.io/datadog/system-tests/$WEBLOG:latest"
+    WEBLOG_IMAGE="235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/$WEBLOG:latest"
     select K8S_INJECTOR_IMG in "${WEBLOG_IMAGE[@]}" "Use custom image"; do
         if [[ -n "$WEBLOG_IMAGE" ]]; then
             break

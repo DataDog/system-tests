@@ -28,5 +28,5 @@ for variant in "${!variants[@]}"; do
     language="${variants[$variant]}"
     echo "Building $variant - $language";
     echo "$(pwd)"
-    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag ghcr.io/datadog/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG --docker-platform $BUILDX_PLATFORMS
+    ./lib-injection/build/build_lib_injection_weblog.sh -w $variant -l $language --push-tag 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/$variant:$DOCKER_IMAGE_WEBLOG_TAG --docker-platform $BUILDX_PLATFORMS
 done
