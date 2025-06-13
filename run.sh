@@ -303,6 +303,10 @@ function main() {
                 hint
                 exit 64
                 ;;
+            -*)
+                # unknown flag probably to be passed to pytest
+                pytest_args+=("$1 $2")
+                ;;
             *)
                 # handle positional arguments
                 if [[ "$1" =~ ^(\/|(\.\/)?tests\/) ]]; then # if starts with "/" or "./tests/" or "tests/"
