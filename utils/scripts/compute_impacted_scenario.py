@@ -149,6 +149,7 @@ def main() -> None:
                     r"docs/.*": None,
                     r"lib-injection/.*": scenario_groups.lib_injection,
                     r"manifests/.*": None,  # already handled by the manifest comparison
+                    r"repository\.datadog\.yml": None,
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
                     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
