@@ -305,8 +305,12 @@ function main() {
                 ;;
             *)
                 # handle positional arguments
-                if [[ "$1" =~ ^[A-Z0-9_]+$ ]]; then
-                    scenario_args+=("$1")
+                if [[ "$1" =~ ^(\/|(\.\/)?tests\/) ]]; then # if starts with "/" or "./tests/" or "tests/"
+                    # pass test path to pytest
+                    pytest_args+=("$1")
+                elif [[ "$1" =~ ^[A-Za-z0-9_]+$ ]]; then
+                    # it's a scenario name
+                    scenario_args+=("$(echo "$1" | upcase)")
                 else
                     # pass any unmatched arguments to pytest
                     pytest_args+=("$1")
