@@ -59,6 +59,8 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             assert os.getenv("DD_APP_KEY_ONBOARDING") is not None, "DD_APP_KEY_ONBOARDING is not set"
             self._api_key = os.getenv("DD_API_KEY_ONBOARDING")
             self._app_key = os.getenv("DD_APP_KEY_ONBOARDING")
+        # Get the ecr registry token
+        self._ecr_registry_token = config.option.k8s_ecr_token
 
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
         self.k8s_weblog = config.option.k8s_weblog
@@ -86,7 +88,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
-        self.k8s_cluster_provider.configure()
+        self.k8s_cluster_provider.configure(self._ecr_registry_token)
         self.print_context()
 
         # is it on sleep mode?

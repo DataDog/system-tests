@@ -14,7 +14,8 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
+    #TODO CHANGE THE NAME
+    extends: .base_job_k8s
     needs: []
     allow_failure: false
     variables:
@@ -124,19 +125,15 @@ ssi_tests:
     - python --version
     - pip freeze
     - aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    - aws ecr get-login-password --region us-east-1 > /tmp/ecr-token.txt
     - |
       if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
         TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
-        echo "TAG_NAME ${TAG_NAME}"
-        echo "K8S_WEBLOG ${K8S_WEBLOG}"
-        echo "TEST_LIBRARY ${TEST_LIBRARY}"
-        echo "K8S_WEBLOG_IMG ${K8S_WEBLOG_IMG}"
-        docker buildx version || true
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
           --push-tag 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
           --docker-platform linux/arm64,linux/amd64
       fi
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT}
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} --k8s-ecr-token "$(cat /tmp/ecr-token.txt)"
 
   after_script: |
     kind delete clusters --all || true
