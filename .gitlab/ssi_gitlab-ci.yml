@@ -131,9 +131,10 @@ ssi_tests:
         echo "K8S_WEBLOG ${K8S_WEBLOG}"
         echo "TEST_LIBRARY ${TEST_LIBRARY}"
         echo "K8S_WEBLOG_IMG ${K8S_WEBLOG_IMG}"
+        docker buildx version || true
         ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
           --push-tag 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
-          --docker-platform linux/arm64,linux/amd64
+          --docker-platform linux/amd64
       fi
     - echo "RUNNING THE JOB"
   after_script: |
