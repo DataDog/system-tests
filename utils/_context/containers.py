@@ -573,6 +573,10 @@ class ProxyContainer(TestedContainer):
 
         """
 
+        # Adjust healthcheck for IPv6 scenarios
+        host_target = "::1" if enable_ipv6 else "localhost"
+        socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
+
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
@@ -594,6 +598,10 @@ class ProxyContainer(TestedContainer):
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
+            healthcheck={
+                "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
+                "retries": 30,
+            },
         )
 
 
