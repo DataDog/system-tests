@@ -491,7 +491,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
 @features.event_tracking_sdk_v2
 @scenarios.ato_sdk
 class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginFailureEventV2HeaderCollection):
-    """Test headers are not collected in User Login Failure Event SDK v2 when appsec is disabled"""
+    """Test headers are not collected in User Login Failure Event SDK v2 when AppSec is disabled"""
 
     def test_user_login_failure_header_collection(self):
         assert self.r.status_code == 200
