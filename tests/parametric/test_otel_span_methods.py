@@ -767,8 +767,6 @@ class Test_Otel_Span_Methods:
 
         otel_events = "span_events" in root_span
 
-        logger.debug(f"{root_span.get("span_events")}")
-
         events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
 
