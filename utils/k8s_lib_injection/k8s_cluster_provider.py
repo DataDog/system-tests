@@ -26,8 +26,10 @@ class K8sClusterProvider:
     def __init__(self, is_local_managed=False):
         self.is_local_managed = is_local_managed
         self._cluster_info = None
+        self._ecr_token = None
 
-    def configure(self):
+    def configure(self, ecr_token):
+        self._ecr_token = ecr_token
         self.configure_cluster()
         self.configure_networking()
         # self.configure_cluster_api_connection()
@@ -275,7 +277,10 @@ class K8sKindClusterProvider(K8sClusterProvider):
             self._setup_kind_in_gitlab()
         else:
             execute_command(kind_command)
-
+        # Method to create a kubernetes secret to access to the internal registry
+        if self._ecr_token:
+            self._create_secret_to_access_to_internal_registry(self._ecr_token)
+        
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
 
@@ -312,3 +317,26 @@ class K8sKindClusterProvider(K8sClusterProvider):
         )
 
         self.get_cluster_info().cluster_host_name = correct_control_plane_ip
+
+    def _create_secret_to_access_to_internal_registry(self, ecr_token):
+        # Create a kubernetes secret to access to the internal registry
+        logger.info("Creating ECR secret")
+        try:
+            # Create the secret
+            execute_command(
+                f"kubectl create secret docker-registry ecr-secret "
+                f"--docker-server=235494822917.dkr.ecr.us-east-1.amazonaws.com "
+                f"--docker-username=AWS "
+                f"--docker-password={ecr_token}"
+            )
+            logger.info("Successfully created ECR secret")
+            
+            # Patch the default service account to use the secret
+            execute_command(
+                'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "ecr-secret"}]}\''
+            )
+            logger.info("Successfully patched default service account")
+        except Exception as e:
+            logger.error(f"Error creating ECR secret: {str(e)}")
+            raise
+        

@@ -317,7 +317,7 @@ class DockerSSIImageBuilder:
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
-        self._docker_registry_tag = f"ghcr.io/datadog/system-tests/ssi_installer_{self.docker_tag}:latest"
+        self._docker_registry_tag = f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_{self.docker_tag}:latest"
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -352,9 +352,20 @@ class DockerSSIImageBuilder:
                 docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
                 push_logs = get_docker_client().images.push(self._docker_registry_tag)
                 self.print_docker_push_logs(self._docker_registry_tag, push_logs)
+                
+                # Check if push was successful by verifying the image exists in registry
+                try:
+                    get_docker_client().images.pull(self._docker_registry_tag)
+                    logger.stdout(f"Push done")
+                except Exception as e:
+                    logger.stdout("ERROR: Image was not found in registry after push")
+                    logger.exception(f"Failed to verify pushed image: {e}")
+                    raise Exception("Image push failed - image not found in registry after push")
+                
             except Exception as e:
                 logger.stdout("ERROR pushing docker image. check log file for more details")
                 logger.exception(f"Failed to push docker image: {e}")
+                raise e
 
     def get_base_docker_tag(self):
         """Resolves and format the docker tag for the base image"""

@@ -1,0 +1,2 @@
+include:
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/1bfa809193052d23f9037f47454e86fb734848f30f6152da3777186eedfea594/single-step-instrumentation-tests.yml

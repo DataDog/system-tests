@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
+  - local: ".gitlab/single-step-instrumentation-tests-locked.yml"
 
 stages:
   - SSI_TESTS
@@ -14,12 +14,15 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
+    #TODO CHANGE THE NAME
+    extends: .base_job_k8s
     needs: []
     allow_failure: false
     variables:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    before_script:
+      - aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
     after_script: |
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
@@ -111,23 +114,29 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
-  tags: [ "runner:docker" ]
+  extends: .base_job_k8s
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
   variables:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
-  before_script: |
-    export DD_API_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-api-key-onboarding --with-decryption --query "Parameter.Value" --out text)
-    export DD_APP_KEY_ONBOARDING=$(aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.dd-app-key-onboarding --with-decryption --query "Parameter.Value" --out text)
   script:
     - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner # rebuild runner in case there were changes
     - source venv/bin/activate
     - python --version
     - pip freeze
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT}
+    - aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    - aws ecr get-login-password --region us-east-1 > /tmp/ecr-token.txt
+    - |
+      if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
+        ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
+          --push-tag 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
+          --docker-platform linux/arm64,linux/amd64
+      fi
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT} --k8s-ecr-token "$(cat /tmp/ecr-token.txt)"
+
   after_script: |
     kind delete clusters --all || true
     mkdir -p reports
