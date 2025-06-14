@@ -276,6 +276,10 @@ class Test_Schema_Response_Body_env_var:
             data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
         )
 
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Response body not supported yet",
+    )
     def test_request_method(self):
         """Can provide response body schema"""
         assert self.request.status_code == 200
