@@ -145,7 +145,10 @@ def main() -> None:
                     r"\.gitlab/k8s_gitlab-ci.yml": scenario_groups.lib_injection,
                     r"\.gitlab/ssi_gitlab-ci.yml": scenario_groups.onboarding,
                     # TODO: include onboarding
-                    r"\.gitlab/single-step-instrumentation-tests-locked.yml": [scenario_groups.lib_injection, scenario_groups.docker_ssi],
+                    r"\.gitlab/single-step-instrumentation-tests-locked.yml": [
+                        scenario_groups.lib_injection,
+                        scenario_groups.docker_ssi,
+                    ],
                     r"\.promptfoo/.*": None,
                     r"binaries/.*": None,
                     r"docs/.*": None,

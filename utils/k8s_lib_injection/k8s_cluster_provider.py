@@ -86,6 +86,8 @@ class K8sClusterProvider:
         execute_command(
             f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
         )
+        if self._ecr_token:
+            execute_command('kubectl patch serviceaccount spark -p \'{"imagePullSecrets": [{"name": "ecr-secret"}]}\'')
 
 
 class K8sClusterInfo:
@@ -280,7 +282,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         # Method to create a kubernetes secret to access to the internal registry
         if self._ecr_token:
             self._create_secret_to_access_to_internal_registry(self._ecr_token)
-        
+
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
 
@@ -330,13 +332,12 @@ class K8sKindClusterProvider(K8sClusterProvider):
                 f"--docker-password={ecr_token}"
             )
             logger.info("Successfully created ECR secret")
-            
+
             # Patch the default service account to use the secret
             execute_command(
                 'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "ecr-secret"}]}\''
             )
             logger.info("Successfully patched default service account")
         except Exception as e:
-            logger.error(f"Error creating ECR secret: {str(e)}")
+            logger.error(f"Error creating ECR secret: {e!s}")
             raise
-        

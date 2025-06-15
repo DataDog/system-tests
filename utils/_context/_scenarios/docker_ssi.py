@@ -24,6 +24,14 @@ from utils.virtual_machine.vm_logger import vm_logger
 from .core import Scenario
 
 
+class ContainerRemovalError(Exception):
+    """Exception raised when a container fails to be removed."""
+
+
+class ImagePushError(Exception):
+    """Exception raised when a docker image push operation fails."""
+
+
 class DockerSSIScenario(Scenario):
     """Scenario test the ssi installer on a docker environment and runs APM test agent"""
 
@@ -142,7 +150,7 @@ class DockerSSIScenario(Scenario):
     def fix_gitlab_network(self):
         old_weblog_url = self.weblog_url
         self.weblog_url = self.weblog_url.replace("localhost", self._weblog_injection.network_ip(self._network))
-        logger.debug(f"GITLAB_CI: Rewrote weblog url from {old_weblog_url} to {self.weblog_url}")
+        logger.debug(f"GITLAB_CI: Rewritten weblog url from {old_weblog_url} to {self.weblog_url}")
         self.agent_host = self._agent_container.network_ip(self._network)
         logger.debug(f"GITLAB_CI: Set agent host to {self.agent_host}")
 
@@ -154,8 +162,9 @@ class DockerSSIScenario(Scenario):
             try:
                 container.remove()
                 logger.info(f"Removing container {container}")
-            except:
+            except Exception as e:
                 logger.exception(f"Failed to remove container {container}")
+                raise ContainerRemovalError(f"Failed to remove container {container}") from e
         # TODO push images only if all tests pass
         # TODO At this point, tests are not yet executed. There is not official hook in the Scenario class to do that,
         # TODO we can add one : pytest_sessionstart, it will contains the test result.
@@ -317,7 +326,9 @@ class DockerSSIImageBuilder:
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
-        self._docker_registry_tag = f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_{self.docker_tag}:latest"
+        self._docker_registry_tag = (
+            f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_{self.docker_tag}:latest"
+        )
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -352,20 +363,20 @@ class DockerSSIImageBuilder:
                 docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
                 push_logs = get_docker_client().images.push(self._docker_registry_tag)
                 self.print_docker_push_logs(self._docker_registry_tag, push_logs)
-                
+
                 # Check if push was successful by verifying the image exists in registry
                 try:
                     get_docker_client().images.pull(self._docker_registry_tag)
-                    logger.stdout(f"Push done")
+                    logger.stdout("Push done")
                 except Exception as e:
                     logger.stdout("ERROR: Image was not found in registry after push")
                     logger.exception(f"Failed to verify pushed image: {e}")
-                    raise Exception("Image push failed - image not found in registry after push")
-                
+                    raise ImagePushError("Image push failed - image not found in registry after push") from e
+
             except Exception as e:
                 logger.stdout("ERROR pushing docker image. check log file for more details")
                 logger.exception(f"Failed to push docker image: {e}")
-                raise e
+                raise ImagePushError("Failed to push docker image") from e
 
     def get_base_docker_tag(self):
         """Resolves and format the docker tag for the base image"""
@@ -418,7 +429,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise
+            raise BuildError("Failed to build docker image") from e
 
     def build_ssi_installer_image(self):
         """Build the ssi installer image. Install only the ssi installer on the image"""
@@ -441,7 +452,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise
+            raise BuildError("Failed to build installer docker image") from e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """Build the final weblog image. Uses base ssi installer image, install
@@ -487,7 +498,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise
+            raise BuildError("Failed to build weblog docker image") from e
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.
