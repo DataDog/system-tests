@@ -1,4 +1,4 @@
-FROM python:3.11
+FROM public.ecr.aws/docker/library/python:3.11
 
 ENV PYTHONUNBUFFERED 1
 ENV DD_INJECT_FORCE 1

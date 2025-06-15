@@ -102,13 +102,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-
-    result_pipeline["include"] = [
-        {
-            "remote": "https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml"
-        }
-    ]
-
+    result_pipeline["include"] = pipeline_data["include"]
     if (
         not matrix_data["aws_ssi_scenario_defs"]
         and not matrix_data["dockerssi_scenario_defs"]
@@ -117,7 +111,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if matrix_data["aws_ssi_scenario_defs"]:
+    if matrix_data["aws_ssi_scenario_defs"] and 1 == 2:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
@@ -164,7 +158,9 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["parallel"] = {"matrix": []}
         cluster_agent_versions_scenario = None
         for weblog_name, cluster_agent_versions in weblogs.items():
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", f"ghcr.io/datadog/system-tests/{weblog_name}:latest")
+            k8s_weblog_img = os.getenv(
+                "K8S_WEBLOG_IMG", f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/{weblog_name}"
+            )
             if cluster_agent_versions:
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
@@ -239,6 +235,8 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     )
 
                 result_pipeline[vm_job]["script"] = [
+                    "aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com",
+                    "docker pull 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_public_ecr_aws-lts-ubuntu-22_04_js2300_linux-amd64:latest",
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
