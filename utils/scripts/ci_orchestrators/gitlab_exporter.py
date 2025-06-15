@@ -236,6 +236,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
 
                 result_pipeline[vm_job]["script"] = [
                     "aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com",
+                    "docker pull 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_public_ecr_aws-lts-ubuntu-22_04_js2300_linux-amd64:latest",
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
