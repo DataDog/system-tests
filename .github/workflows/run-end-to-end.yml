@@ -19,6 +19,11 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_instance:
+        description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -54,6 +59,11 @@ on:
         default: false
         required: false
         type: boolean
+      enable_replay_scenarios:
+        description: "Enable replay scenarios, should only used in system-tests CI"
+        default: false
+        required: false
+        type: boolean
       logs_artifact_name:
         description: "The name of the artifact to use for logs"
         required: true
@@ -64,7 +74,7 @@ env:
 
 jobs:
   main:
-    name: ${{ inputs.weblog }}
+    name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
     runs-on: ubuntu-latest
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
@@ -391,6 +401,7 @@ jobs:
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
     - name: Run all scenarios in replay mode
+      if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
       env:
         DD_APPLICATION_KEY: ${{ secrets.DD_APPLICATION_KEY }}

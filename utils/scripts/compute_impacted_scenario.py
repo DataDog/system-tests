@@ -141,9 +141,11 @@ def main() -> None:
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
                     r"\.github/.*": None,
-                    r"\.gitlab/aws_gitlab-ci.yml": scenario_groups.onboarding,
-                    r"\.gitlab/k8s_gitlab-ci.yml": scenario_groups.lib_injection,
-                    r"\.gitlab/ssi_gitlab-ci.yml": scenario_groups.onboarding,
+                    # TODO: include onboarding
+                    r"\.gitlab/ssi_gitlab-ci.yml": [
+                        scenario_groups.lib_injection,
+                        scenario_groups.docker_ssi,
+                    ],
                     # TODO: include onboarding
                     r"\.gitlab/single-step-instrumentation-tests-locked.yml": [
                         scenario_groups.lib_injection,
@@ -154,6 +156,7 @@ def main() -> None:
                     r"docs/.*": None,
                     r"lib-injection/.*": scenario_groups.lib_injection,
                     r"manifests/.*": None,  # already handled by the manifest comparison
+                    r"repository\.datadog\.yml": None,
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
                     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,

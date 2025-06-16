@@ -188,8 +188,11 @@ class Test_Monitoring:
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
     @scenarios.appsec_rules_monitoring_with_errors
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
     @bug(library="golang", reason="LANGPLAT-584")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point

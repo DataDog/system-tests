@@ -86,6 +86,11 @@ class Test_AppSecEventSpanTags:
 
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
+    @bug(
+        context.library < "nodejs@5.57.0",
+        weblog_variant="fastify",
+        reason="APPSEC-57432",  # Response headers collection not supported yet
+    )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
@@ -146,7 +151,10 @@ class Test_AppSecObfuscator:
             params={"pwd": f"{self.SECRET_VALUE_WITH_SENSITIVE_KEY} select pg_sleep"},
         )
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_appsec_obfuscator_key(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -196,7 +204,10 @@ class Test_AppSecObfuscator:
         )
 
     @missing_feature(context.library < "java@1.39.0", reason="APPSEC-54498")
-    @missing_feature(context.weblog_variant == "fastify", reason="Query string not supported yet")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_appsec_obfuscator_value(self):
         """Obfuscation test of a matching rule parameter value containing a sensitive keyword."""
         # Validate that the AppSec event do not contain VALUE_WITH_SECRET value.
