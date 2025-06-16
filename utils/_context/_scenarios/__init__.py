@@ -558,6 +558,7 @@ class _Scenarios:
         weblog_env={"DD_TRACE_OTEL_ENABLED": "true"},
         backend_interface_timeout=5,
         require_api_key=True,
+        use_proxy_for_open_telemetry=True,
         doc="",
     )
     apm_tracing_e2e_single_span = EndToEndScenario(
