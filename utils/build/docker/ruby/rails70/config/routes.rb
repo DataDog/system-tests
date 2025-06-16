@@ -70,5 +70,5 @@ Rails.application.routes.draw do
   get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
 
   get '/api_security_sampling/:i' => 'system_test#api_security_sampling'
-  get '/api_security/sampling/:i' => 'system_test#api_security_with_sampling'
+  get '/api_security/sampling/:status' => 'system_test#api_security_with_sampling'
 end
