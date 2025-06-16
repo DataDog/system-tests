@@ -325,9 +325,8 @@ class DockerSSIImageBuilder:
 
     def configure(self):
         self.docker_tag = self.get_base_docker_tag()
-        self._docker_registry_tag = (
-            f"235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_{self.docker_tag}:latest"
-        )
+        docker_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
+        self._docker_registry_tag = f"{docker_registry_base_url}/system-tests/ssi_installer_{self.docker_tag}:latest"
         self.ssi_installer_docker_tag = f"ssi_installer_{self.docker_tag}"
         self.ssi_all_docker_tag = f"ssi_all_{self.docker_tag}"
 
@@ -356,6 +355,9 @@ class DockerSSIImageBuilder:
 
     def push_base_image(self):
         """Push the base image to the docker registry. Base image contains: lang (if it's needed) and ssi installer (only with the installer, without ssi autoinject )"""
+        if not os.getenv("PRIVATE_DOCKER_REGISTRY", ""):
+            logger.stdout("Skipping push of base image to the registry because PRIVATE_DOCKER_REGISTRY is not set")
+            return
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:

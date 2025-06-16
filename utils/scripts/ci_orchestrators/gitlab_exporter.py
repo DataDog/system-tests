@@ -112,7 +112,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if matrix_data["aws_ssi_scenario_defs"] and 1==2:
+    if matrix_data["aws_ssi_scenario_defs"] and 1 == 2:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
@@ -237,8 +237,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     )
 
                 result_pipeline[vm_job]["script"] = [
-                    "echo 'Logging in to private docker registry: ${PRIVATE_DOCKER_REGISTRY}'",
-                    "aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com",  # noqa: E501
+                    "aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}",  # noqa: E501
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
