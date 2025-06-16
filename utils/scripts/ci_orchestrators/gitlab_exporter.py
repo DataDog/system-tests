@@ -103,6 +103,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
     result_pipeline["include"] = pipeline_data["include"]
+    result_pipeline["variables"] = pipeline_data["variables"]
     if (
         not matrix_data["aws_ssi_scenario_defs"]
         and not matrix_data["dockerssi_scenario_defs"]
@@ -111,7 +112,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if matrix_data["aws_ssi_scenario_defs"] and 1 == 2:
+    if matrix_data["aws_ssi_scenario_defs"] and 1==2:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
@@ -236,8 +237,8 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     )
 
                 result_pipeline[vm_job]["script"] = [
-                    "aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com",
-                    "docker pull 235494822917.dkr.ecr.us-east-1.amazonaws.com/system-tests/ssi_installer_public_ecr_aws-lts-ubuntu-22_04_js2300_linux-amd64:latest",
+                    "echo 'Logging in to private docker registry: ${PRIVATE_DOCKER_REGISTRY}'",
+                    "aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com",  # noqa: E501
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",

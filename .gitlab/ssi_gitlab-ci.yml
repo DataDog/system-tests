@@ -6,6 +6,10 @@ stages:
   - DOCKER_SSI
   - K8S_LIB_INJECTION
 
+variables:
+  PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+  PRIVATE_DOCKER_REGISTRY_USER: AWS
+
 ssi_tests:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["arch:amd64"]
@@ -124,6 +128,7 @@ ssi_tests:
     - source venv/bin/activate
     - python --version
     - pip freeze
+    - echo "Logging in to private docker registry ${PRIVATE_DOCKER_REGISTRY}"
     - aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
     - aws ecr get-login-password --region us-east-1 > /tmp/ecr-token.txt
     - |

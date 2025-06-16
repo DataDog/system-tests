@@ -3,7 +3,6 @@ import os
 import random
 import socket
 import time
-import docker
 from docker.errors import BuildError
 from docker.models.networks import Network
 import pytest
@@ -360,12 +359,10 @@ class DockerSSIImageBuilder:
         if self.should_push_base_images:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
-                logger.stdout(f"Tagging image {self.ssi_installer_docker_tag} as {self._docker_registry_tag}")
+                logger.stdout(f"Tagging image [{self.ssi_installer_docker_tag}] as [{self._docker_registry_tag}]")
                 get_docker_client().api.tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
-                #docker.APIClient().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
-                logger.stdout(f"Pushing image ---> {self._docker_registry_tag}")
+                logger.stdout(f"Pushing image: [{self._docker_registry_tag}]")
                 push_logs = get_docker_client().images.push(self._docker_registry_tag)
-                logger.stdout(f"Push logs: {push_logs}")
                 self.print_docker_push_logs(self._docker_registry_tag, push_logs)
 
                 # Check if push was successful by verifying the image exists in registry
