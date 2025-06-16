@@ -515,8 +515,8 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: bug (APPSEC-57145)
-        uds-flask: bug (APPSEC-57145)
+        flask-poc: v3.9.0
+        uds-flask: v3.9.0
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
