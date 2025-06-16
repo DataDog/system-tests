@@ -266,6 +266,6 @@ class SystemTestController < ApplicationController
   end
 
   def api_security_with_sampling
-    render plain: 'OK'
+    render plain: 'OK', status: params.fetch(:status, 200).to_i
   end
 end
