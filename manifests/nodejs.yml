@@ -109,7 +109,7 @@ tests/:
         Test_Schema_Response_Body:
           '*': *ref_5_3_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
           nextjs: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: *ref_4_21_0
