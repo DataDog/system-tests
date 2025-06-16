@@ -87,7 +87,9 @@ class K8sClusterProvider:
             f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
         )
         if self._ecr_token:
-            execute_command('kubectl patch serviceaccount spark -p \'{"imagePullSecrets": [{"name": "ecr-secret"}]}\'')
+            execute_command(
+                'kubectl patch serviceaccount spark -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
+            )
 
 
 class K8sClusterInfo:
@@ -323,19 +325,27 @@ class K8sKindClusterProvider(K8sClusterProvider):
     def _create_secret_to_access_to_internal_registry(self, ecr_token):
         # Create a kubernetes secret to access to the internal registry
         logger.info("Creating ECR secret")
+        private_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
+        private_registry_user = os.getenv("PRIVATE_DOCKER_REGISTRY_USER", "")
+        if not private_registry_base_url or not private_registry_user:
+            logger.info(
+                "Skipping creation of ECR secret because PRIVATE_DOCKER_REGISTRY or PRIVATE_DOCKER_REGISTRY_USER is not set"
+            )
+            return
         try:
             # Create the secret
             execute_command(
-                f"kubectl create secret docker-registry ecr-secret "
-                f"--docker-server=235494822917.dkr.ecr.us-east-1.amazonaws.com "
-                f"--docker-username=AWS "
-                f"--docker-password={ecr_token}"
+                f"kubectl create secret docker-registry private-registry-secret "
+                f"--docker-server={private_registry_base_url} "
+                f"--docker-username={private_registry_user} "
+                f"--docker-password={ecr_token}",
+                quiet=True,
             )
             logger.info("Successfully created ECR secret")
 
             # Patch the default service account to use the secret
             execute_command(
-                'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "ecr-secret"}]}\''
+                'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
             )
             logger.info("Successfully patched default service account")
         except Exception as e:
