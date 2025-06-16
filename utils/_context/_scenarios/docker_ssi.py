@@ -361,7 +361,7 @@ class DockerSSIImageBuilder:
             logger.stdout(f"Pushing base image to the registry: {self._docker_registry_tag}")
             try:
                 logger.stdout(f"Tagging image {self.ssi_installer_docker_tag} as {self._docker_registry_tag}")
-                get_docker_client().tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
+                get_docker_client().images.tag(self.ssi_installer_docker_tag, self._docker_registry_tag)
                 logger.stdout(f"Pushing image {self._docker_registry_tag}")
                 push_logs = get_docker_client().images.push(self._docker_registry_tag)
                 logger.stdout(f"Push logs: {push_logs}")
