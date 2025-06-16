@@ -536,7 +536,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not implemented)
       Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py: v3.18.0
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
