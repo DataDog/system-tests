@@ -209,6 +209,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}
+                result_pipeline[vm_job]["variables"]["KIND_EXPERIMENTAL_DOCKER_NETWORK"] = "bridge"
                 result_pipeline[vm_job]["variables"]["TEST_LIBRARY"] = language
                 result_pipeline[vm_job]["variables"]["SCENARIO"] = scenario
                 result_pipeline[vm_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
