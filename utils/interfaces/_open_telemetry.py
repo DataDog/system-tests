@@ -50,6 +50,9 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 content = data["request"]["content"]["resourceMetrics"]
 
                 # Since there's only one source of data, we expect to only have one entry in the ResourceMetrics field
+                if "scopeMetrics" not in content[0]:
+                    continue
+
                 scope_metrics = content[0]["scopeMetrics"]
 
                 for scope_metric in scope_metrics:
