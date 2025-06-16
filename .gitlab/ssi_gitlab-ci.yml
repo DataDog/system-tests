@@ -14,7 +14,7 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
+    image: registry.ddbuild.io/ci/libdatadog-build/system-tests:67476883
     needs: []
     allow_failure: false
     variables:
@@ -111,7 +111,7 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:67476883
   tags: [ "runner:docker" ]
   needs: []
   stage: K8S_LIB_INJECTION
