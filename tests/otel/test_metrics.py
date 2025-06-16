@@ -43,7 +43,7 @@ def validate_example_async_gauge_new(metric: dict) -> None:
 
 @scenarios.otel_metric_e2e
 @scenarios.apm_tracing_e2e_otel
-@irrelevant(context.library != "java_otel")
+@irrelevant(context.library not in ("java_otel", "dotnet"))
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelMetrics:
     def setup_agent_otlp_upload(self):

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Text.Json;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -49,6 +50,20 @@ namespace weblog
                 });
 
                 await context.Response.WriteAsync(JsonSerializer.Serialize(headersDict));
+            });
+
+            routeBuilder.MapGet("/basic/metric", async context =>
+            {
+                OpenTelemetryInstrumentation.LongCounter.Add(11L,
+                    new KeyValuePair<string, object?>("http.method", "GET"), new KeyValuePair<string, object?>("rid", "1234567890"));
+                OpenTelemetryInstrumentation.DoubleHistogram.Record(33L,
+                    new KeyValuePair<string, object?>("http.method", "GET"), new KeyValuePair<string, object?>("rid", "1234567890"));
+                OpenTelemetryInstrumentation.LongUpDownCounter.Add(55L,
+                    new KeyValuePair<string, object?>("http.method", "GET"), new KeyValuePair<string, object?>("rid", "1234567890"));
+                OpenTelemetryInstrumentation.DoubleGauge.Record(77L,
+                    new KeyValuePair<string, object?>("http.method", "GET"), new KeyValuePair<string, object?>("rid", "1234567890"));
+                Thread.Sleep(2000);
+                await context.Response.WriteAsync("Hello World!");
             });
         }
     }
