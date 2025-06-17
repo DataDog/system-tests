@@ -86,7 +86,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
-        self.k8s_cluster_provider.configure(config.option.k8s_ecr_token)
+        self.k8s_cluster_provider.configure()
         self.print_context()
 
         # is it on sleep mode?
@@ -206,7 +206,7 @@ class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider)
         # By default we are going to use kind cluster provider
         self.k8s_provider_name = config.option.k8s_provider if config.option.k8s_provider else "kind"
         self.k8s_cluster_provider = K8sProviderFactory().get_provider(self.k8s_provider_name)
-        self.k8s_cluster_provider.configure(config.option.k8s_ecr_token)
+        self.k8s_cluster_provider.configure()
         self.print_context()
 
         # is it on sleep mode?

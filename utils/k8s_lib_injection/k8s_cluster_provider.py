@@ -1,8 +1,26 @@
 import os
 import subprocess
+import tempfile
+import json
+import base64
+from pathlib import Path
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
 from kubernetes import client, config
+
+
+class PrivateRegistryConfig:
+    """Configuration for private Docker registry access"""
+
+    def __init__(self):
+        self.private_docker_registry = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
+        self.private_docker_registry_user = os.getenv("PRIVATE_DOCKER_REGISTRY_USER", "")
+        self.private_registry_token = os.getenv("PRIVATE_DOCKER_REGISTRY_TOKEN", "")
+
+    @property
+    def is_configured(self):
+        """Check if all required fields are configured"""
+        return bool(self.private_docker_registry and self.private_docker_registry_user and self.private_registry_token)
 
 
 class K8sProviderFactory:
@@ -26,10 +44,10 @@ class K8sClusterProvider:
     def __init__(self, is_local_managed=False):
         self.is_local_managed = is_local_managed
         self._cluster_info = None
-        self._ecr_token = None
+        self._private_registry = None
 
-    def configure(self, ecr_token):
-        self._ecr_token = ecr_token
+    def configure(self):
+        self._private_registry = PrivateRegistryConfig()
         self.configure_cluster()
         self.configure_networking()
         # self.configure_cluster_api_connection()
@@ -86,7 +104,7 @@ class K8sClusterProvider:
         execute_command(
             f"kubectl create clusterrolebinding spark-role --clusterrole=edit --serviceaccount=default:spark --namespace=default"
         )
-        if self._ecr_token:
+        if self._private_registry and self._private_registry.is_configured:
             execute_command(
                 'kubectl patch serviceaccount spark -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
             )
@@ -282,8 +300,8 @@ class K8sKindClusterProvider(K8sClusterProvider):
         else:
             execute_command(kind_command)
         # Method to create a kubernetes secret to access to the internal registry
-        if self._ecr_token:
-            self._create_secret_to_access_to_internal_registry(self._ecr_token)
+        if self._private_registry and self._private_registry.is_configured:
+            self._create_secret_to_access_to_internal_registry()
 
         # We need to configure the api after create the cluster
         self.configure_cluster_api_connection()
@@ -322,32 +340,46 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
         self.get_cluster_info().cluster_host_name = correct_control_plane_ip
 
-    def _create_secret_to_access_to_internal_registry(self, ecr_token):
+    def _create_secret_to_access_to_internal_registry(self):
         # Create a kubernetes secret to access to the internal registry
         logger.info("Creating ECR secret")
-        private_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
-        private_registry_user = os.getenv("PRIVATE_DOCKER_REGISTRY_USER", "")
-        if not private_registry_base_url or not private_registry_user:
-            logger.info(
-                "Skipping creation of ECR secret because PRIVATE_DOCKER_REGISTRY or PRIVATE_DOCKER_REGISTRY_USER is not set"
-            )
+        if not self._private_registry or not self._private_registry.is_configured:
+            logger.info("Skipping creation of ECR secret because private registry configuration is not complete")
             return
         try:
-            # Create the secret
-            execute_command(
-                f"kubectl create secret docker-registry private-registry-secret "
-                f"--docker-server={private_registry_base_url} "
-                f"--docker-username={private_registry_user} "
-                f"--docker-password={ecr_token}",
-                quiet=True,
-            )
-            logger.info("Successfully created ECR secret")
+            # Create a temporary file with the docker config
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+                docker_config = {
+                    "auths": {
+                        self._private_registry.private_docker_registry: {
+                            "auth": base64.b64encode(
+                                f"{self._private_registry.private_docker_registry_user}:{self._private_registry.private_registry_token}".encode()
+                            ).decode()
+                        }
+                    }
+                }
+                json.dump(docker_config, temp_file)
+                temp_file.flush()
+                temp_file_path = temp_file.name
 
-            # Patch the default service account to use the secret
-            execute_command(
-                'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
-            )
-            logger.info("Successfully patched default service account")
+            try:
+                # Create the secret using the config file
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson",
+                    quiet=True,
+                )
+                logger.info("Successfully created ECR secret")
+
+                # Patch the default service account to use the secret
+                execute_command(
+                    'kubectl patch serviceaccount default -p \'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
+                )
+                logger.info("Successfully patched default service account")
+            finally:
+                # Clean up the temporary file
+                Path(temp_file_path).unlink()
         except Exception as e:
             logger.error(f"Error creating ECR secret: {e!s}")
             raise
