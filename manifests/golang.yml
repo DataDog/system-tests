@@ -696,7 +696,7 @@ tests/:
       Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      # Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v2.1.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
       Test_TelemetrySSIConfigs: missing_feature
