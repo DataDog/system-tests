@@ -47,12 +47,12 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 
         <PackageReference Include="Datadog.Trace" Version="*" />
-		<PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
-		
-		<!-- Added for POC of OTel Metrics baseline-->
-		<PackageReference Include="OpenTelemetry" Version="1.10.0" />
-		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0" />
-		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0" />
-		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
+        <PackageReference Include="OpenTelemetry.Api" Version="1.10.0" />
+
+        <!-- Added for POC of OTel Metrics baseline-->
+        <PackageReference Include="OpenTelemetry" Version="1.10.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.10.0" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.10.0" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
     </ItemGroup>
 </Project>
