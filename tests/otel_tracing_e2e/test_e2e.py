@@ -31,6 +31,7 @@ def validate_example_counter(counter_metric: dict) -> None:
     assert len(counter_series["pointlist"]) == 1
     assert counter_series["pointlist"][0][1] == 11.0
 
+
 def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
     assert len(histogram_metric["series"]) == 1
     histogram_series = histogram_metric["series"][0]
