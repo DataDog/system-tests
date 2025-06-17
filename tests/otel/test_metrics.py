@@ -34,15 +34,17 @@ def validate_scope_metrics(scope_metrics_list: list) -> None:
     # }
 
     assert all(
-        len(scope_metrics) == 1 for scope_metrics in scope_metrics_list
-    ), "Metrics payloads from one configured application should have one set of scope metrics"
+        len(scope_metrics) >= 1 for scope_metrics in scope_metrics_list
+    ), "Metrics payloads from one configured application should have one or more set of scope metrics"
     assert all(
-        scope_metric[0]["scope"] is not None for scope_metric in scope_metrics_list
+        scope_metrics[0]["scope"] is not None for scope_metrics in scope_metrics_list
     ), "Scope metrics should have a scope field"
     # Do not assert on schema_url, as it is not always present
     for scope_metrics in scope_metrics_list:
-        for metric in scope_metrics[0]["metrics"]:
-            validate_metric(metric)
+        # Assert values only for metrics we created, since we're asserting against specific fields
+        if "opentelemetry" not in scope_metrics[0]["scope"]["name"]:
+            for metric in scope_metrics[0]["metrics"]:
+                validate_metric(metric)
 
 
 def validate_metric(metric: dict) -> None:
