@@ -145,7 +145,7 @@ jobs:
         ./utils/scripts/load-binary.sh agent
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
-        TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+        LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact

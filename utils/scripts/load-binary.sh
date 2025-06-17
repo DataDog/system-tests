@@ -38,11 +38,11 @@ assert_version_is_dev() {
 
 assert_target_branch_is_not_set() {
 
-  if [[ -z "${TARGET_BRANCH:-}" ]]; then
+  if [[ -z "${LIBRARY_TARGET_BRANCH:-}" ]]; then
     return 0
   fi
 
-  echo "It is not possible to specify the '$TARGET_BRANCH' target branch for $TARGET library yet"
+  echo "It is not possible to specify the '$LIBRARY_TARGET_BRANCH' target branch for $TARGET library yet"
 
   exit 1
 }
@@ -186,10 +186,10 @@ elif [ "$TARGET" = "dotnet" ]; then
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     rm -rf dd-trace-py/
     # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone --branch $TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
+    git clone --branch $LIBRARY_TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
     cd dd-trace-py
     echo "Checking out the ref"
     git log -1 --format=%H
@@ -197,8 +197,8 @@ elif [ "$TARGET" = "python" ]; then
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
-    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$TARGET_BRANCH'" > ruby-load-from-bundle-add
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
+    echo "gem 'datadog', require: 'datadog/auto_instrument', git: 'https://github.com/Datadog/dd-trace-rb.git', branch: '$LIBRARY_TARGET_BRANCH'" > ruby-load-from-bundle-add
     echo "Using $(cat ruby-load-from-bundle-add)"
 
 elif [ "$TARGET" = "php" ]; then
@@ -218,9 +218,9 @@ elif [ "$TARGET" = "golang" ]; then
     rm -rf golang-load-from-go-get
     set -o pipefail
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "load last commit on $TARGET_BRANCH for DataDog/dd-trace-go"
-    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$TARGET_BRANCH" | jq -r .commit.sha)
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "load last commit on $LIBRARY_TARGET_BRANCH for DataDog/dd-trace-go"
+    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
     echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get
@@ -247,8 +247,8 @@ elif [ "$TARGET" = "cpp" ]; then
     # get_circleci_artifact "gh/DataDog/dd-opentracing-cpp" "build_test_deploy" "build" "TBD"
     # PROFILER: The main version is stored in s3, though we can not access this in CI
     # Not handled for now for system-tests. this handles artifact for parametric
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
-    echo "https://github.com/DataDog/dd-trace-cpp@$TARGET_BRANCH" > cpp-load-from-git
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "https://github.com/DataDog/dd-trace-cpp@$LIBRARY_TARGET_BRANCH" > cpp-load-from-git
     echo "Using $(cat cpp-load-from-git)"
 
 elif [ "$TARGET" = "cpp_httpd" ]; then
@@ -262,16 +262,16 @@ elif [ "$TARGET" = "cpp_nginx" ]; then
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
-    TARGET_BRANCH="${TARGET_BRANCH:-master-py3}"
-    echo "datadog/agent-dev:$TARGET_BRANCH" > agent-image
+    AGENT_TARGET_BRANCH="${AGENT_TARGET_BRANCH:-master-py3}"
+    echo "datadog/agent-dev:$AGENT_TARGET_BRANCH" > agent-image
     echo "Using $(cat agent-image) image"
 
 elif [ "$TARGET" = "nodejs" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
-    echo "DataDog/dd-trace-js#$TARGET_BRANCH" > nodejs-load-from-npm
+    echo "DataDog/dd-trace-js#$LIBRARY_TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
