@@ -178,4 +178,12 @@ class SystemTestController < ApplicationController
   def sample_rate_route
     render plain: 'OK'
   end
+
+  def api_security_sampling
+    render plain: 'OK'
+  end
+
+  def api_security_with_sampling
+    render plain: 'OK'
+  end
 end
