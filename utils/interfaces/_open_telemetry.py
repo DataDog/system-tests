@@ -47,14 +47,4 @@ class OpenTelemetryInterfaceValidator(ProxyBasedInterfaceValidator):
                 if "resourceMetrics" not in data["request"]["content"]:
                     raise ValueError("resourceMetrics property is missing in metrics payload")
 
-                content = data["request"]["content"]["resourceMetrics"]
-
-                # Since there's only one source of data, we expect to only have one entry in the ResourceMetrics field
-                if "scopeMetrics" not in content[0]:
-                    continue
-
-                scope_metrics = content[0]["scopeMetrics"]
-
-                for scope_metric in scope_metrics:
-                    for metric in scope_metric["metrics"]:
-                        yield data, metric
+                yield data, data["request"]["content"]["resourceMetrics"]
