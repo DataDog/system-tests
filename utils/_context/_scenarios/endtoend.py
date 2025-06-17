@@ -455,7 +455,8 @@ class EndToEndScenario(DockerScenario):
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog(
-            [interfaces.library, interfaces.agent, interfaces.open_telemetry] + [container.interface for container in self.buddies]
+            [interfaces.library, interfaces.agent, interfaces.open_telemetry]
+            + [container.interface for container in self.buddies]
         )
 
     def _set_weblog_domain(self):
@@ -584,7 +585,8 @@ class EndToEndScenario(DockerScenario):
                 interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
             )
             self._wait_interface(
-                interfaces.open_telemetry, 0 if force_interface_timout_to_zero else self.open_telemetry_interface_timeout
+                interfaces.open_telemetry,
+                0 if force_interface_timout_to_zero else self.open_telemetry_interface_timeout,
             )
             interfaces.open_telemetry.check_deserialization_errors()
 

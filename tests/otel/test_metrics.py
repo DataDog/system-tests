@@ -1,7 +1,8 @@
-import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant, features, logger
+from utils import context, weblog, interfaces, scenarios, irrelevant, features
+from collections.abc import Callable
+
 
 def validate_resource_metrics(resource_metrics_list: list) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
@@ -11,10 +12,18 @@ def validate_resource_metrics(resource_metrics_list: list) -> None:
     #     optional string schema_url = 3;
     # }
 
-    assert all(len(resource_metrics) == 1 for resource_metrics in resource_metrics_list), "Metrics payloads from one configured application should have one set of resource metrics"
-    assert any("scopeMetrics" in resource_metrics[0] and len(resource_metrics[0]["scopeMetrics"]) > 0 for resource_metrics in resource_metrics_list), "Scope metrics should be present on some payloads"
-    assert all(resource_metrics[0]["resource"] is not None for resource_metrics in resource_metrics_list), "Resource metrics from an application with configured resources should have a resource field"
+    assert all(
+        len(resource_metrics) == 1 for resource_metrics in resource_metrics_list
+    ), "Metrics payloads from one configured application should have one set of resource metrics"
+    assert any(
+        "scopeMetrics" in resource_metrics[0] and len(resource_metrics[0]["scopeMetrics"]) > 0
+        for resource_metrics in resource_metrics_list
+    ), "Scope metrics should be present on some payloads"
+    assert all(
+        resource_metrics[0]["resource"] is not None for resource_metrics in resource_metrics_list
+    ), "Resource metrics from an application with configured resources should have a resource field"
     # Do not assert on schema_url, as it is not always present
+
 
 def validate_scope_metrics(scope_metrics_list: list) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
@@ -24,12 +33,17 @@ def validate_scope_metrics(scope_metrics_list: list) -> None:
     #     optional string schema_url = 3;
     # }
 
-    assert all(len(scope_metrics) == 1 for scope_metrics in scope_metrics_list), "Metrics payloads from one configured application should have one set of scope metrics"
-    assert all(scope_metric[0]["scope"] is not None for scope_metric in scope_metrics_list), "Scope metrics should have a scope field"
+    assert all(
+        len(scope_metrics) == 1 for scope_metrics in scope_metrics_list
+    ), "Metrics payloads from one configured application should have one set of scope metrics"
+    assert all(
+        scope_metric[0]["scope"] is not None for scope_metric in scope_metrics_list
+    ), "Scope metrics should have a scope field"
     # Do not assert on schema_url, as it is not always present
     for scope_metrics in scope_metrics_list:
         for metric in scope_metrics[0]["metrics"]:
-            validate_metric(metric) 
+            validate_metric(metric)
+
 
 def validate_metric(metric: dict) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
@@ -56,7 +70,8 @@ def validate_metric(metric: dict) -> None:
     func, name, value, aggregation_temporality = metric_to_validator[metric["name"]]
     func(metric, name, value, aggregation_temporality)
 
-def validate_counter(metric: dict, name: str, value: str, aggregation_temporality: str) -> None:
+
+def validate_counter(metric: dict, name: str, value: object, aggregation_temporality: str) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message Sum {
     #     repeated NumberDataPoint data_points = 1;
@@ -73,10 +88,11 @@ def validate_counter(metric: dict, name: str, value: str, aggregation_temporalit
     assert "sum" in metric
     assert len(metric["sum"]["dataPoints"]) == 1
     assert metric["sum"]["aggregationTemporality"] == aggregation_temporality
-    assert metric["sum"]["isMonotonic"] == True
+    assert metric["sum"]["isMonotonic"]
     validate_number_data_point(metric["sum"]["dataPoints"][0], "asInt", value, "0")
 
-def validate_histogram(metric: dict, name: str, value: float, aggregation_temporality: str) -> None:
+
+def validate_histogram(metric: dict, name: str, value: object, aggregation_temporality: str) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message Histogram {
     #     repeated HistogramDataPoint data_points = 1;
@@ -98,7 +114,7 @@ def validate_histogram(metric: dict, name: str, value: float, aggregation_tempor
     # }
 
     assert metric["name"] == name
-    assert "histogram" in metric # This asserts the metric type is a histogram
+    assert "histogram" in metric  # This asserts the metric type is a histogram
     assert len(metric["histogram"]["dataPoints"]) == 1
     assert metric["histogram"]["aggregationTemporality"] == aggregation_temporality
 
@@ -109,7 +125,8 @@ def validate_histogram(metric: dict, name: str, value: float, aggregation_tempor
     assert metric["histogram"]["dataPoints"][0]["min"] == value
     assert metric["histogram"]["dataPoints"][0]["max"] == value
 
-def validate_upDownCounter(metric: dict, name: str, value: str, aggregation_temporality: str) -> None:
+
+def validate_up_down_counter(metric: dict, name: str, value: object, aggregation_temporality: str) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message Sum {
     #     repeated NumberDataPoint data_points = 1;
@@ -128,7 +145,8 @@ def validate_upDownCounter(metric: dict, name: str, value: str, aggregation_temp
     assert metric["sum"]["aggregationTemporality"] == aggregation_temporality
     validate_number_data_point(metric["sum"]["dataPoints"][0], "asInt", value)
 
-def validate_gauge(metric: dict, name: str, value: float, aggregation_temporality: str) -> None:
+
+def validate_gauge(metric: dict, name: str, value: object, _: str) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message Gauge {
     #     repeated NumberDataPoint data_points = 1;
@@ -139,7 +157,10 @@ def validate_gauge(metric: dict, name: str, value: float, aggregation_temporalit
     assert len(metric["gauge"]["dataPoints"]) == 1
     validate_number_data_point(metric["gauge"]["dataPoints"][0], "asDouble", value)
 
-def validate_number_data_point(data_point: dict, value_type: str, value: object, default_value: object = None) -> None:
+
+def validate_number_data_point(
+    data_point: dict, value_type: object, value: object, default_value: object = None
+) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message NumberDataPoint {
     #     reserved 1;
@@ -164,15 +185,27 @@ def validate_number_data_point(data_point: dict, value_type: str, value: object,
     # Do not assert exemplars on every data point
     # Do not assert flags on every data point
 
-metric_to_validator = {
+
+metric_to_validator: dict[str, tuple[Callable[[dict, str, object, str], None], str, object, str]] = {
     "example.counter": (validate_counter, "example.counter", "11", "AGGREGATION_TEMPORALITY_DELTA"),
     "example.async.counter": (validate_counter, "example.async.counter", "22", "AGGREGATION_TEMPORALITY_DELTA"),
     "example.histogram": (validate_histogram, "example.histogram", 33.0, "AGGREGATION_TEMPORALITY_DELTA"),
-    "example.upDownCounter": (validate_upDownCounter, "example.upDownCounter", "55", "AGGREGATION_TEMPORALITY_CUMULATIVE"),
-    "example.async.upDownCounter": (validate_upDownCounter, "example.async.upDownCounter", "66", "AGGREGATION_TEMPORALITY_CUMULATIVE"),
+    "example.upDownCounter": (
+        validate_up_down_counter,
+        "example.upDownCounter",
+        "55",
+        "AGGREGATION_TEMPORALITY_CUMULATIVE",
+    ),
+    "example.async.upDownCounter": (
+        validate_up_down_counter,
+        "example.async.upDownCounter",
+        "66",
+        "AGGREGATION_TEMPORALITY_CUMULATIVE",
+    ),
     "example.gauge": (validate_gauge, "example.gauge", 77.0, ""),
     "example.async.gauge": (validate_gauge, "example.async.gauge", 88.0, ""),
 }
+
 
 @scenarios.otel_metric_e2e
 @scenarios.apm_tracing_e2e_otel
@@ -193,8 +226,6 @@ class Test_OTelMetrics:
         ]
 
     def test_agent_otlp_upload(self):
-        end = int(time.time())
-        rid = self.r.get_rid().lower()
         seen = set()
 
         all_resource_metrics = []
@@ -222,8 +253,12 @@ class Test_OTelMetrics:
                             filtered_individual_metrics.append(metric)
 
         # Assert resource metrics are present and valid
-        assert all(len(resource_metrics) == 1 for resource_metrics in all_resource_metrics), "Metrics payloads from one configured application should have one set of resource metrics, but in general this may be 0+"
-        assert all(resource_metrics[0]["resource"] is not None for resource_metrics in all_resource_metrics), "Resource metrics from an application with configured resources should have a resource field, but in general is optional"
+        assert all(
+            len(resource_metrics) == 1 for resource_metrics in all_resource_metrics
+        ), "Metrics payloads from one configured application should have one set of resource metrics, but in general this may be 0+"
+        assert all(
+            resource_metrics[0]["resource"] is not None for resource_metrics in all_resource_metrics
+        ), "Resource metrics from an application with configured resources should have a resource field, but in general is optional"
         validate_resource_metrics(all_resource_metrics)
 
         # Assert scope metrics are present and valid
