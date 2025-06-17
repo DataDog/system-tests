@@ -14,7 +14,7 @@
 # * cpp_httpd:  Github action artifact
 # * Golang:     github.com/DataDog/dd-trace-go/v2@main
 # * .NET:       ghcr.io/datadog/dd-trace-dotnet
-# * Java:       ghcr.io/datadog/dd-trace-java
+# * Java:       S3
 # * PHP:        ghcr.io/datadog/dd-trace-php
 # * Node.js:    Direct from github source
 # * C++:        Direct from github source
@@ -174,8 +174,10 @@ cd binaries/
 
 if [ "$TARGET" = "java" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-java/dd-trace-java:latest_snapshot .
+
+    TARGET_BRANCH="${TARGET_BRANCH:-master}"
+
+    curl --fail --location --silent --show-error --output dd-java-agent.jar "https://s3.us-east-1.amazonaws.com/dd-trace-java-builds/${TARGET_BRANCH}/dd-java-agent.jar"
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
