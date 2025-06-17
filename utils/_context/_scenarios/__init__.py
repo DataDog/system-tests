@@ -83,7 +83,7 @@ class _Scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
         scenario_groups=[scenario_groups.sampling],
     )
@@ -457,6 +457,7 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
