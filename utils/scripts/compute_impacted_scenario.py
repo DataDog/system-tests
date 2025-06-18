@@ -141,13 +141,13 @@ def main() -> None:
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
                     r"\.github/.*": None,
-                    # TODO: include onboarding
                     r"\.gitlab/ssi_gitlab-ci.yml": [
+                        scenario_groups.onboarding,
                         scenario_groups.lib_injection,
                         scenario_groups.docker_ssi,
                     ],
-                    # TODO: include onboarding
                     r"\.gitlab/single-step-instrumentation-tests-locked.yml": [
+                        scenario_groups.onboarding,
                         scenario_groups.lib_injection,
                         scenario_groups.docker_ssi,
                     ],

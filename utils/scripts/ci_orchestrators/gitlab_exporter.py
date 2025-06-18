@@ -111,7 +111,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         result_pipeline["stages"].append("SSI_TESTS")
         result_pipeline["ssi_tests"] = pipeline_data["ssi_tests"]
 
-    if matrix_data["aws_ssi_scenario_defs"] and 1 == 2:
+    if matrix_data["aws_ssi_scenario_defs"]:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":

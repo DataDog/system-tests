@@ -61,18 +61,18 @@ configure_private_registry() {
     echo "Please select one of the following options:"
     echo "1) Use existing ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)"
     echo "2) Configure your own registry"
-    
+
     read -p "Enter your choice (1 or 2): " registry_choice
-    
+
     if [[ "$registry_choice" == "1" ]]; then
         echo "Configuring ECR registry..."
         export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
         export PRIVATE_DOCKER_REGISTRY_USER="AWS"
-        
+
         # Login to ECR and get token
         aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
         export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
-        
+
         echo -e "${GREEN}✅ ECR registry configured successfully.${NC}"
     elif [[ "$registry_choice" == "2" ]]; then
         read -p "Enter your registry URL: " PRIVATE_DOCKER_REGISTRY
@@ -93,24 +93,24 @@ select_weblog_img(){
     spacer
     echo -e "${YELLOW}📌 Step: Select weblog img registry${NC}"
     WEBLOG_IMAGE="$PRIVATE_DOCKER_REGISTRY/system-tests/$WEBLOG:latest"
-    
+
     # Ask if user wants to build and push the weblog
     read -p "Do you want to build and push the weblog? (y/n): " BUILD_WEBLOG
     if [[ "$BUILD_WEBLOG" == "y" ]]; then
         echo -e "${YELLOW}⚠️  Warning: Using 'latest' tag might impact CI as it uses latest by default.${NC}"
         read -p "Enter tag name for the weblog (e.g., v1.0.0): " TAG_NAME
-        
+
         if [[ -z "$TAG_NAME" ]]; then
             echo -e "${RED}❌ Tag name cannot be empty.${NC}"
             select_weblog_img
             return
         fi
-        
+
         echo "Building and pushing weblog..."
         ./lib-injection/build/build_lib_injection_weblog.sh -w "${WEBLOG}" -l "${TEST_LIBRARY}" \
             --push-tag "${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:${TAG_NAME}" \
             --docker-platform linux/arm64,linux/amd64
-            
+
         if [[ $? -eq 0 ]]; then
             echo -e "${GREEN}✅ Weblog built and pushed successfully.${NC}"
             WEBLOG_IMAGE="${PRIVATE_DOCKER_REGISTRY}/system-tests/${WEBLOG}:${TAG_NAME}"
@@ -194,35 +194,35 @@ migrate_images_to_private_registry() {
     spacer
     echo -e "${YELLOW}📌 Step: Migrate Public Images to Private Registry${NC}"
     read -p "Do you want to migrate public images to your private registry?[cluster-agent, injector, lib-init] (y/n): " MIGRATE_IMAGES
-    
+
     if [[ "$MIGRATE_IMAGES" != "y" ]]; then
         return
     fi
 
     echo -e "${YELLOW}⚠️  Warning: Using 'latest' tag might impact CI as it uses latest by default.${NC}"
-    
+
     # Function to pull and push an image
     pull_and_push_image() {
         local source_image=$1
         local target_name=$2
         local default_tag=$3
-        
+
         echo "Processing $target_name..."
         read -p "Enter tag for $target_name (default: $default_tag): " custom_tag
         local tag=${custom_tag:-$default_tag}
-        
+
         echo "Pulling $source_image..."
         docker pull "$source_image"
         if [[ $? -ne 0 ]]; then
             echo -e "${RED}❌ Failed to pull $source_image${NC}"
             return 1
         fi
-        
+
         local target_image="${PRIVATE_DOCKER_REGISTRY}/ssi/${target_name}:${tag}"
         echo "Tagging and pushing to $target_image..."
         docker tag "$source_image" "$target_image"
         docker push "$target_image"
-        
+
         if [[ $? -eq 0 ]]; then
             echo -e "${GREEN}✅ Successfully migrated $target_name${NC}"
             # Update the corresponding variable
