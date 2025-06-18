@@ -17,7 +17,7 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: bug (APPSEC-58244)
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v1.11.0-dev
         Test_Schema_Request_Cookies: v0.94.0
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
@@ -27,7 +27,7 @@ tests/:
         Test_Schema_Response_Body: v0.99.1
         Test_Schema_Response_Body_env_var: v1.6.2
         Test_Schema_Response_Headers: v0.94.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block: v1.11.0-dev
     iast/:
       sink/:
         test_code_injection.py:
