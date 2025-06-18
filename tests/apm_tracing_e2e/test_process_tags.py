@@ -10,7 +10,7 @@ class Test_Process_Tags:
     """Test the presence of process tags in various payloads."""
 
     def setup_tracing_process_tags(self):
-        self.req = weblog.get("/")
+        self.req = weblog.get("/status?code=200")
 
     def test_tracing_process_tags(self):
         # Only the parent span should be submitted to the backend!
@@ -24,7 +24,7 @@ class Test_Process_Tags:
         validate_process_tags(process_tags)
 
     def setup_remote_config_process_tags(self):
-        self.req = weblog.get("/")
+        self.req = weblog.get("/status?code=200")
 
     def test_remote_config_process_tags(self):
         for data in interfaces.library.get_data(path_filters="/v0.7/config"):
@@ -33,7 +33,7 @@ class Test_Process_Tags:
             validate_process_tags(",".join(process_tags_list))
 
     def setup_telemetry_process_tags(self):
-        self.req = weblog.get("/")
+        self.req = weblog.get("/status?code=200")
 
     @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_telemetry_process_tags(self):
@@ -42,7 +42,7 @@ class Test_Process_Tags:
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
 
     def setup_dsm_process_tags(self):
-        self.req = weblog.get("/")
+        self.req = weblog.get("/status?code=200")
 
     @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_dsm_process_tags(self):
