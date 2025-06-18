@@ -3,7 +3,7 @@ from utils._decorators import missing_feature
 from utils.interfaces._library.miscs import validate_process_tags
 
 
-@scenarios.process_tags
+@scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(condition=context.library.name != "java", reason="Not yet implemented")
 class Test_Process_Tags:

@@ -323,7 +323,6 @@ class EndToEndScenario(DockerScenario):
                 "INCLUDE_MYSQL": str(include_mysql_db).lower(),
                 "INCLUDE_SQLSERVER": str(include_sqlserver).lower(),
                 "INCLUDE_OTEL_DROP_IN": str(include_otel_drop_in).lower(),
-                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
             }
         )
 
