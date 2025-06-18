@@ -321,7 +321,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v1.11.0-dev
       Test_AppSecStandalone_NotEnabled: v1.6.2
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
