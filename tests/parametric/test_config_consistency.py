@@ -386,7 +386,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
     "dd_data_streams_enabled": "false",
     "dd_logs_injection": {"ruby": "true", "golang": None, "python": "structured", "nodejs": "structured"}.get(
         context.library.name, "false"
-    ),  # Enabled by default in ruby, set to None in python
+    ),  # Enabled by default in ruby
 }
 
 
