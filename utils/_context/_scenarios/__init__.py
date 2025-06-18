@@ -612,6 +612,7 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
@@ -683,6 +684,7 @@ class _Scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
         },
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
@@ -1024,13 +1026,6 @@ class _Scenarios:
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
         doc="Test runtime metrics",
-    )
-
-    process_tags = EndToEndScenario(
-        "PROCESS_TAGS",
-        weblog_env={"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"},
-        doc="Test process tags",
-        rc_api_enabled=True,
     )
 
 
