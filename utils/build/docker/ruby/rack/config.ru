@@ -326,6 +326,22 @@ module NotFound
   end
 end
 
+# NOTE: This is a workaround to ensure that the trace was sampled before the
+#       request lifecycle ends, like in other higher level frameworks (Rails, Sinatra, etc.).
+class TraceSamplingMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    response = @app.call(env)
+    Datadog.send(:components).tracer.sampler.sample!(Datadog::Tracing.active_trace)
+    response
+  end
+end
+
+use TraceSamplingMiddleware
+
 # trivial rack endpoint. We use a proc instead of Rack Builder because
 # we compare the request path using regexp and include?
 app = proc do |env|
