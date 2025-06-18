@@ -40,8 +40,8 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
     k8s_injector_img = None
     k8s_available_images = {
-        "prod": "gcr.io/datadoghq/apm-inject:latest",
-        "dev": "ghcr.io/datadog/apm-inject:latest_snapshot",
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot",
     }
 
     if cluster_agent_versions:
@@ -55,14 +55,13 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     if not k8s_lib_init_img:
         language_img_name = "js" if language == "nodejs" else language
         if ci_environment == "dev":
-            language_repo_name = "js" if language == "nodejs" else language
-            language_repo_name = "py" if language == "python" else language_repo_name
-            language_repo_name = "rb" if language == "ruby" else language_repo_name
             k8s_lib_init_img = (
-                f"ghcr.io/datadog/dd-trace-{language_repo_name}/dd-lib-{language_img_name}-init:latest_snapshot"
+                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest_snapshot"
             )
         else:
-            k8s_lib_init_img = f"gcr.io/datadoghq/dd-lib-{language_img_name}-init:latest"
+            k8s_lib_init_img = (
+                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest"
+            )
 
     return k8s_lib_init_img, k8s_injector_img
 

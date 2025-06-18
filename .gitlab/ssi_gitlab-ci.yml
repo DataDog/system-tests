@@ -19,7 +19,7 @@ ssi_tests:
 
 .base_docker_ssi_job:
     #TODO CHANGE THE NAME
-    extends: .base_job_k8s
+    extends: .base_job_k8s_docker_ssi
     needs: []
     allow_failure: false
     variables:
@@ -116,7 +116,7 @@ ssi_tests:
             - reports/
 
 .k8s_lib_injection_base:
-  extends: .base_job_k8s
+  extends: .base_job_k8s_docker_ssi
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
