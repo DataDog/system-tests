@@ -327,7 +327,7 @@ select_lib_init_and_injector(){
     else
         spacer
         echo -e "${YELLOW}📌 Step: Configure Injector Image${NC}"
-        INJECTOR_IMAGES=("gcr.io/datadoghq/apm-inject:latest" "ghcr.io/datadog/apm-inject:latest_snapshot")
+        INJECTOR_IMAGES=("235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest" "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot")
 
         # Add migrated injector image if it exists
         if [[ -n "$K8S_INJECTOR_IMG" && "$K8S_INJECTOR_IMG" != "null" ]]; then

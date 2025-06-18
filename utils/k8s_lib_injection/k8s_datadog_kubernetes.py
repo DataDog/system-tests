@@ -11,6 +11,7 @@ from utils.k8s_lib_injection.k8s_command_utils import (
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
+from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 
 
 class K8sDatadog:
@@ -132,6 +133,8 @@ class K8sDatadog:
             image_ref, tag = split_docker_image(self.dd_cluster_img)
             self.dd_cluster_feature["clusterAgent.image.tag"] = tag
             self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
+            if PrivateRegistryConfig().is_configured:
+                self.dd_cluster_feature["clusterAgent.image.pullSecrets[0].name"] = "private-registry-secret"
 
         helm_install_chart(
             host_log_folder,
