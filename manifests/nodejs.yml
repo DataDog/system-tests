@@ -61,6 +61,7 @@ refs:
   - &ref_5_52_0 '>=5.52.0'
   - &ref_5_54_0 '>=5.54.0'
   - &ref_5_55_0 '>=5.55.0'
+  - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
 tests/:
   apm_tracing_e2e/:
@@ -101,7 +102,7 @@ tests/:
         Test_Schema_Request_Path_Parameters:
           '*': *ref_4_21_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
           nextjs: missing_feature
         Test_Schema_Request_Query_Parameters:
           '*': *ref_4_21_0
@@ -708,7 +709,7 @@ tests/:
         Test_PathParams:
           '*': v2.0.0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
           nextjs: missing_feature
         Test_ResponseStatus: v2.0.0
         Test_UrlQuery:
@@ -870,7 +871,7 @@ tests/:
       Test_Blocking_request_path_params:
         '*': *ref_5_24_0
         express5: *ref_5_29_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Blocking_request_query:
         '*': *ref_3_19_0
@@ -1302,12 +1303,12 @@ tests/:
     test_stats.py:
       Test_Client_Stats: missing_feature
   test_baggage.py:
-    Test_Baggage_Headers_Basic: irrelevant (uses parametric tests)
-    Test_Baggage_Headers_Malformed: irrelevant (uses parametric tests)
-    Test_Baggage_Headers_Malformed2: irrelevant (uses parametric tests)
-    Test_Baggage_Headers_Max_Bytes: irrelevant (uses parametric tests)
-    Test_Baggage_Headers_Max_Items: irrelevant (uses parametric tests)
-    Test_Only_Baggage_Header: irrelevant (uses parametric tests)
+    Test_Baggage_Headers_Basic: *ref_5_56_0
+    Test_Baggage_Headers_Malformed: *ref_5_56_0
+    Test_Baggage_Headers_Malformed2: *ref_5_56_0
+    Test_Baggage_Headers_Max_Bytes: *ref_5_56_0
+    Test_Baggage_Headers_Max_Items: *ref_5_56_0
+    Test_Only_Baggage_Header: *ref_5_56_0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: *ref_3_13_0
     Test_Config_ClientIPHeader_Configured: *ref_3_13_0

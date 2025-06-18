@@ -97,11 +97,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             # If payload is a list, iterate through its items
             if isinstance(payload, list):
                 crash_reports.extend(
-                    p for p in payload if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+                    p
+                    for p in payload
+                    if "si_signo" in p.get("tags", "")
+                    or "signame" in p.get("tags", "")
+                    or "signum" in p.get("tags", "")
                 )
             # If payload is a single object, check it directly
             elif isinstance(payload, dict):
-                if "signame" in payload.get("tags", "") or "signum" in payload.get("tags", ""):
+                if (
+                    "si_signo" in payload.get("tags", "")
+                    or "signame" in payload.get("tags", "")
+                    or "signum" in payload.get("tags", "")
+                ):
                     crash_reports.append(payload)
 
         return crash_reports

@@ -52,6 +52,13 @@ class _VirtualMachineScenario(Scenario):
         logger.terminal.write_sep("=", "Installed components", bold=True)
         for component in self.components:
             logger.stdout(f"{component}: {self.components[component]}")
+        # Check if the datadog-apm-library is installed.
+        if "datadog-apm-library" not in self.components or not self.components["datadog-apm-library"]:
+            logger.stdout("No datadog-apm-library found")
+            logger.stdout("This is not a valid scenario")
+            logger.stdout("Please, check the log file for more details")
+            logger.stdout(f"Log file: {self.host_log_folder}/tests.log")
+            raise ValueError("No datadog-apm-library found")
 
     def configure(self, config: pytest.Config):
         from utils.virtual_machine.virtual_machine_provider import VmProviderFactory
