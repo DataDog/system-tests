@@ -378,11 +378,13 @@ class Test_Config_Dogstatsd:
 
 SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
-    "dd_profiling_enabled": "false"
-    if context.library != "php"
-    else "1",  # Profiling is enabled as "1" by default in PHP if loaded
+    "dd_profiling_enabled": "1"
+    if context.library == "php"
+    else "true"
+    if context.library == "golang"
+    else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": {"ruby": "true", "python": "structured", "nodejs": "structured"}.get(
+    "dd_logs_injection": {"ruby": "true", "golang": None, "python": "structured", "nodejs": "structured"}.get(
         context.library.name, "false"
     ),  # Enabled by default in ruby, set to None in python
 }
@@ -437,7 +439,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": "true" if context.library != "ruby" else "false",
+                    "dd_logs_injection": None
+                    if context.library == "golang"
+                    else "false"
+                    if context.library == "ruby"
+                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             ),
         ],
@@ -450,7 +456,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_default_config(self, test_library, path, library_env, name, apm_configuration_default, expected):
+    def test_default_config(
+        self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
+    ):
         with test_library:
             self.write_stable_config(
                 {
@@ -463,7 +471,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             config = test_library.config()
             assert expected.items() <= config.items()
 
-    @pytest.mark.parametrize("library_env", [{}])
+    # @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
         "test",
         [
@@ -474,7 +482,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 "expected": {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": "true",
+                    "dd_logs_injection": None
+                    if context.library == "golang"
+                    else "false"
+                    if context.library == "ruby"
+                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             },
         ],
@@ -486,7 +498,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_unknown_key_skipped(self, test_library, path, library_env, test):
+    def test_unknown_key_skipped(self, test_agent, test_library, path, library_env, test):
         with test_library:
             self.write_stable_config(
                 {
@@ -507,7 +519,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_invalid_files(self, test_library, path, library_env):
+    def test_invalid_files(self, test_agent, test_library, path, library_env):
         with test_library:
             self.write_stable_config_content(
                 "🤖 👾; 🤖\t\n\n --- `💣",

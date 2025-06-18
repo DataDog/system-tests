@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 	"github.com/sirupsen/logrus"
 )
 
@@ -251,39 +252,51 @@ type Config struct {
 	TraceAgentURL          string            `json:"agent_url"`
 	RateLimit              string            `json:"sample_rate_limit"`
 	DogstatsdAddr          string            `json:"dogstatsd_address"`
+	ProfilingEnabled       bool              `json:"enabled"`
+	DataStreamsEnabled     bool              `json:"data_streams_enabled"`
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
 // This is done to allow for the testing of tracer configuration using the startup logs as it seems
 // to be the most simple way to do so
 func (l *CustomLogger) Log(logMessage string) {
-	re := regexp.MustCompile(`DATADOG TRACER CONFIGURATION (\{.*\})`)
-	matches := re.FindStringSubmatch(logMessage)
-	if len(matches) < 2 {
-		log.Print("JSON not found in log message")
-		return
+	// Check for tracer configuration
+	tracerRe := regexp.MustCompile(`.*DATADOG TRACER CONFIGURATION (\{.*\})`)
+	tracerMatches := tracerRe.FindStringSubmatch(logMessage)
+	if len(tracerMatches) >= 2 {
+		jsonStr := tracerMatches[1]
+		var config Config
+		if err := json.Unmarshal([]byte(strings.ToLower(jsonStr)), &config); err != nil {
+			log.Printf("Error unmarshaling tracer JSON: %v\n", err)
+			return
+		}
+		stringConfig := make(map[string]string)
+		// Convert the config struct to a map of strings
+		val := reflect.ValueOf(config)
+		for i := 0; i < val.Type().NumField(); i++ {
+			field := val.Type().Field(i)
+			valueField := val.Field(i)
+			// Convert field value to string and then to lowercase
+			stringValue := fmt.Sprintf("%v", valueField.Interface())
+			stringConfig[field.Name] = strings.ToLower(stringValue)
+		}
+		l.globalConfig = stringConfig
 	}
-	jsonStr := matches[1]
 
-	var config Config
-	if err := json.Unmarshal([]byte(strings.ToLower(jsonStr)), &config); err != nil {
-		log.Printf("Error unmarshaling JSON: %v\n", err)
-		return
+	// Check for profiler configuration
+	profilerRe := regexp.MustCompile(`.*Profiler configuration: (\{.*\})`)
+	profilerMatches := profilerRe.FindStringSubmatch(logMessage)
+	if len(profilerMatches) >= 2 {
+		jsonStr := profilerMatches[1]
+		var profilerConfig struct {
+			Enabled bool `json:"enabled"`
+		}
+		if err := json.Unmarshal([]byte(jsonStr), &profilerConfig); err != nil {
+			log.Printf("Error unmarshaling profiler JSON: %v\n", err)
+			return
+		}
+		l.globalConfig["ProfilingEnabled"] = fmt.Sprintf("%v", profilerConfig.Enabled)
 	}
-
-	stringConfig := make(map[string]string)
-
-	// Convert the config struct to a map of strings
-	val := reflect.ValueOf(config)
-	for i := 0; i < val.Type().NumField(); i++ {
-		field := val.Type().Field(i)
-		valueField := val.Field(i)
-
-		// Convert field value to string and then to lowercase
-		stringValue := fmt.Sprintf("%v", valueField.Interface())
-		stringConfig[field.Name] = strings.ToLower(stringValue)
-	}
-	l.globalConfig = stringConfig
 }
 
 func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
@@ -309,6 +322,11 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 	} else {
 		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = "", ""
 	}
+	// Add profiling enabled configuration
+	if profilingEnabled, exists := l.globalConfig["ProfilingEnabled"]; exists {
+		config["dd_profiling_enabled"] = profilingEnabled
+	}
+	config["dd_data_streams_enabled"] = l.globalConfig["DataStreamsEnabled"]
 	log.Print("Parsed config: ", config)
 	return config
 }
@@ -317,6 +335,8 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	var log = &CustomLogger{Logger: logrus.New(), globalConfig: make(map[string]string)}
 
 	tracer.Start(tracer.WithLogger(log))
+	profiler.Start()
+	defer profiler.Stop()
 
 	tracerEnabled := "true"
 	// If globalConfig is empty, then startup log wasn't generated -- tracer must be disabled
