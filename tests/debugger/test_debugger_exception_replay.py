@@ -6,7 +6,7 @@ import re
 import os
 import tests.debugger.utils as debugger
 import time
-from utils import scenarios, features, bug, context, flaky, irrelevant, logger
+from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
 
 
 def get_env_bool(env_var_name, *, default=False) -> bool:
@@ -24,6 +24,10 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
@@ -369,6 +373,33 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         assert found_top, "Top layer snapshot not found"
         assert found_lowest, "Lowest layer snapshot not found"
 
+    def _validate_no_capture_reason(self, exception_key: str, expected_reason: str):
+        """Validate no_capture_reason field from collected spans."""
+        spans_with_no_capture_reason = self.probe_spans.get(exception_key, [])
+        assert (
+            spans_with_no_capture_reason
+        ), f"No spans with _dd.debug.error.no_capture_reason found for {exception_key}"
+
+        found_expected_reason = False
+        actual_reasons = []
+
+        for span in spans_with_no_capture_reason:
+            meta = span.get("meta", {})
+            actual_reason = meta["_dd.debug.error.no_capture_reason"]
+            actual_reasons.append(actual_reason)
+
+            logger.debug(f"Found _dd.debug.error.no_capture_reason: {actual_reason}")
+
+            if actual_reason == expected_reason:
+                found_expected_reason = True
+                logger.debug(f"Expected reason '{expected_reason}' matches actual reason '{actual_reason}'")
+            else:
+                logger.warning(f"Expected reason '{expected_reason}' but got '{actual_reason}'")
+
+        assert (
+            found_expected_reason
+        ), f"Expected no_capture_reason '{expected_reason}' not found. Actual reasons: {actual_reasons}"
+
     ########### test ############
     ########### Simple ############
     def setup_exception_replay_simple(self):
@@ -477,3 +508,40 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])
+
+    ############ No capture reason ############
+    no_capture_reason_span_found = False
+
+    def _setup_no_capture_exception(self, exception_key: str):
+        self.send_weblog_request(f"/exceptionreplay/{exception_key}")
+        self.wait_for_no_capture_reason_span(exception_key, _timeout_next)
+
+    def _test_no_capture_exception(self, exception_key: str, expected_reason: str):
+        self.collect()
+        self.assert_all_weblog_responses_ok(expected_code=500)
+        self._validate_no_capture_reason(exception_key, expected_reason)
+
+    ############ dotnet OutOfMemoryException Test ############
+    def setup_exception_replay_outofmemory(self):
+        self._setup_no_capture_exception("outofmemory")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    def test_exception_replay_outofmemory(self):
+        self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
+
+    ############ .NET StackOverflowException Test ############
+    def setup_exception_replay_stackoverflow(self):
+        self._setup_no_capture_exception("stackoverflow")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @bug(context.library == "dotnet", reason="DEBUG-3999")
+    def test_exception_replay_stackoverflow(self):
+        self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
+
+    ############ .NET First Hit Exception Test ############
+    def setup_exception_replay_firsthit(self):
+        self._setup_no_capture_exception("firsthit")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    def test_exception_replay_firsthit(self):
+        self._test_no_capture_exception("firsthit", "FirstOccurrence")

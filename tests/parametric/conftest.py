@@ -280,8 +280,9 @@ class _TestAgentAPI:
         self._write_log("tracerflares", resp_json)
         return resp_json
 
-    def v06_stats_requests(self) -> list[AgentRequestV06Stats]:
+    def get_v06_stats_requests(self) -> list[AgentRequestV06Stats]:
         raw_requests = [r for r in self.requests() if "/v0.6/stats" in r["url"]]
+
         agent_requests = []
         for raw in raw_requests:
             agent_requests.append(

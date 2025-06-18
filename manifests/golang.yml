@@ -12,8 +12,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: v2.0.0-dev
-        Test_API_Security_RC_ASM_DD_scanners: v2.0.0-dev
+        Test_API_Security_RC_ASM_DD_processors: v2.0.0
+        Test_API_Security_RC_ASM_DD_scanners: v2.0.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
@@ -24,7 +24,7 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_schemas.py:
-        Test_Scanners: v2.0.0-dev
+        Test_Scanners: v2.0.0
         Test_Schema_Request_Cookies: v1.60.0
         Test_Schema_Request_FormUrlEncoded_Body: v1.60.0
         Test_Schema_Request_Headers: v1.60.0
@@ -35,8 +35,9 @@ tests/:
           net-http-orchestrion: irrelevant (net-http cannot list path params)
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: v2.0.0-dev
+        Test_Schema_Response_Body_env_var: v2.0.0
         Test_Schema_Response_Headers: v1.60.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -356,7 +357,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: missing_feature
-      Test_SCAStandalone_Telemetry_V2: v2.0.0-dev
+      Test_SCAStandalone_Telemetry_V2: v2.0.0
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
@@ -407,12 +408,12 @@ tests/:
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Blocking_user_id: v1.51.0
-      Test_Suspicious_Request_Blocking: missing_feature
+      Test_Suspicious_Request_Blocking: flaky (APPSEC-57080)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
       Test_ConfigurationVariables: missing_feature (unknown version)
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables_New_Obfuscation: v2.1.0-dev
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v1.37.0
@@ -461,8 +462,9 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (No IAST)
       Test_SecurityEvents_Iast_Metastruct_Enabled: irrelevant (No IAST)
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
-      Test_UpdateRuleFileWithRemoteConfig: bug (APPSEC-55377)
+      Test_UpdateRuleFileWithRemoteConfig: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule:
         '*': v1.62.0
@@ -484,10 +486,16 @@ tests/:
     test_runtime_activation.py:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v1.69.0
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: v2.1.0-dev
+      Test_TraceTaggingRulesRcCapability: v2.1.0-dev
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v1.36.0
@@ -665,6 +673,7 @@ tests/:
       TestDynamicConfigV2: v1.59.0
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.66.0
@@ -736,8 +745,8 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.69.0
     Test_Config_IntegrationEnabled_False: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
-    Test_Config_LogInjection_128Bit_TraceId_Disabled: incomplete_test_app (weblog endpoint not implemented)
-    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature (disabled by default)
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: 2.1.0-dev
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: 2.1.0-dev
     Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
@@ -815,5 +824,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1

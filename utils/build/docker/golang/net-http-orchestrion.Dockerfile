@@ -3,27 +3,34 @@ FROM golang:1.23 AS build
 # print important lib versions
 RUN go version && curl --version
 
-# download go dependencies
-RUN mkdir -p /app
-COPY utils/build/docker/golang/app/go.mod utils/build/docker/golang/app/go.sum /app/
-WORKDIR /app
-RUN go mod download && go mod verify
+# install jq
+RUN apt-get update && apt-get -y install jq
 
-# copy the app code
-COPY utils/build/docker/golang/app /app
+# build application binary
+COPY utils/build/docker/golang/app/ /app/
+# Note: this is a workaround to avoid the orchestrion build to fail, as using
+# WORKDIR /app will fail with the following error:
+# main module (systemtests.weblog) does not contain package systemtests.weblog/net-http-orchestrion
+WORKDIR /app/net-http-orchestrion
 
-# download the proper tracer version
-COPY utils/build/docker/golang/install_*.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh && /binaries/install_orchestrion.sh
-
-RUN orchestrion go build -v -tags appsec,orchestrion -o weblog ./net-http-orchestrion
+ENV GOCACHE=/root/.cache/go-build \
+    GOMODCACHE=/go/pkg/mod
+RUN --mount=type=cache,target=${GOMODCACHE}                                     \
+    --mount=type=cache,target=${GOCACHE}                                        \
+    --mount=type=tmpfs,target=/tmp                                              \
+    --mount=type=bind,source=utils/build/docker/golang,target=/utils            \
+    --mount=type=bind,source=binaries,target=/binaries                          \
+  go mod download && go mod verify &&                                           \
+  /utils/install_ddtrace.sh &&                                                  \
+  /utils/install_orchestrion.sh &&                                              \
+  orchestrion go build -v -tags=appsec -o=/app/weblog .
 
 # ==============================================================================
 
 FROM golang:1.23
 
 COPY --from=build /app/weblog /app/weblog
-COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
+COPY --from=build /app/net-http-orchestrion/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
 
 WORKDIR /app
 

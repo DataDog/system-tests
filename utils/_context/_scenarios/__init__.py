@@ -83,7 +83,7 @@ class _Scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
         scenario_groups=[scenario_groups.sampling],
     )
@@ -122,6 +122,16 @@ class _Scenarios:
         },
         appsec_enabled=False,
         doc="Disable all tracers products",
+        scenario_groups=[scenario_groups.telemetry],
+    )
+
+    telemetry_app_started_config_chaining = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_CONFIG_CHAINING",
+        weblog_env={
+            "DD_LOGS_INJECTION": "false",
+            "CONFIG_CHAINING_TEST": "true",
+        },
+        doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
     )
 
@@ -374,9 +384,11 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "true",
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
+            "DD_API_SECURITY_ENABLED": "false",
             # added to test Test_ExtendedHeaderCollection
             "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -445,6 +457,7 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],

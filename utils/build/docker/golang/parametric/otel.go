@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel/codes"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +35,7 @@ func (s *apmClientServer) otelStartSpanHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanReturn, error) {
+func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (*OtelStartSpanReturn, error) {
 	if s.tracer == nil {
 		s.tracer = s.tp.Tracer("")
 	}
@@ -50,9 +50,9 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	var otelOpts []otel_trace.SpanStartOption
 	if args.SpanKind != nil {
 		// SpanKindUnspecified is not supported by the parametric interface.
-		// SpanKind needs to be remapped (incremented by 1) to match the expected value golang value. 
+		// SpanKind needs to be remapped (incremented by 1) to match the expected value golang value.
 		// https://github.com/open-telemetry/opentelemetry-go/blob/e98ef1bfdb4cc413a019ebdb64988e17bb331942/trace/span.go#L120
-		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind + 1))))
+		otelOpts = append(otelOpts, otel_trace.WithSpanKind(otel_trace.ValidateSpanKind(otel_trace.SpanKind(*args.SpanKind+1))))
 	}
 	if t := args.Timestamp; t != nil {
 		tm := time.UnixMicro(*t)
@@ -67,7 +67,7 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 			if pSpan, ok := s.otelSpans[link.ParentId]; ok {
 				otelOpts = append(otelOpts, otel_trace.WithLinks(otel_trace.Link{SpanContext: pSpan.span.SpanContext(), Attributes: link.Attributes.ConvertToAttributesStringified()}))
 			} else {
-				return OtelStartSpanReturn{}, fmt.Errorf("OtelStartSpan call failed. Failed to generate a link to span with id=%d", link.ParentId)
+				return nil, fmt.Errorf("OtelStartSpan call failed. Failed to generate a link to span with id=%d", link.ParentId)
 			}
 		}
 	}
@@ -75,19 +75,18 @@ func (s *apmClientServer) OtelStartSpan(args OtelStartSpanArgs) (OtelStartSpanRe
 	ctx, span := s.tracer.Start(ddotel.ContextWithStartOptions(pCtx, ddOpts...), args.Name, otelOpts...)
 	hexSpanId, err := hex2int(span.SpanContext().SpanID().String())
 	if err != nil {
-		return OtelStartSpanReturn{}, err
+		return nil, err
 	}
 	s.otelSpans[hexSpanId] = spanContext{
 		span: span,
 		ctx:  ctx,
 	}
-	hexTid, err := hex2int(span.SpanContext().TraceID().String())
-	if err != nil {
-		return OtelStartSpanReturn{}, err
-	}
-	return OtelStartSpanReturn{
+	tIdBytes := span.SpanContext().TraceID()
+	// convert the lower bits to a uint64
+	tId := binary.BigEndian.Uint64(tIdBytes[8:])
+	return &OtelStartSpanReturn{
 		SpanId:  hexSpanId,
-		TraceId: hexTid,
+		TraceId: tId,
 	}, nil
 }
 

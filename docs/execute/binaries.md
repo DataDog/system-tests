@@ -29,10 +29,17 @@ There are two ways for running the C++ library tests with a custom tracer:
 ## Golang library
 
 Create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+
 * Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
-    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
-    * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
+    * `github.com/DataDog/dd-trace-go/v2@main` Test the main branch
+    * `github.com/DataDog/dd-trace-go/v2@v2.0.0` Test the 2.0.0 release
+    * `github.com/DataDog/dd-trace-go/v2@<commit_hash>` Test un-merged changes
+
+To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+* Content example:
+    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
+    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
 
 To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
 * Content example:

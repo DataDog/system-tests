@@ -6,6 +6,9 @@ on:
         description: "Library to test"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
@@ -47,10 +50,10 @@ on:
         required: false
         type: boolean
       build_lib_injection_app_images:
-          description: "Shall we build and push k8s lib injection weblog images"
-          default: false
-          required: false
-          type: boolean
+        description: "Shall we build and push k8s lib injection weblog images"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -71,6 +74,11 @@ on:
         default: -1
         required: false
         type: number
+      enable_replay_scenarios:
+        description: "Enable replay scenarios, should only used in system-tests CI"
+        default: false
+        required: false
+        type: boolean
       _experimental_parametric_job_count:
         description: "*DEPRECATED*"
         default: 1
@@ -93,6 +101,7 @@ jobs:
     uses: ./.github/workflows/compute-workflow-parameters.yml
     with:
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
@@ -110,6 +119,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
@@ -127,6 +137,7 @@ jobs:
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       version: ${{ needs.compute_parameters.outputs.ci_environment }}
 
   build_end_to_end:
@@ -144,6 +155,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
@@ -154,8 +166,6 @@ jobs:
         if: inputs.library == 'python' && inputs.build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
-      - name: Build agent
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent -s
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s
@@ -179,22 +189,26 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.job.library }}
+      ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
+      weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
+      enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}
 
   external_processing:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && needs.compute_parameters.outputs.binaries_artifact != ''}}
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang'}}
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
+      ref: ${{ inputs.ref }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
