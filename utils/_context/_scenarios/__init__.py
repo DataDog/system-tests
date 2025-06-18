@@ -1026,6 +1026,13 @@ class _Scenarios:
         doc="Test runtime metrics",
     )
 
+    process_tags = EndToEndScenario(
+        "PROCESS_TAGS",
+        weblog_env={"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"},
+        doc="Test process tags",
+        rc_api_enabled=True,
+    )
+
 
 scenarios = _Scenarios()
 

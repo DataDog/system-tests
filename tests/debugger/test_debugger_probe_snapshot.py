@@ -5,7 +5,9 @@
 import time
 import tests.debugger.utils as debugger
 
+
 from utils import scenarios, features, missing_feature, context
+from utils.interfaces._library.miscs import validate_process_tags
 
 
 class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
@@ -149,3 +151,24 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()
+
+    def setup_process_tags_snapshot(self):
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
+
+    @features.process_tags
+    @missing_feature(condition=context.library != "java", reason="Not yet implemented")
+    @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
+    def test_process_tags_snapshot(self):
+        self._assert()
+        self._validate_snapshots()
+        process_tags = None
+        for snapshot_key in self.probe_snapshots:
+            for snapshot in self.probe_snapshots[snapshot_key]:
+                current_process_tags = snapshot["process_tags"]
+                if process_tags is None:
+                    process_tags = current_process_tags
+                    validate_process_tags(process_tags)
+                elif process_tags != current_process_tags:
+                    raise ValueError(
+                        f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"
+                    )
