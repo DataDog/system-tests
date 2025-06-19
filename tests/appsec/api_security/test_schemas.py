@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger
+from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
 
 
 def get_schema(request, address):
@@ -73,6 +73,7 @@ class Test_Schema_Request_Cookies:
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
+    @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")
@@ -276,10 +277,6 @@ class Test_Schema_Response_Body_env_var:
             data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
         )
 
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Response body not supported yet",
-    )
     def test_request_method(self):
         """Can provide response body schema"""
         assert self.request.status_code == 200
