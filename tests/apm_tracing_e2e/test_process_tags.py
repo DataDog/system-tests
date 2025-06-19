@@ -13,41 +13,50 @@ class Test_Process_Tags:
         self.req = weblog.get("/status?code=200")
 
     def test_tracing_process_tags(self):
-        # Only the parent span should be submitted to the backend!
-        spans = interfaces.agent.get_spans_list(self.req)
-        assert len(spans) == 1, "Agent did not submit the spans we want!"
-
-        # Assert the spans sent by the agent.
-        span = spans[0]
-
-        process_tags = span["meta"]["_dd.tags.process"]
-        validate_process_tags(process_tags)
+        # Get all the spans from the agent
+        found = False
+        for data, _ in interfaces.agent.get_spans(self.req):
+            # Check that the agent managed to extract the process tags from the first chunk
+            for payload in data["request"]["content"]["tracerPayloads"]:
+                process_tags = payload["tags"]["_dd.tags.process"]
+                validate_process_tags(process_tags)
+                found = True
+        assert found, "Process tags are missing"
 
     def setup_remote_config_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
     def test_remote_config_process_tags(self):
+        found = False
         for data in interfaces.library.get_data(path_filters="/v0.7/config"):
             process_tags_list = data["request"]["content"]["client"]["client_tracer"]["process_tags"]
             assert isinstance(process_tags_list, list)
             validate_process_tags(",".join(process_tags_list))
+            found = True
+        assert found, "Process tags are missing"
 
     def setup_telemetry_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
     @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_telemetry_process_tags(self):
+        found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
         for data in telemetry_data:
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
+            found = True
+        assert found, "Process tags are missing"
 
     def setup_dsm_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
     @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_dsm_process_tags(self):
+        found = False
         dsm_data = list(interfaces.agent.get_dsm_data())
         for data in dsm_data:
             process_tags_list = data["request"]["content"]["ProcessTags"]
             assert isinstance(process_tags_list, list)
             validate_process_tags(",".join(process_tags_list))
+            found = True
+        assert found, "Process tags are missing"

@@ -618,6 +618,7 @@ class _Scenarios:
         iast_enabled=False,
         include_kafka=True,
         include_postgres_db=True,
+        rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
