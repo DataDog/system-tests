@@ -139,7 +139,7 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
                     0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
                 )
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "git pull")
-            result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd system-tests")
+            result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd /system-tests")
 
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
@@ -259,7 +259,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     if os.getenv("SYSTEM_TESTS_REF"):
                         result_pipeline[vm_job]["script"].insert(0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}")
                         result_pipeline[vm_job]["script"].insert(0, "git pull")
-                    result_pipeline[vm_job]["script"].insert(0, "cd system-tests")
+                    result_pipeline[vm_job]["script"].insert(0, "cd /system-tests")
 
 
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
