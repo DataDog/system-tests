@@ -36,9 +36,8 @@ class _SpanTagValidator:
 
 
 def validate_process_tags(process_tags: str):
+    # entrypoint name and workdir can always be defined.
     if "entrypoint.name:" not in process_tags:
         raise ValueError(f"No entrypoint.name defined in process tags. Current: {process_tags}")
     if "entrypoint.workdir:" not in process_tags:
         raise ValueError(f"No entrypoint.workdir defined in process tags. Current: {process_tags}")
-    if "entrypoint.basedir:" not in process_tags:
-        raise ValueError(f"No entrypoint.basedir defined in process tags. Current: {process_tags}")
