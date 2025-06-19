@@ -7,7 +7,14 @@ echo "SCRIPT_DIR: $SCRIPT_DIR"
 # Initialize colors for output
 WHITE_BOLD='\033[1;37m'
 CYAN='\033[0;36m'
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
 NC='\033[0m'
+
+# Retry configuration
+MAX_RETRIES=${MAX_RETRIES:-3}
+INITIAL_DELAY=${INITIAL_DELAY:-5}
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
@@ -21,9 +28,44 @@ print_usage() {
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT). (Mandatory)"
     echo -e "  ${CYAN}--push-tag <var>${NC}     The image will be pushed to docker registry (env: PUSH_TAG)."
     echo -e "  ${CYAN}--docker-platform <platform>${NC}      Target Docker platform(s) (comma-separated)."
+    echo -e "  ${CYAN}--max-retries <num>${NC}        Maximum number of retry attempts (env: MAX_RETRIES, default: 3)"
+    echo -e "  ${CYAN}--initial-delay <seconds>${NC}  Initial delay between retries in seconds (env: INITIAL_DELAY, default: 5)"
     echo -e "  ${CYAN}-h, --help${NC}                Display this help message."
     echo -e ""
     echo -e ""
+}
+
+# Retry function with exponential backoff
+retry_with_backoff() {
+    local cmd="$1"
+    local attempt=1
+    local delay=$INITIAL_DELAY
+
+    echo -e "${YELLOW}Starting Docker build with retry mechanism (max ${MAX_RETRIES} attempts)${NC}"
+
+    while [[ $attempt -le $MAX_RETRIES ]]; do
+        echo -e "${CYAN}Attempt ${attempt}/${MAX_RETRIES}${NC}"
+
+        if eval "$cmd"; then
+            echo -e "${GREEN}Docker build completed successfully on attempt ${attempt}${NC}"
+            return 0
+        else
+            local exit_code=$?
+            echo -e "${RED}Docker build failed on attempt ${attempt} with exit code ${exit_code}${NC}"
+
+            if [[ $attempt -eq $MAX_RETRIES ]]; then
+                echo -e "${RED}All ${MAX_RETRIES} attempts failed. Giving up.${NC}"
+                return $exit_code
+            fi
+
+            echo -e "${YELLOW}Waiting ${delay} seconds before retry...${NC}"
+            sleep $delay
+
+            # Exponential backoff: double the delay for next attempt
+            delay=$((delay * 2))
+            attempt=$((attempt + 1))
+        fi
+    done
 }
 
 # Initialize Docker Buildx
@@ -44,6 +86,8 @@ while [[ "$#" -gt 0 ]]; do
         -w|--weblog-variant) WEBLOG_VARIANT="$2"; shift ;;
         -dp|--docker-platform) DOCKER_PLATFORM="$2"; shift ;;
         -pt|--push-tag) PUSH_TAG="$2"; shift ;;
+        --max-retries) MAX_RETRIES="$2"; shift ;;
+        --initial-delay) INITIAL_DELAY="$2"; shift ;;
         -h|--help) print_usage; exit 0 ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
@@ -93,13 +137,13 @@ setup_buildx
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
 
-# Build the image
+# Build the image with retry mechanism
 if [ -n "${PUSH_TAG+set}" ]; then
     echo "Building and pushing image to ${PUSH_TAG}"
-    docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} . --push
+    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} . --push"
 else
     echo "Building local image"
-    docker buildx build ${PLATFORM_ARGS} -t weblog-injection:latest --load .
+    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t weblog-injection:latest --load ."
 fi
 
 cd $CURRENT_DIR

@@ -343,8 +343,11 @@ def add_cluster_agent_img_operator_yaml(image_tag, output_directory):
     # Override the operator spec for cluster image
     yaml_data["spec"]["override"] = {}
     yaml_data["spec"]["override"]["clusterAgent"] = {}
-    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {"name": image_tag}
+    cluster_agent_image_spec = {"name": image_tag}
+    if PrivateRegistryConfig().is_configured:
+        cluster_agent_image_spec["pullSecrets"] = [{"name": "private-registry-secret"}]
 
+    yaml_data["spec"]["override"]["clusterAgent"]["image"] = cluster_agent_image_spec
     # Construct the output file path (the folder should already exist)
     output_file = os.path.join(output_directory, Path(operator_template).name)
 
