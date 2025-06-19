@@ -31,7 +31,7 @@ ssi_tests:
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
             cp -R logs_"${SCENARIO_SUFIX}" reports/
         else
-            cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
+            cp -R /system-tests/logs_"${SCENARIO_SUFIX}" reports/
         fi
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
@@ -145,7 +145,7 @@ ssi_tests:
     if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
         cp -R logs_*/ reports/
     else
-        cp -R system-tests/logs_*/ reports/
+        cp -R /system-tests/logs_*/ reports/
     fi
     if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
       export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
