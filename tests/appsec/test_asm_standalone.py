@@ -810,6 +810,8 @@ class Test_AppSecStandalone_NotEnabled:
 @features.appsec_standalone_experimental
 @scenarios.appsec_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
+@flaky(context.library >= "python@2.19.0", weblog_variant="flask-poc", reason="APPSEC-57145")
+@flaky(context.library >= "python@2.19.0", weblog_variant="uwsgi-poc", reason="APPSEC-57145")
 class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -823,6 +825,8 @@ class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamProp
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
+@flaky(context.library >= "python@2.19.0", weblog_variant="flask-poc", reason="APPSEC-57145")
+@flaky(context.library >= "python@2.19.0", weblog_variant="uwsgi-poc", reason="APPSEC-57145")
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
