@@ -360,6 +360,9 @@ class Test_AsmDdMultiConfiguration:
         rc.rc_state.reset().apply()
 
     def test_update_rules(self):
+        # Force test failure if the capability is not enabled
+        self.test_asm_dd_multiconfig_capability()
+
         # Arachni using the default rule file
         interfaces.library.assert_waf_attack(self.response_0, rule="ua0-600-12x")
 
@@ -416,6 +419,9 @@ class Test_AsmDdMultiConfiguration:
         rc.rc_state.reset().apply()
 
     def test_update_rules_with_rules_compat(self):
+        # Force test failure if the capability is not enabled
+        self.test_asm_dd_multiconfig_capability()
+
         # Arachni using the default rule file
         interfaces.library.assert_waf_attack(self.response_0, rule="ua0-600-12x")
 
