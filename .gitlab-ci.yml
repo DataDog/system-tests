@@ -23,7 +23,6 @@ compute_pipeline:
   stage: configure
   variables:
     CI_ENVIRONMENT: "prod"
-    SYSTEM_TESTS_REF: "main"
   script:
     - |
       if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
@@ -48,7 +47,11 @@ compute_pipeline:
           export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
           cd /system-tests
           git pull
-          git checkout $SYSTEM_TESTS_REF
+          if [ -n "$SYSTEM_TESTS_REF" ]; then
+            git checkout $SYSTEM_TESTS_REF
+          else
+            echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
+          fi
           ./build.sh -i runner
           source venv/bin/activate
       fi
