@@ -23,6 +23,7 @@ compute_pipeline:
   stage: configure
   variables:
     CI_ENVIRONMENT: "prod"
+    SYSTEM_TESTS_REF: "main"
   script:
     - |
       if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
@@ -46,7 +47,7 @@ compute_pipeline:
           export scenarios=$SYSTEM_TESTS_SCENARIOS
           export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
           cd /system-tests
-          git pull # update to most recent system-tests
+          git pull origin $SYSTEM_TESTS_REF # update to most recent system-tests
           ./build.sh -i runner
           source venv/bin/activate
       fi
