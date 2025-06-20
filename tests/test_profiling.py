@@ -50,7 +50,6 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(condition=context.library.name != "java", reason="Not yet implemented")
-    @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_process_tags(self):
         """All profiling libraries payload have process tags field"""
         profiling_data_list = list(interfaces.agent.get_profiling_data())

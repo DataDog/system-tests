@@ -157,7 +157,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @features.process_tags
     @missing_feature(condition=context.library != "java", reason="Not yet implemented")
-    @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_process_tags_snapshot(self):
         self._assert()
         self._validate_snapshots()
