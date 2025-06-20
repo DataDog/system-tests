@@ -10,15 +10,20 @@ cat Gemfile
 
 if [ -e "/binaries/dd-trace-rb" ]; then
     #
-    # Install the gem from this local directory
-    # Being triggered by upstream: https://github.com/DataDog/dd-trace-rb
+    # Build the gem from the local directory
+    # And use it in weblog gemfile
+    # This way, it will go through compilation steps of the native lib
+    # and will be closer an actual installation.
     #
-    echo "Install from folder /binaries/dd-trace-rb"
+    echo "Build gem from /binaries/dd-trace-rb"
 
     # Read the gem name from the gemspec file
     export GEM_NAME=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).name')
 
-    echo "gem '$GEM_NAME', require: '$GEM_NAME/auto_instrument', path: '/binaries/dd-trace-rb'" >> Gemfile
+    gem -C /binaries/dd-trace-rb build
+    gem install /binaries/dd-trace-rb/$GEM_NAME-*.gem
+
+    echo -e "gem '$GEM_NAME', require: '$GEM_NAME/auto_instrument'" >> Gemfile
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     # Install the gem from https://rubygems.org/
