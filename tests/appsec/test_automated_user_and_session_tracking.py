@@ -4,7 +4,6 @@
 
 
 from typing import Any
-from utils import bug
 from utils import context
 from utils import features
 from utils import interfaces
@@ -157,7 +156,6 @@ class Test_Automated_User_Blocking:
         context.library == "python" and context.weblog_variant not in ["django-poc", "python3.12", "django-py3.13"],
         reason="no possible auto-instrumentation for python except on Django",
     )
-    @bug(context.library >= "ruby@2.17.1-dev", reason="APPSEC-58061")
     def test_user_blocking_auto(self):
         assert self.r_login.status_code == 200
 

@@ -2001,7 +2001,6 @@ class Test_V3_Login_Events_Blocking:
 
         self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
 
-    @bug(context.library >= "ruby@2.17.1-dev", reason="APPSEC-58061")
     def test_login_event_blocking_auto_login(self):
         assert self.r_login.status_code == 200
 
@@ -2033,7 +2032,6 @@ class Test_V3_Login_Events_Blocking:
             for trigger in SDK_TRIGGERS
         ]
 
-    @bug(context.library >= "ruby@2.17.1-dev", reason="APPSEC-58061")
     def test_login_event_blocking_sdk(self):
         for request in self.r_login:
             assert request.status_code == 200

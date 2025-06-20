@@ -51,7 +51,6 @@ class Test_Monitoring:
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(context.library >= "golang@v2.1.0-dev", reason="replaced by test_waf_monitoring_once_rfc1025")
-    @bug(context.library >= "ruby@2.17.1-dev", reason="APPSEC-58061")
     def test_waf_monitoring_once(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
         least once in a request span at some point. The metrics asserted by this
@@ -190,7 +189,6 @@ class Test_Monitoring:
 
     @scenarios.appsec_rules_monitoring_with_errors
     @bug(library="golang", reason="LANGPLAT-584")
-    @bug(context.library >= "ruby@2.17.1-dev", reason="APPSEC-58061")
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
         reason="Query string not supported yet",
