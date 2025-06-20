@@ -191,10 +191,7 @@ class Test_Monitoring:
 
     @scenarios.appsec_rules_monitoring_with_errors
     @bug(library="golang", reason="LANGPLAT-584")
-    @missing_feature(
-        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
-        reason="Query string not supported yet",
-    )
+    @irrelevant(context.library >= "nodejs@5.56.0", reason="expected tags were deprecated by rfc1025")
     @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
