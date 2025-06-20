@@ -17,13 +17,14 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     #
     echo "Build gem from /binaries/dd-trace-rb"
 
-    # Read the gem name from the gemspec file
+    # Read the gem name and version from the gemspec file
     export GEM_NAME=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).name')
+    export GEM_VERSION=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).version')
 
     gem -C /binaries/dd-trace-rb build
     gem install /binaries/dd-trace-rb/$GEM_NAME-*.gem
 
-    echo -e "gem '$GEM_NAME', require: '$GEM_NAME/auto_instrument'" >> Gemfile
+    echo -e "gem '$GEM_NAME', '$GEM_VERSION', require: '$GEM_NAME/auto_instrument'" >> Gemfile
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
     #
     # Install the gem from https://rubygems.org/
