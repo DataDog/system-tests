@@ -18,7 +18,6 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    #TODO CHANGE THE NAME
     extends: .base_job_k8s_docker_ssi
     needs: []
     allow_failure: false

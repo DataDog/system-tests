@@ -146,11 +146,6 @@ def main() -> None:
                         scenario_groups.lib_injection,
                         scenario_groups.docker_ssi,
                     ],
-                    r"\.gitlab/single-step-instrumentation-tests-locked.yml": [
-                        scenario_groups.onboarding,
-                        scenario_groups.lib_injection,
-                        scenario_groups.docker_ssi,
-                    ],
                     r"\.promptfoo/.*": None,
                     r"binaries/.*": None,
                     r"docs/.*": None,
