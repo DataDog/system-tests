@@ -8,7 +8,7 @@ sed -i -e '/gem .datadog./d' Gemfile
 
 cat Gemfile
 
-if [ -e "/binaries/dd-trace-rb-null" ]; then
+if [ -e "/binaries/dd-trace-rb" ]; then
     #
     # Build the gem from the local directory
     # And use it in weblog gemfile
