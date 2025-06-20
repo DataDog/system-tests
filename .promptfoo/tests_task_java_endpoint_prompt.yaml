@@ -13,10 +13,10 @@
             - "The Ratpack and Play frameworks need to implement the SQL injection endpoints to be compatible with the IAST SQL injection tests."
             - "`/iast/sqli/test_insecure` and `/iast/sqli/test_secure` endpoints"
             - "`utils/build/docker/java/ratpack/src/main/java/com/datadoghq/ratpack/IastHandlers.java`"
-            - "The Ratpack and Play frameworks need to implement the SQL injection endpoints to be compatible with the IAST SQL injection tests." 
+            - "The Ratpack and Play frameworks need to implement the SQL injection endpoints to be compatible with the IAST SQL injection tests."
         - type: icontains-any
           value:
             - "Play framework: Add SQL injection endpoints to AppSecController.scala or create a new IAST controller"
             - "`/iast/sqli/test_insecure` and `/iast/sqli/test_secure` endpoints"
             - "`utils/build/docker/java/play/app/controllers/AppSecController.scala` or create a new IAST controller"
-            - "The Ratpack and Play frameworks need to implement the SQL injection endpoints to be compatible with the IAST SQL injection tests." 
+            - "The Ratpack and Play frameworks need to implement the SQL injection endpoints to be compatible with the IAST SQL injection tests."
