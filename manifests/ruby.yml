@@ -11,9 +11,7 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: missing_feature
         Test_API_Security_RC_ASM_DD_scanners: missing_feature
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints:
-          "*": v2.17.1-dev
-          rack: missing_feature (rack weblog requires priority sampling revision)
+        Test_API_Security_Sampling_Different_Endpoints: v2.17.1-dev
         Test_API_Security_Sampling_Different_Paths:
           "*": v2.17.1-dev
           rack: irrelevant
@@ -21,9 +19,7 @@ tests/:
           "*": v2.17.1-dev
           rack: irrelevant
         Test_API_Security_Sampling_Rate: irrelevant
-        Test_API_Security_Sampling_With_Delay:
-          "*": v2.17.1-dev
-          rack: missing_feature (rack weblog requires priority sampling revision)
+        Test_API_Security_Sampling_With_Delay: v2.17.1-dev
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v1.15.0
