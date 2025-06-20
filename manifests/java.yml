@@ -2124,10 +2124,18 @@ tests/:
       '*': v0.111.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
-    Test_ExtractBehavior_Default: v1.48.0
-    Test_ExtractBehavior_Ignore: bug (APMAPI-1443)
-    Test_ExtractBehavior_Restart: v1.48.0
-    Test_ExtractBehavior_Restart_With_Extract_First: v1.48.0
+    Test_ExtractBehavior_Default:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
+    Test_ExtractBehavior_Ignore:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: bug (APMAPI-1443)
+    Test_ExtractBehavior_Restart:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
+    Test_ExtractBehavior_Restart_With_Extract_First:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
     Test_HeaderTags:
       '*': v1.35.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
