@@ -41,7 +41,6 @@ class Test_Process_Tags:
     def setup_telemetry_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
-    @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_telemetry_process_tags(self):
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())
@@ -53,7 +52,6 @@ class Test_Process_Tags:
     def setup_dsm_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
-    @missing_feature(context.library < "java@1.50.0", reason="Not yet implemented")
     def test_dsm_process_tags(self):
         found = False
         dsm_data = list(interfaces.agent.get_dsm_data())
