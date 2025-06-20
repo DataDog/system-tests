@@ -53,12 +53,9 @@ All system-tests assertions and utilities are based on python and pytests. You n
 
 ## Run the scenario
 
-There is only one scenario declared: "`DOCKER_SSI`". But this unique scenario can run against multiple variants of weblogs, containerized OSes and architectures and therefore the number of matrix combinations might be very high.
+To help us to run a concrete case of the matrix variants, execute this script locally:
 
-To help us to run a concrete case of the matrix variants, there are two scripts to be executed locally:
-
-* `utils/build/ssi/build_local_manual.sh`: Runs the Docker SSI scenario using the arguments: library, weblog, docker base image, architecture and installable runtime. To run this command you need to know the correct combination of these arguments.
-* `utils/build/ssi/build_local_wizard.sh`: Interactive shell wizard that allow you to execute the Docker SSI scenario with the correct combination of arguments.
+* `utils/scripts/ssi_wizards/docker_ssi_wizard.sh`: Interactive shell wizard that allow you to execute the Docker SSI scenario with the correct combination of arguments.
 
 Here is the command line and the mandatory parameters:
 
@@ -399,3 +396,4 @@ You could use the system-tests decorator to skip the tests or mark them as bug. 
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     def test_install_supported_runtime(self):
 ```
+
