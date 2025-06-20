@@ -8,14 +8,14 @@ sed -i -e '/gem .datadog./d' Gemfile
 
 cat Gemfile
 
-if [ -e "/binaries/dd-trace-rb" ]; then
+if [ -e "/binaries/dd-trace-rb-null" ]; then
     #
     # Build the gem from the local directory
     # And use it in weblog gemfile
     # This way, it will go through compilation steps of the native lib
     # and will be closer an actual installation.
     #
-    echo "Build gem from /binaries/dd-trace-rb"
+    echo "Build and install gem from /binaries/dd-trace-rb"
 
     # Read the gem name and version from the gemspec file
     export GEM_NAME=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).name')
