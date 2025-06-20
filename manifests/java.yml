@@ -1925,13 +1925,13 @@ tests/:
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
