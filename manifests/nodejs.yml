@@ -919,28 +919,46 @@ tests/:
         '*': *ref_5_45_0
         nextjs: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf:
         '*': *ref_5_48_0
         nextjs: missing_feature
-      Test_UserLoginFailureEventV2_Metrics:
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
+        '*': missing_feature
+        nextjs: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
-      Test_UserLoginFailureEventV2_Tags:
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf:
         '*': *ref_5_48_0
         nextjs: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
+        '*': missing_feature
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
-      Test_UserLoginSuccessEventV2_Tags:
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        '*': *ref_5_48_0
+        nextjs: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_header_collection.py:
