@@ -226,6 +226,15 @@ get '/sample_rate_route/:i' do
   'OK'
 end
 
+get '/api_security_sampling/:i' do
+  'Hello!'
+end
+
+get '/api_security/sampling/:status' do
+  status params['status'].to_i
+  'OK'
+end
+
 ssrf_handler = lambda do
   url = URI.parse(request.params['domain'])
   url = "http://#{url}" unless url.scheme
