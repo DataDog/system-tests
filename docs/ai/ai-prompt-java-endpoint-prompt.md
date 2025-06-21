@@ -53,45 +53,6 @@ Test file: tests/appsec/iast/test_sqli.py
 - ⚡ **Follow preservation rules** to avoid breaking existing code
 - 🎯 **Create only what's needed** based on the test specifications
 
-## ⚙️ Prerequisites
-
-Before using this prompt, make sure you have:
-
-1. **Cursor IDE** installed and configured
-2. **System-tests** [minimal requirements](../../../../README.md#minimal-requirements-end-to-end-testing) met:
-   - **Python 3.12** (required)
-   - **Docker 20.10+** (recommended)
-   - **Bash** (for running scripts)
-3. **System-tests** cloned locally
-4. **Basic knowledge** of the supported Java frameworks
-
-> **Note**: You don't need Java installed locally - the Docker containers handle Java runtime (Java 11) internally.
-
-## 🔧 Manual Setup
-
-### Step 1: Add to Cursor Context
-
-1. **Open Cursor IDE** in your system-tests workspace
-2. **Access Cursor settings**:
-   - Press `Cmd/Ctrl + ,` to open settings
-   - Or use `Cmd/Ctrl + Shift + P` → "Cursor: Open Settings"
-
-3. **Add the file to context**:
-   ```
-   Option A: Drag the java-endpoint-prompt.mdc file to Cursor chat
-   Option B: Reference the file using @java-endpoint-prompt.mdc
-   Option C: Include the full path: @utils/build/docker/java/.cursor/rules/java-endpoint-prompt.mdc
-   ```
-
-### Step 2: Verify Configuration
-
-In Cursor chat, ask:
-```
-Can you see the java-endpoint-prompt.mdc rules?
-```
-
-If the response includes information about Java frameworks and implementation rules, the configuration is correct!
-
 ## 💡 Using the Prompt
 
 ### Useful Cursor Commands

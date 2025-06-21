@@ -34,57 +34,60 @@ For more information, visit the [official Promptfoo documentation](https://www.p
 system-tests/
 ├── 📄 promptfooconfig.yaml              # Main configuration file
 ├── 📄 promptfoo-errors.log             # Error logs
+├── 📁 .cursor/rules/                    # Cursor IDE rules directory
+│   └── 📄 promptfoo-llm.mdc            # Rules file for automated test execution
 └── 📁 .promptfoo/                       # Promptfoo test directory
     ├── 📄 local_cursor_provider.py     # Custom provider for Cursor IDE integration
     ├── 📄 tests_overview.yaml          # Tests for general system-tests overview
     ├── 📄 tests_aws_ssi.yaml           # Tests for AWS SSI scenarios
     ├── 📄 tests_end_to_end.yaml        # Tests for end-to-end scenarios
     ├── 📄 tests_activate_tests.yaml    # Tests for test activation/deactivation
+    └── 📄 tests_task_java_endpoint_prompt.yaml # Tests for Java endpoint tasks
 ```
 
 ### Key Components
 
 * **promptfooconfig.yaml**: Main configuration that orchestrates all test suites
+* **.cursor/rules/promptfoo-llm.mdc**: Rules file that automates the test execution process in Cursor IDE
 * **.promptfoo/**: Contains all test definitions organized by scenario type
-* **local_cursor_provider.py**: Custom provider for IDE integration (133 lines)
+* **local_cursor_provider.py**: Custom provider for IDE integration
 * **Test files**: Each YAML file contains specific test cases for different system-tests scenarios
 
 ## Run the tests inside the IDE
 
-We execute the tests in three simple steps:
-
-1. **Generate Test Responses:**
-   Ask Cursor AI to parse your test files and respond to questions. Ensure it doesn't modify any code, but instead, instruct it to write the intended responses and actions into a dedicated results file.
-2. **Evaluate Responses:**
-   Run an evaluation of these responses by parsing the results file using a customized Promptfoo provider implementation.
-3. **Review Results:**
-   Visualize and analyze the test outcomes clearly and effectively.
+The process has been simplified using the new rules file (`.cursor/rules/promptfoo-llm.mdc`) that provides automated instructions to the AI assistant. You can now execute tests in two simple steps:
 
 ### Generate Test Responses
 
-To run the full test suite, ask in the chat (agent mode):
+**For the full test suite**, simply ask in the chat:
 
 ```
-Delete the logs/responses.yaml file if exists. Parse the yaml file "promptfooconfig.yaml" and extract all the tests files. Parse these tests yaml files one by one and read the value of the field user_prompt and answer the questions or perform the action.  All the actions that you perform MUST NOT require interact with the user. NEVER edit files EXCEPT the "responses.yaml", only print the proposed changes. NEVER launch shell command, only print the proposed command. you MUST ALWAYS create or update and write in other yaml file called "responses.yaml" in the "logs" folder the query (create prompt field) and the associated response you provided (output), under the root node "responses".
-
+@promptfoo-llm.mdc Run the complete test suite.
 ```
 
-if you want to run only for one test suite, for example the "aws ssi":
+**For a specific test suite**, reference the specific test file:
 
 ```
-Delete the logs/responses.yaml file if exists. Parse ONLY the file .promptfoo/tests_aws_ssi.yaml and read the value of the field user_prompt  and answer the questions or perform the action.  All the actions that you perform MUST NOT require interact with the user. NEVER edit files EXCEPT the "responses.yaml", only print the proposed changes. NEVER launch shell command, only print the proposed command. you MUST ALWAYS create and write in other yaml file called "responses.yaml" in the "logs" folder the query (create prompt field) and the associated response you provided (output), under the root node "responses".
-
+@promptfoo-llm.mdc test the file .promptfoo/tests_aws_ssi.yaml
 ```
+
+The AI assistant will automatically:
+1. Delete any existing `logs/responses.yaml` file
+2. Parse the specified test files (or all test files if none specified)
+3. Process each `user_prompt` field and generate responses
+4. Create a `logs/responses.yaml` file with all query-response pairs
+5. Remind you to run the evaluation command
+
 ### Evaluate Responses
 
-Once you've generated the logs/responses.txt file, you're ready to run the Promptfoo evaluation to assess the accuracy and quality of your assistant's responses.
+Once the AI assistant has generated the `logs/responses.yaml` file, run the Promptfoo evaluation:
 
+**For the full test suite:**
 ```bash
 promptfoo eval
 ```
 
-Or if you want to evaluate only one test suite:
-
+**For a specific test suite:**
 ```bash
 promptfoo eval -t .promptfoo/tests_aws_ssi.yaml
 ```
@@ -94,3 +97,15 @@ promptfoo eval -t .promptfoo/tests_aws_ssi.yaml
 ```bash
 promptfoo view
 ```
+
+## Rules File Integration
+
+The new approach leverages Cursor IDE's rules system through the `.cursor/rules/promptfoo-llm.mdc` file, which:
+
+* Provides standardized instructions for test execution
+* Eliminates the need for manual prompt construction
+* Ensures consistent behavior across different test runs
+* Supports both full test suite and individual test file execution
+* Automatically handles file cleanup and response generation
+
+This streamlined process makes it easier to validate AI assistant behavior and maintain high-quality responses across all system-tests scenarios.
