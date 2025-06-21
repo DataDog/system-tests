@@ -39,6 +39,7 @@ _iast_security_controls_map = {
     "php": "TODO",
     "python": "TODO",
     "ruby": "TODO",
+    "rust": "TODO",
 }
 
 
