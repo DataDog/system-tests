@@ -33,3 +33,11 @@ class _SpanTagValidator:
                 raise ValueError(f'{tag_key} tag in span\'s meta should be "{expect_value}", not "{actual_value}"')
 
         return True
+
+
+def validate_process_tags(process_tags: str):
+    # entrypoint name and workdir can always be defined.
+    if "entrypoint.name:" not in process_tags:
+        raise ValueError(f"No entrypoint.name defined in process tags. Current: {process_tags}")
+    if "entrypoint.workdir:" not in process_tags:
+        raise ValueError(f"No entrypoint.workdir defined in process tags. Current: {process_tags}")
