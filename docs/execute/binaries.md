@@ -158,7 +158,7 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 You have two ways to run system-tests with a custom Ruby Tracer version:
 
 1. Create `ruby-load-from-bundle-add` in `binaries` directory with the content that should be added to `Gemfile`. Content example:
-  * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`
+  * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`. To point to a specific branch, replace `branch: 'master'` with `branch: '<your-branch>'`. If you want to point to a specific commit, delete the `branch: 'master'` entry and replace it with `ref: '<commit-hash>'`.
 2. Clone the dd-trace-rb repo inside `binaries` and checkout the branch that you want to test against.
 
 You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb` repo into the `binaries` folder:
