@@ -1,4 +1,4 @@
-FROM ruby:3.1.3
+FROM public.ecr.aws/docker/library/ruby:3.1.3
 
 ENV DEBIAN_FRONTEND=noninteractive
 
