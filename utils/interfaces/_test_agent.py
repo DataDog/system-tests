@@ -83,6 +83,16 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         ]
         return injection_metrics
 
+    def get_injection_metadata_for_autoinject(self):
+        logger.debug("Try to find injection metadata related to autoinject")
+        injection_metadata = []
+        for t in self._data_telemetry_list:
+            if t["request_type"] == "injection-metadata":
+                payload = t["payload"]
+                if isinstance(payload, dict):
+                    injection_metadata.append(payload)
+        return injection_metadata
+
     def get_telemetry_logs(self):
         logger.debug("Try to find telemetry data related to logs")
         return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
