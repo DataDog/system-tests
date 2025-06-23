@@ -1,6 +1,7 @@
-import ddtrace.auto # noqa: E402
-import gevent # noqa: E402
-from gevent import monkey # noqa: E402
+import ddtrace.auto  # noqa: E402
+import gevent  # noqa: E402
+from gevent import monkey  # noqa: E402
+
 monkey.patch_all(thread=True)  # noqa: E402
 
 
