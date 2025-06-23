@@ -156,7 +156,10 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
     @features.process_tags
-    @missing_feature(condition=context.library != "java", reason="Not yet implemented")
+    @missing_feature(
+        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
     def test_process_tags_snapshot(self):
         self._assert()
         self._validate_snapshots()
