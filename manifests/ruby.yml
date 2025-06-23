@@ -565,7 +565,7 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: v2.17.1-dev
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v2.17.1-dev
       Test_UpdateRuleFileWithRemoteConfig: v2.17.1-dev
     test_reports.py:
