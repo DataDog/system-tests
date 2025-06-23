@@ -39,6 +39,7 @@ GEM
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     arel (7.1.4)
+    base64 (0.3.0)
     bcrypt (3.1.20)
     bindex (0.8.1)
     builder (3.2.4)
@@ -64,8 +65,14 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    dogstatsd-ruby (5.6.6)
     erubis (2.7.0)
     execjs (2.8.1)
+    faraday (2.8.1)
+      base64
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
     ffi (1.15.5)
     globalid (1.0.0)
       activesupport (>= 5.0)
@@ -127,7 +134,8 @@ GEM
     pry (0.14.1)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    puma (3.12.6)
+    puma (5.6.9)
+      nio4r (~> 2.0)
     racc (1.6.0)
     rack (2.2.3)
     rack-test (0.6.3)
@@ -162,6 +170,7 @@ GEM
     responders (3.0.1)
       actionpack (>= 5.0)
       railties (>= 5.0)
+    ruby2_keywords (0.0.5)
     sass (3.7.4)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
@@ -218,12 +227,14 @@ DEPENDENCIES
   coffee-rails (~> 4.2)
   ddtrace (~> 1.0.0.a)
   devise
+  dogstatsd-ruby
+  faraday
   jbuilder (~> 2.5)
   jquery-rails
   listen (~> 3.0.5)
   mini_racer (~> 0.4.0)
   pry
-  puma (~> 3.0)
+  puma (~> 5.0)
   rails (~> 5.0.7, >= 5.0.7.2)
   sass-rails (~> 5.0)
   spring

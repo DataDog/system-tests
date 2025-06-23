@@ -1925,13 +1925,13 @@ tests/:
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -2040,12 +2040,12 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_baggage.py:
-    Test_Baggage_Headers_Basic: v1.50.0
-    Test_Baggage_Headers_Malformed: v1.50.0
-    Test_Baggage_Headers_Malformed2: v1.50.0
-    Test_Baggage_Headers_Max_Bytes: v1.50.0
-    Test_Baggage_Headers_Max_Items: v1.50.0
-    Test_Only_Baggage_Header: v1.50.0
+    Test_Baggage_Headers_Basic: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Malformed: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Malformed2: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Max_Bytes: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Max_Items: missing_feature (feature not completed yet)
+    Test_Only_Baggage_Header: missing_feature (feature not completed yet)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0

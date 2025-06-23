@@ -661,19 +661,19 @@ tests/:
         'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
-      Test_CustomEvent_Metrics: missing_feature
+      Test_CustomEvent_Metrics: v3.10.0.dev
       Test_UserLoginFailureEvent:
         '*': v2.10.0
         'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
         'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-      Test_UserLoginSuccessEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection:
         '*': v3.7.0.dev
