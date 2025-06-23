@@ -163,7 +163,7 @@ class TestDockerSSIFeatures:
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
         assert len(events) == 1
-        
+
         injection_metadata = events[0]
         assert injection_metadata["result"] == "success"
         assert injection_metadata["result_reason"] == "the tracer was successfully injected"
