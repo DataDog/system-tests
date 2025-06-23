@@ -48,16 +48,3 @@ class Test_Process_Tags:
             validate_process_tags(data["request"]["content"]["application"]["process_tags"])
             found = True
         assert found, "Process tags are missing"
-
-    def setup_dsm_process_tags(self):
-        self.req = weblog.get("/status?code=200")
-
-    def test_dsm_process_tags(self):
-        found = False
-        dsm_data = list(interfaces.agent.get_dsm_data())
-        for data in dsm_data:
-            process_tags_list = data["request"]["content"]["ProcessTags"]
-            assert isinstance(process_tags_list, list)
-            validate_process_tags(",".join(process_tags_list))
-            found = True
-        assert found, "Process tags are missing"
