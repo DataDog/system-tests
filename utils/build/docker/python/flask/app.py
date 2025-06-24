@@ -101,16 +101,25 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=(
-        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
-        " %(message)s"
-    ),
+from loguru import logger as log
+
+# Sink for unstructured logs (filter logs with without type structured)
+log.add(
+    "unstructured.log",
+    format="{time} | {level} | {message}",
+    level="INFO",
+    serialize=False,
+    filter=lambda record: record["extra"].get("log_type") != "structured",
 )
 
-log = logging.getLogger(__name__)
+# Sink for structured logs (filter logs with type structured)
+log.add(
+    "structured.json",
+    level="INFO",
+    serialize=True,
+    filter=lambda record: record["extra"].get("log_type") == "structured",
+)
+
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -1534,7 +1543,10 @@ def set_cookie():
 @app.route("/log/library", methods=["GET"])
 def log_library():
     message = flask_request.args.get("msg")
-    log.info(message)
+    if flask_request.args.get("structured", True):
+        log.bind(log_type="structured").info(message)
+    else:
+        log.info(message)
     return Response("OK")
 
 

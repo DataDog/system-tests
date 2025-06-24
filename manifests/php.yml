@@ -608,7 +608,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v1.4.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
-    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0

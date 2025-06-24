@@ -541,19 +541,37 @@ class Test_Config_LogInjection_Enabled:
             assert field in msg, f"Missing field: {field}"
 
 
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
+@features.log_injection
+class Test_Config_LogInjection_Default_Structured:
+    def setup_test_log_injection_default(self):
+        self.message = "Test_Config_LogInjection_Default_Structured.test_log_injection_default"
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": "true"})
+
+    def test_test_log_injection_default(self):
+        assert self.r.status_code == 200
+        msg = parse_log_injection_message(self.message)
+
+        tid = parse_log_trace_id(msg)
+        assert tid is not None, "Expected a trace ID, but got None"
+        sid = parse_log_span_id(msg)
+        assert sid is not None, "Expected a span ID, but got None"
+
+
 # Using TRACING_CONFIG_NONDEFAULT_2 for dd-trace-java since the default value is under the DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED
 # TODO: Change scenarios back to DEFAULT once all libraries change it to true
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
-class Test_Config_LogInjection_Default:
+class Test_Config_LogInjection_Default_Unstructured:
     """Verify log injection is disabled by default"""
 
-    def setup_log_injection_default(self):
-        self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
-        self.r = weblog.get("/log/library", params={"msg": self.message})
+    def setup_test_log_injection_default(self):
+        self.message = "Test_Config_LogInjection_Default_Unstructured.test_log_injection_default"
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": "false"})
 
-    def test_log_injection_default(self):
+    def test_test_log_injection_default(self):
         assert self.r.status_code == 200
         stdout.assert_absence(r'"dd":\{[^}]*\}')
         stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')

@@ -747,7 +747,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: 2.1.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Enabled: 2.1.0-dev
-    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0

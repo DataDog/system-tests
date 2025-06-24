@@ -2082,9 +2082,10 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0

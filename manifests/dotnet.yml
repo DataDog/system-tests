@@ -603,7 +603,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v3.13.0
-    Test_Config_LogInjection_Default: v3.5.0
+    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Unstructured: v3.5.0
     Test_Config_LogInjection_Enabled: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
