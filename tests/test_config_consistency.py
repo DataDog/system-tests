@@ -545,9 +545,10 @@ class Test_Config_LogInjection_Enabled:
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
 class Test_Config_LogInjection_Default_Structured:
+    """Verify log injection is enabled by default for structured logs"""
     def setup_test_log_injection_default(self):
         self.message = "Test_Config_LogInjection_Default_Structured.test_log_injection_default"
-        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": "true"})
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": True})
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200
@@ -565,11 +566,11 @@ class Test_Config_LogInjection_Default_Structured:
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
 class Test_Config_LogInjection_Default_Unstructured:
-    """Verify log injection is disabled by default"""
+    """Verify log injection is disabled by default for unstructured logs"""
 
     def setup_test_log_injection_default(self):
         self.message = "Test_Config_LogInjection_Default_Unstructured.test_log_injection_default"
-        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": "false"})
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": False})
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200

@@ -628,10 +628,10 @@ tests/:
     Test_Propagate_Legacy: v2.26.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
-    Test_ExtractBehavior_Default: missing_feature (conflicting trace contexts should generate span link)
-    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Default: v3.10.0
+    Test_ExtractBehavior_Ignore: v3.10.0
+    Test_ExtractBehavior_Restart: v3.10.0
+    Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
     Test_HeaderTags_Colon_Trailing: v3.0.0
