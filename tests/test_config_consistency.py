@@ -553,6 +553,7 @@ class Test_Config_LogInjection_Default:
         self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
+    @bug(context.library > "nodejs@5.56.0", reason="APMAPI-1444")
     def test_log_injection_default(self):
         assert self.r.status_code == 200
         stdout.assert_absence(r'"dd":\{[^}]*\}')

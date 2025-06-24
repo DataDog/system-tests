@@ -14,10 +14,10 @@ tests/:
         Test_API_Security_Sampling_Different_Endpoints: v2.17.1-dev
         Test_API_Security_Sampling_Different_Paths:
           "*": v2.17.1-dev
-          rack: irrelevant
+          rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Different_Status:
           "*": v2.17.1-dev
-          rack: irrelevant
+          rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.17.1-dev
       test_schemas.py:
@@ -28,7 +28,7 @@ tests/:
         Test_Schema_Request_Json_Body: v1.15.0
         Test_Schema_Request_Path_Parameters:
           "*": v1.15.0
-          rack: missing_feature (rack does not have path parameters support)
+          rack: irrelevant (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
@@ -373,9 +373,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone:
-        "*": v2.17.1-dev
-        rack: missing_feature (rack weblog requires priority sampling revision)
+      Test_APISecurityStandalone: v2.17.1-dev
       Test_AppSecStandalone_NotEnabled: v2.13.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
