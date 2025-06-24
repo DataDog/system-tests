@@ -51,17 +51,6 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "------------- The python base images have been built and pushed ------------- "
     fi
 
-    #BUILD LIB INJECTION IMAGES
-    if [ -z "$is_build_lib_injection_app_images" ]
-    then
-        echo "The PR $PR_NUMBER doesn't contain the 'build-lib-injection-app-images' label "
-    else
-        echo "The PR $PR_NUMBER contains the 'build-lib-injection-app-images' label. Launching the images generation process "
-        echo "$GH_TOKEN" | docker login ghcr.io --username "publisher" --password-stdin
-        ./lib-injection/build/build_lib_injection_images.sh
-        echo "------------- The lib injection weblog images have been built and pushed ------------- "
-    fi
-
 else
     echo "The commit message $CI_COMMIT_MESSAGE doesn't contain the PR number."
 fi
