@@ -90,13 +90,24 @@ public class Main {
                         .end("012345678901234567890123456789012345678901"));
         router.route("/tag_value/:tag_value/:status_code")
                 .handler(BodyHandler.create())
-                .produces("text/plain")
                 .handler(ctx -> {
-                    consumeParsedBody(ctx);
-                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", ctx.pathParam("tag_value"));
-                    ctx.response()
-                            .setStatusCode(Integer.parseInt(ctx.pathParam("status_code")))
-                            .end("Value tagged");
+                    final Object body = consumeParsedBody(ctx);
+                    final String value = ctx.pathParam("tag_value");
+                    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+                    ctx.response().setStatusCode(Integer.parseInt(ctx.pathParam("status_code")));
+                    final String xOption = ctx.request().getParam("X-option");
+                    if (xOption != null) {
+                        ctx.response().putHeader("X-option", xOption);
+                    }
+                    if (value.startsWith("payload_in_response_body")) {
+                        ctx.response()
+                                .putHeader("Content-Type", "application/json")
+                                .end(new JsonObject().put("payload", body).encode());
+                    } else {
+                        ctx.response()
+                                .putHeader("Content-Type", "text/plain")
+                                .end("Value tagged");
+                    }
                 });
         router.get("/sample_rate_route/:i")
                 .handler(ctx -> {
@@ -395,18 +406,18 @@ public class Main {
         }
     }
 
-    private static void consumeParsedBody(final RoutingContext ctx) {
+    private static Object consumeParsedBody(final RoutingContext ctx) {
         String contentType = ctx.request().getHeader("Content-Type");
         if (contentType == null) {
-            return;
+            return ctx.getBodyAsString();
         }
         contentType = contentType.toLowerCase(Locale.ROOT);
         if (contentType.contains("json")) {
-            ctx.getBodyAsJson();
+            return ctx.getBodyAsJson().getMap();
         } else if (contentType.equals("application/x-www-form-urlencoded")) {
-            ctx.request().formAttributes();
+            return ctx.request().formAttributes().entries();
         } else {
-            ctx.getBodyAsString();
+            return ctx.getBodyAsString();
         }
     }
 
