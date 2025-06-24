@@ -2040,12 +2040,12 @@ tests/:
       Test_Mock: v0.0.99
       Test_NotReleased: missing_feature
   test_baggage.py:
-    Test_Baggage_Headers_Basic: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Malformed: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Malformed2: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Max_Bytes: missing_feature (feature not completed yet)
-    Test_Baggage_Headers_Max_Items: missing_feature (feature not completed yet)
-    Test_Only_Baggage_Header: missing_feature (feature not completed yet)
+    Test_Baggage_Headers_Basic: v1.50.0
+    Test_Baggage_Headers_Malformed: v1.50.0
+    Test_Baggage_Headers_Malformed2: v1.50.0
+    Test_Baggage_Headers_Max_Bytes: v1.50.0
+    Test_Baggage_Headers_Max_Items: v1.50.0
+    Test_Only_Baggage_Header: v1.50.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0
