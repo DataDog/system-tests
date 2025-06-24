@@ -29,9 +29,9 @@ on:
         type: number
       desired_execution_time:
         description: "In seconds, system-tests will try to respect this time budget."
-        default: -1
+        default: "-1"
         required: false
-        type: number
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''

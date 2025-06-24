@@ -193,7 +193,7 @@ run_the_tests(){
         echo "🚀 READY TO RUN THE TESTS! 🚀"
         echo "==============================================="
         echo ""
-        echo "✨ Here’s a summary of your selections:"
+        echo "✨ Here's a summary of your selections:"
         echo "   🔹 Scenario:         $SCENARIO"
         echo "   🔹 Weblog:           $WEBLOG"
         echo "   🔹 Base Image:       $BASE_IMAGE"
@@ -230,9 +230,50 @@ run_the_tests(){
     fi
 }
 
+configure_private_registry() {
+    spacer
+    echo -e "${YELLOW}📌 Step: Configure Private Registry (not mandatory) ${NC}"
+    read -p "Do you want to configure a private registry? (y/n) [default: n]: " configure_choice
+    configure_choice=${configure_choice:-n}
+    if [[ "$configure_choice" != "y" ]]; then
+        echo -e "${CYAN}ℹ️  Skipping private registry configuration. Using Docker Hub or public images.${NC}"
+        return
+    fi
+    echo "Please select one of the following options:"
+    echo "1) Use existing ECR registry (235494822917.dkr.ecr.us-east-1.amazonaws.com)"
+    echo "2) Configure your own registry"
+    read -p "Enter your choice (1 or 2): " registry_choice
+    if [[ "$registry_choice" == "1" ]]; then
+        echo "Configuring ECR registry..."
+        export PRIVATE_DOCKER_REGISTRY="235494822917.dkr.ecr.us-east-1.amazonaws.com"
+        export PRIVATE_DOCKER_REGISTRY_USER="AWS"
+        aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+        export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password --region us-east-1)
+        echo -e "${GREEN}✅ ECR registry configured and logged in successfully.${NC}"
+    elif [[ "$registry_choice" == "2" ]]; then
+        read -p "Enter your registry URL: " PRIVATE_DOCKER_REGISTRY
+        read -p "Enter your registry username: " PRIVATE_DOCKER_REGISTRY_USER
+        read -sp "Enter your registry token/password: " PRIVATE_DOCKER_REGISTRY_TOKEN
+        echo
+        export PRIVATE_DOCKER_REGISTRY
+        export PRIVATE_DOCKER_REGISTRY_USER
+        export PRIVATE_DOCKER_REGISTRY_TOKEN
+        echo "Logging in to custom registry..."
+        echo "$PRIVATE_DOCKER_REGISTRY_TOKEN" | docker login --username "$PRIVATE_DOCKER_REGISTRY_USER" --password-stdin "$PRIVATE_DOCKER_REGISTRY"
+        if [[ $? -eq 0 ]]; then
+            echo -e "${GREEN}✅ Custom registry configured and logged in successfully.${NC}"
+        else
+            echo -e "${RED}❌ Failed to login to custom registry.${NC}"
+        fi
+    else
+        echo -e "${RED}❌ Invalid choice. Please select 1 or 2.${NC}"
+        configure_private_registry
+    fi
+}
+
 welcome "Docker SSI Tests"
 ask_load_requirements
-ask_load_k8s_requirements
+configure_private_registry
 ask_for_test_language
 load_workflow_data "docker-ssi" "dockerssi_scenario_defs"
 select_scenario
