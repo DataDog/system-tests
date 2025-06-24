@@ -373,9 +373,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone:
-        "*": v2.17.1-dev
-        rack: missing_feature (rack weblog requires priority sampling revision)
+      Test_APISecurityStandalone: v2.17.1-dev
       Test_AppSecStandalone_NotEnabled: v2.13.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
