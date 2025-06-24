@@ -340,6 +340,39 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        router.get("/make_distant_call")
+                .handler(ctx -> {
+                    String url = ctx.request().getParam("url");
+
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    Call call = client.newCall(request);
+                    Map<String, String> requestHeaders = call.request().headers().toMultimap().entrySet().stream()
+                            .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+
+                    int statusCode = 0;
+                    Map<String, String> responseHeaders = Map.of();
+
+                    try {
+                        Response response = call.execute();
+                        responseHeaders = response.headers().toMultimap().entrySet().stream()
+                                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+
+                        statusCode = response.code();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    JsonObject responseJson = new JsonObject();
+                    responseJson.put("status", statusCode);
+                    responseJson.put("requestHeaders", requestHeaders);
+                    responseJson.put("responseHeaders", responseHeaders);
+                    responseJson.put("url", url);
+
+                    ctx.response().end(responseJson.encode());
+                });
 
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));

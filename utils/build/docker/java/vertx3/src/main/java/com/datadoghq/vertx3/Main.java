@@ -15,6 +15,7 @@ import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
@@ -23,6 +24,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
 
+import java.util.List;
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -338,6 +340,39 @@ public class Main {
                     String serviceName = ctx.request().getParam("serviceName");
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
+                });
+        router.get("/make_distant_call")
+                .handler(ctx -> {
+                    String url = ctx.request().getParam("url");
+
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    Call call = client.newCall(request);
+                    Map<String, String> requestHeaders = call.request().headers().toMultimap().entrySet().stream()
+                            .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+
+                    int statusCode = 0;
+                    Map<String, String> responseHeaders = Map.of();
+
+                    try {
+                        Response response = call.execute();
+                        responseHeaders = response.headers().toMultimap().entrySet().stream()
+                                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+
+                        statusCode = response.code();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    JsonObject responseJson = new JsonObject();
+                    responseJson.put("status", statusCode);
+                    responseJson.put("requestHeaders", requestHeaders);
+                    responseJson.put("responseHeaders", responseHeaders);
+                    responseJson.put("url", url);
+
+                    ctx.response().end(responseJson.encode());
                 });
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(CookieHandler.create());
