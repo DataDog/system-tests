@@ -426,6 +426,7 @@ class _TestAgentAPI:
 
         # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
+
         # Extract configuration data from relevant telemetry events
         for event in events:
             if service is not None and event["application"]["service_name"] != service:
@@ -433,6 +434,7 @@ class _TestAgentAPI:
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
+                    print("MTOFF: EVENTB ", event)
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
                         # Store only the latest configuration for each name. This is the configuration
                         # that should be used by the application.

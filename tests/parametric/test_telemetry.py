@@ -520,6 +520,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
+            # Sleep to ensure the telemetry events are sent with different timestamps
             time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
@@ -534,7 +535,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
-    @missing_feature(context.library in ("java", "nodejs, golang"), reason="Not implemented")
+    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
@@ -543,7 +544,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                 },
-                {"DD_LOGS_INJECTION": True},
+                {
+                    "DD_LOGS_INJECTION": True,
+                    "DD_RUNTIME_METRICS_ENABLED": True,
+                },
                 "1231231231231",
             )
         ],
@@ -567,15 +571,28 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
+            # Sleep to ensure the telemetry events are sent with different timestamps
+            time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
-        # Configuration set via fleet config should have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
+       
+       # Check for logs_injection_enabled 
+        if context.library != "golang": # The Go tracer does not support logs injection.
+             # Configuration set via fleet config should have the config_id set
+            apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
+            telemetry_item = configurations[apm_telemetry_name]
+            assert telemetry_item["origin"] == "fleet_stable_config"
+            assert telemetry_item["config_id"] == fleet_config_id
+
+        # Check for runtime_metrics_enabled
+        apm_telemetry_name = _mapped_telemetry_name(context, "runtime_metrics_enabled")
         telemetry_item = configurations[apm_telemetry_name]
+        print("MTOFF: telemetry_item is ", telemetry_item)
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
+
         # Configuration set via local config should not have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "dynamic_instrumentation_enabled")
         telemetry_item = configurations[apm_telemetry_name]
