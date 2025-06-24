@@ -893,20 +893,18 @@ def login(request):
 
 @csrf_exempt
 def user_login_success_event(request):
-    json_data = json.loads(request.body)
-    login = json_data.get("login")
-    user_id = json_data.get("user_id")
-    metadata = json_data.get("metadata")
+    login = request.POST.get("login")
+    user_id = request.POST.get("user_id")
+    metadata = request.POST.get("metadata")
     track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def user_login_failure_event(request):
-    json_data = json.loads(request.body)
-    login = json_data.get("login")
-    exists = False if json_data.get("exists") == "false" else True
-    metadata = json_data.get("metadata")
+    login = request.POST.get("login")
+    exists = False if request.POST.get("exists") == "false" else True
+    metadata = request.POST.get("metadata")
     track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
     return HttpResponse("OK")
 
