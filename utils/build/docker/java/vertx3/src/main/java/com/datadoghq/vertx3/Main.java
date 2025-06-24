@@ -367,12 +367,12 @@ public class Main {
                     }
 
                     JsonObject responseJson = new JsonObject();
-                    responseJson.put("status", statusCode);
-                    responseJson.put("requestHeaders", requestHeaders);
-                    responseJson.put("responseHeaders", responseHeaders);
+                    responseJson.put("status_code", statusCode);
+                    responseJson.put("request_headers", requestHeaders);
+                    responseJson.put("response_headers", responseHeaders);
                     responseJson.put("url", url);
 
-                    ctx.response().setStatusCode(200).end(responseJson.encode());
+                    ctx.response().end(responseJson.encode());
                 });
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(CookieHandler.create());
