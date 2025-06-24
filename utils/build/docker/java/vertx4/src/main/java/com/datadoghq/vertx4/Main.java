@@ -371,7 +371,7 @@ public class Main {
                     responseJson.put("response_headers", responseHeaders);
                     responseJson.put("url", url);
 
-                    ctx.response().end(responseJson.encode());
+                    ctx.response().setStatusCode(200).end(responseJson.encode());
                 });
 
         Router sessionRouter = Router.router(vertx);
