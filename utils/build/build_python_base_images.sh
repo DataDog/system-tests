@@ -19,4 +19,3 @@ if [ "$1" = "--push" ]; then
       docker push datadog/system-tests:flask-poc.base-v9
       docker push datadog/system-tests:uwsgi-poc.base-v5
 fi
-

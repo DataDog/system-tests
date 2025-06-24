@@ -1,0 +1,3 @@
+aws-lambda-powertools
+flask
+aws-sam-cli
