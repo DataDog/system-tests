@@ -566,8 +566,8 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
-      Test_BlockingActionChangesWithRemoteConfig: v2.17.1-dev
-      Test_UpdateRuleFileWithRemoteConfig: v2.17.1-dev
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.15.0
     test_request_blocking.py:
