@@ -348,30 +348,32 @@ public class Main {
                             .url(url)
                             .build();
 
-                    Call call = client.newCall(request);
-                    Map<String, String> requestHeaders = call.request().headers().toMultimap().entrySet().stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
 
-                    int statusCode = 0;
-                    Map<String, String> responseHeaders = Map.of();
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                Map<String, String> requestHeaders = call.request().headers().toMultimap().entrySet().stream()
+                                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+                                Map<String, String> responseHeaders = response.headers().toMultimap().entrySet().stream()
+                                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
 
-                    try {
-                        Response response = call.execute();
-                        responseHeaders = response.headers().toMultimap().entrySet().stream()
-                                .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+                                JsonObject responseJson = new JsonObject();
+                                responseJson.put("status_code", response.code());
+                                responseJson.put("request_headers", requestHeaders);
+                                responseJson.put("response_headers", responseHeaders);
+                                responseJson.put("url", url);
 
-                        statusCode = response.code();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    JsonObject responseJson = new JsonObject();
-                    responseJson.put("status_code", statusCode);
-                    responseJson.put("request_headers", requestHeaders);
-                    responseJson.put("response_headers", responseHeaders);
-                    responseJson.put("url", url);
-
-                    ctx.response().setStatusCode(200).end(responseJson.encode());
+                                ctx.response().setStatusCode(200).end(responseJson.encode());
+                            }
+                        }
+                    });
                 });
 
         Router sessionRouter = Router.router(vertx);
