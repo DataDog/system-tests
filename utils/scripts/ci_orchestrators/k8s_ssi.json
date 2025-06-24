@@ -98,7 +98,7 @@
        
     ],
     "cluster_agent_spec": {
-        "latest": "gcr.io/datadoghq/cluster-agent:latest",
-        "old_injection": "gcr.io/datadoghq/cluster-agent:7.56.2"
+        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2"
     }
 }

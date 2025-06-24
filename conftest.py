@@ -62,7 +62,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
     )
-
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")

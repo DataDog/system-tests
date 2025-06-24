@@ -8,7 +8,7 @@ sed -i -e '/gem .datadog./d' Gemfile
 
 cat Gemfile
 
-if [ -e "/binaries/dd-trace-rb-null" ]; then
+if [ -e "/binaries/dd-trace-rb" ]; then
     #
     # Build the gem from the local directory
     # And use it in weblog gemfile
@@ -21,7 +21,12 @@ if [ -e "/binaries/dd-trace-rb-null" ]; then
     export GEM_NAME=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).name')
     export GEM_VERSION=$(find /binaries/dd-trace-rb -name *.gemspec | ruby -ne 'puts Gem::Specification.load($_.chomp).version')
 
-    gem -C /binaries/dd-trace-rb build
+    # if gem -v is >= 4.0 (including 5.0, 12.0...), use gem -C PATH build, else use gem build -C PATH
+    if gem -v | ruby -ne 'exit(Gem::Version.new($_.chomp) >= Gem::Version.new("4.0") ? 0 : 1)'; then
+        gem -C /binaries/dd-trace-rb build
+    else
+        gem build -C /binaries/dd-trace-rb
+    fi
     gem install /binaries/dd-trace-rb/$GEM_NAME-*.gem
 
     echo -e "gem '$GEM_NAME', '$GEM_VERSION', require: '$GEM_NAME/auto_instrument'" >> Gemfile

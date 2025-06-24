@@ -40,8 +40,8 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     k8s_lib_init_img = os.getenv("K8S_LIB_INIT_IMG")
     k8s_injector_img = None
     k8s_available_images = {
-        "prod": "gcr.io/datadoghq/apm-inject:latest",
-        "dev": "ghcr.io/datadog/apm-inject:latest_snapshot",
+        "prod": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest",
+        "dev": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/apm-inject:latest_snapshot",
     }
 
     if cluster_agent_versions:
@@ -55,14 +55,13 @@ def _get_k8s_injector_image_refs(language, ci_environment, cluster_agent_version
     if not k8s_lib_init_img:
         language_img_name = "js" if language == "nodejs" else language
         if ci_environment == "dev":
-            language_repo_name = "js" if language == "nodejs" else language
-            language_repo_name = "py" if language == "python" else language_repo_name
-            language_repo_name = "rb" if language == "ruby" else language_repo_name
             k8s_lib_init_img = (
-                f"ghcr.io/datadog/dd-trace-{language_repo_name}/dd-lib-{language_img_name}-init:latest_snapshot"
+                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest_snapshot"
             )
         else:
-            k8s_lib_init_img = f"gcr.io/datadoghq/dd-lib-{language_img_name}-init:latest"
+            k8s_lib_init_img = (
+                f"235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/dd-lib-{language_img_name}-init:latest"
+            )
 
     return k8s_lib_init_img, k8s_injector_img
 
@@ -102,13 +101,8 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
     with open(pipeline_file, encoding="utf-8") as f:
         pipeline_data = yaml.load(f, Loader=yaml.FullLoader)  # noqa: S506
-
-    result_pipeline["include"] = [
-        {
-            "remote": "https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml"
-        }
-    ]
-
+    result_pipeline["include"] = pipeline_data["include"]
+    result_pipeline["variables"] = pipeline_data["variables"]
     if (
         not matrix_data["aws_ssi_scenario_defs"]
         and not matrix_data["dockerssi_scenario_defs"]
@@ -121,6 +115,10 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         # Copy the base job for the onboarding system tests
         result_pipeline[".base_job_onboarding_system_tests"] = pipeline_data[".base_job_onboarding_system_tests"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
+            if os.getenv("SYSTEM_TESTS_REF"):
+                result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(
+                    0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
+                )
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(0, "cd system-tests")
             result_pipeline[".base_job_onboarding_system_tests"]["script"].insert(
                 0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
@@ -136,10 +134,13 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         # Copy the base job for the k8s lib injection system tests
         result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
-            result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd system-tests")
-            result_pipeline[".k8s_lib_injection_base"]["script"].insert(
-                0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
-            )
+            if os.getenv("SYSTEM_TESTS_REF"):
+                result_pipeline[".k8s_lib_injection_base"]["script"].insert(
+                    0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
+                )
+                result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "git pull")
+            result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd /system-tests")
+
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
@@ -164,7 +165,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["parallel"] = {"matrix": []}
         cluster_agent_versions_scenario = None
         for weblog_name, cluster_agent_versions in weblogs.items():
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", f"ghcr.io/datadog/system-tests/{weblog_name}:latest")
+            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
             if cluster_agent_versions:
                 result_pipeline[job]["parallel"]["matrix"].append(
                     {
@@ -213,6 +214,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                 ]
                 # Job variables
                 result_pipeline[vm_job]["variables"] = {}
+                result_pipeline[vm_job]["variables"]["KIND_EXPERIMENTAL_DOCKER_NETWORK"] = "bridge"
                 result_pipeline[vm_job]["variables"]["TEST_LIBRARY"] = language
                 result_pipeline[vm_job]["variables"]["SCENARIO"] = scenario
                 result_pipeline[vm_job]["variables"]["ONBOARDING_FILTER_ENV"] = ci_environment
@@ -239,6 +241,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     )
 
                 result_pipeline[vm_job]["script"] = [
+                    "aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}",  # noqa: E501
                     "./build.sh -i runner",
                     "source venv/bin/activate",
                     "echo 'Running SSI tests'",
@@ -253,10 +256,10 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                     ),
                 ]
                 if os.getenv("CI_PROJECT_NAME") != "system-tests":
-                    result_pipeline[vm_job]["script"].insert(0, "cd system-tests")
-                    result_pipeline[vm_job]["script"].insert(
-                        0, "git clone https://git@github.com/DataDog/system-tests.git system-tests"
-                    )
+                    if os.getenv("SYSTEM_TESTS_REF"):
+                        result_pipeline[vm_job]["script"].insert(0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}")
+                        result_pipeline[vm_job]["script"].insert(0, "git pull")
+                    result_pipeline[vm_job]["script"].insert(0, "cd /system-tests")
 
 
 def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipeline) -> None:
