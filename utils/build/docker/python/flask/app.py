@@ -1,6 +1,6 @@
-import sys
+import os
 
-if sys.environ.get("UWSGI_ENABLED", "false") == "false":
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
     import ddtrace.auto  # noqa: E402
     import gevent  # noqa: E402
