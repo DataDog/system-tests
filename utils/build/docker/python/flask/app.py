@@ -1,8 +1,12 @@
-import ddtrace.auto  # noqa: E402
-import gevent  # noqa: E402
-from gevent import monkey  # noqa: E402
+import os
 
-monkey.patch_all(thread=True)  # noqa: E402
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import ddtrace.auto  # noqa: E402
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
 
 
 import base64
