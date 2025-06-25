@@ -100,6 +100,7 @@ class Test_Login_Events:
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert_priority(span, trace)
@@ -118,6 +119,7 @@ class Test_Login_Events:
         for _, trace, span in interfaces.library.get_spans(request=self.r_pii_success):
             meta = span.get("meta", {})
             assert "usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert_priority(span, trace)
@@ -129,6 +131,7 @@ class Test_Login_Events:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
@@ -142,6 +145,7 @@ class Test_Login_Events:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
@@ -162,6 +166,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -184,6 +189,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -203,6 +209,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -225,6 +232,7 @@ class Test_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
             assert "appsec.events.users.login.failure.usr.id" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "safe"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -313,6 +321,7 @@ class Test_Login_Events_Extended:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
@@ -345,6 +354,7 @@ class Test_Login_Events_Extended:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "social-security-id"
@@ -379,6 +389,7 @@ class Test_Login_Events_Extended:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             if context.library == "ruby":
@@ -410,6 +421,7 @@ class Test_Login_Events_Extended:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             if context.library == "ruby":
@@ -443,6 +455,7 @@ class Test_Login_Events_Extended:
                 assert meta["appsec.events.users.login.failure.email"] == "testuser@ddog.com"
                 assert meta["appsec.events.users.login.failure.username"] == "test"
 
+            assert meta.get("_dd.appsec.events.users.failure.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -469,6 +482,7 @@ class Test_Login_Events_Extended:
             else:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "test"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "extended"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -630,6 +644,7 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
             assert "appsec.events.users.login.success.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert_priority(span, trace)
@@ -648,6 +663,7 @@ class Test_V2_Login_Events:
             assert "appsec.events.users.login.success.email" not in meta
             assert "appsec.events.users.login.success.username" not in meta
             assert "appsec.events.users.login.success.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert_priority(span, trace)
@@ -659,6 +675,7 @@ class Test_V2_Login_Events:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
@@ -676,6 +693,7 @@ class Test_V2_Login_Events:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == "591dc126-8431-4d0f-9509-b23318d3dce4"
@@ -703,6 +721,7 @@ class Test_V2_Login_Events:
             assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -728,6 +747,7 @@ class Test_V2_Login_Events:
             assert meta["appsec.events.users.login.failure.usr.id"] == INVALID_USER
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -756,6 +776,7 @@ class Test_V2_Login_Events:
             # deprecated
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -786,6 +807,7 @@ class Test_V2_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.id"] == "social-security-id"
             assert "appsec.events.users.login.failure.usr.email" not in meta
             assert "appsec.events.users.login.failure.usr.login" not in meta
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
             assert_priority(span, trace)
@@ -875,6 +897,7 @@ class Test_V2_Login_Events_Anon:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == USER_HASH
@@ -896,6 +919,7 @@ class Test_V2_Login_Events_Anon:
         assert self.r_success.status_code == 200
         for _, trace, span in interfaces.library.get_spans(request=self.r_success):
             meta = span.get("meta", {})
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
             assert meta["usr.id"] == USER_HASH
@@ -922,6 +946,7 @@ class Test_V2_Login_Events_Anon:
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -947,6 +972,7 @@ class Test_V2_Login_Events_Anon:
             meta = span.get("meta", {})
             assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -968,6 +994,7 @@ class Test_V2_Login_Events_Anon:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -996,6 +1023,7 @@ class Test_V2_Login_Events_Anon:
                 # this assertion is disabled for this library.
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1273,6 +1301,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
@@ -1294,6 +1323,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
@@ -1314,6 +1344,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1336,6 +1367,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER
             assert meta["_dd.appsec.usr.login"] == INVALID_USER
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1355,6 +1387,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1381,6 +1414,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USER
             assert meta["_dd.appsec.usr.login"] == USER
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "identification"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1522,6 +1556,7 @@ class Test_V3_Login_Events:
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USER
             assert meta["_dd.appsec.usr.login"] == NEW_USER
+            assert meta.get("_dd.appsec.events.users.signup.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "identification"
             assert meta["appsec.events.users.signup.track"] == "true"
 
@@ -1594,6 +1629,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
@@ -1615,6 +1651,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.success.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.success.track"] == "true"
 
@@ -1635,6 +1672,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1657,6 +1695,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == INVALID_USER_HASH
             assert meta["_dd.appsec.usr.login"] == INVALID_USER_HASH
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1676,6 +1715,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1702,6 +1742,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.login.failure.usr.login"] == USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == USERNAME_HASH
+            assert meta.get("_dd.appsec.events.users.login.failure.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.login.failure.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.login.failure.track"] == "true"
 
@@ -1843,6 +1884,7 @@ class Test_V3_Login_Events_Anon:
             # mandatory
             assert meta["appsec.events.users.signup.usr.login"] == NEW_USERNAME_HASH
             assert meta["_dd.appsec.usr.login"] == NEW_USERNAME_HASH
+            assert meta.get("_dd.appsec.events.users.login.success.sdk", "false") == "false"
             assert meta["_dd.appsec.events.users.signup.auto.mode"] == "anonymization"
             assert meta["appsec.events.users.signup.track"] == "true"
 
