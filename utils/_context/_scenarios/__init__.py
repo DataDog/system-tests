@@ -100,7 +100,7 @@ class _Scenarios:
     trace_propagation_style_default = EndToEndScenario(
         "TRACE_PROPAGATION_STYLE_DEFAULT",
         weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
+            "DD_API_SECURITY_ENABLED": "false",
         },
         doc="Test Default propagation",
     )

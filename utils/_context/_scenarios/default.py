@@ -51,6 +51,11 @@ class DefaultScenario(EndToEndScenario):
                 "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
                 "DD_EXTERNAL_ENV": "it-false,cn-weblog,pu-75a2b6d5-3949-4afb-ad0d-92ff0674e759",
                 "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+                # api security will be activated by default (done on ruby)
+                # those setting allow the feature to be deterministic
+                "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+                "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+                "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             include_postgres_db=True,

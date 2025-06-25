@@ -3,8 +3,9 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
+from utils import weblog, interfaces, scenarios, features, bug, context, logger
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
+from utils.dd_constants import SamplingPriority
 
 
 @scenarios.trace_propagation_style_w3c
@@ -244,51 +245,66 @@ def _retrieve_span_links(span):
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-@scenarios.default
 @features.datadog_headers_propagation
 class Test_Synthetics_APM_Datadog:
-    def setup_synthetics(self):
+    def setup_request(self, *, trace_id, origin, sampling_priority: SamplingPriority):
+        self.trace_id = trace_id
+        self.origin = origin
+        self.sampling_priority = sampling_priority
+
         self.r = weblog.get(
             "/",
             headers={
-                "x-datadog-trace-id": "1234567890",
+                "x-datadog-trace-id": trace_id,
                 "x-datadog-parent-id": "0",
-                "x-datadog-sampling-priority": "1",
-                "x-datadog-origin": "synthetics",
+                "x-datadog-sampling-priority": sampling_priority,
+                "x-datadog-origin": origin,
             },
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
-    def test_synthetics(self):
+    def assert_span(self) -> None:
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
 
-        span = spans[0]
-        assert span.get("traceID") == "1234567890"
-        assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+        if self.sampling_priority >= SamplingPriority.AUTO_KEEP:
+            assert len(spans) == 1, "Agent received the incorrect amount of spans"
+
+            span = spans[0]
+            assert span.get("traceID") == self.trace_id
+            assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
+            assert span.get("meta")[ORIGIN] == self.origin
+            assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == self.sampling_priority
+        else:
+            assert len(spans) == 0, "Agent should not have received any spans for this request"
+
+    def setup_synthetics(self):
+        self.setup_request(trace_id="1234567890", origin="synthetics", sampling_priority=SamplingPriority.AUTO_REJECT)
+
+    @scenarios.default
+    def test_synthetics(self):
+        self.assert_span()
 
     def setup_synthetics_browser(self):
-        self.r = weblog.get(
-            "/",
-            headers={
-                "x-datadog-trace-id": "1234567891",
-                "x-datadog-parent-id": "0",
-                "x-datadog-sampling-priority": "1",
-                "x-datadog-origin": "synthetics-browser",
-            },
+        self.setup_request(
+            trace_id="1234567891", origin="synthetics-browser", sampling_priority=SamplingPriority.AUTO_REJECT
         )
 
-    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
+    @scenarios.default
     def test_synthetics_browser(self):
-        interfaces.library.assert_trace_exists(self.r)
-        spans = interfaces.agent.get_spans_list(self.r)
-        assert len(spans) == 1, "Agent received the incorrect amount of spans"
+        self.assert_span()
 
-        span = spans[0]
-        assert span.get("traceID") == "1234567891"
-        assert "parentID" not in span or span.get("parentID") == 0 or span.get("parentID") is None
-        assert span.get("meta")[ORIGIN] == "synthetics-browser"
-        assert span.get("metrics")[SAMPLING_PRIORITY_KEY] == 1
+    def setup_synthetics_without_api_security(self):
+        self.setup_request(trace_id="1234567890", origin="synthetics", sampling_priority=SamplingPriority.AUTO_KEEP)
+
+    @scenarios.trace_propagation_style_default
+    def test_synthetics_without_api_security(self):
+        self.assert_span()
+
+    def setup_synthetics_browser_without_api_security(self):
+        self.setup_request(
+            trace_id="1234567891", origin="synthetics-browser", sampling_priority=SamplingPriority.AUTO_KEEP
+        )
+
+    @scenarios.trace_propagation_style_default
+    def test_synthetics_browser_without_api_security(self):
+        self.assert_span()
