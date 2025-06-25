@@ -1,11 +1,6 @@
 import re
 from utils.dd_constants import Capabilities
-from utils import features
-from utils import interfaces
-from utils import rfc
-from utils import scenarios
-from utils import weblog
-from utils import missing_feature
+from utils import features, context, interfaces, rfc, scenarios, weblog, missing_feature
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
@@ -192,6 +187,7 @@ class Test_Fingerprinting_Session_Preprocessor:
         self.cookies = self.r_create_session.cookies
         self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
 
+    @missing_feature(context.weblog_variant == "fastify", reason="session fingerprint not supported yet")
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
