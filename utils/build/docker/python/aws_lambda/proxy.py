@@ -25,6 +25,12 @@ def catch_all(path):
         headers={"Content-Type": "application/json"},
     )
 
+    print(
+        "\x1b[6;30;42m" + f"Response from RIE: {response.status_code} {response.content.decode('utf-8')}" + "\x1b[0m",
+        file=sys.stderr,
+        flush=True,
+    )
+
     (status_code, headers, body) = LocalApigwService._parse_v1_payload_format_lambda_output(
         response.content.decode("utf-8"), binary_types=[], flask_request=request, event_type="Api"
     )
@@ -34,7 +40,7 @@ def catch_all(path):
 
 if __name__ == "__main__":
     env = os.environ.copy()
-    env["_HANDLER"] = "handler.lambda_handler"
+    env["_HANDLER"] = "datadog_lambda.handler.handler"
 
     subprocess.Popen(
         [

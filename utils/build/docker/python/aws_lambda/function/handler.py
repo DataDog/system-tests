@@ -38,4 +38,5 @@ def lambda_handler(event, context: LambdaContext):
     Returns:
         dict: The response from the API Gateway resolver.
     """
-    return app.resolve(event, context)
+    response = app.resolve(event, context)
+    return response

@@ -21,7 +21,18 @@ COPY utils/build/docker/python/aws_lambda/proxy.py ${LAMBDA_TASK_ROOT}
 ENV DD_LAMBDA_HANDLER=handler.lambda_handler
 ENV DD_TRACE_ENABLED=true
 ENV DD_SERVERLESS_FLUSH_STRATEGY=periodically,1
-ENV DD_INSTRUMENTATION_TELEMETRY_ENABLED=false
+ENV AWS_DEFAULT_REGION eu-west-3
+ENV AWS_LAMBDA_FUNCTION_NAME florentinl-python-test-locally
+ENV DD_SERVICE florentinl-python-test-locally
+ENV DD_ENV local
+ENV DD_VERSION latest
+ENV DD_LOGS_INJECTION 'true'
+ENV DD_TRACE_ENABLED 'true'
+ENV DD_COLD_START_TRACING 'true'
+ENV DD_CAPTURE_LAMBDA_PAYLOAD 'false'
+ENV DD_MERGE_XRAY_TRACES 'false'
+ENV DD_SERVERLESS_LOGS_ENABLED 'true'
+ENV DD_FLUSH_TO_LOG 'false'
 
 # Set the CMD to your handler
 ENTRYPOINT ["python3", "/var/task/proxy.py"]
