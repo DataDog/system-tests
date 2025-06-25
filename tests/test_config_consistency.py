@@ -546,6 +546,7 @@ class Test_Config_LogInjection_Enabled:
 @features.log_injection
 class Test_Config_LogInjection_Default_Structured:
     """Verify log injection is enabled by default for structured logs"""
+
     def setup_test_log_injection_default(self):
         self.message = "Test_Config_LogInjection_Default_Structured.test_log_injection_default"
         self.r = weblog.get("/log/library", params={"msg": self.message, "structured": True})
