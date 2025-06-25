@@ -811,7 +811,7 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
-            base_environment["DD_IAST_VULNERABILITIES_PER_REQUEST"] = "false"
+            base_environment["DD_IAST_VULNERABILITIES_PER_REQUEST"] = "10"
             base_environment["DD_IAST_MAX_CONTEXT_OPERATIONS"] = "10"
 
         if tracer_sampling_rate:
