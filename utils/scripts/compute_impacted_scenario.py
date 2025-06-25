@@ -129,6 +129,7 @@ def main() -> None:
                 #
                 # please keep this keys sorted as they would have been in a file explorer
                 files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
+                    r"\.cursor/rules/.*": None,
                     r"\.circleci/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/CODEOWNERS": None,
@@ -140,13 +141,17 @@ def main() -> None:
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
                     r"\.github/.*": None,
-                    r"\.gitlab/aws_gitlab-ci.yml": scenario_groups.onboarding,
-                    r"\.gitlab/k8s_gitlab-ci.yml": scenario_groups.lib_injection,
-                    r"\.gitlab/ssi_gitlab-ci.yml": scenario_groups.onboarding,
+                    r"\.gitlab/ssi_gitlab-ci.yml": [
+                        scenario_groups.onboarding,
+                        scenario_groups.lib_injection,
+                        scenario_groups.docker_ssi,
+                    ],
+                    r"\.promptfoo/.*": None,
                     r"binaries/.*": None,
                     r"docs/.*": None,
                     r"lib-injection/.*": scenario_groups.lib_injection,
                     r"manifests/.*": None,  # already handled by the manifest comparison
+                    r"repository\.datadog\.yml": None,
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
                     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
@@ -205,6 +210,7 @@ def main() -> None:
                     r"LICENSE": None,
                     r"LICENSE-3rdparty\.csv": None,
                     r"NOTICE": None,
+                    r"promptfooconfig\.yaml": None,
                     r"Pulumi\.yaml": None,
                     r"pyproject\.toml": None,
                     r"static-analysis\.datadog\.yml": None,

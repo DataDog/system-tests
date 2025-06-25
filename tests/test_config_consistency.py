@@ -123,7 +123,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Empty:
         reason="APMAPI-770",
     )
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
-    @missing_feature(context.library < "golang@1.72.0-dev", reason="Obfuscation only occurs on server side")
+    @missing_feature(context.library < "golang@2.1.0-dev", reason="Obfuscation only occurs on server side")
     def test_query_string_obfuscation_empty_client(self):
         spans = [s for _, _, s in interfaces.library.get_spans(request=self.r, full_trace=True)]
         client_span = _get_span_by_tags(
@@ -149,7 +149,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Configured:
 
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(
-        context.library < "golang@1.72.0-dev",
+        context.library < "golang@2.1.0-dev",
         reason="Client query string collection disabled by default; obfuscation only occurs on server side",
     )
     @missing_feature(
@@ -180,7 +180,7 @@ class Test_Config_ObfuscationQueryStringRegexp_Default:
 
     @missing_feature(context.library == "nodejs", reason="Node only obfuscates queries on the server side")
     @missing_feature(
-        context.library < "golang@1.72.0-dev",
+        context.library < "golang@2.1.0-dev",
         reason="Client query string collection disabled by default; obfuscation only occurs on server side",
     )
     @missing_feature(
@@ -553,6 +553,7 @@ class Test_Config_LogInjection_Default:
         self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
         self.r = weblog.get("/log/library", params={"msg": self.message})
 
+    @bug(context.library > "nodejs@5.56.0", reason="APMAPI-1444")
     def test_log_injection_default(self):
         assert self.r.status_code == 200
         stdout.assert_absence(r'"dd":\{[^}]*\}')

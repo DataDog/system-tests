@@ -1,5 +1,7 @@
 import pytest
 
+from utils._context.core import context
+
 
 class _Features:
     """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
@@ -64,8 +66,6 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
-
-        from utils._context.core import context
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
@@ -2664,12 +2664,30 @@ class _Features:
         return test_object
 
     @staticmethod
+    def process_tags(test_object):
+        """Process tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=475
+        """
+        pytest.mark.features(feature_id=475)(test_object)
+        return test_object
+
+    @staticmethod
     def appsec_rc_asm_dd_multiconfig(test_object):
         """Appsec supports multiple configurations through ASM_DD
 
         https://feature-parity.us1.prod.dog/#/?feature=473
         """
         pytest.mark.features(feature_id=473)(test_object)
+        return test_object
+
+    @staticmethod
+    def appsec_trace_tagging_rules(test_object):
+        """Appsec supports trace-tagging rules
+
+        https://feature-parity.us1.prod.dog/#/?feature=474
+        """
+        pytest.mark.features(feature_id=474)(test_object)
         return test_object
 
 

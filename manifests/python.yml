@@ -516,7 +516,7 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
         flask-poc: bug (APPSEC-57145)
-        uds-flask: bug (APPSEC-57145)
+        uds-flask: v3.9.0
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
@@ -653,7 +653,7 @@ tests/:
       Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
-      Test_CorruptedRules_Telemetry: missing_feature
+      Test_CorruptedRules_Telemetry: v3.10.0.dev
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent:
@@ -661,19 +661,19 @@ tests/:
         'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
-      Test_CustomEvent_Metrics: missing_feature
+      Test_CustomEvent_Metrics: v3.10.0.dev
       Test_UserLoginFailureEvent:
         '*': v2.10.0
         'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
         'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
         'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-      Test_UserLoginSuccessEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection:
         '*': v3.7.0.dev
@@ -745,6 +745,9 @@ tests/:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v2.11.0-rc
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: v3.10.0.dev
+      Test_TraceTaggingRulesRcCapability: v3.10.0.dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.58.5
       Test_AppSecObfuscator:
@@ -1005,7 +1008,7 @@ tests/:
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
-      Test_Stable_Config_Default: v3.2.0.dev
+      Test_Stable_Config_Default: v3.11.0  # default value of log injection changed in v3.10.0
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -1187,10 +1190,10 @@ tests/:
     Test_Propagate: v1.9.0
     Test_Propagate_Legacy: v1.5.0-rc1
   test_library_conf.py:
-    Test_ExtractBehavior_Default: missing_feature (trace context with only baggage should still be propagated)
-    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Default: v2.20.0
+    Test_ExtractBehavior_Ignore: v2.20.0
+    Test_ExtractBehavior_Restart: v2.20.0
+    Test_ExtractBehavior_Restart_With_Extract_First: v2.20.0
     Test_HeaderTags: v0.53
     Test_HeaderTags_Colon_Leading: v1.2.1  # actual version unknown
     Test_HeaderTags_Colon_Trailing: v2.8.0
@@ -1248,5 +1251,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3

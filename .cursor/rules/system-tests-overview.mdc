@@ -1,0 +1,16 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# What are the system-tests
+
+* This is a repository (system-tests) with system tests for Datadog tracer libraries.
+* There are several tracer libraries implemented in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
+* We use pytest to implement the tests. The same tests should be valid to test all tracer library implementations: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
+* The main test scenarios are end-to-end, parametric, SSI, and Kubernetes.
+
+# Main concepts
+
+* Types of system-tests: we are talking about the scenario types. Use the document [scenarios](mdc:docs/scenarios/README.md) to provide a good answer about the types of system-tests. Give detailed information about each type of scenario. Follow the links for a specific scenario or type of tests.
+* SSI=Single Step Instrumentation AWS SSI=AWS Single Step Instrumentation=Onboarding tests=auto-instrumentation tests=auto-injection tests

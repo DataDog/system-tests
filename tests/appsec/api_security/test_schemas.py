@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger
+from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
 
 
 def get_schema(request, address):
@@ -73,6 +73,7 @@ class Test_Schema_Request_Cookies:
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
+    @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")
@@ -313,7 +314,7 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        expcted_cookies: list[dict] = [
+        expected_cookies: list[dict] = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
@@ -325,14 +326,14 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        expcted_headers: list[dict] = [
+        expected_headers: list[dict] = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]
 
         for schema, expected in [
-            (schema_cookies[0], expcted_cookies),
-            (schema_headers[0], expcted_headers),
+            (schema_cookies[0], expected_cookies),
+            (schema_headers[0], expected_headers),
         ]:
             for key in expected[0]:
                 assert key in schema

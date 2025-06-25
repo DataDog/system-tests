@@ -422,6 +422,9 @@ tests/:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v3.4.0
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
@@ -537,7 +540,8 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not implemented)
       Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v3.19.0
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -623,10 +627,10 @@ tests/:
     Test_Propagate_Legacy: v2.26.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
-    Test_ExtractBehavior_Default: missing_feature (conflicting trace contexts should generate span link)
-    Test_ExtractBehavior_Ignore: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart: missing_feature (extract behavior not implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: missing_feature (extract behavior not implemented)
+    Test_ExtractBehavior_Default: v3.10.0
+    Test_ExtractBehavior_Ignore: v3.10.0
+    Test_ExtractBehavior_Restart: v3.10.0
+    Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
     Test_HeaderTags_Colon_Trailing: v3.0.0
@@ -671,5 +675,6 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0

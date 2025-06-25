@@ -408,6 +408,9 @@ tests/:
       Test_ShellExecution: v0.95.0
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_CollectDefaultRequestHeader: v1.0.0
       Test_ExternalWafRequestsIdentification: v1.0.0
@@ -668,5 +671,6 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: v0.99.1
     Test_TelemetryV2: v0.90
