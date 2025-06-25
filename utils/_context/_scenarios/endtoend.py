@@ -512,10 +512,8 @@ class EndToEndScenario(DockerScenario):
                 raise ValueError("Datadog agent not ready")
             logger.debug("Agent ready")
 
-        if self._use_proxy_for_open_telemetry:
-            if not interfaces.open_telemetry.ready.wait(40):
-                raise ValueError("Open telemetry interface not ready")
-            logger.debug("Open telemetry ready")
+        # Explicitly do not wait for the open telemetry interface to be ready.
+        # It's possible it is only invoked during the test run, and not during the warmup.
 
     def post_setup(self, session: pytest.Session):
         # if no test are run, skip interface tomeouts
