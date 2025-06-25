@@ -1470,9 +1470,10 @@ def user_login_success_event():
     except ImportError:
         return Response("KO", status=420)
 
-    login = flask_request.form.get("login")
-    user_id = flask_request.form.get("user_id")
-    metadata = flask_request.form.get("metadata")
+    json_data = request.get_json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
     track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
     return Response("OK", status=200)
 
@@ -1484,9 +1485,10 @@ def user_login_failure_event():
     except ImportError:
         return Response("KO", status=420)
 
-    login = flask_request.form.get("login")
-    exists = False if flask_request.form.get("exists") == "false" else True
-    metadata = flask_request.form.get("metadata")
+    json_data = request.get_json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
     track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
     return Response("OK", status=200)
 

@@ -1234,7 +1234,7 @@ class Test_UserEventsStandalone_SDK_V2:
         return None
 
     def _call_endpoint(self, endpoint, data, trace_id):
-        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), data=data)
+        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), json=data)
 
     def setup_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111

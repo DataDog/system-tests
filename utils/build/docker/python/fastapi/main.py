@@ -941,10 +941,10 @@ async def user_login_success_event(request: Request):
     except ImportError:
         return PlainTextResponse("KO", status_code=420)
 
-    form = (await request.form()) or {}
-    login = form.get("login")
-    user_id = form.get("user_id")
-    metadata = form.get("metadata")
+    json_data = await request.json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
     track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
     return PlainTextResponse("OK", status_code=200)
 
@@ -956,10 +956,10 @@ async def user_login_failure_event(request: Request):
     except ImportError:
         return PlainTextResponse("KO", status_code=420)
 
-    form = (await request.form()) or {}
-    login = form.get("login")
-    exists = False if form.get("exists") == "false" else True
-    metadata = form.get("metadata")
+    json_data = await request.json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
     track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
     return PlainTextResponse("OK", status_code=200)
 
