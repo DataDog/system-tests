@@ -15,6 +15,7 @@ import shlex
 import subprocess
 import sys
 import threading
+import time
 import urllib.request
 
 import boto3
@@ -89,6 +90,12 @@ from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
 from ddtrace.data_streams import set_produce_checkpoint
 
+from opentelemetry.metrics import (
+    CallbackOptions,
+    Observation,
+    get_meter_provider,
+)
+
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 
@@ -144,6 +151,26 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
+# Define OTel Metrics usage
+def observable_counter_func(options: CallbackOptions):
+    yield Observation(22, {})
+
+def observable_updown_counter_func(options: CallbackOptions):
+    yield Observation(66, {})
+
+def observable_gauge_func(options: CallbackOptions):
+    yield Observation(88.0, {})
+
+meter = get_meter_provider().get_meter("flask")
+
+counter = meter.create_counter("example.counter")
+histogram = meter.create_histogram("example.histogram")
+updown_counter = meter.create_up_down_counter("example.upDownCounter")
+gauge = meter.create_gauge("example.gauge")
+
+async_counter = meter.create_observable_counter("example.async.counter", [observable_counter_func])
+async_updown_counter = meter.create_observable_up_down_counter("example.async.upDownCounter", [observable_updown_counter_func])
+async_gauge = meter.create_observable_gauge("example.async.gauge", [observable_gauge_func])
 
 def main():
     # IAST Flask patch
@@ -1836,6 +1863,16 @@ def otel_drop_in_default_propagator_inject():
     opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
 
     return jsonify(result)
+
+
+@app.route("/basic/metric", methods=["GET"])
+def basic_metric():
+    counter.add(11, {"http.method": "GET", "rid": "1234567890"})
+    histogram.record(33.0, {"http.method": "GET", "rid": "1234567890"})
+    updown_counter.add(55, {"http.method": "GET", "rid": "1234567890"})
+    gauge.set(77.0, {"http.method": "GET", "rid": "1234567890"})
+    # time.sleep(2)
+    return "Hello, World!\\n"
 
 
 @app.route("/inferred-proxy/span-creation", methods=["GET"])

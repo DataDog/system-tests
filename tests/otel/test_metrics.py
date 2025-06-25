@@ -157,11 +157,11 @@ def validate_gauge(metric: dict, name: str, value: object, _: str) -> None:
     assert metric["name"] == name
     assert "gauge" in metric
     assert len(metric["gauge"]["dataPoints"]) == 1
-    validate_number_data_point(metric["gauge"]["dataPoints"][0], "asDouble", value)
+    validate_number_data_point(metric["gauge"]["dataPoints"][0], "asDouble", value, start_time_is_required=False)
 
 
 def validate_number_data_point(
-    data_point: dict, value_type: object, value: object, default_value: object = None
+    data_point: dict, value_type: object, value: object, default_value: object = None, start_time_is_required: bool = True
 ) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message NumberDataPoint {
@@ -177,7 +177,8 @@ def validate_number_data_point(
     #     uint32 flags = 8;
     # }
 
-    assert data_point["startTimeUnixNano"].isdecimal()
+    if start_time_is_required:
+        assert data_point["startTimeUnixNano"].isdecimal()
     assert data_point["timeUnixNano"].isdecimal()
     if default_value is not None:
         assert data_point[value_type] == value or data_point[value_type] == default_value
