@@ -1,4 +1,3 @@
-import ddtrace.auto  # noqa: E402
 import gevent  # noqa: E402
 from gevent import monkey  # noqa: E402
 
