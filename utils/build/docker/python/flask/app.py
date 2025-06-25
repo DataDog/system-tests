@@ -37,6 +37,8 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
     import MySQLdb
     import pymysql
 
+from loguru import logger as log
+
 from flask import Flask
 from flask import Response
 from flask import jsonify
@@ -108,23 +110,22 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
-from loguru import logger as log
-
-# Sink for unstructured logs (filter logs with without type structured)
+# Configure loguru logger
+log.remove()
+# Sink for unstructured logs
 log.add(
-    "unstructured.log",
-    format="{time} | {level} | {message}",
+    sys.stdout,
+    format="{level}:{name}:{message}",
     level="INFO",
     serialize=False,
-    filter=lambda record: record["extra"].get("log_type") != "structured",
+    filter=lambda record: not record["extra"].get("structured"),
 )
-
-# Sink for structured logs (filter logs with type structured)
+# Sink for structured logs
 log.add(
-    "structured.json",
+    sys.stdout,
     level="INFO",
     serialize=True,
-    filter=lambda record: record["extra"].get("log_type") == "structured",
+    filter=lambda record: record["extra"].get("structured"),
 )
 
 
@@ -1550,10 +1551,7 @@ def set_cookie():
 @app.route("/log/library", methods=["GET"])
 def log_library():
     message = flask_request.args.get("msg")
-    if flask_request.args.get("structured", True):
-        log.bind(log_type="structured").info(message)
-    else:
-        log.info(message)
+    log.bind(structured=flask_request.args.get("structured", True)).info(message)
     return Response("OK")
 
 
