@@ -374,6 +374,7 @@ class _Scenarios:
             "DD_APPSEC_ENABLED": "true",
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
+            "DD_API_SECURITY_ENABLED": "false",
             # added to test Test_ExtendedHeaderCollection
             "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
@@ -736,7 +737,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
     )
 
-    fuzzer = DockerScenario("FUZZER", doc="Fake scenario for fuzzing (launch without pytest)", github_workflow=None)
+    fuzzer = DockerScenario(
+        "FUZZER",
+        doc="Fake scenario for fuzzing (launch without pytest)",
+        github_workflow=None,
+        scenario_groups=[scenario_groups.exotics],
+    )
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
 

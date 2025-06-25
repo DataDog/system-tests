@@ -690,8 +690,8 @@
             "os_distro": "2022",
             "os_branch": "windows",
             "os_cpu": "amd64",
-            "default_vm": false,
-            "disabled": true
+            "default_vm": true,
+            "disabled": false
         },
         {
             "name": "Rocky_Linux_8_amd64",
