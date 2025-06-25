@@ -357,20 +357,20 @@ tests/:
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v1.10.0
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v1.10.0
-      Test_UserLoginFailureEventV2_Libddwaf: v1.10.0
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v1.10.0
-      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v1.10.0
-      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v1.10.0
-      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v1.10.0
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v1.10.0
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v1.10.0
-      Test_UserLoginSuccessEventV2_Libddwaf: v1.10.0
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v1.10.0
-      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v1.10.0
-      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.10.0
-      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.10.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v1.11.0
+      Test_UserLoginFailureEventV2_Libddwaf: v1.11.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v1.11.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v1.11.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.11.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
