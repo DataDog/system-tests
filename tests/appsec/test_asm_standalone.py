@@ -698,6 +698,7 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
 
@@ -980,6 +981,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
                 session.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
             ]
 
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_different_endpoints(self):
         # First requests to different endpoints retained with schema
         assert self.request1.status_code == 200
