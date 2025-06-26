@@ -1336,7 +1336,7 @@ tests/:
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default_Structured:
-      '*': *ref_3_0_0
+      '*': *ref_5_57_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default_Unstructured:

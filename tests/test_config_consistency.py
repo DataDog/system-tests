@@ -889,7 +889,7 @@ def get_log_message_from_record(record: dict) -> str | None:
         return record.get("@mt")
     elif context.library.name == "python":
         return record.get("record", {}).get("message")
-    elif context.library.name in ("golang", "nodejs"):
+    elif context.library.name == "golang":
         return record.get("msg")
     return record.get("message")
 
