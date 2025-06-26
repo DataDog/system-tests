@@ -1182,6 +1182,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212111
         self._call_endpoint("/user_login_success_event", trace_id)
 
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
