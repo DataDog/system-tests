@@ -690,6 +690,7 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
     tested_product = "iast"
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
 
