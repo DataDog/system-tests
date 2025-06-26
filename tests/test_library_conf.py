@@ -351,8 +351,8 @@ class Test_ExtractBehavior_Default:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") == "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
     def setup_multiple_tracecontexts(self):
         self.r = weblog.get(
@@ -399,8 +399,8 @@ class Test_ExtractBehavior_Default:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") == "2", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
 
 @scenarios.tracing_config_nondefault
@@ -454,8 +454,8 @@ class Test_ExtractBehavior_Restart:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
     def setup_multiple_tracecontexts(self):
         self.r = weblog.get(
@@ -509,8 +509,8 @@ class Test_ExtractBehavior_Restart:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
     def setup_multiple_tracecontexts_with_overrides(self):
         self.r = weblog.get(
@@ -563,8 +563,8 @@ class Test_ExtractBehavior_Restart:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
 
 @scenarios.tracing_config_nondefault_2
@@ -606,7 +606,7 @@ class Test_ExtractBehavior_Ignore:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
         assert "baggage" not in data["request_headers"], data["request_headers"]
 
     def setup_multiple_tracecontexts(self):
@@ -649,7 +649,7 @@ class Test_ExtractBehavior_Ignore:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "2", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
         assert "baggage" not in data["request_headers"], data["request_headers"]
 
 
@@ -704,8 +704,8 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
 
     def setup_multiple_tracecontexts(self):
         self.r = weblog.get(
@@ -758,5 +758,5 @@ class Test_ExtractBehavior_Restart_With_Extract_First:
         assert data is not None
 
         assert data["request_headers"].get("x-datadog-trace-id") != "1", data["request_headers"]
-        assert "_dd.p.tid=1111111111111111" not in data["request_headers"]["x-datadog-tags"], data["request_headers"]
-        assert "key1=value1" in data["request_headers"]["baggage"], data["request_headers"]
+        assert "_dd.p.tid=1111111111111111" not in data["request_headers"].get("x-datadog-tags"), data["request_headers"]
+        assert "key1=value1" in data["request_headers"].get("baggage"), data["request_headers"]
