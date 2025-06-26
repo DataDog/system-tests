@@ -1403,7 +1403,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
