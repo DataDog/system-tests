@@ -337,7 +337,13 @@ fastify.get('/kafka/consume', async (request, reply) => {
 
 fastify.get('/log/library', (request, reply) => {
   const msg = request.query.msg || 'msg'
-  const logger = (request.query.structured ?? true) ? jsonLogger : plainLogger
+  const logger = (
+    req.query.structured === true ||
+    req.query.structured?.toString().toLowerCase() === 'true' ||
+    req.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (request.query.level) {
     case 'warn':
       logger.warn(msg)

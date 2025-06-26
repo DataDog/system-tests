@@ -336,7 +336,13 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/log/library', (req, res) => {
   const msg = req.query.msg || 'msg'
-  const logger = (req.query.structured ?? true) ? jsonLogger : plainLogger
+  const logger = (
+    req.query.structured === true ||
+    req.query.structured?.toString().toLowerCase() === 'true' ||
+    req.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (req.query.level) {
     case 'warn':
       logger.warn(msg)

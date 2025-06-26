@@ -1551,7 +1551,8 @@ def set_cookie():
 @app.route("/log/library", methods=["GET"])
 def log_library():
     message = flask_request.args.get("msg")
-    log.bind(structured=flask_request.args.get("structured", True)).info(message)
+    structured = flask_request.args.get("structured", "true").lower() == "true"
+    log.bind(structured=structured).info(message)
     return Response("OK")
 
 

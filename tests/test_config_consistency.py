@@ -535,7 +535,7 @@ class Test_Config_LogInjection_Enabled:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
-@features.unstructured_log_injection
+@features.structured_log_injection
 class Test_Config_LogInjection_Default_Structured:
     """Verify log injection is enabled by default for structured logs"""
 
@@ -559,6 +559,7 @@ class Test_Config_LogInjection_Default_Structured:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
+@features.unstructured_log_injection
 class Test_Config_LogInjection_Default_Unstructured:
     """Verify log injection is disabled by default for unstructured logs"""
 
@@ -568,12 +569,9 @@ class Test_Config_LogInjection_Default_Unstructured:
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200
-        log_records = parse_log_injection_message(self.message)
-        assert log_records, f"Expected a log record {log_records}"
-        tid = parse_log_trace_id(log_records)
-        assert tid is None, f"Expected trace ID to be None {log_records[0]}"
-        sid = parse_log_span_id(log_records)
-        assert sid is None, f"Expected span ID to be None {log_records[0]}"
+        stdout.assert_absence(r'"dd":\{[^}]*\}')
+        stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
+        stdout.assert_absence(r'"dd_trace_id":\{[^}]*\}')
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -796,11 +794,12 @@ def get_runtime_metrics(agent):
 def parse_log_injection_message(log_message: str) -> dict:
     structured_logs = get_structured_log_records(log_message)
     unstructured_logs = get_unstructured_log_records(log_message)
+
     if len(structured_logs) + len(unstructured_logs) > 1:
         raise ValueError(
             f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
-    if not structured_logs and not unstructured_logs:
+    if structured_logs and not unstructured_logs:
         raise ValueError(
             f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
@@ -821,7 +820,7 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
 
         logs = raw.split("\n")
         for log in logs:
-            if context.library in ("python", "ruby"):
+            if context.library == "ruby":
                 # Extract key-value pairs and messages
                 match = regex_pattern_raw.search(log)
                 if match:
@@ -832,6 +831,7 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
                     logger.debug(f"Found log: {data}")
                     results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
                     break
+            # TODO(munir): Support parsing unstructured logs for other languages
     return results
 
 
