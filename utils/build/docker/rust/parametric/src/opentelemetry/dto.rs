@@ -105,8 +105,8 @@ pub struct SetNameArgs {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetStatusArgs {
     pub span_id: u64,
-    pub code: i32,
-    pub description: Option<String>,
+    pub code: String,
+    pub description: String,
 }
 
 // --- SpanContextArgs ---
@@ -160,11 +160,11 @@ impl StartSpanResult {
     }
 }
 
-pub fn system_time_from_millis(millis: i64) -> SystemTime {
-    if millis >= 0 {
-        UNIX_EPOCH + Duration::from_millis(millis as u64)
+pub fn system_time_from_micros(micros: i64) -> SystemTime {
+    if micros >= 0 {
+        UNIX_EPOCH + Duration::from_micros(micros as u64)
     } else {
-        UNIX_EPOCH - Duration::from_millis((-millis) as u64)
+        UNIX_EPOCH - Duration::from_micros((-micros) as u64)
     }
 }
 
@@ -260,11 +260,11 @@ pub fn parse_attributes(attributes: Option<&HashMap<String, JsonValue>>) -> Vec<
     result
 }
 
-pub fn parse_status(code: i32, description: Option<String>) -> Status {
-    match code {
-        1 => Status::Ok,
-        2 => Status::Error {
-            description: description.unwrap_or_default().into(),
+pub fn parse_status(code: String, description: String) -> Status {
+    match code.to_uppercase().as_str() {
+        "OK" => Status::Ok,
+        "ERROR" => Status::Error {
+            description: description.into(),
         },
         _ => Status::Unset,
     }
