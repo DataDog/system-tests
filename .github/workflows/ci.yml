@@ -30,6 +30,8 @@ jobs:
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # need to read releases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +93,7 @@ jobs:
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       enable_replay_scenarios: true
-      # desired_execution_time: 3600  # 60 minutes
+      desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
 

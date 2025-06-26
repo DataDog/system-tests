@@ -1,3 +1,14 @@
+import os
+
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import ddtrace.auto  # noqa: E402
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
+
+
 import base64
 import http.client
 import json
@@ -1392,7 +1403,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
@@ -1695,9 +1708,10 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1715,9 +1729,10 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 

@@ -19,6 +19,11 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_instance:
+        description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -69,7 +74,7 @@ env:
 
 jobs:
   main:
-    name: ${{ inputs.weblog }}
+    name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
     runs-on: ubuntu-latest
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
@@ -110,8 +115,6 @@ jobs:
     - name: Log in to the Container registry
       if: ${{ inputs.library == 'ruby' }}
       run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
-    - name: Build agent
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}

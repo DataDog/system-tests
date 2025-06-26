@@ -61,6 +61,7 @@ class Test_Trace_Sampling_Basic:
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"service": "webserver", "name": "web.request", "sample_rate": 0}]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -183,6 +184,7 @@ class Test_Trace_Sampling_Globs:
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"service": "w?bs?rv?r", "name": "web.*", "sample_rate": 0}]),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -322,6 +324,7 @@ class Test_Trace_Sampling_Resource:
                         {"service": "webserver", "name": "web.request", "resource": "/bar", "sample_rate": 0},
                     ]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -408,6 +411,7 @@ class Test_Trace_Sampling_Tags:
                         {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 0},
                     ]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             },
         ],
     )
@@ -428,6 +432,7 @@ def tag_sampling_env(tag_glob_pattern):
         "DD_TRACE_SAMPLING_RULES": json.dumps(
             [{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}, {"sample_rate": 0}]
         ),
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
     }
 
 

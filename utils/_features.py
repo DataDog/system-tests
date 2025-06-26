@@ -1,5 +1,7 @@
 import pytest
 
+from utils._context.core import context
+
 
 class _Features:
     """See https://github.com/DataDog/system-tests/blob/main/docs/edit/features.md
@@ -64,8 +66,6 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
-
-        from utils._context.core import context
 
         if "uds" in context.weblog_variant:
             pytest.mark.features(feature_id=6)(test_object)
@@ -2661,6 +2661,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=472
         """
         pytest.mark.features(feature_id=472)(test_object)
+        return test_object
+
+    @staticmethod
+    def process_tags(test_object):
+        """Process tags
+
+        https://feature-parity.us1.prod.dog/#/?feature=475
+        """
+        pytest.mark.features(feature_id=475)(test_object)
         return test_object
 
     @staticmethod

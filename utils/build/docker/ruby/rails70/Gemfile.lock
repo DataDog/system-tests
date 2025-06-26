@@ -103,7 +103,14 @@ GEM
     digest (3.1.0)
     digest-crc (0.6.5)
       rake (>= 12.0.0, < 14.0.0)
+    dogstatsd-ruby (5.6.6)
     erubi (1.10.0)
+    faraday (2.13.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.1)
+      net-http (>= 0.5.0)
     ffi (1.15.5)
     globalid (1.0.0)
       activesupport (>= 5.0)
@@ -119,6 +126,7 @@ GEM
     jbuilder (2.11.5)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
+    json (2.12.2)
     libddwaf (1.0.14.2.0.beta1)
       ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-aarch64-linux)
@@ -129,6 +137,7 @@ GEM
       ffi (~> 1.0)
     libddwaf (1.0.14.2.0.beta1-x86_64-linux)
       ffi (~> 1.0)
+    logger (1.7.0)
     loofah (2.13.0)
       crass (~> 1.0.2)
       nokogiri (>= 1.5.9)
@@ -141,6 +150,8 @@ GEM
     mini_portile2 (2.7.1)
     minitest (5.15.0)
     msgpack (1.4.4)
+    net-http (0.6.0)
+      uri
     net-imap (0.2.3)
       digest
       net-protocol
@@ -250,6 +261,7 @@ GEM
       railties (>= 6.0.0)
     tzinfo (2.0.4)
       concurrent-ruby (~> 1.0)
+    uri (1.0.3)
     warden (1.2.9)
       rack (>= 2.0.9)
     web-console (4.2.0)
@@ -281,6 +293,8 @@ DEPENDENCIES
   ddtrace (~> 1.0.0.a)
   debug
   devise
+  dogstatsd-ruby
+  faraday
   importmap-rails
   jbuilder
   opentelemetry-api
@@ -302,4 +316,4 @@ RUBY VERSION
    ruby 3.1.0p0
 
 BUNDLED WITH
-   2.3.26
+   2.5.21
