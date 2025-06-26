@@ -95,12 +95,13 @@ GEM
     concurrent-ruby (1.3.4)
     connection_pool (2.4.1)
     crass (1.0.6)
-    date (3.4.0)
-    ddtrace (1.0.0)
-      debase-ruby_core_source (<= 0.10.15)
-      libddwaf (~> 1.3.0.0.0.a)
+    datadog (2.7.1)
+      datadog-ruby_core_source (~> 3.3)
+      libdatadog (~> 14.1.0.1.0)
+      libddwaf (~> 1.15.0.0.0)
       msgpack
-    debase-ruby_core_source (0.10.15)
+    datadog-ruby_core_source (3.4.1)
+    date (3.4.0)
     debug (1.9.2)
       irb (~> 1.10)
       reline (>= 0.3.8)
@@ -110,8 +111,15 @@ GEM
       railties (>= 4.1.0)
       responders
       warden (~> 1.2.3)
+    dogstatsd-ruby (5.6.6)
     drb (2.2.1)
     erubi (1.13.0)
+    faraday (2.13.1)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.1)
+      net-http (>= 0.5.0)
     ffi (1.17.0)
     ffi (1.17.0-aarch64-linux-gnu)
     ffi (1.17.0-arm64-darwin)
@@ -132,15 +140,19 @@ GEM
     jbuilder (2.13.0)
       actionview (>= 5.0.0)
       activesupport (>= 5.0.0)
-    libddwaf (1.3.0.0.0)
+    json (2.12.2)
+    libdatadog (14.1.0.1.0)
+    libdatadog (14.1.0.1.0-aarch64-linux)
+    libdatadog (14.1.0.1.0-x86_64-linux)
+    libddwaf (1.15.0.0.0)
       ffi (~> 1.0)
-    libddwaf (1.3.0.0.0-aarch64-linux)
+    libddwaf (1.15.0.0.0-aarch64-linux)
       ffi (~> 1.0)
-    libddwaf (1.3.0.0.0-arm64-darwin)
+    libddwaf (1.15.0.0.0-arm64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.3.0.0.0-x86_64-darwin)
+    libddwaf (1.15.0.0.0-x86_64-darwin)
       ffi (~> 1.0)
-    libddwaf (1.3.0.0.0-x86_64-linux)
+    libddwaf (1.15.0.0.0-x86_64-linux)
       ffi (~> 1.0)
     logger (1.6.1)
     loofah (2.23.1)
@@ -158,6 +170,8 @@ GEM
     mini_portile2 (2.8.8)
     minitest (5.25.1)
     msgpack (1.7.5)
+    net-http (0.6.0)
+      uri
     net-imap (0.5.1)
       date
       net-protocol
@@ -270,6 +284,7 @@ GEM
       railties (>= 6.0.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uri (1.0.3)
     useragent (0.16.10)
     warden (1.2.9)
       rack (>= 2.0.9)
@@ -300,9 +315,11 @@ PLATFORMS
 DEPENDENCIES
   bootsnap
   capybara
-  ddtrace (~> 1.0.0.a)
+  datadog (~> 2.7.0)
   debug
   devise
+  dogstatsd-ruby
+  faraday
   importmap-rails
   jbuilder
   pry
@@ -322,4 +339,4 @@ RUBY VERSION
    ruby 3.3.6p108
 
 BUNDLED WITH
-   2.3.26
+   2.5.21

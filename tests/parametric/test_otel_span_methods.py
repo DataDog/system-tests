@@ -627,7 +627,7 @@ class Test_Otel_Span_Methods:
             test_agent=test_agent,
         )
 
-    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
+    @missing_feature(context.library < "java@1.25.1", reason="Implemented in 1.25.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "dotnet@2.41.0", reason="Implemented in 2.42.0")
     @missing_feature(context.library == "python", reason="Not implemented")
@@ -659,7 +659,7 @@ class Test_Otel_Span_Methods:
         assert "span.type" not in span["meta"]
         assert "analytics.event" not in span["meta"]
 
-    @missing_feature(context.library < "java@1.25.0", reason="Implemented in 1.25.0")
+    @missing_feature(context.library < "java@1.25.1", reason="Implemented in 1.25.1")
     @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library <= "php@0.95.0", reason="Implemented in 0.96.0")
     @missing_feature(context.library == "python", reason="Not implemented")

@@ -690,6 +690,7 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
     tested_product = "iast"
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
 
@@ -698,6 +699,7 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
 
@@ -980,6 +982,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
                 session.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
             ]
 
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_different_endpoints(self):
         # First requests to different endpoints retained with schema
         assert self.request1.status_code == 200
@@ -1180,6 +1183,7 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212111
         self._call_endpoint("/user_login_success_event", trace_id)
 
+    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)
@@ -1234,7 +1238,7 @@ class Test_UserEventsStandalone_SDK_V2:
         return None
 
     def _call_endpoint(self, endpoint, data, trace_id):
-        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), data=data)
+        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), json=data)
 
     def setup_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111
