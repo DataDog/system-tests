@@ -505,6 +505,7 @@ class Test_Config_IntegrationEnabled_True:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_empty
 @features.log_injection
+@features.structured_log_injection
 class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
@@ -534,6 +535,7 @@ class Test_Config_LogInjection_Enabled:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
+@features.unstructured_log_injection
 class Test_Config_LogInjection_Default_Structured:
     """Verify log injection is enabled by default for structured logs"""
 
@@ -790,16 +792,16 @@ def get_runtime_metrics(agent):
 
 def parse_log_injection_message(log_message: str) -> dict:
     structured_logs = get_structured_log_records(log_message)
-    unstructored_logs = get_unstructured_log_records(log_message)
-    if len(structured_logs) + len(unstructored_logs) > 1:
+    unstructured_logs = get_unstructured_log_records(log_message)
+    if len(structured_logs) + len(unstructured_logs) > 1:
         raise ValueError(
-            f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructored_logs}"
+            f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
-    if not structured_logs and not unstructored_logs:
+    if not structured_logs and not unstructured_logs:
         raise ValueError(
-            f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructored_logs}"
+            f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
-    return (structured_logs + unstructored_logs)[0]
+    return (structured_logs + unstructured_logs)[0]
 
 
 def get_unstructured_log_records(log_message: str) -> list[dict]:
