@@ -4,7 +4,7 @@ import base64
 import json
 import pytest
 
-from utils import bug, context, features, scenarios, logger
+from utils import bug, features, scenarios, logger
 
 
 @scenarios.parametric
