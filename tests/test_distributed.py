@@ -246,7 +246,6 @@ TRACECONTEXT_FLAGS_SET = 1 << 31
 
 @scenarios.default
 @features.datadog_headers_propagation
-@bug(context.library > "ruby@2.17.0", reason="APMRP-360")  # API security by default
 class Test_Synthetics_APM_Datadog:
     def setup_synthetics(self):
         self.r = weblog.get(
