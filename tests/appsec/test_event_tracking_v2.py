@@ -188,7 +188,7 @@ class Test_UserLoginSuccessEventV2_Tags_AppsecEnabled(BaseUserLoginSuccessEventV
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginSuccessEventV2_Tags_AppsecDisabled(BaseUserLoginSuccessEventV2Tags):
     """Test tags created in AppSec User Login Success Event SDK v2 when appsec is disabled"""
 
@@ -230,7 +230,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginSuccessEventV2HeaderCollection):
     """Test headers are not collected in User Login Success Event SDK v2 when appsec is disabled"""
 
@@ -279,7 +279,7 @@ class Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled(BaseUserLoginSuccessEve
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled(BaseUserLoginSuccessEventV2Metrics):
     """Test metrics in AppSec User Login Success Event SDK v2 when appsec is disabled"""
 
@@ -449,7 +449,7 @@ class Test_UserLoginFailureEventV2_Tags_AppsecEnabled(BaseUserLoginFailureEventV
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginFailureEventV2_Tags_AppsecDisabled(BaseUserLoginFailureEventV2Tags):
     """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is disabled"""
 
@@ -489,7 +489,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginFailureEventV2HeaderCollection):
     """Test headers are not collected in User Login Failure Event SDK v2 when AppSec is disabled"""
 
@@ -538,7 +538,7 @@ class Test_UserLoginFailureEventV2_Metrics_AppsecEnabled(BaseUserLoginFailureEve
 
 
 @features.event_tracking_sdk_v2
-@scenarios.ato_sdk
+@scenarios.everything_disabled
 class Test_UserLoginFailureEventV2_Metrics_AppsecDisabled(BaseUserLoginFailureEventV2Metrics):
     """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
 
