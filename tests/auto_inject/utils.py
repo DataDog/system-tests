@@ -7,7 +7,7 @@ from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, *, profile: bool = False):
+    def _test_install(self, virtual_machine, *, profile: bool = False, appsec: bool = False):
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
@@ -15,13 +15,13 @@ class AutoInjectBaseTest:
                 vm_context_url = (
                     f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
                 )
-                self._check_install(virtual_machine, vm_context_url, profile=profile)
+                self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
 
         else:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
-            self._check_install(virtual_machine, vm_context_url, profile=profile)
+            self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
 
-    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False):
+    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False, appsec: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS.
@@ -36,21 +36,46 @@ class AutoInjectBaseTest:
             logger.info(
                 "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
-            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
+            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port, appsec=appsec)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
             assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
             logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
-            request_uuid = make_get_request(vm_context_url)
+            request_uuid = make_get_request(vm_context_url, appsec=appsec)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
 
+        validator = None
+        if appsec:
+            validator = self._appsec_validator
+
         try:
-            wait_backend_trace_id(request_uuid, profile=profile)
+            wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
         except (TimeoutError, AssertionError) as e:
             self._log_trace_debug_message(e, request_uuid)
             raise
+
+    def _appsec_validator(self, _, trace_data):
+        """Validator for Appsec traces that checks if the trace contains an Appsec event."""
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        meta = root_span.get("meta", {})
+        metrics = root_span.get("metrics", {})
+
+        if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
+            logger.error(
+                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found",
+                metrics.get("_dd.appsec.enabled"),
+            )
+            return False
+
+        if "appsec.event" not in meta or meta["appsec.event"] != "true":
+            logger.error("expected 'appsec.event' to be true in trace meta but found", meta.get("appsec.event"))
+            return False
+
+        return True
 
     def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
         logger.error(
