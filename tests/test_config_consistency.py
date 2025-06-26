@@ -810,7 +810,6 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
     # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
     processed_raws: set[str] = set()
     regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
-    regex_pattern_json = re.compile(r"({.*})")
     for data in stdout.get_data():
         raw: str = data.get("raw")
         if raw in processed_raws:  # check if we already processed this log
@@ -819,19 +818,7 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
 
         logs = raw.split("\n")
         for log in logs:
-            logger.debug(f"Processing log: {log}")
-            if context.library == "php":
-                matches = regex_pattern_json.search(log)
-                if matches is None:
-                    continue
-
-                message = json.loads(matches.group(1))
-                if message.get("message") == log_message:
-                    logger.debug(f"Found log: {data}")
-                    results.append(message)
-                    break
-
-            elif context.library in ("python", "ruby"):
+            if context.library in ("python", "ruby"):
                 # Extract key-value pairs and messages
                 match = regex_pattern_raw.search(log)
                 if match:
@@ -842,8 +829,6 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
                     logger.debug(f"Found log: {data}")
                     results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
                     break
-            else:
-                pass
     return results
 
 
