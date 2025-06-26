@@ -1,8 +1,12 @@
-import ddtrace.auto  # noqa: E402
-import gevent  # noqa: E402
-from gevent import monkey  # noqa: E402
+import os
 
-monkey.patch_all(thread=True)  # noqa: E402
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import ddtrace.auto  # noqa: E402
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
 
 
 import base64
@@ -1399,7 +1403,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
