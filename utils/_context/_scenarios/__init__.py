@@ -214,7 +214,7 @@ class _Scenarios:
         appsec_enabled=False,
         include_postgres_db=True,
         doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
