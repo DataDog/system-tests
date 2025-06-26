@@ -214,7 +214,7 @@ class _Scenarios:
         appsec_enabled=False,
         include_postgres_db=True,
         doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
@@ -430,6 +430,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -444,6 +446,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -482,6 +486,8 @@ class _Scenarios:
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DEDUPLICATION_ENABLED": "true",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Iast scenario with deduplication enabled",
         scenario_groups=[scenario_groups.appsec],
