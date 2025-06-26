@@ -557,6 +557,7 @@ class _Scenarios:
         "APM_TRACING_E2E_OTEL",
         weblog_env={
             "DD_TRACE_OTEL_ENABLED": "true",
+            "DD_TRACE_OTEL_METRICS_ENABLED": "true",
             "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://proxy:{ProxyPorts.open_telemetry_weblog}",
             "OTEL_EXPORTER_OTLP_HEADERS": "dd-protocol=otlp,dd-otlp-path=agent",
@@ -582,7 +583,7 @@ class _Scenarios:
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="", include_collector=False, include_intake=False)
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
