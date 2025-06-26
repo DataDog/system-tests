@@ -10,7 +10,7 @@ const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
-const pino = require('pino')
+const winston = require('winston')
 
 const dsm = require('./dsm')
 const di = require('./debugger')
@@ -26,7 +26,19 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.simple(), // plain text
+  transports: [new winston.transports.Console()]
+})
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
@@ -325,6 +337,7 @@ fastify.get('/kafka/consume', async (request, reply) => {
 
 fastify.get('/log/library', (request, reply) => {
   const msg = request.query.msg || 'msg'
+  const logger = (request.query.structured ?? true) ? jsonLogger : plainLogger
   switch (request.query.level) {
     case 'warn':
       logger.warn(msg)
