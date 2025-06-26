@@ -1,9 +1,12 @@
 from pathlib import Path
 
 import pytest
-
+import tempfile
+import time
+import base64
+import json
 from utils._context.component_version import ComponentVersion, Version
-
+from utils.k8s_lib_injection.k8s_command_utils import execute_command
 from utils.k8s.k8s_component_image import (
     K8sComponentImage,
     extract_library_version,
@@ -13,6 +16,7 @@ from utils.k8s.k8s_component_image import (
 from utils._logger import logger
 from utils.injector_dev.injector_client import InjectorDevClient
 from utils.injector_dev.scenario_provision_updater import ScenarioProvisionUpdater
+from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 from .core import Scenario, scenario_groups, ScenarioGroup
 
 # Default scenario groups for K8sInjectorDevScenario
@@ -104,6 +108,8 @@ class K8sInjectorDevScenario(Scenario):
     def _start_injector_dev(self):
         """Start the injector-dev tool"""
         self.injector_client.start(debug=True)
+        time.sleep(10)
+        self._create_secret_to_access_to_internal_registry()
 
     def _stop_injector_dev(self):
         """Stop the injector-dev tool"""
@@ -123,6 +129,7 @@ class K8sInjectorDevScenario(Scenario):
             self.k8s_weblog_img,  # Include the weblog image
             self.k8s_lib_init_img,  # Include the library init image
             self._library.name,  # Specify the language being tested
+            "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi",
         )
 
         logger.info(f"Updated scenario file written to {self.current_scenario_provision}")
@@ -132,6 +139,53 @@ class K8sInjectorDevScenario(Scenario):
             self.injector_client.apply_scenario(self.current_scenario_provision, wait=True, debug=True)
         else:
             raise RuntimeError("No scenario provision file found. Please ensure the scenario is properly configured.")
+
+    def _create_secret_to_access_to_internal_registry(self):
+        # Create a kubernetes secret to access to the internal registry
+        logger.info("Creating ECR secret")
+        private_registry = PrivateRegistryConfig()
+        if not private_registry.is_configured:
+            logger.info("Skipping creation of ECR secret because private registry configuration is not complete")
+            return
+        try:
+            # Create a temporary file with the docker config
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+                docker_config = {
+                    "auths": {
+                        private_registry.private_docker_registry: {
+                            "auth": base64.b64encode(
+                                f"{private_registry.private_docker_registry_user}:"
+                                f"{private_registry.private_registry_token}".encode()
+                            ).decode()
+                        }
+                    }
+                }
+                json.dump(docker_config, temp_file)
+                temp_file.flush()
+                temp_file_path = temp_file.name
+
+            try:
+                # Create the secret using the config file
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson",
+                    quiet=True,
+                )
+                logger.info("Successfully created ECR secret")
+
+                # Patch the default service account to use the secret
+                execute_command(
+                    "kubectl patch serviceaccount default -p "
+                    '\'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
+                )
+                logger.info("Successfully patched default service account")
+            finally:
+                # Clean up the temporary file
+                Path(temp_file_path).unlink()
+        except Exception as e:
+            logger.error(f"Error creating ECR secret: {e!s}")
+            raise
 
     @property
     def library(self):

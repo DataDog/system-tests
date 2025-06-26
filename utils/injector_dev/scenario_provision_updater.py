@@ -47,6 +47,7 @@ class ScenarioProvisionUpdater:
         weblog_image: K8sComponentImage | None = None,
         k8s_lib_init_img: K8sComponentImage | None = None,
         language: str | None = None,
+        container_registry: str | None = None,
     ) -> Path:
         """Update a scenario YAML file with K8s component image information.
 
@@ -57,6 +58,7 @@ class ScenarioProvisionUpdater:
             weblog_image: Optional K8sComponentImage object for the weblog/application images
             k8s_lib_init_img: Optional K8sComponentImage object for the library init image
             language: Optional language to update in ddTraceVersions (e.g., 'python', 'java')
+            container_registry: Optional container registry URL to set in clusterAgent.admissionController
 
         Returns:
             Path to the updated YAML file
@@ -94,13 +96,13 @@ class ScenarioProvisionUpdater:
 
         # Update the cluster_agent version
         scenario_yaml["helm"]["versions"]["cluster_agent"] = {
-            "repository": cluster_agent_image.main_url,
+            # "repository": cluster_agent_image.main_url,
             "tag": cluster_agent_image.tag,
         }
 
         # Update the injector version to use the repository/tag format
         scenario_yaml["helm"]["versions"]["injector"] = {
-            "repository": injector_image.main_url,
+            # "repository": injector_image.main_url,
             "tag": injector_image.tag,
         }
 
@@ -138,6 +140,26 @@ class ScenarioProvisionUpdater:
                     )
             else:
                 logger.warning("No instrumentation targets found in the scenario YAML")
+
+        # Update containerRegistry if container_registry is provided
+        if container_registry:
+            # Ensure the config structure exists
+            if "config" not in scenario_yaml["helm"]:
+                scenario_yaml["helm"]["config"] = {}
+
+            # Ensure the clusterAgent structure exists
+            if "clusterAgent" not in scenario_yaml["helm"]["config"]:
+                scenario_yaml["helm"]["config"]["clusterAgent"] = {}
+
+            # Ensure the admissionController structure exists
+            if "admissionController" not in scenario_yaml["helm"]["config"]["clusterAgent"]:
+                scenario_yaml["helm"]["config"]["clusterAgent"]["admissionController"] = {}
+
+            # Set the containerRegistry value
+            scenario_yaml["helm"]["config"]["clusterAgent"]["admissionController"]["containerRegistry"] = (
+                container_registry
+            )
+            logger.info(f"Updated clusterAgent.admissionController.containerRegistry = {container_registry}")
 
         # Write the updated YAML to the destination file
         try:
