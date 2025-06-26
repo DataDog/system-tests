@@ -28,7 +28,7 @@ async function kafkaProduce (topic, message) {
   return await doKafkaOperations()
 }
 
-async function kafkaConsume (topic, timeout) {
+async function kafkaConsume (topic, timeout, groupId = 'testgroup1') {
   const kafka = new Kafka({
     clientId: 'my-app-consumer',
     brokers: ['kafka:9092'],
@@ -39,7 +39,7 @@ async function kafkaConsume (topic, timeout) {
   })
   let consumer
   const doKafkaOperations = async () => {
-    consumer = kafka.consumer({ groupId: 'testgroup1' })
+    consumer = kafka.consumer({ groupId })
 
     await consumer.connect()
     await consumer.subscribe({ topic, fromBeginning: true })

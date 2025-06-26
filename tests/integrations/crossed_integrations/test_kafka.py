@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger, context
 from utils.buddies import java_buddy, _Weblog as Weblog
 
 
@@ -13,6 +13,7 @@ class _BaseKafka:
     WEBLOG_TO_BUDDY_TOPIC: str
     BUDDY_TO_WEBLOG_TOPIC: str
     buddy_interface: interfaces.LibraryInterfaceValidator
+    tracer_to_integration: dict
 
     @classmethod
     def get_span(cls, interface, span_kind, topic) -> dict | None:
@@ -28,6 +29,14 @@ class _BaseKafka:
 
                 if topic != cls.get_topic(span):
                     continue
+
+                # we may have multiple integrations for the same tracer, so we need to check the component
+                if (
+                    cls.tracer_to_integration.get(context.library.name, None) is not None
+                    and "buddy" not in interface.name
+                ):
+                    if cls.tracer_to_integration.get(context.library.name, None) != span["meta"].get("component"):
+                        continue
 
                 logger.debug(f"span found in {data['log_filename']}:\n{json.dumps(span, indent=2)}")
                 return span
@@ -52,12 +61,24 @@ class _BaseKafka:
         """Send request A to weblog : this request will produce a kafka message
         send request B to library buddy, this request will consume kafka message
         """
+
         self.production_response = weblog.get(
-            "/kafka/produce", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC}, timeout=60
+            "/kafka/produce",
+            params={
+                "topic": self.WEBLOG_TO_BUDDY_TOPIC,
+                "integration": self.tracer_to_integration.get(context.library.name, None),
+            },
+            timeout=60,
         )
 
         self.consume_response = self.buddy.get(
-            "/kafka/consume", params={"topic": self.WEBLOG_TO_BUDDY_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume",
+            params={
+                "topic": self.WEBLOG_TO_BUDDY_TOPIC,
+                "timeout": 60,
+                "integration": self.tracer_to_integration.get(context.library.name, None),
+            },
+            timeout=61,
         )
 
     def test_produce(self):
@@ -96,11 +117,22 @@ class _BaseKafka:
         request B: GET /weblog/consume_kafka_message
         """
         self.production_response = self.buddy.get(
-            "/kafka/produce", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC}, timeout=60
+            "/kafka/produce",
+            params={
+                "topic": self.BUDDY_TO_WEBLOG_TOPIC,
+                "integration": self.tracer_to_integration.get(context.library.name, None),
+            },
+            timeout=60,
         )
 
         self.consume_response = weblog.get(
-            "/kafka/consume", params={"topic": self.BUDDY_TO_WEBLOG_TOPIC, "timeout": 60}, timeout=61
+            "/kafka/consume",
+            params={
+                "topic": self.BUDDY_TO_WEBLOG_TOPIC,
+                "timeout": 60,
+                "integration": self.tracer_to_integration.get(context.library.name, None),
+            },
+            timeout=61,
         )
 
     def test_consume(self):
@@ -166,11 +198,44 @@ class Test_Kafka(_BaseKafka):
     buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"
     BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_buddy_to_weblog"
+    tracer_to_integration = {
+        "nodejs": "kafkajs",
+    }
 
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
         super().test_produce_trace_equality()
 
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
+    def test_consume_trace_equality(self):
+        super().test_consume_trace_equality()
+
+
+@scenarios.crossed_tracing_libraries
+@features.kafkaspan_creationcontext_propagation_with_dd_trace
+class Test_Kafka_Additional_Library(_BaseKafka):
+    buddy_interface = interfaces.java_buddy
+    buddy = java_buddy
+    WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_2_weblog_to_buddy"
+    BUDDY_TO_WEBLOG_TOPIC = "Test_Kafka_2_buddy_to_weblog"
+    tracer_to_integration = {
+        "nodejs": "@confluentinc/kafka-javascript",
+    }
+
+    @missing_feature(library="python", reason="Expected to fail, Python does not have an additional Kafka library")
+    @missing_feature(library="java", reason="Expected to fail, Java does not have an additional Kafka library")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not have an additional Kafka library")
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not have an additional Kafka library")
+    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet does not have an additional Kafka library")
+    @missing_feature(library="php", reason="Expected to fail, PHP does not have an additional Kafka library")
+    def test_produce_trace_equality(self):
+        super().test_produce_trace_equality()
+
+    @missing_feature(library="python", reason="Expected to fail, Python does not have an additional Kafka library")
+    @missing_feature(library="java", reason="Expected to fail, Java does not have an additional Kafka library")
+    @missing_feature(library="ruby", reason="Expected to fail, Ruby does not have an additional Kafka library")
+    @missing_feature(library="golang", reason="Expected to fail, Golang does not have an additional Kafka library")
+    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet does not have an additional Kafka library")
+    @missing_feature(library="php", reason="Expected to fail, PHP does not have an additional Kafka library")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

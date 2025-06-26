@@ -463,6 +463,8 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: v2.0.0
+        Test_Kafka_Additional_Library:
+          '*': irrelevant  # only one kafka library is supported
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:

@@ -1078,6 +1078,10 @@ tests/:
           '*': irrelevant
           express4: v0.1  # real version not known
           express5: v0.1  # real version not known
+        Test_Kafka_Additional_Library:
+          '*': irrelevant
+          express4: missing_feature  # TODO: wconti27 update this version
+          express5: missing_feature  # TODO: wconti27 update this version
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           '*': irrelevant
@@ -1150,7 +1154,7 @@ tests/:
         fastify: *ref_5_6_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        '*': *ref_5_25_0
+        '*': missing_feature  # TODO: wconti27 update this version once new kafka library is supported
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
         '*': irrelevant

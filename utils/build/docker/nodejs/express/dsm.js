@@ -4,6 +4,10 @@ const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
+const {
+  kafkaProduce: kafkaProduceConfluent,
+  kafkaConsume: kafkaConsumeConfluent
+} = require('./integrations/messaging/kafka/confluent_kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 function initRoutes (app, tracer) {
@@ -17,26 +21,44 @@ function initRoutes (app, tracer) {
     const routingKey = req.query.routing_key
     const stream = req.query.stream
     let message = req.query.message
+    const library = req.query.library
+    const groupId = req.query.group
 
     if (integration === 'kafka') {
-      message = message ?? 'hello from kafka DSM JS'
-      const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
+      if (library === 'kafkajs') {
+        message = message ?? 'hello from kafkajs DSM JS'
+        const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
 
-      kafkaProduce(queue, message)
-        .then(() => {
-          kafkaConsume(queue, timeout)
-            .then(() => {
-              res.send('ok')
-            })
-            .catch((error) => {
-              console.log(error)
-              res.status(500).send('[Kafka] Internal Server Error during DSM Kafka consume')
-            })
-        })
-        .catch((error) => {
-          console.log(error)
-          res.status(500).send('[Kafka] Internal Server Error during DSM Kafka produce')
-        })
+        kafkaProduce(queue, message)
+          .then(() => {
+            kafkaConsume(queue, timeout, groupId)
+              .then(() => {
+                res.send('ok')
+              })
+              .catch((error) => {
+                console.log(error)
+                res.status(500).send('[KafkaJS] Internal Server Error during DSM Kafka consume')
+              })
+          })
+          .catch((error) => {
+            console.log(error)
+            res.status(500).send('[KafkaJS] Internal Server Error during DSM Kafka produce')
+          })
+      } else if (library === '@confluentinc/kafka-javascript') {
+        message = message ?? 'hello from ConfluentKafka DSM JS'
+        const timeout = req.query.timeout ? req.query.timeout * 10000 : 60000
+
+        kafkaProduceConfluent(queue, message)
+          .then(() => {
+            kafkaConsumeConfluent(queue, timeout, groupId)
+              .then(() => {
+                res.send('ok')
+              })
+          }).catch((error) => {
+            console.log(error)
+            res.status(500).send('[ConfluentKafka] Internal Server Error during DSM ConfluentKafka produce')
+          })
+      }
     } else if (integration === 'sqs') {
       message = message ?? 'hello from SQS DSM JS'
       const timeout = req.query.timeout ?? 5

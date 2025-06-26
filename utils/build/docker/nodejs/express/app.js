@@ -41,6 +41,10 @@ const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
+const {
+  kafkaProduce: kafkaProduceConfluent,
+  kafkaConsume: kafkaConsumeConfluent
+} = require('./integrations/messaging/kafka/confluent_kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 const logger = pino()
@@ -297,29 +301,57 @@ try {
 
 app.get('/kafka/produce', (req, res) => {
   const topic = req.query.topic
+  const integration = req.query.integration
 
-  kafkaProduce(topic, 'Hello from Kafka JS')
-    .then(() => {
-      res.status(200).send('[Kafka] produce ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      res.status(500).send('Internal Server Error during Kafka produce')
-    })
+  if (integration === 'kafkajs') {
+    kafkaProduce(topic, 'Hello from Kafka JS')
+      .then(() => {
+        res.status(200).send('[KafkaJS] produce ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[KafkaJS] Internal Server Error during Kafka produce')
+      })
+  } else if (integration === '@confluentinc/kafka-javascript') {
+    kafkaProduceConfluent(topic, 'Hello from Kafka Confluent JavaScript')
+      .then(() => {
+        res.status(200).send('[ConfluentKafka] produce ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('[ConfluentKafka] Internal Server Error during Kafka produce')
+      })
+  } else {
+    res.status(400).send('Invalid integration')
+  }
 })
 
 app.get('/kafka/consume', (req, res) => {
   const topic = req.query.topic
   const timeout = req.query.timeout ? req.query.timeout * 1000 : 60000
+  const integration = req.query.integration
 
-  kafkaConsume(topic, timeout)
-    .then(() => {
-      res.status(200).send('[Kafka] consume ok')
-    })
-    .catch((error) => {
-      console.error(error)
-      res.status(500).send('Internal Server Error during Kafka consume')
-    })
+  if (integration === 'kafkajs') {
+    kafkaConsume(topic, timeout)
+      .then(() => {
+        res.status(200).send('[KafkaJS] consume ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error during KafkaJS consume')
+      })
+  } else if (integration === '@confluentinc/kafka-javascript') {
+    kafkaConsumeConfluent(topic, timeout)
+      .then(() => {
+        res.status(200).send('[ConfluentKafka] consume ok')
+      })
+      .catch((error) => {
+        console.error(error)
+        res.status(500).send('Internal Server Error during ConfluentKafka consume')
+      })
+  } else {
+    res.status(400).send('Invalid integration')
+  }
 })
 
 app.get('/log/library', (req, res) => {

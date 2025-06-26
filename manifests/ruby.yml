@@ -658,6 +658,8 @@ tests/:
         Test_Kafka:
           "*": irrelevant
           rails70: missing_feature (ruby-kafka does not set the kafka topic on spans)
+        Test_Kafka_Additional_Library:
+          '*': irrelevant  # only one kafka library is supported
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
