@@ -30,16 +30,6 @@ runtime_metrics_lang_map = {
     "python": ("lang", "python"),
     "ruby": ("language", "ruby"),
 }
-# represents the key under which the log library used in /log/library endpoint prints a log message
-log_injection_fields = {
-    "nodejs": {"message": "msg"},
-    "golang": {"message": "msg"},
-    "java": {"message": "message"},
-    "dotnet": {"message": "@mt"},
-    "php": {"message": "message"},
-    "python": {"message": "message"},
-    "ruby": {"message": "message"},
-}
 
 
 @scenarios.default
@@ -515,6 +505,7 @@ class Test_Config_IntegrationEnabled_True:
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_empty
 @features.log_injection
+@features.structured_log_injection
 class Test_Config_LogInjection_Enabled:
     """Verify log injection behavior when enabled"""
 
@@ -541,20 +532,42 @@ class Test_Config_LogInjection_Enabled:
             assert field in msg, f"Missing field: {field}"
 
 
+@rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
+@scenarios.tracing_config_nondefault_2
+@features.log_injection
+@features.structured_log_injection
+class Test_Config_LogInjection_Default_Structured:
+    """Verify log injection is enabled by default for structured logs"""
+
+    def setup_test_log_injection_default(self):
+        self.message = "Test_Config_LogInjection_Default_Structured.test_log_injection_default"
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": True})
+
+    def test_test_log_injection_default(self):
+        assert self.r.status_code == 200
+        log_records = get_structured_log_records(self.message)
+        assert len(log_records) == 1, f"Expected one structured log record {log_records}"
+
+        tid = parse_log_trace_id(log_records[0])
+        assert tid is not None, f"Expected a trace ID, but got None {log_records[0]}"
+        sid = parse_log_span_id(log_records[0])
+        assert sid is not None, f"Expected a span ID, but got None {log_records[0]}"
+
+
 # Using TRACING_CONFIG_NONDEFAULT_2 for dd-trace-java since the default value is under the DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED
 # TODO: Change scenarios back to DEFAULT once all libraries change it to true
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
 @scenarios.tracing_config_nondefault_2
 @features.log_injection
-class Test_Config_LogInjection_Default:
-    """Verify log injection is disabled by default"""
+@features.unstructured_log_injection
+class Test_Config_LogInjection_Default_Unstructured:
+    """Verify log injection is disabled by default for unstructured logs"""
 
-    def setup_log_injection_default(self):
-        self.message = "Test_Config_LogInjection_Default.test_log_injection_default"
-        self.r = weblog.get("/log/library", params={"msg": self.message})
+    def setup_test_log_injection_default(self):
+        self.message = "Test_Config_LogInjection_Default_Unstructured.test_log_injection_default"
+        self.r = weblog.get("/log/library", params={"msg": self.message, "structured": False})
 
-    @bug(context.library > "nodejs@5.56.0", reason="APMAPI-1444")
-    def test_log_injection_default(self):
+    def test_test_log_injection_default(self):
         assert self.r.status_code == 200
         stdout.assert_absence(r'"dd":\{[^}]*\}')
         stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
@@ -778,41 +791,36 @@ def get_runtime_metrics(agent):
     return runtime_metrics_gauges, runtime_metrics_sketches
 
 
-def parse_log_injection_message(log_message) -> dict:
-    # Parses the JSON-formatted log message from stdout and returns it
-    # To pass tests that use this function, ensure your library has an entry in log_injection_fields
+def parse_log_injection_message(log_message: str) -> dict:
+    structured_logs = get_structured_log_records(log_message)
+    unstructured_logs = get_unstructured_log_records(log_message)
 
+    if len(structured_logs) + len(unstructured_logs) > 1:
+        raise ValueError(
+            f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
+        )
+    if not structured_logs and not unstructured_logs:
+        raise ValueError(
+            f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
+        )
+    return (structured_logs + unstructured_logs)[0]
+
+
+def get_unstructured_log_records(log_message: str) -> list[dict]:
     # check that we didn't found more than one logs
     results = []
-
     # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
     processed_raws: set[str] = set()
-
     regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
-    regex_pattern_json = re.compile(r"({.*})")
-
     for data in stdout.get_data():
         raw: str = data.get("raw")
-
         if raw in processed_raws:  # check if we already processed this log
             continue
         processed_raws.add(raw)
 
         logs = raw.split("\n")
-
         for log in logs:
-            if context.library == "php":
-                matches = regex_pattern_json.search(log)
-                if matches is None:
-                    continue
-
-                message = json.loads(matches.group(1))
-                if message.get("message") == log_message:
-                    logger.debug(f"Found log: {data}")
-                    results.append(message)
-                    break
-
-            elif context.library in ("python", "ruby"):
+            if context.library == "ruby":
                 # Extract key-value pairs and messages
                 match = regex_pattern_raw.search(log)
                 if match:
@@ -823,45 +831,66 @@ def parse_log_injection_message(log_message) -> dict:
                     logger.debug(f"Found log: {data}")
                     results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
                     break
+            # TODO(munir): Support parsing unstructured logs for other languages
+    return results
+
+
+def get_structured_log_records(log_message: str) -> list[dict]:
+    results = []
+    # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
+    processed_raws: set[str] = set()
+    regex_pattern_json = re.compile(r"({.*})")
+    for data in stdout.get_data():
+        raw = data.get("raw")
+        if raw in processed_raws:
+            continue
+        processed_raws.add(raw)
+
+        logs = raw.split("\n")
+        for log in logs:
+            logger.debug(f"Processing log: {log}")
+            try:
+                # Extract the JSON string from the log. This matches the contents between the first and last bracket.
+                json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
+                log_record = json.loads(json_string)
+            except Exception:  # noqa: S112
+                continue
+            # Locate log with the custom message, which should have the trace ID and span ID
+            if get_log_message_from_record(log_record) != log_message:
+                continue
+
+            logger.debug(f"Found log: {data}")
+            if log_record.get("dd"):
+                results.append(log_record.get("dd"))
+            elif log_record.get("mdc"):
+                # dd-trace-java stores injected trace information under the "mdc" key
+                results.append(log_record.get("mdc"))
+            elif log_record.get("record"):
+                # python loguru stores injected trace information under the "record" key
+                results.append(log_record.get("record", {}).get("extra"))
             else:
-                try:
-                    # Extract the JSON string from the log. This matches the contents between the first and last bracket.
-                    json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
-                    message = json.loads(json_string)
-                except Exception:  # noqa: S112
-                    continue
-                # Locate log with the custom message, which should have the trace ID and span ID
-                if message.get(log_injection_fields[context.library.name]["message"]) != log_message:
-                    continue
-
-                if message.get("dd"):
-                    logger.debug(f"Found log: {data}")
-                    results.append(message.get("dd"))
-                elif context.library.name == "java":
-                    # dd-trace-java stores injected trace information under the "mdc" key
-                    logger.debug(f"Found log: {data}")
-                    results.append(message.get("mdc"))
-                elif context.library.name == "dotnet":
-                    # dd-trace-dotnet stores trace info directly in the message
-                    logger.debug(f"Found log: {data}")
-                    results.append(message)
-
-    if len(results) > 1:
-        raise ValueError(f"Found more than one message with {log_message}")
-
-    if len(results) == 0:
-        raise ValueError(f"Did not find any log with {log_message}")
-
-    return results[0]
+                results.append(log_record)
+    return results
 
 
-def parse_log_trace_id(message: dict) -> str:
+# represents the key under which the log library used in /log/library endpoint prints a log message
+def get_log_message_from_record(record: dict) -> str | None:
+    if context.library.name == "dotnet":
+        return record.get("@mt")
+    elif context.library.name == "python":
+        return record.get("record", {}).get("message")
+    elif context.library.name == "golang":
+        return record.get("msg")
+    return record.get("message")
+
+
+def parse_log_trace_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.trace_id instead of trace_id
     # APMAPI-1234: update dotnet to use dd.trace_id instead of dd_trace_id
-    return message.get("dd.trace_id", message.get("trace_id", message.get("dd_trace_id")))
+    return record.get("dd.trace_id", record.get("trace_id", record.get("dd_trace_id")))
 
 
-def parse_log_span_id(message):
+def parse_log_span_id(record: dict) -> str:
     # APMAPI-1199: update nodejs to use dd.span_id instead of span_id
     # APMAPI-1234: update dotnet to use dd.span_id instead of dd_span_id
-    return message.get("dd.span_id", message.get("span_id", message.get("dd_span_id")))
+    return record.get("dd.span_id", record.get("span_id", record.get("dd_span_id")))
