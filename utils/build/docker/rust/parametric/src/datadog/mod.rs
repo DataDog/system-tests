@@ -70,12 +70,7 @@ async fn trace_span_start(
     let tracer = get_tracer();
     let mut builder = tracer.span_builder(args.name.clone());
     let mut attributes = vec![];
-    
-    // the issue is that we want to vary the service name for each span
-    // but the service name is set permanently on the tracer...
 
-    // Add service name as an attribute which for now will
-    // be evaluated before resource for the sampling value
     if let Some(service) = args.service {
         attributes.push(KeyValue::new("service.name", service));
     }
@@ -90,7 +85,7 @@ async fn trace_span_start(
         attributes.push(KeyValue::new("resource.name", resource));
     }
     
-    builder = builder.with_attributes(attributes);
+    builder = builder.with_attributes(attributes.clone());
 
     let span = builder.start(tracer);
     let id = span.span_context().span_id();
@@ -104,8 +99,6 @@ async fn trace_span_start(
     let ctx = Context::current().with_span(span);
     state.current_context.lock().unwrap().clone_from(&ctx);
     state.contexts.lock().unwrap().insert(span_id, ctx);
-
-    debug!("created span {span_id}");
     
     Json(StartSpanReturn {
         span_id,

@@ -67,9 +67,12 @@ tests/:
       Test_Trace_Sampling_Globs: *ref_0_0_1
       Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_0_0_1
       Test_Trace_Sampling_Resource: *ref_0_0_1
-      Test_Trace_Sampling_Tags: *ref_0_0_1
-      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_0_0_1
-      Test_Trace_Sampling_With_W3C: *ref_0_0_1
+      # dd-trace-rs samples at span start, so any trace that doesn't start the span with the necessary attributes
+      # won't match the sampling rule. We want to fix this in the future, making sampling lazy.
+      # The tests in these suites that xpass also have this issue, we just end up with the right value by default.
+      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_With_W3C: missing_feature
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py:
