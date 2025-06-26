@@ -799,7 +799,7 @@ def parse_log_injection_message(log_message: str) -> dict:
         raise ValueError(
             f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
-    if structured_logs and not unstructured_logs:
+    if not structured_logs and not unstructured_logs:
         raise ValueError(
             f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
         )
