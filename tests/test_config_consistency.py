@@ -551,7 +551,7 @@ class Test_Config_LogInjection_Default_Structured:
         tid = parse_log_trace_id(log_records[0])
         assert tid is not None, f"Expected a trace ID, but got None {log_records[0]}"
         sid = parse_log_span_id(log_records[0])
-        assert sid is not None, f"Expected a trace ID, but got None {log_records[0]}"
+        assert sid is not None, f"Expected a span ID, but got None {log_records[0]}"
 
 
 # Using TRACING_CONFIG_NONDEFAULT_2 for dd-trace-java since the default value is under the DD_TRACE_EXPERIMENTAL_FEATURES_ENABLED
@@ -568,9 +568,12 @@ class Test_Config_LogInjection_Default_Unstructured:
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200
-        stdout.assert_absence(r'"dd":\{[^}]*\}')
-        stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
-        stdout.assert_absence(r'"dd_trace_id":\{[^}]*\}')
+        log_records = parse_log_injection_message(self.message)
+        assert log_records, f"Expected a log record {log_records}"
+        tid = parse_log_trace_id(log_records)
+        assert tid is None, f"Expected trace ID to be None {log_records[0]}"
+        sid = parse_log_span_id(log_records)
+        assert sid is None, f"Expected span ID to be None {log_records[0]}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
