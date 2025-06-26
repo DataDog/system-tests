@@ -10,8 +10,6 @@ COPY utils/build/docker/ruby/rails60/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-RUN for attempt in `seq 3`; do if yarn install --check-files; then exit 0; fi; sleep 5; done; exit 1
-
 ENV DD_TRACE_HEADER_TAGS=user-agent
 ENV RAILS_ENV=production
 ENV RAILS_MASTER_KEY=9d319c57ec128e905d9e2ce5742bf2de
