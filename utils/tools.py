@@ -32,7 +32,7 @@ def update_environ_with_local_env() -> None:
                 line = re.sub(r"(.*)#.$", r"\1", line)
                 line = re.sub(r"^(export +)(.*)$", r"\2", line)
                 if "=" in line:
-                    items = line.split("=")
+                    items = line.split("=", 1)
                     _logger.debug(f"adding {items[0]} in environ")
                     os.environ[items[0]] = items[1]
 

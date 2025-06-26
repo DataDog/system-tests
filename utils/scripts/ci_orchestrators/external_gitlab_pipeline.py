@@ -9,6 +9,7 @@ ALLOWED_VARIABLES = [
     "DD_INSTALLER_LIBRARY_VERSION",
     "K8S_INJECTOR_IMG",
     "DD_INSTALLER_INJECTOR_VERSION",
+    "SYSTEM_TESTS_REF",
 ]
 
 LANG_STAGES = ["java", "python", "nodejs", "dotnet", "ruby", "php"]

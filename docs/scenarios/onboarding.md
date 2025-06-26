@@ -18,6 +18,7 @@
    * [Run the scenario manually](#run-the-scenario-manually)
 3. [How to develop tests](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
+   * [Define a new virtual machine](#Create-a-new-virtual-machine)
    * [Create a new provision](#Create-a-new-provision)
    * [Create a new weblog](#Create-a-new-weblog)
    * [Create a new test case](#Create-a-new-test-case)
@@ -26,7 +27,7 @@
 
 # Overall
 
-Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies the APM onboarding experience for customers auto-intrumenting Java, Python, Node.js, .NET, PHP or Ruby applications running on host or in docker environments.
+Similarly to Library Injection in Kubernetes environments via the admission controller, Library injection simplifies, also called SSI (Single Step Instrumentation) the APM onboarding experience for customers auto-intrumenting Java, Python, Node.js, .NET, PHP or Ruby applications running on host or in docker environments.
 
 The target of this testing feature is to test the distinct injection environments.
 
@@ -180,6 +181,8 @@ Some properties of the provisions in system-tests are as follows:
 * All provisions may define their own installation steps, but they must contain some mandatory definition steps. For example, all provisions must define a step that extracts the names and versions of installed components we want to test.
 * The same provision must be able to be installed on different operating systems and architectures.
 
+For a comprehensive understanding of the provision system, including detailed examples and troubleshooting tips, see the [Provisions Documentation](onboarding_provision_section.md).
+
 This is an example of provision file:
 
 ```yaml
@@ -250,6 +253,8 @@ install-agent:
       remote-command: |
         REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://s3.amazonaws.com/dd-agent/scripts/install_script_agent7.sh)"
 ```
+
+For more details about provisions, including examples for each section, advanced targeting options, and troubleshooting tips, see the [Provisions Documentation](onboarding_provision_section.md).
 
 Some of the sections listed above are detailed as follows:
 
@@ -323,7 +328,7 @@ We currently support two providers:
 We can find the available providers in the folder: `utils/virtual_machine.`
 The common interface that implemets all the existing providers is: `utils/virtual_machine/virtual_machine_provider.py`.
 
-# Run the tests
+# Run the AWS SSI tests
 
 ## Prerequisites
 
@@ -438,6 +443,12 @@ export ONBOARDING_LOCAL_TEST="true"
 ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
 ```
 
+The following line shows an example of command line to run the tests on a secure environment using 'aws-vault':
+
+```bash
+ aws-vault exec sso-sandbox-account-admin -- ./run.sh SIMPLE_INSTALLER_AUTO_INJECTION --vm-weblog test-app-nodejs --vm-env dev --vm-library nodejs --vm-provider aws --vm-only Ubuntu_22_amd64
+ ```
+
 # How to develop tests
 
 Developing new tests might involve one or several operations:
@@ -464,6 +475,137 @@ The following picture shows the main directories for the SSI tests:
 * **utils/scripts/ssi_wizards/aws_onboarding_wizard.sh:** Shell wizard to run the tests.
 * **utils/scripts/ci_orchestrators/aws_ssi.json**: Tests matrix definition.
 * **.gitlab-ci.yml:** These tests are launched on GitLab.
+
+## Define a new virtual machine
+
+Your AWS virtual machines are defined in the `virtual_machines.json` file. To add a new VM:
+
+1. Open the file located at:
+   ```
+   utils/virtual_machine/virtual_machines.json
+   ```
+
+2. Add a new entry following this format:
+
+   - **AMI ID**: Ensure you use a valid AWS AMI ID for your region.
+   - **Instance Type**: Choose the correct size based on performance needs.
+   - Use `os_type`, `os_distro`, `os_branch`, and `os_cpu` to group/classify the machine.
+
+Example:
+
+```json
+{
+  "name": "Ubuntu_24_amd64",
+  "aws_config": {
+    "ami_id": "ami-0e86e20dae9224db8",
+    "ami_instance_type": "t3.medium",
+    "user": "ubuntu"
+  },
+  "os_type": "linux",
+  "os_distro": "deb",
+  "os_branch": "ubuntu24",
+  "os_cpu": "amd64",
+  "default_vm": true,
+  "disabled": false
+}
+```
+
+---
+
+**NOTE:**
+
+After create a new virtual machine you should define which weblogs are compatible for this new machine.
+
+---
+
+---
+
+## Configuring Weblog Compatibility for a New AWS Virtual Machine
+
+By default, when you add a new machine, the `system-tests` framework tries to use it for all the existing scenarios and weblog combinations.
+
+You can specify weblog incompatibilities by editing the `aws_ssi.json` file located at:
+```
+utils/script/ci_orchestrators/aws_ssi.json
+```
+
+This file contains the mappings between weblogs and VMs through `excluded_os_branches`, `excluded_os_names`, and `exact_os_branches` properties for each weblog:
+* excluded_os_branches: Mark as incompatible the VMs with this value in the field `os_branch`
+* excluded_os_names: Mark as incompatible the VMs with this value in the field `name`
+* exact_os_branches: Mark a weblog to be compatible only with VMS with this value in the field `os_branch`. Note that if you add this field “exact_os_branches”, you will be forcing the weblog to run only for the virtual machines that meet this criterion. You may be overriding other VMs on which this weblog previously ran.
+By default if in you don't specify any of these 3 properties (`excluded_os_branches`, `excluded_os_names`, and `exact_os_branches`) for a weblog defined under the field `weblogs_spec`, the weblog is going to be compatible with all the VMs.
+
+The easiest mechanism to configure the weblog compatibility for a new AWS Virtual Machine is using the helper script:
+```
+utils/scripts/ssi_wizards/tools/vm_compatibility_checker.py <VM NAME>
+```
+
+---
+
+**NOTE:**
+
+If you are defining a new weblog you will have to add it to the file `aws_ssi.json`, specifying in which scenarios this new weblog will run.
+
+---
+
+### Scenario and Weblog Relationships
+
+Here’s an example of the relationship between scenarios and weblogs:
+
+```json
+{
+  "scenarios": [
+    "INSTALLER_AUTO_INJECTION"
+  ],
+  "weblogs": [
+    {
+      "java": [
+        "test-app-java",
+        "test-app-java-container"
+      ],
+      "python": [
+        "test-app-python",
+        "test-app-python-container"
+      ]
+    }
+  ]
+}
+```
+
+### Weblog and Virtual Machine Relationships
+
+The relationship between weblogs and virtual machines (`weblogs_spec`) is set as follows:
+
+```json
+"weblogs_spec": {
+  "nodejs": [
+    {
+      "name": "demo-app",
+      "excluded_os_branches": [
+        "windows"
+      ]
+    },
+    {
+      "name": "test-app-nodejs",
+      "excluded_os_branches": [
+        "ubuntu22_amd64",
+        "ubuntu22_arm64",
+        "ubuntu21",
+        "ubuntu20_arm64",
+        "ubuntu20_amd64",
+        "centos_7_amd64",
+        "rhel_7_amd64",
+        "amazon_linux2",
+        "windows"
+      ],
+      "excluded_os_names": [
+        "Debian_11_amd64",
+        "Debian_11_arm64"
+      ]
+    }
+  ]
+}
+
 
 ## Create a new provision
 

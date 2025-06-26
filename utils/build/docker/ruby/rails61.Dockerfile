@@ -7,8 +7,6 @@ COPY utils/build/docker/ruby/rails61/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-RUN yarn install --check-files
-
 ENV DD_TRACE_HEADER_TAGS=user-agent
 ENV RAILS_ENV=production
 ENV RAILS_MASTER_KEY=9d319c57ec128e905d9e2ce5742bf2de

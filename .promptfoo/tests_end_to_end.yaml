@@ -1,0 +1,57 @@
+  - description: "[End-to-End] Create new weblog for Node.js"
+    vars:
+      user_prompt: "I want to create a new end to end weblog for nodejs using fastify."
+    assert:
+        - type: icontains-all
+          value:
+            - "utils/build/docker/nodejs/install_ddtrace.sh"
+            - "fastify.Dockerfile"
+            - "7777"
+            - "help you implement"
+            - "specific endpoints"
+
+  - description: "[End-to-End] Find scenarios with specific endpoint"
+    vars:
+      user_prompt: "what end to end scenarios include the endpoint /shell_execution"
+    assert:
+        - type: icontains-all
+          value:
+            - "test_shell_execution.py"
+            - "Default"
+            - "APPSEC_RASP"
+            - "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"
+
+  - description: "[End-to-End] Create new scenario - general inquiry"
+    vars:
+      user_prompt: "I want to create a new scenario with name \"not_sure_scenario\""
+    assert:
+        - type: icontains-any
+          value:
+            - "End-to-End"
+            - "parametric"
+            - "ssi"
+        - type: icontains-any
+          value:
+            - "kubernetes"
+            - "k8s"
+
+  - description: "[End-to-End] Create new AppSec scenario with environment variables"
+    vars:
+      user_prompt: "I want to create a new scenario called \"my_new_appsec_scenario\" that populates these env variables into the weblog: \"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP\": \"hide-key\", \"DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP\": \".*hide_value\""
+    assert:
+        - type: icontains-all
+          value:
+            - "utils/_context/_scenarios/__init__.py"
+            - "EndToEndScenario"
+            - "weblog_env"
+
+  - description: "[End-to-End] Create test case for AppSec scenario with validation"
+    vars:
+      user_prompt: "I want to create a new test case for the new scenario \"my_new_appsec_scenario\" that perform a request to /waf endpoint with header that it's key it should be obfuscated. validate in the library interface that key doesn't appear in the appsec data/messages"
+    assert:
+        - type: icontains-all
+          value:
+            - "scenarios.my_new_appsec_scenario"
+            - "nested_lookup"
+            - "assert_waf_attack"
+            - "interfaces.library"

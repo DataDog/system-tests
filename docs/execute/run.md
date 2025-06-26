@@ -1,6 +1,6 @@
 `run.sh` accepts several options:
 
-## Run all tests
+## Run all tests using the DEFAULT scenario
 
 ```bash
 ./run.sh

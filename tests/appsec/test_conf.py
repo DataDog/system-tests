@@ -97,3 +97,30 @@ class Test_ConfigurationVariables:
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
         interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
+@features.threats_configuration
+@scenarios.appsec_blocking
+class Test_ConfigurationVariables_New_Obfuscation:
+    """Check for new obfuscation features in libddwaf 1.25.0 and later
+    Requires libddwaf 1.25.0 or later and updated obfuscation regex for values
+    """
+
+    SECRET_WITH_HIDDEN_VALUE = "hide_value"
+
+    def setup_partial_obfuscation_parameter_value(self):
+        self.r_op_value = weblog.get(f"/.git?password={self.SECRET_WITH_HIDDEN_VALUE}")
+
+    @missing_feature(context.library <= "ruby@1.0.0")
+    def test_partial_obfuscation_parameter_value(self):
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+            assert not nested_lookup(
+                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
+
+        # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
+        interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)

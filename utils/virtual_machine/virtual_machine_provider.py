@@ -98,20 +98,22 @@ class VmProvider:
         # (we are going to copy weblog sources from git instead from local machine)
         # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
         # Proabably we need to change this in the future, and translate this logic to the pipelines or another class
-        ci_commit_branch = os.getenv("GITLAB_CI")
-        if ci_commit_branch:
-            ci_commit_branch = (
-                os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
-            )
-            logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
-            last_task = self.commander.remote_command(
-                vm,
-                "checkout_branch",
-                f"cd system-tests && git reset --hard HEAD && git stash && git pull && git stash && git checkout {ci_commit_branch}",
-                vm.get_command_environment(),
-                server_connection,
-                last_task,
-            )
+        # Not for windows, because we don't have git installed on windows
+        if vm.os_type != "windows":
+            ci_commit_branch = os.getenv("GITLAB_CI")
+            if ci_commit_branch:
+                ci_commit_branch = (
+                    os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
+                )
+                logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
+                last_task = self.commander.remote_command(
+                    vm,
+                    "checkout_branch",
+                    f"cd system-tests && git reset --hard HEAD && git stash && git pull && git stash && git checkout {ci_commit_branch}",
+                    vm.get_command_environment(),
+                    server_connection,
+                    last_task,
+                )
 
         # Finally install weblog
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
