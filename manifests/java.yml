@@ -3,7 +3,7 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
-        '*': v0.1  # real version not known
+        '*': v0.2.0  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -14,7 +14,7 @@ tests/:
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
     test_single_span.py:
       Test_SingleSpan:
-        '*': v0.1  # real version not known
+        '*': v0.2.0  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -1869,15 +1869,15 @@ tests/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
@@ -1885,10 +1885,10 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (APMAPI-729)
     test_db_integrations_sql.py:
@@ -1906,10 +1906,10 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         "*": irrelevant
-        spring-boot: v0.1  # version unknown
+        spring-boot: v0.2.0  # version unknown
       Test_DsmContext_Injection_Base64:
         "*": irrelevant
-        spring-boot: v0.1  # version unknown
+        spring-boot: v0.2.0  # version unknown
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1
@@ -1933,7 +1933,7 @@ tests/:
         spring-boot: v1.38.0
       Test_DsmSQS:
         "*": irrelevant
-        spring-boot: v0.1  # real version not known
+        spring-boot: v0.2.0  # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
@@ -2012,16 +2012,16 @@ tests/:
       Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
-      Test_Trace_Sampling_Globs: v1.25.0
+      Test_Trace_Sampling_Globs: v1.25.1
       Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
-      Test_Trace_Sampling_Resource: v1.25.0
+      Test_Trace_Sampling_Resource: v1.25.1
       Test_Trace_Sampling_Tags: v1.26.0
       Test_Trace_Sampling_Tags_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_With_W3C: v1.26.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:
-      TestTracerFlareV1: v1.25.0
+      TestTracerFlareV1: v1.25.1
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices:
@@ -2055,7 +2055,7 @@ tests/:
       Test_Client_Stats: missing_feature
   test_the_test/:
     test_json_report.py:
-      Test_Mock: v0.0.99
+      Test_Mock: v0.2.1
       Test_NotReleased: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic:
