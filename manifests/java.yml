@@ -3,7 +3,7 @@ tests/:
   apm_tracing_e2e/:
     test_otel.py:
       Test_Otel_Span:
-        '*': v0.1  # real version not known
+        '*': v0.2.0  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -14,7 +14,7 @@ tests/:
         vertx4: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
     test_single_span.py:
       Test_SingleSpan:
-        '*': v0.1  # real version not known
+        '*': v0.2.0  # real version not known
         akka-http: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         jersey-grizzly2: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
         play: missing_feature (/e2e_single_span endpoint is only implemented in Java Spring Boot at the moment)
@@ -76,6 +76,7 @@ tests/:
           akka-http: bug (APPSEC-56888)
           play: bug (APPSEC-56869)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          spring-boot-payara: bug (APPSEC-57921)
           vertx3: bug (APPSEC-56870)
           vertx4: bug (APPSEC-56871)
         Test_Schema_Request_Cookies:
@@ -127,6 +128,7 @@ tests/:
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: missing_feature
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -1444,6 +1446,7 @@ tests/:
         '*': v0.100.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
       Test_ConfRuleSet:
         '*': v0.93.0
@@ -1487,28 +1490,46 @@ tests/:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_UserLoginFailureEventV2_Libddwaf:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginFailureEventV2_Metrics:
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginFailureEventV2_Tags:
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginSuccessEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_UserLoginSuccessEventV2_Libddwaf:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginSuccessEventV2_Metrics:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-      Test_UserLoginSuccessEventV2_Tags:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        '*': v1.48.0
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
@@ -1517,8 +1538,10 @@ tests/:
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_extended_request_body_collection.py:
       Test_ExtendedRequestBodyCollection:
-        '*': missing_feature
+        '*': v1.50.0-SNAPSHOT
+        akka-http: missing_feature (APPSEC-56196)
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        spring-boot-payara: missing_feature (APPSEC-54966)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
@@ -1601,6 +1624,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1645,6 +1669,9 @@ tests/:
         akka-http: v1.22.0
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
@@ -1660,6 +1687,9 @@ tests/:
       Test_Suspicious_Attacker_Blocking:
         '*': v1.39.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
@@ -1711,8 +1741,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
-        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        spring-boot: v1.50.0
+        uds-spring-boot: v1.50.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -1839,15 +1869,15 @@ tests/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
@@ -1855,10 +1885,10 @@ tests/:
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          spring-boot: v0.1  # real version not known
+          spring-boot: v0.2.0  # real version not known
     test_cassandra.py:
       Test_Cassandra: bug (APMAPI-729)
     test_db_integrations_sql.py:
@@ -1876,10 +1906,10 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         "*": irrelevant
-        spring-boot: v0.1  # version unknown
+        spring-boot: v0.2.0  # version unknown
       Test_DsmContext_Injection_Base64:
         "*": irrelevant
-        spring-boot: v0.1  # version unknown
+        spring-boot: v0.2.0  # version unknown
       Test_DsmHttp:
         '*': missing_feature
         spring-boot: v1.12.1
@@ -1903,7 +1933,7 @@ tests/:
         spring-boot: v1.38.0
       Test_DsmSQS:
         "*": irrelevant
-        spring-boot: v0.1  # real version not known
+        spring-boot: v0.2.0  # real version not known
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
         spring-boot: bug (AIDM-325)
@@ -1913,13 +1943,13 @@ tests/:
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         "*": irrelevant
-        spring-boot: v1.50.0
+        spring-boot: missing_feature (feature not completed yet)
     test_mongo.py:
       Test_Mongo: bug (APMAPI-729)
     test_otel_drop_in.py:
@@ -1956,6 +1986,7 @@ tests/:
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.35.2
@@ -1981,20 +2012,23 @@ tests/:
       Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v0.111.0
-      Test_Trace_Sampling_Globs: v1.25.0
+      Test_Trace_Sampling_Globs: v1.25.1
       Test_Trace_Sampling_Globs_Feb2024_Revision: v1.30.0
-      Test_Trace_Sampling_Resource: v1.25.0
+      Test_Trace_Sampling_Resource: v1.25.1
       Test_Trace_Sampling_Tags: v1.26.0
       Test_Trace_Sampling_Tags_Feb2024_Revision: v1.30.0
       Test_Trace_Sampling_With_W3C: v1.26.0
     test_tracer.py:
       Test_TracerSCITagging: v1.12.0
     test_tracer_flare.py:
-      TestTracerFlareV1: v1.25.0
+      TestTracerFlareV1: v1.25.1
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices:
         '*': v1.31.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_RemoteConfigurationSemVer:
+        '*': v1.4.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_RemoteConfigurationUpdateSequenceASMDD:
         '*': v1.4.0
@@ -2021,15 +2055,27 @@ tests/:
       Test_Client_Stats: missing_feature
   test_the_test/:
     test_json_report.py:
-      Test_Mock: v0.0.99
+      Test_Mock: v0.2.1
       Test_NotReleased: missing_feature
   test_baggage.py:
-    Test_Baggage_Headers_Basic: v1.50.0
-    Test_Baggage_Headers_Malformed: v1.50.0
-    Test_Baggage_Headers_Malformed2: v1.50.0
-    Test_Baggage_Headers_Max_Bytes: v1.50.0
-    Test_Baggage_Headers_Max_Items: v1.50.0
-    Test_Only_Baggage_Header: v1.50.0
+    Test_Baggage_Headers_Basic:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
+    Test_Baggage_Headers_Malformed:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
+    Test_Baggage_Headers_Malformed2:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
+    Test_Baggage_Headers_Max_Bytes:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
+    Test_Baggage_Headers_Max_Items:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
+    Test_Only_Baggage_Header:
+      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot: v1.50.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0
@@ -2108,10 +2154,18 @@ tests/:
       '*': v0.111.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
-    Test_ExtractBehavior_Default: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Ignore: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Restart: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_ExtractBehavior_Restart_With_Extract_First: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_ExtractBehavior_Default:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
+    Test_ExtractBehavior_Ignore:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: bug (APMAPI-1443)
+    Test_ExtractBehavior_Restart:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
+    Test_ExtractBehavior_Restart_With_Extract_First:
+      '*': incomplete_test_app (weblog endpoint not implemented)
+      spring-boot: v1.48.0
     Test_HeaderTags:
       '*': v1.35.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -2192,5 +2246,6 @@ tests/:
     Test_Telemetry:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0

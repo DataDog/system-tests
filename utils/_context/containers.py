@@ -526,7 +526,12 @@ class ImageInfo:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
-            self._image = _get_client().images.pull(self.name)
+            try:
+                self._image = _get_client().images.pull(self.name)
+            except docker.errors.ImageNotFound:
+                # Sometimes pull returns ImageNotFound, internal race?
+                time.sleep(5)
+                self._image = _get_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
 
@@ -538,13 +543,13 @@ class ImageInfo:
 
     def _init_from_attrs(self, attrs: dict):
         self.env = {}
-
         for var in attrs["Config"]["Env"]:
             key, value = var.split("=", 1)
             if value:
                 self.env[key] = value
 
-        self.labels = attrs["Config"]["Labels"]
+        if "Labels" in attrs["Config"]:
+            self.labels = attrs["Config"]["Labels"]
 
     def save_image_info(self, dir_path: str):
         with open(f"{dir_path}/image.json", encoding="utf-8", mode="w") as f:
@@ -568,6 +573,10 @@ class ProxyContainer(TestedContainer):
 
         """
 
+        # Adjust healthcheck for IPv6 scenarios
+        host_target = "::1" if enable_ipv6 else "localhost"
+        socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
+
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
@@ -589,6 +598,10 @@ class ProxyContainer(TestedContainer):
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
+            healthcheck={
+                "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
+                "retries": 30,
+            },
         )
 
 
@@ -616,7 +629,7 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
-            image_name="system_tests/agent",
+            image_name=self._get_image_name(),
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
@@ -625,22 +638,24 @@ class AgentContainer(TestedContainer):
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,
-            local_image_only=True,
+            volumes={
+                # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
+            },
         )
 
         self.agent_version: str | None = ""
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
+    def _get_image_name(self) -> str:
         try:
             with open("binaries/agent-image", encoding="utf-8") as f:
-                return [
-                    f.read().strip(),
-                ]
+                return f.read().strip()
         except FileNotFoundError:
-            # not the cleanest way to do it, but we save ARG parsing
-            return [
-                "datadog/agent:latest",
-            ]
+            return "datadog/agent:latest"
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -796,6 +811,8 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
+            base_environment["DD_IAST_VULNERABILITIES_PER_REQUEST"] = "10"
+            base_environment["DD_IAST_MAX_CONTEXT_OPERATIONS"] = "10"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
@@ -1368,7 +1385,7 @@ class ExternalProcessingContainer(TestedContainer):
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:system-tests-latest"
 
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",

@@ -341,6 +341,9 @@ class EndToEndScenario(DockerScenario):
         self.weblog_container.depends_on.append(self.agent_container)
         self.weblog_container.depends_on.extend(self._supporting_containers)
 
+        if use_proxy_for_weblog:
+            self.weblog_container.depends_on.append(self.proxy_container)
+
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)
@@ -576,13 +579,12 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/debugger/v1/diagnostics",
-            #     data_path="$",
-            #     condition=context.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
             _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
@@ -649,13 +651,12 @@ class EndToEndScenario(DockerScenario):
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
-            # deactivated to get a new occurence of the bug
-            # _SchemaBug(
-            #     endpoint="/api/v2/debugger",
-            #     data_path="$",
-            #     condition=self.library > "nodejs@5.36.0",
-            #     ticket="DEBUG-3487",
-            # ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",

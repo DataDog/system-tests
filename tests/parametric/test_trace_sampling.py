@@ -5,6 +5,7 @@ import random
 
 from utils.parametric.spec.trace import find_only_span, find_span_in_traces
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
+from utils.parametric.spec.trace import MANUAL_KEEP_KEY
 from utils import rfc, scenarios, missing_feature, flaky, features, bug, context
 
 
@@ -60,6 +61,7 @@ class Test_Trace_Sampling_Basic:
                 "DD_TRACE_SAMPLING_RULES": json.dumps(
                     [{"service": "webserver", "name": "web.request", "sample_rate": 0}]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -84,9 +86,9 @@ class Test_Trace_Sampling_Basic:
         ],
     )
     def test_trace_kept_in_spite_trace_sampling_rule(self, test_agent, test_library):
-        """Test that a trace is being kept with manual.keep depite of the matching defined trace sampling rule"""
+        """Test that a trace is being kept with manual.keep despite of the matching defined trace sampling rule"""
         with test_library, test_library.dd_start_span(name="web.request", service="webserver") as s1:
-            s1.set_metric("sampling.priority", 2)
+            s1.set_meta(MANUAL_KEEP_KEY, "1")
             s1.set_meta("resource.name", "drop-me")
         span = find_only_span(test_agent.wait_for_num_traces(1))
 
@@ -182,6 +184,7 @@ class Test_Trace_Sampling_Globs:
             {
                 "DD_TRACE_SAMPLE_RATE": 1,
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"service": "w?bs?rv?r", "name": "web.*", "sample_rate": 0}]),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -321,6 +324,7 @@ class Test_Trace_Sampling_Resource:
                         {"service": "webserver", "name": "web.request", "resource": "/bar", "sample_rate": 0},
                     ]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -407,6 +411,7 @@ class Test_Trace_Sampling_Tags:
                         {"tags": {"tag1": "v?l1", "tag2": "val*"}, "sample_rate": 0},
                     ]
                 ),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             },
         ],
     )
@@ -427,6 +432,7 @@ def tag_sampling_env(tag_glob_pattern):
         "DD_TRACE_SAMPLING_RULES": json.dumps(
             [{"tags": {"tag": tag_glob_pattern}, "sample_rate": 1.0}, {"sample_rate": 0}]
         ),
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
     }
 
 

@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from contextlib import contextmanager
 import json
 from http import HTTPStatus
 import os
@@ -10,6 +11,7 @@ import string
 import urllib
 import re
 from typing import Any
+from collections.abc import Generator
 
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -94,7 +96,7 @@ class HttpResponse:
 
 # TODO : this should be build by weblog container
 class _Weblog:
-    def __init__(self):
+    def __init__(self, session: requests.Session | None = None):
         if "SYSTEM_TESTS_WEBLOG_PORT" in os.environ:
             self.port = int(os.environ["SYSTEM_TESTS_WEBLOG_PORT"])
         else:
@@ -115,6 +117,11 @@ class _Weblog:
                 self.domain = "localhost"
         else:
             self.domain = "localhost"
+
+        # this is used by the get_session method to create a new session
+        # it helps to write tests that requires several requests to be sent
+        # to the same thread in the weblog webserver
+        self._session = session
 
     def get(
         self,
@@ -182,7 +189,7 @@ class _Weblog:
         data: dict | str | bytes | None = None,
         json: dict | list | None = None,
         files: dict | None = None,
-        headers: dict | None = None,
+        headers: dict[str, str] | None = None,
         cookies: dict | None = None,
         stream: bool | None = None,
         domain: str | None = None,
@@ -223,7 +230,7 @@ class _Weblog:
             r.url = url
             logger.debug(f"Sending request {rid}: {method} {url}")
 
-            s = requests.Session()
+            s = requests.Session() if self._session is None else self._session
             response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
             status_code = response.status_code
             response_headers = response.headers
@@ -297,6 +304,11 @@ class _Weblog:
             logger.error(f"Request {rid} raise an error: {e}")
 
         return GrpcResponse({"request": {"rid": rid, "string_value": string_value}, "response": response_data})
+
+    @contextmanager
+    def get_session(self) -> Generator["_Weblog", None, None]:
+        with requests.Session() as session:
+            yield _Weblog(session)
 
 
 weblog = _Weblog()

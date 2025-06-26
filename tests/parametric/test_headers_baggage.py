@@ -1,6 +1,6 @@
 from utils._decorators import irrelevant
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, context, missing_feature
+from utils import features, scenarios, context
 
 import pytest
 
@@ -17,6 +17,41 @@ def disable_baggage() -> pytest.MarkDecorator:
 def only_baggage_enabled() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "baggage",
+    }
+    return parametrize("library_env", [env])
+
+
+def specify_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "session.id,foo",
+    }
+    return parametrize("library_env", [env])
+
+
+def specify_span_tags_with_asterisk() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "account.id,feature*flag",
+    }
+    return parametrize("library_env", [env])
+
+
+def all_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "*",
+    }
+    return parametrize("library_env", [env])
+
+
+def disable_span_tags() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "",
+    }
+    return parametrize("library_env", [env])
+
+
+def span_tag_config() -> pytest.MarkDecorator:
+    env = {
+        "DD_TRACE_BAGGAGE_TAG_KEYS": "account.id,,",
     }
     return parametrize("library_env", [env])
 
@@ -38,7 +73,6 @@ class Test_Headers_Baggage:
         assert headers["baggage"] == "foo=bar"
 
     @only_baggage_enabled()
-    @missing_feature(context.library == "nodejs", reason="pausing on this feature to avoid app crashes")
     def test_headers_baggage_only_D002(self, test_library):
         """Ensure that only baggage headers are injected when baggage is the only enabled propagation style."""
         with test_library:
@@ -89,9 +123,6 @@ class Test_Headers_Baggage:
         assert "serverNode=DF%2028" in baggage_items
         assert "%22%2C%3B%5C%28%29%2F%3A%3C%3D%3E%3F%40%5B%5D%7B%7D=%22%2C%3B%5C" in baggage_items
 
-    @missing_feature(
-        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
-    )
     def test_baggage_extract_header_D005(self, test_library):
         """Testing baggage header extraction and decoding"""
 
@@ -141,9 +172,6 @@ class Test_Headers_Baggage:
             headers = test_library.dd_inject_headers(span.span_id)
         assert not any("baggage" in item for item in headers)
 
-    @missing_feature(
-        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
-    )
     def test_baggage_get_D008(self, test_library):
         """Testing baggage API get_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
@@ -156,9 +184,6 @@ class Test_Headers_Baggage:
             assert span.get_baggage("userId") == "Amélie"
             assert span.get_baggage("serverNode") == "DF 28"
 
-    @missing_feature(
-        context.library == "nodejs", reason="`dd_extract_headers_and_make_child_span` does not work with only baggage"
-    )
     def test_baggage_get_all_D009(self, test_library):
         """Testing baggage API get_all_baggage"""
         with test_library.dd_extract_headers_and_make_child_span(
@@ -198,10 +223,6 @@ class Test_Headers_Baggage:
             headers = test_library.dd_make_child_span_and_get_headers([["baggage", "foo=valid"]])
             assert "baggage" in headers
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
-    )
     def test_baggage_malformed_headers_D012(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -213,10 +234,6 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
-    )
     def test_baggage_malformed_headers_D013(self, test_library):
         """Ensure that malformed baggage headers are handled properly. Unable to use get_baggage functions because it does not return anything"""
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
@@ -226,10 +243,6 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
-    )
     def test_baggage_malformed_headers_D014(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
 
@@ -238,10 +251,6 @@ class Test_Headers_Baggage:
 
             assert "baggage" not in headers
 
-    @missing_feature(
-        context.library == "nodejs",
-        reason="`dd_make_child_span_and_get_headers` calls `dd_extract_headers_and_make_child_span`, which does not work with only baggage",
-    )
     def test_baggage_malformed_headers_D015(self, test_library):
         Test_Headers_Baggage._assert_valid_baggage(self, test_library)
 
@@ -287,3 +296,138 @@ class Test_Headers_Baggage:
             header_size = len(baggage_header[1].encode("utf-8"))
             assert len(items) == 2
             assert header_size <= max_bytes
+
+
+@features.baggage_span_tags
+@scenarios.parametric
+class Test_Headers_Baggage_Span_Tags:
+    def test_baggage_span_tags_default(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,session.id=mysession,foo=bar"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") == "doggo"
+        assert meta.get("baggage.session.id") == "mysession"
+        assert meta.get("baggage.foo") is None
+
+    @specify_span_tags()
+    def test_baggage_span_tags_specific_keys(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,session.id=fakesession,account.id=123,foo=bar"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") == "fakesession"
+        assert meta.get("baggage.foo") == "bar"
+        assert meta.get("baggage.account.id") is None
+
+    @all_span_tags()
+    def test_baggage_span_tags_all(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=bits,session.id=mysession,account.id=9871,serverNode=DF 28,region=us-east-1"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") == "bits"
+        assert meta.get("baggage.session.id") == "mysession"
+        assert meta.get("baggage.account.id") == "9871"
+        assert meta.get("baggage.serverNode") == "DF 28"
+        assert meta.get("baggage.region") == "us-east-1"
+
+    def test_baggage_span_tags_malformed_header(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=,session.id=mysession,account.id=abcd"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        # if a header is malformed, all items get dropped
+        # therefore, there are no baggage tags
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") is None
+        assert meta.get("baggage.account.id") is None
+
+    @disable_span_tags()
+    def test_baggage_span_tags_disabled(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=alice,session.id=xyz123,locale=en-US,account.id=12345"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.session.id") is None
+        assert meta.get("baggage.account.id") is None
+        assert meta.get("baggage.locale") is None
+
+    @specify_span_tags_with_asterisk()
+    def test_baggage_span_tags_key_with_asterisk(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "user.id=doggo,account.id=testaccount,foo=bar,feature*flag=xyz"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.user.id") is None
+        assert meta.get("baggage.account.id") == "testaccount"
+        assert meta.get("baggage.foo") is None
+        assert meta.get("baggage.feature*flag") == "xyz"
+
+    @span_tag_config()
+    def test_baggage_span_tags_config_with_empty_keys(self, test_agent, test_library):
+        with test_library:
+            _ = test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "987654321"],
+                    ["baggage", "account.id=12345,foo=bar,test=config"],
+                ]
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        meta = span.get("meta")
+        assert meta is not None
+        assert meta.get("baggage.account.id") == "12345"
+        assert meta.get("baggage.foo") is None
+        assert meta.get("baggage.test") is None

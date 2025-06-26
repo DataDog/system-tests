@@ -72,6 +72,7 @@ class CiData:
             and library not in ("cpp_nginx", "cpp_httpd"),
         }
 
+        self.data["externalprocessing"] = {"scenarios": scenario_map.get("externalprocessing", [])}
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),

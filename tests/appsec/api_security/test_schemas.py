@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger
+from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
 
 
 def get_schema(request, address):
@@ -73,6 +73,7 @@ class Test_Schema_Request_Cookies:
         )
 
     @missing_feature(context.library < "python@1.19.0.dev")
+    @flaky(context.library == "java" and context.weblog_variant == "spring-boot-jetty", reason="APPSEC-58008")
     def test_request_method(self):
         """Can provide request header schema"""
         schema = get_schema(self.request, "req.cookies")
@@ -231,6 +232,38 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
+@scenarios.appsec_api_security
+@features.api_security_schemas
+class Test_Schema_Response_on_Block:
+    """Test API Security - Response Schemas with urlencoded body
+    Check that response body schema is only sent when the request is not blocked
+    """
+
+    def setup_request_method(self):
+        self.request_noblock = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+        )
+        self.request = weblog.post(
+            "/tag_value/payload_in_response_body_001/200",
+            data={"test_int": 1, "test_str": "anything", "test_bool": True, "test_float": 1.5234},
+            headers={"user-agent": "dd-test-scanner-log-block"},
+        )
+
+    def test_request_method(self):
+        """Can provide response body schema"""
+        assert self.request_noblock.status_code == 200
+        assert self.request.status_code == 403
+
+        schema = get_schema(self.request_noblock, "res.body")
+        assert schema is not None, "_dd.appsec.s.res.body meta tag should be present"
+        schema = get_schema(self.request, "res.body")
+        assert schema is None, f"_dd.appsec.s.res.body meta tag should not be present, got {schema}"
+        schema = get_schema(self.request, "res.headers")
+        assert schema is None, f"_dd.appsec.s.res.headers meta tag should not be present, got {schema}"
+
+
+@rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
 @scenarios.appsec_api_security_no_response_body
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
@@ -281,7 +314,7 @@ class Test_Scanners:
         assert isinstance(schema_cookies, list)
         # some tracers report headers / cookies values as lists even if there's just one element (frameworks do)
         # in this case, the second case of expected variables below would pass
-        expcted_cookies: list[dict] = [
+        expected_cookies: list[dict] = [
             {
                 "SSN": [8, {"category": "pii", "type": "us_ssn"}],
                 "authorization": [8],
@@ -293,14 +326,14 @@ class Test_Scanners:
                 "mastercard": [[[8, {"card_type": "mastercard", "type": "card", "category": "payment"}]], {"len": 1}],
             },
         ]
-        expcted_headers: list[dict] = [
+        expected_headers: list[dict] = [
             {"authorization": [8, {"category": "credentials", "type": "digest_auth"}]},
             {"authorization": [[[8, {"category": "credentials", "type": "digest_auth"}]], {"len": 1}]},
         ]
 
         for schema, expected in [
-            (schema_cookies[0], expcted_cookies),
-            (schema_headers[0], expcted_headers),
+            (schema_cookies[0], expected_cookies),
+            (schema_headers[0], expected_headers),
         ]:
             for key in expected[0]:
                 assert key in schema

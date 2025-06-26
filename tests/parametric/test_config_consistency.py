@@ -261,7 +261,14 @@ class Test_Config_RateLimit:
 
     @parametrize(
         "library_env",
-        [{"DD_TRACE_RATE_LIMIT": "1", "DD_TRACE_SAMPLE_RATE": "1", "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]'}],
+        [
+            {
+                "DD_TRACE_RATE_LIMIT": "1",
+                "DD_TRACE_SAMPLE_RATE": "1",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+            }
+        ],
     )
     def test_setting_trace_rate_limit(self, library_env, test_agent, test_library):
         # In PHP the rate limiter is continuously backfilled, i.e. if the rate limit is 2, and 0.2 seconds have passed, an allowance of 0.4 is backfilled.
@@ -382,7 +389,9 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library != "php"
     else "1",  # Profiling is enabled as "1" by default in PHP if loaded
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": "false" if context.library != "ruby" else "true",  # Enabled by default in ruby
+    "dd_logs_injection": {"ruby": "true", "python": "structured", "nodejs": "structured"}.get(
+        context.library.name, "false"
+    ),  # Enabled by default in ruby, set to None in python
 }
 
 

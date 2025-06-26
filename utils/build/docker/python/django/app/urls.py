@@ -17,6 +17,7 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from moto import mock_aws
@@ -32,6 +33,8 @@ from iast import (
 
 import ddtrace
 from ddtrace import patch_all
+
+from ddtrace.appsec import trace_utils as ato_user_sdk_v1
 
 try:
     from ddtrace.appsec import track_user_sdk
@@ -740,6 +743,34 @@ def view_iast_sampling_by_route_method_2(request, id):
 
 
 @csrf_exempt
+def view_iast_unvalidated_redirect_insecure(request):
+    location = request.POST.get("location")
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure_header(request):
+    location = request.POST.get("location")
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure(request):
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure_header(request):
+    location = "http://dummy.location.com"
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
@@ -750,7 +781,8 @@ def view_iast_source_path_parameter(request, table):
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
+    response.headers._store["Header-Injection".lower()] = ("Header-Injection", header)
+    # This line is deprecated, it's kept for backward compatibility with older versions
     response.headers["Header-Injection"] = header
     return response
 
@@ -759,7 +791,6 @@ def view_iast_header_injection_insecure(request):
 def view_iast_header_injection_secure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
     response.headers["Vary"] = header
     return response
 
@@ -818,16 +849,15 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    track_user_sdk.track_login_success(login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_user_login_success_event(
+        None, login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    track_user_sdk.track_login_failure(
-        login=_TRACK_USER,
-        exists=True,
-        user_id=_TRACK_USER,
-        metadata=_TRACK_METADATA,
+    ato_user_sdk_v1.track_user_login_failure_event(
+        None, login=_TRACK_USER, exists=True, user_id=_TRACK_USER, metadata=_TRACK_METADATA
     )
     return HttpResponse("OK")
 
@@ -917,7 +947,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    track_user_sdk.track_custom_event(event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_custom_event(None, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -1127,8 +1157,14 @@ urlpatterns = [
     path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
     path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
+    path("iast/sampling-by-route-method-count/<str:id>", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>", view_iast_sampling_by_route_method_2),
     path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
     path("iast/sampling-by-route-method-count-2/<str:id>/", view_iast_sampling_by_route_method_2),
+    path("iast/unvalidated_redirect/test_insecure_redirect", view_iast_unvalidated_redirect_insecure),
+    path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
+    path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
+    path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),

@@ -1,0 +1,7 @@
+go 1.23.0
+
+use (
+	./app
+	./app/net-http-orchestrion
+	./parametric
+)

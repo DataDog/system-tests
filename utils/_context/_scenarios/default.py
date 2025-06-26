@@ -51,6 +51,13 @@ class DefaultScenario(EndToEndScenario):
                 "DD_DBM_PROPAGATION_MODE": "service",
                 "SOME_SECRET_ENV": "leaked-env-var",  # used for test that env var are not leaked
                 "DD_EXTERNAL_ENV": "it-false,cn-weblog,pu-75a2b6d5-3949-4afb-ad0d-92ff0674e759",
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+                # API security should be enabled by default soon
+                # though, it conflict with many tests.
+                # ideally, we should keep all defaults setting for the default scenario
+                # but we need proper investigation to see how to properly tests everything
+                # waiting for this audit, we disable API security
+                "DD_API_SECURITY_ENABLED": "false",
             },
             agent_env={"SOME_SECRET_ENV": "leaked-env-var"},
             include_postgres_db=True,

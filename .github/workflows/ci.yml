@@ -9,7 +9,6 @@ on:
     - opened
     - synchronize
     - reopened
-    - labeled
   # push:
   #   branches:
   #   - main
@@ -31,6 +30,8 @@ jobs:
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # need to read releases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -91,7 +92,8 @@ jobs:
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
-      # desired_execution_time: 3600  # 60 minutes
+      enable_replay_scenarios: true
+      desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
 
@@ -109,7 +111,9 @@ jobs:
 
   exotics:
     name: Exotics scenarios
-    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
+    needs:
+      - scenarios
+    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 

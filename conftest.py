@@ -60,12 +60,8 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--k8s-injector-img", type=str, action="store", help="Set injector image on the docker registry")
     parser.addoption("--k8s-weblog-img", type=str, action="store", help="Set test app image on the docker registry")
     parser.addoption(
-        "--k8s-cluster-version", type=str, action="store", help="DEPRECATED. Set the datadog cluster version"
-    )
-    parser.addoption(
         "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
     )
-
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -211,7 +207,7 @@ def _collect_item_metadata(item: pytest.Item):
             # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
             logger.info(f"No parameters found for ${item.nodeid}")
         else:
-            raise ValueError(f"Unexpected test declaration for {item.nodeid} : {details}")
+            pytest.exit(f"Unexpected test declaration for {item.nodeid} : {details}", 1)
 
     return {
         "details": details,

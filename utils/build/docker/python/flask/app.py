@@ -1,3 +1,14 @@
+import os
+
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import ddtrace.auto  # noqa: E402
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
+
+
 import base64
 import http.client
 import json
@@ -33,6 +44,7 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import redirect
 from flask import render_template_string
 from flask import request
 from flask import request as flask_request
@@ -1146,6 +1158,94 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/sampling-by-route-method-count/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method(id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if flask_request.args:
+        param_tainted = flask_request.args.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    elif flask_request.form:
+        param_tainted = flask_request.form.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
+@app.route("/iast/sampling-by-route-method-count-2/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method_2(id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = flask_request.args.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
 @app.route("/iast/source/path/test", methods=["GET", "POST"])
 def view_iast_source_path():
     table = flask_request.path
@@ -1228,6 +1328,34 @@ def view_iast_code_injection_insecure():
     return resp
 
 
+@app.route("/iast/unvalidated_redirect/test_insecure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure():
+    location = flask_request.form["location"]
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure_header():
+    location = flask_request.form["location"]
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
 @app.route("/iast/code_injection/test_secure", methods=["POST"])
 def view_iast_code_injection_secure():
     import operator
@@ -1275,7 +1403,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
@@ -1578,9 +1708,10 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1598,9 +1729,10 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 
