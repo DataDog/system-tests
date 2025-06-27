@@ -3,6 +3,11 @@ FROM ghcr.io/datadog/images-rb/engines/ruby:2.7
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/sinatra14/Gemfile .
+COPY utils/build/docker/ruby/sinatra14/Gemfile.lock .
+RUN bundle install
+
 COPY utils/build/docker/ruby/sinatra14/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

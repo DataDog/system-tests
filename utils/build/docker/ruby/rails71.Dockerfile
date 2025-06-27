@@ -5,6 +5,11 @@ RUN apt-get update && apt-get install -y nodejs npm
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rails71/Gemfile .
+COPY utils/build/docker/ruby/rails71/Gemfile.lock .
+RUN bundle install
+
 COPY utils/build/docker/ruby/rails71/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
