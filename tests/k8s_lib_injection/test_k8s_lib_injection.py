@@ -11,7 +11,7 @@ from utils.onboarding.wait_for_tcp_port import wait_for_port
 @scenarios.k8s_lib_injection_no_ac
 @scenarios.k8s_lib_injection_no_ac_uds
 class TestK8sLibInjection:
-    """Test K8s lib injection."""
+    """Test K8s lib injection"""
 
     @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
     def test_k8s_lib_injection(self):
