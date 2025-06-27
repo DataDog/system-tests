@@ -161,6 +161,14 @@ class ScenarioProvisionUpdater:
             )
             logger.info(f"Updated clusterAgent.admissionController.containerRegistry = {container_registry}")
 
+            # Ensure the image structure exists for clusterAgent
+            if "image" not in scenario_yaml["helm"]["config"]["clusterAgent"]:
+                scenario_yaml["helm"]["config"]["clusterAgent"]["image"] = {}
+
+            # Set the registry value for clusterAgent image
+            scenario_yaml["helm"]["config"]["clusterAgent"]["image"]["registry"] = container_registry
+            logger.info(f"Updated clusterAgent.image.registry = {container_registry}")
+
         # Write the updated YAML to the destination file
         try:
             with open(dest_path, "w") as f:
