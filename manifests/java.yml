@@ -2001,7 +2001,7 @@ tests/:
       Test_Config_TraceEnabled: v1.39.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
-      Test_Stable_Config_Default: missing_feature (waiting on APMAPI-298 to be merged)
+      Test_Stable_Config_Default: v1.49.0-SNAPSHOT
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
