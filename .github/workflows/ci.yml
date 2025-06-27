@@ -30,6 +30,8 @@ jobs:
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # need to read releases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
