@@ -128,7 +128,6 @@ tests/:
         Test_Schema_Response_Body:
           '*': v1.51.0
           akka-http: bug (APPSEC-56888)
-          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers:
