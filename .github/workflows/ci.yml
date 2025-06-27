@@ -133,8 +133,9 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
+        #Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
         ignored-name-patterns: |
-          dd-gitlab/.*
+          dd-gitlab/^(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard
