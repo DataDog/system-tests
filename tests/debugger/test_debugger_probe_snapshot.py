@@ -174,13 +174,13 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
         super()._validate_snapshots()
         for expected_snapshot in self.probe_ids:
             snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert 'query' in snapshot
-            assert isinstance(snapshot['query'], dict)
-            assert 'ddtags' in snapshot['query']
-            tags = snapshot['query']['ddtags'][0]
+            assert "query" in snapshot
+            assert isinstance(snapshot["query"], dict)
+            assert "ddtags" in snapshot["query"]
+            tags = snapshot["query"]["ddtags"][0]
             assert isinstance(tags, str)
-            assert 'git.repository_url:https://github.com/datadog/hello' in tags
-            assert 'git.commit.sha:1234hash' in tags
+            assert "git.repository_url:https://github.com/datadog/hello" in tags
+            assert "git.commit.sha:1234hash" in tags
 
 
 @features.debugger_line_probe
@@ -235,6 +235,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
                         f"Process tags are not matching. Expected ({process_tags}) vs found({current_process_tags})"
                     )
 
+
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot_with_scm
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
@@ -268,10 +269,10 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
         super()._validate_snapshots()
         for expected_snapshot in self.probe_ids:
             snapshot = self.probe_snapshots[expected_snapshot][0]
-            assert 'query' in snapshot
-            assert isinstance(snapshot['query'], dict)
-            assert 'ddtags' in snapshot['query']
-            tags = snapshot['query']['ddtags'][0]
+            assert "query" in snapshot
+            assert isinstance(snapshot["query"], dict)
+            assert "ddtags" in snapshot["query"]
+            tags = snapshot["query"]["ddtags"][0]
             assert isinstance(tags, str)
-            assert 'git.repository_url:https://github.com/datadog/hello' in tags
-            assert 'git.commit.sha:1234hash' in tags
+            assert "git.repository_url:https://github.com/datadog/hello" in tags
+            assert "git.commit.sha:1234hash" in tags
