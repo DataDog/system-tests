@@ -838,6 +838,35 @@ class _Scenarios:
         github_workflow="aws_ssi",
     )
 
+    simple_auto_injection_appsec = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_APPSEC",
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
+        app_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        github_workflow="aws_ssi",
+    )
+
+    host_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with Appsec activated by the installation process"
+        ),
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    container_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
     demo_aws = InstallerAutoInjectionScenario(
         "DEMO_AWS",
         "Demo aws scenario",

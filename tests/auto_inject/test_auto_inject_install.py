@@ -211,3 +211,29 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+
+@features.auto_instrumentation_appsec
+@scenarios.simple_auto_injection_appsec
+class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
+    def test_appsec(self):
+        logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+
+
+@features.host_auto_installation_script_appsec
+@scenarios.host_auto_injection_install_script_appsec
+class TestHostAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_appsec(self):
+        logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+
+
+@features.container_auto_installation_script_appsec
+@scenarios.container_auto_injection_install_script_appsec
+class TestContainerAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
+    def test_appsec(self):
+        self._test_install(context.virtual_machine, appsec=True)
