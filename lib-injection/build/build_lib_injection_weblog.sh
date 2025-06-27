@@ -15,6 +15,7 @@ NC='\033[0m'
 # Retry configuration
 MAX_RETRIES=${MAX_RETRIES:-3}
 INITIAL_DELAY=${INITIAL_DELAY:-5}
+BUILD_TIMEOUT=${BUILD_TIMEOUT:-600}  # 10 minutes timeout in seconds
 
 print_usage() {
     echo -e "${WHITE_BOLD}DESCRIPTION${NC}"
@@ -30,28 +31,33 @@ print_usage() {
     echo -e "  ${CYAN}--docker-platform <platform>${NC}      Target Docker platform(s) (comma-separated)."
     echo -e "  ${CYAN}--max-retries <num>${NC}        Maximum number of retry attempts (env: MAX_RETRIES, default: 3)"
     echo -e "  ${CYAN}--initial-delay <seconds>${NC}  Initial delay between retries in seconds (env: INITIAL_DELAY, default: 5)"
+    echo -e "  ${CYAN}--build-timeout <seconds>${NC}  Docker build timeout in seconds (env: BUILD_TIMEOUT, default: 600)"
     echo -e "  ${CYAN}-h, --help${NC}                Display this help message."
     echo -e ""
     echo -e ""
 }
 
-# Retry function with exponential backoff
+# Retry function with exponential backoff and timeout
 retry_with_backoff() {
     local cmd="$1"
     local attempt=1
     local delay=$INITIAL_DELAY
 
-    echo -e "${YELLOW}Starting Docker build with retry mechanism (max ${MAX_RETRIES} attempts)${NC}"
+    echo -e "${YELLOW}Starting Docker build with retry mechanism (max ${MAX_RETRIES} attempts, ${BUILD_TIMEOUT}s timeout per attempt)${NC}"
 
     while [[ $attempt -le $MAX_RETRIES ]]; do
         echo -e "${CYAN}Attempt ${attempt}/${MAX_RETRIES}${NC}"
 
-        if eval "$cmd"; then
+        if timeout $BUILD_TIMEOUT bash -c "$cmd"; then
             echo -e "${GREEN}Docker build completed successfully on attempt ${attempt}${NC}"
             return 0
         else
             local exit_code=$?
-            echo -e "${RED}Docker build failed on attempt ${attempt} with exit code ${exit_code}${NC}"
+            if [[ $exit_code -eq 124 ]]; then
+                echo -e "${RED}Docker build timed out after ${BUILD_TIMEOUT} seconds on attempt ${attempt}${NC}"
+            else
+                echo -e "${RED}Docker build failed on attempt ${attempt} with exit code ${exit_code}${NC}"
+            fi
 
             if [[ $attempt -eq $MAX_RETRIES ]]; then
                 echo -e "${RED}All ${MAX_RETRIES} attempts failed. Giving up.${NC}"
@@ -88,6 +94,7 @@ while [[ "$#" -gt 0 ]]; do
         -pt|--push-tag) PUSH_TAG="$2"; shift ;;
         --max-retries) MAX_RETRIES="$2"; shift ;;
         --initial-delay) INITIAL_DELAY="$2"; shift ;;
+        --build-timeout) BUILD_TIMEOUT="$2"; shift ;;
         -h|--help) print_usage; exit 0 ;;
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
