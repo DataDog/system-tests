@@ -157,8 +157,7 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
-    @missing_feature(context.library < "python@3.9.5.dev", reason="Not implemented")
+    @missing_feature(context.library in ("python", "nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
