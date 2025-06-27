@@ -6,7 +6,7 @@ WORKDIR /app
 # Install gem dependencies prior to copying the entire application
 COPY utils/build/docker/ruby/sinatra31/Gemfile .
 COPY utils/build/docker/ruby/sinatra31/Gemfile.lock .
-RUN bundle install
+RUN sed -i -e '/gem .ddtrace./d' Gemfile && bundle install
 
 COPY utils/build/docker/ruby/sinatra31/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/

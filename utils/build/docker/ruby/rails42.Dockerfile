@@ -8,7 +8,7 @@ WORKDIR /app
 # Install gem dependencies prior to copying the entire application
 COPY utils/build/docker/ruby/rails42/Gemfile .
 COPY utils/build/docker/ruby/rails42/Gemfile.lock .
-RUN bundle install
+RUN sed -i -e '/gem .ddtrace./d' Gemfile && bundle install
 
 COPY utils/build/docker/ruby/rails42/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
