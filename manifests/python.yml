@@ -1059,6 +1059,7 @@ tests/:
       Test_Sampling_Span_Tags: v2.8.0
     test_span_events.py:
       Test_Span_Events: missing_feature
+      Test_Record_Exception: v3.11.0
     test_span_links.py:
       Test_Span_Links: v2.3.0
     test_span_sampling.py:

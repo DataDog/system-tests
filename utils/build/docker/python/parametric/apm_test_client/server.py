@@ -447,7 +447,7 @@ def trace_span_record_exception(args: TraceSpanRecordExceptionArgs) -> TraceSpan
         raise ValueError(args.message)
     except Exception as e:
         span.record_exception(e, args.attributes)
-        return TraceSpanRecordExceptionReturn(exception_type=type(e).__name__)
+        return TraceSpanRecordExceptionReturn(exception_type="%s.%s" % (e.__class__.__module__, e.__class__.__name__))
 
 
 class TraceSpanCurrentReturn(BaseModel):

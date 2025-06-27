@@ -229,9 +229,9 @@ class Test_Record_Exception:
 
         attributes1 = {"bool": False, "int": 0, "double": 0.0}
 
-        with test_library, test_library.otel_start_span("test") as s:
-            exception_type1 = s.record_exception("TestException1", attributes=attributes0)
-            exception_type2 = s.record_exception("TestException2", attributes=attributes1)
+        with test_library, test_library.dd_start_span("test") as s:
+            result1 = s.record_exception("TestException1", attributes=attributes0)
+            result2 = s.record_exception("TestException2", attributes=attributes1)
 
         traces = test_agent.wait_for_num_traces(1)
 
@@ -245,8 +245,8 @@ class Test_Record_Exception:
 
         event = span_events[0]
         assert event["name"] == "exception"
-        assert event["exception.type"] == exception_type1
-        assert event["exception.message"] == "TestException1"
+        assert event["attributes"].get("exception.type").get("string_value") == result1["exception_type"]
+        assert event["attributes"].get("exception.message").get("string_value") == "TestException1"
         assert event["attributes"].get("string") == {"type": 0, "string_value": "bar"}
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": True}
         assert event["attributes"].get("int") == {"type": 2, "int_value": 1}
@@ -277,8 +277,8 @@ class Test_Record_Exception:
 
         event = span_events[1]
         assert event["name"] == "exception"
-        assert event["exception.type"] == exception_type2
-        assert event["exception.message"] == "TestException2"
+        assert event["attributes"].get("exception.type").get("string_value") == result2["exception_type"]
+        assert event["attributes"].get("exception.message").get("string_value") == "TestException2"
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": False}
         assert event["attributes"].get("int") == {"type": 2, "int_value": 0}
         assert isinstance(event["attributes"].get("int").get("int_value"), int)
@@ -298,8 +298,8 @@ class Test_Record_Exception:
         Span events with invalid attributes should be discarded.
         Valid attributes should be kept.
         """
-        with test_library, test_library.otel_start_span("test") as s:
-            exception_type = s.record_exception("TestException", attributes={
+        with test_library, test_library.dd_start_span("test") as s:
+            result = s.record_exception("TestException", attributes={
                     "int": 1,
                     "invalid_arr1": [1, "a"],
                     "invalid_arr2": [[1]],
@@ -321,9 +321,9 @@ class Test_Record_Exception:
         event = span_events[0]
         assert event["name"] == "exception"
 
-        assert len(event["attributes"]) == 4
-        assert event["exception.type"] == exception_type
-        assert event["exception.message"] == "TestException"
+        assert len(event["attributes"]) == 5
+        assert event["attributes"].get("exception.type").get("string_value") == result["exception_type"]
+        assert event["attributes"].get("exception.message").get("string_value") == "TestException"
         assert event["attributes"].get("int").get("int_value") == 1
         assert event["attributes"].get("string").get("string_value") == "bar"
 
