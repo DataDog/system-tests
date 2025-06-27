@@ -392,9 +392,13 @@ SDK_DEFAULT_STABLE_CONFIG = {
     if context.library == "golang"
     else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": {"ruby": "true", "java": "true", "golang": None, "python": "structured", "nodejs": "structured"}.get(
-        context.library.name, "false"
-    ),  # Enabled by default in ruby
+    "dd_logs_injection": {
+        "ruby": "true",
+        "java": "true",
+        "golang": None,
+        "python": "structured",
+        "nodejs": "structured",
+    }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
 
