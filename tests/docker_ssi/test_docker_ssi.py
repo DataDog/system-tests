@@ -6,7 +6,7 @@ from utils import scenarios, features, context, irrelevant, bug, interfaces, web
 @scenarios.docker_ssi
 class TestDockerSSIFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
-    We test that the injection is performed and traces and telemetry are generated..
+    We test that the injection is performed and traces and telemetry are generated.
     If the language version is not supported, we only check that we don't break the app and telemetry is generated.
     """
 
