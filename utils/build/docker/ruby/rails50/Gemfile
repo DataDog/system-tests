@@ -16,6 +16,7 @@ group :development do
   gem 'byebug'
 end
 
-# NOTE: This will be the last gem in the Gemfile due to `install_ddtrace.sh` script
-#       inability to add gem after the group (easy fix).
+gem 'dogstatsd-ruby'
+# NOTE: This way of gem definition will be replaced by the script, but still will
+#       be used in bundler locking.
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
