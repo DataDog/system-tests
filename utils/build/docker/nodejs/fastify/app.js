@@ -11,6 +11,7 @@ const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
 const pino = require('pino')
+const cookie = require('@fastify/cookie')
 
 const dsm = require('./dsm')
 const di = require('./debugger')
@@ -30,6 +31,7 @@ const logger = pino()
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
+fastify.register(cookie)
 
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {
   try {
@@ -139,6 +141,7 @@ fastify.get('/identify', async (request, reply) => {
 })
 
 fastify.get('/session/new', async (request, reply) => {
+  request.session = {} // TODO: remove this to enable Test_Fingerprinting_Session_Preprocessor:test_session_non_blocking
   request.session.someData = 'blabla' // needed for the session to be saved
   return request.session.sessionId
 })
