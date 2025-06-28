@@ -4,13 +4,12 @@ import base64
 import json
 import pytest
 
-from utils import bug, context, features, scenarios, logger
+from utils import bug, features, scenarios, logger
 
 
 @scenarios.parametric
 @features.crashtracking
 class Test_Crashtracking:
-    @bug(context.library >= "ruby@2.7.2-dev", reason="APMLP-335")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
