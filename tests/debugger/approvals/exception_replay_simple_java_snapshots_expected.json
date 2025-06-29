@@ -34,7 +34,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "c585c5a9-978a-4715-baac-83adec2c03d2",
+    "exceptionHash": "8b56934c85e4cf96818bcc278fa732b3ed63c8f86bed74f515749dd274d5",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
