@@ -175,7 +175,27 @@ check_pipeline_status:
     - |
       set -e  # Exit immediately if any command fails
       echo "Checking for failed jobs in parent and child pipelines..."
-      export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
+      
+      # Debug: Print environment variables
+      echo "🔧 Debug: CI_PROJECT_NAME=$CI_PROJECT_NAME"
+      echo "🔧 Debug: CI_API_V4_URL=$CI_API_V4_URL"
+      echo "🔧 Debug: CI_PROJECT_ID=$CI_PROJECT_ID"
+      echo "🔧 Debug: CI_PIPELINE_ID=$CI_PIPELINE_ID"
+      
+      # Get GitLab token with error handling
+      echo "🔑 Retrieving GitLab token..."
+      if ! GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text 2>&1); then
+        echo "❌ Error: Failed to retrieve GitLab token from AWS SSM"
+        echo "Token retrieval output: $GITLAB_TOKEN"
+        exit 1
+      fi
+      
+      if [ -z "$GITLAB_TOKEN" ] || [ "$GITLAB_TOKEN" = "None" ]; then
+        echo "❌ Error: GitLab token is empty or None"
+        exit 1
+      fi
+      
+      echo "✅ GitLab token retrieved successfully"
 
       # Function to fetch all jobs from a paginated GitLab API endpoint
       fetch_all_jobs() {
@@ -183,12 +203,28 @@ check_pipeline_status:
         local failed_count=0
         local page=1
 
-        while true; do
-          echo "🔍 Fetching jobs from: $url&page=$page&per_page=100"
-          RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
+        echo "🔍 Starting to fetch jobs from URL: $url"
 
-          # Debug: Show first 200 characters of response
-          echo "📄 API Response preview: $(echo "$RESPONSE" | head -c 200)..."
+        while true; do
+          local full_url="$url&page=$page&per_page=100"
+          echo "🔍 Fetching jobs from: $full_url"
+          
+          # Make API call with error handling
+          if ! RESPONSE=$(curl --silent --fail --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$full_url" 2>&1); then
+            echo "❌ Error: Curl request failed"
+            echo "Curl output: $RESPONSE"
+            echo "URL: $full_url"
+            exit 1
+          fi
+
+          # Debug: Show first 300 characters of response
+          echo "📄 API Response preview: $(echo "$RESPONSE" | head -c 300)..."
+
+          # Check if response is empty
+          if [ -z "$RESPONSE" ]; then
+            echo "❌ Error: Empty response from GitLab API"
+            exit 1
+          fi
 
           # Validate JSON response and check if it's an array
           if ! echo "$RESPONSE" | jq -e 'type == "array"' > /dev/null 2>&1; then
@@ -199,34 +235,63 @@ check_pipeline_status:
 
           # Count failed jobs on this page
           local page_failed_jobs
-          page_failed_jobs=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
+          if ! page_failed_jobs=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length' 2>&1); then
+            echo "❌ Error: Failed to parse failed jobs with jq"
+            echo "jq output: $page_failed_jobs"
+            exit 1
+          fi
+          
           failed_count=$((failed_count + page_failed_jobs))
+          echo "📊 Page $page: Found $page_failed_jobs failed jobs (total so far: $failed_count)"
 
           # Check if there are more pages (by checking if we got less than 100 results)
           local jobs_count
-          jobs_count=$(echo "$RESPONSE" | jq 'length')
+          if ! jobs_count=$(echo "$RESPONSE" | jq 'length' 2>&1); then
+            echo "❌ Error: Failed to get jobs count with jq"
+            echo "jq output: $jobs_count"
+            exit 1
+          fi
+
+          echo "📊 Page $page: Retrieved $jobs_count jobs"
 
           if [ "$jobs_count" -lt 100 ]; then
+            echo "📊 Reached last page (got $jobs_count < 100 jobs)"
             break
           fi
 
           ((page++))
         done
 
+        echo "📊 Total failed jobs found: $failed_count"
         echo "$failed_count"
       }
 
       # Fetch failed jobs in the parent pipeline
       echo "🔍 Fetching parent pipeline jobs..."
-      FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
+      if ! FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?"); then
+        echo "❌ Error: Failed to fetch parent pipeline jobs"
+        exit 1
+      fi
 
-      # Fetch child pipelines
+            # Fetch child pipelines
       echo "🔍 Fetching child pipelines..."
       BRIDGES_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"
       echo "🔍 Bridges URL: $BRIDGES_URL"
+      
+      # Make bridges API call with error handling
+      if ! BRIDGES_RESPONSE=$(curl --silent --fail --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$BRIDGES_URL" 2>&1); then
+        echo "❌ Error: Failed to fetch child pipelines"
+        echo "Curl output: $BRIDGES_RESPONSE"
+        exit 1
+      fi
+      
+      echo "📄 Bridges response preview: $(echo "$BRIDGES_RESPONSE" | head -c 300)..."
 
-      BRIDGES_RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$BRIDGES_URL")
-      echo "📄 Bridges response preview: $(echo "$BRIDGES_RESPONSE" | head -c 200)..."
+      # Check if bridges response is empty
+      if [ -z "$BRIDGES_RESPONSE" ]; then
+        echo "❌ Error: Empty response from GitLab bridges API"
+        exit 1
+      fi
 
       # Validate bridges response
       if ! echo "$BRIDGES_RESPONSE" | jq -e 'type == "array"' > /dev/null 2>&1; then
@@ -235,15 +300,29 @@ check_pipeline_status:
         exit 1
       fi
 
-      CHILD_PIPELINES=$(echo "$BRIDGES_RESPONSE" | jq -r '.[] | select(.downstream_pipeline != null) | .downstream_pipeline.id')
+      # Get child pipeline IDs
+      if ! CHILD_PIPELINES=$(echo "$BRIDGES_RESPONSE" | jq -r '.[] | select(.downstream_pipeline != null) | .downstream_pipeline.id' 2>&1); then
+        echo "❌ Error: Failed to parse child pipelines with jq"
+        echo "jq output: $CHILD_PIPELINES"
+        exit 1
+      fi
+      
       echo "🔍 Found child pipelines: $CHILD_PIPELINES"
 
       FAILED_CHILD_JOBS=0
-      for CHILD_PIPELINE in $CHILD_PIPELINES; do
-        echo "🔍 Checking child pipeline: $CHILD_PIPELINE"
-        CHILD_FAILED=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")
-        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED))
-      done
+      if [ -n "$CHILD_PIPELINES" ]; then
+        for CHILD_PIPELINE in $CHILD_PIPELINES; do
+          echo "🔍 Checking child pipeline: $CHILD_PIPELINE"
+          if ! CHILD_FAILED=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?"); then
+            echo "❌ Error: Failed to fetch jobs for child pipeline $CHILD_PIPELINE"
+            exit 1
+          fi
+          FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED))
+          echo "📊 Child pipeline $CHILD_PIPELINE: $CHILD_FAILED failed jobs"
+        done
+      else
+        echo "📊 No child pipelines found"
+      fi
 
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
       echo "📊 Summary: $FAILED_JOBS parent failed jobs + $FAILED_CHILD_JOBS child failed jobs = $TOTAL_FAILED total failed jobs"
