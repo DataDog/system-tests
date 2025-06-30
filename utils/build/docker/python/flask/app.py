@@ -1423,10 +1423,17 @@ def before_request():
         current_user = DB_USER.get(flask.session.get("login"), None)
         if current_user:
             set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+        print(f">> Received request: {flask_request.method} {flask_request.full_path}", file=sys.stderr)
+        print(f">> Request Headers: -----\n{flask_request.headers}>> Req-------------------\n", file=sys.stderr)
     except Exception:
         # to be compatible with all tracer versions
         pass
 
+@app.after_request
+def after_request(response):
+    print(f">> Response status: {response.status} [{flask_request.headers.get('User-Agent')}]", file=sys.stderr)
+    print(f">> Response Headers: -----\n{response.headers}>> Res--------------------\n", file=sys.stderr)
+    return response
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
