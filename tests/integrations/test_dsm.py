@@ -106,8 +106,8 @@ class Test_DsmKafka:
     def test_dsm_kafka_without_cluster_id(self):
         assert self.r.text == "ok"
 
-        producer_hash = 14216899112169674443
-        consumer_hash = 4247242616665718048
+        producer_hash = 4463699290244539355
+        consumer_hash = 3735318893869752335
 
         edge_tags_in: tuple = ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka")
         edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
