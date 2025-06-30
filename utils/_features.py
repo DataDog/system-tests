@@ -2689,7 +2689,7 @@ class _Features:
         """
         pytest.mark.features(feature_id=474)(test_object)
         return test_object
-    
+        
     @staticmethod
     def auto_instrumentation_appsec(test_object):
         """Appsec works when manually enabled with library injection in Host environments
