@@ -2,6 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
+from utils._context._scenarios import scenario_groups
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
@@ -16,6 +17,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -59,6 +61,7 @@ class Test_RetainTraces:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
@@ -66,6 +69,10 @@ class Test_AppSecEventSpanTags:
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
+    @bug(
+        context.library.name == "python" and scenario_groups.appsec_lambda in context.scenario.scenario_groups,
+        reason="APPSEC-58201",
+    )
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -134,6 +141,7 @@ class Test_AppSecEventSpanTags:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
 
@@ -285,6 +293,7 @@ class Test_AppSecObfuscator:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
 
@@ -294,6 +303,10 @@ class Test_CollectRespondHeaders:
     @missing_feature(
         context.scenario is scenarios.external_processing,
         reason="The endpoint /headers is not implemented in the weblog",
+    )
+    @bug(
+        scenario_groups.appsec_lambda in context.scenario.scenario_groups and context.library.name == "python",
+        reason="APPSEC-58202",
     )
     def test_header_collection(self):
         def assert_header_in_span_meta(span, header):
@@ -313,6 +326,7 @@ class Test_CollectRespondHeaders:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
         "User-Agent": "MyBrowser",
@@ -346,6 +360,7 @@ class Test_CollectDefaultRequestHeader:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
         self.r = weblog.get(

@@ -1,5 +1,6 @@
 import json
 
+from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
@@ -187,6 +188,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
+
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -1075,6 +1077,13 @@ class _Scenarios:
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
         doc="Test runtime metrics",
+    )
+
+    # Appsec Lambda Scenarios
+    appsec_lambda_default = LambdaScenario(
+        "APPSEC_LAMBDA_DEFAULT",
+        doc="Default Lambda scenario",
+        scenario_groups=[scenario_groups.appsec_lambda],
     )
 
 
