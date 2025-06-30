@@ -767,6 +767,7 @@ tests/:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py:
       Test_Span_Events: missing_feature
+      Test_Record_Exception: v2.17.1-dev
     test_span_links.py:
       Test_Span_Links: v2.0.0
     test_telemetry.py:

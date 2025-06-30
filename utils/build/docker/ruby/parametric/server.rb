@@ -249,11 +249,11 @@ class TraceSpanAddLinkReturn
 end
 
 class TraceSpanRecordExceptionArgs
-  attr_accessor :span_id, :name, :attributes
+  attr_accessor :span_id, :message, :attributes
 
   def initialize(params)
     @span_id = params['span_id']
-    @parent_id = params['name']
+    @message = params['message']
     @attributes = params['attributes']
   end
 end
@@ -776,7 +776,7 @@ class MyApp
     begin
       raise StandardError.new(args.message)
     rescue => e
-      span.record_exception(e, args.attributes)
+      span.record_exception(e, attributes: args.attributes)
       res.write(TraceSpanRecordExceptionReturn.new(e.class.name).to_json)
     end
   end
