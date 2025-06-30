@@ -214,7 +214,7 @@ class Test_Record_Exception:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_record_exception(self, test_agent, test_library):
         """Tests the Datadog Span.RecordException API and its serialization
-        into the Datadog 'events' tag and 'span' tag
+        into the Datadog 'events' tag
         """
         attributes0 = {
             "string": "bar",
@@ -294,8 +294,7 @@ class Test_Record_Exception:
     @missing_feature(context.library == "dotnet", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4", "DD_TRACE_NATIVE_SPAN_EVENTS": "1"}])
     def test_span_with_invalid_event_attributes(self, test_agent, test_library):
-        """Test adding a span event, with invalid attributes, to an active span.
-        Span events with invalid attributes should be discarded.
+        """Test recording an exception with invalid attributes to an active span.
         Valid attributes should be kept.
         """
         with test_library, test_library.dd_start_span("test") as s:
