@@ -1216,6 +1216,7 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1  # actual version unknown
