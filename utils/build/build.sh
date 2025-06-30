@@ -215,6 +215,10 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
+                if [[ $WEBLOG_VARIANT == lambda-python* ]]; then
+                    ./utils/build/docker/python/build_lambda_layer.sh
+                fi
+
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
