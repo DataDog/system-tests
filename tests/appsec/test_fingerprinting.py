@@ -1,6 +1,11 @@
 import re
 from utils.dd_constants import Capabilities
-from utils import features, interfaces, rfc, scenarios, weblog, missing_feature
+from utils import features
+from utils import interfaces
+from utils import rfc
+from utils import scenarios
+from utils import weblog
+from utils import missing_feature
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}

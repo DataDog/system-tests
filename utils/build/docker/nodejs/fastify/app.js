@@ -141,9 +141,9 @@ fastify.get('/identify', async (request, reply) => {
 })
 
 fastify.get('/session/new', async (request, reply) => {
-  request.session = {} // TODO: remove this to enable Test_Fingerprinting_Session_Preprocessor:test_session_non_blocking
-  request.session.someData = 'blabla' // needed for the session to be saved
-  return request.session.sessionId
+  // endpoint needs to be present to pass a test, but is currently not implemented properly
+  // request.session.someData = 'blabla' // needed for the session to be saved
+  // return request.session.sessionId
 })
 
 fastify.get('/status', async (request, reply) => {
