@@ -19,7 +19,7 @@ app = Flask(__name__)
 
 @app.route("/")
 @app.route("/<path:path>")
-def main(path):
+def main(path=""):
     converted_event = construct_v1_event(request, PORT, binary_types=[], stage_name="Prod")
 
     response = post(
