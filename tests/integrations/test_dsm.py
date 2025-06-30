@@ -58,7 +58,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
-    @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
+    @irrelevant(context.library in ["java"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
 
@@ -94,6 +94,23 @@ class Test_DsmKafka:
                 f"topic:{DSM_QUEUE}",
                 "type:kafka",
             )
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+        DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
+
+    def setup_dsm_kafka_without_cluster_id(self):
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+
+    @features.datastreams_monitoring_support_for_kafka
+    @irrelevant(context.library != "dotnet")
+    def test_dsm_kafka_without_cluster_id(self):
+        assert self.r.text == "ok"
+
+        producer_hash = 14216899112169674443
+        consumer_hash = 4247242616665718048
+
+        edge_tags_in: tuple = ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka")
+        edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
