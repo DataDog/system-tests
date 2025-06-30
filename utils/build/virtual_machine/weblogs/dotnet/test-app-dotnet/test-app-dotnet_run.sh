@@ -27,6 +27,6 @@ sudo dotnet publish -c Release -o /home/datadog
 #Copy app service and start it
 export DD_APM_INSTRUMENTATION_DEBUG=true
 sudo chmod 755 create_and_run_app_service.sh
-./create_and_run_app_service.sh "dotnet MinimalWebApp.dll" "ASPNETCORE_URLS=http://+:5985 DOTNET_DbgEnableMiniDump=1 DOTNET_DbgMiniDumpType=4 DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.txt"
+./create_and_run_app_service.sh "dotnet MinimalWebApp.dll" "ASPNETCORE_URLS=http://+:5985 DOTNET_DbgEnableMiniDump=1 DOTNET_DbgMiniDumpType=4 DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%p.dmp"
 
 echo "RUN dotnet DONE"
