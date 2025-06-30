@@ -1401,6 +1401,7 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: *ref_5_25_0
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
