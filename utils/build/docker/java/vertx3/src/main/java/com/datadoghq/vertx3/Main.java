@@ -15,6 +15,7 @@ import datadog.trace.api.EventTracker;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
+import io.vertx.core.MultiMap;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
@@ -23,6 +24,7 @@ import io.vertx.ext.web.Session;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.core.json.JsonObject;
 
+import java.util.List;
 import javax.naming.directory.InitialDirContext;
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -338,6 +340,41 @@ public class Main {
                     String serviceName = ctx.request().getParam("serviceName");
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
+                });
+        router.get("/make_distant_call")
+                .handler(ctx -> {
+                    String url = ctx.request().getParam("url");
+
+                    Request request = new Request.Builder()
+                            .url(url)
+                            .build();
+
+                    client.newCall(request).enqueue(new Callback() {
+                        @Override
+                        public void onFailure(Call call, IOException e) {
+                            ctx.response().setStatusCode(500).end(e.getMessage());
+                        }
+
+                        @Override
+                        public void onResponse(Call call, Response response) throws IOException {
+                            if (!response.isSuccessful()) {
+                                ctx.response().setStatusCode(500).end(response.message());
+                            } else {
+                                Map<String, String> requestHeaders = call.request().headers().toMultimap().entrySet().stream()
+                                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+                                Map<String, String> responseHeaders = response.headers().toMultimap().entrySet().stream()
+                                        .collect(Collectors.toMap(Map.Entry::getKey, entry -> String.join(", ", entry.getValue())));
+
+                                JsonObject responseJson = new JsonObject();
+                                responseJson.put("status_code", response.code());
+                                responseJson.put("request_headers", requestHeaders);
+                                responseJson.put("response_headers", responseHeaders);
+                                responseJson.put("url", url);
+
+                                ctx.response().setStatusCode(200).end(responseJson.encode());
+                            }
+                        }
+                    });
                 });
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(CookieHandler.create());
