@@ -247,6 +247,15 @@ build() {
                     docker save system_tests/weblog | gzip > $BINARIES_FILENAME
                 fi
             fi
+        elif [[ $IMAGE_NAME == lambda-proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/lambda-proxy.Dockerfile \
+                -t datadog/system-tests:lambda-proxy \
+                $EXTRA_DOCKER_ARGS \
+                .
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
