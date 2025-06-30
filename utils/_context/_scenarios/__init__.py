@@ -214,7 +214,7 @@ class _Scenarios:
         appsec_enabled=False,
         include_postgres_db=True,
         doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
@@ -430,6 +430,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -444,6 +446,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -482,6 +486,8 @@ class _Scenarios:
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DEDUPLICATION_ENABLED": "true",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Iast scenario with deduplication enabled",
         scenario_groups=[scenario_groups.appsec],
@@ -828,6 +834,35 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    simple_auto_injection_appsec = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_APPSEC",
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
+        app_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        github_workflow="aws_ssi",
+    )
+
+    host_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with Appsec activated by the installation process"
+        ),
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    container_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )

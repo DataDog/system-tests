@@ -1,6 +1,7 @@
 from utils import (
     context,
     features,
+    flaky,
     interfaces,
     irrelevant,
     rfc,
@@ -118,6 +119,7 @@ class Test_API_Security_Sampling_Different_Status:
             self.request2 = session.get("/api_security/sampling/201")
             self.all_requests = [session.get("/api_security/sampling/201") for _ in range(10)]
 
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_sampling_delay(self):
         """Can provide request header schema"""
 

@@ -31,6 +31,7 @@ def test_tracer_release():
         scenarios.otel_tracing_e2e,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
+        scenarios.container_auto_injection_install_script_appsec,
         scenarios.container_auto_injection_install_script_profiling,
         scenarios.container_auto_injection_install_script,
         scenarios.docker_ssi,
@@ -38,6 +39,7 @@ def test_tracer_release():
         scenarios.docker_ssi_servicenaming,
         scenarios.external_processing_blocking,  # need to declare a white list of library in get-workflow-parameters
         scenarios.external_processing,  # need to declare a white list of library in get-workflow-parameters
+        scenarios.host_auto_injection_install_script_appsec,
         scenarios.host_auto_injection_install_script_profiling,
         scenarios.host_auto_injection_install_script,
         scenarios.installer_auto_injection,
@@ -54,6 +56,7 @@ def test_tracer_release():
         scenarios.lib_injection_validation_unsupported_lang,
         scenarios.lib_injection_validation,
         scenarios.local_auto_injection_install_script,
+        scenarios.simple_auto_injection_appsec,
         scenarios.simple_auto_injection_profiling,
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
