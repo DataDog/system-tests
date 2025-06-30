@@ -505,17 +505,21 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
+            time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
 
         configuration = test_agent.wait_for_telemetry_configurations()
         for cfg_name, origin in expected_origin.items():
+            # The Go tracer does not support logs injection.
+            if context.library == "golang" and cfg_name == "logs_injection_enabled":
+                continue
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
             telemetry_item = configuration[apm_telemetry_name]
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
-    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
+    @missing_feature(context.library in ("java", "nodejs, golang"), reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
