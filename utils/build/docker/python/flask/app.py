@@ -8,14 +8,6 @@ if os.environ.get("UWSGI_ENABLED", "false") == "false":
 
     monkey.patch_all(thread=True)  # noqa: E402
     print("gevent monkey patching done for flask", file=os.sys.stderr)
-else:
-    # Patch with gevent for uwsgi-poc
-    import gevent  # noqa: E402
-    from gevent import monkey  # noqa: E402
-
-    monkey.patch_all(thread=True)  # noqa: E402
-    print("gevent monkey patching done for uwsgi", file=os.sys.stderr)
-
 
 import base64
 import http.client

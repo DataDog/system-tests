@@ -19,7 +19,7 @@ ENV UWSGI_ENABLED=true
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-uwsgi --threads 4 --enable-threads --gevent 4 --http :7777 -w app:app --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
+uwsgi --threads 12 --enable-threads --http :7777 -w app:app --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
