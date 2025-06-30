@@ -41,6 +41,7 @@ class _ScenarioGroups:
     onboarding = ScenarioGroup()
     simple_onboarding = ScenarioGroup()
     simple_onboarding_profiling = ScenarioGroup()
+    simple_onboarding_appsec = ScenarioGroup()
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
     external_processing = ScenarioGroup()

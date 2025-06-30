@@ -6,8 +6,41 @@ from utils import context, logger
 from threading import Timer
 
 
+def _validate_appsec_trace(trace_id, trace_data):
+    """Validator function for AppSec traces - checks for required AppSec metrics and meta tags"""
+    logger.info(f"Validating AppSec trace {trace_id}")
+
+    try:
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        meta = root_span.get("meta", {})
+        metrics = root_span.get("metrics", {})
+
+        # Check for _dd.appsec.enabled metric set to 1
+        appsec_enabled_found = "_dd.appsec.enabled" in metrics and metrics["_dd.appsec.enabled"] == 1
+
+        # Check for appsec.event meta tag set to "true"
+        appsec_event_found = "appsec.event" in meta and meta["appsec.event"] == "true"
+
+        if appsec_enabled_found:
+            logger.info("AppSec trace validation successful - found _dd.appsec.enabled=1 in root span")
+            if appsec_event_found:
+                logger.info("AppSec event validation successful - found appsec.event=true in root span")
+            return True
+        else:
+            logger.error("AppSec trace validation failed - _dd.appsec.enabled=1 not found in root span")
+            logger.debug(f"Root span metrics: {metrics}")
+            logger.debug(f"Root span meta: {meta}")
+            return False
+
+    except Exception as e:
+        logger.error(f"Error validating AppSec trace: {e}")
+        return False
+
+
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, *, profile: bool = False):
+    def _test_install(self, virtual_machine, *, profile: bool = False, appsec: bool = False):
         """If there is a multicontainer app, we need to make a request to each app"""
 
         if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
@@ -15,13 +48,13 @@ class AutoInjectBaseTest:
                 vm_context_url = (
                     f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
                 )
-                self._check_install(virtual_machine, vm_context_url, profile=profile)
+                self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
 
         else:
             vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
-            self._check_install(virtual_machine, vm_context_url, profile=profile)
+            self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
 
-    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False):
+    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False, appsec: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
         Using the agent installation script we can install different versions of the software (release or beta) in different OS.
@@ -47,7 +80,12 @@ class AutoInjectBaseTest:
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
 
         try:
-            wait_backend_trace_id(request_uuid, profile=profile)
+            # Use AppSec validator if appsec=True, otherwise use existing behavior
+            if appsec:
+                logger.info("Using AppSec validator for trace validation")
+                wait_backend_trace_id(request_uuid, validator=_validate_appsec_trace)
+            else:
+                wait_backend_trace_id(request_uuid, profile=profile)
         except (TimeoutError, AssertionError) as e:
             self._log_trace_debug_message(e, request_uuid)
             raise

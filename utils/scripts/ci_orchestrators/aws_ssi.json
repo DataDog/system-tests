@@ -217,6 +217,89 @@
         },
         {
             "scenarios": [
+                "SIMPLE_AUTO_INJECTION_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs",
+                        "test-app-nodejs-container"
+                    ],
+                    "java": [
+                        "test-app-java",
+                        "test-app-java-container",
+                        "test-app-java-alpine"
+                    ],
+                    "python": [
+                        "test-app-python",
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet",
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ],
+                    "java": [
+                        "test-app-java"
+                    ],
+                    "python": [
+                        "test-app-python"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet"
+                    ],
+                    "php": [
+                        "test-app-php"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-multicontainer"
+                    ],
+                    "java": [
+                        "test-app-java-multicontainer",
+                        "test-app-java-multialpine"
+                    ],
+                    "python": [
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "SIMPLE_INSTALLER_AUTO_INJECTION"
             ],
             "weblogs": [
