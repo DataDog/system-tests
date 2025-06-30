@@ -1429,11 +1429,13 @@ def before_request():
         # to be compatible with all tracer versions
         pass
 
+
 @app.after_request
 def after_request(response):
     print(f">> Response status: {response.status} [{flask_request.headers.get('User-Agent')}]", file=sys.stderr)
     print(f">> Response Headers: -----\n{response.headers}>> Res--------------------\n", file=sys.stderr)
     return response
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
