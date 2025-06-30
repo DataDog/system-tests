@@ -491,10 +491,10 @@ tests/:
       Test_DsmContext_Injection_Base64: missing_feature
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
-      Test_DsmKinesis: missing_feature
+      Test_DsmKinesis: v3.19.0
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmRabbitmq_TopicExchange: v3.19.0
       Test_DsmSNS: missing_feature
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
