@@ -399,6 +399,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
@@ -444,6 +445,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
