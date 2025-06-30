@@ -2123,6 +2123,33 @@ class _Features:
         return test_object
 
     @staticmethod
+    def simple_auto_injection_appsec(test_object):
+        """AppSec works when enabled through environment variables in SSI environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=478
+        """
+        pytest.mark.features(feature_id=478)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script_appsec(test_object):
+        """AppSec works when enabled through the agent installer script in Host environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=479
+        """
+        pytest.mark.features(feature_id=479)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script_appsec(test_object):
+        """AppSec works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=480
+        """
+        pytest.mark.features(feature_id=480)(test_object)
+        return test_object
+
+    @staticmethod
     def host_guardrail(test_object):
         """When in SSI, bail out if our version of language is incompatible.
 

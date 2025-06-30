@@ -83,6 +83,32 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         self._test_install(context.virtual_machine, profile=True)
 
 
+@features.simple_auto_injection_appsec
+@scenarios.simple_auto_injection_appsec
+class TestSimpleAutoInjectManualAppSec(base.AutoInjectBaseTest):
+    def test_appsec(self):
+        logger.info(f"Launching test_install for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_install for : [{context.vm_name}]")
+
+
+@features.host_auto_installation_script_appsec
+@scenarios.host_auto_injection_install_script_appsec
+class TestHostAutoInjectInstallScriptAppSec(base.AutoInjectBaseTest):
+    @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
+    def test_appsec(self):
+        logger.info(f"Launching test_install for : [{context.vm_name}]...")
+        self._test_install(context.virtual_machine, appsec=True)
+        logger.info(f"Done test_install for : [{context.vm_name}]")
+
+
+@features.container_auto_installation_script_appsec
+@scenarios.container_auto_injection_install_script_appsec
+class TestContainerAutoInjectInstallScriptAppSec(base.AutoInjectBaseTest):
+    def test_appsec(self):
+        self._test_install(context.virtual_machine, appsec=True)
+
+
 @features.installer_auto_instrumentation
 @scenarios.installer_auto_injection
 @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
