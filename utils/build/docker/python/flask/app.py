@@ -17,7 +17,6 @@ else:
     print("gevent monkey patching done for uwsgi", file=os.sys.stderr)
 
 
-
 import base64
 import http.client
 import json
