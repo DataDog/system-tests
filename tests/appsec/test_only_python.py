@@ -10,6 +10,7 @@ from utils import context, features, interfaces, irrelevant, scenarios, flaky
 @scenarios.appsec_runtime_activation
 @scenarios.appsec_standalone
 @scenarios.default
+@scenarios.appsec_lambda_default
 @features.language_specifics
 @irrelevant(context.library != "python", reason="specific tests for python tracer")
 class Test_ImportError:

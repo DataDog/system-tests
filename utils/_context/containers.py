@@ -605,6 +605,37 @@ class ProxyContainer(TestedContainer):
         )
 
 
+class LambdaProxyContainer(TestedContainer):
+    def __init__(
+        self,
+        *,
+        host_log_folder: str,
+        lambda_weblog_host: str,
+        lambda_weblog_port: str,
+    ) -> None:
+        from utils import weblog
+
+        self.host_port = weblog.port
+        self.container_port = "7777"
+
+        super().__init__(
+            image_name="datadog/system-tests:lambda-proxy",
+            name="lambda-proxy",
+            host_log_folder=host_log_folder,
+            environment={
+                "RIE_HOST": lambda_weblog_host,
+                "RIE_PORT": lambda_weblog_port,
+            },
+            ports={
+                f"{self.host_port}/tcp": self.container_port,
+            },
+            healthcheck={
+                "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.container_port}/healthcheck",
+                "retries": 60,
+            },
+        )
+
+
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
@@ -1013,6 +1044,86 @@ class WeblogContainer(TestedContainer):
     @property
     def telemetry_heartbeat_interval(self):
         return 2
+
+
+class LambdaWeblogContainer(WeblogContainer):
+    def __init__(
+        self,
+        host_log_folder: str,
+        *,
+        environment: dict[str, str | None] | None = None,
+        tracer_sampling_rate: float | None = None,
+        appsec_enabled: bool = True,
+        iast_enabled: bool = True,
+        runtime_metrics_enabled: bool = False,
+        additional_trace_header_tags: tuple[str, ...] = (),
+        use_proxy: bool = True,
+        volumes: dict | None = None,
+    ):
+        # overwrite values with those set in the scenario
+        environment = (environment or {}) | {
+            "DD_HOSTNAME": "test",
+            "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
+            "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+        }
+
+        volumes = volumes or {}
+
+        if use_proxy:
+            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
+            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
+            environment["DD_APM_NON_LOCAL_TRAFFIC"] = (
+                "true"  # Required for the extension to receive traces from outside the container
+            )
+            volumes.update(
+                {
+                    "./utils/build/docker/agent/ca-certificates.crt": {
+                        "bind": "/etc/ssl/certs/ca-certificates.crt",
+                        "mode": "ro",
+                    },
+                    "./utils/build/docker/agent/datadog.yaml": {
+                        "bind": "/etc/datadog-agent/datadog.yaml",
+                        "mode": "ro",
+                    },
+                },
+            )
+
+        self.tracer_sampling_rate = tracer_sampling_rate
+        self.additional_trace_header_tags = additional_trace_header_tags
+
+        super().__init__(
+            host_log_folder,
+            environment=environment,
+            tracer_sampling_rate=tracer_sampling_rate,
+            appsec_enabled=appsec_enabled,
+            iast_enabled=iast_enabled,
+            runtime_metrics_enabled=runtime_metrics_enabled,
+            additional_trace_header_tags=additional_trace_header_tags,
+            use_proxy=use_proxy,
+            volumes=volumes,
+        )
+
+        # Set the container port to the one used by the one of the Lambda RIE
+        self.container_port = 8080
+
+        # Replace healthcheck with a custom one for Lambda
+        healthcheck_event = json.dumps({"healthcheck": True})
+        self.healthcheck = {
+            "test": f"curl --fail --silent --show-error --max-time 2 -XPOST -d '{healthcheck_event}' http://localhost:{self.container_port}/2015-03-31/functions/function/invocations",
+            "retries": 60,
+        }
+        # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
+        self.ports = {}
+
+    def configure(self, *, replay: bool):
+        super().configure(replay=replay)
+
+        library = self.image.labels["system-tests-library"]
+
+        if library == "python":
+            self.environment["DD_LAMBDA_HANDLER"] = "handler.lambda_handler"
+            self.command = "datadog_lambda.handler.handler"
 
 
 class PostgresContainer(SqlDbTestedContainer):
