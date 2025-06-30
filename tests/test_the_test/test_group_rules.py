@@ -19,7 +19,6 @@ def test_tracer_release():
 
     not_in_tracer_release_group = [
         # list of scenario that will never be part of tracer release
-        scenarios.everything_disabled,
         scenarios.fuzzer,
         scenarios.mock_the_test,
         scenarios.test_the_test,
@@ -64,6 +63,11 @@ def test_tracer_release():
     ]
 
     for scenario in get_all_scenarios():
+        if scenario in not_in_tracer_release_group:
+            assert (
+                scenario_groups.tracer_release not in scenario.scenario_groups
+            ), f"Scenario {scenario} should not be part of {scenario_groups.tracer_release}"
+
         if scenario_groups.tracer_release not in scenario.scenario_groups:
             assert (
                 scenario in not_in_tracer_release_group
