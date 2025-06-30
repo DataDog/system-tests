@@ -1,5 +1,6 @@
 import json
 
+from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
@@ -184,6 +185,15 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
+
+    appsec_lambda_request_blocking = LambdaScenario(
+        "APPSEC_LAMBDA_REQUEST_BLOCKING",
+        doc="Appsec tests for AAP Request Blocking on AWS Lambda",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        scenario_groups=[scenario_groups.appsec],
+    )
+
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
