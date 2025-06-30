@@ -26,6 +26,7 @@ class ScenarioGroup:
 class _ScenarioGroups:
     all = ScenarioGroup()
     appsec = ScenarioGroup()
+    appsec_lambda = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
     debugger = ScenarioGroup()
     end_to_end = ScenarioGroup()
