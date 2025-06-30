@@ -184,11 +184,16 @@ check_pipeline_status:
         local page=1
 
         while true; do
+          echo "🔍 Fetching jobs from: $url&page=$page&per_page=100"
           RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
 
-          # Validate JSON response
-          if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
-            echo "❌ Error: Invalid JSON response from GitLab API."
+          # Debug: Show first 200 characters of response
+          echo "📄 API Response preview: $(echo "$RESPONSE" | head -c 200)..."
+
+          # Validate JSON response and check if it's an array
+          if ! echo "$RESPONSE" | jq -e 'type == "array"' > /dev/null 2>&1; then
+            echo "❌ Error: GitLab API did not return a JSON array."
+            echo "Full response: $RESPONSE"
             exit 1
           fi
 
@@ -213,18 +218,36 @@ check_pipeline_status:
 
     # Fetch failed jobs in the parent pipeline
     - |
+      echo "🔍 Fetching parent pipeline jobs..."
       FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
 
       # Fetch child pipelines
-      CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
+      echo "🔍 Fetching child pipelines..."
+      BRIDGES_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"
+      echo "🔍 Bridges URL: $BRIDGES_URL"
+      
+      BRIDGES_RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$BRIDGES_URL")
+      echo "📄 Bridges response preview: $(echo "$BRIDGES_RESPONSE" | head -c 200)..."
+
+      # Validate bridges response
+      if ! echo "$BRIDGES_RESPONSE" | jq -e 'type == "array"' > /dev/null 2>&1; then
+        echo "❌ Error: GitLab bridges API did not return a JSON array."
+        echo "Full bridges response: $BRIDGES_RESPONSE"
+        exit 1
+      fi
+
+      CHILD_PIPELINES=$(echo "$BRIDGES_RESPONSE" | jq -r '.[] | select(.downstream_pipeline != null) | .downstream_pipeline.id')
+      echo "🔍 Found child pipelines: $CHILD_PIPELINES"
 
       FAILED_CHILD_JOBS=0
       for CHILD_PIPELINE in $CHILD_PIPELINES; do
-        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + $(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")))
+        echo "🔍 Checking child pipeline: $CHILD_PIPELINE"
+        CHILD_FAILED=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")
+        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED))
       done
 
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
+      echo "📊 Summary: $FAILED_JOBS parent failed jobs + $FAILED_CHILD_JOBS child failed jobs = $TOTAL_FAILED total failed jobs"
 
       if [ "$TOTAL_FAILED" -gt 0 ]; then
         echo "❌ Pipeline failed: $TOTAL_FAILED job(s) did not succeed."
