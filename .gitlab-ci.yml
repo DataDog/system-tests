@@ -172,12 +172,12 @@ check_pipeline_status:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   script:
-    - set -e  # Exit immediately if any command fails
-    - echo "Checking for failed jobs in parent and child pipelines..."
-    - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
-
-    # Function to fetch all jobs from a paginated GitLab API endpoint
     - |
+      set -e  # Exit immediately if any command fails
+      echo "Checking for failed jobs in parent and child pipelines..."
+      export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
+
+      # Function to fetch all jobs from a paginated GitLab API endpoint
       fetch_all_jobs() {
         local url="$1"
         local failed_count=0
@@ -216,8 +216,7 @@ check_pipeline_status:
         echo "$failed_count"
       }
 
-    # Fetch failed jobs in the parent pipeline
-    - |
+      # Fetch failed jobs in the parent pipeline
       echo "🔍 Fetching parent pipeline jobs..."
       FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
 
@@ -225,7 +224,7 @@ check_pipeline_status:
       echo "🔍 Fetching child pipelines..."
       BRIDGES_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"
       echo "🔍 Bridges URL: $BRIDGES_URL"
-      
+
       BRIDGES_RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$BRIDGES_URL")
       echo "📄 Bridges response preview: $(echo "$BRIDGES_RESPONSE" | head -c 200)..."
 
@@ -254,7 +253,7 @@ check_pipeline_status:
         exit 1
       fi
 
-    - echo "✅ All jobs and child pipelines passed!"
+      echo "✅ All jobs and child pipelines passed!"
   when: always
   rules:
     - if: '$SCHEDULED_JOB == ""'
