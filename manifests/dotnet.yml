@@ -494,7 +494,7 @@ tests/:
       Test_DsmKinesis: v3.19.0
       Test_DsmRabbitmq: v2.29.0
       Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: v3.19.0
+      Test_DsmRabbitmq_TopicExchange: missing_feature
       Test_DsmSNS: missing_feature
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
