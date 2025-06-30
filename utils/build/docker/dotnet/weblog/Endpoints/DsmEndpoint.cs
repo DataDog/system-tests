@@ -45,6 +45,12 @@ namespace weblog
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
+                } else if ("rabbitmq_topic_exchange".Equals(integration)) {
+                    Thread producerThread = new Thread(RabbitMQProducerTopicExchange.DoWork);
+                    Thread consumerThread = new Thread(RabbitMQConsumerTopicExchange.DoWork);
+                    producerThread.Start();
+                    consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
                 }
                 else if ("sqs".Equals(integration))
                 {
@@ -162,6 +168,50 @@ namespace weblog
             helper.AddListener("systemTestRabbitmqFanoutQueue3", message =>
             {
                 Console.WriteLine("[rabbitmq_fanout] Consumed message: " + message);
+            });
+        }
+    }
+
+    class RabbitMQProducerTopicExchange {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestTopicExchange", ExchangeType.Topic);
+            helper.CreateQueue("systemTestRabbitmqTopicQueue1");
+            helper.CreateQueue("systemTestRabbitmqTopicQueue2");
+            helper.CreateQueue("systemTestRabbitmqTopicQueue3");
+            helper.QueueBind("systemTestRabbitmqTopicQueue1", "systemTestTopicExchange", "test.topic.*.cake");
+            helper.QueueBind("systemTestRabbitmqTopicQueue2", "systemTestTopicExchange", "test.topic.vanilla.*");
+            helper.QueueBind("systemTestRabbitmqTopicQueue3", "systemTestTopicExchange", "test.topic.chocolate.*");
+
+            helper.ExchangePublish("systemTestTopicExchange", "test.topic.chocolate.cake", "hello world");
+            helper.ExchangePublish("systemTestTopicExchange", "test.topic.chocolate.icecream", "hello world");
+            helper.ExchangePublish("systemTestTopicExchange", "test.topic.vanilla.icecream", "hello world");
+            Console.WriteLine("[rabbitmq_topic] Produced messages");
+        }
+    }
+
+    class RabbitMQConsumerTopicExchange {
+        public static void DoWork() {
+            var helper = new RabbitMQHelper();
+            helper.ExchangeDeclare("systemTestTopicExchange", ExchangeType.Topic);
+            helper.CreateQueue("systemTestRabbitmqTopicQueue1");
+            helper.CreateQueue("systemTestRabbitmqTopicQueue2");
+            helper.CreateQueue("systemTestRabbitmqTopicQueue3");
+            helper.QueueBind("systemTestRabbitmqTopicQueue1", "systemTestTopicExchange", "test.topic.*.cake");
+            helper.QueueBind("systemTestRabbitmqTopicQueue2", "systemTestTopicExchange", "test.topic.vanilla.*");
+            helper.QueueBind("systemTestRabbitmqTopicQueue3", "systemTestTopicExchange", "test.topic.chocolate.*");
+
+            helper.AddListener("systemTestRabbitmqTopicQueue1", message =>
+            {
+                Console.WriteLine("[rabbitmq_topic] Consumed message from queue1: " + message);
+            });
+            helper.AddListener("systemTestRabbitmqTopicQueue2", message =>
+            {
+                Console.WriteLine("[rabbitmq_topic] Consumed message from queue2: " + message);
+            });
+            helper.AddListener("systemTestRabbitmqTopicQueue3", message =>
+            {
+                Console.WriteLine("[rabbitmq_topic] Consumed message from queue3: " + message);
             });
         }
     }
