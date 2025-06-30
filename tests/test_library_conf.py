@@ -17,6 +17,7 @@ from utils._context.header_tag_vars import (
     HEADER_VAL_BASIC,
     HEADER_VAL_WHITESPACE_VAL_LONG,
     HEADER_VAL_WHITESPACE_VAL_SHORT,
+    RESPONSE_WILDCARD_TAG_PREFIX,
     TAG_COLON_LEADING,
     TAG_COLON_TRAILING,
     TAG_LONG,
@@ -58,6 +59,24 @@ class Test_HeaderTags_Short:
         for _, _, span in interfaces.library.get_spans(request=self.r):
             for tag in tags:
                 assert tag in span["meta"]
+
+
+@scenarios.library_conf_wildcard_header_tags
+@features.http_headers_as_tags_dd_trace_header_tags
+class Test_HeaderTags_Wildcard_Response_Headers:
+    """Validates that the wildcard format for specifying headers correctly tags Response Headers"""
+
+    def setup_trace_header_tags(self):
+        self.r = weblog.get("/")
+
+    def test_trace_header_tags(self):
+        response_headers = self.r.headers
+        spans = interfaces.agent.get_spans_list(self.r)
+        assert len(spans) == 1
+
+        span = spans[0]
+        for key in response_headers:
+            assert RESPONSE_WILDCARD_TAG_PREFIX + key in span["meta"]
 
 
 @scenarios.library_conf_custom_header_tags

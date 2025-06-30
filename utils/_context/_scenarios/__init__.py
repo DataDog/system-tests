@@ -1,6 +1,6 @@
 import json
 
-from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
@@ -593,6 +593,13 @@ class _Scenarios:
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS_INVALID",
         additional_trace_header_tags=(INVALID_CONFIGS),
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
+    )
+
+    library_conf_wildcard_header_tags = EndToEndScenario(
+        "LIBRARY_CONF_WILDCARD_HEADER_TAGS",
+        additional_trace_header_tags=(tuple(CONFIG_WILDCARD)),
+        rc_api_enabled=True,
+        doc="Scenario with wildcard headers to be used with DD_TRACE_HEADER_TAGS",
     )
 
     tracing_config_empty = EndToEndScenario(
