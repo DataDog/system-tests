@@ -113,7 +113,7 @@ class K8sInjectorDevScenario(Scenario):
 
     def _stop_injector_dev(self):
         """Stop the injector-dev tool"""
-        self.injector_client.stop(clean_k8s=True)
+        # self.injector_client.stop(clean_k8s=True)
 
     def _apply_scenario_injector_dev(self):
         """Applies the scenario in yaml format to the injector-dev tool."""

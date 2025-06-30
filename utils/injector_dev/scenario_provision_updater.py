@@ -166,7 +166,9 @@ class ScenarioProvisionUpdater:
                 scenario_yaml["helm"]["config"]["clusterAgent"]["image"] = {}
 
             # Set the registry value for clusterAgent image
-            scenario_yaml["helm"]["config"]["clusterAgent"]["image"]["registry"] = container_registry
+            scenario_yaml["helm"]["config"]["clusterAgent"]["image"]["repository"] = (
+                container_registry + "/cluster-agent"
+            )
             logger.info(f"Updated clusterAgent.image.registry = {container_registry}")
 
         # Write the updated YAML to the destination file
