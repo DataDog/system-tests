@@ -191,7 +191,7 @@ check_pipeline_status:
       fi
       echo "✅ GitLab token retrieved successfully"
 
-    # Enhanced API call function with error handling
+        # Enhanced API call function with error handling
     - |
       gitlab_api_call() {
         local url="$1"
@@ -199,49 +199,52 @@ check_pipeline_status:
         local http_code
         local temp_file="/tmp/gitlab_response_$$"
 
-        echo "🌐 Making API call to: $url"
+        # Send progress messages to stderr so they're always visible
+        echo "🌐 Making API call to: $url" >&2
 
         # Use curl with write-out to capture both response and HTTP status code
         http_code=$(curl --silent --write-out "%{http_code}" --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --output "$temp_file" "$url" 2>/dev/null)
         response=$(cat "$temp_file" 2>/dev/null || echo "")
         rm -f "$temp_file"
 
-        echo "📡 HTTP Status Code: $http_code"
+        # Send HTTP status to stderr so it's always visible
+        echo "📡 HTTP Status Code: $http_code" >&2
 
         # Check HTTP status code
         if [ "$http_code" != "200" ]; then
-          echo "❌ ERROR: GitLab API call failed with HTTP $http_code"
-          echo "   URL: $url"
-          echo "   Response: $response"
+          # Send all error messages to stderr so they're always visible
+          echo "❌ ERROR: GitLab API call failed with HTTP $http_code" >&2
+          echo "   URL: $url" >&2
+          echo "   Response: $response" >&2
 
           case "$http_code" in
             "401")
-              echo "   🔑 HTTP 401 Unauthorized - GitLab token is expired or invalid"
-              echo "   💡 Check if your GitLab token needs to be renewed"
+              echo "   🔑 HTTP 401 Unauthorized - GitLab token is expired or invalid" >&2
+              echo "   💡 Check if your GitLab token needs to be renewed" >&2
               ;;
             "403")
-              echo "   🚫 HTTP 403 Forbidden - GitLab token lacks necessary permissions"
-              echo "   💡 Token needs api, read_api, or read_repository scope"
+              echo "   🚫 HTTP 403 Forbidden - GitLab token lacks necessary permissions" >&2
+              echo "   💡 Token needs api, read_api, or read_repository scope" >&2
               ;;
             "404")
-              echo "   🔍 HTTP 404 Not Found - Resource does not exist"
-              echo "   💡 Check if the project ID or pipeline ID is correct"
+              echo "   🔍 HTTP 404 Not Found - Resource does not exist" >&2
+              echo "   💡 Check if the project ID or pipeline ID is correct" >&2
               ;;
             "429")
-              echo "   ⏰ HTTP 429 Too Many Requests - Rate limit exceeded"
-              echo "   💡 Wait a moment and try again"
+              echo "   ⏰ HTTP 429 Too Many Requests - Rate limit exceeded" >&2
+              echo "   💡 Wait a moment and try again" >&2
               ;;
             "500"|"502"|"503"|"504")
-              echo "   🔧 HTTP $http_code Server Error - GitLab API is experiencing issues"
-              echo "   💡 This is likely a temporary GitLab service issue"
+              echo "   🔧 HTTP $http_code Server Error - GitLab API is experiencing issues" >&2
+              echo "   💡 This is likely a temporary GitLab service issue" >&2
               ;;
             "000")
-              echo "   🌐 HTTP 000 Network Error - Cannot connect to GitLab"
-              echo "   💡 Check network connectivity or GitLab service status"
+              echo "   🌐 HTTP 000 Network Error - Cannot connect to GitLab" >&2
+              echo "   💡 Check network connectivity or GitLab service status" >&2
               ;;
             *)
-              echo "   ❓ HTTP $http_code Unknown Error"
-              echo "   💡 Check GitLab API documentation for this status code"
+              echo "   ❓ HTTP $http_code Unknown Error" >&2
+              echo "   💡 Check GitLab API documentation for this status code" >&2
               ;;
           esac
           return 1
@@ -249,9 +252,9 @@ check_pipeline_status:
 
         # Validate JSON response
         if ! echo "$response" | jq -e type > /dev/null 2>&1; then
-          echo "❌ ERROR: Invalid JSON response from GitLab API"
-          echo "   HTTP Status: $http_code"
-          echo "   Response: $response"
+          echo "❌ ERROR: Invalid JSON response from GitLab API" >&2
+          echo "   HTTP Status: $http_code" >&2
+          echo "   Response: $response" >&2
           return 1
         fi
 
