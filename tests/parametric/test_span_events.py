@@ -206,7 +206,6 @@ class Test_Span_Events:
 class Test_Record_Exception:
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -226,7 +225,7 @@ class Test_Record_Exception:
             "double_arr": [1.1, 2.2],
         }
 
-        attributes1 = {"bool": False, "int": 0, "double": 0.0}
+        attributes1 = {"bool": False, "int": 0, "double": 2.1}
 
         with test_library, test_library.dd_start_span("test") as s:
             result1 = s.record_exception("TestException1", attributes=attributes0)
@@ -250,7 +249,6 @@ class Test_Record_Exception:
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": True}
         assert event["attributes"].get("int") == {"type": 2, "int_value": 1}
         assert event["attributes"].get("double") == {"type": 3, "double_value": 2.3}
-
         assert event["attributes"].get("str_arr") == {
             "type": 4,
             "array_value": {
@@ -280,13 +278,14 @@ class Test_Record_Exception:
         assert event["attributes"].get("exception.message").get("string_value") == "TestException2"
         assert event["attributes"].get("bool") == {"type": 1, "bool_value": False}
         assert event["attributes"].get("int") == {"type": 2, "int_value": 0}
-        assert isinstance(event["attributes"].get("int").get("int_value"), int)
-        assert event["attributes"].get("double") == {"type": 3, "double_value": 0.0}
+        if context.library != "nodejs":
+            # NodeJS encodes everything as float
+            assert isinstance(event["attributes"].get("int").get("int_value"), int)
+        assert event["attributes"].get("double") == {"type": 3, "double_value": 2.1}
         assert isinstance(event["attributes"].get("double").get("double_value"), float)
 
     @missing_feature(context.library == "golang", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
-    @missing_feature(context.library == "nodejs", reason="Not implemented")
     @missing_feature(context.library == "java", reason="Not implemented")
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")

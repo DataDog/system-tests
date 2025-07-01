@@ -222,8 +222,8 @@ app.post('/trace/span/record_exception', (req, res) => {
   try {
     throw new Error(request.message);
   } catch (e) {
-    span.record_exception(e, request.attributes);
-    res.json({ exception_type: exception.constructor.name });
+    span.recordException(e, request.attributes);
+    res.json({ exception_type: e.constructor.name });
   }
 });
 
