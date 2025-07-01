@@ -152,3 +152,20 @@ class TestDockerSSIFeatures:
         injection_source = configurations.get("instrumentation_source")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
         assert injection_source["value"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
+
+    def setup_injection_metadata(self):
+        self._setup_all()
+
+    @features.ssi_injection_metadata
+    @missing_feature(
+        context.library in ("python", "nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet"
+    )
+    def test_injection_metadata(self):
+        logger.info("Testing injection result variables")
+        events = interfaces.test_agent.get_injection_metadata_for_autoinject()
+        assert len(events) >= 1
+
+        injection_metadata = events[0]
+        assert injection_metadata["result"] == "success"
+        assert injection_metadata["result_reason"] == "the tracer was successfully injected"
+        assert injection_metadata["result_class"] == "success"
