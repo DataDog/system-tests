@@ -51,7 +51,7 @@ class Test_Monitoring:
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(context.library >= "golang@v2.1.0-dev", reason="replaced by test_waf_monitoring_once_rfc1025")
-    @irrelevant(context.library >= "nodejs@5.56.0", reason="replaced by test_waf_monitoring_once_rfc1025")
+    @irrelevant(context.library >= "nodejs@5.58.0", reason="replaced by test_waf_monitoring_once_rfc1025")
     @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_once(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
@@ -191,7 +191,7 @@ class Test_Monitoring:
 
     @scenarios.appsec_rules_monitoring_with_errors
     @bug(library="golang", reason="LANGPLAT-584")
-    @irrelevant(context.library >= "nodejs@5.56.0", reason="expected tags were deprecated by rfc1025")
+    @irrelevant(context.library >= "nodejs@5.58.0", reason="expected tags were deprecated by rfc1025")
     @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")
     def test_waf_monitoring_errors(self):
         """Some WAF monitoring span tags and metrics are expected to be sent at
