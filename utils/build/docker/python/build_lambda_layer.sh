@@ -29,12 +29,20 @@ fi
 if [[ $SKIP_BUILD -eq 0 ]]; then
     if [ -e "dd-trace-py" ]; then
         echo "Install from local folder /binaries/dd-trace-py"
-        sed -i '' 's|^ddtrace =.*$|ddtrace = { path = "./dd-trace-py" }|' datadog-lambda-python/pyproject.toml
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' 's|^ddtrace =.*$|ddtrace = { path = "./dd-trace-py" }|' datadog-lambda-python/pyproject.toml
+        else
+            sed -i 's|^ddtrace =.*$|ddtrace = { path = "./dd-trace-py" }|' datadog-lambda-python/pyproject.toml
+        fi
         cp -r dd-trace-py datadog-lambda-python/dd-trace-py
     elif [ "$(find . -maxdepth 1 -name "*.whl" | wc -l)" = "1" ]; then
         path=$(readlink -f "$(find . -maxdepth 1 -name "*.whl")")
         echo "Install ddtrace from ${path}"
-        sed -i '' "s|^ddtrace =.*$|ddtrace = { path = \"file://${path}\" }|" datadog-lambda-python/pyproject.toml
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' "s|^ddtrace =.*$|ddtrace = { path = \"file://${path}\" }|" datadog-lambda-python/pyproject.toml
+        else
+            sed -i "s|^ddtrace =.*$|ddtrace = { path = \"file://${path}\" }|" datadog-lambda-python/pyproject.toml
+        fi
         cp -r ./*.whl datadog-lambda-python/
     elif [ "$(find . -maxdepth 1 -name "python-load-from-pip" | wc -l)" = "1" ]; then
         echo "Install ddtrace from $(cat python-load-from-pip)"
@@ -44,11 +52,19 @@ if [[ $SKIP_BUILD -eq 0 ]]; then
             # Format with revision: ddtrace @ git+https://...@revision
             git_url="${BASH_REMATCH[1]}"
             git_rev="${BASH_REMATCH[2]}"
-            sed -i '' "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\", rev = \"${git_rev}\" }|" datadog-lambda-python/pyproject.toml
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\", rev = \"${git_rev}\" }|" datadog-lambda-python/pyproject.toml
+            else
+                sed -i "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\", rev = \"${git_rev}\" }|" datadog-lambda-python/pyproject.toml
+            fi
         elif [[ $pip_spec =~ ddtrace\ @\ git\+(.*)$ ]]; then
             # Format without revision: ddtrace @ git+https://... (defaults to main)
             git_url="${BASH_REMATCH[1]}"
-            sed -i '' "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\" }|" datadog-lambda-python/pyproject.toml
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                sed -i '' "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\" }|" datadog-lambda-python/pyproject.toml
+            else
+                sed -i "s|^ddtrace =.*$|ddtrace = { git = \"${git_url}\" }|" datadog-lambda-python/pyproject.toml
+            fi
         else
             echo "ERROR: Unable to parse git URL from python-load-from-pip format: $pip_spec"
             exit 1

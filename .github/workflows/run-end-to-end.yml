@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_lambda_proxy_image:
+        description: "Shall we build lambda proxy image"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -125,6 +130,9 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
+    - name: Build lambda proxy image
+      if: inputs.build_lambda_proxy_image
+      run: ./build.sh -i lambda-proxy
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
