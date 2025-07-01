@@ -307,7 +307,7 @@ func (l *CustomLogger) Log(logMessage string) {
 	}
 }
 
-func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string {
+func parseTracerConfig(l *CustomLogger, tracerEnabled string, profilerEnabled string) map[string]string {
 	config := make(map[string]string)
 	config["dd_service"] = l.tracerConfig["Service"]
 	// config["dd_log_level"] = nil // dd-trace-go does not support DD_LOG_LEVEL (use DD_TRACE_DEBUG instead)
@@ -331,10 +331,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string) map[string]string 
 		config["dd_dogstatsd_host"], config["dd_dogstatsd_port"] = "", ""
 	}
 	config["dd_data_streams_enabled"] = l.tracerConfig["DataStreamsEnabled"]
-	// Add profiling enabled configuration
-	if profilingEnabled, exists := l.profilerConfig["ProfilingEnabled"]; exists {
-		config["dd_profiling_enabled"] = profilingEnabled
-	}
+	config["dd_profiling_enabled"] = profilerEnabled
 	log.Print("Parsed config: ", config)
 	return config
 }
@@ -351,9 +348,14 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	if len(log.tracerConfig) == 0 {
 		tracerEnabled = "false"
 	}
+	profilerEnabled := "true"
+	// If profilerConfig is empty, then Profiler configuration startup log wasn't generated -- profiler must be disabled.
+	if len(log.profilerConfig) == 0 {
+		profilerEnabled = "false"
+	}
 
 	// Prepare the response
-	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled)}
+	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, profilerEnabled)}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
