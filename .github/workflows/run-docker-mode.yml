@@ -19,6 +19,8 @@ jobs:
             internal: system_tests/agent:latest
           - name: proxy
             internal: datadog/system-tests:proxy-v1
+          - name: lambda-proxy
+            internal: datadog/system-tests:lambda-proxy
     runs-on: ubuntu-latest
     permissions:
       packages: write
