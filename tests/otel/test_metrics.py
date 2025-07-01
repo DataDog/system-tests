@@ -68,8 +68,8 @@ def validate_metric(metric: dict) -> None:
     # assert metric["unit"] is not None, "Metrics are expected to have a unit"
     # assert metric["metadata"] is not None, "Metrics are expected to have metadata"
 
-    assert metric["name"] in metric_to_validator, f"Metric {metric['name']} is not expected"
-    func, name, value, aggregation_temporality = metric_to_validator[metric["name"]]
+    assert metric["name"].lower() in metric_to_validator, f"Metric {metric['name']} is not expected"
+    func, name, value, aggregation_temporality = metric_to_validator[metric["name"].lower()]
     func(metric, name, value, aggregation_temporality)
 
 
@@ -86,7 +86,7 @@ def validate_counter(metric: dict, name: str, value: object, aggregation_tempora
     #     AGGREGATION_TEMPORALITY_CUMULATIVE = 2;
     # }
 
-    assert metric["name"] == name
+    assert metric["name"].lower() == name
     assert "sum" in metric
     assert len(metric["sum"]["dataPoints"]) == 1
     assert metric["sum"]["aggregationTemporality"] == aggregation_temporality
@@ -115,7 +115,7 @@ def validate_histogram(metric: dict, name: str, value: object, aggregation_tempo
     #     optional double max = 12;
     # }
 
-    assert metric["name"] == name
+    assert metric["name"].lower() == name
     assert "histogram" in metric  # This asserts the metric type is a histogram
     assert len(metric["histogram"]["dataPoints"]) == 1
     assert metric["histogram"]["aggregationTemporality"] == aggregation_temporality
@@ -141,7 +141,7 @@ def validate_up_down_counter(metric: dict, name: str, value: object, aggregation
     #     AGGREGATION_TEMPORALITY_CUMULATIVE = 2;
     # }
 
-    assert metric["name"] == name
+    assert metric["name"].lower() == name
     assert "sum" in metric
     assert len(metric["sum"]["dataPoints"]) == 1
     assert metric["sum"]["aggregationTemporality"] == aggregation_temporality
@@ -154,7 +154,7 @@ def validate_gauge(metric: dict, name: str, value: object, _: str) -> None:
     #     repeated NumberDataPoint data_points = 1;
     # }
 
-    assert metric["name"] == name
+    assert metric["name"].lower() == name
     assert "gauge" in metric
     assert len(metric["gauge"]["dataPoints"]) == 1
     validate_number_data_point(metric["gauge"]["dataPoints"][0], "asDouble", value, start_time_is_required=False)
@@ -193,15 +193,15 @@ metric_to_validator: dict[str, tuple[Callable[[dict, str, object, str], None], s
     "example.counter": (validate_counter, "example.counter", "11", "AGGREGATION_TEMPORALITY_DELTA"),
     "example.async.counter": (validate_counter, "example.async.counter", "22", "AGGREGATION_TEMPORALITY_DELTA"),
     "example.histogram": (validate_histogram, "example.histogram", 33.0, "AGGREGATION_TEMPORALITY_DELTA"),
-    "example.upDownCounter": (
+    "example.updowncounter": (
         validate_up_down_counter,
-        "example.upDownCounter",
+        "example.updowncounter",
         "55",
         "AGGREGATION_TEMPORALITY_CUMULATIVE",
     ),
-    "example.async.upDownCounter": (
+    "example.async.updowncounter": (
         validate_up_down_counter,
-        "example.async.upDownCounter",
+        "example.async.updowncounter",
         "66",
         "AGGREGATION_TEMPORALITY_CUMULATIVE",
     ),
@@ -212,7 +212,7 @@ metric_to_validator: dict[str, tuple[Callable[[dict, str, object, str], None], s
 
 @scenarios.otel_metric_e2e
 @scenarios.apm_tracing_e2e_otel
-@irrelevant(context.library not in ("java_otel", "dotnet"))
+@irrelevant(context.library not in ("java_otel", "dotnet", "python"))
 @features.not_reported  # FPD does not support otel libs
 class Test_OTelMetrics:
     def setup_agent_otlp_upload(self):
@@ -223,8 +223,8 @@ class Test_OTelMetrics:
             "example.async.counter",
             "example.gauge",
             "example.async.gauge",
-            "example.upDownCounter",
-            "example.async.upDownCounter",
+            "example.updowncounter",
+            "example.async.updowncounter",
             "example.histogram",
         ]
 
@@ -245,13 +245,14 @@ class Test_OTelMetrics:
 
             for scope_metric in scope_metrics:
                 for metric in scope_metric["metrics"]:
-                    if metric["name"].startswith("example"):
+                    metric_name = metric["name"].lower()
+                    if metric_name.startswith("example"):
                         # Asynchronous instruments report on each metric read, so we need to deduplicate
                         # Also, the UpDownCounter instrument (in addition to the AsyncUpDownCounter instrument) is cumulative, so we need to deduplicate
-                        if metric["name"].startswith("example.async") or metric["name"] == "example.upDownCounter":
-                            if metric["name"] not in seen:
+                        if metric_name.startswith("example.async") or metric_name == "example.updowncounter":
+                            if metric_name not in seen:
                                 filtered_individual_metrics.append(metric)
-                                seen.add(metric["name"])
+                                seen.add(metric_name)
                         else:
                             filtered_individual_metrics.append(metric)
 
