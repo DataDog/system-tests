@@ -1,0 +1,40 @@
+name: Pull Request Title
+on:
+  pull_request:
+  # pull_request_target:
+    types: [edited]
+    # branches:
+    #   - 'main'
+jobs:
+  check-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get previous target branch
+        uses: ./.github/actions/get_target_branch
+        id: get-previous-target-branch
+        with:
+          text: ${{ github.event.changes.title.from }}
+
+      - name: Get current target branch
+        uses: ./.github/actions/get_target_branch
+        id: get-current-target-branch
+        with:
+          text: ${{ github.event.pull_request.title }}
+
+      - name: debug
+        run: echo "${{ toJSON(steps.get-previous-target-branch.outputs.target-branch) }} ${{ toJSON(steps.get-current-target-branch.outputs.target-branch) }}"
+
+      - name: Trigger CI
+        if: steps.get-previous-target-branch.outputs.target-branch != steps.get-current-target-branch.outputs.target-branch
+        run: |
+          gh api \
+            --method POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            /repos/${{ github.event.repository.owner.login }}/${{ github.event.repository.name }}/actions/workflows/ci.yml/dispatches \
+            -f "ref=${{ github.event.pull_request.head.ref }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
