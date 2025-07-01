@@ -2717,5 +2717,14 @@ class _Features:
         pytest.mark.features(feature_id=480)(test_object)
         return test_object
 
+    @staticmethod
+    def ssi_injection_metadata(test_object):
+        """Appsec supports trace-tagging rules
+
+        https://feature-parity.us1.prod.dog/#/?feature=481
+        """
+        pytest.mark.features(feature_id=481)(test_object)
+        return test_object
+
 
 features = _Features()
