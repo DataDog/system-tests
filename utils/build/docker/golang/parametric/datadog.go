@@ -238,8 +238,8 @@ func (s *apmClientServer) spanSetErrorHandler(w http.ResponseWriter, r *http.Req
 
 type CustomLogger struct {
 	*logrus.Logger
-	tracerConfig   map[string]string
-	profilerConfig map[string]string
+	tracerConfig    map[string]string
+	profilerEnabled bool
 }
 
 type TracerConfig struct {
@@ -259,11 +259,6 @@ type TracerConfig struct {
 
 type ProfilerConfig struct {
 	Enabled bool `json:"enabled"`
-}
-
-type Config struct {
-	Tracer   TracerConfig
-	Profiler ProfilerConfig
 }
 
 // Log is a custom logger that extracts & parses the JSON configuration from the log message
@@ -297,13 +292,7 @@ func (l *CustomLogger) Log(logMessage string) {
 	profilerRe := regexp.MustCompile(`.*Profiler configuration: (\{.*\})`)
 	profilerMatches := profilerRe.FindStringSubmatch(logMessage)
 	if len(profilerMatches) >= 2 {
-		jsonStr := profilerMatches[1]
-		var profilerConfig ProfilerConfig
-		if err := json.Unmarshal([]byte(jsonStr), &profilerConfig); err != nil {
-			log.Printf("Error unmarshaling profiler JSON: %v\n", err)
-			return
-		}
-		l.profilerConfig["ProfilingEnabled"] = strconv.FormatBool(profilerConfig.Enabled)
+		l.profilerEnabled = true
 	}
 }
 
@@ -337,7 +326,7 @@ func parseTracerConfig(l *CustomLogger, tracerEnabled string, profilerEnabled st
 }
 
 func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.Request) {
-	var log = &CustomLogger{Logger: logrus.New(), tracerConfig: make(map[string]string), profilerConfig: make(map[string]string)}
+	var log = &CustomLogger{Logger: logrus.New(), tracerConfig: make(map[string]string), profilerEnabled: false}
 
 	tracer.Start(tracer.WithLogger(log))
 	profiler.Start()
@@ -348,14 +337,9 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	if len(log.tracerConfig) == 0 {
 		tracerEnabled = "false"
 	}
-	profilerEnabled := "true"
-	// If profilerConfig is empty, then Profiler configuration startup log wasn't generated -- profiler must be disabled.
-	if len(log.profilerConfig) == 0 {
-		profilerEnabled = "false"
-	}
 
 	// Prepare the response
-	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, profilerEnabled)}
+	response := GetTraceConfigReturn{Config: parseTracerConfig(log, tracerEnabled, strconv.FormatBool(log.profilerEnabled))}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
