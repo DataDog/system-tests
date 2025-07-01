@@ -273,7 +273,7 @@ public class MyResource {
 
     @GET
     @Path("/stats-unique")
-    public Response status(@QueryParam("code") @DefaultValue("200") Integer code) {
+    public Response statsUnique(@QueryParam("code") @DefaultValue("200") Integer code) {
         return Response.status(code).build();
     }
 

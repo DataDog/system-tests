@@ -84,7 +84,7 @@ public class WebController {
   }
 
   @RequestMapping("/stats-unique")
-  ResponseEntity<String> status(@RequestParam(defaultValue = "200") Integer code) {
+  ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
     return new ResponseEntity<>(HttpStatus.valueOf(code));
   }
 
