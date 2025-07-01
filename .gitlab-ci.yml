@@ -174,7 +174,7 @@ check_pipeline_status:
   script:
     - set -e
     - echo "🔍 Checking pipeline status for parent and child pipelines..."
-    
+
     # Retrieve and validate GitLab token
     - |
       echo "🔐 Retrieving GitLab token from AWS SSM..."
@@ -196,35 +196,65 @@ check_pipeline_status:
       gitlab_api_call() {
         local url="$1"
         local response
-        
+        local http_code
+        local temp_file="/tmp/gitlab_response_$$"
+
         echo "🌐 Making API call to: $url"
-        if ! response=$(curl --silent --fail --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url" 2>/dev/null); then
-          echo "❌ ERROR: GitLab API call failed"
+
+        # Use curl with write-out to capture both response and HTTP status code
+        http_code=$(curl --silent --write-out "%{http_code}" --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --output "$temp_file" "$url" 2>/dev/null)
+        response=$(cat "$temp_file" 2>/dev/null || echo "")
+        rm -f "$temp_file"
+
+        echo "📡 HTTP Status Code: $http_code"
+
+        # Check HTTP status code
+        if [ "$http_code" != "200" ]; then
+          echo "❌ ERROR: GitLab API call failed with HTTP $http_code"
           echo "   URL: $url"
-          echo "   Possible causes:"
-          echo "   - GitLab token is expired or invalid"
-          echo "   - Network connectivity issues"
-          echo "   - GitLab API is temporarily unavailable"
-          echo "   - Insufficient permissions for the token"
-          
-          # Try to get more specific error information
-          local error_response
-          error_response=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url" 2>&1 || true)
-          if echo "$error_response" | grep -q "401\|Unauthorized"; then
-            echo "   🔑 Authentication failed - GitLab token is likely expired or invalid"
-          elif echo "$error_response" | grep -q "403\|Forbidden"; then
-            echo "   🚫 Access forbidden - GitLab token lacks necessary permissions"
-          fi
+          echo "   Response: $response"
+
+          case "$http_code" in
+            "401")
+              echo "   🔑 HTTP 401 Unauthorized - GitLab token is expired or invalid"
+              echo "   💡 Check if your GitLab token needs to be renewed"
+              ;;
+            "403")
+              echo "   🚫 HTTP 403 Forbidden - GitLab token lacks necessary permissions"
+              echo "   💡 Token needs api, read_api, or read_repository scope"
+              ;;
+            "404")
+              echo "   🔍 HTTP 404 Not Found - Resource does not exist"
+              echo "   💡 Check if the project ID or pipeline ID is correct"
+              ;;
+            "429")
+              echo "   ⏰ HTTP 429 Too Many Requests - Rate limit exceeded"
+              echo "   💡 Wait a moment and try again"
+              ;;
+            "500"|"502"|"503"|"504")
+              echo "   🔧 HTTP $http_code Server Error - GitLab API is experiencing issues"
+              echo "   💡 This is likely a temporary GitLab service issue"
+              ;;
+            "000")
+              echo "   🌐 HTTP 000 Network Error - Cannot connect to GitLab"
+              echo "   💡 Check network connectivity or GitLab service status"
+              ;;
+            *)
+              echo "   ❓ HTTP $http_code Unknown Error"
+              echo "   💡 Check GitLab API documentation for this status code"
+              ;;
+          esac
           return 1
         fi
-        
+
         # Validate JSON response
         if ! echo "$response" | jq -e type > /dev/null 2>&1; then
           echo "❌ ERROR: Invalid JSON response from GitLab API"
+          echo "   HTTP Status: $http_code"
           echo "   Response: $response"
           return 1
         fi
-        
+
         echo "$response"
       }
 
@@ -234,24 +264,36 @@ check_pipeline_status:
         local base_url="$1"
         local failed_count=0
         local page=1
-        
+
         while true; do
-          local response
-          if ! response=$(gitlab_api_call "${base_url}&page=$page&per_page=100"); then
+          echo "   📄 Fetching page $page..."
+
+          # Call API and capture response - error messages will be displayed by gitlab_api_call
+          local response temp_response_file="/tmp/count_jobs_$$"
+          gitlab_api_call "${base_url}&page=$page&per_page=100" > "$temp_response_file"
+          local api_exit_code=$?
+
+          if [ $api_exit_code -ne 0 ]; then
+            echo "❌ API call failed for page $page"
+            rm -f "$temp_response_file"
             return 1
           fi
-          
+
+          response=$(cat "$temp_response_file")
+          rm -f "$temp_response_file"
+
           local page_failed_jobs jobs_count
           page_failed_jobs=$(echo "$response" | jq '[.[] | select(.status == "failed")] | length')
           jobs_count=$(echo "$response" | jq 'length')
-          
+
+          echo "   📊 Page $page: $jobs_count jobs total, $page_failed_jobs failed"
           failed_count=$((failed_count + page_failed_jobs))
-          
+
           # Break if we got less than 100 results (last page)
           [ "$jobs_count" -lt 100 ] && break
           ((page++))
         done
-        
+
         echo "$failed_count"
       }
 
@@ -271,10 +313,10 @@ check_pipeline_status:
         echo "❌ Failed to retrieve child pipelines"
         exit 1
       fi
-      
+
       FAILED_CHILD_JOBS=0
       CHILD_PIPELINE_IDS=$(echo "$CHILD_PIPELINES" | jq -r '.[].downstream_pipeline.id // empty')
-      
+
       if [ -n "$CHILD_PIPELINE_IDS" ]; then
         for CHILD_PIPELINE in $CHILD_PIPELINE_IDS; do
           echo "   Checking child pipeline: $CHILD_PIPELINE"
@@ -296,12 +338,12 @@ check_pipeline_status:
       echo "   Parent failed jobs: $FAILED_JOBS"
       echo "   Child failed jobs: $FAILED_CHILD_JOBS"
       echo "   Total failed jobs: $TOTAL_FAILED"
-      
+
       if [ "$TOTAL_FAILED" -gt 0 ]; then
         echo "❌ Pipeline failed: $TOTAL_FAILED job(s) did not succeed"
         exit 1
       fi
-      
+
       echo "✅ All jobs and child pipelines passed!"
   when: always
   rules:
