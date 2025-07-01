@@ -258,7 +258,7 @@ check_pipeline_status:
         echo "$response"
       }
 
-    # Consolidated function to count failed jobs with pagination
+        # Consolidated function to count failed jobs with pagination
     - |
       count_failed_jobs() {
         local base_url="$1"
@@ -268,19 +268,17 @@ check_pipeline_status:
         while true; do
           echo "   📄 Fetching page $page..."
 
-          # Call API and capture response - error messages will be displayed by gitlab_api_call
-          local response temp_response_file="/tmp/count_jobs_$$"
-          gitlab_api_call "${base_url}&page=$page&per_page=100" > "$temp_response_file"
+          # Temporarily disable set -e to capture API errors properly
+          set +e
+          local response
+          response=$(gitlab_api_call "${base_url}&page=$page&per_page=100")
           local api_exit_code=$?
+          set -e
 
           if [ $api_exit_code -ne 0 ]; then
             echo "❌ API call failed for page $page"
-            rm -f "$temp_response_file"
             return 1
           fi
-
-          response=$(cat "$temp_response_file")
-          rm -f "$temp_response_file"
 
           local page_failed_jobs jobs_count
           page_failed_jobs=$(echo "$response" | jq '[.[] | select(.status == "failed")] | length')
@@ -297,10 +295,15 @@ check_pipeline_status:
         echo "$failed_count"
       }
 
-    # Check parent pipeline
+        # Check parent pipeline
     - |
       echo "📋 Checking parent pipeline jobs..."
-      if ! FAILED_JOBS=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?"); then
+      set +e  # Temporarily disable exit on error to capture API errors
+      FAILED_JOBS=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
+      API_EXIT_CODE=$?
+      set -e  # Re-enable exit on error
+
+      if [ $API_EXIT_CODE -ne 0 ]; then
         echo "❌ Failed to check parent pipeline jobs"
         exit 1
       fi
@@ -309,7 +312,12 @@ check_pipeline_status:
     # Check child pipelines
     - |
       echo "🔗 Checking child pipeline jobs..."
-      if ! CHILD_PIPELINES=$(gitlab_api_call "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"); then
+      set +e  # Temporarily disable exit on error to capture API errors
+      CHILD_PIPELINES=$(gitlab_api_call "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges")
+      API_EXIT_CODE=$?
+      set -e  # Re-enable exit on error
+
+      if [ $API_EXIT_CODE -ne 0 ]; then
         echo "❌ Failed to retrieve child pipelines"
         exit 1
       fi
@@ -320,7 +328,12 @@ check_pipeline_status:
       if [ -n "$CHILD_PIPELINE_IDS" ]; then
         for CHILD_PIPELINE in $CHILD_PIPELINE_IDS; do
           echo "   Checking child pipeline: $CHILD_PIPELINE"
-          if ! CHILD_FAILED=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?"); then
+          set +e  # Temporarily disable exit on error to capture API errors
+          CHILD_FAILED=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")
+          API_EXIT_CODE=$?
+          set -e  # Re-enable exit on error
+
+          if [ $API_EXIT_CODE -ne 0 ]; then
             echo "❌ Failed to check child pipeline $CHILD_PIPELINE"
             exit 1
           fi
