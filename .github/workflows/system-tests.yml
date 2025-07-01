@@ -162,7 +162,10 @@ jobs:
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
-      - name: Build python's weblog base images
+      - name: Log binaries contents
+        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        run: ls -la binaries/
+      - name: Build weblog base images
         if: inputs.library == 'python' && inputs.build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
