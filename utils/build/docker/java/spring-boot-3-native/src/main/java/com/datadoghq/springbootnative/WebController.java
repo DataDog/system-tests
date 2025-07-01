@@ -83,6 +83,11 @@ public class WebController {
     return new ResponseEntity<>(HttpStatus.valueOf(code));
   }
 
+  @RequestMapping("/stats-unique")
+  ResponseEntity<String> status(@RequestParam(defaultValue = "200") Integer code) {
+    return new ResponseEntity<>(HttpStatus.valueOf(code));
+  }
+
   @RequestMapping("/hello")
   public String hello() {
     return "Hello world";

@@ -247,6 +247,11 @@ public class Main {
                                 int code = Integer.parseInt(codeParam);
                                 ctx.getResponse().status(code).send();
                             })
+                            path("stats-unique", ctx -> {
+                                String codeParam = ctx.getRequest().getQueryParams().get("code");
+                                int code = codeParam != null ? Integer.parseInt(codeParam): 200;
+                                ctx.getResponse().status(code).send();
+                            })
                             .get("users", ctx -> {
                                 final String user = ctx.getRequest().getQueryParams().get("user");
                                 final Span span = GlobalTracer.get().activeSpan();

@@ -2078,8 +2078,6 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.2.1

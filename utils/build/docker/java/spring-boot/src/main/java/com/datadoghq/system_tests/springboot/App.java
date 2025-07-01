@@ -302,6 +302,11 @@ public class App {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
+    @RequestMapping("/stats-unique")
+    ResponseEntity<String> status(@RequestParam(defaultValue = "200") Integer code) {
+        return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
     private static final Map<String, String> METADATA = createMetadata();
     private static final Map<String, String> createMetadata() {
         HashMap<String, String> h = new HashMap<>();
