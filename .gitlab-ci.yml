@@ -177,190 +177,102 @@ check_pipeline_status:
 
     # Retrieve and validate GitLab token
     - |
-      echo "🔐 Retrieving GitLab token from AWS SSM..."
-      if ! export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text 2>/dev/null); then
-        echo "❌ ERROR: Failed to retrieve GitLab token from AWS SSM"
-        echo "   Check if the parameter 'ci.$CI_PROJECT_NAME.gitlab.token' exists in us-east-1"
-        exit 1
-      fi
-      GITLAB_TOKEN="${GITLAB_TOKEN}rmm"
+      echo "🔐 Getting GitLab token..."
+      GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text 2>/dev/null) || { echo "❌ Failed to get token from SSM"; exit 1; }
+      [ -z "$GITLAB_TOKEN" ] || [ "$GITLAB_TOKEN" = "None" ] && { echo "❌ Token is empty/invalid"; exit 1; }
+      echo "✅ Token retrieved"
 
-      if [ -z "$GITLAB_TOKEN" ] || [ "$GITLAB_TOKEN" = "None" ]; then
-        echo "❌ ERROR: GitLab token is empty or invalid"
-        exit 1
-      fi
-      echo "✅ GitLab token retrieved successfully"
-
-        # Enhanced API call function with error handling
+            # Enhanced API call function with error handling
     - |
       gitlab_api_call() {
-        local url="$1"
-        local response
-        local http_code
-        local temp_file="/tmp/gitlab_response_$$"
-
-        # Send progress messages to stderr so they're always visible
-        echo "🌐 Making API call to: $url" >&2
-
-        # Use curl with write-out to capture both response and HTTP status code
-        http_code=$(curl --silent --write-out "%{http_code}" --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --output "$temp_file" "$url" 2>/dev/null)
-        response=$(cat "$temp_file" 2>/dev/null || echo "")
+        local url="$1" temp_file="/tmp/gitlab_response_$$"
+        
+        echo "🌐 API call: $url" >&2
+        local http_code=$(curl --silent --write-out "%{http_code}" --header "PRIVATE-TOKEN: $GITLAB_TOKEN" --output "$temp_file" "$url" 2>/dev/null)
+        local response=$(cat "$temp_file" 2>/dev/null || echo "")
         rm -f "$temp_file"
-
-        # Send HTTP status to stderr so it's always visible
-        echo "📡 HTTP Status Code: $http_code" >&2
-
-        # Check HTTP status code
+        
+        echo "📡 HTTP $http_code" >&2
+        
         if [ "$http_code" != "200" ]; then
-          # Send all error messages to stderr so they're always visible
-          echo "❌ ERROR: GitLab API call failed with HTTP $http_code" >&2
-          echo "   URL: $url" >&2
-          echo "   Response: $response" >&2
-
+          echo "❌ API failed: HTTP $http_code" >&2
+          [ -n "$response" ] && echo "   Response: $response" >&2
+          
           case "$http_code" in
-            "401")
-              echo "   🔑 HTTP 401 Unauthorized - GitLab token is expired or invalid" >&2
-              echo "   💡 Check if your GitLab token needs to be renewed" >&2
-              ;;
-            "403")
-              echo "   🚫 HTTP 403 Forbidden - GitLab token lacks necessary permissions" >&2
-              echo "   💡 Token needs api, read_api, or read_repository scope" >&2
-              ;;
-            "404")
-              echo "   🔍 HTTP 404 Not Found - Resource does not exist" >&2
-              echo "   💡 Check if the project ID or pipeline ID is correct" >&2
-              ;;
-            "429")
-              echo "   ⏰ HTTP 429 Too Many Requests - Rate limit exceeded" >&2
-              echo "   💡 Wait a moment and try again" >&2
-              ;;
-            "500"|"502"|"503"|"504")
-              echo "   🔧 HTTP $http_code Server Error - GitLab API is experiencing issues" >&2
-              echo "   💡 This is likely a temporary GitLab service issue" >&2
-              ;;
-            "000")
-              echo "   🌐 HTTP 000 Network Error - Cannot connect to GitLab" >&2
-              echo "   💡 Check network connectivity or GitLab service status" >&2
-              ;;
-            *)
-              echo "   ❓ HTTP $http_code Unknown Error" >&2
-              echo "   💡 Check GitLab API documentation for this status code" >&2
-              ;;
+            "401") echo "   🔑 Token expired/invalid - renew GitLab token" >&2 ;;
+            "403") echo "   🚫 Insufficient permissions - check token scope" >&2 ;;
+            "404") echo "   🔍 Resource not found - check project/pipeline ID" >&2 ;;
+            "429") echo "   ⏰ Rate limited - wait and retry" >&2 ;;
+            "5"*) echo "   🔧 GitLab server error - temporary issue" >&2 ;;
+            "000") echo "   🌐 Network error - check connectivity" >&2 ;;
           esac
           return 1
         fi
-
-        # Validate JSON response
-        if ! echo "$response" | jq -e type > /dev/null 2>&1; then
-          echo "❌ ERROR: Invalid JSON response from GitLab API" >&2
-          echo "   HTTP Status: $http_code" >&2
-          echo "   Response: $response" >&2
+        
+        if ! echo "$response" | jq -e type >/dev/null 2>&1; then
+          echo "❌ Invalid JSON response" >&2
           return 1
         fi
-
+        
         echo "$response"
       }
 
-        # Consolidated function to count failed jobs with pagination
+            # Function to count failed jobs with pagination
     - |
       count_failed_jobs() {
-        local base_url="$1"
-        local failed_count=0
-        local page=1
-
+        local base_url="$1" failed_count=0 page=1
+        
         while true; do
-          echo "   📄 Fetching page $page..."
-
-          # Temporarily disable set -e to capture API errors properly
+          echo "   📄 Page $page..." >&2
+          
           set +e
-          local response
-          response=$(gitlab_api_call "${base_url}&page=$page&per_page=100")
-          local api_exit_code=$?
+          local response=$(gitlab_api_call "${base_url}&page=$page&per_page=100")
+          local exit_code=$?
           set -e
-
-          if [ $api_exit_code -ne 0 ]; then
-            echo "❌ API call failed for page $page"
-            return 1
-          fi
-
-          local page_failed_jobs jobs_count
-          page_failed_jobs=$(echo "$response" | jq '[.[] | select(.status == "failed")] | length')
-          jobs_count=$(echo "$response" | jq 'length')
-
-          echo "   📊 Page $page: $jobs_count jobs total, $page_failed_jobs failed"
-          failed_count=$((failed_count + page_failed_jobs))
-
-          # Break if we got less than 100 results (last page)
+          
+          [ $exit_code -ne 0 ] && return 1
+          
+          local page_failed=$(echo "$response" | jq '[.[] | select(.status == "failed")] | length')
+          local jobs_count=$(echo "$response" | jq 'length')
+          
+          echo "   📊 Page $page: $jobs_count total, $page_failed failed" >&2
+          failed_count=$((failed_count + page_failed))
+          
           [ "$jobs_count" -lt 100 ] && break
           ((page++))
         done
-
+        
         echo "$failed_count"
       }
 
-        # Check parent pipeline
+            # Check parent and child pipelines
     - |
-      echo "📋 Checking parent pipeline jobs..."
-      set +e  # Temporarily disable exit on error to capture API errors
-      FAILED_JOBS=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
-      API_EXIT_CODE=$?
-      set -e  # Re-enable exit on error
-
-      if [ $API_EXIT_CODE -ne 0 ]; then
-        echo "❌ Failed to check parent pipeline jobs"
-        exit 1
-      fi
-      echo "   Parent pipeline failed jobs: $FAILED_JOBS"
-
-    # Check child pipelines
-    - |
-      echo "🔗 Checking child pipeline jobs..."
-      set +e  # Temporarily disable exit on error to capture API errors
-      CHILD_PIPELINES=$(gitlab_api_call "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges")
-      API_EXIT_CODE=$?
-      set -e  # Re-enable exit on error
-
-      if [ $API_EXIT_CODE -ne 0 ]; then
-        echo "❌ Failed to retrieve child pipelines"
-        exit 1
-      fi
-
+      echo "📋 Checking parent pipeline..."
+      set +e; FAILED_JOBS=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?"); set -e
+      [ $? -ne 0 ] && { echo "❌ Failed to check parent pipeline"; exit 1; }
+      
+      echo "🔗 Checking child pipelines..."
+      set +e; CHILD_PIPELINES=$(gitlab_api_call "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges"); set -e
+      [ $? -ne 0 ] && { echo "❌ Failed to get child pipelines"; exit 1; }
+      
       FAILED_CHILD_JOBS=0
-      CHILD_PIPELINE_IDS=$(echo "$CHILD_PIPELINES" | jq -r '.[].downstream_pipeline.id // empty')
+      for CHILD_ID in $(echo "$CHILD_PIPELINES" | jq -r '.[].downstream_pipeline.id // empty'); do
+        echo "   Child pipeline: $CHILD_ID"
+        set +e; CHILD_FAILED=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_ID/jobs?"); set -e
+        [ $? -ne 0 ] && { echo "❌ Failed to check child $CHILD_ID"; exit 1; }
+        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED))
+      done
 
-      if [ -n "$CHILD_PIPELINE_IDS" ]; then
-        for CHILD_PIPELINE in $CHILD_PIPELINE_IDS; do
-          echo "   Checking child pipeline: $CHILD_PIPELINE"
-          set +e  # Temporarily disable exit on error to capture API errors
-          CHILD_FAILED=$(count_failed_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")
-          API_EXIT_CODE=$?
-          set -e  # Re-enable exit on error
-
-          if [ $API_EXIT_CODE -ne 0 ]; then
-            echo "❌ Failed to check child pipeline $CHILD_PIPELINE"
-            exit 1
-          fi
-          FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + CHILD_FAILED))
-        done
-      else
-        echo "   No child pipelines found"
-      fi
-      echo "   Child pipelines failed jobs: $FAILED_CHILD_JOBS"
-
-    # Final status check
+        # Final status check
     - |
       TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
-      echo "📊 Pipeline Status Summary:"
-      echo "   Parent failed jobs: $FAILED_JOBS"
-      echo "   Child failed jobs: $FAILED_CHILD_JOBS"
-      echo "   Total failed jobs: $TOTAL_FAILED"
-
+      echo "📊 Summary: $FAILED_JOBS parent + $FAILED_CHILD_JOBS child = $TOTAL_FAILED failed jobs"
+      
       if [ "$TOTAL_FAILED" -gt 0 ]; then
-        echo "❌ Pipeline failed: $TOTAL_FAILED job(s) did not succeed"
+        echo "❌ Pipeline failed: $TOTAL_FAILED job(s) failed"
         exit 1
       fi
-
-      echo "✅ All jobs and child pipelines passed!"
+      echo "✅ All pipelines passed!"
   when: always
   rules:
     - if: '$SCHEDULED_JOB == ""'
