@@ -22,6 +22,11 @@ on:
         description: "Comma-separated list of scenarios not to run"
         type: string
         default: ""
+      weblogs:
+        description: "Comma-separated list of weblogs to run. By default, all weblogs are run"
+        default: ''
+        required: false
+        type: string
       parametric_job_count:
         description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
         default: 1
@@ -122,6 +127,7 @@ jobs:
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \

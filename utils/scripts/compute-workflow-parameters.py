@@ -29,6 +29,7 @@ class CiData:
         scenarios: str,
         groups: str,
         excluded_scenarios: str,
+        weblogs: str,
         parametric_job_count: int,
         desired_execution_time: int,
         explicit_binaries_artifact: str,
@@ -61,7 +62,12 @@ class CiData:
         )
 
         self.data |= get_endtoend_definitions(
-            library, scenario_map, self.ci_environment, desired_execution_time, maximum_parallel_jobs=256
+            library,
+            scenario_map,
+            {*weblogs.replace(" ", "").split(",")},
+            self.ci_environment,
+            desired_execution_time,
+            maximum_parallel_jobs=256,
         )
 
         self.data["parametric"] = {
@@ -228,6 +234,7 @@ if __name__ == "__main__":
     parser.add_argument("--scenarios", "-s", type=str, help="Scenarios to run", default="")
     parser.add_argument("--groups", "-g", type=str, help="Scenario groups to run", default="")
     parser.add_argument("--excluded-scenarios", type=str, help="Scenarios to excluded", default="")
+    parser.add_argument("--weblogs", type=str, help="Subset of weblog to run", default="")
 
     # how long the workflow is expected to run
     parser.add_argument(
@@ -270,6 +277,7 @@ if __name__ == "__main__":
         scenarios=args.scenarios,
         groups=args.groups,
         excluded_scenarios=args.excluded_scenarios,
+        weblogs=args.weblogs,
         parametric_job_count=args.parametric_job_count,
         desired_execution_time=args.desired_execution_time,
         explicit_binaries_artifact=args.explicit_binaries_artifact,
