@@ -20,6 +20,6 @@ RUN pip install boto3==1.38.46 kombu==5.5.4 mock==5.1.0 asyncpg==0.29.0 aiomysql
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v2 .
-# docker push datadog/system-tests:uwsgi-poc.base-v2
+# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v6 .
+# docker push datadog/system-tests:uwsgi-poc.base-v6
 
