@@ -110,7 +110,7 @@ jobs:
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
-      weblogs: ${{ inputs.end_to_end_weblogs }}
+      weblogs: ${{ inputs.weblogs }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
       desired_execution_time: ${{ inputs.desired_execution_time }}
       binaries_artifact: ${{ inputs.binaries_artifact }}

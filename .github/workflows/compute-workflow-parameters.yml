@@ -140,6 +140,7 @@ jobs:
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
