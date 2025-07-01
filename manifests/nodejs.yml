@@ -87,10 +87,10 @@ tests/:
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_Schema_Request_Cookies:
           '*': *ref_4_21_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_Schema_Request_FormUrlEncoded_Body:
           '*': *ref_4_21_0
           fastify: *ref_5_57_0
@@ -864,7 +864,7 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
@@ -887,7 +887,7 @@ tests/:
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
         express5: *ref_5_29_0  # test uses querystring and path params
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -991,7 +991,7 @@ tests/:
         fastify: *ref_5_57_0
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
