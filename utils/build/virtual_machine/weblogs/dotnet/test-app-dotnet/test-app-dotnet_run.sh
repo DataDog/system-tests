@@ -24,6 +24,32 @@ dotnet restore
 dotnet build -c Release 
 sudo dotnet publish -c Release -o /home/datadog
 
+detect_glibc() {
+  # 1) getconf
+  if v=$(getconf GNU_LIBC_VERSION 2>/dev/null); then
+    echo "${v#* }" && return
+  fi
+  # 2) ldd
+  if v=$(ldd --version 2>&1 | head -n1 | grep -oE '[0-9]+\.[0-9]+'); then
+    echo "$v" && return
+  fi
+  # 3) direct libc.so.6
+  for lib in /lib*/libc.so.6; do
+    if [ -x "$lib" ]; then
+      out=$("$lib" 2>&1 | head -n1)
+      if [[ $out =~ version\ ([0-9]+\.[0-9]+) ]]; then
+        echo "${BASH_REMATCH[1]}" && return
+      fi
+    fi
+  done
+  # fallback
+  echo ""
+}
+
+glibc_ver=$(detect_glibc)
+echo "GLIBC_VER: $glibc_ver"
+
+
 #Copy app service and start it
 export DD_APM_INSTRUMENTATION_DEBUG=true
 sudo chmod 755 create_and_run_app_service.sh
