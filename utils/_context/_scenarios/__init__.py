@@ -186,11 +186,11 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_lambda_request_blocking = LambdaScenario(
-        "APPSEC_LAMBDA_REQUEST_BLOCKING",
-        doc="Appsec tests for AAP Request Blocking on AWS Lambda",
+    appsec_lambda_blocking = LambdaScenario(
+        "APPSEC_LAMBDA_BLOCKING",
         weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="Appsec tests for AAP Blocking on AWS Lambda",
         scenario_groups=[scenario_groups.appsec],
     )
 

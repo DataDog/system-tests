@@ -31,7 +31,7 @@ class LambdaScenario(DockerScenario):
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
         require_api_key: bool = False,
-        weblog_env: dict[str, str] | None = None,
+        weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
     ):
         use_proxy = use_proxy_for_weblog or use_proxy_for_agent
@@ -135,7 +135,6 @@ class LambdaScenario(DockerScenario):
 
     def _set_components(self):
         self.components["libary"] = self.library.version
-        self.components["agent"] = self.extension.version
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")
@@ -191,8 +190,4 @@ class LambdaScenario(DockerScenario):
 
     @property
     def library(self):
-        return self.lambda_proxy_container.library
-
-    @property
-    def extension(self):
-        return self.lambda_proxy_container.extension
+        return self.lambda_weblog.library

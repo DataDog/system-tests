@@ -635,32 +635,6 @@ class LambdaProxyContainer(TestedContainer):
             },
         )
 
-    def post_start(self):
-        from utils import weblog
-
-        logger.debug(f"Docker host is {weblog.domain}")
-
-        with open(self.healthcheck_log_file, encoding="utf-8") as f:
-            data = json.load(f)
-            lib = data["library"]
-            extension = data["extension"]
-
-        self._library = ComponentVersion(lib["name"], lib["version"])
-        self._extension = ComponentVersion(extension["name"], extension["version"])
-
-        logger.stdout(f"Library: {self.library}")
-        logger.stdout(f"Agent: {self.extension}")
-
-    @property
-    def library(self) -> ComponentVersion:
-        assert self._library is not None, "Library version is not set"
-        return self._library
-
-    @property
-    def extension(self) -> ComponentVersion:
-        assert self._extension is not None, "Agent version is not set"
-        return self._extension
-
 
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
@@ -1084,6 +1058,7 @@ class LambdaWeblogContainer(WeblogContainer):
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
+            "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
         }
 
         volumes = volumes or {}
@@ -1122,27 +1097,26 @@ class LambdaWeblogContainer(WeblogContainer):
             volumes=volumes,
         )
 
-        # Remove healthchecks, as they are performed in the LambdaProxyContainer
-        self.healthcheck = None
-        # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
-        self.ports = {}
         # Set the container port to the one used by the one of the Lambda RIE
         self.container_port = 8080
 
-    def post_start(self):
-        from utils import weblog
+        # Replace healthcheck with a custom one for Lambda
+        healthcheck_event = json.dumps({"healthcheck": True})
+        self.healthcheck = {
+            "test": f"curl --fail --silent --show-error --max-time 2 -XPOST -d '{healthcheck_event}' http://localhost:{self.container_port}/2015-03-31/functions/function/invocations",
+            "retries": 60,
+        }
+        # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
+        self.ports = {}
 
-        logger.debug(f"Docker host is {weblog.domain}")
+    def configure(self, *, replay: bool):
+        super().configure(replay=replay)
 
-        if self.appsec_rules_file:
-            logger.stdout("Using a custom appsec rules file")
+        library = self.image.labels["system-tests-library"]
 
-        if self.uds_mode:
-            logger.stdout(f"UDS socket: {self.uds_socket}")
-
-        logger.stdout(f"Weblog variant: {self.weblog_variant}")
-
-        self.stdout_interface.init_patterns(self.library)
+        if library == "python":
+            self.environment["DD_LAMBDA_HANDLER"] = "handler.lambda_handler"
+            self.command = "datadog_lambda.handler.handler"
 
 
 class PostgresContainer(SqlDbTestedContainer):

@@ -5,6 +5,10 @@ set -euo pipefail
 ARCH=${ARCH:-$(uname -m)}
 PYTHON_VERSION=${PYTHON_VERSION:-3.13}
 
+if [ "$ARCH" = "x86_64" ]; then
+    ARCH="amd64"
+fi
+
 cd binaries
 
 SKIP_BUILD=0
