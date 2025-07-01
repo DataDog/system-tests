@@ -236,7 +236,7 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str, weblogs_filter: set[str]) -> list[str]:
+def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
     folder = f"utils/build/docker/{library}"
     result = [
         f.replace(".Dockerfile", "")
@@ -254,7 +254,7 @@ def _get_endtoend_weblogs(library: str, weblogs_filter: set[str]) -> list[str]:
 def get_endtoend_definitions(
     library: str,
     scenario_map: dict,
-    weblogs_filter: set[str],
+    weblogs_filter: list[str],
     ci_environment: str,
     desired_execution_time: int,
     maximum_parallel_jobs: int,
@@ -556,4 +556,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, set(), "dev", desired_execution_time=400, maximum_parallel_jobs=256)
+    get_endtoend_definitions("ruby", m, [], "dev", desired_execution_time=400, maximum_parallel_jobs=256)

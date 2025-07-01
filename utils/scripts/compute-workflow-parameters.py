@@ -12,6 +12,11 @@ from utils.scripts.ci_orchestrators.workflow_data import (
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
 
+def _clean_input_value(input_value: str) -> str:
+    """Cleans the input value by removing spaces, newlines, and tabs."""
+    return input_value.replace(" ", "").replace("\n", "").replace("\t", "")
+
+
 class CiData:
     """CiData (Continuous Integration Data) class is used to store the data that is used to generate the CI workflow.
     It works in two separated steps:
@@ -55,6 +60,12 @@ class CiData:
 
         self.data["miscs"]["ci_environment"] = self.ci_environment
 
+        # clean input parameters
+        scenarios = _clean_input_value(scenarios)
+        groups = _clean_input_value(groups)
+        excluded_scenarios = _clean_input_value(excluded_scenarios)
+        weblogs = _clean_input_value(weblogs)
+
         scenario_map = self._get_workflow_map(
             scenario_names=scenarios.split(","),
             scenario_group_names=groups.split(","),
@@ -64,7 +75,7 @@ class CiData:
         self.data |= get_endtoend_definitions(
             library,
             scenario_map,
-            {*weblogs.replace(" ", "").split(",")},
+            weblogs.split(",") if len(weblogs) > 0 else [],
             self.ci_environment,
             desired_execution_time,
             maximum_parallel_jobs=256,
