@@ -291,6 +291,7 @@ func (l *CustomLogger) Log(logMessage string) {
 	// Check for profiler configuration
 	profilerRe := regexp.MustCompile(`.*Profiler configuration: (\{.*\})`)
 	profilerMatches := profilerRe.FindStringSubmatch(logMessage)
+	fmt.Println("MTOFF: profilerMatches: ", profilerMatches)
 	if len(profilerMatches) >= 2 {
 		l.profilerEnabled = true
 	}
