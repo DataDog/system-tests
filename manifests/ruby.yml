@@ -8,8 +8,8 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v2.17.1-dev
+        Test_API_Security_RC_ASM_DD_scanners: v2.17.1-dev
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints: v2.17.1-dev
         Test_API_Security_Sampling_Different_Paths:
@@ -501,14 +501,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -560,8 +566,8 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.15.0
     test_request_blocking.py:
@@ -839,19 +845,19 @@ tests/:
       "*": irrelevant (endpoint not implemented)
       rails70: v2.0.0
     Test_Config_IntegrationEnabled_True:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_LogInjection_Default:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)

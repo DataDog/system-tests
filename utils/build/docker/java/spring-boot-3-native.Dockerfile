@@ -28,7 +28,6 @@ COPY --from=build /app/without-profiling/myproject ./without-profiling/
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 COPY ./utils/build/docker/java/app-native-profiling.sh app.sh
 RUN chmod +x app.sh
