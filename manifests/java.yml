@@ -103,9 +103,9 @@ tests/:
         Test_Schema_Request_Json_Body:
           '*': v1.36.0
           akka-http: bug (APPSEC-56888)
-          jersey-grizzly2: missing_feature
+          jersey-grizzly2: bug (APPSEC-56846)
           play: v1.51.0
-          resteasy-netty3: missing_feature
+          resteasy-netty3: bug (APPSEC-56846)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
