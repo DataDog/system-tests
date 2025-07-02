@@ -91,6 +91,9 @@ on:
       binaries_artifact:
         description: ""
         value: ${{ jobs.main.outputs.binaries_artifact }}
+      unique_id:
+        description: "A unique ID for the workflow run, used to set unique artifact names if the workflow is called in a matrix"
+        value: ${{ jobs.main.outputs.unique_id }}
 
 jobs:
   main:
@@ -110,6 +113,7 @@ jobs:
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
+      unique_id: ${{ steps.unique_id.outputs.value }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -162,3 +166,6 @@ jobs:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' }}
+    - name: Set unique ID
+      id: unique_id
+      run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT
