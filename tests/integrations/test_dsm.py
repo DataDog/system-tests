@@ -98,6 +98,23 @@ class Test_DsmKafka:
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
 
+    def setup_dsm_kafka_without_cluster_id(self):
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+
+    @features.datastreams_monitoring_support_for_kafka
+    @irrelevant(context.library != "dotnet")
+    def test_dsm_kafka_without_cluster_id(self):
+        assert self.r.text == "ok"
+
+        producer_hash = 4463699290244539355
+        consumer_hash = 3735318893869752335
+
+        edge_tags_in: tuple = ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka")
+        edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+        DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
+
 
 @features.datastreams_monitoring_support_for_http
 @scenarios.integrations

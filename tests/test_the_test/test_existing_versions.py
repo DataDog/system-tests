@@ -100,6 +100,7 @@ def get_github_releases(owner, repo) -> list[Version]:
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     headers = {}
     if "GITHUB_TOKEN" in os.environ:
+        logger.debug("Using GITHUB_TOKEN for GitHub API authentication")
         headers["Authorization"] = f"token {os.environ['GITHUB_TOKEN']}"
 
     versions = []

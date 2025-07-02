@@ -236,7 +236,7 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str) -> list[str]:
+def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
     folder = f"utils/build/docker/{library}"
     result = [
         f.replace(".Dockerfile", "")
@@ -244,11 +244,20 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
         if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
     ]
 
+    if len(weblogs_filter) != 0:
+        # filter weblogs by the weblogs_filter set
+        result = [weblog for weblog in result if weblog in weblogs_filter]
+
     return sorted(result)
 
 
 def get_endtoend_definitions(
-    library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
+    library: str,
+    scenario_map: dict,
+    weblogs_filter: list[str],
+    ci_environment: str,
+    desired_execution_time: int,
+    maximum_parallel_jobs: int,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -257,7 +266,7 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs = _get_endtoend_weblogs(library)
+    weblogs = _get_endtoend_weblogs(library, weblogs_filter)
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -547,4 +556,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, "dev", desired_execution_time=400, maximum_parallel_jobs=256)
+    get_endtoend_definitions("ruby", m, [], "dev", desired_execution_time=400, maximum_parallel_jobs=256)
