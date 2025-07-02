@@ -13,12 +13,13 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
+ENV UWSGI_ENABLED=true
 
 # docker startup
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-uwsgi -p 1 --enable-threads --threads 2 --listen 100 --http :7777 -w app:app --lazy --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
+uwsgi -p 1 --enable-threads --threads 2 --listen 100 --http :7777 -w app:app --lazy --lazy-apps --master --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 
