@@ -10,6 +10,7 @@ if os.environ.get("UWSGI_ENABLED", "false") == "false":
     print("gevent monkey patching done for flask", file=os.sys.stderr)
 
 from ddtrace.contrib.internal.httplib.patch import patch as httplib_patch  # noqa: E402
+
 httplib_patch()
 
 import base64
