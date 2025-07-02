@@ -897,6 +897,7 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
 @flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
+@flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
