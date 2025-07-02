@@ -146,7 +146,6 @@ class Test_DsmRabbitmq:
         )
 
     @bug(library="java", reason="APMAPI-840")
-    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
@@ -159,12 +158,16 @@ class Test_DsmRabbitmq:
         if context.library == "nodejs":
             producer_hash = 5246740674878013159
             consumer_hash = 8116149247198652772
+        elif context.library == "dotnet":
+            producer_hash = 8945717757344503539
+            consumer_hash = 247866491670975357
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
 
+        routing_key = "has_routing_key:True" if context.library == "dotnet" else "has_routing_key:true"
         edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
-        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq")
+        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", routing_key, "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
@@ -211,11 +214,12 @@ class Test_DsmRabbitmq_TopicExchange:
 
         is_dotnet = context.library == "dotnet"
         parent_hash = 378300129197643016 if is_dotnet else 18436203392999142109
+        routing_key = "has_routing_key:True" if is_dotnet else "has_routing_key:true"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=378300129197643016,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
+            tags=("direction:out", "exchange:systemTestTopicExchange", routing_key, "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
@@ -250,11 +254,12 @@ class Test_DsmRabbitmq_FanoutExchange:
 
         is_dotnet = context.library == "dotnet"
         parent_hash = 3170684449488615704 if is_dotnet else 877077567891168935
+        routing_key = "has_routing_key:False" if is_dotnet else "has_routing_key:false"
 
         DsmHelper.assert_checkpoint_presence(
             hash_=parent_hash,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
+            tags=("direction:out", "exchange:systemTestFanoutExchange", routing_key, "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
