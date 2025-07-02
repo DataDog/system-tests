@@ -158,16 +158,12 @@ class Test_DsmRabbitmq:
         if context.library == "nodejs":
             producer_hash = 5246740674878013159
             consumer_hash = 8116149247198652772
-        elif context.library == "dotnet":
-            producer_hash = 3168906112866048140
-            consumer_hash = 15417794110121366704
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
 
-        routing_key = "has_routing_key:True" if context.library == "dotnet" else "has_routing_key:true"
         edge_tags_in = ("direction:in", f"topic:{DSM_QUEUE}", "type:rabbitmq")
-        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", routing_key, "type:rabbitmq")
+        edge_tags_out = ("direction:out", f"exchange:{DSM_EXCHANGE}", "has_routing_key:true", "type:rabbitmq")
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
@@ -213,29 +209,28 @@ class Test_DsmRabbitmq_TopicExchange:
         assert self.r.text == "ok"
 
         is_dotnet = context.library == "dotnet"
-        parent_hash = 378300129197643016 if is_dotnet else 18436203392999142109
-        routing_key = "has_routing_key:True" if is_dotnet else "has_routing_key:true"
+        parent_hash = 14115675228093516275 if is_dotnet else 18436203392999142109
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=378300129197643016,
+            hash_=parent_hash,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestTopicExchange", routing_key, "type:rabbitmq"),
+            tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=9354355895797419296 if is_dotnet else 9354355895797419296,
+            hash_=17456221739323133462 if is_dotnet else 9354355895797419296,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=1004586362767825494 if is_dotnet else 15562446431583779,
+            hash_=6709599110187021152 if is_dotnet else 15562446431583779,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=11960982753020577776 if is_dotnet else 13344154764958581569,
+            hash_=4518514625593640902 if is_dotnet else 13344154764958581569,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
@@ -253,29 +248,28 @@ class Test_DsmRabbitmq_FanoutExchange:
         assert self.r.text == "ok"
 
         is_dotnet = context.library == "dotnet"
-        parent_hash = 3170684449488615704 if is_dotnet else 877077567891168935
-        routing_key = "has_routing_key:False" if is_dotnet else "has_routing_key:false"
+        parent_hash = 528013466165804625 if is_dotnet else 877077567891168935
 
         DsmHelper.assert_checkpoint_presence(
             hash_=parent_hash,
             parent_hash=0,
-            tags=("direction:out", "exchange:systemTestFanoutExchange", routing_key, "type:rabbitmq"),
+            tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=16576682041580465041 if is_dotnet else 6900956252542091373,
+            hash_=1551162056316679489 if is_dotnet else 6900956252542091373,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=11429030658285204218 if is_dotnet else 497609944035068818,
+            hash_=5919279740143028634 if is_dotnet else 497609944035068818,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=6675089359340834961 if is_dotnet else 15446107644012012909,
+            hash_=10096313447786601025 if is_dotnet else 15446107644012012909,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
