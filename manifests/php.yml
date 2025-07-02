@@ -410,6 +410,8 @@ tests/:
     test_service_activation_metric.py:
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+    test_telemetry_appsec_configuration.py:
+      TestTelemetryAppSecRemoteConfigEnabled: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_suspicious_attacker_blocking.py:
