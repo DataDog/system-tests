@@ -38,22 +38,27 @@ namespace weblog
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
-                }
-                else if ("rabbitmq".Equals(integration)) {
+                } else if ("rabbitmq".Equals(integration)) {
                     Thread producerThread = new Thread(() => RabbitMQProducer.DoWork(queue, exchange, routing_key));
                     Thread consumerThread = new Thread(() => RabbitMQConsumer.DoWork(queue, exchange, routing_key));
                     producerThread.Start();
                     consumerThread.Start();
                     await context.Response.WriteAsync("ok");
+                } else if ("rabbitmq_fanout_exchange".Equals(integration)) {
+                    Thread producerThread = new Thread(RabbitMQProducerFanoutExchange.DoWork);
+                    Thread consumerThread = new Thread(RabbitMQConsumerFanoutExchange.DoWork);
+                    producerThread.Start();
+                    consumerThread.Start();
+                    await context.Response.WriteAsync("ok");
                 }
-                else if ("sqs".Equals(integration)) {
+                else if ("sqs".Equals(integration))
+                {
                     Console.WriteLine($"[SQS] Begin producing DSM message: {message}");
                     await Task.Run(() => SqsProducer.DoWork(queue, message));
                     Console.WriteLine($"[SQS] Begin consuming DSM message: {message}");
                     await Task.Run(() => SqsConsumer.DoWork(queue, message));
                     await context.Response.WriteAsync("ok");
-                }
-                else if ("kinesis".Equals(integration)) {
+                } else if ("kinesis".Equals(integration)) {
                     Console.WriteLine($"[Kinesis] Begin producing DSM message: {message}");
                     await Task.Run(() => KinesisProducer.DoWork(stream, message));
                     Console.WriteLine($"[Kinesis] Begin consuming DSM message: {message}");
@@ -66,15 +71,11 @@ namespace weblog
         }
     }
 
-    class KafkaProducer
-    {
-        public static void DoWork(string queue)
-        {
-            KafkaHelper.CreateTopics("kafka:9092", new List<string> { queue });
-            using (var producer = KafkaHelper.GetProducer("kafka:9092"))
-            {
-                using (Datadog.Trace.Tracer.Instance.StartActive("KafkaProduce"))
-                {
+    class KafkaProducer {
+        public static void DoWork(string queue) {
+            KafkaHelper.CreateTopics("kafka:9092", new List<string>{queue});
+            using (var producer = KafkaHelper.GetProducer("kafka:9092")) {
+                using (Datadog.Trace.Tracer.Instance.StartActive("KafkaProduce")) {
                     producer.Produce(queue, new Message<Null, string>
                     {
                         Value = $"Produced to {queue}"
@@ -86,22 +87,16 @@ namespace weblog
         }
     }
 
-    class KafkaConsumer
-    {
-        public static void DoWork(string queue, string group)
-        {
-            KafkaHelper.CreateTopics("kafka:9092", new List<string> { queue });
-            using (var consumer = KafkaHelper.GetConsumer("kafka:9092", group))
-            {
+    class KafkaConsumer {
+        public static void DoWork(string queue, string group) {
+            KafkaHelper.CreateTopics("kafka:9092", new List<string>{queue});
+            using (var consumer = KafkaHelper.GetConsumer("kafka:9092", group)) {
 
-                consumer.Subscribe(new List<string> { queue });
-                while (true)
-                {
-                    using (Datadog.Trace.Tracer.Instance.StartActive("KafkaConsume"))
-                    {
+                consumer.Subscribe(new List<string>{queue});
+                while (true) {
+                    using (Datadog.Trace.Tracer.Instance.StartActive("KafkaConsume")) {
                         var result = consumer.Consume(1000);
-                        if (result == null)
-                        {
+                        if (result == null) {
                             Console.WriteLine("[Kafka] No messages to consume at this time");
                             Thread.Sleep(1000);
                             continue;
@@ -115,8 +110,7 @@ namespace weblog
     }
 
     class RabbitMQProducer {
-        public static void DoWork(string queue, string exchange, string routing_key)
-        {
+        public static void DoWork(string queue, string exchange, string routing_key) {
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare(exchange, ExchangeType.Direct);
             helper.CreateQueue(queue);
@@ -128,8 +122,7 @@ namespace weblog
     }
 
     class RabbitMQConsumer {
-        public static void DoWork(string queue, string exchange, string routing_key)
-        {
+        public static void DoWork(string queue, string exchange, string routing_key) {
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare(exchange, ExchangeType.Direct);
             helper.CreateQueue(queue);
@@ -143,8 +136,7 @@ namespace weblog
     }
 
     class RabbitMQProducerFanoutExchange {
-        public static void DoWork()
-        {
+        public static void DoWork() {
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare("systemTestFanoutExchange", ExchangeType.Fanout);
             helper.CreateQueue("systemTestRabbitmqFanoutQueue1");
@@ -160,8 +152,7 @@ namespace weblog
     }
 
     class RabbitMQConsumerFanoutExchange {
-        public static void DoWork()
-        {
+        public static void DoWork() {
             var helper = new RabbitMQHelper();
             helper.ExchangeDeclare("systemTestFanoutExchange", ExchangeType.Fanout);
             helper.CreateQueue("systemTestRabbitmqFanoutQueue1");
