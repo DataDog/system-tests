@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
@@ -13,7 +13,7 @@ RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-confi
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
 RUN pip install --upgrade pip
 RUN pip install 'flask[async]'==3.1.1 flask-login==0.6.3 requests==2.32.4 pycryptodome==3.23.0 psycopg2-binary==2.9.10 confluent-kafka==2.10.1 graphene==3.4.3
-RUN git clone git@github.com:urllib3/urllib3.git; cd urllib3; \
+RUN git clone https://github.com/urllib3/urllib3.git; cd urllib3; \
     git checkout 2.5.0; \
     pip install .
 RUN git clone https://github.com/unbit/uwsgi.git; cd uwsgi; \
