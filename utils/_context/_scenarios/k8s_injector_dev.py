@@ -165,6 +165,11 @@ class K8sInjectorDevScenario(Scenario):
                 temp_file_path = temp_file.name
 
             try:
+                # create namespace application
+                execute_command("kubectl create namespace application")
+                # create namespace system
+                execute_command("kubectl create namespace system")
+
                 # Create the secret using the config file
                 execute_command(
                     f"kubectl create secret generic private-registry-secret "
@@ -172,14 +177,49 @@ class K8sInjectorDevScenario(Scenario):
                     f"--type=kubernetes.io/dockerconfigjson",
                     quiet=True,
                 )
-                logger.info("Successfully created ECR secret")
+                logger.info("Successfully created ECR secret 0")
 
-                # Patch the default service account to use the secret
                 execute_command(
-                    "kubectl patch serviceaccount default -p "
-                    '\'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson -n system",
+                    quiet=True,
                 )
-                logger.info("Successfully patched default service account")
+                logger.info("Successfully created ECR secret 1")
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson -n application",
+                    quiet=True,
+                )
+                logger.info("Successfully created ECR secret 2")
+                # Patch the default service account to use the secret
+                # execute_command(
+                #     "kubectl patch serviceaccount default -p "
+                #     '\'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
+                # )
+                # logger.info("Successfully patched default service account")
+
+                # create service account datadog-agent-cluster-agent on system namespace
+                # execute_command("kubectl create serviceaccount datadog-agent-cluster-agent -n system")
+
+                logger.info("Successfully created namespaces application and system")
+
+                # Create the secret in the newly created namespaces
+                # for namespace in ["application", "system"]:
+                #    try:
+                #        execute_command(
+                #            f"kubectl get secret private-registry-secret -o yaml | "
+                #            f"sed 's/namespace: default/namespace: {namespace}/' | "
+                #            f"kubectl apply -f -"
+                #        )
+                #        logger.info(f"Successfully copied private-registry-secret to {namespace} namespace")
+                #    except Exception as e:
+                #         logger.warning(f"Could not copy secret to {namespace} namespace: {e}")
+
+                # Patch all service accounts across all namespaces to use the secret
+                # execute_command("bash utils/k8s_lib_injection/resources/patch_all_serviceaccounts.sh")
+                logger.info("Successfully patched all service accounts across all namespaces")
             finally:
                 # Clean up the temporary file
                 Path(temp_file_path).unlink()
