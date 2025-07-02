@@ -9,6 +9,9 @@ if os.environ.get("UWSGI_ENABLED", "false") == "false":
     monkey.patch_all(thread=True)  # noqa: E402
     print("gevent monkey patching done for flask", file=os.sys.stderr)
 
+from ddtrace.contrib.internal.httplib.patch import patch as httplib_patch  # noqa: E402
+httplib_patch()
+
 import base64
 import http.client
 import json
@@ -1717,11 +1720,16 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    # http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
-    return Response(response.data)
+    conn = http.client.HTTPConnection("localhost:7777")
+    conn.request("GET", "/returnheaders", headers={})
+    response = conn.getresponse()
+    response_data = response.read()
+
+    # response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    # http_poolmanager.clear()
+    return Response(response_data)
 
 
 @app.route("/returnheaders", methods=["GET", "POST", "OPTIONS"])
