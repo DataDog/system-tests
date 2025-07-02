@@ -40,6 +40,8 @@ jobs:
       # force /bin/bash in order to test against bash 3.2 on macOS
       - name: Test the test (direct)
         run: /bin/bash run.sh TEST_THE_TEST
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test group parsing
         run: |
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
