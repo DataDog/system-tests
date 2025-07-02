@@ -366,6 +366,11 @@ class Test_DsmKinesis:
             tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
             producer_hash = 2387568642918822206
             consumer_hash = 10101425062685840509
+        elif context.library == "dotnet":
+            tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
+            tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
+            producer_hash = compute_dsm_hash(0, tags_out)
+            consumer_hash = compute_dsm_hash(producer_hash, tags_in)
         else:
             tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
