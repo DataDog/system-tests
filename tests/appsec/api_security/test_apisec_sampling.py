@@ -71,7 +71,6 @@ class Test_API_Security_Sampling_Different_Endpoints:
             self.request2 = session.get("/api_security_sampling/1")
             self.all_requests = [session.get("/api_security/sampling/200") for _ in range(10)]
 
-    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_sampling_delay(self):
         assert self.request1.status_code == 200
         schema1 = get_schema(self.request1, "req.headers")
