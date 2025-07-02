@@ -14,7 +14,7 @@ RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-confi
 RUN pip install 'flask[async]'==3.1.1 flask-login==0.6.3 requests==2.32.4 pycryptodome==3.23.0 psycopg2-binary==2.9.10 confluent-kafka==2.10.1 graphene==3.4.3
 RUN pip install uWSGI==2.0.30
 RUN pip install 'moto[ec2,s3,all]'==5.1.6
-RUN pip install boto3==1.38.46 kombu==5.5.4 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19 PyMySQL==1.1.1
+RUN pip install boto3==1.39.1 kombu==5.5.4 mock==5.2.0 asyncpg==0.30.0 aiomysql==0.2.0 mysql-connector-python==9.3.0 mysqlclient==2.2.7 urllib3==2.5.0 PyMySQL==1.1.1
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
