@@ -471,6 +471,9 @@ namespace weblog
                 }
             }
 
+            // Sleep
+            await Task.Delay(15000);
+
             if (!messageFound)
             {
                 Console.WriteLine($"[Kinesis] Did not find expected message '{expectedMessage}' within timeout");
