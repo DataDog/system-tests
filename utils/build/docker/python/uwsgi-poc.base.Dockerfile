@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
@@ -11,8 +11,12 @@ RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-confi
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
+RUN pip install --upgrade pip
 RUN pip install 'flask[async]'==3.1.1 flask-login==0.6.3 requests==2.32.4 pycryptodome==3.23.0 psycopg2-binary==2.9.10 confluent-kafka==2.10.1 graphene==3.4.3
-RUN pip install uWSGI==2.0.30
+RUN git clone https://github.com/unbit/uwsgi.git; cd uwsgi; \
+    git checkout 2.0.30; \
+    python3 uwsgiconfig.py --plugin plugins/python; \
+    pip install -e .
 RUN pip install 'moto[ec2,s3,all]'==5.1.6
 RUN pip install boto3==1.39.1 kombu==5.5.4 mock==5.2.0 asyncpg==0.30.0 aiomysql==0.2.0 mysql-connector-python==9.3.0 mysqlclient==2.2.7 urllib3==2.5.0 PyMySQL==1.1.1
 
