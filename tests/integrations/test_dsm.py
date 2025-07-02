@@ -159,8 +159,8 @@ class Test_DsmRabbitmq:
             producer_hash = 5246740674878013159
             consumer_hash = 8116149247198652772
         elif context.library == "dotnet":
-            producer_hash = 8945717757344503539
-            consumer_hash = 247866491670975357
+            producer_hash = 3168906112866048140
+            consumer_hash = 15417794110121366704
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
