@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.11-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
@@ -19,7 +19,7 @@ RUN git clone https://github.com/urllib3/urllib3.git; cd urllib3; \
 RUN git clone https://github.com/unbit/uwsgi.git; cd uwsgi; \
     git checkout 2.0.30; \
     python3 uwsgiconfig.py --plugin plugins/python; \
-    pip install -e .
+    pip install .
 RUN pip install 'moto[ec2,s3,all]'==5.1.6
 RUN pip install boto3==1.39.1 kombu==5.5.4 mock==5.2.0 asyncpg==0.30.0 aiomysql==0.2.0 mysql-connector-python==9.3.0 mysqlclient==2.2.7 PyMySQL==1.1.1
 
