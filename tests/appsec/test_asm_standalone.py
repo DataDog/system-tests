@@ -491,6 +491,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
@@ -838,6 +839,14 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
     def propagated_tag_value(self):
         return "02"
 
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
+
+    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
+    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
+        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
+
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone_experimental
@@ -897,6 +906,7 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 @features.api_security_configuration
 @scenarios.appsec_standalone_api_security
 @flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
+@flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
 
