@@ -2186,7 +2186,7 @@ tests/:
       spring-boot: v1.48.0
     Test_ExtractBehavior_Ignore:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      spring-boot: bug (APMAPI-1443)
+      spring-boot: v1.50.1
     Test_ExtractBehavior_Restart:
       '*': incomplete_test_app (weblog endpoint not implemented)
       spring-boot: v1.48.0
