@@ -8,6 +8,8 @@ using Serilog;
 using Serilog.Formatting.Compact;
 using weblog.IdentityStores;
 using weblog.ModelBinders;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Metrics;
 
 namespace weblog
 {
@@ -15,6 +17,21 @@ namespace weblog
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddOpenTelemetry()
+                .ConfigureResource(r => r.AddService(OpenTelemetryInstrumentation.ServiceName))
+                .WithMetrics(builder => builder
+                    .AddMeter(OpenTelemetryInstrumentation.MeterName)
+                    .AddConsoleExporter()
+                    .AddOtlpExporter((exporterOptions, metricReaderOptions) =>
+                    {
+                        exporterOptions.Protocol = OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+                        exporterOptions.Endpoint = new("http://proxy:8127/v1/metrics");
+                        exporterOptions.Headers = "dd-protocol=otlp,dd-otlp-path=agent";
+
+                        metricReaderOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 1;
+                        metricReaderOptions.TemporalityPreference = MetricReaderTemporalityPreference.Delta;
+                    }));
+
             services.AddSerilog((services, lc) => lc
                 .Enrich.FromLogContext()
                 .WriteTo.Console(new CompactJsonFormatter()));
