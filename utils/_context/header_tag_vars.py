@@ -1,4 +1,5 @@
-PREFIX = "http.request.headers."
+REQUEST_PREFIX = "http.request.headers."
+RESPONSE_PREFIX = "http.response.headers."
 
 HEADER_VAL_BASIC = "val"
 
@@ -11,8 +12,6 @@ CONFIG_LONG = "header2:mapped-header"
 TAG_LONG = "mapped-header"
 
 CONFIG_WILDCARD = "*"
-REQUEST_WILDCARD_TAG_PREFIX = "http.request.headers."
-RESPONSE_WILDCARD_TAG_PREFIX = "http.response.headers."
 
 HEADER_NAME_WHITESPACE_HEADER = "header3"
 CONFIG_WHITESPACE_HEADER = " header3 "

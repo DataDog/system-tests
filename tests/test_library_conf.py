@@ -17,8 +17,7 @@ from utils._context.header_tag_vars import (
     HEADER_VAL_BASIC,
     HEADER_VAL_WHITESPACE_VAL_LONG,
     HEADER_VAL_WHITESPACE_VAL_SHORT,
-    RESPONSE_WILDCARD_TAG_PREFIX,
-    REQUEST_WILDCARD_TAG_PREFIX,
+    RESPONSE_PREFIX,
     TAG_COLON_LEADING,
     TAG_COLON_TRAILING,
     TAG_LONG,
@@ -286,16 +285,17 @@ class Test_HeaderTags_Wildcard_Request_Headers:
     """Validates that the wildcard format for specifying headers correctly tags Request Headers"""
 
     def setup_trace_header_tags(self):
-        self.r = weblog.get("/")
+        self.headers = {HEADER_NAME_SHORT: HEADER_VAL_BASIC}
+        self.r = weblog.get("/waf", headers=self.headers)
 
     def test_trace_header_tags(self):
-        response_headers = self.r.headers
+        tags = {TAG_SHORT: HEADER_VAL_BASIC}
         spans = interfaces.agent.get_spans_list(self.r)
         assert len(spans) == 1
 
         span = spans[0]
-        for key in response_headers:
-            assert REQUEST_WILDCARD_TAG_PREFIX + key in span["meta"]
+        for tag in tags:
+            assert tag in span["meta"]
 
 
 @scenarios.library_conf_wildcard_header_tags
@@ -313,7 +313,8 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 
         span = spans[0]
         for key in response_headers:
-            assert RESPONSE_WILDCARD_TAG_PREFIX + key in span["meta"]
+            assert RESPONSE_PREFIX + key.lower() in span["meta"]
+            assert span["meta"][RESPONSE_PREFIX + key.lower()] == response_headers[key]
 
 
 # The Datadog specific tracecontext flags to mark flags are set
