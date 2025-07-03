@@ -13,6 +13,7 @@ GET  /waf/*segments            controllers.AppSecController.params(segments: Seq
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
+GET  /stats-unique             controllers.AppSecController.statsUnique(code: Option[Int])
 GET  /users                    controllers.AppSecController.users(user: String)
 GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
