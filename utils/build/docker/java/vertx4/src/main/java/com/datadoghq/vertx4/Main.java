@@ -170,6 +170,12 @@ public class Main {
                     int code = Integer.parseInt(codeString);
                     ctx.response().setStatusCode(code).end();
                 });
+        router.get("/stats-unique")
+                .handler(ctx -> {
+                    String codeString = ctx.request().getParam("code");
+                    int code = codeString != null ? Integer.parseInt(codeString): 200;
+                    ctx.response().setStatusCode(code).end();
+                });
         router.get("/users")
                 .handler(ctx -> {
                     final String user = ctx.request().getParam("user");
