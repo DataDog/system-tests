@@ -407,6 +407,29 @@ namespace weblog
                     }
 
                     var receivedMessage = result.Messages[0];
+                    Console.WriteLine("[SNS] Message dump:");
+                    Console.WriteLine($"  MessageId: {receivedMessage.MessageId}");
+                    Console.WriteLine($"  ReceiptHandle: {receivedMessage.ReceiptHandle}");
+                    Console.WriteLine($"  MD5OfBody: {receivedMessage.MD5OfBody}");
+                    Console.WriteLine($"  Body: {receivedMessage.Body}");
+
+                    if (receivedMessage.Attributes != null && receivedMessage.Attributes.Count > 0)
+                    {
+                        Console.WriteLine("  Attributes:");
+                        foreach (var attr in receivedMessage.Attributes)
+                        {
+                            Console.WriteLine($"    {attr.Key}: {attr.Value}");
+                        }
+                    }
+
+                    if (receivedMessage.MessageAttributes != null && receivedMessage.MessageAttributes.Count > 0)
+                    {
+                        Console.WriteLine("  MessageAttributes:");
+                        foreach (var attr in receivedMessage.MessageAttributes)
+                        {
+                            Console.WriteLine($"    {attr.Key}: {attr.Value.StringValue}");
+                        }
+                    }
 
                     // Check if the message body matches directly
                     if (receivedMessage.Body == message)
