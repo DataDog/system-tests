@@ -5,18 +5,6 @@ set -e
 sudo chmod -R 755 *
 
 echo "START dotnet APP (debug active)"
-#If we are trying to inject the library on the "restore" or "build" command we should show the traces
-export DD_APM_INSTRUMENTATION_DEBUG=false
-export COMPlus_DbgEnableMiniDump=1
-export  DOTNET_DbgEnableMiniDump=1
-export COMPlus_DbgMiniDumpType=4
-export  DOTNET_DbgMiniDumpType=4
-export COMPlus_CreateDumpDiagnostics=1
-export  DOTNET_CreateDumpDiagnostics=1
-export COMPlus_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log
-export  DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log
-export COMPlus_EnableCrashReport=1
-export  DOTNET_EnableCrashReport=1
 
 #We are running the app for dotnet 6.0
 sudo sed -i "s/net7.0/net6.0/g" MinimalWebApp.csproj 
@@ -31,8 +19,7 @@ dotnet build -c Release
 sudo dotnet publish -c Release -o /home/datadog
 
 #Copy app service and start it
-export DD_APM_INSTRUMENTATION_DEBUG=true
 sudo chmod 755 create_and_run_app_service.sh
-./create_and_run_app_service.sh "dotnet MinimalWebApp.dll" "ASPNETCORE_URLS=http://+:5985"
+./create_and_run_app_service.sh "dotnet MinimalWebApp.dll" "ASPNETCORE_URLS=http://+:5985 DD_APM_INSTRUMENTATION_DEBUG=true COMPlus_DbgEnableMiniDump=1 DOTNET_DbgEnableMiniDump=1 COMPlus_DbgMiniDumpType=4 DOTNET_DbgMiniDumpType=4 COMPlus_CreateDumpDiagnostics=1  DOTNET_CreateDumpDiagnostics=1 COMPlus_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log  COMPlus_EnableCrashReport=1  DOTNET_EnableCrashReport=1"
 
 echo "RUN dotnet DONE"
