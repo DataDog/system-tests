@@ -13,8 +13,10 @@ export COMPlus_DbgMiniDumpType=4
 export  DOTNET_DbgMiniDumpType=4
 export COMPlus_CreateDumpDiagnostics=1
 export  DOTNET_CreateDumpDiagnostics=1
-export DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log
-export DOTNET_EnableCrashReport=1
+export COMPlus_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log
+export  DOTNET_DbgMiniDumpName=/var/log/datadog/dotnet/coredump.%t.%p.log
+export COMPlus_EnableCrashReport=1
+export  DOTNET_EnableCrashReport=1
 
 #We are running the app for dotnet 6.0
 sudo sed -i "s/net7.0/net6.0/g" MinimalWebApp.csproj 

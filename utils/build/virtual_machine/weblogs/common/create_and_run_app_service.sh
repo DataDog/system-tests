@@ -23,11 +23,15 @@ cat /var/log/datadog_weblog/app.env
 echo "Using scenario app environment variables:"
 cat /var/log/datadog_weblog/scenario_app.env
 
+echo "DOTNET_DbgMiniDumpName: $DOTNET_DbgMiniDumpName"
+
 sed -i "s,APP_RUN_COMMAND,$COMMAND_LINE,g" test-app.service 
 sudo cp test-app.service /etc/systemd/system/test-app.service
 sudo systemctl daemon-reload
 sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
+
+find /tmp -name 'coredump*' -exec cp '{}' '/var/log/datadog/dotnet/{}' \;
 
 echo "RUN DONE"
