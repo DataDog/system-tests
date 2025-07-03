@@ -1,7 +1,7 @@
 {
     "scenario_matrix": [
         {
-            "scenarios": ["K8S_INJECTOR_DEV_SINGLE_SERVICE"],
+            "scenarios": ["K8S_INJECTOR_DEV_SINGLE_SERVICE", "K8S_INJECTOR_DISABLED"],
             "weblogs": [
                 {
                     "java": [

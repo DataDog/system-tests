@@ -45,7 +45,7 @@ The easiest way to run these tests is using the interactive wizard script. This 
 
 **Run the wizard:**
 ```bash
-./utils/scripts/ssi_wizards/k8s_injector_dev.sh
+./utils/scripts/ssi_wizards/k8s_injector_dev_wizard.sh
 ```
 
 **What the wizard does:**
@@ -83,7 +83,11 @@ You can also run the tests manually by providing all parameters directly to the 
 
 #### Private Registry Configuration
 
-K8s Injector Dev tests require a private Docker registry to store and access the test images. The private registry configuration is handled through environment variables.
+K8s Injector Dev tests require a private Docker registry to store and access the test images. The private registry configuration is handled through environment variables. But you also have to perform the login manually before:
+
+```bash
+aws-vault exec sso-apm-ecosystems-reliability-account-admin -- aws ecr get-login-password | docker login --username AWS --password-stdin 235494822917.dkr.ecr.us-east-1.amazonaws.com
+```
 
 **Required Environment Variables:**
 
