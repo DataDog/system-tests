@@ -134,9 +134,10 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_tracking
-    @missing_feature(context.library in ("nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet")
+    @missing_feature(context.library in ("nodejs", "dotnet", "java", "ruby"), reason="Not implemented yet")
     @missing_feature(context.library < "python@3.8.0.dev", reason="Not implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
