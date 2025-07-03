@@ -84,4 +84,4 @@ public class IastSamplingResource {
             throw new WebApplicationException(e.getMessage(), 500);
         }
     }
-} 
+}

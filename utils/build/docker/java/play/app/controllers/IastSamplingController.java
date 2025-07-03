@@ -73,4 +73,4 @@ public class IastSamplingController extends Controller {
             return internalServerError(e.getMessage());
         }
     }
-} 
+}

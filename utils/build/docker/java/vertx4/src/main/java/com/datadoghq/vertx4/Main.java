@@ -372,7 +372,7 @@ public class Main {
 
     private static Stream<Consumer<Router>> iastRouteProviders() {
         return Stream.of(
-            new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT), 
+            new IastSinkRouteProvider(DATA_SOURCE, LDAP_CONTEXT),
             new IastSourceRouteProvider(DATA_SOURCE),
             new IastSamplingRouteProvider()
         );
