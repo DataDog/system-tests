@@ -206,9 +206,9 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest_snapshot ./temp
+        curl --fail --location --silent --show-error --output datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
     elif [ $VERSION = 'prod' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
+        curl --fail --location --silent --show-error --output datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
