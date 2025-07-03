@@ -227,7 +227,14 @@ class _Weblog:
         for _ in range(5):
             try:
                 req = requests.Request(
-                    method, url, params=params, data=data, json=json, files=files, headers=headers, cookies=cookies,
+                    method,
+                    url,
+                    params=params,
+                    data=data,
+                    json=json,
+                    files=files,
+                    headers=headers,
+                    cookies=cookies,
                 )
                 r = req.prepare()
                 r.url = url
@@ -238,7 +245,7 @@ class _Weblog:
                 status_code = response.status_code
                 response_headers = response.headers
                 text = response.text
-            except requests.exceptions.ConnectionError:
+            except requests.exceptions.ConnectionError as e:
                 logger.error(f"Request {rid} raise an error: {e}")
                 time.sleep(0.25)  # wait before retrying
                 continue
@@ -248,7 +255,8 @@ class _Weblog:
                 logger.debug(f"Request {rid}: {response.status_code}")
                 if response.status_code == HTTPStatus.NOT_FOUND:
                     logger.error(
-                        "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
+                        "💡 if your test is failing, you may need to add"
+                        " missing_feature for this weblog in manifest file."
                     )
                 break
 
