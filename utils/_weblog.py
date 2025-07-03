@@ -8,6 +8,7 @@ from http import HTTPStatus
 import os
 import random
 import string
+import time
 import urllib
 import re
 from typing import Any
@@ -222,28 +223,34 @@ class _Weblog:
         response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
 
-        try:
-            req = requests.Request(
-                method, url, params=params, data=data, json=json, files=files, headers=headers, cookies=cookies
-            )
-            r = req.prepare()
-            r.url = url
-            logger.debug(f"Sending request {rid}: {method} {url}")
-
-            s = requests.Session() if self._session is None else self._session
-            response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
-            status_code = response.status_code
-            response_headers = response.headers
-            text = response.text
-
-        except Exception as e:
-            logger.error(f"Request {rid} raise an error: {e}")
-        else:
-            logger.debug(f"Request {rid}: {response.status_code}")
-            if response.status_code == HTTPStatus.NOT_FOUND:
-                logger.error(
-                    "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
+        # Retries 4 times in case of connection failure, to avoid flaky tests
+        for _ in range(5):
+            try:
+                req = requests.Request(
+                    method, url, params=params, data=data, json=json, files=files, headers=headers, cookies=cookies,
                 )
+                r = req.prepare()
+                r.url = url
+                logger.debug(f"Sending request {rid}: {method} {url}")
+
+                s = requests.Session() if self._session is None else self._session
+                response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+                status_code = response.status_code
+                response_headers = response.headers
+                text = response.text
+            except requests.exceptions.ConnectionError:
+                logger.error(f"Request {rid} raise an error: {e}")
+                time.sleep(0.25)  # wait before retrying
+                continue
+            except Exception as e:
+                logger.error(f"Request {rid} raise an error: {e}")
+            else:
+                logger.debug(f"Request {rid}: {response.status_code}")
+                if response.status_code == HTTPStatus.NOT_FOUND:
+                    logger.error(
+                        "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
+                    )
+                break
 
         return HttpResponse(
             {
