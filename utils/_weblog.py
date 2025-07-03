@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from contextlib import contextmanager
+import http.client
 import json
 from http import HTTPStatus
 import os
@@ -247,10 +248,14 @@ class _Weblog:
                 text = response.text
             except requests.exceptions.ConnectionError as e:
                 logger.error(f"Request {rid} raise an error: {e}")
-                time.sleep(0.25)  # wait before retrying
-                continue
+                if isinstance(e.args[0],http.client.RemoteDisconnected):
+                    logger.error("Remote disconnected, retrying...")
+                    time.sleep(0.25)  # wait before retrying
+                    continue
+                break
             except Exception as e:
                 logger.error(f"Request {rid} raise an error: {e}")
+                break
             else:
                 logger.debug(f"Request {rid}: {response.status_code}")
                 if response.status_code == HTTPStatus.NOT_FOUND:
