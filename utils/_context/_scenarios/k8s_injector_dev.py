@@ -1,12 +1,8 @@
 from pathlib import Path
 
 import pytest
-import tempfile
-import time
-import base64
-import json
 from utils._context.component_version import ComponentVersion, Version
-from utils.k8s_lib_injection.k8s_command_utils import execute_command
+
 from utils.k8s.k8s_component_image import (
     K8sComponentImage,
     extract_library_version,
@@ -15,7 +11,7 @@ from utils.k8s.k8s_component_image import (
 )
 from utils._logger import logger
 from utils.injector_dev.injector_client import InjectorDevClient
-from utils.injector_dev.scenario_provision_updater import ScenarioProvisionUpdater
+from utils.injector_dev.scenario_provision_parser import ScenarioProvisionParser
 from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 from .core import Scenario, scenario_groups, ScenarioGroup
 
@@ -45,16 +41,26 @@ class K8sInjectorDevScenario(Scenario):
         # These are the tested components: dd_cluser_agent_version, weblog image, library_init_version, injector version
         self.k8s_weblog = config.option.k8s_weblog
 
+        # All the images MUST be stored in the same registry, so we need to set the base url for the images.
+        self.ssi_registry_base = config.option.k8s_ssi_registry_base
+        if not self.ssi_registry_base:
+            raise ValueError("k8s_ssi_registry_base is mandatory for the injector-dev scenario")
+
         # Get component images: weblog, lib init, cluster agent, injector
         self.k8s_weblog_img = K8sComponentImage(config.option.k8s_weblog_img, lambda _: "weblog-version-1.0")
 
-        self.k8s_lib_init_img = K8sComponentImage(config.option.k8s_lib_init_img, extract_library_version)
+        self.k8s_lib_init_img = K8sComponentImage(
+            config.option.k8s_lib_init_img, extract_library_version, self.ssi_registry_base
+        )
 
-        self.k8s_cluster_img = K8sComponentImage(config.option.k8s_cluster_img, extract_cluster_agent_version)
+        self.k8s_cluster_img = K8sComponentImage(
+            config.option.k8s_cluster_img, extract_cluster_agent_version, self.ssi_registry_base
+        )
 
         self.k8s_injector_img = K8sComponentImage(
             config.option.k8s_injector_img if config.option.k8s_injector_img else "gcr.io/datadoghq/apm-inject:latest",
             extract_injector_version,
+            self.ssi_registry_base,
         )
 
         # Get component versions: lib init, cluster agent, injector
@@ -108,28 +114,33 @@ class K8sInjectorDevScenario(Scenario):
     def _start_injector_dev(self):
         """Start the injector-dev tool"""
         self.injector_client.start(debug=True)
-        time.sleep(10)
-        self._create_secret_to_access_to_internal_registry()
 
     def _stop_injector_dev(self):
         """Stop the injector-dev tool"""
-        # self.injector_client.stop(clean_k8s=True)
+        self.injector_client.stop(clean_k8s=True)
 
     def _apply_scenario_injector_dev(self):
         """Applies the scenario in yaml format to the injector-dev tool."""
-        # Create a ScenarioProvisionUpdater instance pointing to the logs directory
+        # Create a ScenarioProvisionParser instance pointing to the logs directory
         logs_dir = Path(f"logs_{self.name}")
-        updater = ScenarioProvisionUpdater(logs_dir=logs_dir)
+        scenario_provision_parser = ScenarioProvisionParser(logs_dir=logs_dir)
+
+        # Create a secret to access to the internal registry
+        if PrivateRegistryConfig.is_configured():
+            app_namespaces = scenario_provision_parser.get_app_namespaces(self.scenario_provision)
+            self.injector_client.create_secret_to_access_to_internal_registry(app_namespaces)
+        else:
+            logger.info("Skipping creation of ECR secret because private registry configuration is not complete")
 
         # Update the scenario file with the component images
-        self.current_scenario_provision = updater.update_scenario(
+        self.current_scenario_provision = scenario_provision_parser.update_scenario(
             self.scenario_provision,
             self.k8s_cluster_img,
             self.k8s_injector_img,
             self.k8s_weblog_img,  # Include the weblog image
             self.k8s_lib_init_img,  # Include the library init image
             self._library.name,  # Specify the language being tested
-            "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi",
+            self.ssi_registry_base,
         )
 
         logger.info(f"Updated scenario file written to {self.current_scenario_provision}")
@@ -139,93 +150,6 @@ class K8sInjectorDevScenario(Scenario):
             self.injector_client.apply_scenario(self.current_scenario_provision, wait=True, debug=True)
         else:
             raise RuntimeError("No scenario provision file found. Please ensure the scenario is properly configured.")
-
-    def _create_secret_to_access_to_internal_registry(self):
-        # Create a kubernetes secret to access to the internal registry
-        logger.info("Creating ECR secret")
-        private_registry = PrivateRegistryConfig()
-        if not private_registry.is_configured:
-            logger.info("Skipping creation of ECR secret because private registry configuration is not complete")
-            return
-        try:
-            # Create a temporary file with the docker config
-            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
-                docker_config = {
-                    "auths": {
-                        private_registry.private_docker_registry: {
-                            "auth": base64.b64encode(
-                                f"{private_registry.private_docker_registry_user}:"
-                                f"{private_registry.private_registry_token}".encode()
-                            ).decode()
-                        }
-                    }
-                }
-                json.dump(docker_config, temp_file)
-                temp_file.flush()
-                temp_file_path = temp_file.name
-
-            try:
-                # create namespace application
-                execute_command("kubectl create namespace application")
-                # create namespace system
-                execute_command("kubectl create namespace system")
-
-                # Create the secret using the config file
-                execute_command(
-                    f"kubectl create secret generic private-registry-secret "
-                    f"--from-file=.dockerconfigjson={temp_file_path} "
-                    f"--type=kubernetes.io/dockerconfigjson",
-                    quiet=True,
-                )
-                logger.info("Successfully created ECR secret 0")
-
-                execute_command(
-                    f"kubectl create secret generic private-registry-secret "
-                    f"--from-file=.dockerconfigjson={temp_file_path} "
-                    f"--type=kubernetes.io/dockerconfigjson -n system",
-                    quiet=True,
-                )
-                logger.info("Successfully created ECR secret 1")
-                execute_command(
-                    f"kubectl create secret generic private-registry-secret "
-                    f"--from-file=.dockerconfigjson={temp_file_path} "
-                    f"--type=kubernetes.io/dockerconfigjson -n application",
-                    quiet=True,
-                )
-                logger.info("Successfully created ECR secret 2")
-                # Patch the default service account to use the secret
-                # execute_command(
-                #     "kubectl patch serviceaccount default -p "
-                #     '\'{"imagePullSecrets": [{"name": "private-registry-secret"}]}\''
-                # )
-                # logger.info("Successfully patched default service account")
-
-                # create service account datadog-agent-cluster-agent on system namespace
-                # execute_command("kubectl create serviceaccount datadog-agent-cluster-agent -n system")
-
-                logger.info("Successfully created namespaces application and system")
-
-                # Create the secret in the newly created namespaces
-                # for namespace in ["application", "system"]:
-                #    try:
-                #        execute_command(
-                #            f"kubectl get secret private-registry-secret -o yaml | "
-                #            f"sed 's/namespace: default/namespace: {namespace}/' | "
-                #            f"kubectl apply -f -"
-                #        )
-                #        logger.info(f"Successfully copied private-registry-secret to {namespace} namespace")
-                #    except Exception as e:
-                #         logger.warning(f"Could not copy secret to {namespace} namespace: {e}")
-
-                # Patch all service accounts across all namespaces to use the secret
-                # execute_command("bash utils/k8s_lib_injection/resources/patch_all_serviceaccounts.sh")
-                logger.info("Successfully patched all service accounts across all namespaces")
-            finally:
-                # Clean up the temporary file
-                Path(temp_file_path).unlink()
-        except Exception as e:
-            logger.error(f"Error creating ECR secret: {e!s}")
-            raise
 
     @property
     def library(self):

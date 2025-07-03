@@ -5,11 +5,6 @@ helm:
       values:
         service:
           port: 18080
-        imagePullSecrets:
-          - name: private-registry-secret
-        image:
-          repository: registry.ddbuild.io/ci/injector-dev/python
-          tag: 2cd78ded
         podLabels:
           tags.datadoghq.com/env: local
           app: "billing-service"
@@ -23,11 +18,6 @@ helm:
       values:
         service:
           port: 18080
-        imagePullSecrets:
-          - name: private-registry-secret
-        image:
-          repository: registry.ddbuild.io/ci/injector-dev/python
-          tag: 2cd78ded
         podLabels:
           tags.datadoghq.com/env: local
         env:
@@ -37,13 +27,7 @@ helm:
             value: "true"
   versions:
     agent: "7.64.0"
-    cluster_agent: "1.0.0"
-    injector: "0.35.0"
   config:
-    clusterAgent:
-      image:
-        pullSecrets:
-        - name: private-registry-secret
     datadog:
       apm:
         instrumentation:

@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """Module providing client for interacting with the injector-dev tool."""
 
+import base64
+import json
+import tempfile
 import subprocess
 from pathlib import Path
 
 from utils._logger import logger
+from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
+from utils.k8s_lib_injection.k8s_command_utils import execute_command
 
 
 class InjectorDevClient:
@@ -130,3 +135,62 @@ class InjectorDevClient:
         self._run_command_with_logging(
             command, "Scenario applied successfully", "Failed to apply scenario with injector-dev"
         )
+
+    def create_secret_to_access_to_internal_registry(self, app_namespaces: list[str]) -> None:
+        # Create a kubernetes secret to access to the internal registry
+        logger.info("Creating ECR secret")
+
+        try:
+            # Create a temporary file with the docker config
+            with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
+                docker_config = {
+                    "auths": {
+                        PrivateRegistryConfig.get_private_docker_registry(): {
+                            "auth": base64.b64encode(
+                                f"{PrivateRegistryConfig.get_private_docker_registry_user()}:"
+                                f"{PrivateRegistryConfig.get_private_registry_token()}".encode()
+                            ).decode()
+                        }
+                    }
+                }
+                json.dump(docker_config, temp_file)
+                temp_file.flush()
+                temp_file_path = temp_file.name
+
+            try:
+                logger.info("Creating namespace 'system' and application namespaces")
+                execute_command("kubectl create namespace system")
+                # Create the secrets using the config file
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson",
+                    quiet=True,
+                )
+                logger.info("Successfully created ECR secret")
+
+                execute_command(
+                    f"kubectl create secret generic private-registry-secret "
+                    f"--from-file=.dockerconfigjson={temp_file_path} "
+                    f"--type=kubernetes.io/dockerconfigjson -n system",
+                    quiet=True,
+                )
+
+                for app_namespace in app_namespaces:
+                    execute_command(f"kubectl create namespace {app_namespace}")
+                    execute_command(
+                        f"kubectl create secret generic private-registry-secret "
+                        f"--from-file=.dockerconfigjson={temp_file_path} "
+                        f"--type=kubernetes.io/dockerconfigjson -n {app_namespace}",
+                        quiet=True,
+                    )
+                    logger.info(f"Successfully created ECR secret for namespace [{app_namespace}]")
+
+                logger.info("Successfully created namespaces for applications and system")
+
+            finally:
+                # Clean up the temporary file
+                Path(temp_file_path).unlink()
+        except Exception as e:
+            logger.error(f"Error creating ECR secret: {e!s}")
+            raise
