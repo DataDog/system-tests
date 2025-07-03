@@ -333,7 +333,7 @@ class Test_DsmSNS:
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        topic = self.topic if context.library in ["java", "dotnet"] else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
 
         if context.library == "nodejs":
             producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713
