@@ -1427,18 +1427,19 @@ def before_request():
         current_user = DB_USER.get(flask.session.get("login"), None)
         if current_user:
             set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
-        print(f">> Received request: {flask_request.method} {flask_request.full_path}", file=sys.stderr)
-        print(f">> Request Headers: -----\n{flask_request.headers}>> Req-------------------\n", file=sys.stderr)
+        # Uncomment the following lines to enable request logging
+        # print(f">> Received request: {flask_request.method} {flask_request.full_path}", file=sys.stderr)
+        # print(f">> Request Headers: -----\n{flask_request.headers}>> Req-------------------\n", file=sys.stderr)
     except Exception:
         # to be compatible with all tracer versions
         pass
 
-
-@app.after_request
-def after_request(response):
-    print(f">> Response status: {response.status} [{flask_request.headers.get('User-Agent')}]", file=sys.stderr)
-    print(f">> Response Headers: -----\n{response.headers}>> Res--------------------\n", file=sys.stderr)
-    return response
+# Uncomment the following lines to enable response logging
+# @app.after_request
+# def after_request(response):
+#     print(f">> Response status: {response.status} [{flask_request.headers.get('User-Agent')}]", file=sys.stderr)
+#     print(f">> Response Headers: -----\n{response.headers}>> Res--------------------\n", file=sys.stderr)
+#     return response
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -1720,16 +1721,12 @@ def create_extra_service():
 @app.route("/requestdownstream", methods=["GET", "POST", "OPTIONS"])
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
-    # Propagate the received headers to the downstream service
-    # http_poolmanager = urllib3.PoolManager(num_pools=1)
-    # Sending a GET request and getting back response as HTTPResponse object.
+    # Using http.client to make a request to the /returnheaders endpoint
     conn = http.client.HTTPConnection("localhost:7777")
     conn.request("GET", "/returnheaders", headers={})
     response = conn.getresponse()
     response_data = response.read()
 
-    # response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    # http_poolmanager.clear()
     return Response(response_data)
 
 
