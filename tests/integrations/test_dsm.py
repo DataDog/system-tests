@@ -205,6 +205,7 @@ class Test_DsmRabbitmq_TopicExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -244,6 +245,7 @@ class Test_DsmRabbitmq_FanoutExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
