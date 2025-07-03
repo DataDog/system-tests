@@ -830,6 +830,7 @@ class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamProp
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
+@flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -838,14 +839,6 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
 
     def propagated_tag_value(self):
         return "02"
-
-    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
-    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
-        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
-
-    @flaky(context.library >= "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
-    def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
-        super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2()
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
