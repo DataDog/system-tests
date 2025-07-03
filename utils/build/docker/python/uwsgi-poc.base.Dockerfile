@@ -10,7 +10,6 @@ RUN python --version && curl --version
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config nginx
 
 # install python deps
-# Tracer does not support flask 2.3.0 or higher, pin the flask version for now
 RUN pip install --upgrade pip
 RUN pip install 'flask[async]'==3.1.1 flask-login==0.6.3 requests==2.32.4 pycryptodome==3.23.0 psycopg2-binary==2.9.10 confluent-kafka==2.10.1 graphene==3.4.3
 RUN pip install urllib3==2.5.0
