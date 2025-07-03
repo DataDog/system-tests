@@ -967,6 +967,7 @@ class _Scenarios:
         "K8S_INJECTOR_DEV_SINGLE_SERVICE",
         doc="Kubernetes Injector Dev Scenario",
         scenario_provision="single-service.yaml",
+        scenario_groups=[scenario_groups.k8s_injector_dev],
     )
 
     docker_ssi = DockerSSIScenario(

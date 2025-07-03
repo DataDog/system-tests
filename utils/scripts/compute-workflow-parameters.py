@@ -8,6 +8,7 @@ from utils.scripts.ci_orchestrators.workflow_data import (
     get_endtoend_definitions,
     get_docker_ssi_matrix,
     get_k8s_matrix,
+    get_k8s_injector_dev_matrix,
 )
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
@@ -76,6 +77,12 @@ class CiData:
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),
+            library,
+        )
+
+        self.data["k8s_injector_dev_scenario_defs"] = get_k8s_injector_dev_matrix(
+            "utils/scripts/ci_orchestrators/k8s_injector_dev.json",
+            scenario_map.get("k8s_injector_dev", []),
             library,
         )
 

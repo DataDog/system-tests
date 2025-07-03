@@ -31,7 +31,7 @@ class K8sInjectorDevScenario(Scenario):
     ) -> None:
         if scenario_groups is None:
             scenario_groups = DEFAULT_SCENARIO_GROUPS
-        super().__init__(name, doc=doc, github_workflow="libinjection", scenario_groups=scenario_groups)
+        super().__init__(name, doc=doc, github_workflow="k8s_injector_dev", scenario_groups=scenario_groups)
         # provision template
         self.scenario_provision = scenario_provision
         # Used to store the path to the actual scenario provision file (with injected component images/log folder)
