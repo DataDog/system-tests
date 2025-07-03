@@ -18,9 +18,10 @@ ENV UWSGI_ENABLED=true
 # docker startup
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
-RUN echo '#!/bin/bash \n\
-uwsgi -p 1 --enable-threads --threads 16 --listen 100 --http :7777 -w app:app --lazy --lazy-apps --master -b 65535 --catch-exceptions --thunder-lock --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
-RUN chmod +x app.sh
+
+COPY utils/build/docker/python/flask/nginx.conf /etc/nginx/nginx.conf
+
+RUN mv uwsgi.sh app.sh
 CMD ./app.sh
 
 # docker build -f utils/build/docker/python.flask-poc.Dockerfile -t test .

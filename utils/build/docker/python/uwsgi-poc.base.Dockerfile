@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
 RUN python --version && curl --version
 
 # this is necessary for the mysqlclient install
-RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
+RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config nginx
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now
