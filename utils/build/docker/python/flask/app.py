@@ -1434,6 +1434,7 @@ def before_request():
         # to be compatible with all tracer versions
         pass
 
+
 # Uncomment the following lines to enable response logging
 # @app.after_request
 # def after_request(response):
