@@ -727,8 +727,8 @@ tests/:
         TestSamplingByRouteMethodCount:
           '*': v1.51.0-SNAPSHOT
           akka-http: bug (APPSEC-57926)
-          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           play: bug (APPSEC-57926)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
