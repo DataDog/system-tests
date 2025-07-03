@@ -205,6 +205,7 @@ elif [ "$TARGET" = "ruby" ]; then
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
+    mkdir -p temp
     if [ $VERSION = 'dev' ]; then
         curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
         RELEASE_VERSION=$(grep "const RELEASE_VERSION" ./temp/datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/")
