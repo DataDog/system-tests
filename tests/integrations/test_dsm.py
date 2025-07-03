@@ -218,7 +218,7 @@ class Test_DsmRabbitmq_TopicExchange:
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=17456221739323133462 if is_dotnet else 9354355895797419296,
+            hash_=17456221739323133462 if is_dotnet else 11364757106893616177,
             parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
         )
