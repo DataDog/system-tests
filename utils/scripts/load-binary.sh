@@ -207,16 +207,40 @@ elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     mkdir -p temp
     if [ $VERSION = 'dev' ]; then
-        curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
-        RELEASE_VERSION=$(grep "const RELEASE_VERSION" ./temp/datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/")
-        RELEASE_VERSION_ENCODED=$(grep "const RELEASE_VERSION" ./temp/datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/" | sed "s/+/%2B/g")
-        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//dd-library-php-${RELEASE_VERSION_ENCODED}-x86_64-linux-gnu.tar.gz"
+        LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
+        COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-php/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
+        VERSION=$(curl -sS --fail "https://raw.githubusercontent.com/DataDog/dd-trace-php/refs/heads/$LIBRARY_TARGET_BRANCH/VERSION")
+
+        # if we have e.g. a beta suffix, just strip it
+        if [[ $VERSION == *-* ]]; then
+            VERSION=${VERSION%-*}
+        else
+            # otherwise increment minor VERSION
+            parts=($(echo -n "$VERSION" | tr '.' '\n'))
+            parts[1]=$((parts[1]+1))
+            parts[2]=0
+            VERSION=$(export IFS=.; (echo "${parts[*]}"))
+        fi
+        VERSION_HASH="$VERSION+$COMMIT_ID"
+        VERSION_HASH_ENCODED="$VERSION%2B$COMMIT_ID"
+
+        echo "Using git commit $COMMIT_ID"
+        echo "Downloading version $VERSION"
+
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/datadog-setup.php"
+        echo "Downloading datadog-setup.php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
+        echo "datadog-setup.php downloaded"
+
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
+        echo "Downloading dd-library-php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${VERSION_HASH}-x86_64-linux-gnu.tar.gz "$URL"
+        echo "dd-library-php downloaded"
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
-    assert_target_branch_is_not_set
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 
 elif [ "$TARGET" = "golang" ]; then
