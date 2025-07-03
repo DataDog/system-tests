@@ -223,7 +223,7 @@ class K8sMiniKubeClusterProvider(K8sClusterProvider):
         logs = execute_command("kubectl get serviceaccounts ", logfile="serviceaccounts.log")
         logger.info(f"Service accounts logs: {logs}")
         # Method to create a kubernetes secret to access to the internal registry
-        if self._private_registry and self._private_registry.is_configured:
+        if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
 
     def destroy_cluster(self):
@@ -367,7 +367,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
         else:
             execute_command(kind_command)
         # Method to create a kubernetes secret to access to the internal registry
-        if self._private_registry and self._private_registry.is_configured:
+        if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
 
         # We need to configure the api after create the cluster
