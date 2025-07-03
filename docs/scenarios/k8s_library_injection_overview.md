@@ -60,4 +60,4 @@ The following image represents, in general terms, the necessary and dependent ar
 The system-tests repository includes multiple scenarios for testing K8s library injection:
 
 - **[K8s Library Injection](k8s_lib_injection.md)**: Complete testing suite for K8s library injection with detailed setup instructions, test execution, and development guidelines.
-- **[K8s Injector Dev](k8s_injector_dev.md)**: Development and testing scenarios for the K8s based on the internal testing tool injector-dev. 
+- **[K8s Injector Dev](k8s_injector_dev.md)**: Development and testing scenarios for the K8s based on the internal testing tool injector-dev.

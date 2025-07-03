@@ -63,7 +63,7 @@ The easiest way to run these tests is using the interactive wizard script. This 
    - **Language**: Java, .NET, Node.js, Python, or Ruby
    - **Weblog**: Multiple test applications available per language (configured in `utils/scripts/ci_orchestrators/k8s_injector_dev.json`)
 
-5. **Image Management**: 
+5. **Image Management**:
    - Builds and pushes weblog images to your private registry
    - Migrates public Datadog images (cluster-agent, apm-injector, lib-init) to your private registry if needed
    - Configures image tags and registry paths
@@ -198,4 +198,4 @@ The K8s Injector Dev tests currently support the following scenarios:
 
 The scenario matrix and supported weblogs are defined in the configuration file `utils/scripts/ci_orchestrators/k8s_injector_dev.json`.
 
-<!-- Content will be added here in the future --> 
+<!-- Content will be added here in the future -->

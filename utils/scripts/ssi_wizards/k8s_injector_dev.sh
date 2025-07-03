@@ -12,21 +12,21 @@ command_exists() {
 ask_load_injector_dev_binary(){
     spacer
     echo -e "${YELLOW}📌 Step: Check Injector Dev Binary${NC}"
-    
+
     # Check if injector-dev binary exists in binaries folder
     if [[ -f "binaries/injector-dev" ]]; then
         echo -e "${GREEN}✅ injector-dev binary found in binaries folder.${NC}"
         return
     fi
-    
+
     echo -e "${YELLOW}⚠️  injector-dev binary not found in binaries folder.${NC}"
     echo "Please provide the source for the injector-dev binary:"
     echo "1) Local file path"
     echo "2) Download from URL"
     echo ""
-    
+
     read -p "Enter your choice (1 or 2): " binary_choice
-    
+
     case "$binary_choice" in
         1)
             read -p "Enter the local path to injector-dev binary: " LOCAL_BINARY_PATH
@@ -35,13 +35,13 @@ ask_load_injector_dev_binary(){
                 ask_load_injector_dev_binary
                 return
             fi
-            
+
             if [[ ! -f "$LOCAL_BINARY_PATH" ]]; then
                 echo -e "${RED}❌ File not found: $LOCAL_BINARY_PATH${NC}"
                 ask_load_injector_dev_binary
                 return
             fi
-            
+
             echo "Copying injector-dev binary to binaries folder..."
             cp "$LOCAL_BINARY_PATH" "binaries/injector-dev"
             if [[ $? -eq 0 ]]; then
@@ -59,7 +59,7 @@ ask_load_injector_dev_binary(){
                 ask_load_injector_dev_binary
                 return
             fi
-            
+
             echo "Downloading injector-dev binary from $BINARY_URL..."
             if command_exists curl; then
                 curl -L -o "binaries/injector-dev" "$BINARY_URL"
@@ -70,7 +70,7 @@ ask_load_injector_dev_binary(){
                 ask_load_injector_dev_binary
                 return
             fi
-            
+
             if [[ $? -eq 0 ]]; then
                 chmod +x "binaries/injector-dev"
                 echo -e "${GREEN}✅ injector-dev binary downloaded successfully.${NC}"
@@ -95,7 +95,7 @@ ask_load_k8s_injector_dev_requirements(){
     echo "  - Helm"
     echo "  - Kubectl"
     echo ""
-    
+
     read -p "Do you want to install the required software? (y/n): " INSTALL_TOOLS
     if [[ "$INSTALL_TOOLS" != "y" ]]; then
         echo -e "${CYAN}ℹ️  Skipping tool installation. Make sure you have all required tools installed.${NC}"
@@ -375,15 +375,15 @@ confirm_root_registry(){
     echo "Default registry path: ${PRIVATE_DOCKER_REGISTRY}/ssi"
     echo "Example final format: ${PRIVATE_DOCKER_REGISTRY}/ssi/"
     echo ""
-    
+
     read -p "Do you want to use the default registry path? (y/n): " USE_DEFAULT_REGISTRY
-    
+
     if [[ "$USE_DEFAULT_REGISTRY" == "y" ]]; then
         K8S_SSI_REGISTRY_BASE="${PRIVATE_DOCKER_REGISTRY}/ssi"
     else
         read -p "Enter the registry path for injection images: " K8S_SSI_REGISTRY_BASE
     fi
-    
+
     echo -e "${GREEN}✅ Registry path configured: $K8S_SSI_REGISTRY_BASE${NC}"
 }
 
@@ -393,15 +393,15 @@ select_cluster_agent(){
     echo "You only need to specify the image name and tag."
     echo "Examples: cluster-agent:latest, cluster-agent:v7.45.0"
     echo ""
-    
+
     read -p "Enter cluster agent image name and tag: " CLUSTER_AGENT_IMAGE
-    
+
     if [[ -z "$CLUSTER_AGENT_IMAGE" ]]; then
         echo -e "${RED}❌ Cluster agent image cannot be empty.${NC}"
         select_cluster_agent
         return
     fi
-    
+
     echo -e "${GREEN}✅ Selected cluster agent: $CLUSTER_AGENT_IMAGE${NC}"
 }
 
@@ -410,7 +410,7 @@ select_lib_init_and_injector(){
     echo -e "${YELLOW}📌 Step: Select Lib Init and Injector Images${NC}"
     echo "You only need to specify the image names and tags."
     echo ""
-    
+
     # Map language to correct lib-init image name
     local lib_init_default
     case "$TEST_LIBRARY" in
@@ -436,21 +436,21 @@ select_lib_init_and_injector(){
             lib_init_default="dd-lib-init:latest"
             ;;
     esac
-    
+
     echo "Default lib-init image for $TEST_LIBRARY: $lib_init_default"
     read -p "Enter lib-init image name and tag (or press Enter for default): " LIB_INIT_IMAGE
-    
+
     if [[ -z "$LIB_INIT_IMAGE" ]]; then
         LIB_INIT_IMAGE="$lib_init_default"
     fi
-    
+
     echo "Default injector image: apm-inject:latest"
     read -p "Enter injector image name and tag (or press Enter for default): " INJECTOR_IMAGE
-    
+
     if [[ -z "$INJECTOR_IMAGE" ]]; then
         INJECTOR_IMAGE="apm-inject:latest"
     fi
-    
+
     echo -e "${GREEN}✅ Selected lib-init image: $LIB_INIT_IMAGE${NC}"
     echo -e "${GREEN}✅ Selected injector image: $INJECTOR_IMAGE${NC}"
 }
@@ -502,4 +502,4 @@ migrate_images_to_private_registry
 confirm_root_registry
 select_cluster_agent
 select_lib_init_and_injector
-run_the_tests 
+run_the_tests
