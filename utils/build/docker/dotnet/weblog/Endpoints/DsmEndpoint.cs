@@ -3,13 +3,17 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System;
+using System.IO;
 using System.Net;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
 using RabbitMQ.Client;
+using Newtonsoft.Json;
 
 namespace weblog
 {
@@ -25,6 +29,7 @@ namespace weblog
                 string routing_key = context.Request.Query["routing_key"]!;
                 string group = context.Request.Query["group"]!;
                 string message = context.Request.Query["message"]!;
+                string topic = context.Request.Query["topic"]!;
 
                 Console.WriteLine("Hello World! Received dsm call with integration " + integration);
                 if ("kafka".Equals(integration)) {
@@ -52,6 +57,13 @@ namespace weblog
                     await Task.Run(() => SqsProducer.DoWork(queue, message));
                     Console.WriteLine($"[SQS] Begin consuming DSM message: {message}");
                     await Task.Run(() => SqsConsumer.DoWork(queue, message));
+                    await context.Response.WriteAsync("ok");
+                } else if ("sns".Equals(integration))
+                {
+                    Console.WriteLine($"[SNS] Begin producing DSM message: {message}");
+                    await Task.Run(() => SnsProducer.DoWork(queue, topic, message));
+                    Console.WriteLine($"[SNS] Begin consuming DSM message: {message}");
+                    await Task.Run(() => SnsConsumer.DoWork(queue, message));
                     await context.Response.WriteAsync("ok");
                 } else {
                     await context.Response.WriteAsync("unknown integration: " + integration);
@@ -249,6 +261,178 @@ namespace weblog
                     Console.WriteLine($"[SQS] Consumed message from {qUrl}: {receivedMessage.Body}");
 
                     continueProcessing = false; // Exit the loop after processing the desired message
+                }
+            }
+        }
+    }
+
+    class SnsProducer
+    {
+        public static async Task DoWork(string queue, string topic, string message)
+        {
+            string? awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
+
+            IAmazonSimpleNotificationService snsClient;
+            IAmazonSQS sqsClient;
+            if (!string.IsNullOrEmpty(awsUrl))
+            {
+                // If SYSTEM_TESTS_AWS_URL is set, use it for ServiceURL
+                snsClient = new AmazonSimpleNotificationServiceClient(new AmazonSimpleNotificationServiceConfig { ServiceURL = awsUrl });
+                sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            }
+            else
+            {
+                // If SYSTEM_TESTS_AWS_URL is not set, create default clients
+                snsClient = new AmazonSimpleNotificationServiceClient();
+                sqsClient = new AmazonSQSClient();
+            }
+
+            // Create SNS topic
+            Console.WriteLine($"[SNS] Produce: Creating topic {topic}");
+            CreateTopicResponse createTopicResponse = await snsClient.CreateTopicAsync(topic);
+            string topicArn = createTopicResponse.TopicArn;
+
+            // Create SQS queue
+            Console.WriteLine($"[SNS] Produce: Creating queue {queue}");
+            CreateQueueResponse createQueueResponse = await sqsClient.CreateQueueAsync(queue);
+            string queueUrl = createQueueResponse.QueueUrl;
+
+            // Get queue ARN
+            GetQueueAttributesResponse queueAttributes = await sqsClient.GetQueueAttributesAsync(new GetQueueAttributesRequest
+            {
+                QueueUrl = queueUrl,
+                AttributeNames = new List<string> { "QueueArn" }
+            });
+            string queueArn = queueAttributes.Attributes["QueueArn"];
+
+            // Set queue policy to allow SNS to send messages
+            string policy = $@"{{
+                ""Version"": ""2012-10-17"",
+                ""Id"": ""{queueArn}/SQSDefaultPolicy"",
+                ""Statement"": [
+                    {{
+                        ""Sid"": ""Allow-SNS-SendMessage"",
+                        ""Effect"": ""Allow"",
+                        ""Principal"": {{
+                            ""Service"": ""sns.amazonaws.com""
+                        }},
+                        ""Action"": ""sqs:SendMessage"",
+                        ""Resource"": ""{queueArn}"",
+                        ""Condition"": {{
+                            ""ArnEquals"": {{
+                                ""aws:SourceArn"": ""{topicArn}""
+                            }}
+                        }}
+                    }}
+                ]
+            }}";
+
+            await sqsClient.SetQueueAttributesAsync(new SetQueueAttributesRequest
+            {
+                QueueUrl = queueUrl,
+                Attributes = new Dictionary<string, string>
+                {
+                    { "Policy", policy }
+                }
+            });
+
+            // Subscribe queue to topic
+            await snsClient.SubscribeAsync(new SubscribeRequest
+            {
+                TopicArn = topicArn,
+                Protocol = "sqs",
+                Endpoint = queueArn,
+                Attributes = new Dictionary<string, string>
+                {
+                    { "RawMessageDelivery", "true" }
+                }
+            });
+
+            using (Datadog.Trace.Tracer.Instance.StartActive("SnsProduce"))
+            {
+                // Publish message to SNS topic
+                await snsClient.PublishAsync(new PublishRequest
+                {
+                    TopicArn = topicArn,
+                    Message = message
+                });
+                Console.WriteLine($"[SNS] Done with producing message: {message}");
+            }
+        }
+    }
+
+    class SnsConsumer
+    {
+        public static async Task DoWork(string queue, string message)
+        {
+            string? awsUrl = Environment.GetEnvironmentVariable("SYSTEM_TESTS_AWS_URL");
+
+            IAmazonSQS sqsClient;
+            if (!string.IsNullOrEmpty(awsUrl))
+            {
+                // If SYSTEM_TESTS_AWS_URL is set, use it for ServiceURL
+                sqsClient = new AmazonSQSClient(new AmazonSQSConfig { ServiceURL = awsUrl });
+            }
+            else
+            {
+                // If SYSTEM_TESTS_AWS_URL is not set, create a default client
+                sqsClient = new AmazonSQSClient();
+            }
+
+            // Create queue
+            Console.WriteLine($"[SNS] Consume: Creating queue {queue}");
+            CreateQueueResponse responseCreate = await sqsClient.CreateQueueAsync(queue);
+            var qUrl = responseCreate.QueueUrl;
+
+            Console.WriteLine($"[SNS] looking for messages in queue {qUrl}");
+
+            bool continueProcessing = true;
+
+            while (continueProcessing)
+            {
+                using (Datadog.Trace.Tracer.Instance.StartActive("SnsConsume"))
+                {
+                    var result = await sqsClient.ReceiveMessageAsync(new ReceiveMessageRequest
+                    {
+                        QueueUrl = qUrl,
+                        MaxNumberOfMessages = 1,
+                        WaitTimeSeconds = 1
+                    });
+
+                    if (result == null || result.Messages.Count == 0)
+                    {
+                        Console.WriteLine("[SNS] No messages to consume at this time");
+                        await Task.Delay(1000);
+                        continue;
+                    }
+
+                    var receivedMessage = result.Messages[0];
+
+                    // Check if the message body matches directly
+                    if (receivedMessage.Body == message)
+                    {
+                        Console.WriteLine($"[SNS] Consumed message from {qUrl}: {receivedMessage.Body}");
+                        continueProcessing = false;
+                        break;
+                    }
+
+                    // Check if the message is wrapped in JSON (SNS format)
+                    try
+                    {
+                        var messageJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(receivedMessage.Body);
+                        if (messageJson != null && messageJson.ContainsKey("Message") && messageJson["Message"]?.ToString() == message)
+                        {
+                            Console.WriteLine($"[SNS] Consumed SNS message from {qUrl}: {messageJson["Message"]}");
+                            continueProcessing = false;
+                            break;
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // Not a JSON message, continue looking
+                    }
+
+                    await Task.Delay(1000);
                 }
             }
         }
