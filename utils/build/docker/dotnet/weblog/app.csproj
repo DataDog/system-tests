@@ -33,6 +33,7 @@
 
     <ItemGroup>
         <PackageReference Include="AWSSDK.SQS" Version="3.7.300.52"/>
+        <PackageReference Include="AWSSDK.SimpleNotificationService" Version="3.7.300.52"/>
         <PackageReference Include="Google.Protobuf" Version="3.25.3" />
         <PackageReference Include="MySql.Data" Version="8.0.30"/>
         <PackageReference Include="Npgsql" Version="4.0.10"/>
