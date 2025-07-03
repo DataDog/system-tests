@@ -30,7 +30,4 @@ sudo systemctl enable test-app.service
 sudo systemctl start test-app.service
 sudo systemctl status test-app.service
 
-find /tmp -name 'coredump*' -exec echo '{}' \;
-find /tmp -name 'coredump*' -exec cp '{}' '/var/log/datadog/dotnet/{}' \;
-
 echo "RUN DONE"
