@@ -206,16 +206,12 @@ elif [ "$TARGET" = "ruby" ]; then
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     if [ $VERSION = 'dev' ]; then
-        echo "Loading dev version"
-        curl --fail --location --silent --show-error --output datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
-        RELEASE_VERSION=$(grep "const RELEASE_VERSION" datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/" | sed "s/+/%2B/g")
-        echo "RELEASE_VERSION: $RELEASE_VERSION"
-        echo "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz"
-        curl --fail --location --silent --show-error --output dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz"
+        curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//datadog-setup.php"
+        RELEASE_VERSION=$(grep "const RELEASE_VERSION" ./temp/datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/")
+        RELEASE_VERSION_ENCODED=$(grep "const RELEASE_VERSION" ./temp/datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/" | sed "s/+/%2B/g")
+        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds//dd-library-php-${RELEASE_VERSION_ENCODED}-x86_64-linux-gnu.tar.gz"
     elif [ $VERSION = 'prod' ]; then
-        curl --fail --location --silent --show-error --output datadog-setup.php "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/datadog-setup.php"
-        RELEASE_VERSION=$(grep "const RELEASE_VERSION" datadog-setup.php | sed "s/.*RELEASE_VERSION = '\([^']*\)'.*/\1/" | sed "s/+/%2B/g")
-        curl --fail --location --silent --show-error --output dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz "https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/dd-library-php-${RELEASE_VERSION}-x86_64-linux-gnu.tar.gz"
+        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
