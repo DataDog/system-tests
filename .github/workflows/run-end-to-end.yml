@@ -406,6 +406,9 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run APPSEC_LAMBDA_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
+      run: ./run.sh APPSEC_LAMBDA_DEFAULT
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
