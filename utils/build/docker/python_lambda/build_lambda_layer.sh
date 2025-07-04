@@ -4,25 +4,69 @@ set -euo pipefail
 
 ARCH=${ARCH:-$(uname -m)}
 PYTHON_VERSION=${PYTHON_VERSION:-3.13}
+PYTHON_VERSION_NO_DOT=$(echo "$PYTHON_VERSION" | cut -d'.' -f1-2)
 
 if [ "$ARCH" = "x86_64" ]; then
     ARCH="amd64"
+fi
+if [ "$ARCH" = "aarch64" ]; then
+    ARCH="arm64"
 fi
 
 cd binaries
 
 SKIP_BUILD=0
-CLONED_REPO=0
+
+# Reexport all SYSTEM_TESTS_AWS_* variables as AWS_* variables
+for var in $(compgen -v SYSTEM_TESTS_AWS_); do
+    export "${var/SYSTEM_TESTS_AWS_/AWS_}"
+done
+echo "Following AWS variables are set:"
+env | grep '^AWS_'
 
 if [ -e "datadog-lambda-python" ]; then
     echo "datadog-lambda-python already exists, skipping clone."
 elif [ "$(find . -maxdepth 1 -name "*.zip" | wc -l)" = "1" ]; then
     echo "Using provided datadog-lambda-python layer."
     SKIP_BUILD=1
+elif command -v aws >/dev/null 2>&1 && aws sts get-caller-identity >/dev/null 2>&1; then
+    echo "AWS credentials detected. Downloading datadog-lambda-python layer from AWS..."
+    REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    ARCH_SUFFIX=$(if [ "$ARCH" = "arm64" ]; then echo "-ARM"; else echo ""; fi)
+    LAMBDA_LAYER_NAME="arn:aws:lambda:$REGION:464622532012:layer:Datadog-Python$PYTHON_VERSION_NO_DOT$ARCH_SUFFIX"
+
+    # Get the latest layer version
+    LAYER_VERSION=$(aws lambda list-layer-versions \
+        --layer-name "$LAMBDA_LAYER_NAME" \
+        --query 'LayerVersions[0].Version' \
+        --output text \
+        --region "$REGION")
+
+    if [ "$LAYER_VERSION" != "None" ] && [ -n "$LAYER_VERSION" ]; then
+        echo "Downloading layer version $LAYER_VERSION for $LAMBDA_LAYER_NAME from region $REGION"
+
+        # Get the download URL
+        DOWNLOAD_URL=$(aws lambda get-layer-version \
+            --layer-name "$LAMBDA_LAYER_NAME" \
+            --version-number "$LAYER_VERSION" \
+            --query 'Content.Location' \
+            --output text \
+            --region "$REGION")
+
+        if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "None" ]; then
+            # Download the layer
+            curl -L "$DOWNLOAD_URL" -o "datadog_lambda_py-${ARCH}-${PYTHON_VERSION}.zip"
+            echo "Successfully downloaded datadog-lambda-python layer from AWS"
+            SKIP_BUILD=1
+        else
+            echo "Failed to get download URL for layer. Falling back to git clone..."
+        fi
+    else
+        echo "No layer version found. Falling back to git clone..."
+    fi
 else
-    echo "Cloning datadog-lambda-python repository..."
-    git clone --depth 1 https://github.com/DataDog/datadog-lambda-python.git
-    CLONED_REPO=1
+    echo "Impossible to download datadog-lambda-python layer from AWS and no local layer provided, Aborting."
+    exit 1
 fi
 
 # Patch the ddtrace dependency in datadog-lambda-python based on the same rules as install_ddtrace.sh
@@ -78,22 +122,10 @@ if [[ $SKIP_BUILD -eq 0 ]]; then
     fi
     # Build the datadog-lambda-python package
     cd datadog-lambda-python
-    ARCH=$ARCH PYTHON_VERSION=$PYTHON_VERSION ./scripts/build_layers.sh
+    ARCH=$ARCH PYTHON_VERSION=$PYTHON_VERSION bash ./scripts/build_layers.sh
 
     mv .layers/*.zip ../
     cd ..
-
-    # Clean up the datadog-lambda-python directory
-    if [ "$CLONED_REPO" -eq 1 ]; then
-        echo "Removing datadog-lambda-python directory..."
-        rm -rf datadog-lambda-python
-    else
-        # Restore the original pyproject.toml if it was not cloned
-        cd datadog-lambda-python
-        git checkout -- pyproject.toml
-        rm -rf dd-trace-py ./*.whl
-        cd ..
-    fi
 fi
 
 cd ..
