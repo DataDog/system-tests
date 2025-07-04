@@ -182,6 +182,11 @@ class _Weblog:
     ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, timeout=timeout)
 
+    def get_name(self) -> str:
+        from utils import context
+
+        return context.weblog_variant
+
     def request(
         self,
         method: str,
@@ -223,9 +228,10 @@ class _Weblog:
         status_code = None
         response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
-
-        # Retries 4 times in case of connection failure, to avoid flaky tests
-        for _ in range(5):
+        retries = 1
+        if self.get_name() == "uwsgi-poc":
+            retries = 5
+        for _ in range(retries):
             try:
                 req = requests.Request(
                     method,
