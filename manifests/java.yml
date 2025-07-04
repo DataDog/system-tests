@@ -728,6 +728,7 @@ tests/:
           '*': v1.51.0-SNAPSHOT
           akka-http: bug (APPSEC-57926)
           play: bug (APPSEC-57926)
+          ratpack: bug (APPSEC-58210)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_security_controls.py:
         TestSecurityControls:
