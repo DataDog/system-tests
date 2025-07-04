@@ -164,6 +164,7 @@ def main() -> None:
                     r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/nodejs_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/python_otel/.*": scenario_groups.open_telemetry,
+                    r"utils/build/docker/python_lambda/.*": scenario_groups.appsec_lambda,
                     r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
                     r"utils/build/docker/.*": [
                         scenario_groups.end_to_end,

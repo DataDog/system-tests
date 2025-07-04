@@ -10,17 +10,18 @@
 #
 # Binaries sources:
 #
-# * Agent:      Docker hub datadog/agent-dev:master-py3
-# * cpp_httpd:  Github action artifact
-# * Golang:     github.com/DataDog/dd-trace-go/v2@main
-# * .NET:       ghcr.io/datadog/dd-trace-dotnet
-# * Java:       S3
-# * PHP:        ghcr.io/datadog/dd-trace-php
-# * Node.js:    Direct from github source
-# * C++:        Direct from github source
-# * Python:     Clone  locally the githu repo
-# * Ruby:       Direct from github source
-# * WAF:        Direct from github source, but not working, as this repo is now private
+# * Agent:         Docker hub datadog/agent-dev:master-py3
+# * cpp_httpd:     Github action artifact
+# * Golang:        github.com/DataDog/dd-trace-go/v2@main
+# * .NET:          ghcr.io/datadog/dd-trace-dotnet
+# * Java:          S3
+# * PHP:           ghcr.io/datadog/dd-trace-php
+# * Node.js:       Direct from github source
+# * C++:           Direct from github source
+# * Python:        Clone locally the github repo
+# * Ruby:          Direct from github source
+# * WAF:           Direct from github source, but not working, as this repo is now private
+# * Python Lambda: Clone locally the github repo
 ##########################################################################################
 
 set -eu
@@ -322,6 +323,21 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+elif [ "$TARGET" = "python_lambda" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+
+    rm -rf dd-trace-py/
+    rm -rf datadog-lambda-python/
+    # do not use `--depth 1`, setuptools_scm, does not like it
+    git clone https://github.com/DataDog/dd-trace-py.git
+    git clone https://github.com/DataDog/datadog-lambda-python.git
+    cd dd-trace-py
+    echo "Checking out the ddtrace ref"
+    git log -1 --format=%H
+    cd ../datadog-lambda-python
+    echo "Checking out the datadog_lambda ref"
+    git log -1 --format=%H
 
 else
     echo "Unknown target: $1"
