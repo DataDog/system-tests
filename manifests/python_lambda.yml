@@ -1,0 +1,21 @@
+---
+tests/:
+  appsec/:
+    test_alpha.py:
+      Test_Basic: 6.111.0
+    test_only_python.py:
+      Test_ImportError: 6.111.0
+    test_reports.py:
+      Test_ExtraTagsFromRule: 6.111.0
+      Test_Info: 6.111.0
+      Test_RequestHeaders: 6.111.0
+      Test_StatusCode: 6.111.0
+    test_traces.py:
+      Test_AppSecEventSpanTags: 6.111.0
+      Test_AppSecObfuscator: 6.111.0
+      Test_CollectDefaultRequestHeader: 6.111.0
+      Test_CollectRespondHeaders: 6.111.0
+      Test_ExternalWafRequestsIdentification: 6.111.0
+      Test_RetainTraces: 6.111.0
+    test_versions.py:
+      Test_Events: 6.111.0
