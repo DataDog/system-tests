@@ -361,11 +361,9 @@ public class Main {
                     chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
                         ctx.byMethod(m -> m
                                 .get(ctxGet -> {
-                                    // lógica para GET
                                     IastSamplingHandlers.getSamplingByRouteMethodCount().handle(ctxGet);
                                 })
                                 .post(ctxPost -> {
-                                    // lógica para POST
                                     IastSamplingHandlers.postSamplingByRouteMethodCount().handle(ctxPost);
                                 })
                         );
