@@ -248,7 +248,10 @@ class _Weblog:
                 text = response.text
             except requests.exceptions.ConnectionError as e:
                 logger.error(f"Request {rid} raise an error: {e}")
-                if isinstance(e.args[0], urllib3.exceptions.ProtocolError) and e.args[0].args[0] == "Connection aborted.":
+                if (
+                    isinstance(e.args[0], urllib3.exceptions.ProtocolError)
+                    and e.args[0].args[0] == "Connection aborted."
+                ):
                     logger.error("Remote disconnected, retrying...")
                     time.sleep(0.25)  # wait before retrying
                     continue
