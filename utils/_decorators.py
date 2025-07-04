@@ -101,6 +101,7 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
             "java_otel",
             "python_otel",
             "nodejs_otel",
+            "python_lambda",
         ):
             raise ValueError(f"Unknown library: {library}")
 
@@ -242,6 +243,7 @@ def released(
     agent: str | None = None,
     dd_apm_inject: str | None = None,
     k8s_cluster_agent: str | None = None,
+    python_lambda: str | None = None,
 ):
     """Class decorator, allow to mark a test class with a version number of a component"""
 
@@ -296,6 +298,7 @@ def released(
             compute_declaration("php", "php", php, context.library.version),
             compute_declaration("python", "python", python, context.library.version),
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
+            compute_declaration("python_lambda", "python_lambda", python_lambda, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
             compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
