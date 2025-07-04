@@ -619,7 +619,7 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="datadog/system-tests:lambda-proxy",
+            image_name="system_tests/lambda-proxy",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
@@ -633,6 +633,7 @@ class LambdaProxyContainer(TestedContainer):
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.container_port}/healthcheck",
                 "retries": 60,
             },
+            local_image_only=True,
         )
 
 

@@ -421,6 +421,10 @@ def _filter_scenarios(scenarios: list[str], library: str, weblog: str, ci_enviro
 def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str) -> bool:
     # this function will remove some couple scenarios/weblog that are not supported
 
+    # Only Allow Lambda scenarios for the lambda libraries
+    if ("lambda" in library) != ("LAMBDA" in scenario):
+        return False
+
     # open-telemetry-automatic
     if scenario == "OTEL_INTEGRATIONS":
         possible_values: tuple = (
