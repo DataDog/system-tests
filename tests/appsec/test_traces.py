@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils._context._scenarios import scenario_groups
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
@@ -70,7 +69,7 @@ class Test_AppSecEventSpanTags:
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
     @bug(
-        context.library.name == "python" and scenario_groups.appsec_lambda in context.scenario.scenario_groups,
+        context.library.name == "python_lambda",
         reason="APPSEC-58201",
     )
     def test_custom_span_tags(self):
@@ -120,7 +119,7 @@ class Test_AppSecEventSpanTags:
     @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
-        valid_appsec_span_types = ["web", "http", "rpc"]
+        valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
         spans = [span for _, _, span in interfaces.library.get_spans()]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
@@ -305,7 +304,7 @@ class Test_CollectRespondHeaders:
         reason="The endpoint /headers is not implemented in the weblog",
     )
     @bug(
-        scenario_groups.appsec_lambda in context.scenario.scenario_groups and context.library.name == "python",
+        context.library.name == "python_lambda",
         reason="APPSEC-58202",
     )
     def test_header_collection(self):
