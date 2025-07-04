@@ -248,7 +248,9 @@ class _Weblog:
                 text = response.text
             except requests.exceptions.ConnectionError as e:
                 logger.error(f"Request {rid} raise an error: {e}")
-                if isinstance(e.args[0],http.client.RemoteDisconnected):
+                for i, arg in enumerate(e.args):
+                    logger.error(f"[{i}] {type(arg)}:{arg}")
+                if isinstance(e.args[0], http.client.RemoteDisconnected):
                     logger.error("Remote disconnected, retrying...")
                     time.sleep(0.25)  # wait before retrying
                     continue
