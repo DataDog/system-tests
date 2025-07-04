@@ -248,18 +248,12 @@ class _Weblog:
                 text = response.text
             except requests.exceptions.ConnectionError as e:
                 logger.error(f"Request {rid} raise an error: {e}")
-                if isinstance(e.args[0], urllib3.exceptions.ProtocolError):
-                    e2 = e.args[0]  # unwrap the ProtocolError to get the RemoteDisconnected
-                    for i, arg in enumerate(e2.args):
-                        logger.error(f"[{i}] {type(arg)}:{arg}")
-                    break
+                if isinstance(e.args[0], urllib3.exceptions.ProtocolError) and e.args[0].args[0] == "Connection aborted.":
                     logger.error("Remote disconnected, retrying...")
                     time.sleep(0.25)  # wait before retrying
                     continue
-                break
             except Exception as e:
                 logger.error(f"Request {rid} raise an error: {e}")
-                break
             else:
                 logger.debug(f"Request {rid}: {response.status_code}")
                 if response.status_code == HTTPStatus.NOT_FOUND:
@@ -267,7 +261,7 @@ class _Weblog:
                         "💡 if your test is failing, you may need to add"
                         " missing_feature for this weblog in manifest file."
                     )
-                break
+            break
 
         return HttpResponse(
             {
