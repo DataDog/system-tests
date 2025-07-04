@@ -1121,7 +1121,7 @@ class LambdaWeblogContainer(WeblogContainer):
 
         library = self.image.labels["system-tests-library"]
 
-        if library == "python":
+        if library == "python_lambda":
             self.environment["DD_LAMBDA_HANDLER"] = "handler.lambda_handler"
             self.command = "datadog_lambda.handler.handler"
 
