@@ -327,16 +327,17 @@ elif [ "$TARGET" = "python_lambda" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
 
-    rm -rf dd-trace-py/
     rm -rf datadog-lambda-python/
+
+    git clone https://github.com/DataDog/datadog-lambda-python.git
+    cd datadog-lambda-python
+    echo "Checking out the datadog_lambda ref"
+    git log -1 --format=%H
+
     # do not use `--depth 1`, setuptools_scm, does not like it
     git clone https://github.com/DataDog/dd-trace-py.git
-    git clone https://github.com/DataDog/datadog-lambda-python.git
     cd dd-trace-py
     echo "Checking out the ddtrace ref"
-    git log -1 --format=%H
-    cd ../datadog-lambda-python
-    echo "Checking out the datadog_lambda ref"
     git log -1 --format=%H
 
 else

@@ -106,7 +106,7 @@ class LambdaScenario(DockerScenario):
                 self.library_interface_timeout = 0
             elif library in ("php",):
                 self.library_interface_timeout = 10
-            elif library in ("python",):
+            elif library in ("python", "python_lambda"):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40

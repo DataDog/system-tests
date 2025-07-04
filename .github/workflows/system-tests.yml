@@ -59,11 +59,6 @@ on:
         default: false
         required: false
         type: boolean
-      build_lambda_proxy_image:
-        description: "Shall we build lambda proxy image"
-        default: false
-        required: false
-        type: boolean
       build_lib_injection_app_images:
         description: "Shall we build and push k8s lib injection weblog images"
         default: false
@@ -246,7 +241,6 @@ jobs:
       force_execute: ${{ inputs.force_execute }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      build_lambda_proxy_image: ${{ inputs.build_lambda_proxy_image }}
       binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}

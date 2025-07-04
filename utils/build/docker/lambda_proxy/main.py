@@ -1,11 +1,10 @@
 import os
-import sys
-from samcli.local.apigw.event_constructor import construct_v1_event
-from samcli.local.apigw.local_apigw_service import LocalApigwService
 
-# Create super simple catch-all flask app
 from flask import Flask, request
 from requests import post
+
+from samcli.local.apigw.event_constructor import construct_v1_event
+from samcli.local.apigw.local_apigw_service import LocalApigwService
 
 PORT = 7777
 
@@ -16,11 +15,15 @@ RIE_URL = f"http://{RIE_HOST}:{RIE_PORT}/2015-03-31/functions/{FUNCTION_NAME}/in
 
 app = Flask(__name__)
 
+app.config["PROVIDE_AUTOMATIC_OPTIONS"] = False
 
-@app.route("/")
-@app.route("/<path:path>")
-def main(path=""):
-    converted_event = construct_v1_event(request, PORT, binary_types=[], stage_name="Prod")
+
+def invoke_lambda_function():
+    """
+    This function is used to invoke the Lambda function with the provided event.
+    It constructs a v1 event from the Flask request and sends it to the RIE URL.
+    """
+    converted_event = construct_v1_event(request, PORT, binary_types=["application/octet-stream"], stage_name="Prod")
 
     response = post(
         RIE_URL,
@@ -33,3 +36,18 @@ def main(path=""):
     )
 
     return app.response_class(response=body, status=status_code, headers=headers)
+
+
+@app.route("/", methods=["GET", "POST", "OPTIONS"])
+@app.route("/finger_print")
+@app.get("/headers")
+@app.get("/healthcheck")
+@app.route("/params/<path>/", methods=["GET", "POST", "OPTIONS"])
+@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
+@app.get("/users")
+@app.route("/waf", methods=["GET", "POST", "OPTIONS"])
+@app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
+@app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
+@app.get("/.git")
+def main(**kwargs):
+    return invoke_lambda_function()
