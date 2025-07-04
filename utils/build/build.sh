@@ -216,8 +216,8 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-                if [[ $WEBLOG_VARIANT == lambda-python* ]]; then
-                    ./utils/build/docker/python/build_lambda_layer.sh
+                if [[ $TEST_LIBRARY == python_lambda ]]; then
+                    ./utils/build/docker/python_lambda/build_lambda_layer.sh
                 fi
 
                 docker buildx build \
@@ -273,7 +273,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
+        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
