@@ -19,9 +19,11 @@ Rails.application.routes.draw do
   get '/headers' => 'system_test#test_headers'
   get '/identify' => 'system_test#identify'
 
-  get 'user_login_success_event' => 'system_test#user_login_success_event'
-  get 'user_login_failure_event' => 'system_test#user_login_failure_event'
-  get 'custom_event' => 'system_test#custom_event'
+  get 'user_login_success_event' => 'business_logic_events#user_login_success_event'
+  get 'user_login_failure_event' => 'business_logic_events#user_login_failure_event'
+  get 'custom_event' => 'business_logic_events#custom_event'
+  post 'user_login_success_event_v2' => 'business_logic_events#user_login_success_event_v2'
+  post 'user_login_failure_event_v2' => 'business_logic_events#user_login_failure_event_v2'
 
   %i[get post].each do |request_method|
     send(request_method, '/tag_value/:tag_value/:status_code' => 'system_test#tag_value')
@@ -48,8 +50,7 @@ Rails.application.routes.draw do
   get '/rasp/ssrf' => 'rasp_ssrf#show'
   post '/rasp/ssrf' => 'rasp_ssrf#show'
 
-  get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
-
-  get '/api_security_sampling/:i' => 'system_test#api_security_sampling'
-  get '/api_security/sampling/:status' => 'system_test#api_security_with_sampling'
+  get '/sample_rate_route/:i' => 'api_security#sample_rate_route'
+  get '/api_security_sampling/:i' => 'api_security#sampling_by_path'
+  get '/api_security/sampling/:status' => 'api_security#sampling_by_status'
 end
