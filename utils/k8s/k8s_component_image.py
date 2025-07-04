@@ -23,17 +23,22 @@ class K8sComponentImage:
         self,
         registry_url: str,
         version_extractor: Callable[[str], str],
+        ssi_registry_base: str | None = None,
     ) -> None:
         """Initialize a K8sComponentImage instance.
 
         Args:
             registry_url: The full Docker image URL (e.g. 'gcr.io/datadoghq/apm-inject:latest')
             version_extractor: A function that takes a registry URL and returns the extracted version
+            ssi_registry_base: Optional base registry URL to prepend to the registry_url
 
         """
         self.registry_url = registry_url
         self._version: str | None = None
         self._version_extractor = version_extractor
+        self.ssi_registry_base = ssi_registry_base
+        if self.ssi_registry_base:
+            self.registry_url = f"{self.ssi_registry_base}/{self.registry_url}"
 
     @property
     def main_url(self) -> str:

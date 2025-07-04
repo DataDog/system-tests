@@ -1,118 +1,18 @@
 # Testing K8s library injection feature
 
-1. [Overall](#Overall)
-   * [What is the library injection feature?](#What-is-the-k8s-library-injection-feature?)
-   * [What’s the Datadog Cluster Agent and why?](#What’s-the-Datadog-Cluster-Agent-and-why?)
-2. [K8s tested components](#K8s-tested-components)
-3. [Run the tests](#K8s-tested-components)
-   * [Run K8s library image validation](#Run-K8s-library-image-validation)
+1. [Run the tests](#run-the-tests)
    * [Run K8s library injection tests](#Run-K8s-library-injection-tests)
      - [Prerequisites](#Prerequisites)
      - [Configure tested components versions](#Configure-tested-components-versions)
      - [Execute a test scenario](#Execute-a-test-scenario)
-4. [How to use a MiniKube implementation](#How-to-use-a-MiniKube-implementation)
-5. [How to develop a test case](#How-to-develop-a-test-case)
+2. [How to use a MiniKube implementation](#How-to-use-a-MiniKube-implementation)
+3. [How to develop a test case](#How-to-develop-a-test-case)
    * [Folders and Files structure](#Folders-and-Files-structure)
    * [Implement a new test case](#Implement-a-new-test-case)
-6. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
-7. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
-
-## Overall
-
-### What is the k8s library injection feature?
-
-The lib-injection project is a feature to allow injection of the Datadog library
-into a customer's application container without requiring them to modify their
-application images.
-
-This feature enables applications written in Java, Node.js, Python, .NET or Ruby running
-in Kubernetes to be automatically instrumented with the corresponding Datadog
-APM libraries.
-
-Currently, there are two different ways to have the Datadog library injected
-into the application container:
-
-1) **Manually via Kubernetes annotations**:
-   * Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
-   * Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
-2) **Automatically with Remote Config via the Datadog UI.**
-
-### What’s the Datadog Cluster Agent and why?
-
-The Cluster Agent is a different binary (vs the regular Agent), written in Go in the same DataDog/datadog-agent repo and is installed as a Deployment in Kubernetes, not a DaemonSet. It’s an essential component for cluster-level monitoring.
-
-In addition to the local API (Kubelet) leveraged by the Datadog Agent on each node, Kubernetes has a centralized and powerful API called API Server.
-The Datadog Cluster Agent provides a streamlined, centralized approach to collecting cluster level monitoring data from the Kubernetes API Server. The Cluster Agent also leverages the Kubernetes API Server for advanced features like the Admission Controller.
-
-Kubernetes admission controllers are plugins that govern and enforce how the cluster is used. They can intercept API requests and may change the request object or deny the request altogether. Read more in A Guide to Kubernetes Admission Controllers and Dynamic Admission Control
-
-The Datadog admission controller is a component of the Datadog Cluster Agent. It leverages the Kubernetes mutatingwebhookconfigurations.admissionregistration.k8s.io API.
-
-## K8s tested components
-
-K8s Library injection testing is part of the "system-tests" test suite.
-
-As a final purpose we want to check the correct operation of all Datadog components involved in the auto instrumentation of the applications deployed in a kubernetes cluster.
-
-In the auto-instrumentation proccess there are several software components involved:
-
-- **Cluster agent:** Software component, written in Go, that resides on the DataDog/datadog-agent repository and is installed as a Deployment in Kubernetes.
-- **Injector image:** Directly involved in auto-instrumentation. Resides on Datadog/auto_inject repository.
-- **Library image (lib-init):** Contains the tracer library to be injected in the pods.
-
-These test components are also involved through the testing process:
-
-- **System-tests runner:** The core of the system-tests is the reponsible for orchestrate the tests execution and manage the tests results.
-- **Dev test agent:**  The APM Test Agent container help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
-- **Sample app/weblog:** Containerized sample application implemented on Java, Node.js, .NET, Ruby or Python.
-
-The following image represents, in general terms, the necessary and dependent architecture to be able to run the K8s library injection tests:
-
-![Architecture overview](../lib-injection/lib-injection-tests.png "Architecture overview")
+4. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
+5. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
 
 ## Run the tests
-
-### Run K8s library image validation
-
-We have created some simple tests, able to auto inject the tracer library in any application running in a docker container.
-On the test application container (weblog), the lib-init image will be added as a docker volume and the environment variables, necessary for auto injection, will be attached.
-The weblog application only requires to be listening on port 18080.
-The weblog will be deployed together with the APM Test Agent container, which will help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
-
-Now we can test the auto instrumentation on any image in two simple steps:
-
-1. **Build your app image and tag locally as "weblog-injection:latest"** :
-
-``` docker build  -t weblog-injection:latest .```
-
-You could use the existing weblog apps under __lib-injection/build/docker__ folder. Use the existing script to build them:
-
-```lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python] ```
-
-ie:
-
-```
-lib-injection/build/build_lib_injection_weblog.sh -w dd-lib-dotnet-init-test-app -l dotnet
-```
-
-2. **Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_**:
-
-```
-TEST_LIBRARY=dotnet
-LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot
-./run.sh LIB_INJECTION_VALIDATION
-```
-
-#### Validating lib-injection images under not supported language runtime version
-
-You can also validate weblog applications implemented with a language version that is not supported by the tracer. The scenario will check that the app is running although the app is not instrumented:
-
-```
-lib-injection/build/build_lib_injection_weblog.sh -w jdk7-app -l java
-TEST_LIBRARY=java
-LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
-./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
-```
 
 ### Run K8s library injection tests
 

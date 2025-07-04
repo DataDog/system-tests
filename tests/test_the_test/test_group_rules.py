@@ -52,6 +52,7 @@ def test_tracer_release():
         scenarios.k8s_lib_injection_spark_djm,
         scenarios.k8s_lib_injection_uds,
         scenarios.k8s_lib_injection,
+        scenarios.k8s_injector_dev_single_service,
         scenarios.lib_injection_validation_unsupported_lang,
         scenarios.lib_injection_validation,
         scenarios.local_auto_injection_install_script,

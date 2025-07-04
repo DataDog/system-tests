@@ -56,4 +56,4 @@ Automatic library injection simplifies the APM onboarding experience for custome
 
 The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
 
-This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailled documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_library_injection_overview.md).

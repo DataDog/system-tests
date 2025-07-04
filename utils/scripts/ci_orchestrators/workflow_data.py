@@ -43,6 +43,24 @@ def get_k8s_matrix(k8s_ssi_file: str, scenarios: list[str], language: str) -> di
     return results
 
 
+def get_k8s_injector_dev_matrix(k8s_injector_dev_file: str, scenarios: list[str], language: str) -> dict:
+    """Computes the matrix "scenario" - "weblog" given a list of scenarios and a language."""
+    k8s_injector_dev = _load_json(k8s_injector_dev_file)
+
+    results = defaultdict(lambda: defaultdict(list))  # type: dict
+    scenario_matrix = k8s_injector_dev["scenario_matrix"]
+    for entry in scenario_matrix:
+        applicable_scenarios = entry["scenarios"]
+        weblogs = entry["weblogs"]
+        for scenario in scenarios:
+            if scenario in applicable_scenarios:
+                for weblog_entry in weblogs:
+                    if language in weblog_entry:
+                        for weblog in weblog_entry[language]:
+                            results[scenario][weblog] = []
+    return results
+
+
 def get_aws_matrix(virtual_machines_file: str, aws_ssi_file: str, scenarios: list[str], language: str) -> dict:
     """Load the json files (the virtual_machine supported by the system  and the scenario-weblog definition)
     and calculates the matrix "scenario" - "weblog" - "virtual machine" given a list of scenarios and a language.
