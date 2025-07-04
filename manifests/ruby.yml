@@ -777,7 +777,8 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py:
