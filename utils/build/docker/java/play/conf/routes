@@ -37,3 +37,8 @@ GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
 GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
 GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
+
+# IAST Sampling endpoints
+GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
+POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
+GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)
