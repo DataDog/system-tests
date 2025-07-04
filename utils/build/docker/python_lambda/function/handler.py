@@ -7,7 +7,7 @@ from aws_lambda_powertools.event_handler import Response
 import logging
 import os
 
-import ddtrace
+import datadog_lambda
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.trace import tracer
 import urllib
@@ -24,12 +24,8 @@ def version_info():
     return {
         "status": "ok",
         "library": {
-            "name": "python",
-            "version": ddtrace.__version__,
-        },
-        "extension": {
-            "name": "datadog-lambda-extension",
-            "version": os.environ.get("EXTENSION_VERSION", "unknown"),
+            "name": "python_lambda",
+            "version": datadog_lambda.__version__,
         },
     }
 
