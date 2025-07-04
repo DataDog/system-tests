@@ -11,10 +11,8 @@ COPY binaries/*.zip /binaries/
 RUN unzip /binaries/*.zip -d /opt
 
 # Setup the aws_lambda handler
-COPY utils/build/docker/python/aws_lambda/requirements.txt ${LAMBDA_TASK_ROOT}/requirements.txt
+COPY utils/build/docker/python_lambda/function/. ${LAMBDA_TASK_ROOT}
 RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt
-
-COPY utils/build/docker/python/aws_lambda/function/handler.py ${LAMBDA_TASK_ROOT}
 
 ENV DD_LAMBDA_HANDLER=handler.lambda_handler
 
