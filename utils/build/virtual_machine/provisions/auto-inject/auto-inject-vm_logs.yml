@@ -4,6 +4,7 @@
     #Wait for the app service up to extract the logs (also app logs)
     curl --head -X GET --retry 5 --max-time 20 --retry-connrefused --retry-delay 2 http://localhost:5985
     find /var/log -type f -path "/var/log/datadog*" -name "*.log"| xargs sudo tail -n +1
+    find /var/log -type f -path "/var/log/datadog*" -name "*.json"| xargs sudo tail -n +1
     #If there are docker services running extract info
     echo "==> /var/log/datadog_weblog/docker_proccess.log <==" && sudo docker-compose ps || true
     echo "==> /var/log/datadog_weblog/docker_logs.log <==" && sudo docker-compose logs || true
