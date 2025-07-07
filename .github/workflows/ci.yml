@@ -18,14 +18,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-
   lint:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Run lints
-      uses: ./.github/actions/lint_code
+    uses: ./.github/workflows/lint.yml
 
   test_the_test:
     name: Test the test

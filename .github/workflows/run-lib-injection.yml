@@ -133,11 +133,21 @@ jobs:
       TEST_LIBRARY: ${{ inputs.library }}
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-          ref: ${{ inputs.ref }}
+          ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -155,9 +165,6 @@ jobs:
 
       - name: Build weblog init image validator
         run: lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog.name }} -l ${{ inputs.library }}
-
-      - name: Install runner
-        uses: ./.github/actions/install_runner
 
       - name: Perform lib injection
         if:  matrix.weblog.supported == 'true'
