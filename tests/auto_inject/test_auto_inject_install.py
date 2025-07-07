@@ -211,6 +211,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+        raise AssertionError("I created this error manually")
 
 
 @features.auto_instrumentation_appsec
