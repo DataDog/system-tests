@@ -63,6 +63,7 @@ refs:
   - &ref_5_55_0 '>=5.55.0'
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
+  - &ref_5_59_0 '>=5.59.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1008,7 +1009,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
