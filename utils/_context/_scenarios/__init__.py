@@ -607,7 +607,7 @@ class _Scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
-        additional_trace_header_tags=(tuple(CONFIG_WILDCARD)),
+        additional_trace_header_tags=tuple(CONFIG_WILDCARD),
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
