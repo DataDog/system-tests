@@ -279,7 +279,7 @@ class Test_HeaderTags_DynamicConfig:
         return f"datadog/2/APM_TRACING/{rc_id}/config", config
 
 
-@scenarios.library_conf_wildcard_header_tags
+@scenarios.tracing_config_nondefault
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Wildcard_Request_Headers:
     """Validates that the wildcard format for specifying headers correctly tags Request Headers"""
@@ -298,7 +298,7 @@ class Test_HeaderTags_Wildcard_Request_Headers:
             assert tag in span["meta"]
 
 
-@scenarios.library_conf_wildcard_header_tags
+@scenarios.tracing_config_nondefault
 @features.http_headers_as_tags_dd_trace_header_tags
 class Test_HeaderTags_Wildcard_Response_Headers:
     """Validates that the wildcard format for specifying headers correctly tags Response Headers"""

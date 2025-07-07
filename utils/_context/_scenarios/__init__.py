@@ -595,13 +595,6 @@ class _Scenarios:
         doc="Scenario with custom headers for DD_TRACE_HEADER_TAGS that libraries should reject",
     )
 
-    library_conf_wildcard_header_tags = EndToEndScenario(
-        "LIBRARY_CONF_WILDCARD_HEADER_TAGS",
-        additional_trace_header_tags=(tuple(CONFIG_WILDCARD)),
-        rc_api_enabled=True,
-        doc="Scenario with wildcard headers to be used with DD_TRACE_HEADER_TAGS",
-    )
-
     tracing_config_empty = EndToEndScenario(
         "TRACING_CONFIG_EMPTY",
         weblog_env={
@@ -614,6 +607,7 @@ class _Scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
+        additional_trace_header_tags=(tuple(CONFIG_WILDCARD)),
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
