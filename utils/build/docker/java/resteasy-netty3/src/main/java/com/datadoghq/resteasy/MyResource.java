@@ -271,6 +271,12 @@ public class MyResource {
         return Response.status(code).build();
     }
 
+    @GET
+    @Path("/stats-unique")
+    public Response statsUnique(@QueryParam("code") @DefaultValue("200") Integer code) {
+        return Response.status(code).build();
+    }
+
     private static final Map<String, String> METADATA = createMetadata();
     private static final Map<String, String> createMetadata() {
         HashMap<String, String> h = new HashMap<>();
