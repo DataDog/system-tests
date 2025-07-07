@@ -698,7 +698,7 @@ tests/:
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_Cookies:
           '*': v2.0.0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': *ref_4_22_0
@@ -984,7 +984,7 @@ tests/:
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session:
         '*': *ref_5_39_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability:
         '*': *ref_5_39_0
