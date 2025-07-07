@@ -219,7 +219,7 @@ class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)
-        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+        logger.info(f".Done test_appsec for : [{context.vm_name}]")
 
 
 @features.host_auto_installation_script_appsec
@@ -229,11 +229,12 @@ class TestHostAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
     def test_appsec(self):
         logger.info(f"Launching test_appsec for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, appsec=True)
-        logger.info(f"Done test_appsec for : [{context.vm_name}]")
+        logger.info(f".Done test_appsec for : [{context.vm_name}]")
 
 
 @features.container_auto_installation_script_appsec
 @scenarios.container_auto_injection_install_script_appsec
 class TestContainerAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
     def test_appsec(self):
+        # test
         self._test_install(context.virtual_machine, appsec=True)
