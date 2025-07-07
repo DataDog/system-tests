@@ -6,6 +6,11 @@ RUN npm install -g yarn
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rails60/Gemfile .
+COPY utils/build/docker/ruby/rails60/Gemfile.lock .
+RUN bundle install
+
 COPY utils/build/docker/ruby/rails60/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

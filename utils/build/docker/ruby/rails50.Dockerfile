@@ -5,6 +5,11 @@ RUN curl -O https://rubygems.org/downloads/libv8-node-15.14.0.1-$(arch)-linux.ge
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rails50/Gemfile .
+COPY utils/build/docker/ruby/rails50/Gemfile.lock .
+RUN bundle install
+
 COPY utils/build/docker/ruby/rails50/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

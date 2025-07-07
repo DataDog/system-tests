@@ -5,6 +5,11 @@ RUN mkdir -p /app
 
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rack/Gemfile .
+COPY utils/build/docker/ruby/rack/Gemfile.lock .
+RUN bundle install
+
 COPY utils/build/docker/ruby/rack/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 
