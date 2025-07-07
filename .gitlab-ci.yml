@@ -65,9 +65,6 @@ compute_pipeline:
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
       fi
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
@@ -87,9 +84,7 @@ nodejs_ssi_pipeline:
       - artifact: nodejs_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 java_ssi_pipeline:
   stage: java
@@ -101,9 +96,7 @@ java_ssi_pipeline:
       - artifact: java_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 dotnet_ssi_pipeline:
   stage: dotnet
@@ -115,9 +108,7 @@ dotnet_ssi_pipeline:
       - artifact: dotnet_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 python_ssi_pipeline:
   stage: python
@@ -129,9 +120,7 @@ python_ssi_pipeline:
       - artifact: python_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 php_ssi_pipeline:
   stage: php
@@ -143,9 +132,7 @@ php_ssi_pipeline:
       - artifact: php_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 ruby_ssi_pipeline:
   stage: ruby
@@ -157,9 +144,7 @@ ruby_ssi_pipeline:
       - artifact: ruby_ssi_gitlab_pipeline.yml
         job: compute_pipeline
     strategy: depend
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
+  when: always
 
 delete_amis:
   extends: .base_job_onboarding
