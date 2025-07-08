@@ -1,10 +1,10 @@
-import os
 import pytest
 from utils import interfaces
 from utils._context._scenarios.core import ScenarioGroup
 from utils._context.containers import LambdaProxyContainer, LambdaWeblogContainer
 from utils._logger import logger
 from .endtoend import DockerScenario, ProxyBasedInterfaceValidator
+from .core import scenario_groups as all_scenario_groups
 
 
 class LambdaScenario(DockerScenario):
@@ -25,21 +25,15 @@ class LambdaScenario(DockerScenario):
         github_workflow: str = "endtoend",
         doc: str,
         scenario_groups: list[ScenarioGroup] | None = None,
-        agent_interface_timeout: int = 5,
-        backend_interface_timeout: int = 0,
-        library_interface_timeout: int | None = None,
-        use_proxy_for_weblog: bool = True,
-        use_proxy_for_agent: bool = True,
-        require_api_key: bool = False,
         weblog_env: dict[str, str | None] | None = None,
         weblog_volumes: dict[str, dict[str, str]] | None = None,
     ):
-        use_proxy = use_proxy_for_weblog or use_proxy_for_agent
-        self._require_api_key = require_api_key
+        scenario_groups = [
+            all_scenario_groups.appsec,
+            all_scenario_groups.tracer_release,
+        ] + (scenario_groups or [])
 
-        super().__init__(
-            name, github_workflow=github_workflow, doc=doc, use_proxy=use_proxy, scenario_groups=scenario_groups
-        )
+        super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
             host_log_folder=self.host_log_folder,
@@ -54,64 +48,24 @@ class LambdaScenario(DockerScenario):
         )
 
         self.lambda_proxy_container.depends_on.append(self.lambda_weblog)
+        self.lambda_weblog.depends_on.append(self.proxy_container)
 
-        if use_proxy:
-            self.lambda_weblog.depends_on.append(self.proxy_container)
-
-        if use_proxy_for_agent:
-            self.proxy_container.environment.update(
-                {
-                    "PROXY_TRACING_AGENT_TARGET_HOST": self.lambda_weblog.name,
-                    "PROXY_TRACING_AGENT_TARGET_PORT": "8126",
-                }
-            )
+        self.proxy_container.environment.update(
+            {
+                "PROXY_TRACING_AGENT_TARGET_HOST": self.lambda_weblog.name,
+                "PROXY_TRACING_AGENT_TARGET_PORT": "8126",
+            }
+        )
 
         self._required_containers.extend((self.lambda_weblog, self.lambda_proxy_container))
-
-        self.agent_interface_timeout = agent_interface_timeout
-        self.backend_interface_timeout = backend_interface_timeout
-        self._library_interface_timeout = library_interface_timeout
 
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
-            pytest.exit("DD_API_KEY is required for this scenario", 1)
-
-        if config.option.force_dd_trace_debug:
-            self.lambda_weblog.environment["DD_TRACE_DEBUG"] = "true"
-
-        if config.option.force_dd_iast_debug:
-            self.lambda_weblog.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
-            self.lambda_weblog.environment["DD_IAST_DEBUG_ENABLED"] = "true"
-
-        if config.option.force_dd_trace_debug:
-            self.lambda_weblog.environment["DD_TRACE_DEBUG"] = "true"
-
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
-        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
-        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
-
-        library = self.lambda_weblog.image.labels["system-tests-library"]
-
-        if self._library_interface_timeout is None:
-            if library == "java":
-                self.library_interface_timeout = 25
-            elif library in ("golang",):
-                self.library_interface_timeout = 10
-            elif library in ("nodejs", "ruby"):
-                self.library_interface_timeout = 0
-            elif library in ("php",):
-                self.library_interface_timeout = 10
-            elif library in ("python", "python_lambda"):
-                self.library_interface_timeout = 5
-            else:
-                self.library_interface_timeout = 40
-        else:
-            self.library_interface_timeout = self._library_interface_timeout
 
     def _get_weblog_system_info(self):
         try:
@@ -171,12 +125,11 @@ class LambdaScenario(DockerScenario):
 
             interfaces.backend.load_data_from_logs()
         else:
-            self._wait_interface(
-                interfaces.library, 0 if force_interface_timeout_to_zero else self.library_interface_timeout
-            )
-
+            self._wait_interface(interfaces.library, 0 if force_interface_timeout_to_zero else 5)
+            self._wait_interface(interfaces.agent, 0 if force_interface_timeout_to_zero else 5)
             self.lambda_weblog.stop()
             interfaces.library.check_deserialization_errors()
+            interfaces.agent.check_deserialization_errors()
 
             self._wait_interface(interfaces.backend, 0)
 

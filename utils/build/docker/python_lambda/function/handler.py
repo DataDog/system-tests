@@ -75,7 +75,7 @@ def healthcheck_route():
 @app.get("/waf/<path>")
 @app.post("/waf/<path>")
 @app.route("/waf/<path>", method="OPTIONS")
-def waf_params(path: str):
+def waf_params(path: str = ""):
     return Response(
         status_code=200,
         content_type="text/plain",

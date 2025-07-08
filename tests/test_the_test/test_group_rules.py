@@ -62,7 +62,6 @@ def test_tracer_release():
         scenarios.simple_installer_auto_injection,
         scenarios.multi_installer_auto_injection,
         scenarios.demo_aws,
-        scenarios.appsec_lambda_default,
     ]
 
     for scenario in get_all_scenarios():

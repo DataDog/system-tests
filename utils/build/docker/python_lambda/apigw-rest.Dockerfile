@@ -6,8 +6,7 @@ RUN dnf install -y unzip
 RUN mkdir -p /opt/extensions
 COPY --from=public.ecr.aws/datadog/lambda-extension:latest /opt/. /opt/
 
-# Add the Datadog Lambda Python Layer
-COPY binaries/*.zip /binaries/
+COPY binaries/* /binaries/
 RUN unzip /binaries/*.zip -d /opt
 
 # Setup the aws_lambda handler
@@ -16,4 +15,4 @@ RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt
 
 ENV DD_LAMBDA_HANDLER=handler.lambda_handler
 
-CMD ["datadog_lambda.handler.handler"]
+ENTRYPOINT ["/bin/sh"]

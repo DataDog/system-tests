@@ -68,10 +68,7 @@ class Test_AppSecEventSpanTags:
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @bug(
-        context.library.name == "python_lambda",
-        reason="APPSEC-58201",
-    )
+    @bug(library="python_lambda", reason="APPSEC-58201")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
@@ -303,10 +300,7 @@ class Test_CollectRespondHeaders:
         context.scenario is scenarios.external_processing,
         reason="The endpoint /headers is not implemented in the weblog",
     )
-    @bug(
-        context.library.name == "python_lambda",
-        reason="APPSEC-58202",
-    )
+    @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
         def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
