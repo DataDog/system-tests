@@ -1667,7 +1667,7 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: v1.51.0-SNAPSHOT
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1731,8 +1731,8 @@ tests/:
         '*': v1.39.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_trace_tagging.py:
-      Test_TraceTaggingRules: missing_feature
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRules: v1.51.0-SNAPSHOT
+      Test_TraceTaggingRulesRcCapability: v1.51.0-SNAPSHOT
     test_traces.py:
       Test_AppSecEventSpanTags:
         '*': v0.104.0
