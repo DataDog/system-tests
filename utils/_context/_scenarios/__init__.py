@@ -693,6 +693,16 @@ class _Scenarios:
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
 
+    debugger_probes_status_with_scm = DebuggerScenario(
+        "DEBUGGER_PROBES_STATUS_WITH_SCM",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
+            "DD_GIT_COMMIT_SHA": "1234hash",
+        },
+        doc="Test scenario for checking if method probe statuses include SCM metadata",
+    )
+
     debugger_probes_snapshot = DebuggerScenario(
         "DEBUGGER_PROBES_SNAPSHOT",
         weblog_env={
@@ -701,6 +711,17 @@ class _Scenarios:
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
         },
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
+    )
+
+    debugger_probes_snapshot_with_scm = DebuggerScenario(
+        "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
+            "DD_GIT_COMMIT_SHA": "1234hash",
+        },
+        doc="Test scenario for checking if debugger successfully generates SCM metadata in snapshots for probes",
     )
 
     debugger_pii_redaction = DebuggerScenario(
