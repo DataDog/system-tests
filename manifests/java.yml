@@ -1753,7 +1753,7 @@ tests/:
         '*': v1.39.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_trace_tagging.py:
-      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRules: v1.54.0-SNAPSHOT
       Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags:
