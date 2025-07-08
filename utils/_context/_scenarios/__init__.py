@@ -1080,7 +1080,6 @@ class _Scenarios:
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
         doc="Default Lambda scenario",
-        scenario_groups=[scenario_groups.appsec_lambda],
     )
 
 
