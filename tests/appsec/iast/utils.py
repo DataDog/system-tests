@@ -79,11 +79,11 @@ def _check_telemetry_response_from_agent():
 def get_all_iast_events() -> list:
     spans = [span[2] for span in interfaces.library.get_spans()]
     assert spans, "No spans found"
-    spans_meta = [span.get("meta") for span in spans]
-    spans_meta_struct = [span.get("meta_struct") for span in spans]
-    assert spans_meta, "No spans meta found"
+    spans_meta = [span.get("meta") for span in spans if span.get("meta")]
+    spans_meta_struct = [span.get("meta_struct") for span in spans if span.get("meta_struct")]
+    assert spans_meta or spans_meta_struct, "No spans meta found"
     iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
-    iast_events += [meta.get("iast") for meta in spans_meta_struct if meta.get("iast")]
+    iast_events += [metastruct.get("iast") for metastruct in spans_meta_struct if metastruct.get("iast")]
     assert iast_events, "No iast events found"
 
     return iast_events
