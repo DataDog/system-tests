@@ -4,7 +4,8 @@ Rails.application.routes.draw do
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 
-  get  '/healthcheck' => 'system_test#healthcheck'
+  get '/healthcheck' => 'internal#healthcheck'
+  get '/flush' => 'internal#flush'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
