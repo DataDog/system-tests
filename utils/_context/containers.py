@@ -1053,15 +1053,8 @@ class LambdaWeblogContainer(WeblogContainer):
         host_log_folder: str,
         *,
         environment: dict[str, str | None] | None = None,
-        tracer_sampling_rate: float | None = None,
-        appsec_enabled: bool = True,
-        iast_enabled: bool = True,
-        runtime_metrics_enabled: bool = False,
-        additional_trace_header_tags: tuple[str, ...] = (),
-        use_proxy: bool = True,
         volumes: dict | None = None,
     ):
-        # overwrite values with those set in the scenario
         environment = (environment or {}) | {
             "DD_HOSTNAME": "test",
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
@@ -1071,37 +1064,27 @@ class LambdaWeblogContainer(WeblogContainer):
 
         volumes = volumes or {}
 
-        if use_proxy:
-            environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
-            environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
-            environment["DD_APM_NON_LOCAL_TRAFFIC"] = (
-                "true"  # Required for the extension to receive traces from outside the container
-            )
-            volumes.update(
-                {
-                    "./utils/build/docker/agent/ca-certificates.crt": {
-                        "bind": "/etc/ssl/certs/ca-certificates.crt",
-                        "mode": "ro",
-                    },
-                    "./utils/build/docker/agent/datadog.yaml": {
-                        "bind": "/etc/datadog-agent/datadog.yaml",
-                        "mode": "ro",
-                    },
+        environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
+        environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
+        environment["DD_APM_NON_LOCAL_TRAFFIC"] = (
+            "true"  # Required for the extension to receive traces from outside the container
+        )
+        volumes.update(
+            {
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
                 },
-            )
-
-        self.tracer_sampling_rate = tracer_sampling_rate
-        self.additional_trace_header_tags = additional_trace_header_tags
+                "./utils/build/docker/agent/datadog.yaml": {
+                    "bind": "/etc/datadog-agent/datadog.yaml",
+                    "mode": "ro",
+                },
+            },
+        )
 
         super().__init__(
             host_log_folder,
             environment=environment,
-            tracer_sampling_rate=tracer_sampling_rate,
-            appsec_enabled=appsec_enabled,
-            iast_enabled=iast_enabled,
-            runtime_metrics_enabled=runtime_metrics_enabled,
-            additional_trace_header_tags=additional_trace_header_tags,
-            use_proxy=use_proxy,
             volumes=volumes,
         )
 
@@ -1116,15 +1099,6 @@ class LambdaWeblogContainer(WeblogContainer):
         }
         # Remove port bindings, as only the LambdaProxyContainer needs to expose a server
         self.ports = {}
-
-    def configure(self, *, replay: bool):
-        super().configure(replay=replay)
-
-        library = self.image.labels["system-tests-library"]
-
-        if library == "python_lambda":
-            self.environment["DD_LAMBDA_HANDLER"] = "handler.lambda_handler"
-            self.command = "datadog_lambda.handler.handler"
 
 
 class PostgresContainer(SqlDbTestedContainer):
