@@ -29,6 +29,7 @@ class Test_HardcodedSecrets:
             "express4-typescript": "iast.ts",
             "express5": "iast/index.js",
             "uds-express4": "iast/index.js",
+            "fastify": "iast/index.js",
         },
     }
 
@@ -57,6 +58,7 @@ class Test_HardcodedSecretsExtended:
             "express4-typescript": "iast.ts",
             "express5": "iast/index.js",
             "uds-express4": "iast/index.js",
+            "fastify": "iast/index.js",
         },
     }
 

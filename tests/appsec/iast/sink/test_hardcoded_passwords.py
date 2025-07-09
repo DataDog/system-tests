@@ -21,6 +21,7 @@ class Test_HardcodedPasswords:
             "express4-typescript": "iast.ts",
             "express5": "iast/index.js",
             "uds-express4": "iast/index.js",
+            "fastify": "iast/index.js",
         },
     }
 

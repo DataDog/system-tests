@@ -63,6 +63,7 @@ refs:
   - &ref_5_55_0 '>=5.55.0'
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
+  - &ref_5_58_0 '>=5.58.0'  # fastify iast support
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -120,28 +121,28 @@ tests/:
         test_code_injection.py:
           TestCodeInjection:
             '*': *ref_5_20_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestCodeInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestCodeInjection_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_command_injection.py:
           TestCommandInjection:
             '*': *ref_3_11_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestCommandInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestCommandInjection_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_email_html_injection.py:
           TestEmailHtmlInjection: missing_feature
@@ -150,131 +151,131 @@ tests/:
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords:
             '*': *ref_5_13_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HardcodedPasswords_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets:
             '*': *ref_4_18_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HardcodedSecretsExtended:
             '*': *ref_5_11_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HardcodedSecrets_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py: irrelevant (Header Injection detection was removed)
-        test_hsts_missing_header.py:
+        test_hsts_missing_header.py: #NO
           Test_HstsMissingHeader:
             '*': *ref_4_8_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HstsMissingHeader_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_HstsMissingHeader_StackTrace: missing_feature
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: missing_feature
           Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
           Test_InsecureAuthProtocol_StackTrace: missing_feature
-        test_insecure_cookie.py:
+        test_insecure_cookie.py: #TELEMETRY
           TestInsecureCookie:
             '*': *ref_4_1_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestInsecureCookieNameFilter:
             '*': *ref_5_24_0_5_49_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestInsecureCookie_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestInsecureCookie_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_ldap_injection.py:
           TestLDAPInjection:
             '*': *ref_4_1_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestLDAPInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestLDAPInjection_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_no_httponly_cookie.py:
+        test_no_httponly_cookie.py: #TELEMETRY
           TestNoHttponlyCookie:
             '*': *ref_4_3_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoHttponlyCookieNameFilter:
             '*': *ref_5_24_0_5_49_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoHttponlyCookie_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoHttponlyCookie_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_no_samesite_cookie.py:
+        test_no_samesite_cookie.py: #TELEMETRY
           TestNoSamesiteCookie:
             '*': *ref_4_3_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoSamesiteCookieNameFilter:
             '*': *ref_5_24_0_5_49_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoSamesiteCookie_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoSamesiteCookie_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection:
             '*': *ref_4_17_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoSqlMongodbInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestNoSqlMongodbInjection_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_path_traversal.py:
+        test_path_traversal.py: #NO
           TestPathTraversal:
             '*': *ref_3_19_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestPathTraversal_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestPathTraversal_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -283,39 +284,39 @@ tests/:
         test_sql_injection.py:
           TestSqlInjection:
             '*': *ref_3_11_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestSqlInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestSqlInjection_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_ssrf.py:
+        test_ssrf.py: #TELEMETRY
           TestSSRF:
             '*': *ref_4_1_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestSSRF_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestSSRF_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_stacktrace_leak.py:
           TestStackTraceLeak: missing_feature
         test_template_injection.py:
           TestTemplateInjection:
             '*': *ref_5_26_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestTemplateInjection_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: missing_feature
@@ -324,40 +325,40 @@ tests/:
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization:
             '*': *ref_5_32_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUntrustedDeserialization_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUntrustedDeserialization_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
             '*': *ref_4_3_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUnvalidatedHeader_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUnvalidatedHeader_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUnvalidatedRedirect:
             '*': *ref_4_3_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUnvalidatedRedirect_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestUnvalidatedRedirect_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
@@ -366,54 +367,54 @@ tests/:
         test_weak_cipher.py:
           TestWeakCipher:
             '*': *ref_3_6_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakCipher_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakCipher_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_weak_hash.py:
           TestDeduplication:
             '*': *ref_3_11_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakHash:
             '*': *ref_3_11_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakHash_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakHash_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_weak_randomness.py:
           TestWeakRandomness:
             '*': *ref_5_1_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakRandomness_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           TestWeakRandomness_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_xcontent_sniffing.py:
+        test_xcontent_sniffing.py: #NO
           Test_XContentSniffing:
             '*': *ref_4_8_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_XContentSniffing_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
@@ -425,10 +426,10 @@ tests/:
           TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
-        test_body.py:
+        test_body.py: #NO
           TestRequestBody:
             '*': *ref_3_19_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_cookie_name.py:
           TestCookieName: missing_feature
@@ -444,20 +445,20 @@ tests/:
             nextjs: irrelevant  # nextjs is not related with graphql
         test_header_name.py:
           TestHeaderName: missing_feature
-        test_header_value.py:
+        test_header_value.py: #NO
           TestHeaderValue:
             '*': *ref_4_3_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
-        test_kafka_key.py:
+        test_kafka_key.py:  #NO
           TestKafkaKey:
             '*': *ref_5_4_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: irrelevant  # nextjs is not related with kafka
         test_kafka_value.py:
           TestKafkaValue:
             '*': *ref_5_4_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: irrelevant  # nextjs is not related with kafka
         test_multipart.py:
           TestMultipart: missing_feature
@@ -467,7 +468,7 @@ tests/:
           TestParameterValue:
             '*': *ref_3_19_0
             express5: *ref_5_29_0
-            fastify: missing_feature
+            fastify: *ref_5_58_0
             nextjs: missing_feature
         test_path.py:
           TestPath: missing_feature

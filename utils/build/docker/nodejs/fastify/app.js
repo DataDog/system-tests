@@ -11,8 +11,8 @@ const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
 const pino = require('pino')
-const cookie = require('@fastify/cookie')
 
+const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
 
@@ -20,7 +20,6 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
-
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
@@ -31,7 +30,10 @@ const logger = pino()
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
-fastify.register(cookie)
+fastify.register(require('@fastify/cookie'), { hook: 'onRequest', secret: 'my-secret' })
+
+iast.initPlugins(fastify)
+iast.initData().catch(() => {})
 
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {
   try {
@@ -578,6 +580,8 @@ fastify.get('/createextraservice', async (request, reply) => {
 
   return 'OK'
 })
+
+iast.initRoutes(fastify, tracer)
 
 di.initRoutes(fastify)
 

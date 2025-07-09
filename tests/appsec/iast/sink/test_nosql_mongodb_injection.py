@@ -17,11 +17,14 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js", "fastify": "iast/index.js"}
     }
 
     @missing_feature(
         context.weblog_variant == "express5", reason="express-mongo-sanitize is not yet compatible with express5"
+    )
+    @missing_feature(
+        context.weblog_variant == "fastify", reason="we do not support a sanitizer for mongodb and fastify yet"
     )
     def test_secure(self):
         super().test_secure()

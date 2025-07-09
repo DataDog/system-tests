@@ -16,7 +16,7 @@ class TestCodeInjection(BaseSinkTest):
     secure_endpoint = "/iast/code_injection/test_secure"
     data = {"code": "1+2"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js", "fastify": "iast/index.js"},
     }
 
     @missing_feature(context.library < "nodejs@5.34.0")
