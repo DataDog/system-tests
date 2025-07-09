@@ -88,10 +88,10 @@ tests/:
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_Schema_Request_Cookies:
           '*': *ref_4_21_0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_Schema_Request_FormUrlEncoded_Body:
           '*': *ref_4_21_0
           fastify: *ref_5_57_0
@@ -699,7 +699,7 @@ tests/:
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_Cookies:
           '*': v2.0.0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': *ref_4_22_0
@@ -865,7 +865,7 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Blocking_request_headers: *ref_3_19_0
       Test_Blocking_request_method: *ref_3_19_0
@@ -888,7 +888,7 @@ tests/:
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
         express5: *ref_5_29_0  # test uses querystring and path params
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: *ref_3_6_0
@@ -985,14 +985,14 @@ tests/:
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session:
         '*': *ref_5_39_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability:
         '*': *ref_5_39_0
         fastify: *ref_5_57_0
       Test_Fingerprinting_Session_Preprocessor:
         '*': *ref_5_39_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
     test_identify.py:
       Test_Basic: v2.4.0
@@ -1247,7 +1247,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: irrelevant (temporarily ignored)
+      Test_Stable_Config_Default: *ref_5_27_0
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:
@@ -1402,6 +1402,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: *ref_5_25_0
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature

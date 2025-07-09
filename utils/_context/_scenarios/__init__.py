@@ -1,6 +1,6 @@
 import json
 
-from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
@@ -72,6 +72,7 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
         },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
@@ -607,6 +608,7 @@ class _Scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
+        additional_trace_header_tags=tuple(CONFIG_WILDCARD),
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
@@ -834,6 +836,35 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    simple_auto_injection_appsec = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_APPSEC",
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
+        app_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        github_workflow="aws_ssi",
+    )
+
+    host_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with Appsec activated by the installation process"
+        ),
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    container_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )

@@ -3,11 +3,13 @@
 # Copyright 2021 Datadog, Inc.
 
 from contextlib import contextmanager
+import urllib3.exceptions
 import json
 from http import HTTPStatus
 import os
 import random
 import string
+import time
 import urllib
 import re
 from typing import Any
@@ -180,6 +182,11 @@ class _Weblog:
     ):
         return self.request("TRACE", path, params=params, data=data, headers=headers, timeout=timeout)
 
+    def get_weblog_variant(self) -> str:
+        from utils import context
+
+        return context.weblog_variant
+
     def request(
         self,
         method: str,
@@ -221,29 +228,52 @@ class _Weblog:
         status_code = None
         response_headers: CaseInsensitiveDict = CaseInsensitiveDict()
         text = None
-
-        try:
-            req = requests.Request(
-                method, url, params=params, data=data, json=json, files=files, headers=headers, cookies=cookies
-            )
-            r = req.prepare()
-            r.url = url
-            logger.debug(f"Sending request {rid}: {method} {url}")
-
-            s = requests.Session() if self._session is None else self._session
-            response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
-            status_code = response.status_code
-            response_headers = response.headers
-            text = response.text
-
-        except Exception as e:
-            logger.error(f"Request {rid} raise an error: {e}")
-        else:
-            logger.debug(f"Request {rid}: {response.status_code}")
-            if response.status_code == HTTPStatus.NOT_FOUND:
-                logger.error(
-                    "💡 if your test is failing, you may need to add missing_feature for this weblog in manifest file."
+        # Some weblogs like uwsgi-poc may have known connection issues, when cpu is under heavy load.
+        # In this case, we retry the request a few times if the connection was aborted to avoid flaky tests.
+        retries = 1
+        if self.get_weblog_variant() == "uwsgi-poc":
+            retries = 5
+        for retry in range(retries):
+            try:
+                req = requests.Request(
+                    method,
+                    url,
+                    params=params,
+                    data=data,
+                    json=json,
+                    files=files,
+                    headers=headers,
+                    cookies=cookies,
                 )
+                r = req.prepare()
+                r.url = url
+                logger.debug(f"Sending request {rid}: {method} {url}")
+
+                s = requests.Session() if self._session is None else self._session
+                response = s.send(r, timeout=timeout, stream=stream, allow_redirects=allow_redirects)
+                status_code = response.status_code
+                response_headers = response.headers
+                text = response.text
+            except requests.exceptions.ConnectionError as e:
+                logger.error(f"Request {rid} raise an error: {e}")
+                if (
+                    isinstance(e.args[0], urllib3.exceptions.ProtocolError)
+                    and e.args[0].args[0] == "Connection aborted."
+                    and retry < retries - 1
+                ):
+                    logger.warning("Remote disconnected, retrying...")
+                    time.sleep(0.25)  # wait before retrying
+                    continue
+            except Exception as e:
+                logger.error(f"Request {rid} raise an error: {e}")
+            else:
+                logger.debug(f"Request {rid}: {response.status_code}")
+                if response.status_code == HTTPStatus.NOT_FOUND:
+                    logger.error(
+                        "💡 if your test is failing, you may need to add"
+                        " missing_feature for this weblog in manifest file."
+                    )
+            break
 
         return HttpResponse(
             {

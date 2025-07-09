@@ -690,7 +690,6 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
     tested_product = "iast"
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
-    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1()
 
@@ -699,7 +698,6 @@ class BaseIastStandaloneUpstreamPropagation(BaseAsmStandaloneUpstreamPropagation
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0()
 
     @bug(library="java", weblog_variant="play", reason="APPSEC-55552")
-    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
         super().test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1()
 
@@ -812,8 +810,6 @@ class Test_AppSecStandalone_NotEnabled:
 @features.appsec_standalone_experimental
 @scenarios.appsec_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-@flaky(context.library >= "python@2.19.0", weblog_variant="flask-poc", reason="APPSEC-57145")
-@flaky(context.library >= "python@2.19.0", weblog_variant="uwsgi-poc", reason="APPSEC-57145")
 class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -854,6 +850,7 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
+@flaky(context.library >= "python@3.10.1", reason="APPSEC-58276")
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -982,7 +979,6 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
                 session.get("/api_security/sampling/200", headers=self._get_headers()) for _ in range(5)
             ]
 
-    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_different_endpoints(self):
         # First requests to different endpoints retained with schema
         assert self.request1.status_code == 200
@@ -1183,7 +1179,6 @@ class Test_UserEventsStandalone_SDK_V1:
         trace_id = 1212121212121212111
         self._call_endpoint("/user_login_success_event", trace_id)
 
-    @flaky(context.library > "python@3.9.4" and context.weblog_variant == "uwsgi-poc", reason="APPSEC-57145")
     def test_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111
         meta = self._get_standalone_span_meta(trace_id)

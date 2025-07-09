@@ -40,6 +40,8 @@ jobs:
       # force /bin/bash in order to test against bash 3.2 on macOS
       - name: Test the test (direct)
         run: /bin/bash run.sh TEST_THE_TEST
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test group parsing
         run: |
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
@@ -133,9 +135,11 @@ jobs:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
         max-retries: '120'
-        #Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
+        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
+        # https://regex101.com/r/Bo5Kpn/1
+
         ignored-name-patterns: |
-          dd-gitlab/^(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
+          dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard
