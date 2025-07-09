@@ -543,8 +543,12 @@ class EndToEndScenario(DockerScenario):
                 from utils import weblog  # TODO better interface
 
                 # for weblogs who supports it, call the flush endpoint
+                #
+                # NOTE: Sometimes flushing in Ruby not able to finish within given
+                #       time due to flush implementation, hence an arbitrary 30s
+                #       value. It's neglectable in overall test suite run time.
                 try:
-                    r = weblog.get("/flush", timeout=10)
+                    r = weblog.get("/flush", timeout=30)
                     assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
