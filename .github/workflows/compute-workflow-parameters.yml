@@ -115,11 +115,21 @@ jobs:
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
       unique_id: ${{ steps.unique_id.outputs.value }}
     steps:
+    - name: Compute ref
+      id: compute_ref
+      run: |
+        if [[ "${{ inputs.ref }}" != "" ]]; then
+          echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+          echo "ref=" >> $GITHUB_OUTPUT
+        else
+          echo "ref=main" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-        ref: ${{ inputs.ref }}
+        ref: ${{ steps.compute_ref.outputs.ref }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: main

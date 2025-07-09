@@ -850,6 +850,7 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
+@flaky(context.library >= "python@3.10.1", reason="APPSEC-58276")
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 

@@ -1,6 +1,6 @@
 import json
 
-from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
@@ -608,6 +608,7 @@ class _Scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
+        additional_trace_header_tags=tuple(CONFIG_WILDCARD),
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
