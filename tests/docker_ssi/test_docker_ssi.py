@@ -155,14 +155,22 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(context.library in ("dotnet", "java", "php", "ruby"), reason="Not implemented yet")
+    @missing_feature(context.library in ("dotnet", "java", "php", "ruby", "nodejs"), reason="Not implemented yet")
     @missing_feature(context.library < "python@3.9.5.dev", reason="Not implemented")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
-        assert len(events) >= 1
+        events = sorted(events, key=lambda x: x["timestamp_millis"])
+        assert len(events) >= 2
 
-        injection_metadata = events[0]
-        assert injection_metadata["result"] == "success"
-        assert injection_metadata["result_reason"] == "the tracer was successfully injected"
-        assert injection_metadata["result_class"] == "success"
+        injector_event = events[0]
+        assert injector_event["component"] == "injector"
+        assert injector_event["result"] == "success"
+        assert injector_event["result_class"] == "success"
+        assert injector_event["result_reason"] != ""
+
+        tracer_event = events[1]
+        assert tracer_event["component"] == context.library.name
+        assert tracer_event["result"] == "success"
+        assert tracer_event["result_class"] == "success"
+        assert tracer_event["result_reason"] != ""
