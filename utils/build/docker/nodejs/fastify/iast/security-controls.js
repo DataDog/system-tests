@@ -64,7 +64,6 @@ function init (app, tracer) {
   })
 
   app.post('/iast/sc/iv/configured', (request, reply) => {
-    // TODO: problem in express5?
     if (SecurityControlUtil.validate(request.body.param)) {
       try {
         execSync(request.body.param)

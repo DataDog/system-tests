@@ -290,18 +290,6 @@ function initRoutes (app, tracer) {
     reply.send('OK')
   })
 
-  // if (mongoSanitizeEnabled) {
-  //   const mongoSanitize = require('express-mongo-sanitize')
-  //   app.register(async function (fastify) {
-  //     fastify.addHook('preHandler', async (request, reply) => {
-  //       if (request.url.includes('/iast/mongodb-nosql-injection/test_secure')) {
-  //         // not sure if this is needed, but it's the same as in express
-  //         mongoSanitize()(request, reply, () => {})
-  //       }
-  //     })
-  //   })
-  // }
-
   app.post('/iast/mongodb-nosql-injection/test_secure', async function (request, reply) {
     const url = 'mongodb://mongodb:27017/'
     const client = new MongoClient(url)
@@ -460,7 +448,7 @@ function initRoutes (app, tracer) {
     reply.send(`OK:${name}`)
   })
 
-  require('./sources')(app, tracer)
+  require('./sources')(app)
 
   require('./security-controls')(app, tracer)
 }

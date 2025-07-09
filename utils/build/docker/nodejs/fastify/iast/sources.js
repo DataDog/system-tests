@@ -1,13 +1,14 @@
 'use strict'
 
 const { Kafka } = require('kafkajs')
-const { readFileSync } = require('fs')
 const { Client } = require('pg')
+const { execSync } = require('child_process')
 
-function init (app, tracer) {
+function init (app) {
   app.post('/iast/source/body/test', (request, reply) => {
     try {
-      readFileSync(request.body.name)
+      const code = `echo ${request.body.name}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -20,7 +21,8 @@ function init (app, tracer) {
       vulnParam += key
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -33,7 +35,8 @@ function init (app, tracer) {
       vulnParam += request.headers[key]
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -46,7 +49,8 @@ function init (app, tracer) {
       vulnParam += key
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -59,7 +63,8 @@ function init (app, tracer) {
       vulnParam += request.body[key]
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -72,7 +77,8 @@ function init (app, tracer) {
       vulnParam += request.query[key]
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -81,7 +87,8 @@ function init (app, tracer) {
 
   app.get('/iast/source/path_parameter/test/:table', (request, reply) => {
     try {
-      readFileSync(request.params.table)
+      const code = `echo ${request.params.table}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -94,7 +101,8 @@ function init (app, tracer) {
       vulnParam += key
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -107,7 +115,8 @@ function init (app, tracer) {
       vulnParam += request.cookies[key]
     })
     try {
-      readFileSync(vulnParam)
+      const code = `echo ${vulnParam}`
+      execSync(code)
     } catch {
       // do nothing
     }
@@ -182,7 +191,8 @@ function init (app, tracer) {
           const vulnValue = message.value.toString()
           if (vulnValue === 'hello value!') {
             try {
-              readFileSync(vulnValue)
+              const code = `echo ${vulnValue}`
+              execSync(code)
             } catch {
               // do nothing
             }
@@ -241,7 +251,8 @@ function init (app, tracer) {
           const vulnKey = message.key.toString()
           if (vulnKey === 'hello key!') {
             try {
-              readFileSync(vulnKey)
+              const code = `echo ${vulnKey}`
+              execSync(code)
             } catch {
             // do nothing
             }

@@ -21,7 +21,7 @@ class TestNoHttponlyCookie(BaseSinkTest):
     secure_endpoint = "/iast/no-httponly-cookie/test_secure"
     data = {}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js", "fastify": "iast/index.js"}
     }
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
