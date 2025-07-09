@@ -63,6 +63,7 @@ refs:
   - &ref_5_55_0 '>=5.55.0'
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
+  - &ref_5_59_0 '>=5.59.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -860,7 +861,7 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_body_multipart:
         '*': *ref_5_25_0
-        fastify: missing_feature
+        fastify: *ref_5_59_0
         nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
