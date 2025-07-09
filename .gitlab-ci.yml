@@ -65,6 +65,9 @@ compute_pipeline:
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
       fi
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
   artifacts:
     paths:
       - nodejs_ssi_gitlab_pipeline.yml
