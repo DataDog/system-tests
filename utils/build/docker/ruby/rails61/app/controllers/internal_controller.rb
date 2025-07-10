@@ -1,5 +1,3 @@
-require 'timeout'
-
 class InternalController < ApplicationController
   def healthcheck
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
@@ -37,4 +35,4 @@ class InternalController < ApplicationController
 
     render plain: 'OK'
   end
-end 
+end
