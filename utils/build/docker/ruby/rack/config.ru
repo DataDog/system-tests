@@ -13,7 +13,9 @@ begin
 rescue LoadError
   require 'ddtrace/auto_instrument'
 end
+
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
@@ -338,6 +340,42 @@ module ApiSecuritySampling
   end
 end
 
+# POST /user_login_success_event_v2
+module UserLoginSuccessEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+      payload['login'],
+      payload['user_id'],
+      **payload.fetch('metadata', {})
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
+# POST /user_login_failure_event_v2
+module UserLoginFailureEventV2
+  module_function
+
+  def run(request)
+    request.body.rewind
+    payload = JSON.parse(request.body.read)
+
+    Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+      payload['login'],
+      payload.fetch('exists', 'false') == 'true',
+      **payload.fetch('metadata', {})
+    )
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # any other route
 module NotFound
   module_function
@@ -406,6 +444,10 @@ app = proc do |env|
     ApiSecurityWithSampling.run(request)
   elsif request.path.include?('/api_security_sampling/')
     ApiSecuritySampling.run(request)
+  elsif request.path == '/user_login_success_event_v2'
+    UserLoginSuccessEventV2.run(request)
+  elsif request.path == '/user_login_failure_event_v2'
+    UserLoginFailureEventV2.run(request)
   else
     NotFound.run
   end

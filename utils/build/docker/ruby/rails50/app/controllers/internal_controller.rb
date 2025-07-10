@@ -22,6 +22,8 @@ class InternalController < ApplicationController
 
     thread = Thread.new { Datadog.send(:components)&.telemetry&.flush rescue nil }
 
+    # FIXME: Once it's working let's replace with `Timeout.timeout`
+    #        Trigger build
     loop do
       break if Time.now - started_at >= max_wait_time_seconds
       break unless thread.alive?
