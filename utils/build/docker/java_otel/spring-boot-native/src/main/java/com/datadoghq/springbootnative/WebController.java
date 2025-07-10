@@ -6,10 +6,14 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.logs.GlobalLoggerProvider;
 import io.opentelemetry.api.logs.Logger;
 import io.opentelemetry.api.logs.Severity;
+import io.opentelemetry.api.metrics.DoubleGauge;
 import io.opentelemetry.api.metrics.DoubleHistogram;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.LongUpDownCounter;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.api.metrics.ObservableDoubleMeasurement;
+import io.opentelemetry.api.metrics.ObservableDoubleGauge;
+import io.opentelemetry.api.metrics.ObservableLongCounter;
+import io.opentelemetry.api.metrics.ObservableLongUpDownCounter;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
@@ -36,6 +40,24 @@ public class WebController {
   private final Meter meter = GlobalOpenTelemetry.getMeter("com.datadoghq.springbootnative");
   private final LongCounter counter = meter.counterBuilder("example.counter").build();
   private final DoubleHistogram histogram = meter.histogramBuilder("example.histogram").build();
+  private final LongUpDownCounter upDownCounter = meter.upDownCounterBuilder("example.upDownCounter").build();
+  private final DoubleGauge gauge = meter.gaugeBuilder("example.gauge").build();
+  private final ObservableLongCounter asyncCounter = meter.counterBuilder("example.async.counter").buildWithCallback(
+    measurement -> {
+      measurement.record(22L);
+    }
+  );
+  private final ObservableLongUpDownCounter asyncUpDownCounter = meter.upDownCounterBuilder("example.async.upDownCounter").buildWithCallback(
+    measurement -> {
+      measurement.record(66L);
+    }
+  );
+  private final ObservableDoubleGauge asyncGauge = meter.gaugeBuilder("example.async.gauge").buildWithCallback(
+    measurement -> {
+      measurement.record(88L);
+    }
+  );
+
   private final Logger customAppenderLogger = GlobalLoggerProvider.get().get("com.datadoghq.springbootnative");
 
   @RequestMapping("/")
@@ -109,6 +131,10 @@ public class WebController {
     counter.add(11L,
             Attributes.of(SemanticAttributes.HTTP_METHOD, "GET", AttributeKey.stringKey("rid"), rid));
     histogram.record(33L,
+            Attributes.of(SemanticAttributes.HTTP_METHOD, "GET", AttributeKey.stringKey("rid"), rid));
+    upDownCounter.add(55L,
+            Attributes.of(SemanticAttributes.HTTP_METHOD, "GET", AttributeKey.stringKey("rid"), rid));
+    gauge.set(77L,
             Attributes.of(SemanticAttributes.HTTP_METHOD, "GET", AttributeKey.stringKey("rid"), rid));
     Thread.sleep(2000);
     return "Hello World!";
