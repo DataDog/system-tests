@@ -48,9 +48,9 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         # Upload the logs to S3 only if we are running in gitlab CI/CD
         if "GITLAB_CI" in os.environ:
             # Upload downloaded folder to AWS S3
-            execution_unique_identifier = (os.getenv("CI_PIPELINE_ID", "datadog-local"),)
+            execution_unique_identifier = os.getenv("CI_PIPELINE_ID", "datadog-local")
             _upload_to_s3(
-                local_base_logs_folder, "system-tests-aws-ssi", execution_unique_identifier, vm.get_vm_unique_id()
+                local_base_logs_folder, "system-tests-aws-ssi-apm", execution_unique_identifier, vm.get_vm_unique_id()
             )
             # Check if there are files in the local folder local_base_logs_folder, that are more than 100MB, and delete them.
             # because are uploaded to S3 and we don't want to archive by the CI/CD
