@@ -1009,7 +1009,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
