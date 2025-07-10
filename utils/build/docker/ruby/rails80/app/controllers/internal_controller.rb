@@ -22,7 +22,7 @@ class InternalController < ApplicationController
     begin
       Timeout.timeout(FLUSH_MAX_WAIT_S) { Datadog.send(:components)&.telemetry&.flush }
     rescue Timeout::Error
-      Rails.logger.warn("Unable to flush telemetry within `#{seconds}` second(s)")
+      Rails.logger.warn("Unable to flush telemetry within `#{FLUSH_MAX_WAIT_S}` second(s)")
     end
 
     render plain: 'OK'
