@@ -450,7 +450,7 @@ function initRoutes (app, tracer) {
 
   require('./sources')(app)
 
-  require('./security-controls')(app, tracer)
+  require('./security-controls')(app)
 }
 
 module.exports = { initRoutes, initData, initPlugins }

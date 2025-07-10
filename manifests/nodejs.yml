@@ -267,15 +267,15 @@ tests/:
         test_path_traversal.py:
           TestPathTraversal:
             '*': *ref_3_19_0
-            fastify: missing_feature
+            fastify: *ref_5_59_0
             nextjs: missing_feature
           TestPathTraversal_ExtendedLocation:
             '*': *ref_5_37_0
-            fastify: missing_feature
+            fastify: *ref_5_59_0
             nextjs: missing_feature
           TestPathTraversal_StackTrace:
             '*': *ref_5_39_0
-            fastify: missing_feature
+            fastify: *ref_5_59_0
             nextjs: missing_feature
         test_reflection_injection.py:
           TestReflectionInjection: missing_feature
@@ -488,12 +488,12 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount:
           '*': *ref_5_54_0
-          fastify: missing_feature
+          fastify: *ref_5_59_0
           nextjs: missing_feature
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: missing_feature
+          fastify: *ref_5_59_0
           nextjs: missing_feature
     rasp/:
       test_cmdi.py:
@@ -699,7 +699,7 @@ tests/:
           nextjs: irrelevant  # Body xml is not converted to JSON in nextjs
         Test_Cookies:
           '*': v2.0.0
-          fastify: missing_feature
+          fastify: *ref_5_57_0
         Test_FullGrpc: missing_feature
         Test_GraphQL:
           '*': *ref_4_22_0
@@ -861,7 +861,7 @@ tests/:
         nextjs: missing_feature
       Test_Blocking_request_body_multipart:
         '*': *ref_5_25_0
-        fastify: missing_feature
+        fastify: *ref_5_59_0
         nextjs: missing_feature
       Test_Blocking_request_cookies:
         '*': *ref_4_16_0
@@ -985,7 +985,7 @@ tests/:
       Test_Fingerprinting_Network_Capability: *ref_5_24_0
       Test_Fingerprinting_Session:
         '*': *ref_5_39_0
-        fastify: missing_feature
+        fastify: *ref_5_57_0
         nextjs: missing_feature
       Test_Fingerprinting_Session_Capability:
         '*': *ref_5_39_0
@@ -1009,7 +1009,7 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
     test_reports.py:
@@ -1402,6 +1402,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: *ref_5_25_0
     Test_HeaderTags_Whitespace_Val_Long: *ref_4_11_0
     Test_HeaderTags_Whitespace_Val_Short: *ref_4_11_0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature

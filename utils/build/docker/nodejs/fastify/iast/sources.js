@@ -1,14 +1,13 @@
 'use strict'
 
 const { Kafka } = require('kafkajs')
+const { readFileSync } = require('fs')
 const { Client } = require('pg')
-const { execSync } = require('child_process')
 
 function init (app) {
   app.post('/iast/source/body/test', (request, reply) => {
     try {
-      const code = `echo ${request.body.name}`
-      execSync(code)
+      readFileSync(request.body.name)
     } catch {
       // do nothing
     }
@@ -21,8 +20,7 @@ function init (app) {
       vulnParam += key
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -35,8 +33,7 @@ function init (app) {
       vulnParam += request.headers[key]
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -49,8 +46,7 @@ function init (app) {
       vulnParam += key
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -63,8 +59,7 @@ function init (app) {
       vulnParam += request.body[key]
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -77,8 +72,7 @@ function init (app) {
       vulnParam += request.query[key]
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -87,8 +81,7 @@ function init (app) {
 
   app.get('/iast/source/path_parameter/test/:table', (request, reply) => {
     try {
-      const code = `echo ${request.params.table}`
-      execSync(code)
+      readFileSync(request.params.table)
     } catch {
       // do nothing
     }
@@ -101,8 +94,7 @@ function init (app) {
       vulnParam += key
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -115,8 +107,7 @@ function init (app) {
       vulnParam += request.cookies[key]
     })
     try {
-      const code = `echo ${vulnParam}`
-      execSync(code)
+      readFileSync(vulnParam)
     } catch {
       // do nothing
     }
@@ -191,8 +182,7 @@ function init (app) {
           const vulnValue = message.value.toString()
           if (vulnValue === 'hello value!') {
             try {
-              const code = `echo ${vulnValue}`
-              execSync(code)
+              readFileSync(vulnValue)
             } catch {
               // do nothing
             }
@@ -251,8 +241,7 @@ function init (app) {
           const vulnKey = message.key.toString()
           if (vulnKey === 'hello key!') {
             try {
-              const code = `echo ${vulnKey}`
-              execSync(code)
+              readFileSync(vulnKey)
             } catch {
             // do nothing
             }

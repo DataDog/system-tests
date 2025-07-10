@@ -6,7 +6,7 @@ const tracer = require('dd-trace').init({
 })
 
 const { promisify } = require('util')
-const fastify = require('fastify')({ logger: true })
+const fastify = require('fastify')()
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
@@ -30,6 +30,7 @@ const logger = pino()
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
+fastify.register(require('@fastify/multipart'), { attachFieldsToBody: true })
 fastify.register(require('@fastify/cookie'), { hook: 'onRequest', secret: 'my-secret' })
 
 iast.initPlugins(fastify)

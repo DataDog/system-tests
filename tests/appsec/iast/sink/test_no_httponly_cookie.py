@@ -8,6 +8,7 @@ from tests.appsec.iast.utils import (
     BaseTestCookieNameFilter,
     validate_extended_location_data,
     validate_stack_traces,
+    get_nodejs_iast_file_paths,
 )
 
 
@@ -21,7 +22,7 @@ class TestNoHttponlyCookie(BaseSinkTest):
     secure_endpoint = "/iast/no-httponly-cookie/test_secure"
     data = {}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js", "fastify": "iast/index.js"}
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
