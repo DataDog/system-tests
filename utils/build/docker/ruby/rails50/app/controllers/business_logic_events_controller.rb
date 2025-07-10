@@ -41,20 +41,24 @@ class BusinessLogicEventsController < ApplicationController
   end
 
   def user_login_success_event_v2
+    payload = params.to_unsafe_h
+
     Datadog::Kit::AppSec::Events::V2.track_user_login_success(
-      params['login'],
-      params['user_id'],
-      params['metadata']
+      payload['login'],
+      payload['user_id'],
+      **payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'
   end
 
   def user_login_failure_event_v2
+    payload = params.to_unsafe_h
+
     Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
-      params['login'],
-      params.fetch('exists', 'false') == 'true',
-      params['metadata']
+      payload['login'],
+      payload.fetch('exists', 'false') == 'true',
+      **payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'

@@ -170,6 +170,34 @@ get '/custom_event' do
   'Ok'
 end
 
+require 'datadog/kit/appsec/events/v2'
+
+post '/user_login_success_event_v2' do
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+    params['login'],
+    params['user_id'],
+    **params.fetch('metadata', {})
+  )
+
+  'OK'
+end
+
+post '/user_login_failure_event_v2' do
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+    params['login'],
+    params.fetch('exists', 'false') == 'true',
+    **params.fetch('metadata', {})
+  )
+
+  'OK'
+end
+
 %i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
     if request_method == :post && params['tag_value'].include?('payload_in_response_body')
