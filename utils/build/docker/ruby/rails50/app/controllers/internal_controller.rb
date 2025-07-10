@@ -1,4 +1,6 @@
 class InternalController < ApplicationController
+  skip_before_action :verify_authenticity_token
+
   def healthcheck
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s

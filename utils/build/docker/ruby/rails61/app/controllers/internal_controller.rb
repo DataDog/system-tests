@@ -1,16 +1,12 @@
 class InternalController < ApplicationController
+  skip_before_action :verify_authenticity_token
+
   def healthcheck
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
 
-    render json: {
-      status: 'ok',
-      library: {
-        name: 'ruby',
-        version: version
-      }
-    }
+    render json: {status: 'ok', library: {name: 'ruby', version: version}}
   end
 
   def flush
