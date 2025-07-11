@@ -72,30 +72,22 @@ class Test_TraceHeaders:
         interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
 
     def setup_trace_header_container_tags(self):
-        self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
+        self.r = weblog.get("/")
 
-    @missing_feature(
-        context.library == "java" and "spring-boot" not in context.weblog_variant, reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant == "spring-boot-3-native", reason="Missing endpoint"
-    )
-    @missing_feature(
-        context.library == "nodejs" and context.weblog_variant not in ["express4", "express5"],
-        reason="Missing endpoint",
-    )
-    @missing_feature(context.library == "ruby" and context.weblog_variant != "rails70", reason="Missing endpoint")
+        code, (stdout, stderr) = scenarios.default.weblog_container.exec_run("cat /proc/self/cgroup", demux=True)
+
+        infos = stdout.decode().split("\n")
+
+        logger.info(f"cgroup: file content is {infos}")
+
+        self.weblog_container_id = get_container_id(infos)
+        logger.info(f"cgroup: weblogcontainer-id is {self.weblog_container_id}")
+
     @missing_feature(context.library == "cpp_httpd", reason="Missing endpoint")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
         assert self.r.status_code == 200
-        infos = self.r.text.split("\n")
-
-        logger.info(f"cgroup: file content is {infos}")
-
-        weblog_container_id = get_container_id(infos)
-        logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
         def validator(data):
             if _empty_request(data):
@@ -115,13 +107,13 @@ class Test_TraceHeaders:
 
             request_headers = {h[0].lower(): h[1] for h in data["request"]["headers"]}
 
-            if weblog_container_id is not None:
+            if self.weblog_container_id is not None:
                 if "datadog-container-id" not in request_headers:
                     raise ValueError(f"Datadog-Container-ID header is missing in request {data['log_filename']}")
 
-                if request_headers["datadog-container-id"] != weblog_container_id:
+                if request_headers["datadog-container-id"] != self.weblog_container_id:
                     raise ValueError(
-                        f"Expected Datadog-Container-ID header to be {weblog_container_id}, "
+                        f"Expected Datadog-Container-ID header to be {self.weblog_container_id}, "
                         f"but got {request_headers['datadog-container-id']} "
                         f"in request {data['log_filename']}"
                     )
