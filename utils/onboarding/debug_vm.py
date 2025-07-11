@@ -1,7 +1,5 @@
-import os
 from pathlib import Path
 import stat
-import subprocess
 from utils._logger import logger
 
 
@@ -45,17 +43,6 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c.close()
         logger.info(f"Successfully downloaded all folders from {vm.get_ip()}")
 
-        # Upload the logs to S3 only if we are running in gitlab CI/CD
-        if "GITLAB_CI" in os.environ:
-            # Upload downloaded folder to AWS S3
-            execution_unique_identifier = os.getenv("CI_PIPELINE_ID", "datadog-local")
-            _upload_to_s3(
-                local_base_logs_folder, "system-tests-aws-ssi-apm", execution_unique_identifier, vm.get_vm_unique_id()
-            )
-            # Check if there are files in the local folder local_base_logs_folder, that are more than 100MB, and delete them.
-            # because are uploaded to S3 and we don't want to archive by the CI/CD
-            _delete_large_files(local_base_logs_folder)
-
     except Exception as e:
         logger.error(f"Cannot download folders from remote machine {vm.get_ip()}")
         logger.exception(e)
@@ -82,59 +69,3 @@ def _download_folder_recursive(sftp, remote_dir, local_dir):
     except Exception as e:
         logger.error(f"Error downloading from {remote_dir}")
         logger.exception(e)
-
-
-def _delete_large_files(local_folder_path, max_size_mb=100):
-    """Delete files larger than max_size_mb from local folder to avoid CI/CD archiving"""
-    try:
-        max_size_bytes = max_size_mb * 1024 * 1024
-        for root, _, files in os.walk(local_folder_path):
-            for file in files:
-                file_path = Path(root) / file
-                if file_path.stat().st_size > max_size_bytes:
-                    logger.info(f"Deleting large file ({file_path.stat().st_size / (1024*1024):.1f}MB): {file_path}")
-                    file_path.unlink()
-    except Exception as e:
-        logger.error(f"Error deleting large files: {e}")
-
-
-def _upload_to_s3(local_folder_path, s3_bucket, s3_folder_prefix, vm_unique_id):
-    """Upload a local folder to AWS S3 bucket"""
-    try:
-        # Extract the last directory name from local_folder_path
-        local_path = Path(local_folder_path)
-        last_directory = local_path.name
-
-        logger.info(f"Uploading folder to S3 bucket: {s3_bucket}")
-        logger.info(f"Local folder: {local_folder_path}")
-        logger.info(f"S3 destination: s3://{s3_bucket}/{s3_folder_prefix}/{last_directory}/{vm_unique_id}/")
-
-        # Build the AWS CLI command with the last directory name and vm_unique_id included in S3 path
-        s3_destination = f"s3://{s3_bucket}/{s3_folder_prefix}/{last_directory}/{vm_unique_id}/"
-        aws_command = ["aws", "s3", "cp", local_folder_path, s3_destination, "--recursive"]
-
-        logger.info(f"Executing AWS CLI command: {' '.join(aws_command)}")
-
-        # Execute the AWS CLI command
-        result = subprocess.run(aws_command, capture_output=True, text=True, check=True)
-
-        if result.stdout:
-            logger.info(f"AWS CLI output: {result.stdout}")
-
-        # Generate AWS Console URL for the uploaded folder (requires authentication)
-        aws_console_url = f"https://s3.console.aws.amazon.com/s3/buckets/{s3_bucket}?region=us-east-1&prefix={s3_folder_prefix}/{last_directory}/{vm_unique_id}/"
-        logger.stdout(f"S3 logs URL (AWS Console): {aws_console_url}")
-
-        logger.info(f"Successfully uploaded folder to S3: {s3_destination}")
-
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Failed to upload folder to S3: {e}")
-        if e.stdout:
-            logger.error(f"AWS CLI stdout: {e.stdout}")
-        if e.stderr:
-            logger.error(f"AWS CLI stderr: {e.stderr}")
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error during S3 upload: {e}")
-        logger.exception(e)
-        raise

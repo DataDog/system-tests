@@ -78,11 +78,39 @@ ssi_tests:
     after_script: |
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
+        # Upload logs to S3 and delete large files
         if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-            cp -R logs_"${SCENARIO_SUFIX}" reports/
+            LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
         else
-            cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
+            LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
         fi
+        # Upload to S3
+        if [ -d "$LOGS_FOLDER" ]; then
+            echo "Uploading logs to S3..."
+            EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
+            LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
+            S3_BUCKET="system-tests-aws-ssi-apm"
+            S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/"
+
+            echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
+            echo "Local folder: ${LOGS_FOLDER}"
+            echo "S3 destination: ${S3_DESTINATION}"
+
+            aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive || echo "Failed to upload logs to S3"
+
+            # Generate AWS Console URL for the uploaded folder
+            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/"
+            echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
+
+            # Delete large files (>100MB) to avoid CI/CD archiving
+            echo "Deleting large files to avoid CI/CD archiving..."
+            find "$LOGS_FOLDER" -type f -size +100M -exec sh -c 'echo "Deleting large file ($(du -h "$1" | cut -f1)): $1" && rm "$1"' _ {} \; || echo "Failed to delete some large files"
+        fi
+
+        # Logs to be archived by gitlab
+        cp -R "$LOGS_FOLDER" reports/
+
+        # Feature parity
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
           export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
