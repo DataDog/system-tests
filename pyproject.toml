@@ -397,11 +397,5 @@ ignore = [
     "S506",    # unsafe-yaml-load: TODO
     "SIM401",  # if-else-block-instead-of-dict-get: TODO
 ]
-"utils/virtual_machine/vm_logger.py" = [
-    "ANN001",  # missing-type-function-argument: TODO
-    "ANN201",  # missing-return-type-undocumented-public-function: TODO
-    "ARG001",  # unused-function-argument: TODO
-    "FBT002",  # boolean-default-value-positional-argument: TODO
-]
 "utils/waf_rules.py" = ["N801"]  # generated file
 
