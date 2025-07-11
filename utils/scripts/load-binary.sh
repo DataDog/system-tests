@@ -313,10 +313,16 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 elif [ "$TARGET" = "python_lambda" ]; then
-    assert_version_is_dev
     assert_target_branch_is_not_set
 
-    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
+    if [ $VERSION = 'dev' ]; then
+        get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
+    elif [ $VERSION = 'prod' ]; then
+        get_github_release_asset "DataDog/datadog-lambda-python" "datadog_lambda_py-amd64-3.13.zip"
+    else
+        echo "Don't know how to load version $VERSION for $TARGET"
+        exit 1
+    fi
 
 else
     echo "Unknown target: $1"
