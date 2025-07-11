@@ -21,7 +21,7 @@
 # * Python:        Clone locally the github repo
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
-# * Python Lambda: Clone locally the github repo
+# * Python Lambda: Fetch from GitHub Actions artifact
 ##########################################################################################
 
 set -eu
@@ -124,7 +124,8 @@ get_github_action_artifact() {
     SLUG=$1
     WORKFLOW=$2
     BRANCH=$3
-    PATTERN=$4
+    ARTIFACT_NAME=$4
+    PATTERN=$5
 
     # query filter seems not to be working ??
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
@@ -134,8 +135,7 @@ get_github_action_artifact() {
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
     echo "Load artifact $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
-
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))).[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
     curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
@@ -283,7 +283,7 @@ elif [ "$TARGET" = "cpp" ]; then
 
 elif [ "$TARGET" = "cpp_httpd" ]; then
     assert_version_is_dev
-    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog.so"
+    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
@@ -327,18 +327,7 @@ elif [ "$TARGET" = "python_lambda" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
 
-    rm -rf datadog-lambda-python/
-
-    git clone https://github.com/DataDog/datadog-lambda-python.git
-    cd datadog-lambda-python
-    echo "Checking out the datadog_lambda ref"
-    git log -1 --format=%H
-
-    # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone https://github.com/DataDog/dd-trace-py.git
-    cd dd-trace-py
-    echo "Checking out the ddtrace ref"
-    git log -1 --format=%H
+    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
 
 else
     echo "Unknown target: $1"
