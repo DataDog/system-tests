@@ -5,6 +5,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'timeout'
 
 # tracer configuration of Rack integration
 
@@ -404,6 +405,27 @@ end
 
 use TraceSamplingMiddleware
 
+# /flush
+module Flush
+  module_function
+
+  def run(request)
+    reserved_seconds = 1
+    timeout_seconds = (request.params['timeout'] || 10).to_i
+    max_wait_seconds = [1, timeout_seconds - reserved_seconds].max
+
+    begin
+      Timeout.timeout(max_wait_seconds) do
+        Datadog.send(:components)&.telemetry&.flush
+      end
+    rescue Timeout::Error
+      STDERR.puts("Unable to flush telemetry within #{max_wait_seconds} seconds")
+    end
+
+    [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+  end
+end
+
 # trivial rack endpoint. We use a proc instead of Rack Builder because
 # we compare the request path using regexp and include?
 app = proc do |env|
@@ -451,6 +473,8 @@ app = proc do |env|
     UserLoginSuccessEventV2.run(request)
   elsif request.path == '/user_login_failure_event_v2'
     UserLoginFailureEventV2.run(request)
+  elsif request.path == '/flush'
+    Flush.run(request)
   else
     NotFound.run
   end
