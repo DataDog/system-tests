@@ -10,8 +10,9 @@ from tests.appsec.rasp.utils import (
     find_series,
     validate_metric,
     validate_metric_variant,
-    Base_Rules_Version,
-    Base_WAF_Version,
+    validate_metric_variant_v2,
+    BaseRulesVersion,
+    BaseWAFVersion,
 )
 
 
@@ -165,17 +166,42 @@ class Test_Shi_Telemetry:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric("rasp.rule.eval", "command_injection", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric("rasp.rule.match", "command_injection", s) for s in series_match), [
             s.get("tags") for s in series_match
         ]
+
+
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
+@features.rasp_shell_injection
+@scenarios.appsec_rasp
+class Test_Shi_Telemetry_V2:
+    """Validate Telemetry data on exploit attempts"""
+
+    def setup_shi_telemetry(self):
+        self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
+
+    def test_shi_telemetry(self):
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
+        assert series_eval
+        assert any(
+            validate_metric_variant_v2("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval
+        ), [s.get("tags") for s in series_eval]
+
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
+        assert series_match
+        block_action = "block:irrelevant" if context.weblog_variant == "nextjs" else "block:success"
+        assert any(
+            validate_metric_variant_v2("rasp.rule.match", "command_injection", "shell", s, block_action=block_action)
+            for s in series_match
+        ), [s.get("tags") for s in series_match]
 
 
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
@@ -188,13 +214,13 @@ class Test_Shi_Telemetry_Variant_Tag:
         self.r = weblog.get("/rasp/shi", params={"list_dir": "$(cat /etc/passwd 1>&2 ; echo .)"})
 
     def test_shi_telemetry(self):
-        series_eval = find_series(True, "appsec", "rasp.rule.eval")
+        series_eval = find_series("appsec", "rasp.rule.eval", is_metrics=True)
         assert series_eval
         assert any(validate_metric_variant("rasp.rule.eval", "command_injection", "shell", s) for s in series_eval), [
             s.get("tags") for s in series_eval
         ]
 
-        series_match = find_series(True, "appsec", "rasp.rule.match")
+        series_match = find_series("appsec", "rasp.rule.match", is_metrics=True)
         assert series_match
         assert any(validate_metric_variant("rasp.rule.match", "command_injection", "shell", s) for s in series_match), [
             s.get("tags") for s in series_match
@@ -211,15 +237,15 @@ class Test_Shi_Capability:
         interfaces.library.assert_rc_capability(Capabilities.ASM_RASP_SHI)
 
 
-@features.rasp_local_file_inclusion
-class Test_Shi_Rules_Version(Base_Rules_Version):
+@features.rasp_shell_injection
+class Test_Shi_Rules_Version(BaseRulesVersion):
     """Test shi min rules version"""
 
     min_version = "1.13.1"
 
 
-@features.rasp_local_file_inclusion
-class Test_Shi_Waf_Version(Base_WAF_Version):
+@features.rasp_shell_injection
+class Test_Shi_Waf_Version(BaseWAFVersion):
     """Test shi WAF version"""
 
     min_version = "1.20.1"

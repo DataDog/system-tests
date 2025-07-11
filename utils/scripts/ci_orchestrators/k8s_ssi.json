@@ -1,0 +1,104 @@
+{
+    "scenario_matrix": [
+        {
+            "scenarios": [
+                "K8S_LIB_INJECTION_SPARK_DJM"
+            ],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-djm-spark-test-app"
+                    ]
+                }
+            ],
+            "cluster_agents": [
+                "latest"
+            ]
+        },
+        {
+            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-lib-java-init-test-app"
+                    ],
+                    "dotnet": [
+                        "dd-lib-dotnet-init-test-app"
+                    ],
+                    "nodejs": [
+                        "sample-app"
+                    ],
+                    "python": [
+                        "dd-lib-python-init-test-django",
+                        "dd-lib-python-init-test-django-gunicorn",
+                        "dd-lib-python-init-test-django-gunicorn-alpine",
+                        "dd-lib-python-init-test-django-unsupported-package-force",
+                        "dd-lib-python-init-test-django-uvicorn",
+                        "dd-lib-python-init-test-protobuf-old",
+                        "dd-lib-python-init-test-django-preinstalled"
+                    ],
+                    "ruby": [
+                        "dd-lib-ruby-init-test-rails",
+                        "dd-lib-ruby-init-test-rails-explicit",
+                        "dd-lib-ruby-init-test-rails-gemsrb"
+                    ]
+                }
+            ],
+            "cluster_agents": [
+                "old_injection",
+                "latest"
+            ]
+        },
+        {
+            "scenarios": ["K8S_LIB_INJECTION", "K8S_LIB_INJECTION_UDS", "K8S_LIB_INJECTION_PROFILING_DISABLED", "K8S_LIB_INJECTION_PROFILING_ENABLED", "K8S_LIB_INJECTION_PROFILING_OVERRIDE", "K8S_LIB_INJECTION_OPERATOR"],
+            "weblogs": [
+                {
+                    "php": [
+                        "dd-lib-php-init-test-app"
+                    ]
+                }
+            ],
+            "cluster_agents": [
+                "latest"
+            ]
+        },
+        {
+            "scenarios":  ["K8S_LIB_INJECTION_NO_AC", "K8S_LIB_INJECTION_NO_AC_UDS"],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-lib-java-init-test-app"
+                    ],
+                    "dotnet": [
+                        "dd-lib-dotnet-init-test-app"
+                    ],
+                    "nodejs": [
+                        "sample-app"
+                    ],
+                    "python": [
+                        "dd-lib-python-init-test-django",
+                        "dd-lib-python-init-test-django-gunicorn",
+                        "dd-lib-python-init-test-django-gunicorn-alpine",
+                        "dd-lib-python-init-test-django-unsupported-package-force",
+                        "dd-lib-python-init-test-django-uvicorn",
+                        "dd-lib-python-init-test-protobuf-old",
+                        "dd-lib-python-init-test-django-preinstalled"
+                    ],
+                    "ruby": [
+                        "dd-lib-ruby-init-test-rails",
+                        "dd-lib-ruby-init-test-rails-explicit",
+                        "dd-lib-ruby-init-test-rails-gemsrb"
+                    ],
+                    "php": [
+                        "dd-lib-php-init-test-app"
+                    ]
+                }
+            ]
+        }
+       
+    ],
+    "cluster_agent_spec": {
+        "latest": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:latest",
+        "old_injection": "235494822917.dkr.ecr.us-east-1.amazonaws.com/ssi/cluster-agent:7.56.2"
+    }
+}

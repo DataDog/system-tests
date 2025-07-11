@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://promptfoo.dev/config-schema.json
+description: 'system-tests'
+
+prompts:
+  - |
+    {{user_prompt}}
+tests:
+  - .promptfoo/tests_overview.yaml
+  - .promptfoo/tests_aws_ssi.yaml
+  - .promptfoo/tests_end_to_end.yaml
+  - .promptfoo/tests_activate_tests.yaml
+  - .promptfoo/tests_task_java_endpoint_prompt.yaml
+providers:
+  - id: 'file://.promptfoo/local_cursor_provider.py'
+    label: 'Local Cursor Provider' # Optional display label for this provider
+
+

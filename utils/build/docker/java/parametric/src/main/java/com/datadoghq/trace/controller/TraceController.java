@@ -39,7 +39,10 @@ public class TraceController {
           entry("dd_dogstatsd_host", "getJmxFetchStatsdHost"),
           entry("dd_dogstatsd_port", "getJmxFetchStatsdPort"),
           entry("dd_trace_sample_rate", "getTraceSampleRate"),
-          entry("dd_trace_rate_limit", "getTraceRateLimit")
+          entry("dd_trace_rate_limit", "getTraceRateLimit"),
+          entry("dd_logs_injection", "isLogsInjectionEnabled"),
+          entry("dd_profiling_enabled", "isProfilingEnabled"),
+          entry("dd_data_streams_enabled", "isDataStreamsEnabled")
       );
       Map<String, String> config = new HashMap<>();
       configMapping.forEach(

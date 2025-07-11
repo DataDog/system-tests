@@ -1,20 +1,21 @@
 # Testing K8s library injection feature
 
 1. [Overall](#Overall)
-    * [What is the library injection feature?](#What-is-the-k8s-library-injection-feature?)
-    * [What’s the Datadog Cluster Agent and why?](#What’s-the-Datadog-Cluster-Agent-and-why?)
+   * [What is the library injection feature?](#What-is-the-k8s-library-injection-feature?)
+   * [What’s the Datadog Cluster Agent and why?](#What’s-the-Datadog-Cluster-Agent-and-why?)
 2. [K8s tested components](#K8s-tested-components)
 3. [Run the tests](#K8s-tested-components)
-    * [Run K8s library image validation](#Run-K8s-library-image-validation)
-    * [Run K8s library injection tests](#Run-K8s-library-injection-tests)
-      - [Prerequisites](#Prerequisites)
-      - [Configure tested components versions](#Configure-tested-components-versions)
-      - [Execute a test scenario](#Execute-a-test-scenario)
-4. [How to develop a test case](#How-to-develop-a-test-case)
-    * [Folders and Files structure](#Folders-and-Files-structure)
-    * [Implement a new test case](#Implement-a-new-test-case)
-5. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
-6. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
+   * [Run K8s library image validation](#Run-K8s-library-image-validation)
+   * [Run K8s library injection tests](#Run-K8s-library-injection-tests)
+     - [Prerequisites](#Prerequisites)
+     - [Configure tested components versions](#Configure-tested-components-versions)
+     - [Execute a test scenario](#Execute-a-test-scenario)
+4. [How to use a MiniKube implementation](#How-to-use-a-MiniKube-implementation)
+5. [How to develop a test case](#How-to-develop-a-test-case)
+   * [Folders and Files structure](#Folders-and-Files-structure)
+   * [Implement a new test case](#Implement-a-new-test-case)
+6. [How to debug your kubernetes environment and tests results](#How-to-debug-your-kubernetes-environment-and-tests-results)
+7. [How to debug your kubernetes environment at runtime](#How-to-debug-your-kubernetes-environment-at-runtime)
 
 ## Overall
 
@@ -24,7 +25,7 @@ The lib-injection project is a feature to allow injection of the Datadog library
 into a customer's application container without requiring them to modify their
 application images.
 
-This feature enables applications written in Java, Node, Python, DotNet or Ruby running
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running
 in Kubernetes to be automatically instrumented with the corresponding Datadog
 APM libraries.
 
@@ -32,10 +33,9 @@ Currently, there are two different ways to have the Datadog library injected
 into the application container:
 
 1) **Manually via Kubernetes annotations**:
-    * Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
-    * Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
+   * Using Datadog Admission Controller: [Injecting Libraries Kubernetes](https://docs.datadoghq.com/tracing/trace_collection/admission_controller/).
+   * Adding library injection specific annotations (without Datadog Admission Controller): [Application Instrumentation](https://docs.datadoghq.com/tracing/trace_collection/), [Add the Datadog Tracing Library](https://docs.datadoghq.com/tracing/trace_collection/)
 2) **Automatically with Remote Config via the Datadog UI.**
-
 
 ### What’s the Datadog Cluster Agent and why?
 
@@ -64,7 +64,7 @@ These test components are also involved through the testing process:
 
 - **System-tests runner:** The core of the system-tests is the reponsible for orchestrate the tests execution and manage the tests results.
 - **Dev test agent:**  The APM Test Agent container help us to perform the validations ([APM Test Agent](https://github.com/DataDog/dd-apm-test-agent)).
-- **Sample app/weblog:** Containerized sample application implemented on Java, Nodejs, dotNet, Ruby or Python.
+- **Sample app/weblog:** Containerized sample application implemented on Java, Node.js, .NET, Ruby or Python.
 
 The following image represents, in general terms, the necessary and dependent architecture to be able to run the K8s library injection tests:
 
@@ -85,16 +85,18 @@ Now we can test the auto instrumentation on any image in two simple steps:
 
 ``` docker build  -t weblog-injection:latest .```
 
-  You could use the existing weblog apps under __lib-injection/build/docker__ folder. Use the existing script to build them:
+You could use the existing weblog apps under __lib-injection/build/docker__ folder. Use the existing script to build them:
 
-``` lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python]  ```
+```lib-injection/build/build_lib_injection_weblog.sh -w [existing weblog] -l [java,nodejs,dotnet,ruby,python] ```
 
 ie:
+
 ```
 lib-injection/build/build_lib_injection_weblog.sh -w dd-lib-dotnet-init-test-app -l dotnet
 ```
 
 2. **Run the scenario that checks if weblog app is auto instrumented and sending traces to the _Dev Test Agent_**:
+
 ```
 TEST_LIBRARY=dotnet
 LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot
@@ -104,17 +106,20 @@ LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapsho
 #### Validating lib-injection images under not supported language runtime version
 
 You can also validate weblog applications implemented with a language version that is not supported by the tracer. The scenario will check that the app is running although the app is not instrumented:
+
 ```
 lib-injection/build/build_lib_injection_weblog.sh -w jdk7-app -l java
 TEST_LIBRARY=java
 LIB_INIT_IMAGE=ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot
 ./run.sh LIB_INJECTION_VALIDATION_UNSUPPORTED_LANG
 ```
+
 ### Run K8s library injection tests
 
 These tests can run locally easily. You only have to install the environment and configure it as follow sections detail.
 
 #### Prerequisites:
+
 - Docker environment
 - Kubernetes environment
 
@@ -171,7 +176,7 @@ chmod 700 get_helm.sh
 
 #### Configure tested components versions
 
-All the software components to be tested are configured using environment variables. This is an example of env vars configuration for Java:
+All the software components to be tested can be configured using environment variables and using command line parameters to run the test scenarios. This is an example of env vars configuration for Java:
 
 ```sh
 export TEST_LIBRARY=java
@@ -181,7 +186,9 @@ export LIB_INIT_IMAGE=gcr.io/datadoghq/dd-lib-java-init:latest # What is the lib
 export CLUSTER_AGENT_VERSION=7.56.2
 export INJECTOR_IMAGE=TODO
 ```
+
 ---
+
 **NOTE: Injector image**
 
 Currently the tests do not allow selection of the injector image. The image used will be the one pointed by the cluster agent by default.
@@ -208,47 +215,49 @@ or if you don't have the permission to push the image to GHCR, you can use your 
 
 The sample applications currently available in GHCR are:
 
-|  LANG | WEBLOG IMAGE |
-|---|---|
-| Java |  ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest  |
-| Java | ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest  |
-| DotNet  | ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest  |
-| Nodejs  | ghcr.io/datadog/system-tests/sample-app:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest  |
-| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest  |
-| Ruby  | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest  |
-| Ruby  | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit":latest  |
-| Ruby  | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest  |
+| LANG    | WEBLOG IMAGE                                                                                 |
+| ------- | -------------------------------------------------------------------------------------------- |
+| Java    | ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest                                |
+| Java    | ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest                                    |
+| .NET    | ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest                              |
+| Node.js | ghcr.io/datadog/system-tests/sample-app:latest                                               |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest                           |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest                  |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest           |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest              |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest                   |
+| Python  | ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest                     |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest                              |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit":latest                    |
+| Ruby    | ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest                       |
 
 ##### Library init image
 
 The library init images are created by each tracer library and these images will be pushed to the registry using two tags:
+
 * **latest:** The latest release of the image.
 * **latest_snapshot:** The image created when we build the main branch of the tracer library.
 
 The list of available images is:
 
-|  LANG | LIB INIT IMAGE |
-|---|---|
-| Java |  gcr.io/datadoghq/dd-lib-java-init:latest |
-| Java | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot  |
-| DotNet  | gcr.io/datadoghq/dd-lib-dotnet-init:latest |
-| DotNet  | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
-| Nodejs  | gcr.io/datadoghq/dd-lib-js-init:latest |
-| Nodejs  | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot |
-| Python  | gcr.io/datadoghq/dd-lib-python-init:latest |
-| Python  | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot  |
-| Ruby  | gcr.io/datadoghq/dd-lib-ruby-init:latest  |
-| Ruby  | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot |
+| LANG    | LIB INIT IMAGE                                                     |
+| ------- | ------------------------------------------------------------------ |
+| Java    | gcr.io/datadoghq/dd-lib-java-init:latest                           |
+| Java    | ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot     |
+| .NET    | gcr.io/datadoghq/dd-lib-dotnet-init:latest                         |
+| .NET    | ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot |
+| Node.js | gcr.io/datadoghq/dd-lib-js-init:latest                             |
+| Node.js | ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot         |
+| Python  | gcr.io/datadoghq/dd-lib-python-init:latest                         |
+| Python  | ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot     |
+| Ruby    | gcr.io/datadoghq/dd-lib-ruby-init:latest                           |
+| Ruby    | ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot       |
 
 ##### Datadog Cluster Agent
 
 The Datadog Cluster Agent versions available for tests are:
+
 - 7.56.2
 - 7.57.0
 - 7.59.0
@@ -260,15 +269,30 @@ TODO
 #### Execute a test scenario
 
 If we have followed the previous steps, we already have the environment configured and we only need to run any of the available scenarios:
-- **K8S_LIBRARY_INJECTION_BASIC:** Minimal test scenario that run a Kubernetes cluster and test that the application is being instrumented automatically.
-- **K8S_LIBRARY_INJECTION_PROFILING:** Test profiling feature inside of Kubernetes cluster.
-- **K8S_LIBRARY_INJECTION_DJM:** Allow us to verify the k8s injection continue to work for Data Jobs Monitoring as new Java tracer, new auto_inject, and new cluster_agent are being released.
+
+- **K8S_LIB_INJECTION:** Minimal test scenario that run a Kubernetes cluster and test that the application is being instrumented automatically.
+- **K8S_LIB_INJECTION_UDS:** Similar to previous scenario, but the comunication between the agent and libraries is configured to use UDS.
+- **K8S_LIB_INJECTION_NO_AC:** Configures the auto-injection adding annotations to the weblog pod, without using the admission controller.
+- **K8S_LIB_INJECTION_NO_AC_UDS:** Similar to previous scenario, but the comunication between the agent and libraries is configured to use UDS.
+- **K8S_LIB_INJECTION_PROFILING_DISABLED:** Scenario that validates the profiling is not performing if it's not activated.
+- **K8S_LIB_INJECTION_PROFILING_ENABLED:** Test profiling feature activation inside of Kubernetes cluster.
+- **K8S_LIB_INJECTION_PROFILING_OVERRIDE:** Test profiling feature activation overriding the cluster configuration.
+- **K8S_LIB_INJECTION_DJM:** Allow us to verify the k8s injection works for Data Jobs Monitoring as new Java tracer, new auto_inject, and new cluster_agent are being released
 
 Run the minimal test scenario:
 
 ```sh
-  ./run.sh K8S_LIBRARY_INJECTION_BASIC
+./run.sh K8S_LIB_INJECTION --k8s-library $TEST_LIBRARY --k8s-weblog $WEBLOG_VARIANT --k8s-weblog-img $LIBRARY_INJECTION_TEST_APP_IMAGE --k8s-lib-init-img $LIB_INIT_IMAGE  --k8s-cluster-version $CLUSTER_AGENT_VERSION
 ```
+
+The allowed pameters are:
+
+* **k8s-library:** Libray to be tested.
+* **k8s-weblog:** The sample application.
+* **k8s-weblog-img:** The image of the sample application.
+* **k8s-lib-init-img:** Libray init image to be tested.
+* **k8s-cluster-version:** Datadog cluster version to be tested.
+* **k8s-provider:** K8s cluster provider. This parameter is optional. By default uses the kind k8s cluster.
 
 ##### DJM Scenario
 
@@ -276,12 +300,20 @@ The following image ilustrates the DJM scenario:
 
 ![DJM Scenario](../lib-injection/k8s_djm.png "DJM Scenario")
 
+## How to use a MiniKube implementation
+
+The K8s lib injection tests use the Kind cluster by default, but you can change this behaviour in order to use a MiniKube implementation. To do that you only need:
+
+* Install Minikube locally: [Install MiniKube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fbinary+download)
+* Run the scenario adding the parameter "*--k8s-provider minikube*"
+
+```sh
+./run.sh K8S_LIB_INJECTION --k8s-library nodejs --k8s-weblog sample-app --k8s-weblog-img ghcr.io/datadog/system-tests/sample-app:latest --k8s-lib-init-img gcr.io/datadoghq/dd-lib-js-init:latest  --k8s-cluster-version 7.57.0 --k8s-provider minikube
+```
+
 ## How to develop a test case
 
-To develop a new test case in the K8s Library injection tests, you need to know:
-
-- The project folder structure.
-- The parameters that you will recive in your test case (Parametrized test)
+To develop a new test case in the K8s Library injection tests, you need to know about the project folder structure.
 
 ### Folders and Files structure
 
@@ -295,88 +327,46 @@ The folders and files shown in the figure above are as follows:
 * **tests/k8s_lib_injection:** All tests cases are stored on this folder. Conftests.py file manages the kubernetes cluster lifecycle.
 * **utils/_context/scenarios:**: In this folder you can find the K8s Lib injection scenario definition.
 * **utils/k8s_lib_injection:** Here we can find the main utilities for the control and deployment of the components to be tested. For example:
-  * **k8s_kind_cluster.py:** Tools for creating and destroying the Kubernetes cluster.
+  * **k8s_cluster_provider.py:** Implementation of the k8s cluster management. By default the provider is Kind, but you can use the MiniKube implementation or AWS EKS remote implementation.
   * **k8s_datadog_kubernetes.py:** Utils for:
     - Deploy Datadog Cluster Agent
     - Deploy Datadog Admission Controller
-    - Apply Kubernetes ConfigMap
     - Extract Datadog Components debug information.
   * **k8s_weblog.py:**  Manages the weblog application lifecycle.
     - Deploy weblog as pod configured to perform library injection manually/without the Datadog admission controller.
     - Deploy weblog as pod configured to automatically perform the library injection using the Datadog admission controler.
-    - Deploy weblog as Kubernetes deployment and prepare the library injection using Kubernetes ConfigMaps and Datadog Admission Controller.
     - Extract weblog debug information.
   * **k8s_command_utils.py:** Command line utils to lauch the Helm Chart commands and others shell commands.
 
 ### Implement a new test case
 
-All test cases for K8s will run on an isolated Kubernetes environment. For each test case we are going to start up a Kubernetes Cluster. In this way we can run the tests in parallel.
-Each test case will receive a "test_k8s_instance" object with these main properties loaded:
-* **library:** Current testing library (java, python...)
-* **weblog_variant:** Current sample application name (weblog name)
-* **weblog_variant_image:** Reference to the weblog image in the registry
-* **library_init_image:** Reference to the library init image in the registry
-* **output_folder:** Path to log folder for the current test.
-* **test_name:** Name of the current test.
-* **test_agent:** Instance of the object that contains the main methods to access to Datadog Cluster Agent (Deploy agent, deploy operator, apply configmaps...). See utils/k8s_lib_injection/k8s_datadog_cluster_agent.py.
-* **test_weblog:** Instance of the object that contains the main methods to access to weblog variant funtionalities (Deploy pod, deployments...). See utils/k8s_lib_injection/k8s_weblog.py.
-* **k8s_kind_cluster:** Contains the information of the Kubernetes cluster associated to the test.
-  - cluster_name: Random name associated to the cluster.
-  - context_name: Kind cluster name
-  - agent_port: Agent port
-  - weblog_port: Weblog port
+All test cases associated to a scenario, will run on an isolated Kubernetes environment. The Kubernetes cluster will start up when the scenario is started (for local managed k8s providers).
 
-The "test_k8s_instance" also contains some basic methods, that you can use directly instead of working with either "k8s_datadog_cluster_agent" or "k8s_weblog":
-* start_instance
-* destroy_instance
-* deploy_test_agent
-* deploy_weblog_as_pod
-* deploy_weblog_as_deployment
-* export_debug_info
-
-Feel free to use the methods listed above or use the methods encapsulated in both "k8s_datadog_cluster_agent" and "k8s_weblog" or directly use the Kubernates Python Client to manipulate the Kunernates cluster components.
-
+All test cases can access to the K8s cluster infomation, using the "k8s_cluster_info" object stored in the scenario context. You can use this object to know about the open ports in the cluster (test agent port and weblog port) or to access to the Kubernetes Python API to interact with the cluster.
 An example of a Kubernetes test:
 
 ```python
 
-from tests.k8s_lib_injection.utils import get_dev_agent_traces
+from tests.k8s_lib_injection.utils import get_dev_agent_traces, get_cluster_info
 
 @features.k8s_admission_controller
-@scenarios.k8s_library_injection_basic
+@scenarios.k8s_lib_injection
 class TestExample:
-    def test_example(self, test_k8s_instance):
+    def test_example(self):
         logger.info(
-            f"Test config: Weblog - [{test_k8s_instance.k8s_kind_cluster.get_weblog_port()}] Agent - [{test_k8s_instance.k8s_kind_cluster.get_agent_port()}]"
+            f"Test config: Weblog - [{get_cluster_info().get_weblog_port()}] Agent - [{get_cluster_info().get_agent_port()}]"
         )
-        #Deploy test agent
-        test_k8s_instance.deploy_test_agent()
-        #Deploy cluster agent with admission controller
-        test_k8s_instance.deploy_datadog_cluster_agent()
-        #Deploy weblog
-        test_k8s_instance.deploy_weblog_as_pod()
+        #This test will be executed after the k8s starts and after deploy all the tested components on the cluster
+
         #Check that app was auto instrumented
-        traces_json = get_dev_agent_traces(test_k8s_instance.k8s_kind_cluster)
+        traces_json = get_dev_agent_traces(get_cluster_info())
         assert len(traces_json) > 0, "No traces found"
-```
-You can also add environment variables to your pod, for example:
-
-```python
-    test_k8s_instance.deploy_weblog_as_pod(
-      env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"}
-    )
-```
-
-Or you can activate DD features from the Cluster agent:
-
-```python
-    test_k8s_instance.deploy_datadog_cluster_agent(features={"datadog.profiling.enabled": "auto"})
 ```
 
 ## How to debug your kubernetes environment and tests results
 
-In the testing kubernetes scenarios, multiple components are involved and sometimes can be painfull to debug a failure. Even more so when running all tests in parallel.
-You can find a folder named "logs_[scenario name]" with a separe folder per test case.
+In the testing kubernetes scenarios, multiple components are involved and sometimes can be painfull to debug a failure.
+You can find a folder named "logs_[scenario name]" with all the logs associated with the execution
 In the following image you can see the log folder content:
 
 ![Log folder structure](../lib-injection/k8s_lib_injections_log_folders.png "Log folder structure")
@@ -388,51 +378,22 @@ These are the main important log/data files:
 * **feature_parity.json:** Report to push the results to Feature Parity Dashboard.
 * **lib-injection-testing-xyz-config.yaml:** The kind cluster configuration. In this file you can check the open ports for each cluster and test case.
 * **lib-injection-testing-xyz_help_values:** Helm chart operator values for each test case.
-* **<testcase_folder>/daemon.set.describe.log:** Datadog Cluster daemon set logs.
-* **<testcase_folder>/datadog-XYZ_events.log:** Kubernetes events for Datadog Agent.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_status.log:** Datadog Cluster Agent current status.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_telemetry.log:** Telemetry for Datadog Cluster Agent.
-* **<testcase_folder>/datadog-cluster-agent.log:** Logs generated by Datadog Cluster Agent.
-* **<testcase_folder>/datadog-cluster-agent-XYZ_event.log:** Kubernetes events for Datadog Cluster Agent.
-* **<testcase_folder>/deployment.describe.log:** Describe all deployment in the Kubernetes cluster.
-* **<testcase_folder>/deployment.logs.log:** All deployments logs.
-* **<testcase_folder>/get.deployments.log:** Deployments list.
-* **<testcase_folder>/get.pods.log:** Current started pod list.
-* **<testcase_folder>/k8s_logger.log:** Specific logs for current test case.
-* **<testcase_folder>/myapp.describe.log:** Describe weblog pod.
-* **<testcase_folder>/myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
-* **<testcase_folder>/test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.
+* **daemon.set.describe.log:** Datadog Cluster daemon set logs.
+* **datadog-XYZ_events.log:** Kubernetes events for Datadog Agent.
+* **datadog-cluster-agent-XYZ_status.log:** Datadog Cluster Agent current status.
+* **datadog-cluster-agent-XYZ_telemetry.log:** Telemetry for Datadog Cluster Agent.
+* **datadog-cluster-agent.log:** Logs generated by Datadog Cluster Agent.
+* **datadog-cluster-agent-XYZ_event.log:** Kubernetes events for Datadog Cluster Agent.
+* **deployment.describe.log:** Describe all deployment in the Kubernetes cluster.
+* **deployment.logs.log:** All deployments logs.
+* **get.deployments.log:** Deployments list.
+* **get.pods.log:** Current started pod list.
+* **myapp.describe.log:** Describe weblog pod.
+* **myapp.logs.log:** Current weblog pod logs. It could be empty if we are deploying the weblog as Kubernetes deployment.
+* **test-LANG-deployment-XYZ_events.log:** Current weblog deployment events. Here you can see the events generated by auto instrumention process. It could be empty if we are deploying the weblog application as Pod.
 
 ## How to debug your kubernetes environment at runtime
 
-So far there is no parameter that allows to keep the kubernetes cluster alive after launching the tests. But we can make some temporary tweaks to do that.
+You can use the *--sleep* parameter in the run command line of the scenario to keep the K8s cluster alive with all the tested components deployed.
 
-You only need to comment the line that stops the cluster after the test case. You can do this here:
-https://github.com/DataDog/system-tests/blob/fd8766cd45687d2be4b858df611435da7f41c6d6/tests/k8s_lib_injection/conftest.py#L43C5-L43C17
-
-```python
-
-@pytest.fixture
-def test_k8s_instance(request):
-    test_name = request.node.name
-    library = "js" if context.scenario.library.library == "nodejs" else context.scenario.library.library
-
-    # Create a folder with the test name
-    output_folder = f"{context.scenario.host_log_folder}/{test_name}"
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-
-    k8s_instance = K8sInstance(... ...)
-    logger.info(f"K8sInstance creating -- {test_name}")
-    k8s_instance.start_instance()
-    logger.info("K8sInstance created")
-    yield k8s_instance
-    logger.info("K8sInstance Exporting debug info")
-    k8s_instance.export_debug_info()
-    logger.info("K8sInstance destroying")
-    # k8s_instance.destroy_instance() SKIP STOP CLUSTER AFTER THE TESTS
-    logger.info("K8sInstance destroyed")
-```
-
-Although it is not very practical, we recommend to run only one test, commenting the rest of the methods/tests case the tests class.
-For example, if you want to debug at runtime the k8s profiling scenario, we recommend to keep only one test case in the class "TestAdmisionControllerProfiling" (you can skip a test method adding the character "_" before the method name) https://github.com/DataDog/system-tests/blob/fd8766cd45687d2be4b858df611435da7f41c6d6/tests/k8s_lib_injection/test_k8s_manual_inject.py#L79
+[Check the sleep parameter documentation](https://github.com/DataDog/system-tests/blob/main/docs/execute/run.md#spawn-components-but-do-nothing)

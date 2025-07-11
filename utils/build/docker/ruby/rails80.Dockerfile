@@ -5,7 +5,13 @@ RUN apt-get update && apt-get install -y nodejs npm
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rails80/Gemfile .
+COPY utils/build/docker/ruby/rails80/Gemfile.lock .
+RUN sed -i -e '/gem .ddtrace./d' Gemfile && bundle config set --local without test development && bundle install
+
 COPY utils/build/docker/ruby/rails80/ .
+COPY utils/build/docker/ruby/shared/rails/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 

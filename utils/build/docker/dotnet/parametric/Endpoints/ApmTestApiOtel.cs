@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -8,11 +7,14 @@ namespace ApmTestApi.Endpoints;
 
 public abstract class ApmTestApiOtel : ApmTestApi
 {
-    internal static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
-    internal static readonly Dictionary<ulong, Activity> Activities = new();
+    private static readonly ActivitySource ApmTestApiActivitySource = new("ApmTestApi");
+    private static readonly Dictionary<ulong, Activity> Activities = new();
+    private static ILogger? _logger;
 
-    public static void MapApmOtelEndpoints(WebApplication app)
+    public static void MapApmOtelEndpoints(WebApplication app, ILogger logger)
     {
+        _logger = logger;
+
         app.MapPost("/trace/otel/start_span", OtelStartSpan);
         app.MapPost("/trace/otel/end_span", OtelEndSpan);
         app.MapPost("/trace/otel/flush", OtelFlushSpans);
@@ -175,7 +177,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger?.LogInformation("OtelIsRecording: {RequestBodyObject}", requestBodyObject);
 
-        var activity = FindActivity(requestBodyObject["id"]);
+        var activity = FindActivity(requestBodyObject["span_id"]);
 
         var result = JsonConvert.SerializeObject(new
         {
@@ -235,7 +237,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
 
         _logger?.LogInformation("OtelSetName: {RequestBodyObject}", requestBodyObject);
 
-        if (requestBodyObject.TryGetValue("id", out var id))
+        if (requestBodyObject.TryGetValue("span_id", out var id))
         {
             var activity = FindActivity(id);
             activity.DisplayName = requestBodyObject["name"].ToString() ?? string.Empty;
@@ -355,7 +357,7 @@ public abstract class ApmTestApiOtel : ApmTestApi
     }
 
     // Helper methods:
-    private static async Task<Dictionary<string, object>> DeserializeRequestObjectAsync(Stream requestBody)
+    private static async Task<Dictionary<string, object?>> DeserializeRequestObjectAsync(Stream requestBody)
     {
         var headerRequestBody = await new StreamReader(requestBody).ReadToEndAsync();
         return JsonConvert.DeserializeObject<Dictionary<string, object>>(headerRequestBody)!;
@@ -464,5 +466,10 @@ public abstract class ApmTestApiOtel : ApmTestApi
         }
 
         return tags;
+    }
+
+    public static void ClearActivities()
+    {
+        Activities.Clear();
     }
 }

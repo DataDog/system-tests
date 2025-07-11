@@ -1,3 +1,4 @@
+---
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -9,13 +10,12 @@ tests/:
       test_api_security_rc.py:
         Test_API_Security_RC_ASM_DD_processors: v2.50.0
         Test_API_Security_RC_ASM_DD_scanners: v2.50.0
-        Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner: irrelevant (waf does not support it yet)
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints: missing_feature
-        Test_API_Security_Sampling_Different_Paths: missing_feature
-        Test_API_Security_Sampling_Different_Status: missing_feature
+        Test_API_Security_Sampling_Different_Endpoints: v2.46.0
+        Test_API_Security_Sampling_Different_Paths: v2.46.0
+        Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
-        Test_API_Security_Sampling_With_Delay: missing_feature
+        Test_API_Security_Sampling_With_Delay: v2.50.0
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -27,20 +27,29 @@ tests/:
         Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v2.46.0
+        Test_Schema_Response_on_Block: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
           TestCodeInjection: missing_feature
+          TestCodeInjection_ExtendedLocation: missing_feature
           TestCodeInjection_StackTrace: missing_feature
         test_command_injection.py:
           TestCommandInjection: v2.28.0
-          TestCommandInjection_StackTrace: missing_feature
+          TestCommandInjection_ExtendedLocation: missing_feature
+          TestCommandInjection_StackTrace: v3.3.0
+        test_email_html_injection.py:
+          TestEmailHtmlInjection: v3.2.0
+          TestEmailHtmlInjection_ExtendedLocation: missing_feature
+          TestEmailHtmlInjection_StackTrace: v3.3.0
         test_hardcoded_passwords.py:
           Test_HardcodedPasswords: missing_feature
+          Test_HardcodedPasswords_ExtendedLocation: missing_feature
           Test_HardcodedPasswords_StackTrace: missing_feature
         test_hardcoded_secrets.py:
           Test_HardcodedSecrets: missing_feature
           Test_HardcodedSecretsExtended: missing_feature
+          Test_HardcodedSecrets_ExtendedLocation: missing_feature
           Test_HardcodedSecrets_StackTrace: missing_feature
         test_header_injection.py:
           TestHeaderInjection: v2.46.0
@@ -48,78 +57,104 @@ tests/:
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
-          TestHeaderInjection_StackTrace: missing_feature
+          TestHeaderInjection_ExtendedLocation: missing_feature
+          TestHeaderInjection_StackTrace: irrelevant (not expected to have a stack trace)
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
-          Test_HstsMissingHeader_StackTrace: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: missing_feature
+          Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: v2.49.0
-          Test_InsecureAuthProtocol_StackTrace: missing_feature
+          Test_InsecureAuthProtocol_ExtendedLocation: missing_feature
+          Test_InsecureAuthProtocol_StackTrace: missing_feature (APPSEC-56196)
         test_insecure_cookie.py:
           TestInsecureCookie: v2.39.0
           TestInsecureCookieNameFilter: missing_feature
-          TestInsecureCookie_StackTrace: missing_feature
+          TestInsecureCookie_ExtendedLocation: missing_feature
+          TestInsecureCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_ldap_injection.py:
           TestLDAPInjection: v2.36.0
-          TestLDAPInjection_StackTrace: missing_feature
+          TestLDAPInjection_ExtendedLocation: missing_feature
+          TestLDAPInjection_StackTrace: v3.3.0
         test_no_httponly_cookie.py:
           TestNoHttponlyCookie: v2.39.0
           TestNoHttponlyCookieNameFilter: missing_feature
-          TestNoHttponlyCookie_StackTrace: missing_feature
+          TestNoHttponlyCookie_ExtendedLocation: missing_feature
+          TestNoHttponlyCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_no_samesite_cookie.py:
           TestNoSamesiteCookie: v2.39.0
           TestNoSamesiteCookieNameFilter: missing_feature
-          TestNoSamesiteCookie_StackTrace: missing_feature
+          TestNoSamesiteCookie_ExtendedLocation: missing_feature
+          TestNoSamesiteCookie_StackTrace: irrelevant (not expected to have a stack trace)
         test_nosql_mongodb_injection.py:
           TestNoSqlMongodbInjection: v2.47.0
-          TestNoSqlMongodbInjection_StackTrace: missing_feature
+          TestNoSqlMongodbInjection_ExtendedLocation: missing_feature
+          TestNoSqlMongodbInjection_StackTrace: v3.3.0
         test_path_traversal.py:
           TestPathTraversal: v2.31.0
-          TestPathTraversal_StackTrace: missing_feature
+          TestPathTraversal_ExtendedLocation: missing_feature
+          TestPathTraversal_StackTrace: v3.3.0
         test_reflection_injection.py:
           TestReflectionInjection: v2.48.0
-          TestReflectionInjection_StackTrace: missing_feature
+          TestReflectionInjection_ExtendedLocation: missing_feature
+          TestReflectionInjection_StackTrace: v3.3.0
         test_sql_injection.py:
           TestSqlInjection:
-             '*': v2.23.0
-          TestSqlInjection_StackTrace: missing_feature
+            '*': v2.23.0
+          TestSqlInjection_ExtendedLocation: missing_feature
+          TestSqlInjection_StackTrace: v3.3.0
         test_ssrf.py:
           TestSSRF: v2.36.0
-          TestSSRF_StackTrace: missing_feature
+          TestSSRF_ExtendedLocation: missing_feature
+          TestSSRF_StackTrace: v3.3.0
+        test_stacktrace_leak.py:
+          TestStackTraceLeak: missing_feature
         test_template_injection.py:
           TestTemplateInjection: missing_feature
+          TestTemplateInjection_ExtendedLocation: missing_feature
         test_trust_boundary_violation.py:
           Test_TrustBoundaryViolation: v2.43.0
-          Test_TrustBoundaryViolation_StackTrace: missing_feature
+          Test_TrustBoundaryViolation_ExtendedLocation: missing_feature
+          Test_TrustBoundaryViolation_StackTrace: v3.3.0
         test_untrusted_deserialization.py:
           TestUntrustedDeserialization: missing_feature
+          TestUntrustedDeserialization_ExtendedLocation: missing_feature
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader: v2.44.0
-          TestUnvalidatedHeader_StackTrace: missing_feature
+          TestUnvalidatedHeader_ExtendedLocation: missing_feature
+          TestUnvalidatedHeader_StackTrace: missing_feature (APPSEC-56196)
           TestUnvalidatedRedirect: v2.44.0
-          TestUnvalidatedRedirect_StackTrace: missing_feature
+          TestUnvalidatedRedirect_ExtendedLocation: missing_feature
+          TestUnvalidatedRedirect_StackTrace: v3.3.0
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
+          TestUnvalidatedForward_ExtendedLocation: missing_feature
           TestUnvalidatedForward_StackTrace: missing_feature
         test_weak_cipher.py:
           TestWeakCipher: v2.24.0
-          TestWeakCipher_StackTrace: missing_feature
+          TestWeakCipher_ExtendedLocation: missing_feature
+          TestWeakCipher_StackTrace: missing_feature (APPSEC-56196)
         test_weak_hash.py:
           TestDeduplication: v2.24.0
           TestWeakHash: v2.24.0
-          TestWeakHash_StackTrace: missing_feature
+          TestWeakHash_ExtendedLocation: missing_feature
+          TestWeakHash_StackTrace: v3.3.0
         test_weak_randomness.py:
           TestWeakRandomness: v2.39.0
-          TestWeakRandomness_StackTrace: missing_feature
+          TestWeakRandomness_ExtendedLocation: missing_feature
+          TestWeakRandomness_StackTrace: v3.3.0
         test_xcontent_sniffing.py:
           Test_XContentSniffing: missing_feature
+          Test_XContentSniffing_ExtendedLocation: missing_feature
           Test_XContentSniffing_StackTrace: missing_feature
         test_xpath_injection.py:
           TestXPathInjection: v2.47.0
-          TestXPathInjection_StackTrace: missing_feature
+          TestXPathInjection_ExtendedLocation: missing_feature
+          TestXPathInjection_StackTrace: v3.3.0
         test_xss.py:
           TestXSS: missing_feature
+          TestXSS_ExtendedLocation: missing_feature
           TestXSS_StackTrace: missing_feature
       source/:
         test_body.py:
@@ -134,7 +169,7 @@ tests/:
           TestHeaderName: missing_feature
         test_header_value.py:
           TestHeaderValue:
-             '*': v2.39.0
+            '*': v2.39.0
         test_kafka_key.py:
           TestKafkaKey: missing_feature
         test_kafka_value.py:
@@ -153,6 +188,10 @@ tests/:
           TestSqlRow: missing_feature
         test_uri.py:
           TestURI: irrelevant
+      test_sampling_by_route_method_count.py:
+        TestSamplingByRouteMethodCount: v3.17.0
+      test_security_controls.py:
+        TestSecurityControls: missing_feature
     rasp/:
       test_cmdi.py:
         Test_Cmdi_BodyJson: v3.7.0
@@ -164,6 +203,7 @@ tests/:
         Test_Cmdi_Rules_Version: v3.7.0
         Test_Cmdi_StackTrace: v3.7.0
         Test_Cmdi_Telemetry: v3.7.0
+        Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: v3.7.0
         Test_Cmdi_UrlQuery: v3.7.0
         Test_Cmdi_Waf_Version: v3.7.0
@@ -178,6 +218,8 @@ tests/:
         Test_Lfi_Rules_Version: v3.7.0
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
+        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
+        Test_Lfi_Telemetry_V2: missing_feature
         Test_Lfi_UrlQuery: v2.51.0
         Test_Lfi_Waf_Version: v3.4.1
       test_shi.py:
@@ -190,6 +232,7 @@ tests/:
         Test_Shi_Rules_Version: v3.5.0
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
+        Test_Shi_Telemetry_V2: missing_feature
         Test_Shi_Telemetry_Variant_Tag: v3.7.0
         Test_Shi_UrlQuery: v3.2.0
         Test_Shi_Waf_Version: v3.4.1
@@ -203,6 +246,7 @@ tests/:
         Test_Sqli_Rules_Version: v3.5.0
         Test_Sqli_StackTrace: v2.54.0
         Test_Sqli_Telemetry: v2.54.0
+        Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery: v2.54.0
         Test_Sqli_Waf_Version: v3.4.1
       test_ssrf.py:
@@ -215,6 +259,7 @@ tests/:
         Test_Ssrf_Rules_Version: v3.5.0
         Test_Ssrf_StackTrace: v2.51.0
         Test_Ssrf_Telemetry: v2.51.0
+        Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery: v2.51.0
         Test_Ssrf_Waf_Version: v3.4.1
     waf/:
@@ -236,7 +281,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: v2.27.0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: missing_feature
+        Test_CustomBlockingResponse: v3.10.0
       test_custom_rules.py:
         Test_CustomRules: v2.30.0
       test_exclusions.py:
@@ -259,27 +304,36 @@ tests/:
         Test_Scanners: v1.28.6
       test_telemetry.py:
         Test_TelemetryMetrics: missing_feature
+      test_truncation.py:
+        Test_Truncation: missing_feature
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
-      Test_AppSecStandalone_UpstreamPropagation: v2.55.0
-      Test_IastStandalone_UpstreamPropagation: v2.55.0
-      Test_SCAStandalone_Telemetry: v2.55.0
+      Test_APISecurityStandalone: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation: missing_feature
+      Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
+      Test_IastStandalone_UpstreamPropagation: missing_feature
+      Test_IastStandalone_UpstreamPropagation_V2: v3.12.0
+      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry_V2: missing_feature
+      Test_UserEventsStandalone_Automated: v3.12.0
+      Test_UserEventsStandalone_SDK_V1: missing_feature
+      Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
-      Test_V2_Login_Events: v3.1.0
-      Test_V2_Login_Events_Anon: v3.1.0
-      Test_V2_Login_Events_RC: v3.1.0
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_V2_Login_Events: v3.1.0-prerelease
+      Test_V2_Login_Events_Anon: v3.1.0-prerelease
+      Test_V2_Login_Events_RC: v3.1.0-prerelease
+      Test_V3_Auto_User_Instrum_Mode_Capability: v3.10.0
+      Test_V3_Login_Events: v3.10.0
+      Test_V3_Login_Events_Anon: v3.10.0
+      Test_V3_Login_Events_Blocking: v3.10.0
+      Test_V3_Login_Events_RC: v3.10.0
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_Session_Blocking: v3.11.0
+      Test_Automated_User_Blocking: v3.10.0
+      Test_Automated_User_Tracking: v3.10.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
@@ -297,20 +351,49 @@ tests/:
       Test_Suspicious_Request_Blocking: v3.2.0
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
+    test_conf.py:
+      Test_ConfigurationVariables: missing_feature (unknown version)
+      Test_ConfigurationVariables_New_Obfuscation: missing_feature
     test_customconf.py:
+      Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
       Test_CustomEvent: v2.27.0
+      Test_CustomEvent_Metrics: missing_feature
       Test_UserLoginFailureEvent: v2.27.0
+      Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent: v2.27.0
+      Test_UserLoginSuccessEvent_Metrics: missing_feature
+    test_event_tracking_v2.py:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v3.15.0
+      Test_UserLoginFailureEventV2_Libddwaf: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v3.15.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v3.15.0
+    test_extended_header_collection.py:
+      Test_ExtendedHeaderCollection: missing_feature
+    test_extended_request_body_collection.py:
+      Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v3.4.0
       Test_Fingerprinting_Endpoint_Capability: v3.4.0
+      Test_Fingerprinting_Endpoint_Preprocessor: v3.4.0
       Test_Fingerprinting_Header_And_Network: v3.4.0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v3.4.0
       Test_Fingerprinting_Header_Capability: v3.4.0
       Test_Fingerprinting_Network_Capability: v3.4.0
-      Test_Fingerprinting_Session: missing_feature
+      Test_Fingerprinting_Session: v3.12.0
       Test_Fingerprinting_Session_Capability: v3.4.0
+      Test_Fingerprinting_Session_Preprocessor: v3.12.0
     test_identify.py:
       Test_Basic: v2.7.0
     test_ip_blocking_full_denylist.py:
@@ -325,22 +408,29 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v2.6.0
     test_remote_config_rule_changes.py:
+      Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
-      Test_Info: v2.0.0
+      Test_Info: v2.0.0-prerelease
       Test_RequestHeaders: v1.30.0
       Test_StatusCode: v1.28.6
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: v2.25.0
+      Test_AppSecRequestBlocking: v2.26.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
+    test_service_activation_metric.py:
+      TestServiceActivationEnvVarMetric: missing_feature
+      TestServiceActivationRemoteConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: v3.4.0
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v1.29.0
       Test_AppSecObfuscator: v2.7.0
@@ -351,24 +441,38 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
   debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: missing_feature
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: v2.50.0
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
+      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots: v2.53.0
     test_debugger_probe_status.py:
-      Test_Debugger_Probe_Statuses: v2.53.0
+      Test_Debugger_Method_Probe_Statuses: v2.53.0
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: v2.53.0
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: v2.53.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_Kafka: v2.0.0
+        Test_Kafka: v2.0.0-prerelease
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
-        Test_RabbitMQ_Trace_Context_Propagation: v2.0.0
+        Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease
       test_sns_to_sqs.py:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
@@ -388,39 +492,46 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature
-      Test_DsmRabbitmq: v2.29.0
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmRabbitmq: v3.21.0
+      Test_DsmRabbitmq_FanoutExchange: v3.21.0
+      Test_DsmRabbitmq_TopicExchange: v3.21.0
       Test_DsmSNS: missing_feature
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
     test_inferred_proxy.py:
-      Test_AWS_API_Gateway_Inferred_Span_Creation: missing_feature
+      Test_AWS_API_Gateway_Inferred_Span_Creation: v3.15.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context: v3.15.0
+      Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error: v3.15.0
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
-  k8s_lib_injection/:
-    test_k8s_manual_inject.py:
-      TestAdmisionControllerProfiling: missing_feature
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
   parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: v2.42.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature (does not support hostname)
       Test_Config_RateLimit: v3.4.1
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: v3.12.0
       Test_Config_TraceAgentURL: v3.4.1
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
+      Test_Stable_Config_Default: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v2.53.2
       TestDynamicConfigTracingEnabled: v2.49.0
       TestDynamicConfigV1: v2.33.0
+      TestDynamicConfigV1_EmptyServiceTargets: v2.33.0
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.53.0
@@ -430,22 +541,23 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
       Test_Parametric_DDSpan_Add_Link: incomplete_test_app (add_link parametric endpoint is not implemented)
-      Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778) # Set error endpoint does not set the error.type tag on spans
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource parametric endpoint is not implemented)
       Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not implemented)
-      Test_Parametric_OtelSpan_Is_Recording: bug (APMAPI-778) # parametric endpoint attempts to retrieve spans by the `id` instead of `span_id`
-      Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778) # updates the operation name of the span not the resource name
       Test_Parametric_Otel_Baggage: incomplete_test_app (otel baggage endpoints are not implemented)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v3.19.0
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
+      Test_Stable_Configuration_Origin: missing_feature
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
+      Test_TelemetrySSIConfigs: v2.53.0
     test_trace_sampling.py:
       Test_Trace_Sampling_Basic: v2.46.0
       Test_Trace_Sampling_Globs: v2.46.0
@@ -476,6 +588,13 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: v3.6.0
+    Test_Baggage_Headers_Malformed: v3.6.0
+    Test_Baggage_Headers_Malformed2: v3.6.0
+    Test_Baggage_Headers_Max_Bytes: v3.6.0
+    Test_Baggage_Headers_Max_Items: v3.6.0
+    Test_Only_Baggage_Header: v3.6.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v3.6.1
     Test_Config_ClientIPHeader_Configured: v3.4.1
@@ -488,8 +607,16 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v3.5.0
     Test_Config_IntegrationEnabled_False: v3.5.0
     Test_Config_IntegrationEnabled_True: v3.5.0
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: v3.5.0
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: v3.13.0
+    Test_Config_LogInjection_Default: v3.5.0
+    Test_Config_LogInjection_Enabled: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
+    Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
+    Test_Config_RuntimeMetrics_Default: v2.0.0-prerelease
+    Test_Config_RuntimeMetrics_Enabled: v2.0.0-prerelease
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0-prerelease
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:
@@ -497,29 +624,43 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
-    Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
   test_identify.py:
     Test_Basic: v2.7.0
     Test_Propagate: v2.27.0
     Test_Propagate_Legacy: v2.26.0
   test_ipv6.py: missing_feature (APMAPI-869)
   test_library_conf.py:
+    Test_ExtractBehavior_Default: v3.10.0
+    Test_ExtractBehavior_Ignore: v3.10.0
+    Test_ExtractBehavior_Restart: v3.10.0
+    Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
-    Test_HeaderTags_Colon_Trailing: v3.0.0
+    Test_HeaderTags_Colon_Trailing: v3.0.0-prerelease
     Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0
-    Test_HeaderTags_Whitespace_Tag: v3.0.0
+    Test_HeaderTags_Whitespace_Tag: v3.0.0-prerelease
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       "*": v1.0  # real version not known
       uds: missing_feature (to be confirmed)
+  test_protobuf.py:
+    Test_Protobuf: v3.15.0
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v3.11.1  # real version unknown
+    Test_SamplingDecisionAdded: v3.11.1  # real version unknown
+    Test_SamplingDecisions: v3.11.1  # real version unknown
+    Test_SamplingDeterminism: v3.11.1  # real version unknown
+    Test_SamplingRates: v3.11.1  # real version unknown
   test_scrubbing.py:
     Test_UrlField: v2.29.0
     Test_UrlQuery: v2.13.0
@@ -528,9 +669,10 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
-    Test_StandardTagsMethod: v2.0.0
+    Test_StandardTagsMethod: v2.0.0-prerelease
+    Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v2.13.0
-    Test_StandardTagsStatusCode: v2.0.0
+    Test_StandardTagsStatusCode: v2.0.0-prerelease
     Test_StandardTagsUrl: v2.13.0
     Test_StandardTagsUserAgent: v2.13.0
   test_telemetry.py:
@@ -541,5 +683,6 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0

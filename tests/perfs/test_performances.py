@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 import json
 from os import environ
 import threading
@@ -6,7 +6,7 @@ import threading
 import requests
 import docker
 
-from utils import scenarios
+from utils import scenarios, features
 
 
 MAX_CONCURRENT_REQUEST = 5
@@ -21,17 +21,18 @@ TESTED_PATHS = ("/", "/waf/", "/waf/fdsfds/fds/fds/fds/", "/waf?a=b", "/waf?acd=
 # WARMUP_LAST_SLEEP_DURATION = 1
 # WEBLOG_URL="http://localhost:7777"
 @scenarios.performances
+@features.not_reported
 class Test_Performances:
     def setup_main(self) -> None:
-        self.requests = []
+        self.requests: list = []
         self.build_requests()
 
-        self.results = []
-        self.memory = []
+        self.results: list = []
+        self.memory: list = []
         self.finished = False
 
         self.appsec = "with_appsec" if environ.get("DD_APPSEC_ENABLED") == "true" else "without_appsec"
-        self.lang = scenarios.performances.library.library
+        self.lang = scenarios.performances.library.name
 
         threads = [threading.Thread(target=self.watch_docker_target)] + [
             threading.Thread(target=self.fetch) for _ in range(MAX_CONCURRENT_REQUEST)
@@ -72,7 +73,7 @@ class Test_Performances:
 
         for path in TESTED_PATHS:
             for header in headers:
-                for data in datas:
+                for __ in datas:
                     for _ in range(5):
                         self.add_request(
                             {
@@ -102,9 +103,9 @@ class Test_Performances:
             try:
                 size, request = self.requests[i % len(self.requests)]
 
-                request_timestamp = datetime.now()
-                r = requests.request(**request)
-                ellapsed = (datetime.now() - request_timestamp).total_seconds()
+                request_timestamp = datetime.now(tz=UTC)
+                r = requests.request(**request)  # noqa: S113
+                ellapsed = (datetime.now(tz=UTC) - request_timestamp).total_seconds()
 
                 self.results.append((i, ellapsed, r.status_code, size))
             except Exception as e:
@@ -112,7 +113,7 @@ class Test_Performances:
                 raise
 
     def watch_docker_target(self):
-        start = datetime.now()
+        start = datetime.now(tz=UTC)
         docker_client = docker.from_env()
         container_stats = docker_client.containers.get(
             f"/{scenarios.performances.weblog_container.container_name}"
@@ -121,12 +122,12 @@ class Test_Performances:
         while len(self.results) < TOTAL_REQUEST_COUNT:
             data = next(container_stats)
             memory = data["memory_stats"].get("usage", 0)
-            self.memory.append(((datetime.now() - start).total_seconds(), memory))
+            self.memory.append(((datetime.now(tz=UTC) - start).total_seconds(), memory))
 
-            print("MEM", datetime.now(), memory, flush=True)
+            print("MEM", datetime.now(tz=UTC), memory, flush=True)
 
     def test_main(self):
-        """add some tests ?"""
+        """Add some tests ?"""
 
         with open(
             f"{scenarios.performances.host_log_folder}/stats_{self.lang}_{self.appsec}.json", "w", encoding="utf-8"

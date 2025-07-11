@@ -1,4 +1,4 @@
-FROM ghcr.io/graalvm/native-image-community:21.0.0 as build
+FROM ghcr.io/graalvm/native-image-community:22.0.0 as build
 
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 
@@ -10,8 +10,6 @@ WORKDIR /app
 COPY ./utils/build/docker/java/spring-boot-3-native/pom.xml .
 RUN /usr/share/maven/bin/mvn -P native -B dependency:go-offline
 COPY ./utils/build/docker/java/spring-boot-3-native/src ./src
-
-# Install tracer
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 

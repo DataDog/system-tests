@@ -1,19 +1,34 @@
+import os
+
+if os.environ.get("UWSGI_ENABLED", "false") == "false":
+    # Patch with gevent but not for uwsgi-poc
+    import ddtrace.auto  # noqa: E402
+    import gevent  # noqa: E402
+    from gevent import monkey  # noqa: E402
+
+    monkey.patch_all(thread=True)  # noqa: E402
+
+
 import base64
 import http.client
 import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import threading
 import urllib.request
 
 import boto3
+import flask
 from moto import mock_aws
 import mock
 import urllib3
 import xmltodict
+import graphene
+import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -29,10 +44,13 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
 from flask import Flask
 from flask import Response
 from flask import jsonify
+from flask import redirect
+from flask import render_template_string
 from flask import request
 from flask import request as flask_request
 from flask_login import LoginManager
 from flask_login import login_user
+
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
@@ -40,6 +58,10 @@ from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
 import requests
+import opentelemetry.baggage
+import opentelemetry.context
+import opentelemetry.propagate
+import opentelemetry.trace
 
 
 if os.environ.get("INCLUDE_SQLSERVER", "true") == "true":
@@ -64,9 +86,8 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -75,6 +96,13 @@ from ddtrace.data_streams import set_produce_checkpoint
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
 
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
+
 # Patch kombu and urllib3 since they are not patched automatically
 ddtrace.patch_all(kombu=True, urllib3=True)
 
@@ -82,6 +110,18 @@ try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format=(
+        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
+        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
+        " %(message)s"
+    ),
+)
+
+log = logging.getLogger(__name__)
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -108,11 +148,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
-app = Flask(__name__)
-app.secret_key = "SECRET_FOR_TEST"
-app.config["SESSION_TYPE"] = "memcached"
-app.register_blueprint(debugger_blueprint)
-app.register_blueprint(exception_replay_blueprint)
+
+def main():
+    # IAST Flask patch
+    ddtrace_iast_flask_patch()
+    app = Flask(__name__)
+    app.secret_key = "SECRET_FOR_TEST"
+    app.config["SESSION_TYPE"] = "memcached"
+    app.register_blueprint(debugger_blueprint)
+    app.register_blueprint(exception_replay_blueprint)
+    return app
+
+
+app = main()
 login_manager = LoginManager()
 login_manager.login_view = "login"
 login_manager.init_app(app)
@@ -184,6 +232,46 @@ def flush_dsm_checkpoints():
     data_streams_processor().periodic()
 
 
+def check_and_create_users_table():
+    postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
+    cur = postgres_db.cursor()
+
+    # Check if 'users' exists
+    cur.execute("""
+        SELECT EXISTS (
+            SELECT FROM information_schema.tables 
+            WHERE table_name = 'users'
+        );
+    """)
+    table_exists = cur.fetchone()[0]
+
+    if not table_exists:
+        cur.execute("""
+            CREATE TABLE users (
+                id VARCHAR(255) PRIMARY KEY,
+                username VARCHAR(255),
+                email VARCHAR(255),
+                password VARCHAR(255)
+            );
+        """)
+        postgres_db.commit()
+
+        users_data = [
+            ("1", "john_doe", "john@example.com", "hashed_password_1"),
+            ("2", "jane_doe", "jane@example.com", "hashed_password_2"),
+            ("3", "bob_smith", "bob@example.com", "hashed_password_3"),
+        ]
+
+        cur.executemany(
+            "INSERT INTO users (id, username, email, password) VALUES (%s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
+            users_data,
+        )
+        postgres_db.commit()
+
+        cur.close()
+        postgres_db.close()
+
+
 @app.route("/")
 def hello_world():
     return "Hello, World!\\n"
@@ -194,7 +282,7 @@ def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -243,22 +331,27 @@ def waf(*args, **kwargs):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.route("/rasp/lfi", methods=["GET", "POST"])
-def rasp_lfi(*args, **kwargs):
-    file = None
+def retrieve_arg(key: str):
+    res = None
     if request.method == "GET":
-        file = flask_request.args.get("file")
+        res = flask_request.args.get(key)
     elif request.method == "POST":
         try:
-            file = (request.form or request.json or {}).get("file")
+            res = (request.form or request.json or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(flask_request.data).get("file")
+            if res is None:
+                res = xmltodict.parse(flask_request.data).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return res
+
+
+@app.route("/rasp/lfi", methods=["GET", "POST"])
+def rasp_lfi(*args, **kwargs):
+    file = retrieve_arg("file")
     if file is None:
         return Response("missing file parameter", status=400)
     try:
@@ -269,23 +362,26 @@ def rasp_lfi(*args, **kwargs):
         return f"{file} could not be open: {e!r}"
 
 
+@app.route("/rasp/multiple", methods=["GET", "POST"])
+def rasp_multiple(*args, **kwargs):
+    file1 = retrieve_arg("file1")
+    file2 = retrieve_arg("file2")
+    if file1 is None or file2 is None:
+        return Response("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return Response(f"files open with {lengths} bytes")
+
+
 @app.route("/rasp/ssrf", methods=["GET", "POST"])
 def rasp_ssrf(*args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = flask_request.args.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.form or request.json or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(flask_request.data).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = retrieve_arg("domain")
     if domain is None:
         return Response("missing domain parameter", status=400)
     try:
@@ -297,21 +393,7 @@ def rasp_ssrf(*args, **kwargs):
 
 @app.route("/rasp/sqli", methods=["GET", "POST"])
 def rasp_sqli(*args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = flask_request.args.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.form or request.json or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(flask_request.data).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg("user_id")
     if user_id is None:
         return "missing user_id parameter", 400
     try:
@@ -329,23 +411,9 @@ def rasp_sqli(*args, **kwargs):
 
 @app.route("/rasp/shi", methods=["GET", "POST"])
 def rasp_shi(*args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = flask_request.args.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.form or request.json or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(flask_request.data).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg("list_dir")
     if list_dir is None:
-        return "missing user_id parameter", 400
+        return "missing list_dir parameter", 400
     try:
         command = f"ls {list_dir}"
         res = os.system(command)
@@ -355,7 +423,75 @@ def rasp_shi(*args, **kwargs):
         return f"Shell command failure: {e!r}", 201
 
 
+@app.route("/rasp/cmdi", methods=["GET", "POST"])
+def rasp_cmdi(*args, **kwargs):
+    cmd = None
+    if request.method == "GET":
+        cmd = flask_request.args.get("command")
+    elif request.method == "POST":
+        try:
+            cmd = (request.form or request.json or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(flask_request.data).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return "missing cmd parameter", 400
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return f"Exec command [{cmd}] with result: [{res.returncode}]: {res.stdout}", 200
+    except Exception as e:
+        return f"Exec command [{cmd}] yfailure: {e!r}", 201
+
+
 ### END EXPLOIT PREVENTION
+
+
+@app.route("/graphql", methods=["GET", "POST"])
+def graphql_error_spans(*args, **kwargs):
+    from integrations.graphql import Query
+
+    data = request.get_json()
+
+    schema = graphene.Schema(query=Query)
+
+    result = schema.execute(
+        data["query"],
+        variables=data.get("variables"),
+        operation_name=data.get("operationName"),
+    )
+
+    if result.errors:
+        return jsonify(format_error(result.errors)), 200
+
+    return jsonify(result.to_dict())
+
+
+def format_error(errors):
+    formatted_errors = []
+    for error in errors:
+        formatted_errors.append(
+            {
+                "message": error.message,
+                "extensions": error.extensions,
+            }
+        )
+    return {"errors": formatted_errors}
+
+
+@app.route("/add_event", methods=["GET", "POST"])
+def add_event():
+    span = tracer.current_root_span()
+    assert span
+    name = "span_event"
+    attributes = {"string": "value", "int": 1}
+    span._add_event(name=name, attributes=attributes)
+    return {"message": "event added", "status_code": 200}
 
 
 @app.route("/read_file", methods=["GET"])
@@ -944,8 +1080,9 @@ def view_weak_cipher_secure():
     return Response("OK")
 
 
-def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+def _sink_point_sqli(table="users", id="1"):
+    check_and_create_users_table()
+    sql = f"SELECT * FROM {table} WHERE id = '" + id + "'"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
     try:
@@ -1021,6 +1158,94 @@ def view_iast_source_parameter():
     return Response("OK")
 
 
+@app.route("/iast/sampling-by-route-method-count/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method(id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if flask_request.args:
+        param_tainted = flask_request.args.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    elif flask_request.form:
+        param_tainted = flask_request.form.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
+@app.route("/iast/sampling-by-route-method-count-2/<string:id>", methods=["GET", "POST"])
+def view_iast_sampling_by_route_method_2(id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = flask_request.args.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return Response("OK")
+
+
 @app.route("/iast/source/path/test", methods=["GET", "POST"])
 def view_iast_source_path():
     table = flask_request.path
@@ -1069,20 +1294,10 @@ def view_iast_ssrf_insecure():
 
 @app.route("/iast/ssrf/test_secure", methods=["POST"])
 def view_iast_ssrf_secure():
-    from urllib.parse import urlparse
-
     import requests
 
-    url = flask_request.form["url"]
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return "Forbidden", 403
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadoghq.com")
     except Exception:
         pass
 
@@ -1105,6 +1320,78 @@ def view_iast_header_injection_secure():
     return resp
 
 
+@app.route("/iast/code_injection/test_insecure", methods=["POST"])
+def view_iast_code_injection_insecure():
+    code_string = flask_request.form["code"]
+    _ = eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure():
+    location = flask_request.form["location"]
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_insecure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_insecure_header():
+    location = flask_request.form["location"]
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_redirect", methods=["POST"])
+def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@app.route("/iast/unvalidated_redirect/test_secure_header", methods=["POST"])
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = Response("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.route("/iast/code_injection/test_secure", methods=["POST"])
+def view_iast_code_injection_secure():
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = flask_request.form["code"]
+    _ = safe_eval(code_string)
+    resp = Response("OK")
+    return resp
+
+
+@app.route("/iast/xss/test_insecure", methods=["POST"])
+def view_iast_xss_insecure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param|safe }}</p>", param=param)
+
+
+@app.route("/iast/xss/test_secure", methods=["POST"])
+def view_iast_xss_secure():
+    param = flask_request.form["param"]
+
+    return render_template_string("<p>XSS: {{ param }}</p>", param=param)
+
+
 _TRACK_METADATA = {
     "metadata0": "value0",
     "metadata1": "value1",
@@ -1116,7 +1403,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.route("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return Response("OK")
 
 
@@ -1128,40 +1417,84 @@ def track_user_login_failure_event():
     return Response("OK")
 
 
+@app.before_request
+def before_request():
+    try:
+        current_user = DB_USER.get(flask.session.get("login"), None)
+        if current_user:
+            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+    except Exception:
+        # to be compatible with all tracer versions
+        pass
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     username = flask_request.form.get("username")
     password = flask_request.form.get("password")
     sdk_event = flask_request.args.get("sdk_event")
-    if sdk_event:
-        sdk_user = flask_request.args.get("sdk_user")
-        sdk_mail = flask_request.args.get("sdk_mail")
-        sdk_user_exists = flask_request.args.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return Response("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return Response("login failure", status=401)
     authorisation = flask_request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user = User.check(username, password)
     if success:
         login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user.uid, login_events_mode="auto")
-        return Response("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user.uid, login_events_mode="auto", login=username
+        )
+        flask.session["login"] = user.login
     elif user:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=user.uid, exists=True, login_events_mode="auto"
+            tracer, user_id=user.uid, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = flask_request.args.get("sdk_user")
+        sdk_mail = flask_request.args.get("sdk_mail")
+        sdk_user_exists = flask_request.args.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return Response("OK")
     return Response("login failure", status=401)
+
+
+@app.route("/user_login_success_event_v2", methods=["POST"])
+def user_login_success_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return Response("OK", status=200)
+
+
+@app.route("/user_login_failure_event_v2", methods=["POST"])
+def user_login_failure_event():
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return Response("KO", status=420)
+
+    json_data = request.get_json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return Response("OK", status=200)
 
 
 _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
@@ -1175,25 +1508,30 @@ def track_custom_event():
 
 @app.route("/iast/sqli/test_secure", methods=["POST"])
 def view_sqli_secure():
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    check_and_create_users_table()
+    sql = "SELECT * FROM users WHERE username = %s AND password = %s"
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql, flask_request.form["username"], flask_request.form["password"])
+    cursor.execute(sql, (flask_request.form["username"], flask_request.form["password"]))
     return Response("OK")
 
 
 @app.route("/iast/sqli/test_insecure", methods=["POST"])
 def view_sqli_insecure():
+    check_and_create_users_table()
     sql = (
-        "SELECT * FROM IAST_USER WHERE USERNAME = '"
+        "SELECT * FROM users WHERE username = '"
         + flask_request.form["username"]
-        + "' AND PASSWORD = '"
+        + "' AND password = '"
         + flask_request.form["password"]
         + "'"
     )
     postgres_db = psycopg2.connect(**POSTGRES_CONFIG)
     cursor = postgres_db.cursor()
-    cursor.execute(sql)
+    try:
+        cursor.execute(sql)
+    except Exception:
+        pass
     return Response("OK")
 
 
@@ -1204,6 +1542,13 @@ def set_cookie():
     resp = Response("OK")
     resp.headers["Set-Cookie"] = f"{name}={value}"
     return resp
+
+
+@app.route("/log/library", methods=["GET"])
+def log_library():
+    message = flask_request.args.get("msg")
+    log.info(message)
+    return Response("OK")
 
 
 @app.route("/iast/insecure-cookie/test_insecure")
@@ -1282,25 +1627,53 @@ def test_weak_randomness_secure():
     return Response("OK")
 
 
+@app.route("/iast/stack_trace_leak/test_insecure")
+def test_stacktrace_leak_insecure():
+    return Response(
+        """Traceback (most recent call last):
+File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+result = complex_calculation(data)
+File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+intermediate = perform_subtask(data_slice)
+File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+processed = handle_special_case(data_slice)
+File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+return apply_algorithm(data_slice, params)
+File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+step_result = execute_step(data, params)
+File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+temp = pre_process(data)
+File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+validated_data = validate_input(data)
+File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+check_constraints(data)
+File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+"""
+    )
+
+
+@app.route("/iast/stack_trace_leak/test_secure")
+def test_stacktrace_leak_secure():
+    return Response("OK")
+
+
 @app.route("/iast/cmdi/test_insecure", methods=["POST"])
 def view_cmdi_insecure():
     filename = "/"
     command = flask_request.form["cmd"]
-    subp = subprocess.Popen(args=[command, "-la", filename])
-    subp.communicate()
-    subp.wait()
-
+    os.system(command + " -la " + filename)
     return Response("OK")
 
 
 @app.route("/iast/cmdi/test_secure", methods=["POST"])
 def view_cmdi_secure():
     filename = "/"
-    command = " ".join([flask_request.form["cmd"], "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    command = flask_request.form["cmd"]
+    os.system(shlex.quote(command) + " -la " + filename)
     return Response("OK")
 
 
@@ -1327,7 +1700,7 @@ def db():
 def create_extra_service():
     new_service_name = request.args.get("serviceName", default="", type=str)
     if new_service_name:
-        Pin.override(Flask, service=new_service_name, tracer=tracer)
+        Pin.override(Flask, service=new_service_name)
     return Response("OK")
 
 
@@ -1335,9 +1708,10 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1355,9 +1729,10 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http = urllib3.PoolManager()
+    http_poolmanager = urllib3.PoolManager(num_pools=1)
     # Sending a GET request and getting back response as HTTPResponse object.
-    response = http.request("GET", "http://localhost:7777/returnheaders")
+    response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
+    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1441,3 +1816,40 @@ def s3_multipart_upload():
         result = {"result": "ok", "object": {"e_tag": response.e_tag.replace('"', "")}}
 
     return jsonify(result)
+
+
+@app.route("/otel_drop_in_default_propagator_extract", methods=["GET"])
+def otel_drop_in_default_propagator_extract():
+    def get_header_from_flask_request(request, key):
+        return request.headers.get(key)
+
+    context = opentelemetry.propagate.extract(flask_request.headers, opentelemetry.context.get_current())
+
+    span_context = opentelemetry.trace.get_current_span(context).get_span_context()
+
+    result = {}
+    result["trace_id"] = int(format(span_context.trace_id, "032x")[16:], 16)
+    result["span_id"] = span_context.span_id
+    result["tracestate"] = str(span_context.trace_state)
+    result["baggage"] = str(opentelemetry.baggage.get_all(context))
+
+    return jsonify(result)
+
+
+@app.route("/otel_drop_in_default_propagator_inject", methods=["GET"])
+def otel_drop_in_default_propagator_inject():
+    result = {}
+    opentelemetry.propagate.inject(result, opentelemetry.context.get_current())
+
+    return jsonify(result)
+
+
+@app.route("/inferred-proxy/span-creation", methods=["GET"])
+def inferred_proxy_span_creation():
+    headers = flask_request.args.get("headers", {})
+    status = int(flask_request.args.get("status_code", "200"))
+
+    logging.info("Received an API Gateway request")
+    logging.info("Request headers: " + str(headers))
+
+    return Response("ok", status=status)

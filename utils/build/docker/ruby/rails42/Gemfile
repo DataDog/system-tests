@@ -21,6 +21,9 @@ gem 'turbolinks'
 # Build JSON APIs with ease. Read more: https://github.com/rails/jbuilder
 gem 'jbuilder', '~> 2.0'
 
+# For AppSec Server-Side-Request-Forgery tests
+gem "faraday"
+
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
 
@@ -37,6 +40,7 @@ end
 
 gem 'pry'
 gem 'devise'
+gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
 gem 'mini_racer', '~> 0.4.0', platforms: :ruby
 gem 'puma', '5.0.2'

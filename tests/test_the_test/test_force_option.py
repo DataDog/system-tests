@@ -38,7 +38,7 @@ class Test_ForceOption:
         assert tests[nodeid]["outcome"] == "passed", "The test should be forced, so not xpassed"
 
 
-@bug(True, reason="FAKE-001")
+@bug(condition=True, reason="FAKE-001")
 @scenarios.mock_the_test
 class Test_Bug:
     def test_forced(self):
@@ -48,7 +48,7 @@ class Test_Bug:
         assert True
 
 
-@irrelevant(True)
+@irrelevant(condition=True)
 @scenarios.mock_the_test
 class Test_Irrelevant:
     def test_forced(self):
@@ -60,10 +60,10 @@ class Test_Irrelevant:
 
 @scenarios.mock_the_test
 class Test_Direct:
-    @bug(True, reason="FAKE-001")
+    @bug(condition=True, reason="FAKE-001")
     def test_bug(self):
         assert True
 
-    @irrelevant(True)
+    @irrelevant(condition=True)
     def test_irrelevant(self):
         assert True

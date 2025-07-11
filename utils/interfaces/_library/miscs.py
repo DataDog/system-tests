@@ -12,11 +12,11 @@ class _SpanTagValidator:
 
     path_filters = ["/v0.4/traces", "/v0.5/traces"]
 
-    def __init__(self, tags, value_as_regular_expression):
+    def __init__(self, tags: dict | None, *, value_as_regular_expression: bool):
         self.tags = {} if tags is None else tags
         self.value_as_regular_expression = value_as_regular_expression
 
-    def __call__(self, span):
+    def __call__(self, span: dict):
         for tag_key in self.tags:
             if tag_key not in span["meta"]:
                 raise ValueError(f"{tag_key} tag not found in span's meta")
@@ -33,3 +33,11 @@ class _SpanTagValidator:
                 raise ValueError(f'{tag_key} tag in span\'s meta should be "{expect_value}", not "{actual_value}"')
 
         return True
+
+
+def validate_process_tags(process_tags: str):
+    # entrypoint name and workdir can always be defined.
+    if "entrypoint.name:" not in process_tags:
+        raise ValueError(f"No entrypoint.name defined in process tags. Current: {process_tags}")
+    if "entrypoint.workdir:" not in process_tags:
+        raise ValueError(f"No entrypoint.workdir defined in process tags. Current: {process_tags}")

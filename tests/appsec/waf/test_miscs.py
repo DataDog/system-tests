@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules
+from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -47,6 +47,10 @@ class Test_MultipleAttacks:
     def setup_basic(self):
         self.r_basic = weblog.get("/waf/", headers={"User-Agent": "/../"}, params={"key": "appscan_fingerprint"})
 
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify",
+        reason="Query string not supported yet",
+    )
     def test_basic(self):
         """Basic test with more than one attack"""
         interfaces.library.assert_waf_attack(self.r_basic, pattern="/../")

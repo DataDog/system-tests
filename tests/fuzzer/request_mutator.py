@@ -4,14 +4,16 @@
 
 import random
 import os
+from pathlib import Path
 import re
+from typing import Any
 from urllib.parse import quote
 from tests.fuzzer.tools import data
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
 
 
 def _get_data_file(name):
-    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = Path(os.path.realpath(__file__)).parent
     return open(os.path.join(dir_path, "data", name), "rb").read()
 
 
@@ -90,7 +92,7 @@ def _mutate_item(item):
         item = random.choice((True, False))
 
     else:
-        # TODO
+        # TODO: other use cases
         pass
 
     return item
@@ -164,10 +166,10 @@ def _get_string_from_list(items, characters, min_length=0):
 class RequestMutator:
     allow_empty_header_key = True
     allow_colon_in_first_in_header_key = True
-    allowed_json_payload_types = (dict, tuple, list, str, float, int)
+    allowed_json_payload_types: tuple[type, ...] = (dict, tuple, list, str, float, int)
     max_path_length = 65000
 
-    methods = (
+    methods: tuple[str, ...] = (
         "ACL",
         "BASELINE-CONTROL",
         "CHECKIN",
@@ -224,7 +226,7 @@ class RequestMutator:
     )
     generic_header_keys = ("", "User-Agent", "Content-length", "content-type")
 
-    header_values = ["", "../", "( ) {"] + data.blns
+    header_values = ["", "../", "( ) {", *data.blns]
     user_agents = (
         "Arachni/v1.2.1",
         "md5(acunetix_wvs_security_test)",
@@ -245,7 +247,7 @@ class RequestMutator:
     )
     header_characters = string_lists.unicode
 
-    charsets = (
+    charsets: tuple[str, ...] = (
         "utf-8",
         "ISO-8859-1",
         "Windows-1251",
@@ -287,20 +289,24 @@ class RequestMutator:
         "IBM850",
     )
 
-    payload_values = (
-        [None, "", 0, -1, 2**64 + 1, True, False]
-        + data.blns
-        + [
-            "ok",
-            "union select from",
-            "<vmlframe src=",
-            "http-equiv:+set-cookie",
-            "require('.')",
-            "file_0?",
-            "zlib://",
-            "1234-1234-1234-1234",
-        ]
-    )
+    payload_values = [
+        None,
+        "",
+        0,
+        -1,
+        2**64 + 1,
+        True,
+        False,
+        *data.blns,
+        "ok",
+        "union select from",
+        "<vmlframe src=",
+        "http-equiv:+set-cookie",
+        "require('.')",
+        "file_0?",
+        "zlib://",
+        "1234-1234-1234-1234",
+    ]
 
     file_data = [
         _get_data_file("image1.jpg"),
@@ -316,21 +322,22 @@ class RequestMutator:
     ]
 
     # These items causes false positive, never test them
-    invalid_methods = tuple()
-    invalid_header_keys = tuple()
+    invalid_methods: tuple[str, ...] = ()
+    invalid_header_keys: tuple[str, ...] = ()
 
-    def __init__(self, no_mutation=False):
+    def __init__(self, *, no_mutation=False):
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
         self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
 
-        self.header_keys = self.generic_header_keys + self.ip_header_keys
-        self.header_keys = tuple(key for key in self.header_keys if key.lower() not in self.invalid_header_keys)
+        self.header_keys = tuple(
+            key for key in self.generic_header_keys + self.ip_header_keys if key.lower() not in self.invalid_header_keys
+        )
 
         self.no_mutation = no_mutation
 
     #############################
-    def mutate(self, request, mutations=3):
+    def mutate(self, request, mutations=3) -> None:
         if self.no_mutation:
             return
 
@@ -359,16 +366,15 @@ class RequestMutator:
             method(request)
 
     ################################
-    def change_method(self, request):
+    def change_method(self, request) -> None:
         request["method"] = random.choice(self.methods)
 
-    def set_random_path(self, request):
+    def set_random_path(self, request) -> None:
         path_length = random.randint(0, 32)
-        items = random.choices(data.blns, k=path_length)
-        items = map(quote, items)
+        items = (quote(item) for item in random.choices(data.blns, k=path_length))
         request["path"] = ("/" + "/".join(items))[: self.max_path_length]
 
-    def mutate_path(self, request):
+    def mutate_path(self, request) -> None:
         path = _mutate_string(request["path"], "/azerty?&=")
 
         if not path.startswith("/"):
@@ -376,13 +382,13 @@ class RequestMutator:
 
         request["path"] = path[: self.max_path_length]
 
-    def add_cookie(self, request):
+    def add_cookie(self, request) -> None:
         cookies = request.get("cookies", {})
 
         key = self.get_cookie_key()
         cookies[key] = self.get_cookie_value()
 
-    def remove_cookie(self, request):
+    def remove_cookie(self, request) -> None:
         cookies = request.get("cookies", None)
 
         if not cookies or len(cookies) == 0:
@@ -390,14 +396,14 @@ class RequestMutator:
 
         cookies.pop(random.choice(tuple(cookies)))
 
-    def add_header(self, request):
+    def add_header(self, request) -> None:
         if "headers" not in request:
             request["headers"] = []
 
         key = self.get_header_key()
         request["headers"].append([key, self.get_header_value(key)])
 
-    def remove_header(self, request):
+    def remove_header(self, request) -> None:
         headers = request.get("headers", None)
 
         if not headers or len(headers) == 0:
@@ -405,7 +411,7 @@ class RequestMutator:
 
         headers.pop(random.randint(0, len(headers) - 1))
 
-    def mutate_header_value(self, request):
+    def mutate_header_value(self, request) -> None:
         headers = request.get("headers", None)
 
         if not headers or len(headers) == 0:
@@ -414,7 +420,7 @@ class RequestMutator:
         header = random.choice(headers)
         header[1] = self.get_header_value(header[0], header[1])
 
-    def mutate_ip(self, ip):
+    def mutate_ip(self, ip) -> str:
         if ip is None:
             ip = random.choice(
                 tuple(f"{i}.0.0.0" for i in range(100))
@@ -439,25 +445,25 @@ class RequestMutator:
 
         return ip
 
-    def set_random_payload(self, request):
+    def set_random_payload(self, request) -> None:
         request.pop("data", None)
         request.pop("json", None)
 
         payload_type = random.choice(self.payload_types)
         request[payload_type] = self.get_random_payload(payload_type)
 
-    def mutate_payload(self, request):
+    def mutate_payload(self, request) -> None:
         for payload_type in ("data", "json"):
             if payload_type in request:
                 request[payload_type] = _mutate_item(request[payload_type])
 
-    def reduce_payload(self, request):
+    def reduce_payload(self, request) -> None:
         if "json" in request:
             _reduce_item(request["json"])
         elif "data" in request:
             _reduce_item(request["data"])
 
-    def enlarge_payload(self, request):
+    def enlarge_payload(self, request) -> None:
         for payload_type in ("data", "json"):
             if payload_type in request:
                 key = self.get_payload_key()
@@ -465,13 +471,13 @@ class RequestMutator:
                 _enlarge_item(request[payload_type], key, value)
 
     ################################
-    def get_cookie_key(self):
+    def get_cookie_key(self) -> str:
         return gru()
 
-    def get_cookie_value(self):
+    def get_cookie_value(self) -> str:
         return gru()
 
-    def get_header_key(self):
+    def get_header_key(self) -> str:
         result = random.choice(self.header_keys)
         result = result if result else get_random_string(self.header_characters, min_length=1)
 
@@ -480,7 +486,7 @@ class RequestMutator:
 
         return result
 
-    def get_header_value(self, key, previous_value=None):
+    def get_header_value(self, key, previous_value=None) -> str:
         if previous_value:
             return _mutate_string(previous_value, self.header_characters)
 
@@ -500,17 +506,17 @@ class RequestMutator:
 
         return _get_string_from_list(self.header_values, self.header_characters, min_length=1)
 
-    def _get_random_content_type(self):
+    def _get_random_content_type(self) -> str:
         return "text/html;charset=" + self._get_random_charset()
 
-    def _get_random_charset(self):
+    def _get_random_charset(self) -> str:
         # https://w3techs.com/technologies/overview/character_encoding
         return random.choice(self.charsets)
 
-    def get_random_payload(self, payload_type):
+    def get_random_payload(self, payload_type) -> str | dict:
         if payload_type == "json":
             count = random.randint(1, 10)
-            return {self.get_payload_key(): self.get_payload_value(True) for _ in range(count)}
+            return {self.get_payload_key(): self.get_payload_value(allow_nested=True) for _ in range(count)}
 
         choice = random.randint(0, 50)
         if choice <= 1:
@@ -522,10 +528,10 @@ class RequestMutator:
         count = random.randint(1, 10)
         return {self.get_payload_key(): self.get_payload_value() for _ in range(count)}
 
-    def get_payload_key(self):
+    def get_payload_key(self) -> str:
         return random.choice(data.blns)
 
-    def get_payload_value(self, allow_nested=False):
+    def get_payload_value(self, *, allow_nested=False) -> Any:  # noqa: ANN401
         if not allow_nested:
             return random.choice(self.payload_values)
 
@@ -537,10 +543,8 @@ class RequestMutator:
         )
 
     ################################
-    def clean_request(self, request):
-        """
-        The purpose if this function is to clean requests from corpus that may cause a HTTP 500 response
-        """
+    def clean_request(self, request) -> None:
+        """The purpose if this function is to clean requests from corpus that may cause a HTTP 500 response"""
 
         # request["path"] = request["path"][:self.max_path_length]
 
@@ -703,7 +707,7 @@ class JavaRequestMutator(RequestMutator):
 
     invalid_header_keys = ("Content-length",)
 
-    charsets = [charset for charset in RequestMutator.charsets if charset not in ("ISO-8859-16",)]
+    charsets: tuple[str, ...] = tuple(charset for charset in RequestMutator.charsets if charset not in ("ISO-8859-16",))
 
 
 class PhpRequestMutator(RequestMutator):
@@ -737,26 +741,23 @@ class PhpRequestMutator(RequestMutator):
     invalid_header_keys = ("Content-length",)
 
 
-def get_mutator(no_mutation, weblog):
+def get_mutator(no_mutation, weblog) -> RequestMutator:
     if weblog.weblog_variant == "basic-sinatra":
-        mutator = SinatraRequestMutator(no_mutation=no_mutation)
+        return SinatraRequestMutator(no_mutation=no_mutation)
 
-    elif weblog.weblog_variant == "rails":
-        mutator = RailsRequestMutator(no_mutation=no_mutation)
+    if weblog.weblog_variant == "rails":
+        return RailsRequestMutator(no_mutation=no_mutation)
 
-    elif weblog.library == "java":
-        mutator = JavaRequestMutator(no_mutation=no_mutation)
+    if weblog.library == "java":
+        return JavaRequestMutator(no_mutation=no_mutation)
 
-    elif weblog.library == "nodejs":
-        mutator = NodeRequestMutator(no_mutation=no_mutation)
+    if weblog.library == "nodejs":
+        return NodeRequestMutator(no_mutation=no_mutation)
 
-    elif weblog.library == "php":
-        mutator = PhpRequestMutator(no_mutation=no_mutation)
+    if weblog.library == "php":
+        return PhpRequestMutator(no_mutation=no_mutation)
 
-    elif weblog.weblog_variant == "flask":
-        mutator = FlaskRequestMutator(no_mutation=no_mutation)
+    if weblog.weblog_variant == "flask":
+        return FlaskRequestMutator(no_mutation=no_mutation)
 
-    else:
-        mutator = RequestMutator(no_mutation=no_mutation)
-
-    return mutator
+    return RequestMutator(no_mutation=no_mutation)

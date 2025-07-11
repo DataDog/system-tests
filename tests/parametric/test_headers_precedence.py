@@ -1,15 +1,13 @@
-from typing import Any
-
 import pytest
 
-from utils.parametric.spec.tracecontext import get_tracecontext, TRACECONTEXT_FLAGS_SET
-from utils.parametric.spec.trace import retrieve_span_links, find_span_in_traces
+from utils.parametric.spec.tracecontext import get_tracecontext
 from utils import bug, missing_feature, context, irrelevant, scenarios, features
+from .conftest import APMLibrary
 
 parametrize = pytest.mark.parametrize
 
 
-def enable_tracecontext() -> Any:
+def enable_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
@@ -17,7 +15,7 @@ def enable_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog() -> Any:
+def enable_datadog() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog",
@@ -25,7 +23,7 @@ def enable_datadog() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog_tracecontext() -> Any:
+def enable_datadog_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,tracecontext",
@@ -33,7 +31,7 @@ def enable_datadog_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_tracecontext_datadog() -> Any:
+def enable_tracecontext_datadog() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
@@ -41,7 +39,7 @@ def enable_tracecontext_datadog() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_datadog_b3multi_tracecontext_extract_first_false() -> Any:
+def enable_datadog_b3multi_tracecontext_extract_first_false() -> pytest.MarkDecorator:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
@@ -54,7 +52,7 @@ def enable_datadog_b3multi_tracecontext_extract_first_false() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
-def enable_datadog_b3multi_tracecontext_extract_first_true() -> Any:
+def enable_datadog_b3multi_tracecontext_extract_first_true() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "Datadog,b3multi,tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "Datadog,b3multi,tracecontext",
@@ -63,7 +61,7 @@ def enable_datadog_b3multi_tracecontext_extract_first_true() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_tracecontext_datadog_b3multi_extract_first_false() -> Any:
+def enable_tracecontext_datadog_b3multi_extract_first_false() -> pytest.MarkDecorator:
     env1 = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
@@ -76,7 +74,7 @@ def enable_tracecontext_datadog_b3multi_extract_first_false() -> Any:
     return parametrize("library_env", [env1, env2])
 
 
-def enable_tracecontext_datadog_b3multi_extract_first_true() -> Any:
+def enable_tracecontext_datadog_b3multi_extract_first_true() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog,b3multi",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog,b3multi",
@@ -225,49 +223,49 @@ class Test_Headers_Precedence:
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 
     @enable_tracecontext_datadog()
-    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library):
+    def test_headers_precedence_propagationstyle_tracecontext_datadog(self, test_agent, test_library: APMLibrary):
         with test_library:
             # 1) No headers
             headers1 = test_library.dd_make_child_span_and_get_headers([])
 
             # 2) Only tracecontext headers
             headers2 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01")]
             )
 
             # 3) Only tracecontext headers, includes existing tracestate
             headers3 = test_library.dd_make_child_span_and_get_headers(
-                [["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"], ["tracestate", "foo=1"]]
+                [("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"), ("tracestate", "foo=1")]
             )
 
             # 4) Both tracecontext and Datadog headers
             headers4 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-1234567890123456-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 5) Only Datadog headers
             headers5 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
             # 6) Invalid tracecontext, valid Datadog headers
             headers6 = test_library.dd_make_child_span_and_get_headers(
                 [
-                    ["traceparent", "00-12345678901234567890123456789012-0000000000000000-01"],
-                    ["tracestate", "foo=1"],
-                    ["x-datadog-trace-id", "123456789"],
-                    ["x-datadog-parent-id", "987654321"],
-                    ["x-datadog-sampling-priority", "-2"],
+                    ("traceparent", "00-12345678901234567890123456789012-0000000000000000-01"),
+                    ("tracestate", "foo=1"),
+                    ("x-datadog-trace-id", "123456789"),
+                    ("x-datadog-parent-id", "987654321"),
+                    ("x-datadog-sampling-priority", "-2"),
                 ],
             )
 
@@ -279,22 +277,24 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent1, tracestate1 = get_tracecontext(headers1)
-        tracestate1Arr = str(tracestate1).split(",")
+        tracestate_1_arr = str(tracestate1).split(",")
         assert "traceparent" in headers1
         assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
         assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
-        assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
+        assert len(tracestate_1_arr) == 1
+        assert tracestate_1_arr[0].startswith("dd=")
 
         # 2) Only tracecontext headers
         # Result: traceparent used
         traceparent2, tracestate2 = get_tracecontext(headers2)
-        tracestate2Arr = str(tracestate2).split(",")
+        tracestate_2_arr = str(tracestate2).split(",")
         assert "traceparent" in headers2
         assert traceparent2.trace_id == "12345678901234567890123456789012"
         assert traceparent2.parent_id != "1234567890123456"
         assert "tracestate" in headers2
-        assert len(tracestate2Arr) == 1 and tracestate2Arr[0].startswith("dd=")
+        assert len(tracestate_2_arr) == 1
+        assert tracestate_2_arr[0].startswith("dd=")
 
         # Datadog also injected, assert that they are equal to traceparent values
         assert int(headers2["x-datadog-trace-id"]) == int(traceparent2.trace_id[16:], base=16)
@@ -304,12 +304,14 @@ class Test_Headers_Precedence:
         # 3) Only tracecontext headers, includes existing tracestate
         # Result: traceparent used
         traceparent3, tracestate3 = get_tracecontext(headers3)
-        tracestate3Arr = str(tracestate3).split(",")
+        tracestate_3_arr = str(tracestate3).split(",")
         assert "traceparent" in headers3
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
+        assert len(tracestate_3_arr) == 2
+        assert tracestate_3_arr[0].startswith("dd=")
+        assert tracestate_3_arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
         assert int(headers3["x-datadog-trace-id"]) == int(traceparent3.trace_id[16:], base=16)
@@ -319,12 +321,14 @@ class Test_Headers_Precedence:
         # 4) Both tracecontext and Datadog headers
         # Result: traceparent used
         traceparent4, tracestate4 = get_tracecontext(headers4)
-        tracestate4Arr = str(tracestate4).split(",")
+        tracestate_4_arr = str(tracestate4).split(",")
         assert "traceparent" in headers4
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert traceparent4.parent_id != "1234567890123456"
         assert "tracestate" in headers4
-        assert len(tracestate4Arr) == 2 and tracestate4Arr[0].startswith("dd=") and tracestate4Arr[1] == "foo=1"
+        assert len(tracestate_4_arr) == 2
+        assert tracestate_4_arr[0].startswith("dd=")
+        assert tracestate_4_arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
         assert int(headers4["x-datadog-trace-id"]) == int(traceparent4.trace_id[16:], base=16)
@@ -339,12 +343,13 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent5, tracestate5 = get_tracecontext(headers5)
-        tracestate5Arr = str(tracestate5).split(",")
+        tracestate_5_arr = str(tracestate5).split(",")
         assert "traceparent" in headers5
         assert int(traceparent5.trace_id, base=16) == int(headers5["x-datadog-trace-id"])
         assert int(traceparent5.parent_id, base=16) == int(headers5["x-datadog-parent-id"])
         assert "tracestate" in headers5
-        assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
+        assert len(tracestate_5_arr) == 1
+        assert tracestate_5_arr[0].startswith("dd=")
 
         # 6) Invalid tracecontext, valid Datadog headers
         # Result: Datadog used
@@ -354,12 +359,13 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent6, tracestate6 = get_tracecontext(headers6)
-        tracestate6Arr = str(tracestate6).split(",")
+        tracestate_6_arr = str(tracestate6).split(",")
         assert "traceparent" in headers6
         assert int(traceparent6.trace_id, base=16) == int(headers6["x-datadog-trace-id"])
         assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
         assert "tracestate" in headers6
-        assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+        assert len(tracestate_6_arr) == 1
+        assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_tracecontext()
     def test_headers_precedence_propagationstyle_tracecontext(self, test_agent, test_library):
@@ -410,10 +416,11 @@ class Test_Headers_Precedence:
 
         # 1) No headers
         # Result: new Datadog span context, tracestate updated with `dd` key
-        tracestate1Arr = headers1["tracestate"].split(",")
+        tracestate_1_arr = headers1["tracestate"].split(",")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
+        assert len(tracestate_1_arr) == 1
+        assert tracestate_1_arr[0].startswith("dd=")
         assert "x-datadog-trace-id" not in headers1
         assert "x-datadog-parent-id" not in headers1
         assert "x-datadog-sampling-priority" not in headers1
@@ -421,12 +428,13 @@ class Test_Headers_Precedence:
         # 2) Only tracecontext headers
         # Result: traceparent used, tracestate updated with `dd` key
         traceparent2, tracestate2 = get_tracecontext(headers2)
-        tracestate2Arr = str(tracestate2).split(",")
+        tracestate_2_arr = str(tracestate2).split(",")
         assert "traceparent" in headers2
         assert traceparent2.trace_id == "12345678901234567890123456789012"
         assert traceparent2.parent_id != "1234567890123456"
         assert "tracestate" in headers2
-        assert len(tracestate2Arr) == 1 and tracestate2Arr[0].startswith("dd=")
+        assert len(tracestate_2_arr)
+        assert tracestate_2_arr[0].startswith("dd=")
         assert "x-datadog-trace-id" not in headers2
         assert "x-datadog-parent-id" not in headers2
         assert "x-datadog-sampling-priority" not in headers2
@@ -434,12 +442,14 @@ class Test_Headers_Precedence:
         # 3) Only tracecontext headers, includes existing tracestate
         # Result: traceparent used, tracestate updated with `dd` key
         traceparent3, tracestate3 = get_tracecontext(headers3)
-        tracestate3Arr = str(tracestate3).split(",")
+        tracestate_3_arr = str(tracestate3).split(",")
         assert "traceparent" in headers3
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
+        assert len(tracestate_3_arr) == 2
+        assert tracestate_3_arr[0].startswith("dd=")
+        assert tracestate_3_arr[1] == "foo=1"
         assert "x-datadog-trace-id" not in headers3
         assert "x-datadog-parent-id" not in headers3
         assert "x-datadog-sampling-priority" not in headers3
@@ -447,32 +457,36 @@ class Test_Headers_Precedence:
         # 4) Both tracecontext and Datadog headers
         # Result: traceparent used, tracestate updated with `dd` key
         traceparent4, tracestate4 = get_tracecontext(headers4)
-        tracestate4Arr = str(tracestate4).split(",")
+        tracestate_4_arr = str(tracestate4).split(",")
         assert "traceparent" in headers4
         assert traceparent4.trace_id == "12345678901234567890123456789012"
         assert traceparent4.parent_id != "1234567890123456"
         assert "tracestate" in headers4
-        assert len(tracestate4Arr) == 2 and tracestate4Arr[0].startswith("dd=") and tracestate4Arr[1] == "foo=1"
+        assert len(tracestate_4_arr) == 2
+        assert tracestate_4_arr[0].startswith("dd=")
+        assert tracestate_4_arr[1] == "foo=1"
         assert "x-datadog-trace-id" not in headers4
         assert "x-datadog-parent-id" not in headers4
         assert "x-datadog-sampling-priority" not in headers4
 
         # 5) Only Datadog headers
         # Result: new Datadog span context, tracestate updated with `dd` key
-        tracestate5Arr = headers5["tracestate"].split(",")
+        tracestate_5_arr = headers5["tracestate"].split(",")
         assert "traceparent" in headers5
         assert "tracestate" in headers5
-        assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
+        assert len(tracestate_5_arr) == 1
+        assert tracestate_5_arr[0].startswith("dd=")
         assert "x-datadog-trace-id" not in headers5
         assert "x-datadog-parent-id" not in headers5
         assert "x-datadog-sampling-priority" not in headers5
 
         # 6) Invalid tracecontext, valid Datadog headers
         # Result: new Datadog span context, tracestate updated with `dd` key
-        tracestate6Arr = headers6["tracestate"].split(",")
+        tracestate_6_arr = headers6["tracestate"].split(",")
         assert "traceparent" in headers6
         assert "tracestate" in headers6
-        assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+        assert len(tracestate_6_arr) == 1
+        assert tracestate_6_arr[0].startswith("dd=")
         assert "x-datadog-trace-id" not in headers6
         assert "x-datadog-parent-id" not in headers6
         assert "x-datadog-sampling-priority" not in headers6
@@ -543,22 +557,24 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent1, tracestate1 = get_tracecontext(headers1)
-        tracestate1Arr = str(tracestate1).split(",")
+        tracestate_1_arr = str(tracestate1).split(",")
         assert "traceparent" in headers1
         assert int(traceparent1.trace_id[-16:], base=16) == int(headers1["x-datadog-trace-id"])
         assert int(traceparent1.parent_id, base=16) == int(headers1["x-datadog-parent-id"])
         assert "tracestate" in headers1
-        assert len(tracestate1Arr) == 1 and tracestate1Arr[0].startswith("dd=")
+        assert len(tracestate_1_arr) == 1
+        assert tracestate_1_arr[0].startswith("dd=")
 
         # 2) Only tracecontext headers
         # Result: traceparent used
         traceparent2, tracestate2 = get_tracecontext(headers2)
-        tracestate2Arr = str(tracestate2).split(",")
+        tracestate_2_arr = str(tracestate2).split(",")
         assert "traceparent" in headers2
         assert traceparent2.trace_id == "12345678901234567890123456789012"
         assert traceparent2.parent_id != "1234567890123456"
         assert "tracestate" in headers2
-        assert len(tracestate2Arr) == 1 and tracestate2Arr[0].startswith("dd=")
+        assert len(tracestate_2_arr) == 1
+        assert tracestate_2_arr[0].startswith("dd=")
 
         # Datadog also injected, assert that they are equal to traceparent values
         assert int(headers2["x-datadog-trace-id"]) == int(traceparent2.trace_id[16:], base=16)
@@ -568,12 +584,14 @@ class Test_Headers_Precedence:
         # 3) Only tracecontext headers, includes existing tracestate
         # Result: traceparent used
         traceparent3, tracestate3 = get_tracecontext(headers3)
-        tracestate3Arr = str(tracestate3).split(",")
+        tracestate_3_arr = str(tracestate3).split(",")
         assert "traceparent" in headers3
         assert traceparent3.trace_id == "12345678901234567890123456789012"
         assert traceparent3.parent_id != "1234567890123456"
         assert "tracestate" in headers3
-        assert len(tracestate3Arr) == 2 and tracestate3Arr[0].startswith("dd=") and tracestate3Arr[1] == "foo=1"
+        assert len(tracestate_3_arr) == 2
+        assert tracestate_3_arr[0].startswith("dd=")
+        assert tracestate_3_arr[1] == "foo=1"
 
         # Datadog also injected, assert that they are equal to traceparent values
         assert int(headers3["x-datadog-trace-id"]) == int(traceparent3.trace_id[16:], base=16)
@@ -588,12 +606,13 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent4, tracestate4 = get_tracecontext(headers4)
-        tracestate4Arr = str(tracestate4).split(",")
+        tracestate_4_arr = str(tracestate4).split(",")
         assert "traceparent" in headers4
         assert int(traceparent4.trace_id, base=16) == int(headers4["x-datadog-trace-id"])
         assert int(traceparent4.parent_id, base=16) == int(headers4["x-datadog-parent-id"])
         assert "tracestate" in headers4
-        assert len(tracestate4Arr) == 1 and tracestate4Arr[0].startswith("dd=")
+        assert len(tracestate_4_arr) == 1
+        assert tracestate_4_arr[0].startswith("dd=")
 
         # 5) Only Datadog headers
         # Result: Datadog used
@@ -603,12 +622,13 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent5, tracestate5 = get_tracecontext(headers5)
-        tracestate5Arr = str(tracestate5).split(",")
+        tracestate_5_arr = str(tracestate5).split(",")
         assert "traceparent" in headers5
         assert int(traceparent5.trace_id, base=16) == int(headers5["x-datadog-trace-id"])
         assert int(traceparent5.parent_id, base=16) == int(headers5["x-datadog-parent-id"])
         assert "tracestate" in headers5
-        assert len(tracestate5Arr) == 1 and tracestate5Arr[0].startswith("dd=")
+        assert len(tracestate_5_arr) == 1
+        assert tracestate_5_arr[0].startswith("dd=")
 
         # 6) Invalid tracecontext, valid Datadog headers
         # Result: Datadog used
@@ -618,12 +638,13 @@ class Test_Headers_Precedence:
 
         # traceparent also injected, assert that they are equal to Datadog values
         traceparent6, tracestate6 = get_tracecontext(headers6)
-        tracestate6Arr = str(tracestate6).split(",")
+        tracestate_6_arr = str(tracestate6).split(",")
         assert "traceparent" in headers6
         assert int(traceparent6.trace_id, base=16) == int(headers6["x-datadog-trace-id"])
         assert int(traceparent6.parent_id, base=16) == int(headers6["x-datadog-parent-id"])
         assert "tracestate" in headers6
-        assert len(tracestate6Arr) == 1 and tracestate6Arr[0].startswith("dd=")
+        assert len(tracestate_6_arr) == 1
+        assert tracestate_6_arr[0].startswith("dd=")
 
     @enable_datadog_b3multi_tracecontext_extract_first_false()
     @missing_feature(context.library < "cpp@0.1.12", reason="Implemented in 0.1.12")
@@ -672,8 +693,7 @@ class Test_Headers_Precedence:
     def _test_headers_precedence_propagationstyle_includes_tracecontext_correctly_propagates_tracestate(
         self, test_agent, test_library, prefer_tracecontext, extract_first
     ):
-        """
-        This test asserts that ALL the propagators are executed in the specified
+        """This test asserts that ALL the propagators are executed in the specified
         order, and the the first propagator to extract a valid trace context determines
         the trace-id, parent-id, and supplemental information such as
         x-datadog-sampling-priority, x-datadog-tags, tracestate, etc.
@@ -749,7 +769,7 @@ class Test_Headers_Precedence:
                 ],
             )
 
-        traces = test_agent.wait_for_num_traces(num=5)
+        test_agent.wait_for_num_traces(num=5)
 
         # 1) Datadog and tracecontext headers, trace-id and span-id match, tracestate is present
         # Note: This is expected to be the most frequent case

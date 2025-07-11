@@ -1,13 +1,18 @@
+# keep this import in first
+import scrubber  # noqa: F401
+
 import asyncio
 from collections import defaultdict
 import json
 import logging
 import os
+from typing import Any
 from datetime import datetime, UTC
 
 from mitmproxy import master, options, http
 from mitmproxy.addons import errorcheck, default_addons
 from mitmproxy.flow import Error as FlowError, Flow
+from mitmproxy.http import HTTPFlow, Request
 
 from _deserializer import deserialize
 from ports import ProxyPorts
@@ -19,25 +24,11 @@ logger = logging.getLogger(__name__)
 
 SIMPLE_TYPES = (bool, int, float, type(None))
 
-messages_counts = defaultdict(int)
-
-
-class CustomFormatter(logging.Formatter):
-    def __init__(self, keys: list[str], *args, **kwargs) -> None:
-        super().__init__(*args, **kwargs)
-        self._keys = keys
-
-    def format(self, record):
-        result = super().format(record)
-
-        for key in self._keys:
-            result = result.replace(key, "{redacted-by-system-tests-proxy}")
-
-        return result
+messages_counts: dict[str, int] = defaultdict(int)
 
 
 class ObjectDumpEncoder(json.JSONEncoder):
-    def default(self, o):
+    def default(self, o: Any) -> Any:  # noqa: ANN401
         if isinstance(o, bytes):
             return str(o)
         return json.JSONEncoder.default(self, o)
@@ -45,19 +36,9 @@ class ObjectDumpEncoder(json.JSONEncoder):
 
 class _RequestLogger:
     def __init__(self) -> None:
-        self._keys = [
-            os.environ.get("DD_API_KEY"),
-            os.environ.get("DD_APPLICATION_KEY"),
-            os.environ.get("DD_APP_KEY"),
-        ]
-
-        self._keys = [key for key in self._keys if key is not None]
-
         handler = logging.StreamHandler()
         handler.setLevel(logging.DEBUG)
-        formatter = CustomFormatter(
-            fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S", keys=self._keys
-        )
+        formatter = logging.Formatter(fmt="%(asctime)s.%(msecs)03d %(levelname)-8s %(message)s", datefmt="%H:%M:%S")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
@@ -74,33 +55,14 @@ class _RequestLogger:
 
         # mimic the old API
         self.rc_api_sequential_commands = None
-        self.rc_api_runtime_ids_request_count = None
-
-    def _scrub(self, content):
-        if isinstance(content, str):
-            for key in self._keys:
-                content = content.replace(key, "{redacted-by-system-tests-proxy}")
-
-            return content
-
-        if isinstance(content, (list, set, tuple)):
-            return [self._scrub(item) for item in content]
-
-        if isinstance(content, dict):
-            return {key: self._scrub(value) for key, value in content.items()}
-
-        if isinstance(content, SIMPLE_TYPES):
-            return content
-
-        logger.error(f"Can't scrub type {type(content)}")
-        return "Content not properly deserialized by system-tests proxy. Please reach #apm-shared-testing on slack."
+        self.rc_api_runtime_ids_request_count: dict = {}
 
     @staticmethod
-    def get_error_response(message):
+    def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
         return http.Response.make(400, message)
 
-    def request(self, flow: Flow):
+    def request(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
 
@@ -165,10 +127,10 @@ class _RequestLogger:
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
     @staticmethod
-    def request_is_from_tracer(request):
+    def request_is_from_tracer(request: Request) -> bool:
         return request.host == "agent"
 
-    def response(self, flow):
+    def response(self, flow: HTTPFlow):
         # sockname is the local address (host, port) we received this connection on.
         port = flow.client_conn.sockname[1]
 
@@ -250,11 +212,6 @@ class _RequestLogger:
                     export_content_files_to=export_content_files_to,
                 )
 
-            try:
-                data = self._scrub(data)
-            except:
-                logger.exception("Fail to scrub data")
-
             logger.info(f"    => Saving data as {log_filename}")
 
             with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
@@ -263,7 +220,7 @@ class _RequestLogger:
         except:
             logger.exception("Unexpected error")
 
-    def _modify_response(self, flow):
+    def _modify_response(self, flow: Flow):
         if self.request_is_from_tracer(flow.request):
             if self.rc_api_enabled:
                 self._add_rc_capabilities_in_info_request(flow)
@@ -299,7 +256,7 @@ class _RequestLogger:
 
             self._modify_span_events_flag(flow)
 
-    def _remove_meta_structs_support(self, flow):
+    def _remove_meta_structs_support(self, flow: Flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
             if "span_meta_structs" in c:
@@ -307,7 +264,7 @@ class _RequestLogger:
                 c.pop("span_meta_structs")
                 flow.response.content = json.dumps(c).encode()
 
-    def _add_rc_capabilities_in_info_request(self, flow):
+    def _add_rc_capabilities_in_info_request(self, flow: Flow):
         if flow.request.path == "/info" and str(flow.response.status_code) == "200":
             c = json.loads(flow.response.content)
 
@@ -316,7 +273,7 @@ class _RequestLogger:
                 c["endpoints"].append("/v0.7/config")
                 flow.response.content = json.dumps(c).encode()
 
-    def _modify_span_events_flag(self, flow):
+    def _modify_span_events_flag(self, flow: Flow):
         """Modify the agent flag that signals support for native span event serialization.
         There are three possible cases:
         - Not configured: agent's response is not modified, the real agent behavior is preserved

@@ -26,7 +26,6 @@ lang_variant:
 weblog:
     name: test-app-java-multialpine
     nginx_config: utils/build/virtual_machine/weblogs/java/test-app-java-multialpine/nginx.conf
-    exact_os_branches: [ubuntu24]
     install: 
       - os_type: linux
         copy_files:

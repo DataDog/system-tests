@@ -2,7 +2,12 @@ package com.datadoghq.resteasy;
 
 import com.datadoghq.system_tests.iast.utils.*;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
@@ -31,6 +36,9 @@ import java.nio.charset.StandardCharsets;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
 
 @Path("/")
 @Produces(MediaType.TEXT_PLAIN)
@@ -70,7 +78,7 @@ public class MyResource {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -89,26 +97,119 @@ public class MyResource {
                 .entity("012345678901234567890123456789012345678901").build();
     }
 
+    /**
+     * Endpoint for sending a response with five custom headers.
+     */
     @GET
-    @Path("/tag_value/{value}/{code}")
-    public Response tagValue(@PathParam("value") String value, @PathParam("code") int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return Response.status(code)
-                .header("content-type", "text/plain")
-                .entity("Value tagged").build();
+    @Path("/customResponseHeaders")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response customResponseHeaders() {
+        return Response.status(200)
+                .header("Content-Language", "en-US")
+                .header("X-Test-Header-1", "value1")
+                .header("X-Test-Header-2", "value2")
+                .header("X-Test-Header-3", "value3")
+                .header("X-Test-Header-4", "value4")
+                .header("X-Test-Header-5", "value5")
+                .entity("Response with custom headers").build();
+    }
+
+    /**
+     * Endpoint for sending a response with more than fifty headers.
+     */
+    @GET
+    @Path("/exceedResponseHeaders")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response exceedResponseHeaders() {
+        Response.ResponseBuilder builder = Response.status(200);
+        for (int i = 1; i <= 50; i++) {
+            builder.header("X-Test-Header-" + i, "value" + i);
+        }
+        builder.header("Content-Language", "en-US");
+        return builder
+                .entity("Response with more than 50 headers").build();
+    }
+
+    @GET
+    @Path("/tag_value/{tag_value}/{status_code}")
+    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @OPTIONS
-    @Path("/tag_value/{value}/{code}")
-    public Response tagValueOptions(@PathParam("value") String value, @PathParam("code") int code) {
-        return tagValue(value, code);
+    @Path("/tag_value/{tag_value}/{status_code}")
+    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @POST
-    @Path("/tag_value/{value}/{code}")
+    @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePost(@PathParam("value") String value, @PathParam("code") int code, MultivaluedMap<String, String> form) {
-        return tagValue(value, code);
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, MultivaluedMap<String, String> form) {
+        ObjectNode body = null;
+        if (form != null) {
+            final ObjectMapper mapper = new ObjectMapper();
+            body = mapper.createObjectNode();
+            for (final String key : form.keySet()) {
+                final ArrayNode payloadValue = mapper.createArrayNode();
+                for (final String formValue : form.get(key)) {
+                    payloadValue.add(formValue);
+                }
+                body.put(key, payloadValue);
+            }
+        }
+        return handleTagValue(value, code, xOption, body);
+    }
+
+    @POST
+    @Path("/tag_value/{tag_value}/{status_code}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, JsonNode body) {
+        return handleTagValue(value, code, xOption, body);
+    }
+
+    private Response handleTagValue(final String value, final int code, final String xOption, final JsonNode body) {
+            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        Response.ResponseBuilder response = Response.status(code);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            final ObjectNode responseBody = new ObjectMapper().createObjectNode();
+            responseBody.put("payload", body);
+            response = response
+                    .entity(responseBody)
+                    .header("Content-Type", "application/json");
+        } else {
+            response = response
+                    .entity("Value tagged")
+                    .header("Content-Type", "text/plain");
+        }
+        return response.build();
+    }
+
+    @GET
+    @Path("/sample_rate_route/{i}")
+    public Response sampleRateRoute(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("OK\n").build();
+    }
+
+    @GET
+    @Path("/api_security/sampling/{i}")
+    public Response apiSecuritySamplingWithStatus(@PathParam("i") int i) {
+        return Response.status(i)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
+    }
+
+    @GET
+    @Path("/api_security_sampling/{i}")
+    public Response apiSecuritySampling(@PathParam("i") int i) {
+        return Response.status(200)
+                .header("content-type", "text/plain")
+                .entity("Hello!\n").build();
     }
 
     @GET
@@ -170,6 +271,12 @@ public class MyResource {
         return Response.status(code).build();
     }
 
+    @GET
+    @Path("/stats-unique")
+    public Response statsUnique(@QueryParam("code") @DefaultValue("200") Integer code) {
+        return Response.status(code).build();
+    }
+
     private static final Map<String, String> METADATA = createMetadata();
     private static final Map<String, String> createMetadata() {
         HashMap<String, String> h = new HashMap<>();
@@ -190,6 +297,19 @@ public class MyResource {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GET
+    @Path("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
     }
 
     @GET
@@ -220,6 +340,65 @@ public class MyResource {
                 .trackCustomEvent(eventName, METADATA);
 
         return "ok";
+    }
+
+    @POST
+    @Path("/user_login_success_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
+    public String userLoginSuccessV2(final UserEventRequest request) {
+        EventTrackerV2.trackUserLoginSuccess(request.getLogin(), request.getUserId(), request.getMetadata());
+        return "ok";
+    }
+
+    @POST
+    @Path("/user_login_failure_event_v2")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces({MediaType.TEXT_HTML, MediaType.TEXT_PLAIN})
+    public String userLoginFailureV2(final UserEventRequest request) {
+        EventTrackerV2.trackUserLoginFailure(request.getLogin(), request.getExists(), request.getMetadata());
+        return "ok";
+    }
+
+    public static class UserEventRequest {
+        private String login;
+        @JsonProperty("user_id")
+        private String userId;  // Optional for failure event
+        private boolean exists; // Optional for success event
+        private Map<String, String> metadata;
+
+        // Getters and Setters
+        public String getLogin() {
+            return login;
+        }
+
+        public void setLogin(String login) {
+            this.login = login;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public boolean getExists() {
+            return exists;
+        }
+
+        public void setExists(boolean exists) {
+            this.exists = exists;
+        }
+
+        public Map<String, String> getMetadata() {
+            return metadata;
+        }
+
+        public void setMetadata(Map<String, String> metadata) {
+            this.metadata = metadata;
+        }
     }
 
     @XmlRootElement(name = "string")

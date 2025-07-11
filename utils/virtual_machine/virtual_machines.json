@@ -1,0 +1,753 @@
+{
+    "virtual_machines": [
+        {
+            "name": "Ubuntu_18_amd64",
+            "aws_config": {
+                "ami_id": "ami-0263e4deb427da90e",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu18_amd64",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": true
+        },
+        {
+            "name": "Ubuntu_20_amd64",
+            "aws_config": {
+                "ami_id": "ami-0ffb8e1df897204c4",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu20_amd64",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_20_arm64",
+            "aws_config": {
+                "ami_id": "ami-0ccf50ab09c6df2d4",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu20_arm64",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_21_arm64",
+            "aws_config": {
+                "ami_id": "ami-05712368b95488c7b",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu21",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_22_amd64",
+            "aws_config": {
+                "ami_id": "ami-007855ac798b5175e",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "vagrant_config": {
+                "box_name": "bento/ubuntu-22.04"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu22_amd64",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_22_arm64",
+            "aws_config": {
+                "ami_id": "ami-016485166ec7fa705",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "vagrant_config": {
+                "box_name": "perk/ubuntu-2204-arm64"
+            },
+            "krunvm_config": {
+                "oci_image_name": "docker.io/library/ubuntu_datadog:22"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu22_arm64",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_23_04_amd64",
+            "aws_config": {
+                "ami_id": "ami-09c5d86a379ab69a5",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu23",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": true
+        },
+        {
+            "name": "Ubuntu_23_04_arm64",
+            "aws_config": {
+                "ami_id": "ami-0093a09a926ddbe35",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu23",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_23_10_amd64",
+            "aws_config": {
+                "ami_id": "ami-079a4355fa40b81e0",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu23",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": true
+        },
+        {
+            "name": "Ubuntu_23_10_arm64",
+            "aws_config": {
+                "ami_id": "ami-0b41986f4597707d2",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu23",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_24_amd64",
+            "aws_config": {
+                "ami_id": "ami-0e86e20dae9224db8",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu24",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_24_arm64",
+            "aws_config": {
+                "ami_id": "ami-0e879a1b306fffb22",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu24",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_24_10_amd64",
+            "aws_config": {
+                "ami_id": "ami-075426e0accc68b53",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu24",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_24_10_arm64",
+            "aws_config": {
+                "ami_id": "ami-0a5b3d67a84b13bf9",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu24",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Debian_12_amd64",
+            "aws_config": {
+                "ami_id": "ami-0779caf41f9ba54f0",
+                "ami_instance_type": "t3.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Debian_12_arm64",
+            "aws_config": {
+                "ami_id": "ami-07c4edc673430f8b8",
+                "ami_instance_type": "t4g.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Debian_11_amd64",
+            "aws_config": {
+                "ami_id": "ami-0607e701db389efe7",
+                "ami_instance_type": "t3.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Debian_11_arm64",
+            "aws_config": {
+                "ami_id": "ami-00988b9ead6afb0b1",
+                "ami_instance_type": "t4g.medium",
+                "user": "admin"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "debian",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2_amd64",
+            "aws_config": {
+                "ami_id": "ami-0dfcb1ef8550277af",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "vagrant_config": {
+                "box_name": "generic/centos7"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2_arm64",
+            "aws_config": {
+                "ami_id": "ami-024e548e5cf8ed98b",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2023_amd64",
+            "aws_config": {
+                "ami_id": "ami-064ed2d3fc01d3ec1",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "vagrant_config": {
+                "box_name": "generic/centos9s"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2023_amd64",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2023_arm64",
+            "aws_config": {
+                "ami_id": "ami-0a515c154e76934f7",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "krunvm_config": {
+                "oci_image_name": "docker.io/library/amazonlinux_datadog:2023"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2023_arm64",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2022_amd64",
+            "aws_config": {
+                "ami_id": "ami-0803b139e53d119ec",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user",
+                "volume_size": 30
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2022",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Amazon_Linux_2022_arm64",
+            "aws_config": {
+                "ami_id": "ami-0e2481151dabf1878",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user",
+                "volume_size": 30
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "amazon_linux2022",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "CentOS_7_amd64",
+            "aws_config": {
+                "ami_id": "ami-0b68b25d7fa1d99e0",
+                "ami_instance_type": "t3.medium",
+                "user": "centos"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "centos_7_amd64",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "CentOS_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-05f2b469e504202f7",
+                "ami_instance_type": "t3.medium",
+                "user": "cloud-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "centos_8_amd64",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "RedHat_8_6_amd64",
+            "aws_config": {
+                "ami_id": "ami-031eff1ae75bb87e4",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "RedHat_8_6_arm64",
+            "aws_config": {
+                "ami_id": "ami-096f447a8a5bc013f",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "RedHat_9_0_amd64",
+            "aws_config": {
+                "ami_id": "ami-0a45c8b16782f3406",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "RedHat_9_0_arm64",
+            "aws_config": {
+                "ami_id": "ami-02efd0d9e75e2bf32",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "RedHat_7_9_amd64",
+            "aws_config": {
+                "ami_id": "ami-0c76662758dc1db64",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "rhel_7_amd64",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_3_amd64",
+            "aws_config": {
+                "ami_id": "ami-0dd239e274077553a",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_3_arm64",
+            "aws_config": {
+                "ami_id": "ami-07dd8e107c20b8471",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_2_amd64",
+            "aws_config": {
+                "ami_id": "ami-01453ca80e53609e3",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_9_2_arm64",
+            "aws_config": {
+                "ami_id": "ami-0d1bcd0124ba74024",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_8_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-02a7419f257858fad",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "OracleLinux_8_8_arm64",
+            "aws_config": {
+                "ami_id": "ami-0463a0d7ecd42cc89",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "oracle_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "AlmaLinux_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-0825c833650fed842",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "alma_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "AlmaLinux_8_arm64",
+            "aws_config": {
+                "ami_id": "ami-0f1d97cfa7cf5ad5d",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "alma_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "AlmaLinux_9_amd64",
+            "aws_config": {
+                "ami_id": "ami-0c2163c916f8dd3c8",
+                "ami_instance_type": "t3.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "alma_linux",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "AlmaLinux_9_arm64",
+            "aws_config": {
+                "ami_id": "ami-0ba8fa4bea636d73f",
+                "ami_instance_type": "t4g.medium",
+                "user": "ec2-user"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "alma_linux",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Fedora_36_amd64",
+            "aws_config": {
+                "ami_id": "ami-05e7ccec1e0408397",
+                "ami_instance_type": "t3.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Fedora_36_arm64",
+            "aws_config": {
+                "ami_id": "ami-0487fbde1f898f0f1",
+                "ami_instance_type": "t4g.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Fedora_37_amd64",
+            "aws_config": {
+                "ami_id": "ami-032e9a5778bde5a1a",
+                "ami_instance_type": "t3.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": true
+        },
+        {
+            "name": "Fedora_37_arm64",
+            "aws_config": {
+                "ami_id": "ami-08ec1e90576b74511",
+                "ami_instance_type": "t4g.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": true
+        },
+        {
+            "name": "Fedora_40_amd64",
+            "aws_config": {
+                "ami_id": "ami-0018cd1282422fe47",
+                "ami_instance_type": "t3.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Fedora_40_arm64",
+            "aws_config": {
+                "ami_id": "ami-0006bbbe9e68c8cec",
+                "ami_instance_type": "t4g.medium",
+                "user": "fedora"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "fedora",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "windows_server_2022_amd64",
+            "aws_config": {
+                "ami_id": "AMI_FROM_SSM",
+                "ami_instance_type": "t3.medium",
+                "user": "Administrator",
+                "volume_size": 30
+            },
+            "os_type": "windows",
+            "os_distro": "2022",
+            "os_branch": "windows",
+            "os_cpu": "amd64",
+            "default_vm": true,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_8_amd64",
+            "aws_config": {
+                "ami_id": "ami-011ef2017d41cb239",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_8_arm64",
+            "aws_config": {
+                "ami_id": "ami-0ad512af1b9f6ef91",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_amd6",
+            "aws_config": {
+                "ami_id": "ami-0a73e96a849c232cc",
+                "ami_instance_type": "t3.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Rocky_Linux_9_arm64",
+            "aws_config": {
+                "ami_id": "ami-0fe5c47737d880603",
+                "ami_instance_type": "t4g.medium",
+                "user": "rocky"
+            },
+            "os_type": "linux",
+            "os_distro": "rpm",
+            "os_branch": "redhat",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        }
+    ]
+}

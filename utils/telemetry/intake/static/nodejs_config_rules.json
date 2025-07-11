@@ -1,0 +1,18 @@
+{
+    "normalization_rules": {
+        "DD_TRACE_MIDDLEWARE_ENABLED": "trace_middleware_enabled",
+        "middlewareTracingEnabled": "trace_middleware_enabled",
+        "profiling.heuristicsenabled": "profiling_heuristics_enabled",
+        "profiling.ssi": "profiling_ssi",
+        "traceremoveintegrationservicenamesenabled": "trace_remove_integration_service_names_enabled"
+    },
+    "prefix_block_list": [
+        "_defaults.",
+        "_env.",
+        "_options.",
+        "_remote.",
+        "isazurefunctionconsumptionplan"
+    ],
+    "redaction_list": [],
+    "reduce_rules": {}
+}

@@ -16,13 +16,18 @@
     fi
 
     # Environment variables for the installer
-    export DD_APM_INSTRUMENTATION_ENABLED=all
+    export DD_APM_INSTRUMENTATION_ENABLED=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
     export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
        export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
        export "DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")"="${DD_INSTALLER_LIBRARY_VERSION}"
+    fi
+
+    if [ "${DD_LANG}" == "js" ] && [ "${DD_env}" == "dev" ] && [ -z "${DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS}" ]; then
+        # Special case for Node.js, the staging major version is 1 above the prod major (6 here)
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_JS="6"
     fi
 
     if [ -n "${DD_INSTALLER_INJECTOR_VERSION}" ]; then
@@ -48,10 +53,70 @@
     export $(cat scenario_agent.env | xargs)
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
     
+    
+    # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
+    # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
+    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+    MAX_RETRIES=5
+    RETRY_DELAY=5
+    COUNTER=0
+
+    while [ $COUNTER -lt $MAX_RETRIES ]; do
+        curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh -o install_script.sh && break
+        echo "Retrying in $RETRY_DELAY seconds..."
+        sleep $RETRY_DELAY
+        ((COUNTER++))
+    done
+
+    if [ $COUNTER -eq $MAX_RETRIES ]; then
+        echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
+        exit 1
+    fi
+
+     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+    echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere
+    for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
+- os_type: windows
+  remote-command: |
+    if ($env:DD_env -eq "dev") {
+      $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
+    }
+
+    # Environment variables for the installer
+    $env:DD_APM_INSTRUMENTATION_LIBRARIES = $env:DD_LANG;
+    $env:DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT = $true;
+
+    if ($env:DD_INSTALLER_LIBRARY_VERSION) {
+      $DD_LANG = $env:DD_LANG.ToUpper()
+      Set-Item -Path "Env:DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_${DD_LANG}_PACKAGE" -Value "installtesting.datad0g.com"
+      Set-Item -Path "Env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_${DD_LANG}" -Value $env:DD_INSTALLER_LIBRARY_VERSION
+    }
+
+    # if ($env:DD_INSTALLER_INJECTOR_VERSION) {
+    #   $env:DD_INSTALLER_REGISTRY_URL_APM_INJECT_PACKAGE = "installtesting.datad0g.com";
+    #   $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_INJECT = $env:DD_INSTALLER_INJECTOR_VERSION;
+    # }
+
+    if ($env:DD_INSTALLER_AGENT_VERSION) {
+      $env:DD_INSTALLER_REGISTRY_URL_AGENT_PACKAGE = "installtesting.datad0g.com";
+      $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_AGENT = $env:DD_INSTALLER_AGENT_VERSION;
+    }
+
+    if ($env:DD_INSTALLER_INSTALLER_VERSION) {
+      $env:DD_INSTALLER_REGISTRY_URL_INSTALLER_PACKAGE = "installtesting.datad0g.com";
+      $env:DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_INSTALLER = $env:DD_INSTALLER_INSTALLER_VERSION;
+    }
+
+    Set-ExecutionPolicy Bypass -Scope Process -Force;
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
+    $env:DD_SITE = "datadoghq.com";
+    $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
+    (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    C:\Windows\SystemTemp\Install-Datadog.ps1

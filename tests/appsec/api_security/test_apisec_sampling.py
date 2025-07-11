@@ -1,5 +1,4 @@
 from utils import (
-    bug,
     context,
     features,
     interfaces,
@@ -7,22 +6,22 @@ from utils import (
     rfc,
     scenarios,
     weblog,
+    logger,
 )
 
-from utils.tools import logger
 import random
 import string
 import time
 
 
 def get_schema(request, address):
-    """get api security schema from spans"""
+    """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
         payload = meta.get("_dd.appsec.s." + address)
         if payload is not None:
             return payload
-    return
+    return None
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
@@ -45,16 +44,16 @@ class Test_API_Security_Sampling_Rate:
         context.library not in ("nodejs", "python"), reason="New sampling algorithm tests have been implemented"
     )
     def test_sampling_rate(self):
-        """can provide request header schema"""
-        N = self.N
+        """Can provide request header schema"""
+        n = self.N
         assert all(r.status_code == 200 for r in self.all_requests)
         s = sum(get_schema(r, "req.headers") is not None for r in self.all_requests)
         # check result is in at most 4 standard deviations from expected
         # (assuming 99.98% confidence interval)
         # standard deviation is N * 0.3 for 0.1 sampling rate
-        diff = abs(s / N - N * 0.1) / 0.3
+        diff = abs(s / n - n * 0.1) / 0.3
         logger.info(
-            f"API SECURITY SAMPLING RESULT: got {s} requests with api sec schemas out of {N**2} requests, expecting {int(N**2 * 0.1)}"
+            f"API SECURITY SAMPLING RESULT: got {s} requests with api sec schemas out of {n**2} requests, expecting {int(n**2 * 0.1)}"
         )
         logger.info(f"API SECURITY SAMPLING RESULT: diff is {diff:.2f} standard deviations")
         assert diff <= 4.0, "sampling rate is not 0.1"
@@ -67,9 +66,10 @@ class Test_API_Security_Sampling_Different_Endpoints:
     """Test API Security - with different endpoints"""
 
     def setup_sampling_delay(self):
-        self.request1 = weblog.get("/api_security/sampling/200")
-        self.request2 = weblog.get("/api_security_sampling/1")
-        self.all_requests = [weblog.get("/api_security/sampling/200") for _ in range(10)]
+        with weblog.get_session() as session:
+            self.request1 = session.get("/api_security/sampling/200")
+            self.request2 = session.get("/api_security_sampling/1")
+            self.all_requests = [session.get("/api_security/sampling/200") for _ in range(10)]
 
     def test_sampling_delay(self):
         assert self.request1.status_code == 200
@@ -93,8 +93,9 @@ class Test_API_Security_Sampling_Different_Paths:
     def setup_sampling_delay(self):
         # Wait for 10s to avoid other tests calling same endpoints
         time.sleep(10)
-        self.request1 = weblog.get("/api_security_sampling/11")
-        self.all_requests = [weblog.get(f"/api_security_sampling/{i}") for i in range(10)]
+        with weblog.get_session() as session:
+            self.request1 = session.get("/api_security_sampling/11")
+            self.all_requests = [session.get(f"/api_security_sampling/{i}") for i in range(10)]
 
     def test_sampling_delay(self):
         assert self.request1.status_code == 200
@@ -112,12 +113,13 @@ class Test_API_Security_Sampling_Different_Status:
     """Test API Security - Same endpoint and different status"""
 
     def setup_sampling_delay(self):
-        self.request1 = weblog.get("/api_security/sampling/200")
-        self.request2 = weblog.get("/api_security/sampling/201")
-        self.all_requests = [weblog.get("/api_security/sampling/201") for _ in range(10)]
+        with weblog.get_session() as session:
+            self.request1 = session.get("/api_security/sampling/200")
+            self.request2 = session.get("/api_security/sampling/201")
+            self.all_requests = [session.get("/api_security/sampling/201") for _ in range(10)]
 
     def test_sampling_delay(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
 
         assert self.request1.status_code == 200
         schema1 = get_schema(self.request1, "req.headers")
@@ -140,13 +142,14 @@ class Test_API_Security_Sampling_With_Delay:
     def setup_sampling_delay(self):
         # Wait for 15s to avoid other tests calling same endpoints
         time.sleep(15)
-        self.request1 = weblog.get("/api_security_sampling/30")
-        self.request2 = weblog.get("/api_security_sampling/30")
-        time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
-        self.request3 = weblog.get("/api_security_sampling/30")
+        with weblog.get_session() as session:
+            self.request1 = session.get("/api_security_sampling/30")
+            self.request2 = session.get("/api_security_sampling/30")
+            time.sleep(4)  # Delay is set to 3s via the env var DD_API_SECURITY_SAMPLE_DELAY
+            self.request3 = session.get("/api_security_sampling/30")
 
     def test_sampling_delay(self):
-        """can provide request header schema"""
+        """Can provide request header schema"""
 
         assert self.request1.status_code == 200
         assert self.request2.status_code == 200

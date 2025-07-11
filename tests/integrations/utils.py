@@ -1,26 +1,18 @@
-from functools import lru_cache
+from collections.abc import Generator, Sequence
 import hashlib
-import os
 import struct
-import time
-from typing import Callable
 
-import boto3
-import botocore.exceptions
-
-from utils import weblog, interfaces, scenarios
-from utils.tools import logger
+from utils import weblog, interfaces, logger, HttpResponse
 
 
 class BaseDbIntegrationsTestClass:
     """define a setup function that perform a request to the weblog for each operation: select, update..."""
 
-    db_service = None
-    requests = {}
+    db_service: str
+    requests: dict[str, dict[str, HttpResponse]] = {}
 
     def _setup(self):
-        """
-        Make request to weblog for each operation: select, update...
+        """Make request to weblog for each operation: select, update...
         those requests will be permored only one time for the entire test run
         """
 
@@ -45,7 +37,7 @@ class BaseDbIntegrationsTestClass:
                 "/db", params={"service": self.db_service, "operation": db_operation}
             )
         if self.db_service == "mssql":
-            # Nodejs opentelemetry-instrumentation-mssql is too old and select query is not tracer allways
+            # Node.js opentelemetry-instrumentation-mssql is too old and select query is not tracer allways
             # see https://github.com/mnadeem/opentelemetry-instrumentation-mssql
             # Retry to avoid flakyness
             logger.debug("Retry select query for mssql .....")
@@ -72,18 +64,16 @@ class BaseDbIntegrationsTestClass:
     setup_db_system = _setup
     setup_runtime_id = _setup
     setup_span_kind = _setup
-    setup_sql_traces = _setup
-    setup_resource = _setup
-    setup_db_type = _setup
-    setup_db_name = _setup
     setup_error_type_and_stack = _setup
     setup_error_message = _setup
     setup_obfuscate_query = _setup
     setup_sql_query = _setup
     setup_sql_success = _setup
-    setup_NOT_obfuscate_query = _setup
+    setup_not_obfuscate_query = _setup
 
-    def get_requests(self, excluded_operations=(), operations=None):
+    def get_requests(
+        self, excluded_operations: Sequence[str] = (), operations: Sequence[str] | None = None
+    ) -> Generator[tuple[str, HttpResponse], None, None]:
         for db_operation, request in self.requests[self.db_service].items():
             if operations is not None and db_operation not in operations:
                 continue
@@ -92,7 +82,7 @@ class BaseDbIntegrationsTestClass:
                 yield db_operation, request
 
     @staticmethod
-    def get_span_from_tracer(weblog_request):
+    def get_span_from_tracer(weblog_request: HttpResponse) -> dict:
         for _, _, span in interfaces.library.get_spans(weblog_request):
             logger.info(f"Span found with trace id: {span['trace_id']} and span id: {span['span_id']}")
 
@@ -117,7 +107,7 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
     @staticmethod
-    def get_span_from_agent(weblog_request):
+    def get_span_from_agent(weblog_request: HttpResponse) -> dict:
         for data, span in interfaces.agent.get_spans(weblog_request):
             logger.debug(f"Span found: trace id={span['traceID']}; span id={span['spanID']} ({data['log_filename']})")
 
@@ -156,113 +146,8 @@ class BaseDbIntegrationsTestClass:
         raise ValueError(f"Span is not found for {weblog_request.request.url}")
 
 
-@lru_cache
-def _get_aws_session():
-    # set AWS credentials for runner, either using 'SYSTEM_TESTS_AWS...' vars or default vars
-    return boto3.Session(
-        aws_access_key_id=os.environ.get("SYSTEM_TESTS_AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.environ.get("SYSTEM_TESTS_AWS_SECRET_ACCESS_KEY"),
-        region_name=os.environ.get("SYSTEM_TESTS_AWS_REGION", "us-east-1"),
-    )
-
-
-def delete_aws_resource(
-    delete_callable: Callable,
-    resource_identifier: str,
-    resource_type: str,
-    error_name: str,
-    get_callable: Callable = None,
-):
-    """
-    Generalized function to delete AWS resources.
-
-    :param delete_callable: A callable to delete the AWS resource.
-    :param resource_identifier: The identifier of the resource (e.g., QueueUrl, TopicArn, StreamName).
-    :param resource_type: The type of the resource (e.g., SQS, SNS, Kinesis).
-    :param error_name: The name of the error to handle (e.g., 'QueueDoesNotExist').
-    :param get_callable: An optional get callable to get the AWS resource, used to trigger an exception
-    confirming the resource is deleted (in cases where the delete resource returns void).
-    """
-    timeout = 20
-    end = time.time() + timeout
-    while time.time() < end:
-        try:
-            # Call the delete function
-            _ = delete_callable(resource_identifier)
-
-            if get_callable:
-                # if the resource is not found via the getter, it will throw an error with the error name
-                _ = get_callable(resource_identifier)
-
-        except botocore.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == error_name:
-                logger.info(f"{resource_type} {resource_identifier} already deleted.")
-                return
-            else:
-                logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-                raise
-        except Exception as e:
-            logger.exception(f"Unexpected error while deleting {resource_type}: {e}")
-            raise
-
-
-def delete_sqs_queue(queue_name):
-    try:
-        queue_url = f"https://sqs.us-east-1.amazonaws.com/601427279990/{queue_name}"
-        sqs_client = _get_aws_session().client("sqs")
-        delete_callable = lambda url: sqs_client.delete_queue(QueueUrl=url)
-        get_callable = lambda url: sqs_client.get_queue_attributes(QueueUrl=url)
-        delete_aws_resource(
-            delete_callable,
-            queue_url,
-            "SQS Queue",
-            "AWS.SimpleQueueService.NonExistentQueue",
-            get_callable=get_callable,
-        )
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
-
-
-def delete_sns_topic(topic_name):
-    try:
-        topic_arn = f"arn:aws:sns:us-east-1:601427279990:{topic_name}"
-        sns_client = _get_aws_session().client("sns")
-        get_callable = lambda arn: sns_client.get_topic_attributes(TopicArn=arn)
-        delete_callable = lambda arn: sns_client.delete_topic(TopicArn=arn)
-        delete_aws_resource(delete_callable, topic_arn, "SNS Topic", "NotFound", get_callable=get_callable)
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
-
-
-def delete_kinesis_stream(stream_name):
-    try:
-        kinesis_client = _get_aws_session().client("kinesis")
-        delete_callable = lambda name: kinesis_client.delete_stream(StreamName=name, EnforceConsumerDeletion=True)
-        delete_aws_resource(delete_callable, stream_name, "Kinesis Stream", "ResourceNotFoundException")
-    except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] in ["InvalidClientTokenId", "ExpiredToken"]:
-            logger.stdout(scenarios.integrations_aws.AWS_BAD_CREDENTIALS_MSG)
-            return
-        else:
-            logger.exception(f"Unexpected error while deleting AWS resources {e}")
-            raise
-
-
-def fnv(data, hval_init, fnv_prime, fnv_size):
-    # type: (bytes, int, int, int) -> int
-    """
-    Core FNV hash algorithm used in FNV0 and FNV1.
-    """
+def fnv(data: bytes, hval_init: int, fnv_prime: int, fnv_size: int) -> int:
+    """Core FNV hash algorithm used in FNV0 and FNV1."""
     hval = hval_init
     for byte in data:
         hval = (hval * fnv_prime) % fnv_size
@@ -274,16 +159,13 @@ FNV_64_PRIME = 0x100000001B3
 FNV1_64_INIT = 0xCBF29CE484222325
 
 
-def fnv1_64(data):
-    # type: (bytes) -> int
-    """
-    Returns the 64 bit FNV-1 hash value for the given data.
-    """
+def fnv1_64(data: bytes) -> int:
+    """Returns the 64 bit FNV-1 hash value for the given data."""
     return fnv(data, FNV1_64_INIT, FNV_64_PRIME, 2**64)
 
 
-def compute_dsm_hash(parent_hash, tags):
-    def get_bytes(s):
+def compute_dsm_hash(parent_hash: int, tags: tuple[str, str, str]) -> int:
+    def get_bytes(s: str) -> bytes:
         return bytes(s, encoding="utf-8")
 
     b = get_bytes("weblog") + get_bytes("system-tests")
@@ -293,17 +175,16 @@ def compute_dsm_hash(parent_hash, tags):
     return fnv1_64(struct.pack("<Q", node_hash) + struct.pack("<Q", parent_hash))
 
 
-def sha_hash(checkpoint_string):
+def sha_hash(checkpoint_string: str | bytes) -> bytes:
     if isinstance(checkpoint_string, str):
         checkpoint_string = checkpoint_string.encode("utf-8")
-    hash_obj = hashlib.md5(checkpoint_string).digest()[:8]
-    return hash_obj
+    return hashlib.md5(checkpoint_string).digest()[:8]
 
 
-def compute_dsm_hash_nodejs(parent_hash, edge_tags):
-    current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
-    parent_hash_buf = struct.pack(">Q", parent_hash)
-    buf = current_hash + parent_hash_buf
+# def compute_dsm_hash_nodejs(parent_hash, edge_tags) -> int:
+#     current_hash = sha_hash(f"{'weblog'}{'system-tests'}{''.join(edge_tags)}")
+#     parent_hash_buf = struct.pack(">Q", parent_hash)
+#     buf = current_hash + parent_hash_buf
 
-    val = sha_hash(buf)
-    return int.from_bytes(val, "big")
+#     val = sha_hash(buf)
+#     return int.from_bytes(val, "big")

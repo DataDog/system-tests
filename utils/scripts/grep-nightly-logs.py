@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import re
+from typing import Any
 
 import requests
 
@@ -11,12 +12,12 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
-def get_environ():
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
         with open(".env", encoding="utf-8") as f:
-            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
+            lines = [line.replace("export ", "").strip().split("=", 1) for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -24,7 +25,7 @@ def get_environ():
     return environ
 
 
-def get_json(url, headers=None, params=None):
+def get_json(url: str, headers: dict | None = None, params: dict | None = None) -> Any:  # noqa: ANN401
     response = requests.get(url, headers=headers, params=params, timeout=30)
     response.raise_for_status()
     return response.json()
@@ -36,14 +37,14 @@ def main(
     repo_slug: str = "DataDog/system-tests-dashboard",
     workflow_file: str = "nightly.yml",
     branch: str = "main",
-):
+) -> None:
     environ = get_environ()
     gh_token = environ["GH_TOKEN"]
     headers = {"Authorization": f"token {gh_token}"}
 
     url = f"https://api.github.com/repos/{repo_slug}/actions/workflows/{workflow_file}/runs?"
 
-    params = {"per_page": 100}
+    params: dict[str, str | int] = {"per_page": "100"}
 
     if branch:
         params["branch"] = branch
@@ -62,13 +63,14 @@ def main(
             logging.info(f"Workflow #{workflow['run_number']}-{attempt} {workflow['created_at']} {workflow_url}")
 
             jobs_url = f"https://api.github.com/repos/{repo_slug}/actions/runs/{workflow_id}/attempts/{attempt}/jobs"
-            params = {"per_page": 100, "page": 1}
+            params = {"per_page": "100"}
+            page = 1
 
-            jobs = get_json(jobs_url, headers=headers, params=params)
+            jobs = get_json(jobs_url, headers=headers, params=params | {"page": page})
 
             while len(jobs["jobs"]) < jobs["total_count"]:
-                params["page"] += 1
-                jobs["jobs"] += get_json(jobs_url, headers=headers, params=params)["jobs"]
+                page += 1
+                jobs["jobs"] += get_json(jobs_url, headers=headers, params=params | {"page": page})["jobs"]
 
             for job in jobs["jobs"]:
                 job_name = job["name"]
@@ -103,7 +105,7 @@ if __name__ == "__main__":
         "-l",
         type=str,
         help="One of the supported Datadog languages",
-        choices=["cpp", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
+        choices=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "python", "ruby", "golang", "java", "nodejs", "php"],
     )
     parser.add_argument(
         "--repo-slug",

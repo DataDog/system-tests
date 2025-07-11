@@ -10,10 +10,9 @@ COPY ./utils/build/docker/java/spring-boot/pom.xml .
 RUN mkdir /maven && mvn -Dmaven.repo.local=/maven -Pwildfly -B dependency:go-offline
 
 COPY ./utils/build/docker/java/spring-boot/src ./src
-RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
-
 COPY ./utils/build/docker/java/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh -Dmaven.repo.local=/maven
+RUN mvn -Dmaven.repo.local=/maven -Pwildfly package
 
 FROM eclipse-temurin:11-jre
 
@@ -26,6 +25,7 @@ COPY --from=build /dd-tracer/dd-java-agent.jar .
 COPY ./utils/build/docker/java/app.sh /app/app.sh
 RUN chmod +x /app/app.sh
 
+ENV DD_APP_CUSTOMLOGMANAGER=true
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV APP_EXTRA_ARGS="-Djboss.http.port=7777 -b=0.0.0.0"

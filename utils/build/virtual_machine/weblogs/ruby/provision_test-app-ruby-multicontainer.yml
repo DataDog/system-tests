@@ -1,10 +1,8 @@
 weblog:
     name: test-app-ruby-multicontainer
     nginx_config: utils/build/virtual_machine/weblogs/ruby/test-app-ruby-multicontainer/nginx.conf
-    exact_os_branches: [ubuntu24]
     install:
       - os_type: linux
-        os_cpu: arm64
         copy_files:
           - name: copy-multicontainer-run-script
             local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_multicontainer.sh

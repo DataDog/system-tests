@@ -2,6 +2,7 @@ require 'json'
 
 require 'datadog/kit/appsec/events'
 require 'kafka'
+require 'opentelemetry'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -14,10 +15,10 @@ class SystemTestController < ApplicationController
     gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
     version = gemspec.version.to_s
     version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: { 
+    render json: {
       status: 'ok',
       library: {
-        language: 'ruby',
+        name: 'ruby',
         version: version
       }
     }
@@ -100,6 +101,12 @@ class SystemTestController < ApplicationController
     render json: result
   end
 
+  def log_library
+    message = params[:msg]
+    Rails.logger.info(message)
+    render plain: 'OK'
+  end
+
   def user_login_success_event
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
@@ -150,41 +157,6 @@ class SystemTestController < ApplicationController
 
     render plain: 'Hello, user!'
   end
-
-  def login
-    request.env["devise.allow_params_authentication"] = true
-
-    sdk_event = request.params[:sdk_event]
-    sdk_user = request.params[:sdk_user]
-    sdk_email = request.params[:sdk_mail]
-    sdk_exists = request.params[:sdk_user_exists]
-
-    if sdk_exists
-      sdk_exists = sdk_exists == "true"
-    end
-
-    result = request.env['warden'].authenticate({ scope: Devise.mappings[:user].name })
-
-    if sdk_event === 'failure' && sdk_user
-      metadata = {}
-      metadata[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_failure(user_id: sdk_user, user_exists: sdk_exists, **metadata)
-    elsif sdk_event === 'success' && sdk_user
-      user = {}
-      user[:id] = sdk_user
-      user[:email] = sdk_email if sdk_email
-      Datadog::Kit::AppSec::Events.track_login_success(user: user)
-    end
-
-    unless result
-      render plain: '', status: 401
-      return
-    end
-
-
-    render plain: 'Hello, world!'
-  end
-
 
   def kafka_produce
     kafka = Kafka.new(
@@ -249,5 +221,51 @@ class SystemTestController < ApplicationController
       k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
     end
     render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_extract
+    # The extract operation succeeds with a custom OpenTelemetry propagator, but not with the default one.
+    # To see this, uncomment the next line, and use that propagator to do the context extraction
+    # propagator = OpenTelemetry::Context::Propagation::CompositeTextMapPropagator.compose_propagators([OpenTelemetry::Trace::Propagation::TraceContext.text_map_propagator, OpenTelemetry::Baggage::Propagation.text_map_propagator])
+    context = OpenTelemetry.propagation.extract(request.headers)
+
+    span_context = OpenTelemetry::Trace.current_span(context).context
+
+    baggage = OpenTelemetry::Baggage.raw_entries()
+    baggage_str = ""
+    baggage.each_pair do |key, value|
+      baggage_str << value << ','
+    end
+    baggage_str.chop!
+
+    result = {}
+    result["trace_id"] = span_context.hex_trace_id.from(16).to_i(16)
+    result["span_id"] = span_context.hex_span_id.to_i(16)
+    result["tracestate"] = span_context.tracestate.to_s
+    result["baggage"] = baggage_str
+
+    render json: JSON.generate(result), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_inject
+    headers = {}
+    OpenTelemetry.propagation.inject(headers)
+    render json: JSON.generate(headers), content_type: 'application/json'
+  end
+
+  def handle_path_params
+    render plain: 'OK'
+  end
+
+  def sample_rate_route
+    render plain: 'OK'
+  end
+
+  def api_security_sampling
+    render plain: 'Hello!'
+  end
+
+  def api_security_with_sampling
+    render plain: 'OK', status: params.fetch(:status, 200).to_i
   end
 end

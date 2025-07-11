@@ -2,24 +2,23 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import (
-    interfaces,
-    rfc,
-    scenarios,
-    weblog,
-    features,
-)
+from utils import interfaces, rfc, scenarios, weblog, features, logger
+
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
 def get_schema(request, address):
-    """get api security schema from spans"""
+    """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
-        payload = meta.get("_dd.appsec.s." + address)
+        key = "_dd.appsec.s." + address
+        payload = meta.get(key)
         if payload is not None:
             return payload
-    return
+        else:
+            logger.info(f"Schema not found in span meta for {key}")
+
+    return None
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
@@ -33,7 +32,7 @@ class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
         self.request = weblog.get("/tag_value/api_rc_processor/200?key=value")
 
     def test_request_method(self):
-        """can provide custom req.querytest schema"""
+        """Can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.querytest")
         assert self.request.status_code == 200
         assert schema
@@ -53,9 +52,9 @@ class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
         self.request = weblog.post("/tag_value/api_rc_scanner/200", data={"mail": "systemtestmail@datadoghq.com"})
 
     def test_request_method(self):
-        """can provide custom req.querytest schema"""
+        """Can provide custom req.querytest schema"""
         schema = get_schema(self.request, "req.bodytest")
-        EXPECTED_MAIL_SCHEMA = [8, {"category": "pii", "type": "email"}]
+        expected_mail_schema = [8, {"category": "pii", "type": "email"}]
 
         assert self.request.status_code == 200
         assert schema
@@ -68,49 +67,10 @@ class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
             # as an array of string
             assert isinstance(schema[0]["mail"][0], list)
             element = schema[0]["mail"][0][0]
-            assert len(element) == len(EXPECTED_MAIL_SCHEMA)
-            assert element[0] == EXPECTED_MAIL_SCHEMA[0]
-            assert element[1] == EXPECTED_MAIL_SCHEMA[1]
+            assert len(element) == len(expected_mail_schema)
+            assert element[0] == expected_mail_schema[0]
+            assert element[1] == expected_mail_schema[1]
         else:
             # as a string
-            assert schema[0]["mail"][0] == EXPECTED_MAIL_SCHEMA[0]
-            assert schema[0]["mail"][1] == EXPECTED_MAIL_SCHEMA[1]
-
-
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@scenarios.appsec_api_security_rc
-@features.api_security_configuration
-class Test_API_Security_RC_ASM_processor_overrides_and_custom_scanner(BaseAppsecApiSecurityRcTest):
-    """Test API Security - Remote config ASM - processor_overrides"""
-
-    request_number = 0
-
-    def setup_request_method(self):
-        self.setup_scenario()
-        self.request = weblog.post("/tag_value/api_rc_processor_overrides/200", data={"testcard": "1234567890"})
-
-    def test_request_method(self):
-        """can provide custom req.querytest schema"""
-        schema = get_schema(self.request, "req.bodytest")
-        EXPECTED_TESTCARD_SCHEMA = [8, {"category": "testcategory", "type": "card"}]
-
-        assert self.request.status_code == 200
-        assert schema
-        assert isinstance(schema, list)
-        assert "testcard" in schema[0]
-
-        isinstance(schema[0]["testcard"], list)
-        assert len(schema[0]["mail"]) == 2
-
-        # value should be parsed either as a string or as a string array
-        if "len" in schema[0]["testcard"][1]:
-            # as an array of string
-            assert isinstance(schema[0]["testcard"][0], list)
-            element = schema[0]["testcard"][0][0]
-            assert len(element) == len(EXPECTED_TESTCARD_SCHEMA)
-            assert element[0] == EXPECTED_TESTCARD_SCHEMA[0]
-            assert element[1] == EXPECTED_TESTCARD_SCHEMA[1]
-        else:
-            # as a string
-            assert schema[0]["mail"][0] == EXPECTED_TESTCARD_SCHEMA[0]
-            assert schema[0]["mail"][1] == EXPECTED_TESTCARD_SCHEMA[1]
+            assert schema[0]["mail"][0] == expected_mail_schema[0]
+            assert schema[0]["mail"][1] == expected_mail_schema[1]

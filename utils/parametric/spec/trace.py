@@ -205,25 +205,31 @@ def span_has_no_parent(span: Span) -> bool:
     return "parent_id" not in span or span.get("parent_id") == 0 or span.get("parent_id") is None
 
 
-def assert_span_has_tags(span: Span, tags: dict[str, int | str | float | bool]):
+def assert_span_has_tags(span: Span, tags: dict[str, int | str | float | bool]) -> None:
     """Assert that the span has the given tags."""
     for key, value in tags.items():
         assert key in span.get("meta", {}), f"Span missing expected tag {key}={value}"
         assert span.get("meta", {}).get(key) == value, f"Span incorrect tag value for {key}={value}"
 
 
-def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool]):
+def assert_trace_has_tags(trace: Trace, tags: dict[str, int | str | float | bool]) -> None:
     """Assert that the trace has the given tags."""
     for span in trace:
         assert_span_has_tags(span, tags)
 
 
-def retrieve_span_links(span):
+def retrieve_span_links(span: Span) -> list:
+    """Retrieves span links from a span.
+    raise an exception if the span links are not found, or if it's not a list
+    """
     if span.get("span_links") is not None:
-        return span["span_links"]
+        result = span["span_links"]
+        if not isinstance(result, list):
+            raise TypeError(f"Span links must be a list, found {result}")
+        return result
 
     if span["meta"].get("_dd.span_links") is None:
-        return None
+        raise ValueError("Span links not found in span")
 
     # Convert span_links tags into msgpack v0.4 format
     json_links = json.loads(span["meta"].get("_dd.span_links"))
@@ -232,7 +238,7 @@ def retrieve_span_links(span):
         link = {}
         link["trace_id"] = int(json_link["trace_id"][-16:], base=16)
         link["span_id"] = int(json_link["span_id"], base=16)
-        if len(json_link["trace_id"]) > 16:
+        if len(json_link["trace_id"]) > 16:  # noqa: PLR2004
             link["trace_id_high"] = int(json_link["trace_id"][:16], base=16)
         if "attributes" in json_link:
             link["attributes"] = json_link.get("attributes")
@@ -248,7 +254,7 @@ def retrieve_span_links(span):
     return links
 
 
-def retrieve_span_events(span):
+def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
         return span["span_events"]
 

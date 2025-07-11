@@ -5,13 +5,21 @@
 """AppSec validators"""
 
 from collections import Counter
+from collections.abc import Callable
 from utils.interfaces._library.appsec_data import rule_id_to_type
-from utils.tools import logger
+from utils._logger import logger
 
 
 class _WafAttack:
     def __init__(
-        self, rule=None, pattern=None, patterns=None, value=None, address=None, key_path=None, span_validator=None
+        self,
+        rule: str | type | None = None,
+        pattern: str | None = None,
+        patterns: list[str] | None = None,
+        value: str | None = None,
+        address: str | None = None,
+        key_path: str | list[str] | None = None,
+        span_validator: Callable | None = None,
     ):
         # rule can be a rule id, or a rule type
         if rule is None:
@@ -36,7 +44,7 @@ class _WafAttack:
         self.span_validator = span_validator
 
     @staticmethod
-    def _get_parameters(event):
+    def _get_parameters(event: dict) -> list:
         result = []
 
         for parameter in event.get("rule_match", {}).get("parameters", []):
@@ -61,7 +69,7 @@ class _WafAttack:
 
         return result
 
-    def validate(self, span, appsec_data):
+    def validate(self, span: dict, appsec_data: dict):
         if "triggers" not in appsec_data:
             logger.error("triggers is not in appsec_data")
 
@@ -117,7 +125,7 @@ class _WafAttack:
 
         return None
 
-    def validate_legacy(self, event):
+    def validate_legacy(self, event: dict):
         event_version = event.get("event_version", "0.1.0")
         parameters = self._get_parameters(event)
         rule_match = event.get("rule_match", {})
@@ -155,16 +163,16 @@ class _WafAttack:
 
 
 class _ReportedHeader:
-    def __init__(self, header_name):
+    def __init__(self, header_name: str):
         self.header_name = header_name.lower()
 
-    def validate_legacy(self, event):
+    def validate_legacy(self, event: dict):
         headers = [n.lower() for n in event["context"]["http"]["request"]["headers"]]
         assert self.header_name in headers, f"header {self.header_name} not reported"
 
         return True
 
-    def validate(self, span, appsec_data):  # noqa: ARG002
+    def validate(self, span: dict, appsec_data: dict):  # noqa: ARG002
         headers = [n.lower() for n in span["meta"] if n.startswith("http.request.headers.")]
         assert f"http.request.headers.{self.header_name}" in headers, f"header {self.header_name} not reported"
 

@@ -11,16 +11,17 @@ namespace weblog.Models.Debugger
     public class Pii : PiiBase
     {
         public string? _2fa { get; set; } = PiiBase.Value;
-        public string? accesstoken { get; set; } = PiiBase.Value;
-        public string? access_token { get; set; } = PiiBase.Value;
-        public string? Access_Token { get; set; } = PiiBase.Value;
-        public string? accessToken { get; set; } = PiiBase.Value;
-        public string? AccessToken { get; set; } = PiiBase.Value;
         public string? ACCESSTOKEN { get; set; } = PiiBase.Value;
+        public string? Access_Token { get; set; } = PiiBase.Value;
+        public string? AccessToken { get; set; } = PiiBase.Value;
+        public string? accessToken { get; set; } = PiiBase.Value;
+        public string? access_token { get; set; } = PiiBase.Value;
+        public string? accesstoken { get; set; } = PiiBase.Value;
         public string? aiohttpsession { get; set; } = PiiBase.Value;
         public string? apikey { get; set; } = PiiBase.Value;
         public string? apisecret { get; set; } = PiiBase.Value;
         public string? apisignature { get; set; } = PiiBase.Value;
+        public string? appkey { get; set; } = PiiBase.Value;
         public string? applicationkey { get; set; } = PiiBase.Value;
         public string? auth { get; set; } = PiiBase.Value;
         public string? authorization { get; set; } = PiiBase.Value;
@@ -42,7 +43,6 @@ namespace weblog.Models.Debugger
         public string? dburl { get; set; } = PiiBase.Value;
         public string? encryptionkey { get; set; } = PiiBase.Value;
         public string? encryptionkeyid { get; set; } = PiiBase.Value;
-        public string? env { get; set; } = PiiBase.Value;
         public string? geolocation { get; set; } = PiiBase.Value;
         public string? gpgkey { get; set; } = PiiBase.Value;
         public string? ipaddress { get; set; } = PiiBase.Value;

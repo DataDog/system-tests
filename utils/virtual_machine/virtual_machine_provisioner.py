@@ -1,122 +1,12 @@
 import os
 import yaml
 from yamlinclude import YamlIncludeConstructor
-from utils.tools import logger
+from utils._logger import logger
 from utils.virtual_machine.utils import nginx_parser
 
 
 class VirtualMachineProvisioner:
     """Manages the provision parser for the virtual machines."""
-
-    def remove_unsupported_machines(
-        self,
-        library_name,
-        weblog,
-        required_vms,
-        vm_provider_id,
-        vm_only_branch,
-        vm_skip_branches,
-        only_default_vms,
-        vm_only,
-    ):
-        """Remove unsupported machines based on the provision file, weblog, provider_id and local testing parameter: vm_only_branch"""
-
-        weblog_provision_file = f"utils/build/virtual_machine/weblogs/{library_name}/provision_{weblog}.yml"
-        config_data = None
-        with open(weblog_provision_file, encoding="utf-8") as f:
-            config_data = yaml.load(f, Loader=yaml.FullLoader)
-        vms_to_remove = []
-
-        # Skipped branches seted by the user parameter
-        skipped_branches = []
-        if vm_skip_branches:
-            skipped_branches = vm_skip_branches.split(",")
-
-        for vm in required_vms:
-            installations = config_data["weblog"]["install"]
-            allowed = False
-            if "exact_os_branches" in config_data["weblog"]:
-                if vm.os_branch not in config_data["weblog"]["exact_os_branches"]:
-                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in exact_os_branches")
-                    vms_to_remove.append(vm)
-                    continue
-
-            # Exclude by vm_only_branch
-            if vm_only_branch and vm.os_branch != vm_only_branch:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only_branch directive")
-                vms_to_remove.append(vm)
-                continue
-            # Exclude by vm_only
-            if vm_only and vm.name != vm_only:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_only directive")
-                vms_to_remove.append(vm)
-                continue
-            # Exclude by vm_skip_branches
-            if vm_skip_branches and vm.os_branch in skipped_branches:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to vm_skip_branches directive")
-                vms_to_remove.append(vm)
-                continue
-
-            # Exclude by excluded_os_branches
-            if (
-                "excluded_os_branches" in config_data["weblog"]
-                and vm.os_branch in config_data["weblog"]["excluded_os_branches"]
-            ):
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_branches")
-                vms_to_remove.append(vm)
-                continue
-
-            # Exclude by excluded_os_names
-            if "excluded_os_names" in config_data["weblog"] and vm.name in config_data["weblog"]["excluded_os_names"]:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to weblog directive in excluded_os_names")
-                vms_to_remove.append(vm)
-                continue
-
-            # Exlude by vm_provider_id and vm configuration. IE: vm_provider_id: vagrant exclude all vms that don't have vagrant configuration
-            if vm_provider_id == "vagrant" and vm.vagrant_config is None:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a Vagrant VM")
-                vms_to_remove.append(vm)
-                continue
-            if vm_provider_id == "krunvm" and vm.krunvm_config is None:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a KrunVm VM")
-                vms_to_remove.append(vm)
-                continue
-            if vm_provider_id == "aws" and vm.aws_config is None:
-                logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a AWS VM")
-                vms_to_remove.append(vm)
-                continue
-
-            # Exclude by vm fields: os_distro, os_branch, os_cpu
-            for installation in installations:
-                assert "os_type" in installation, "os_type is required for weblog installation"
-                if installation["os_type"] == vm.os_type:
-                    allowed = True
-                    if "os_distro" in installation and installation["os_distro"] != vm.os_distro:
-                        allowed = False
-                        continue
-                    if "os_branch" in installation and installation["os_branch"] != vm.os_branch:
-                        allowed = False
-                        continue
-                    if "os_cpu" in installation and installation["os_cpu"] != vm.os_cpu:
-                        allowed = False
-                        continue
-                    if allowed == True:
-                        break
-            if allowed == False:
-                logger.stdout(f"WARNING: Weblog doesn't support VM [{vm.name}]. Removed!")
-                vms_to_remove.append(vm)
-
-            if not vm_only_branch and only_default_vms != "All":
-                if only_default_vms == "True" and not vm.default_vm:
-                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's not a default VM")
-                    vms_to_remove.append(vm)
-                if only_default_vms == "False" and vm.default_vm:
-                    logger.stdout(f"WARNING: Removed VM [{vm.name}] due to it's a default VM")
-                    vms_to_remove.append(vm)
-        # Ok remove the vms
-        for vm in vms_to_remove:
-            if vm in required_vms:
-                required_vms.remove(vm)
 
     def get_provision(self, library_name, env, weblog, vm_provision_name, os_type, os_distro, os_branch, os_cpu):
         """Parse the provision files (main provision file and weblog provision file) and return a Provision object"""
@@ -228,7 +118,8 @@ class VirtualMachineProvisioner:
         weblog = weblog_raw_data["weblog"]
         assert weblog["name"] == weblog_name, f"Weblog name {weblog_name} does not match the provision file name"
         installations = weblog["install"]
-        ci_commit_branch = os.getenv("GITLAB_CI")
+        # Use GIT does not work for windows machines
+        ci_commit_branch = os.getenv("GITLAB_CI") if os_type != "windows" else None
         installation = self._get_installation(
             env,
             library_name,
@@ -352,6 +243,14 @@ class Provision:
                 self.deployed_weblog = _DeployedWeblog(
                     weblog_name=self.weblog_installation.id,
                     runtime_version=str(self.lang_variant_installation.version),
+                    app_type="host",
+                    app_context_url="/",
+                )
+            else:
+                # Assume the app is on host but the weblog provision doesn't have the lang_variant section
+                self.deployed_weblog = _DeployedWeblog(
+                    weblog_name=self.weblog_installation.id,
+                    runtime_version="default",
                     app_type="host",
                     app_context_url="/",
                 )

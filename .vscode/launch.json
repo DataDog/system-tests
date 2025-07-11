@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Run DEFAULT scenario",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": ["-p", "no:warnings"],
@@ -16,7 +16,7 @@
         },
         {
             "name": "Replay DEFAULT scenario",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "pytest",
             "args": ["-p", "no:warnings", "--replay"],
@@ -115,6 +115,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Run SAMPLING scenario",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "SAMPLING", "-p", "no:warnings"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Replay SAMPLING scenario",
             "type": "python",
             "request": "launch",
@@ -155,8 +165,87 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Replay APPSEC_STANDALONE scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "APPSEC_STANDALONE", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay APPSEC_BLOCKING_FULL_DENYLIST scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "APPSEC_BLOCKING_FULL_DENYLIST", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay DEBUGGER_EXCEPTION_REPLAY scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "DEBUGGER_EXCEPTION_REPLAY", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Replay TRACING_CONFIG_EMPTY scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "TRACING_CONFIG_EMPTY", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run PARAMETRIC scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "PARAMETRIC", "-L", "java"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Run EXTERNAL_PROCESSING scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "EXTERNAL_PROCESSING"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
+            "name": "Compute impacted scenarios",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "utils/scripts/compute_impacted_scenario.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Python: Current File",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${file}",
             "console": "integratedTerminal",

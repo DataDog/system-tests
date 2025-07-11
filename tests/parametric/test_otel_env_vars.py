@@ -1,4 +1,4 @@
-import pytest, os
+import pytest
 from utils import missing_feature, context, scenarios, features, irrelevant
 
 
@@ -11,11 +11,12 @@ class Test_Otel_Env_Vars:
             {
                 "DD_SERVICE": "service",
                 "OTEL_SERVICE_NAME": "otel_service",
-                "DD_TRACE_LOG_LEVEL": "error",  # Node uses DD_TRACE_LOG_LEVEL
+                "DD_TRACE_LOG_LEVEL": "error",  # Node.js uses DD_TRACE_LOG_LEVEL
                 "DD_LOG_LEVEL": "error",
                 "DD_TRACE_DEBUG": "false",
                 "OTEL_LOG_LEVEL": "debug",
                 "DD_TRACE_SAMPLE_RATE": "0.5",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.5}]',
                 "OTEL_TRACES_SAMPLER": "traceidratio",
                 "OTEL_TRACES_SAMPLER_ARG": "0.1",
                 "DD_TRACE_ENABLED": "true",
@@ -223,7 +224,8 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_otel_enabled"] == "false"
 
     @missing_feature(
-        True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language"
+        condition=True,
+        reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language",
     )
     @pytest.mark.parametrize("library_env", [{"OTEL_TRACES_SAMPLER": "always_on", "DD_TRACE_OTEL_ENABLED": "true"}])
     def test_dd_trace_sample_ignore_parent_true(self, test_agent, test_library):
@@ -232,7 +234,8 @@ class Test_Otel_Env_Vars:
         assert resp["dd_trace_sample_ignore_parent"] == "true"
 
     @missing_feature(
-        True, reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language"
+        condition=True,
+        reason="dd_trace_sample_ignore_parent requires an RFC, this feature is not implemented in any language",
     )
     @pytest.mark.parametrize(
         "library_env", [{"OTEL_TRACES_SAMPLER": "parentbased_always_off", "DD_TRACE_OTEL_ENABLED": "true"}]

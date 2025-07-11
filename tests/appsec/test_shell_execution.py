@@ -12,7 +12,7 @@ class Test_ShellExecution:
     """Test shell execution tracing"""
 
     @staticmethod
-    def fetch_command_execution_span(r):
+    def fetch_command_execution_span(r) -> dict:
         assert r.status_code == 200
 
         traces = [t for _, t in interfaces.library.get_traces(request=r)]

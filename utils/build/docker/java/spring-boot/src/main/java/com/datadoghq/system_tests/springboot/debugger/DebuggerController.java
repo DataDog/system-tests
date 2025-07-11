@@ -37,7 +37,7 @@ public class DebuggerController {
 
 // Dummy line
 // Dummy line
-    private int intLocal = 0;
+    private int intLocal = 1000;
     @GetMapping("/span-decoration/{arg}/{intArg}")
     public String spanDecorationProbe(@PathVariable String arg, @PathVariable int intArg) {
         intLocal = intArg * arg.length();
@@ -53,13 +53,15 @@ public class DebuggerController {
         return "Mixed result " + intMixLocal;
     }
 
+// Dummy line
+// Dummy line
     @GetMapping("/pii")
     public String pii() {
         PiiBase pii = new Pii();
         PiiBase customPii = new CustomPii();
         String value = pii.TestValue;
         String customValue = customPii.TestValue;
-        return "PII " + value + ". CustomPII" + customValue;
+        return "PII " + value + ". CustomPII" + customValue; // must be line 64
     }
 
     @GetMapping("/expression")
@@ -128,5 +130,13 @@ public class DebuggerController {
         return "Pii is null: " + (pii == null) +
             ". intValue is null: " + (intValue == null) +
             ". strValue is null: " + (strValue == null) + ".";
+    }
+
+    @GetMapping("/budgets/{loops}")
+    public String budgets(@PathVariable int loops) {
+        for (int i = 0; i < loops; i++) {
+            int noOp = 0; // Line probe is instrumented here.
+        }
+        return "Budgets";
     }
 }

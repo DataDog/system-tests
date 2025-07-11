@@ -3,9 +3,8 @@
 # Copyright 2022 Datadog, Inc.
 
 import json
-from utils import weblog, interfaces, scenarios, features, bug, context
+from utils import weblog, interfaces, scenarios, features, bug, context, missing_feature, logger
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
-from utils.tools import logger
 
 
 @scenarios.trace_propagation_style_w3c
@@ -28,7 +27,7 @@ class Test_DistributedHttp:
         assert "x-datadog-trace-id" not in data["request_headers"]
 
 
-@scenarios.tracing_config_nondefault
+@scenarios.default
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -43,12 +42,12 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
     def setup_span_links_from_conflicting_contexts(self):
         extract_headers = {
-            "traceparent": "00-11111111111111110000000000000002-000000003ade68b1-01",
-            "tracestate": "dd=s:2;p:000000000000000a,foo=1",
             "x-datadog-parent-id": "10",
             "x-datadog-trace-id": "2",
             "x-datadog-tags": "_dd.p.tid=2222222222222222",
             "x-datadog-sampling-priority": "2",
+            "traceparent": "00-11111111111111110000000000000002-000000003ade68b1-01",
+            "tracestate": "dd=s:2;p:000000000000000a,foo=1",
             "x-b3-traceid": "11111111111111110000000000000003",
             "x-b3-spanid": "a2fb4a1d1a96d312",
             "x-b3-sampled": "0",
@@ -62,26 +61,20 @@ class Test_Span_Links_From_Conflicting_Contexts:
             for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
             if _retrieve_span_links(span) is not None
             and span["trace_id"] == 2
-            and span["parent_id"] == 987654321  # Only fetch the trace that is related to the header extractions
+            and span["parent_id"] == 10  # Only fetch the trace that is related to the header extractions
         ]
 
         assert len(trace) == 1
         span = trace[0]
         links = _retrieve_span_links(span)
-        assert len(links) == 2
+        assert len(links) == 1
         link1 = links[0]
         assert link1["trace_id"] == 2
-        assert link1["span_id"] == 10
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "datadog"}
-        assert link1["trace_id_high"] == 2459565876494606882
+        assert link1["span_id"] == 987654321
+        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
+        assert link1["trace_id_high"] == 1229782938247303441
 
-        link2 = links[1]
-        assert link2["trace_id"] == 3
-        assert link2["span_id"] == 11744061942159299346
-        assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
-        assert link2["trace_id_high"] == 1229782938247303441
-
-    """Datadog and tracecontext headers, trace-id does match, Datadog is primary 
+    """Datadog and tracecontext headers, trace-id does match, Datadog is primary
     context we want to make sure there's no span link since they match"""
 
     def setup_no_span_links_from_nonconflicting_contexts(self):
@@ -107,7 +100,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
 
         assert len(trace) == 0
 
-    """Datadog, b3multi headers edge case where we want to make sure NOT to create a 
+    """Datadog, b3multi headers edge case where we want to make sure NOT to create a
     span_link if the secondary context has trace_id 0 since that's not valid."""
 
     def setup_no_span_links_from_invalid_trace_id(self):
@@ -135,59 +128,7 @@ class Test_Span_Links_From_Conflicting_Contexts:
         assert len(trace) == 0
 
 
-@scenarios.tracing_config_nondefault_2
-@features.w3c_headers_injection_and_extraction
-@bug(
-    context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
-    reason="APMAPI-928",
-    force_skip=True,
-)
-class Test_Span_Links_From_Conflicting_Contexts_Datadog_Precedence:
-    """Verify headers containing conflicting trace context information are added as span links with Datadog headers taking precedence"""
-
-    def setup_span_links_from_conflicting_contexts_datadog_precedence(self):
-        extract_headers = {
-            "traceparent": "00-11111111111111110000000000000001-000000003ade68b1-01",
-            "tracestate": "dd=s:2;t.tid:1111111111111111,foo=1",
-            "x-datadog-trace-id": "4",
-            "x-datadog-parent-id": "987654323",
-            "x-datadog-sampling-priority": "2",
-            "x-datadog-tags": "_dd.p.tid=1111111111111111",
-            "x-b3-traceid": "11111111111111110000000000000003",
-            "x-b3-spanid": "a2fb4a1d1a96d312",
-            "x-b3-sampled": "1",
-        }
-
-        self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
-
-    def test_span_links_from_conflicting_contexts_datadog_precedence(self):
-        trace = [
-            span
-            for _, _, span in interfaces.library.get_spans(self.req, full_trace=True)
-            if _retrieve_span_links(span) is not None
-            and span["trace_id"] == 4
-            and span["parent_id"] == 987654323  # Only fetch the trace that is related to the header extractions
-        ]
-
-        assert len(trace) == 1
-        span = trace[0]
-        links = _retrieve_span_links(span)
-        assert len(links) == 2
-        link1 = links[0]
-        assert link1["trace_id"] == 1
-        assert link1["span_id"] == 987654321
-        assert link1["attributes"] == {"reason": "terminated_context", "context_headers": "tracecontext"}
-        assert link1["tracestate"] == "dd=s:2;t.tid:1111111111111111,foo=1"
-        assert link1["trace_id_high"] == 1229782938247303441
-
-        link2 = links[1]
-        assert link2["trace_id"] == 3
-        assert link2["span_id"] == 11744061942159299346
-        assert link2["attributes"] == {"reason": "terminated_context", "context_headers": "b3multi"}
-        assert link2["trace_id_high"] == 1229782938247303441
-
-
-@scenarios.tracing_config_nondefault
+@scenarios.default
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -205,9 +146,6 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
             "x-datadog-trace-id": "2",
             "x-datadog-tags": "_dd.p.tid=2222222222222222",
             "x-datadog-sampling-priority": "2",
-            "x-b3-traceid": "11111111111111110000000000000003",
-            "x-b3-spanid": "a2fb4a1d1a96d312",
-            "x-b3-sampled": "0",
         }
 
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
@@ -231,11 +169,8 @@ class Test_Span_Links_Flags_From_Conflicting_Contexts:
         link1 = span_links[0]
         assert link1["flags"] == 1 | TRACECONTEXT_FLAGS_SET
 
-        link2 = span_links[1]
-        assert link2["flags"] == 0 | TRACECONTEXT_FLAGS_SET
 
-
-@scenarios.tracing_config_nondefault
+@scenarios.default
 @features.w3c_headers_injection_and_extraction
 @bug(
     context.library < "java@1.44.0" and context.weblog_variant == "spring-boot-3-native",
@@ -249,10 +184,9 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         extract_headers = {
             "traceparent": "00-11111111111111110000000000000002-000000003ade68b1-01",
             "tracestate": "dd=s:2;p:000000000000000a,foo=1",
-            "x-datadog-parent-id": "10",
-            "x-datadog-trace-id": "2",
-            "x-datadog-tags": "_dd.p.tid=2222222222222222",
-            "x-datadog-sampling-priority": "2",
+            "x-b3-traceid": "22222222222222220000000000000002",
+            "x-b3-spanid": "000000000000000a",
+            "x-b3-sampled": "1",
         }
 
         self.req = weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers=extract_headers)
@@ -274,7 +208,7 @@ class Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts:
         links = _retrieve_span_links(span)
         assert len(links) == 1
         link1 = links[0]
-        assert link1.get("tracestate") == None
+        assert link1.get("tracestate") is None
 
 
 def _retrieve_span_links(span):
@@ -303,6 +237,7 @@ def _retrieve_span_links(span):
                 link["flags"] = 0
             links.append(link)
         return links
+    return None
 
 
 # The Datadog specific tracecontext flags to mark flags are set
@@ -323,6 +258,7 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
+    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)
@@ -345,6 +281,7 @@ class Test_Synthetics_APM_Datadog:
             },
         )
 
+    @missing_feature(library="cpp_httpd", reason="A non-root span carry user agent informations")
     def test_synthetics_browser(self):
         interfaces.library.assert_trace_exists(self.r)
         spans = interfaces.agent.get_spans_list(self.r)

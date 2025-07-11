@@ -23,7 +23,7 @@ store_config = GenerationConfiguration()
 
 @app.route("/", methods=["GET"])
 def default():
-    data = {"schemas": []}
+    data: dict = {"schemas": []}
 
     for schema_id, schema in store.items():
         # skip some schemas

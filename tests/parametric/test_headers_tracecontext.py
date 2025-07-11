@@ -7,7 +7,6 @@
 # 3. Neither the name of the W3C nor the names of its contributors may be used to endorse or promote products derived from this work without specific prior written permission.
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-from typing import Any
 
 import pytest
 
@@ -18,7 +17,7 @@ from utils import missing_feature, context, scenarios, features
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_optin_tracecontext() -> Any:
+def temporary_enable_optin_tracecontext() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext",
@@ -26,7 +25,7 @@ def temporary_enable_optin_tracecontext() -> Any:
     return parametrize("library_env", [env])
 
 
-def temporary_enable_optin_tracecontext_single_key() -> Any:
+def temporary_enable_optin_tracecontext_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
     }
@@ -38,8 +37,7 @@ def temporary_enable_optin_tracecontext_single_key() -> Any:
 class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
     def test_both_traceparent_and_tracestate_missing(self, test_agent, test_library):
-        """
-        harness sends a request without traceparent or tracestate
+        """Harness sends a request without traceparent or tracestate
         expects a valid traceparent from the output header
         """
         with test_library:
@@ -50,8 +48,7 @@ class Test_Headers_Tracecontext:
         context.library == "ruby", reason="Propagators not configured for DD_TRACE_PROPAGATION_STYLE config"
     )
     def test_single_key_traceparent_included_tracestate_missing(self, test_agent, test_library):
-        """
-        harness sends a request with traceparent but without tracestate
+        """Harness sends a request with traceparent but without tracestate
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
@@ -64,8 +61,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_included_tracestate_missing(self, test_agent, test_library):
-        """
-        harness sends a request with traceparent but without tracestate
+        """Harness sends a request with traceparent but without tracestate
         expects a valid traceparent from the output header, with the same trace_id but different parent_id
         """
         with test_library:
@@ -99,8 +95,7 @@ class Test_Headers_Tracecontext:
         reason="the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers",
     )
     def test_traceparent_duplicated(self, test_agent, test_library):
-        """
-        harness sends a request with two traceparent headers
+        """Harness sends a request with two traceparent headers
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -117,8 +112,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_header_name(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent using wrong names
+        """Harness sends an invalid traceparent using wrong names
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -136,8 +130,7 @@ class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
     @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_traceparent_header_name_valid_casing(self, test_agent, test_library):
-        """
-        harness sends a valid traceparent using different combination of casing
+        """Harness sends a valid traceparent using different combination of casing
         expects a valid traceparent from the output header
         """
         with test_library:
@@ -159,8 +152,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_0x00(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with extra trailing characters
+        """Harness sends an invalid traceparent with extra trailing characters
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -183,8 +175,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_0xcc(self, test_agent, test_library):
-        """
-        harness sends an valid traceparent with future version 204 (0xcc)
+        """Harness sends an valid traceparent with future version 204 (0xcc)
         expects a valid traceparent from the output header with the same trace_id
         """
         with test_library:
@@ -218,8 +209,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_0xff(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with version 255 (0xff)
+        """Harness sends an invalid traceparent with version 255 (0xff)
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -231,8 +221,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_illegal_characters(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with illegal characters in version
+        """Harness sends an invalid traceparent with illegal characters in version
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -249,8 +238,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_too_long(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with version more than 2 HEXDIG
+        """Harness sends an invalid traceparent with version more than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -267,8 +255,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_version_too_short(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with version less than 2 HEXDIG
+        """Harness sends an invalid traceparent with version less than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -280,8 +267,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_id_all_zero(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with trace_id = 00000000000000000000000000000000
+        """Harness sends an invalid traceparent with trace_id = 00000000000000000000000000000000
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -293,8 +279,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_id_illegal_characters(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with illegal characters in trace_id
+        """Harness sends an invalid traceparent with illegal characters in trace_id
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -311,8 +296,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_id_too_long(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with trace_id more than 32 HEXDIG
+        """Harness sends an invalid traceparent with trace_id more than 32 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -326,8 +310,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_id_too_short(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with trace_id less than 32 HEXDIG
+        """Harness sends an invalid traceparent with trace_id less than 32 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -339,8 +322,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_parent_id_all_zero(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with parent_id = 0000000000000000
+        """Harness sends an invalid traceparent with parent_id = 0000000000000000
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -352,8 +334,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_parent_id_illegal_characters(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with illegal characters in parent_id
+        """Harness sends an invalid traceparent with illegal characters in parent_id
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -370,8 +351,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_parent_id_too_long(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with parent_id more than 16 HEXDIG
+        """Harness sends an invalid traceparent with parent_id more than 16 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -383,8 +363,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_parent_id_too_short(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with parent_id less than 16 HEXDIG
+        """Harness sends an invalid traceparent with parent_id less than 16 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -396,8 +375,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_flags_illegal_characters(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with illegal characters in trace_flags
+        """Harness sends an invalid traceparent with illegal characters in trace_flags
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -414,8 +392,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_flags_too_long(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with trace_flags more than 2 HEXDIG
+        """Harness sends an invalid traceparent with trace_flags more than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -427,8 +404,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_trace_flags_too_short(self, test_agent, test_library):
-        """
-        harness sends an invalid traceparent with trace_flags less than 2 HEXDIG
+        """Harness sends an invalid traceparent with trace_flags less than 2 HEXDIG
         expects a valid traceparent from the output header, with a newly generated trace_id
         """
         with test_library:
@@ -440,8 +416,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_traceparent_ows_handling(self, test_agent, test_library):
-        """
-        harness sends an valid traceparent with heading and trailing OWS
+        """Harness sends an valid traceparent with heading and trailing OWS
         expects a valid traceparent from the output header
         """
         with test_library:
@@ -473,8 +448,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_included_traceparent_missing(self, test_agent, test_library):
-        """
-        harness sends a request with tracestate but without traceparent
+        """Harness sends a request with tracestate but without traceparent
         expects a valid traceparent from the output header
         expects the tracestate to be discarded
         """
@@ -488,8 +462,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_included_traceparent_included(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -508,8 +481,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_header_name(self, test_agent, test_library):
-        """
-        harness sends an invalid tracestate using wrong names
+        """Harness sends an invalid tracestate using wrong names
         expects the tracestate to be discarded
         """
         with test_library:
@@ -535,8 +507,7 @@ class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
     @missing_feature(context.library == "ruby", reason="Ruby doesn't support case-insensitive distributed headers")
     def test_tracestate_header_name_valid_casing(self, test_agent, test_library):
-        """
-        harness sends a valid tracestate using different combination of casing
+        """Harness sends a valid tracestate using different combination of casing
         expects the tracestate to be inherited
         """
         with test_library:
@@ -578,8 +549,7 @@ class Test_Headers_Tracecontext:
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
     def test_tracestate_empty_header(self, test_agent, test_library):
-        """
-        harness sends a request with empty tracestate header
+        """Harness sends a request with empty tracestate header
         expects the empty tracestate to be discarded
         """
         with test_library:
@@ -634,8 +604,7 @@ class Test_Headers_Tracecontext:
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
     def test_tracestate_multiple_headers_different_keys(self, test_agent, test_library):
-        """
-        harness sends a request with multiple tracestate headers, each contains different set of keys
+        """Harness sends a request with multiple tracestate headers, each contains different set of keys
         expects a combined tracestate
         """
         with test_library:
@@ -662,8 +631,7 @@ class Test_Headers_Tracecontext:
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_duplicated_keys(self, test_agent, test_library):
-        """
-        harness sends a request with an invalid tracestate header with duplicated keys
+        """Harness sends a request with an invalid tracestate header with duplicated keys
         expects the tracestate to be inherited, and the duplicated keys to be either kept as-is or one of them
         to be discarded
         """
@@ -723,9 +691,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_extract(self, test_agent, test_library):
-        """
-        Ensure the last parent id tag is set according to the W3C Phase 2 spec
-        """
+        """Ensure the last parent id tag is set according to the W3C Phase 2 spec"""
         with test_library:
             with test_library.dd_extract_headers_and_make_child_span(
                 "p_set",
@@ -768,9 +734,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     def test_tracestate_w3c_p_inject(self, test_agent, test_library):
-        """
-        Ensure the last parent id is propagated according to the W3C spec
-        """
+        """Ensure the last parent id is propagated according to the W3C spec"""
         with test_library:
             with test_library.dd_start_span(name="new_span") as span:
                 headers = test_library.dd_inject_headers(span.span_id)
@@ -780,7 +744,62 @@ class Test_Headers_Tracecontext:
 
             tracestate = tracestate_headers[0][1]
             # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
-            assert "p:{:016x}".format(int(span.span_id)) in tracestate
+            assert f"p:{int(span.span_id):016x}" in tracestate
+
+    @missing_feature(context.library < "python@2.7.0", reason="Not implemented")
+    @missing_feature(context.library < "dotnet@2.51.0", reason="Not implemented")
+    @missing_feature(context.library < "php@0.99.0", reason="Not implemented")
+    @missing_feature(context.library < "nodejs@5.6.0", reason="Not implemented")
+    @missing_feature(context.library < "java@1.50.0", reason="Not implemented")
+    @missing_feature(context.library < "cpp@0.2.0", reason="Not implemented")
+    @missing_feature(context.library < "ruby@2.0.0", reason="Not implemented")
+    @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
+    def test_tracestate_w3c_p_extract_and_inject(self, test_agent, test_library):
+        """Ensure the last parent id is propagated according to the W3C spec"""
+        with test_library:
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_set",
+                [
+                    ["traceparent", "00-12345678901234567890123456789012-1234567890123456-01"],
+                    ["tracestate", "key1=value1,dd=s:2;o:rum;p:0123456789abcdef;t.dm:-4;t.usr.id:12345~"],
+                ],
+            ) as s1:
+                headers1 = test_library.dd_inject_headers(s1.span_id)
+
+            with test_library.dd_extract_headers_and_make_child_span(
+                "p_invalid",
+                [
+                    ["traceparent", "00-12345678901234567890123456789013-1234567890123457-01"],
+                    ["tracestate", "key1=value1,dd=s:2;t.dm:-4;p:XX!X"],
+                ],
+            ) as s2:
+                headers2 = test_library.dd_inject_headers(s2.span_id)
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        assert len(traces) == 2
+        case1, case2 = (
+            find_span_in_traces(traces, s1.trace_id, s1.span_id),
+            find_span_in_traces(traces, s2.trace_id, s2.span_id),
+        )
+        tracestate_headers1 = list(filter(lambda h: h[0].lower() == "tracestate", headers1))
+        tracestate_headers2 = list(filter(lambda h: h[0].lower() == "tracestate", headers2))
+
+        assert case1["name"] == "p_set"
+        assert case1["meta"]["_dd.parent_id"] == "0123456789abcdef"
+
+        assert len(tracestate_headers1) == 1
+        tracestate1 = tracestate_headers1[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s1.span_id):016x}" in tracestate1
+
+        assert case2["name"] == "p_invalid"
+        assert case2["meta"]["_dd.parent_id"] == "XX!X"
+
+        assert len(tracestate_headers2) == 1
+        tracestate2 = tracestate_headers2[0][1]
+        # FIXME: nodejs paramerric app sets span.span_id to a string, convert this to an int
+        assert f"p:{int(s2.span_id):016x}" in tracestate2
 
     @missing_feature(context.library < "python@2.10.0", reason="Not implemented")
     @missing_feature(context.library == "dotnet", reason="Not implemented")
@@ -792,9 +811,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "golang@1.64.0", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_p_extract_datadog_w3c(self, test_agent, test_library):
-        """
-        Ensure the last parent id tag is set according to the W3C phase 3 spec
-        """
+        """Ensure the last parent id tag is set according to the W3C phase 3 spec"""
         with test_library:
             # 1) Trace ids and parent ids in datadog and tracecontext headers match
             with test_library.dd_extract_headers_and_make_child_span(
@@ -908,9 +925,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library == "cpp", reason="Not implemented")
     @missing_feature(context.library == "php", reason="Not implemented")
     def test_tracestate_w3c_p_phase_3_extract_first(self, test_agent, test_library):
-        """
-        Ensure the last parent id tag is not set when only Datadog headers are extracted
-        """
+        """Ensure the last parent id tag is not set when only Datadog headers are extracted"""
 
         # 1) Datadog and tracecontext headers, parent ids do not match
         with test_library.dd_extract_headers_and_make_child_span(
@@ -936,9 +951,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(context.library < "java@1.36", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_PROPAGATION_STYLE": "datadog,tracecontext"}])
     def test_tracestate_w3c_context_leak(self, test_agent, test_library):
-        """
-        Ensure high order bits do not leak between traces
-        """
+        """Ensure high order bits do not leak between traces"""
         with test_library:
             with test_library.dd_extract_headers_and_make_child_span(
                 "high_order_64_bits_set",
@@ -972,12 +985,11 @@ class Test_Headers_Tracecontext:
         )
 
         assert case1["meta"].get("_dd.p.tid") == "3333333333333333"
-        assert case2["meta"].get("_dd.p.tid") == None
+        assert case2["meta"].get("_dd.p.tid") is None
 
     @temporary_enable_optin_tracecontext()
     def test_tracestate_all_allowed_characters(self, test_agent, test_library):
-        """
-        harness sends a request with a valid tracestate header with all legal characters
+        """Harness sends a request with a valid tracestate header with all legal characters
         expects the tracestate to be inherited
         """
         key_without_vendor = "".join(
@@ -1020,8 +1032,7 @@ class Test_Headers_Tracecontext:
         context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
     )
     def test_tracestate_ows_handling(self, test_agent, test_library):
-        """
-        harness sends a request with a valid tracestate header with OWS
+        """Harness sends a request with a valid tracestate header with OWS
         expects the tracestate to be inherited
         """
         with test_library:

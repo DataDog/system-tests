@@ -8,6 +8,8 @@ const { execSync } = require('child_process')
 const https = require('https')
 const { MongoClient } = require('mongodb')
 const pug = require('pug')
+const { unserialize } = require('node-serialize')
+
 const ldap = require('../integrations/ldap')
 const { mongoSanitizeEnabled } = require('../config')
 
@@ -228,6 +230,66 @@ function initRoutes (app, tracer) {
     res.send('<html><body><h1>Test</h1></html>')
   })
 
+  app.get('/iast/sampling-by-route-method-count/:key', (req, res) => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.get('/iast/sampling-by-route-method-count-2/:key', (req, res) => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
+  app.post('/iast/sampling-by-route-method-count/:key', (req, res) => {
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+    crypto.createHash('md5').update('insecure').digest('hex')
+
+    res.send('OK')
+  })
+
   if (mongoSanitizeEnabled) {
     const mongoSanitize = require('express-mongo-sanitize')
     app.use('/iast/mongodb-nosql-injection/test_secure', mongoSanitize())
@@ -381,7 +443,19 @@ function initRoutes (app, tracer) {
     res.send(`OK:${html}`)
   })
 
+  app.get('/iast/untrusted_deserialization/test_insecure', (req, res) => {
+    const name = unserialize(req.query.name)
+    res.send(`OK:${name}`)
+  })
+
+  app.get('/iast/untrusted_deserialization/test_secure', (req, res) => {
+    const name = unserialize(JSON.stringify({ name: 'example' }))
+    res.send(`OK:${name}`)
+  })
+
   require('./sources')(app, tracer)
+
+  require('./security-controls')(app, tracer)
 }
 
 module.exports = { initRoutes, initData, initMiddlewares }

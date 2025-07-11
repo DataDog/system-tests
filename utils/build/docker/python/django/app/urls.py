@@ -3,6 +3,7 @@ import base64
 import json
 import os
 import random
+import shlex
 import subprocess
 import xmltodict
 import sys
@@ -16,6 +17,9 @@ from django.db import connection
 from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.urls import path
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.utils.safestring import mark_safe
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -28,8 +32,31 @@ from iast import (
 )
 
 import ddtrace
-from ddtrace import Pin, tracer, patch_all
-from ddtrace.appsec import trace_utils as appsec_trace_utils
+from ddtrace import patch_all
+
+from ddtrace.appsec import trace_utils as ato_user_sdk_v1
+
+try:
+    from ddtrace.appsec import track_user_sdk
+except ImportError:
+    # fallback for when the new SDK is not available
+    class TUS:
+        def track_login_success(self, *args, **kwargs):
+            pass
+
+        def track_login_failure(self, *args, **kwargs):
+            pass
+
+        def track_custom_event(self, *args, **kwargs):
+            pass
+
+    track_user_sdk = TUS()
+
+try:
+    from ddtrace.trace import Pin, tracer
+except ImportError:
+    from ddtrace import tracer, Pin
+
 
 patch_all(urllib3=True)
 
@@ -79,7 +106,7 @@ def healthcheck(request):
     result = {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -90,8 +117,7 @@ def healthcheck(request):
 @csrf_exempt
 def waf(request, *args, **kwargs):
     if "tag_value" in kwargs:
-        appsec_trace_utils.track_custom_event(
-            tracer,
+        track_user_sdk.track_custom_event(
             event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME,
             metadata={"value": kwargs["tag_value"]},
         )
@@ -147,22 +173,27 @@ def set_cookie(request):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@csrf_exempt
-def rasp_lfi(request, *args, **kwargs):
-    file = None
+def retrieve_arg(request, key: str):
+    data = None
     if request.method == "GET":
-        file = request.GET.get("file")
+        data = request.GET.get(key)
     elif request.method == "POST":
         try:
-            file = (request.POST or json.loads(request.body)).get("file")
+            data = (request.POST or json.loads(request.body)).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(request.body).get("file")
+            if data is None:
+                data = xmltodict.parse(request.body).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return data
+
+
+@csrf_exempt
+def rasp_lfi(request, *args, **kwargs):
+    file = retrieve_arg(request, "file")
     if file is None:
         return HttpResponse("missing file parameter", status=400)
     try:
@@ -174,21 +205,25 @@ def rasp_lfi(request, *args, **kwargs):
 
 
 @csrf_exempt
+def rasp_multiple(request, *args, **kwargs):
+    file1 = retrieve_arg(request, "file1")
+    file2 = retrieve_arg(request, "file2")
+    if file1 is None or file2 is None:
+        return HttpResponse("missing file1 or file2 parameter", status=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return HttpResponse(f"files open with {lengths} bytes")
+
+
+@csrf_exempt
 def rasp_ssrf(request, *args, **kwargs):
-    domain = None
-    if request.method == "GET":
-        domain = request.GET.get("domain")
-    elif request.method == "POST":
-        try:
-            domain = (request.POST or json.loads(request.body)).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(request.body).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    domain = retrieve_arg(request, "domain")
     if domain is None:
         return HttpResponse("missing domain parameter", status=400)
     try:
@@ -200,21 +235,7 @@ def rasp_ssrf(request, *args, **kwargs):
 
 @csrf_exempt
 def rasp_sqli(request, *args, **kwargs):
-    user_id = None
-    if request.method == "GET":
-        user_id = request.GET.get("user_id")
-    elif request.method == "POST":
-        try:
-            user_id = (request.POST or json.loads(request.body)).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(request.body).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    user_id = retrieve_arg(request, "user_id")
     if user_id is None:
         return HttpResponse("missing user_id parameter", status=400)
     try:
@@ -232,21 +253,7 @@ def rasp_sqli(request, *args, **kwargs):
 
 @csrf_exempt
 def rasp_shi(request, *args, **kwargs):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = request.GET.get("list_dir")
-    elif request.method == "POST":
-        try:
-            list_dir = (request.POST or json.loads(request.body)).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(request.body).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    list_dir = retrieve_arg(request, "list_dir")
     if list_dir is None:
         return HttpResponse("missing list_dir parameter", status=400)
     try:
@@ -255,6 +262,32 @@ def rasp_shi(request, *args, **kwargs):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return HttpResponse(f"Shell command failure: {e!r}", status=201)
+
+
+@csrf_exempt
+def rasp_cmdi(request, *args, **kwargs):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.GET.get("command")
+    elif request.method == "POST":
+        try:
+            cmd = (request.POST or json.loads(request.body)).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(request.body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return HttpResponse("missing command parameter", status=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return HttpResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return HttpResponse(f"Shell command [{cmd}] failure: {e!r}", status=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -415,22 +448,16 @@ def view_iast_weak_randomness_secure(request):
 @csrf_exempt
 def view_cmdi_insecure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    subp = subprocess.Popen(args=[cmd, "-la", filename], shell=True)
-    subp.communicate()
-    subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(cmd + " -la " + filename)
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def view_cmdi_secure(request):
     cmd = request.POST.get("cmd", "")
-    filename = "/"
-    cmd = " ".join([cmd, "-la", filename])
-    # TODO: add secure command
-    # subp = subprocess.check_output(cmd, shell=True)
-    # subp.communicate()
-    # subp.wait()
+    filename = "tests/appsec/iast/"
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return HttpResponse("OK")
 
 
@@ -456,7 +483,7 @@ def view_iast_path_traversal_secure(request):
 def view_sqli_insecure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = " + username + " AND PASSWORD = " + password
+    sql = "SELECT * FROM app_customuser WHERE username = '" + username + "' AND password = '" + password + "'"
 
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -467,7 +494,7 @@ def view_sqli_insecure(request):
 def view_sqli_secure(request):
     username = request.POST.get("username", "")
     password = request.POST.get("password", "")
-    sql = "SELECT * FROM IAST_USER WHERE USERNAME = ? AND PASSWORD = ?"
+    sql = "SELECT * FROM app_customuser WHERE username = %s AND password = %s"
 
     with connection.cursor() as cursor:
         cursor.execute(sql, (username, password))
@@ -488,29 +515,70 @@ def view_iast_ssrf_insecure(request):
 
 @csrf_exempt
 def view_iast_ssrf_secure(request):
-    from urllib.parse import urlparse
     import requests
 
-    url = request.POST.get("url", "")
-    # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
-    parsed_url = urlparse(url)
-
-    if parsed_url.hostname not in allowed_domains:
-        return HttpResponseBadRequest("ERROR")
-
     try:
-        requests.get(url)
+        requests.get("https://www.datadog.com")
     except Exception:
         pass
 
     return HttpResponse("OK")
 
 
+@csrf_exempt
+def view_iast_xss_insecure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": mark_safe(param)})
+
+
+@csrf_exempt
+def view_iast_xss_secure(request):
+    param = request.POST.get("param", "")
+    # Validate the URL and enforce whitelist
+    return render(request, "index.html", {"param": param})
+
+
+@csrf_exempt
+def view_iast_stacktraceleak_insecure(request):
+    return HttpResponse("""
+  Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+    result = complex_calculation(data)
+  File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+    intermediate = perform_subtask(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+    processed = handle_special_case(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+    return apply_algorithm(data_slice, params)
+  File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+    step_result = execute_step(data, params)
+  File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+    temp = pre_process(data)
+  File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+    validated_data = validate_input(data)
+  File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+    check_constraints(data)
+  File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+    raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+""")
+
+
+@csrf_exempt
+def view_iast_stacktraceleak_secure(request):
+    return HttpResponse("OK")
+
+
 def _sink_point_sqli(table="user", id="1"):
-    sql = "SELECT * FROM " + table + " WHERE id = '" + id + "'"
+    sql = f"SELECT * FROM {table} WHERE id = '{id}'"
     with connection.cursor() as cursor:
-        cursor.execute(sql)
+        try:
+            cursor.execute(sql)
+        except Exception:
+            pass
 
 
 def _sink_point_path_traversal(tainted_str="user"):
@@ -556,13 +624,14 @@ def view_iast_source_header_value(request):
     return HttpResponse("OK")
 
 
+@csrf_exempt
 def view_iast_source_parametername(request):
     if request.method == "GET":
         param = [key for key in request.GET.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     elif request.method == "POST":
         param = [key for key in request.POST.keys() if key == "user"]
-        _sink_point_sqli(id=param[0])
+        _sink_point_path_traversal(param[0])
     return HttpResponse("OK")
 
 
@@ -587,6 +656,121 @@ def view_iast_source_path(request):
 
 
 @csrf_exempt
+def view_iast_sampling_by_route_method(request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.GET:
+        param_tainted = request.GET.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    elif request.POST:
+        param_tainted = request.POST.get("param")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+        os.system(f"ls {param_tainted}")
+    return HttpResponse("OK", status=200)
+
+
+def view_iast_sampling_by_route_method_2(request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.GET.get("param")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    os.system(f"ls {param_tainted}")
+    return HttpResponse("OK", status=200)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure(request):
+    location = request.POST.get("location")
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_insecure_header(request):
+    location = request.POST.get("location")
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure(request):
+    location = "http://dummy.location.com"
+    return redirect(location)
+
+
+@csrf_exempt
+def view_iast_unvalidated_redirect_secure_header(request):
+    location = "http://dummy.location.com"
+    response = HttpResponse("OK", status=200)
+    response.headers["Location"] = location
+    return response
+
+
+@csrf_exempt
 def view_iast_source_path_parameter(request, table):
     _sink_point_sqli(table=table)
 
@@ -597,7 +781,8 @@ def view_iast_source_path_parameter(request, table):
 def view_iast_header_injection_insecure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
+    response.headers._store["Header-Injection".lower()] = ("Header-Injection", header)
+    # This line is deprecated, it's kept for backward compatibility with older versions
     response.headers["Header-Injection"] = header
     return response
 
@@ -606,9 +791,36 @@ def view_iast_header_injection_insecure(request):
 def view_iast_header_injection_secure(request):
     header = request.POST.get("test")
     response = HttpResponse("OK", status=200)
-    # label iast_header_injection
     response.headers["Vary"] = header
     return response
+
+
+@csrf_exempt
+def view_iast_code_injection_insecure(request):
+    code_string = request.POST.get("code")
+    _ = eval(code_string)
+    return HttpResponse("OK", status=200)
+
+
+@csrf_exempt
+def view_iast_code_injection_secure(request):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    code_string = request.POST.get("code")
+    _ = safe_eval(code_string)
+    return HttpResponse("OK", status=200)
 
 
 def make_distant_call(request):
@@ -637,64 +849,97 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_user_login_success_event(
+        None, login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    appsec_trace_utils.track_user_login_failure_event(
-        tracer,
-        user_id=_TRACK_USER,
-        exists=True,
-        metadata=_TRACK_METADATA,
+    ato_user_sdk_v1.track_user_login_failure_event(
+        None, login=_TRACK_USER, exists=True, user_id=_TRACK_USER, metadata=_TRACK_METADATA
     )
     return HttpResponse("OK")
 
 
 @csrf_exempt
 def login(request):
-    from ddtrace.settings.asm import config as asm_config
     from django.contrib.auth import authenticate, login
 
-    mode = asm_config._automatic_login_events_mode
+    is_logged_in = False
     username = request.POST.get("username")
     password = request.POST.get("password")
     sdk_event = request.GET.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.GET.get("sdk_user")
-        sdk_mail = request.GET.get("sdk_mail")
-        sdk_user_exists = request.GET.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return HttpResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return HttpResponse("login failure", status=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     user = authenticate(username=username, password=password)
     if user is not None:
         login(request, user)
+        is_logged_in = True
+    if sdk_event:
+        sdk_user = request.GET.get("sdk_user")
+        sdk_mail = request.GET.get("sdk_mail")
+        sdk_user_exists = request.GET.get("sdk_user_exists")
+        if sdk_event == "success":
+            track_user_sdk.track_login_success(login=sdk_user, user_id=sdk_user, metadata={"email": sdk_mail})
+            is_logged_in = True
+        elif sdk_event == "failure":
+            track_user_sdk.track_login_failure(login=sdk_user, exists=sdk_user_exists, metadata={"email": sdk_mail})
+    if is_logged_in:
         return HttpResponse("OK")
     return HttpResponse("login failure", status=401)
+
+
+@csrf_exempt
+def user_login_success_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def user_login_failure_event(request):
+    json_data = json.loads(request.body)
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return HttpResponse("OK")
+
+
+@csrf_exempt
+def signup_user(request):
+    from app.models import CustomUser
+
+    try:
+        username = request.POST.get("username")
+        password = request.POST.get("password")
+        email = request.POST.get("email")
+        user = CustomUser.objects.create_user(username=username, email=email, password=password, id="new-user")
+        user.save()
+        return HttpResponse("OK")
+    except Exception as e:
+        return HttpResponse(f"signup failure {e!r}", status=400)
 
 
 MAGIC_SESSION_KEY = "random_session_id"
 
 
 def session_new(request):
-    response = HttpResponse("OK")
-    response.set_cookie("session_id", MAGIC_SESSION_KEY)
-    return response
+    request.session.save()
+    session_id = request.session.session_key
+    return HttpResponse(session_id)
 
 
 def session_user(request):
     user = request.GET.get("sdk_user", "")
     if user and request.COOKIES.get("session_id", "") == MAGIC_SESSION_KEY:
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user, session_id=f"session_{user}")
+        # track_user_sdk.track_login_success(user_id=user, session_id=f"session_{user}")
+        track_user_sdk.track_login_success(login=user, user_id=user, session_id=f"session_{user}")
     return HttpResponse("OK")
 
 
@@ -702,7 +947,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    appsec_trace_utils.track_custom_event(tracer, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_custom_event(None, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 
@@ -739,7 +984,7 @@ def get_value(request):
 def create_extra_service(request):
     new_service_name = request.GET.get("serviceName", default="")
     if new_service_name:
-        Pin.override(django, service=new_service_name, tracer=tracer)
+        Pin.override(django, service=new_service_name)
     return HttpResponse("OK")
 
 
@@ -853,7 +1098,9 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("set_cookie", set_cookie),
+    path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
+    path("rasp/multiple", rasp_multiple),
     path("rasp/shi", rasp_shi),
     path("rasp/sqli", rasp_sqli),
     path("rasp/ssrf", rasp_ssrf),
@@ -865,6 +1112,8 @@ urlpatterns = [
     path("stats-unique", stats_unique),
     path("identify", identify),
     path("users", users),
+    path("user_login_success_event_v2", user_login_success_event),
+    path("user_login_failure_event_v2", user_login_failure_event),
     path("identify-propagate", identify_propagate),
     path("iast/insecure_hashing/multiple_hash", view_weak_hash_multiple_hash),
     path("iast/insecure_hashing/test_secure_algorithm", view_weak_hash_secure_algorithm),
@@ -891,6 +1140,10 @@ urlpatterns = [
     path("iast/path_traversal/test_secure", view_iast_path_traversal_secure),
     path("iast/ssrf/test_insecure", view_iast_ssrf_insecure),
     path("iast/ssrf/test_secure", view_iast_ssrf_secure),
+    path("iast/xss/test_insecure", view_iast_xss_insecure),
+    path("iast/xss/test_secure", view_iast_xss_secure),
+    path("iast/stack_trace_leak/test_insecure", view_iast_stacktraceleak_insecure),
+    path("iast/stack_trace_leak/test_secure", view_iast_stacktraceleak_secure),
     path("iast/source/body/test", view_iast_source_body),
     path("iast/source/cookiename/test", view_iast_source_cookie_name),
     path("iast/source/cookievalue/test", view_iast_source_cookie_value),
@@ -901,13 +1154,24 @@ urlpatterns = [
     path("iast/source/path/test", view_iast_source_path),
     path("iast/source/path_parameter/test/<str:table>", view_iast_source_path_parameter),
     path("iast/header_injection/test_secure", view_iast_header_injection_secure),
+    path("iast/code_injection/test_insecure", view_iast_code_injection_insecure),
+    path("iast/code_injection/test_secure", view_iast_code_injection_secure),
     path("iast/header_injection/test_insecure", view_iast_header_injection_insecure),
+    path("iast/sampling-by-route-method-count/<str:id>", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>", view_iast_sampling_by_route_method_2),
+    path("iast/sampling-by-route-method-count/<str:id>/", view_iast_sampling_by_route_method),
+    path("iast/sampling-by-route-method-count-2/<str:id>/", view_iast_sampling_by_route_method_2),
+    path("iast/unvalidated_redirect/test_insecure_redirect", view_iast_unvalidated_redirect_insecure),
+    path("iast/unvalidated_redirect/test_secure_redirect", view_iast_unvalidated_redirect_secure),
+    path("iast/unvalidated_redirect/test_insecure_header", view_iast_unvalidated_redirect_insecure_header),
+    path("iast/unvalidated_redirect/test_secure_header", view_iast_unvalidated_redirect_secure_header),
     path("make_distant_call", make_distant_call),
     path("user_login_success_event", track_user_login_success_event),
     path("user_login_failure_event", track_user_login_failure_event),
     path("login", login),
     path("session/new", session_new),
     path("session/user", session_user),
+    path("signup", signup_user),
     path("custom_event", track_custom_event),
     path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),

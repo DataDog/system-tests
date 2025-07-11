@@ -57,7 +57,7 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
   },
   {
     "id": "<scrubbed>",
@@ -117,7 +117,7 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
   },
   {
     "id": "<scrubbed>",
@@ -177,6 +177,6 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
   }
 ]

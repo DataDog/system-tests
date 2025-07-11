@@ -1,7 +1,8 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
-from utils import weblog, interfaces, features, missing_feature, context
+from utils import weblog, interfaces, features, missing_feature, context, irrelevant
+from tests.appsec.utils import find_series
 
 HEADERS = {
     "Accept": "text/html",
@@ -23,6 +24,14 @@ HEADERS = {
     "Via": "42.42.42.42, 43.43.43.43",
     "True-Client-IP": "42.42.42.42, 43.43.43.43",
 }
+
+
+def validate_metric_type_and_version(event_type, version, metric):
+    return (
+        metric.get("type") == "count"
+        and f"event_type:{event_type}" in metric.get("tags", ())
+        and f"sdk_version:{version}" in metric.get("tags", ())
+    )
 
 
 @features.user_monitoring
@@ -56,26 +65,44 @@ class Test_UserLoginSuccessEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_success_tags)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_tags)
 
     def setup_user_login_success_header_collection(self):
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
 
     @missing_feature(library="dotnet")
     @missing_feature(context.library < "nodejs@5.18.0")
-    @missing_feature(library="ruby")
+    @missing_feature(context.library < "ruby@2.13.0")
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
         def validate_user_login_success_header_collection(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_success_header_collection)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+
+
+@features.user_monitoring
+class Test_UserLoginSuccessEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/user_login_success_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("login_success", "v1", s) for s in series), [
+            s.get("tags") for s in series
+        ]
 
 
 @features.user_monitoring
@@ -89,6 +116,7 @@ class Test_UserLoginFailureEvent:
 
         self.r = weblog.get("/user_login_failure_event", headers=headers)
 
+    @irrelevant(context.library >= "golang@2.0.0-rc.1", reason="implementation deprecated")
     def test_user_login_failure_event(self):
         # Call the user login failure SDK and validate tags
 
@@ -110,26 +138,44 @@ class Test_UserLoginFailureEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_failure_tags)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_tags)
 
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
 
     @missing_feature(context.library < "dotnet@3.7.0")
     @missing_feature(context.library < "nodejs@5.18.0")
-    @missing_feature(library="ruby")
+    @missing_feature(context.library < "ruby@2.13.0")
     def test_user_login_failure_header_collection(self):
         # Validate that all relevant headers are included on user login failure
 
         def validate_user_login_failure_header_collection(span):
             if span.get("parent_id") not in (0, None):
-                return
+                return None
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r, validate_user_login_failure_header_collection)
+        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+
+
+@features.user_monitoring
+class Test_UserLoginFailureEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/user_login_failure_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("login_failure", "v1", s) for s in series), [
+            s.get("tags") for s in series
+        ]
 
 
 @features.custom_business_logic_events
@@ -162,4 +208,20 @@ class Test_CustomEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_custom_event_tags)
+        interfaces.library.validate_spans(self.r, validator=validate_custom_event_tags)
+
+
+@features.user_monitoring
+class Test_CustomEvent_Metrics:
+    """Success test for User Login Event SDK for AppSec"""
+
+    def setup_user_login_success_event(self):
+        self.r = weblog.get("/custom_event")
+
+    def test_user_login_success_event(self):
+        # Call the user login success SDK and validate tags
+        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+
+        assert series
+
+        assert any(validate_metric_type_and_version("custom", "v1", s) for s in series), [s.get("tags") for s in series]

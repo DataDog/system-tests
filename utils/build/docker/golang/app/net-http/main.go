@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"math/rand"
 	"net/http"
 	"net/http/httptest"
@@ -17,33 +16,40 @@ import (
 	"syscall"
 	"time"
 
-	"weblog/internal/common"
-	"weblog/internal/grpc"
-	"weblog/internal/rasp"
+	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/grpc"
+	"systemtests.weblog/_shared/rasp"
 
-	"github.com/Shopify/sarama"
+	saramatrace "github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2"
+	"github.com/sirupsen/logrus"
 
-	saramatrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/Shopify/sarama"
-	"gopkg.in/DataDog/dd-trace-go.v1/datastreams"
+	"github.com/DataDog/dd-trace-go/v2/datastreams"
+	"github.com/IBM/sarama"
 
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	otelbaggage "go.opentelemetry.io/otel/baggage"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/appsec"
-	httptrace "gopkg.in/DataDog/dd-trace-go.v1/contrib/net/http"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	ddtracer "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"gopkg.in/DataDog/dd-trace-go.v1/profiler"
+	httptrace "github.com/DataDog/dd-trace-go/contrib/net/http/v2"
+	dd_logrus "github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2"
+	"github.com/DataDog/dd-trace-go/v2/appsec"
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
+	"github.com/DataDog/dd-trace-go/v2/profiler"
 )
 
 func main() {
-	ddtracer.Start()
-	defer ddtracer.Stop()
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	logrus.SetOutput(os.Stdout)
+	logrus.SetLevel(logrus.DebugLevel)
+
+	// Add Datadog context log hook
+	logrus.AddHook(&dd_logrus.DDContextLogHook{})
+	tracer.Start()
+	defer tracer.Stop()
 
 	err := profiler.Start(
 		profiler.WithService("weblog"),
@@ -54,7 +60,7 @@ func main() {
 	)
 
 	if err != nil {
-		log.Fatal(err)
+		logrus.Fatal(err)
 	}
 	defer profiler.Stop()
 
@@ -172,7 +178,7 @@ func main() {
 		req, _ := http.NewRequestWithContext(r.Context(), http.MethodGet, url, nil)
 		res, err := client.Do(req)
 		if err != nil {
-			log.Fatalln("client.Do", err)
+			logrus.Fatalln("client.Do", err)
 		}
 
 		defer res.Body.Close()
@@ -194,7 +200,7 @@ func main() {
 			ResponseHeaders map[string]string `json:"response_headers"`
 		}{URL: url, StatusCode: res.StatusCode, RequestHeaders: requestHeaders, ResponseHeaders: responseHeaders})
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(jsonResponse)
@@ -204,11 +210,11 @@ func main() {
 	mux.HandleFunc("/headers/", headers)
 
 	identify := func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(
-				span, "usr.id", ddtracer.WithUserEmail("usr.email"),
-				ddtracer.WithUserName("usr.name"), ddtracer.WithUserSessionID("usr.session_id"),
-				ddtracer.WithUserRole("usr.role"), ddtracer.WithUserScope("usr.scope"),
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(
+				span, "usr.id", tracer.WithUserEmail("usr.email"),
+				tracer.WithUserName("usr.name"), tracer.WithUserSessionID("usr.session_id"),
+				tracer.WithUserRole("usr.role"), tracer.WithUserScope("usr.scope"),
 			)
 		}
 		w.Write([]byte("Hello, identify!"))
@@ -216,8 +222,8 @@ func main() {
 	mux.HandleFunc("/identify/", identify)
 	mux.HandleFunc("/identify", identify)
 	mux.HandleFunc("/identify-propagate", func(w http.ResponseWriter, r *http.Request) {
-		if span, ok := ddtracer.SpanFromContext(r.Context()); ok {
-			ddtracer.SetUser(span, "usr.id", ddtracer.WithPropagation())
+		if span, ok := tracer.SpanFromContext(r.Context()); ok {
+			tracer.SetUser(span, "usr.id", tracer.WithPropagation())
 		}
 		w.Write([]byte("Hello, identify-propagate!"))
 	})
@@ -274,6 +280,22 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), uid, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
+	mux.HandleFunc("/user_login_success_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			UserID   string            `json:"user_id"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			logrus.Println("error decoding request body for", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginSuccess(r.Context(), data.Login, data.UserID, data.Metadata)
+	})
+
 	mux.HandleFunc("/user_login_failure_event", func(w http.ResponseWriter, r *http.Request) {
 		uquery := r.URL.Query()
 		uid := "system_tests_user"
@@ -288,6 +310,30 @@ func main() {
 			}
 		}
 		appsec.TrackUserLoginFailureEvent(r.Context(), uid, exists, map[string]string{"metadata0": "value0", "metadata1": "value1"})
+	})
+
+	mux.HandleFunc("/user_login_failure_event_v2", func(w http.ResponseWriter, r *http.Request) {
+		var data struct {
+			Login    string            `json:"login"`
+			Exists   string            `json:"exists"`
+			Metadata map[string]string `json:"metadata"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+			logrus.Println("error decoding request body for ", r.URL, ":", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		exists, err := strconv.ParseBool(data.Exists)
+		if err != nil {
+			logrus.Printf("error parsing exists value %q: %v\n", data.Exists, err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		appsec.TrackUserLoginFailure(r.Context(), data.Login, exists, data.Metadata)
 	})
 
 	mux.HandleFunc("/custom_event", func(w http.ResponseWriter, r *http.Request) {
@@ -318,7 +364,7 @@ func main() {
 		}
 
 		p := ddotel.NewTracerProvider()
-		tracer := p.Tracer("")
+		otracer := p.Tracer("")
 		otel.SetTracerProvider(p)
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		defer p.ForceFlush(time.Second, func(ok bool) {})
@@ -328,18 +374,18 @@ func main() {
 		// - tags {'attributes':'values'}
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - error tag with 'testing_end_span_options' message
-		parentCtx, parentSpan := tracer.Start(ddotel.ContextWithStartOptions(context.Background(),
-			ddtracer.WithSpanID(10000)), parentName,
-			trace.WithAttributes(tags...))
+		parentCtx, parentSpan := otracer.Start(ddotel.ContextWithStartOptions(context.Background(),
+			tracer.WithSpanID(10000)), parentName,
+			oteltrace.WithAttributes(tags...))
 		parentSpan.SetAttributes(attribute.String("attributes", "values"))
-		ddotel.EndOptions(parentSpan, ddtracer.WithError(errors.New("testing_end_span_options")))
+		ddotel.EndOptions(parentSpan, tracer.WithError(errors.New("testing_end_span_options")))
 
 		// Child span will have the following traits :
 		// - tags necessary to retain the mapping between the system-tests/weblog request id and the traces/spans
 		// - duration of one second
 		// - span kind of SpanKind - Internal
 		start := time.Now()
-		_, childSpan := tracer.Start(parentCtx, childName, trace.WithTimestamp(start), trace.WithAttributes(tags...), trace.WithSpanKind(trace.SpanKindInternal))
+		_, childSpan := otracer.Start(parentCtx, childName, oteltrace.WithTimestamp(start), oteltrace.WithAttributes(tags...), oteltrace.WithSpanKind(oteltrace.SpanKindInternal))
 		childSpan.End(oteltrace.WithTimestamp(start.Add(time.Second)))
 		parentSpan.End()
 
@@ -369,7 +415,7 @@ func main() {
 		otel.SetTextMapPropagator(propagation.TraceContext{})
 		defer p.ForceFlush(time.Second, func(ok bool) {})
 
-		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, trace.WithAttributes(tags...))
+		parentCtx, parentSpan := tracer.Start(context.Background(), parentName, oteltrace.WithAttributes(tags...))
 
 		h := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			receivedSpan := oteltrace.SpanFromContext(r.Context())
@@ -377,7 +423,7 @@ func main() {
 			// the system-tests/weblog request id and the traces/spans
 			receivedSpan.SetAttributes(tags...)
 			if receivedSpan.SpanContext().TraceID() != parentSpan.SpanContext().TraceID() {
-				log.Fatalln("error in distributed tracing: Datadog OTel API and Otel net/http package span are not connected")
+				logrus.Fatalln("error in distributed tracing: Datadog OTel API and Otel net/http package span are not connected")
 				w.WriteHeader(500)
 				return
 			}
@@ -390,14 +436,14 @@ func main() {
 		c := http.Client{Transport: otelhttp.NewTransport(nil, otelhttp.WithSpanOptions(oteltrace.WithAttributes(tags...)))}
 		req, err := http.NewRequestWithContext(parentCtx, http.MethodGet, testServer.URL, nil)
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
 		resp, err := c.Do(req)
 		_ = resp.Body.Close() // Need to close body to cause otel span to end
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -411,7 +457,7 @@ func main() {
 		content, err := os.ReadFile(path)
 
 		if err != nil {
-			log.Fatalln(err)
+			logrus.Fatalln(err)
 			w.WriteHeader(500)
 			return
 		}
@@ -537,6 +583,79 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/otel_drop_in_default_propagator_extract", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		httpCarrier := HttpCarrier{header: r.Header}
+
+		propagator := otel.GetTextMapPropagator()
+		ctx := propagator.Extract(r.Context(), httpCarrier)
+
+		spanContext := oteltrace.SpanContextFromContext(ctx)
+		baggage := otelbaggage.FromContext(ctx)
+
+		base := 16
+		bitSize := 64
+		result := make(map[string]any, 4)
+
+		num, err := strconv.ParseInt(spanContext.TraceID().String()[16:], base, bitSize)
+		if err == nil {
+			result["trace_id"] = num
+		}
+
+		num, err = strconv.ParseInt(spanContext.SpanID().String(), base, bitSize)
+		if err == nil {
+			result["span_id"] = num
+		}
+
+		result["tracestate"] = spanContext.TraceState().String()
+		result["baggage"] = baggage.String()
+
+		jsonData, err := json.Marshal(result)
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
+	mux.HandleFunc("/otel_drop_in_default_propagator_inject", func(w http.ResponseWriter, r *http.Request) {
+		// Differing from other languages, the user must set the text map propagator because dd-trace-go
+		// doesn't automatically instrument at runtime (not including Orchestrion)
+		otel.SetTextMapPropagator(propagation.NewCompositeTextMapPropagator(propagation.TraceContext{}, propagation.Baggage{}))
+
+		ctx := context.Background()
+		p := ddotel.NewTracerProvider()
+		tracer := p.Tracer("")
+		otel.SetTracerProvider(p)
+
+		_, span := tracer.Start(ddotel.ContextWithStartOptions(ctx), "main")
+		newCtx := oteltrace.ContextWithSpan(ctx, span)
+
+		propagator := otel.GetTextMapPropagator()
+		mapCarrier := make(MapCarrier)
+		propagator.Inject(newCtx, mapCarrier)
+
+		jsonData, err := json.Marshal(mapCarrier)
+		span.End()
+
+		if err != nil {
+			w.WriteHeader(422)
+			w.Write([]byte("failed to convert carrier to JSON"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(jsonData)
+	})
+
 	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := strconv.Itoa(rand.Int())
 		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")
@@ -552,12 +671,71 @@ func main() {
 		appsec.TrackUserLoginSuccessEvent(r.Context(), user, map[string]string{}, tracer.WithUserSessionID(cookie.Value))
 	})
 
+	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
+		statusCodeStr := r.URL.Query().Get("status_code")
+		statusCode := 200
+		if statusCodeStr != "" {
+			var err error
+			statusCode, err = strconv.Atoi(statusCodeStr)
+			if err != nil {
+				statusCode = 400 // Bad request if conversion fails
+			}
+		}
+
+		// Log the request headers
+		fmt.Println("Received an API Gateway request")
+		for key, values := range r.Header {
+			for _, value := range values {
+				fmt.Printf("%s: %s\n", key, value)
+			}
+		}
+
+		// Send the response
+		w.WriteHeader(statusCode)
+		w.Write([]byte("ok"))
+	})
+
+	mux.HandleFunc("/log/library", func(w http.ResponseWriter, r *http.Request) {
+		msg := r.URL.Query().Get("msg")
+		if msg == "" {
+			msg = "msg"
+		}
+		ctx := r.Context()
+		switch r.URL.Query().Get("level") {
+		case "warn":
+			logrus.WithContext(ctx).Warn(msg)
+		case "error":
+			logrus.WithContext(ctx).Error(msg)
+		case "debug":
+			logrus.WithContext(ctx).Debug(msg)
+		default:
+			logrus.WithContext(ctx).Info(msg)
+		}
+		w.WriteHeader(200)
+		w.Write([]byte("ok"))
+	})
+
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+
+	mux.HandleFunc("/add_event", func(w http.ResponseWriter, r *http.Request) {
+		span, ok := tracer.SpanFromContext(r.Context())
+		if !ok {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(`span not found in context`))
+			return
+		}
+		span.AddEvent("span.event", tracer.WithSpanEventAttributes(map[string]any{
+			"string": "value",
+			"int":    1,
+		}))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`[Event added]`))
+	})
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -568,7 +746,7 @@ func main() {
 	go grpc.ListenAndServe()
 	go func() {
 		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			logrus.Fatal(err)
 		}
 	}()
 
@@ -579,7 +757,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatalf("HTTP shutdown error: %v", err)
+		logrus.Fatalf("HTTP shutdown error: %v", err)
 	}
 }
 
@@ -598,8 +776,46 @@ func (c carrier) ForeachKey(handler func(key, val string) error) error {
 	return nil
 }
 
+type MapCarrier map[string]string
+
+func (c MapCarrier) Get(key string) string {
+	return c[key]
+}
+
+func (c MapCarrier) Set(key, val string) {
+	c[key] = val
+}
+
+func (c MapCarrier) Keys() []string {
+	keys := make([]string, 0, len(c))
+	for k := range c {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+type HttpCarrier struct {
+	header http.Header
+}
+
+func (c HttpCarrier) Get(key string) string {
+	return c.header.Get(key)
+}
+
+func (c HttpCarrier) Set(key, val string) {
+	c.header.Set(key, val)
+}
+
+func (c HttpCarrier) Keys() []string {
+	keys := make([]string, 0, len(c.header))
+	for k := range c.header {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
 func write(w http.ResponseWriter, r *http.Request, d []byte) {
-	span, _ := ddtracer.StartSpanFromContext(r.Context(), "child.span")
+	span, _ := tracer.StartSpanFromContext(r.Context(), "child.span")
 	defer span.Finish()
 	w.Write(d)
 }
@@ -637,7 +853,7 @@ func kafkaProduce(topic, message string) (int32, int64, error) {
 		return 0, 0, err
 	}
 
-	log.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
+	logrus.Printf("PRODUCER SENT MESSAGE TO (partition offset): %d %d", partition, offset)
 	return partition, offset, nil
 }
 
@@ -660,16 +876,16 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 
 	timeOutTimer := time.NewTimer(time.Duration(timeout) * time.Second)
 	defer timeOutTimer.Stop()
-	log.Printf("CONSUMING MESSAGES from topic: %s", topic)
+	logrus.Printf("CONSUMING MESSAGES from topic: %s", topic)
 	for {
 		select {
 		case receivedMsg := <-partitionConsumer.Messages():
 			responseOutput := fmt.Sprintf("Consumed message.\n\tOffset: %s\n\tMessage: %s\n", fmt.Sprint(receivedMsg.Offset), string(receivedMsg.Value))
-			log.Print(responseOutput)
+			logrus.Print(responseOutput)
 			return responseOutput, 200, nil
 		case <-timeOutTimer.C:
 			timedOutMessage := "TimeOut"
-			log.Print(timedOutMessage)
+			logrus.Print(timedOutMessage)
 			return timedOutMessage, 408, nil
 		}
 	}

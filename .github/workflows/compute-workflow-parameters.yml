@@ -7,6 +7,9 @@ on:
         description: "Library to run"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       scenarios:
         description: "Comma-separated list of scenarios to run"
         type: string
@@ -15,68 +18,164 @@ on:
         description: "Comma-separated list of scenarios groups to run"
         type: string
         default: ""
-      _experimental_parametric_job_count:
+      excluded_scenarios:
+        description: "Comma-separated list of scenarios not to run"
+        type: string
+        default: ""
+      weblogs:
+        description: "Comma-separated list of weblogs to run. By default, all weblogs are run"
+        default: ''
+        required: false
+        type: string
+      parametric_job_count:
         description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
         default: 1
         required: false
         type: number
+      desired_execution_time:
+        description: "In seconds, system-tests will try to respect this time budget."
+        default: "-1"
+        required: false
+        type: string
+      binaries_artifact:
+        description: "Artifact name containing the binaries to test"
+        default: ''
+        required: false
+        type: string
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
+      _system_tests_library_target_branch:
+        description: "If system-tests dev mode, the branch to use for the library"
+        default: ''
+        required: false
+        type: string
 
     # Map the workflow outputs to job outputs
     outputs:
-      endtoend_scenarios:
+      endtoend_scenarios:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs:
+      endtoend_weblogs:  # legacy
         description: ""
         value: ${{ jobs.main.outputs.endtoend_weblogs }}
-      graphql_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_scenarios }}
-      graphql_weblogs:
-        description: ""
-        value: ${{ jobs.main.outputs.graphql_weblogs }}
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios:
+      libinjection_enable:
         description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs:
+        value: ${{ jobs.main.outputs.libinjection_enable }}
+      parametric_enable:
         description: ""
-        value: ${{ jobs.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios:
+        value: ${{ jobs.main.outputs.parametric_enable }}
+      externalprocessing_scenarios:
         description: ""
-        value: ${{ jobs.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix:
+        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
+      parametric_job_matrix:
         description: ""
-        value: ${{ jobs.main.outputs._experimental_parametric_job_matrix }}
+        value: ${{ jobs.main.outputs.parametric_job_matrix }}
+      endtoend_defs_parallel_enable:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_enable }}
+      endtoend_defs_parallel_weblogs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_weblogs }}
+      endtoend_defs_parallel_jobs:
+        description: ""
+        value: ${{ jobs.main.outputs.endtoend_defs_parallel_jobs }}
+      ci_environment:
+        description: ""
+        value: ${{ jobs.main.outputs.ci_environment }}
+      binaries_artifact:
+        description: ""
+        value: ${{ jobs.main.outputs.binaries_artifact }}
+      unique_id:
+        description: "A unique ID for the workflow run, used to set unique artifact names if the workflow is called in a matrix"
+        value: ${{ jobs.main.outputs.unique_id }}
 
 jobs:
   main:
     name: Get parameters
     runs-on: ubuntu-latest
     outputs:
-      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}
-      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}
-      graphql_scenarios: ${{ steps.main.outputs.graphql_scenarios }}
-      graphql_weblogs: ${{ steps.main.outputs.graphql_weblogs }}
+      endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
+      endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
+      endtoend_defs_parallel_jobs: ${{ steps.main.outputs.endtoend_defs_parallel_jobs }}
+      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      opentelemetry_scenarios: ${{ steps.main.outputs.opentelemetry_scenarios }}
-      opentelemetry_weblogs: ${{ steps.main.outputs.opentelemetry_weblogs }}
-      parametric_scenarios: ${{ steps.main.outputs.parametric_scenarios }}
-      _experimental_parametric_job_matrix: ${{ steps.main.outputs._experimental_parametric_job_matrix }}
+      libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
+      parametric_enable: ${{ steps.main.outputs.parametric_enable }}
+      parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
+      parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
+      endtoend_scenarios: ${{ steps.main.outputs.endtoend_scenarios }}  # legacy
+      endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
+      ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
+      binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
+      unique_id: ${{ steps.unique_id.outputs.value }}
     steps:
+    - name: Compute ref
+      id: compute_ref
+      run: |
+        if [[ "${{ inputs.ref }}" != "" ]]; then
+          echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+          echo "ref=" >> $GITHUB_OUTPUT
+        else
+          echo "ref=main" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
+        ref: ${{ steps.compute_ref.outputs.ref }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: main
       id: main
       run: |
         source venv/bin/activate
-        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} -s "${{ inputs.scenarios }}" -g "${{ inputs.scenarios_groups }}" >> $GITHUB_OUTPUT
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -t ${{ inputs.desired_execution_time }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
+          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
+          --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+          --output $GITHUB_OUTPUT
+    - name: log
+      run: |
+        source venv/bin/activate
+        python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
+          -t ${{ inputs.desired_execution_time }} \
+          -s "${{ inputs.scenarios }}" \
+          -g "${{ inputs.scenarios_groups }}" \
+          --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
+          --parametric-job-count ${{ inputs.parametric_job_count }} \
+          --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
+          --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
+          --format json | jq
+
+    - name: Get dev artifacts
+      if: ${{ inputs._system_tests_dev_mode }}
+      run: |
+        ./utils/scripts/load-binary.sh agent
+        ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
-        PYTHONPATH: "."
-        _EXPERIMENTAL_PARAMETRIC_JOB_COUNT: ${{ inputs._experimental_parametric_job_count }}
+        LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload artifact
+      if: ${{ inputs._system_tests_dev_mode }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: binaries_dev_${{ inputs.library }}
+        path: binaries/
+        include-hidden-files: ${{ inputs.library == 'python' }}
+    - name: Set unique ID
+      id: unique_id
+      run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT

@@ -5,7 +5,7 @@
 from utils import weblog, bug, context, interfaces, rfc, features, missing_feature
 
 
-def assertTagInSpanMeta(span, tag, expected):
+def assert_tag_in_span_meta(span, tag, expected):
     if tag not in span["meta"]:
         raise Exception(f"Can't find {tag} in span's meta")
 
@@ -18,10 +18,10 @@ def validate_identify_tags(tags):
     def inner_validate(span):
         for tag in tags:
             if isinstance(tags, dict):
-                assertTagInSpanMeta(span, tag, tags[tag])
+                assert_tag_in_span_meta(span, tag, tags[tag])
             else:
-                fullTag = f"usr.{tag}"
-                assertTagInSpanMeta(span, fullTag, fullTag)
+                full_tag = f"usr.{tag}"
+                assert_tag_in_span_meta(span, full_tag, full_tag)
         return True
 
     return inner_validate
@@ -42,7 +42,7 @@ class Test_Basic:
     @bug(context.library <= "ruby@2.3.0", reason="APMRP-360")
     def test_identify_tags(self):
         interfaces.library.validate_spans(
-            self.r, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
+            self.r, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
     def setup_identify_tags_with_attack(self):
@@ -51,7 +51,7 @@ class Test_Basic:
 
     def test_identify_tags_with_attack(self):
         interfaces.library.validate_spans(
-            self.r_with_attack, validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
+            self.r_with_attack, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
 
@@ -65,9 +65,10 @@ class Test_Propagate_Legacy:
         self.r_outgoing = weblog.get("/identify-propagate")
 
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
+    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_outgoing, validator=validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -75,9 +76,9 @@ class Test_Propagate_Legacy:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
+        """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_incoming, validator=validate_identify_tags(tag_table))
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
@@ -90,9 +91,10 @@ class Test_Propagate:
         self.r_outgoing = weblog.get("/identify-propagate")
 
     @missing_feature(library="nodejs", reason="only supports incoming tags for now")
+    @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
-        tagTable = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validate_identify_tags(tagTable))
+        tag_table = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_outgoing, validator=validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -100,13 +102,13 @@ class Test_Propagate:
         self.r_incoming = weblog.get("/waf", headers=headers)
 
     def test_identify_tags_incoming(self):
-        """with W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
+        """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
 
         def usr_id_not_present(span):
             if "usr.id" in span["meta"]:
-                raise Exception(f"usr.id must not be present in this span")
+                raise Exception("usr.id must not be present in this span")
             return True
 
-        tagTable = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validate_identify_tags(tagTable))
-        interfaces.library.validate_spans(self.r_incoming, usr_id_not_present)
+        tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
+        interfaces.library.validate_spans(self.r_incoming, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_spans(self.r_incoming, validator=usr_id_not_present)

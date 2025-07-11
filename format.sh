@@ -32,6 +32,8 @@ done
 if [ ! -d "venv/" ]; then
   echo "Runner is not installed, installing it (ETA 60s)"
   ./build.sh -i runner
+elif ! diff requirements.txt venv/requirements.txt; then
+  ./build.sh -i runner
 fi
 
 source venv/bin/activate
@@ -95,5 +97,57 @@ else
     exit 1
   fi
 fi
+
+echo "Running yamlfmt checks..."
+if ! which yamlfmt > /dev/null; then
+  echo "yamlfmt is not installed, installing it (ETA 5s)"
+  YAMLFMT_VERSION="0.16.0"
+
+  YAMLFMT_OS=""
+  case "$(uname -s)" in
+    Darwin) YAMLFMT_OS="Darwin" ;;
+    Linux) YAMLFMT_OS="Linux" ;;
+    CYGWIN*|MINGW*|MSYS*) YAMLFMT_OS="Windows" ;;
+    *) echo "Unsupported OS"; return 1 ;;
+  esac
+
+  YAMLFMT_ARCH=""
+  case "$(uname -m)" in
+    arm64|aarch64) YAMLFMT_ARCH="arm64" ;;
+    x86_64) YAMLFMT_ARCH="x86_64" ;;
+    i386|i686) YAMLFMT_ARCH="i386" ;;
+    *) echo "Unsupported architecture"; return 1 ;;
+  esac
+
+  YAMLFMT_URL="https://github.com/google/yamlfmt/releases/download/v${YAMLFMT_VERSION}/yamlfmt_${YAMLFMT_VERSION}_${YAMLFMT_OS}_${YAMLFMT_ARCH}.tar.gz"
+  curl -Lo "$PWD"/venv/bin/yamlfmt.tar.gz $YAMLFMT_URL
+  tar -xzf "$PWD"/venv/bin/yamlfmt.tar.gz -C "$PWD"/venv/bin/
+  chmod +x "$PWD"/venv/bin/yamlfmt
+fi
+
+echo "Running yamlfmt formatter..."
+if [ "$COMMAND" == "fix" ]; then
+ yamlfmt manifests/
+else
+ yamlfmt -lint manifests/
+fi
+
+echo "Running yamllint checks..."
+if ! which ./venv/bin/yamllint > /dev/null; then
+  echo "yamllint is not installed, installing it (ETA 60s)"
+  ./build.sh -i runner > /dev/null
+fi
+
+if ! ./venv/bin/yamllint -s manifests/; then
+  echo "yamllint checks failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
+echo "Running parser checks..."
+if ! python ./manifests/parser/core.py; then
+  echo "Manifest parser failed. Please fix the errors above. 💥 💔 💥"
+  exit 1
+fi
+
 
 echo "All good, the system-tests CI will be happy! ✨ 🍰 ✨"

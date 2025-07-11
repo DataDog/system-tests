@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -20,7 +20,21 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <agent.path>/dd-tracer/dd-java-agent.jar</agent.path>
         <start-class>com.datadoghq.springbootnative.App</start-class>
+        <dd-trace-api.version>[1.47.0,)</dd-trace-api.version>
     </properties>
+
+    <repositories>
+        <repository>
+            <id>sonatype-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -28,10 +42,10 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-         <dependency>
+        <dependency>
             <groupId>com.datadoghq</groupId>
             <artifactId>dd-trace-api</artifactId>
-            <version>LATEST</version>
+            <version>${dd-trace-api.version}</version>
         </dependency>
         <dependency>
             <groupId>io.opentracing</groupId>
@@ -43,7 +57,7 @@
             <artifactId>opentracing-util</artifactId>
             <version>LATEST</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
@@ -54,8 +68,37 @@
             <artifactId>javax.servlet-api</artifactId>
             <version>4.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>javax.mail-api</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.activation</groupId>
+            <artifactId>activation</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+            <version>1.6.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>2.0.16</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.4.14</version>
+        </dependency>
     </dependencies>
-
     <build>
         <plugins>
             <plugin>
@@ -67,7 +110,13 @@
                 <artifactId>native-maven-plugin</artifactId>
                 <version>0.10.3</version>
                 <configuration>
-                     <quickBuild>true</quickBuild>
+                    <quickBuild>true</quickBuild>
+                    <debug>true</debug>
+                    <buildArgs>
+                        <buildArg>-H:+SourceLevelDebug</buildArg>
+                        <buildArg>-H:-DeleteLocalSymbols</buildArg>
+                        <buildArg>-H:+PreserveFramePointer</buildArg>
+                    </buildArgs>
                 </configuration>
             </plugin>
         </plugins>
@@ -82,13 +131,13 @@
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <configuration>
-                          <buildArgs combine.children="append">
-                            <buildArg>--enable-monitoring=jfr</buildArg>
-                            <buildArg>-J-Ddd.profiling.enabled=true</buildArg>
-                            <buildArg>-J-javaagent:${agent.path}</buildArg>
-                          </buildArgs>
+                            <buildArgs combine.children="append">
+                                <buildArg>--enable-monitoring=jfr</buildArg>
+                                <buildArg>-J-Ddd.profiling.enabled=true</buildArg>
+                                <buildArg>-J-javaagent:${agent.path}</buildArg>
+                            </buildArgs>
                         </configuration>
-                      </plugin>
+                    </plugin>
                 </plugins>
             </build>
         </profile>
@@ -101,11 +150,11 @@
                         <groupId>org.graalvm.buildtools</groupId>
                         <artifactId>native-maven-plugin</artifactId>
                         <configuration>
-                          <buildArgs combine.children="append">
-                            <buildArg>-J-javaagent:${agent.path}</buildArg>
-                          </buildArgs>
+                            <buildArgs combine.children="append">
+                                <buildArg>-J-javaagent:${agent.path}</buildArg>
+                            </buildArgs>
                         </configuration>
-                      </plugin>
+                    </plugin>
                 </plugins>
             </build>
         </profile>

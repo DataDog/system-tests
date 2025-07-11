@@ -2,21 +2,20 @@ from __future__ import annotations
 
 import json
 
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.buddies import java_buddy
-from utils.tools import logger
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
+from utils.buddies import java_buddy, _Weblog as Weblog
 
 
-class _Test_Kafka:
+class _BaseKafka:
     """Test kafka compatibility with inputted datadog tracer"""
 
-    buddy = None
-    WEBLOG_TO_BUDDY_TOPIC = None
-    BUDDY_TO_WEBLOG_TOPIC = None
-    buddy_interface = None
+    buddy: Weblog
+    WEBLOG_TO_BUDDY_TOPIC: str
+    BUDDY_TO_WEBLOG_TOPIC: str
+    buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, topic):
+    def get_span(cls, interface, span_kind, topic) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -50,8 +49,7 @@ class _Test_Kafka:
         return topic
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a kafka message
+        """Send request A to weblog : this request will produce a kafka message
         send request B to library buddy, this request will consume kafka message
         """
         self.production_response = weblog.get(
@@ -86,11 +84,12 @@ class _Test_Kafka:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a kafka message
+        """Send request A to library buddy : this request will produce a kafka message
         send request B to weblog, this request will consume kafka message
 
         request A: GET /library_buddy/produce_kafka_message
@@ -128,11 +127,12 @@ class _Test_Kafka:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
-        """
-        Validates production/consumption of kafka message.
+        """Validates production/consumption of kafka message.
         It works the same for both test_produce and test_consume
         """
 
@@ -161,7 +161,7 @@ class _Test_Kafka:
 
 @scenarios.crossed_tracing_libraries
 @features.kafkaspan_creationcontext_propagation_with_dd_trace
-class Test_Kafka(_Test_Kafka):
+class Test_Kafka(_BaseKafka):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_TOPIC = "Test_Kafka_weblog_to_buddy"

@@ -16,7 +16,7 @@ If no scenario is specified, the `DEFAULT` scenario is executed.
 
 ## How to define a tested architecture?
 
-Scenario's architecture is defined in python, in the file `utils/_context/scenarios.py`. Most of them are based on `EndToEndScenario` class. It spawns a container with an weblog (shipping a datadog tracer), a container with an datadog agent, and a proxy that spies everything coming from tracer and agent. Optionally, some other containers can be added (mostly databases).
+Scenario's architecture is defined in python, in the file `utils/_context/scenarios/__init__.py`. Most of them are based on `EndToEndScenario` class. It spawns a container with an weblog (shipping a datadog tracer), a container with an datadog agent, and a proxy that spies everything coming from tracer and agent. Optionally, some other containers can be added (mostly databases).
 
 ## How to define setup?
 
@@ -46,12 +46,15 @@ End-To-End scenarios are good for testing real-world scenarios — they support 
 
 Parametric scenarios are designed to validate tracer and span interfaces. They are more lightweight and support testing features with many input parameters. They should be used to test operations such as creating spans, setting tags, setting links, injecting/extracting http headers, getting tracer configurations, etc. You can find dedicated parametric instructions in the [parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).
 
-### Auto-Inject/Onboarding scenarios
+### Auto-Inject/OnBoarding/SSI scenarios
 
-Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and containerized environments. Datadog software installed on the machine will intercept the startup of your application and inject the tracer library automatically. The Onboarding scenarios reproduce different environments and check that the library injection is done correctly. More detailed documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/onboarding.md).
+Automatic library injection simplifies the APM onboarding experience for customers deploying Java, Node.js, .NET, Python and Ruby applications in VMs and containerized environments. Datadog software installed on the machine will be intercept the startup of your application and it will inject the tracer library automatically. The Onboarding scenarios reproduce different environments and check that the library injection is done correctly. The SSI scenario can be splitted in two scenarios:
+* AWS SSI tests: Run an AWS EC2 instance and install a provision. A provision usually is a Datadog SSI software  installation and a weblog installation. We check that the weblog is auto instrumented. More detailed documentation can be found [here](onboarding.md).
+* Docker SSI tests: Run on docker and install a provision. A provision usually is a Datadog SSI software installation and a weblog instalation. We check that the weblog is auto instrumented. More detailled documentation can be found [here](docker_ssi.md).
 
-### Kubernetes Auto-Inject scenarios
+### Kubernetes Auto-Inject/SSI scenarios
+
 
 The lib-injection project is a feature to allow injection of the Datadog library into a customer's application container without requiring them to modify their application images.
 
-This feature enables applications written in Java, Node.js, Python, DotNet or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).
+This feature enables applications written in Java, Node.js, Python, .NET or Ruby running in Kubernetes to be automatically instrumented with the corresponding Datadog APM libraries. More detailed documentation can be found [here](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/k8s_lib_injection.md).

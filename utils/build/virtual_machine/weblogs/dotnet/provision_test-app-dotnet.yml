@@ -81,14 +81,20 @@ lang_variant:
         os_distro: rpm
         remote-command: dotnet --info || sudo yum install -y dotnet-sdk-6.0
 
+      - os_type: windows
+        remote-command: |
+          # Install chocolatey
+          Write-Host "Installing Chocolatey..."
+          Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+          Write-Host "Successfully installed Chocolatey"
+
+          Write-Host "Installing dependencies through Chocolatey..."
+          choco install -y --no-progress dotnet-7.0-sdk dotnet-7.0-aspnetruntime urlrewrite dotnet-aspnetcoremodule-v2
+          Write-Host "Successfully installed dependencies through Chocolatey"
+
+
 weblog:
     name: test-app-dotnet
-    #Ubuntu 21 (arm64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
-    #Ubuntu 21 (amd64) excluded due to there is not installable cadidate for dotnet-sdk-6.0
-    #Centos 7. I can't find the libicu60 package for centos 7. Only available version 50.2
-    #Amazon Linux 2022: Incompatible runtime version installed. Not breaks app, but not instrumented
-    excluded_os_branches: [ubuntu18_amd64, ubuntu20_arm64,ubuntu21, centos_7_amd64, debian, amazon_linux2022]
-    excluded_os_names: [OracleLinux_7_9_amd64]
     install:
       - os_type: linux
         copy_files:
@@ -105,3 +111,9 @@ weblog:
             local_path: utils/build/virtual_machine/weblogs/dotnet/test-app-dotnet/test-app-dotnet_run.sh
 
         remote-command: sh test-app-dotnet_run.sh
+
+      - os_type: windows
+        copy_files:
+          - name: copy-dotnet-app
+            local_path: lib-injection/build/docker/dotnet/dd-lib-dotnet-init-test-app
+        remote-command: dir # TODO: run the app natively

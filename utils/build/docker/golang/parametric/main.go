@@ -9,17 +9,16 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 
+	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	otel_trace "go.opentelemetry.io/otel/trace"
-	ddotel "gopkg.in/DataDog/dd-trace-go.v1/ddtrace/opentelemetry"
 )
 
 type apmClientServer struct {
-	spans        map[uint64]tracer.Span
-	spanContexts map[uint64]ddtrace.SpanContext
+	spans        map[uint64]*tracer.Span
+	spanContexts map[uint64]*tracer.SpanContext
 	otelSpans    map[uint64]spanContext
 	tp           *ddotel.TracerProvider
 	tracer       otel_trace.Tracer
@@ -32,8 +31,8 @@ type spanContext struct {
 
 func newServer() *apmClientServer {
 	s := &apmClientServer{
-		spans:        make(map[uint64]tracer.Span),
-		spanContexts: make(map[uint64]ddtrace.SpanContext),
+		spans:        make(map[uint64]*tracer.Span),
+		spanContexts: make(map[uint64]*tracer.SpanContext),
 		otelSpans:    make(map[uint64]spanContext),
 	}
 	s.tp = ddotel.NewTracerProvider()
@@ -42,6 +41,7 @@ func newServer() *apmClientServer {
 }
 
 func main() {
+	flag.String("Darg1", "", "Argument 1")
 	flag.Parse()
 	defer func() {
 		if err := recover(); err != nil {

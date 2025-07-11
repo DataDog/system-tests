@@ -30,6 +30,7 @@ class Test_Decisionless_Extraction:
                 #
                 # [1]: https://docs.google.com/document/d/1zeO6LGnvxk5XweObHAwJbK3SfK23z7jQzp7ozWJTa2A/edit#heading=h.2nfwolfi3o1j
                 "DD_TRACE_SAMPLE_RATE": "1.0",
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
             }
         ],
     )
@@ -65,9 +66,8 @@ class Test_Decisionless_Extraction:
             "resource": "resource",
             "parent_id": parent_id,
         }
-        with test_library:
-            with test_library.dd_start_span(**span_args):
-                pass
+        with test_library, test_library.dd_start_span(**span_args):
+            pass
 
         (trace,) = test_agent.wait_for_num_traces(1)
         assert len(trace) == 1

@@ -1,7 +1,12 @@
 package com.datadoghq.ratpack;
 
+import static datadog.appsec.api.user.User.setUser;
+import static java.util.Collections.emptyMap;
+import static ratpack.jackson.Jackson.json;
+
 import com.datadoghq.system_tests.iast.infra.SqlServer;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentracing.Span;
@@ -113,18 +118,41 @@ public class Main {
 
                                 Map<String, Object> response = new HashMap<>();
                                 Map<String, String> library = new HashMap<>();
-                                library.put("language", "java");
+                                library.put("name", "java");
                                 library.put("version", version);
                                 response.put("status", "ok");
                                 response.put("library", library);
 
-                                ctx.render(Jackson.json(response));
+                                ctx.render(json(response));
                             })
                             .get("headers", ctx -> {
                                 Response response = ctx.getResponse();
                                 response.getHeaders()
                                         .add("content-language", "en-US");
                                 response.send("text/plain", "012345678901234567890123456789012345678901");
+                            })
+                            // Endpoint with five custom headers
+                            .get("customResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Standard header
+                                response.getHeaders().add("Content-Language", "en-US");
+                                // Five test headers
+                                response.getHeaders().add("X-Test-Header-1", "value1");
+                                response.getHeaders().add("X-Test-Header-2", "value2");
+                                response.getHeaders().add("X-Test-Header-3", "value3");
+                                response.getHeaders().add("X-Test-Header-4", "value4");
+                                response.getHeaders().add("X-Test-Header-5", "value5");
+                                response.send("text/plain", "Response with custom headers");
+                            })
+                            // Endpoint exceeding default header budget with 50 headers
+                            .get("exceedResponseHeaders", ctx -> {
+                                Response response = ctx.getResponse();
+                                // Add 50 test headers
+                                for (int i = 1; i <= 50; i++) {
+                                    response.getHeaders().add("X-Test-Header-" + i, "value" + i);
+                                }
+                                response.getHeaders().add("content-language", "en-US");
+                                response.send("text/plain", "Response with more than 50 headers");
                             })
                             .get("make_distant_call", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
@@ -169,13 +197,38 @@ public class Main {
                                     response.send("application/json", r);
                                 });
                             })
-                            .path("tag_value/:value/:code", ctx -> {
-                                final String value = ctx.getPathTokens().get("value");
-                                final int code = Integer.parseInt(ctx.getPathTokens().get("code"));
+                            .path("tag_value/:tag_value/:status_code", ctx -> {
+                                final String value = ctx.getPathTokens().get("tag_value");
+                                final int code = Integer.parseInt(ctx.getPathTokens().get("status_code"));
+                                final String xOption = ctx.getRequest().getQueryParams().get("X-option");
                                 WafPostHandler.consumeParsedBody(ctx).then(v -> {
                                     setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-                                    ctx.getResponse().status(code).send("Value tagged");
+                                    if (xOption != null) {
+                                        ctx.getResponse().getHeaders().add("X-option", xOption);
+                                    }
+                                    ctx.getResponse().status(code);
+                                    if (value.startsWith("payload_in_response_body")) {
+                                        ctx.getResponse().contentType("application/json");
+                                        final Map<String, Object> responseBody = new HashMap<>();
+                                        responseBody.put("payload", v);
+                                        ctx.render(json(responseBody));
+                                    } else {
+                                        ctx.getResponse().contentType("text/plain");
+                                        ctx.render("Value tagged");
+                                    }
                                 });
+                            })
+                            .get("sample_rate_route/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(200).send("OK\n");
+                            })
+                            .get("api_security/sampling/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(i).send("Hello!\n");
+                            })
+                            .get("api_security_sampling/:i", ctx -> {
+                                final int i = Integer.parseInt(ctx.getPathTokens().get("i"));
+                                ctx.getResponse().status(200).send("OK!\n");
                             })
                             .path("waf/:params?", ctx -> {
                                 HttpMethod method = ctx.getRequest().getMethod();
@@ -194,6 +247,11 @@ public class Main {
                                 int code = Integer.parseInt(codeParam);
                                 ctx.getResponse().status(code).send();
                             })
+                            .path("stats-unique", ctx -> {
+                                String codeParam = ctx.getRequest().getQueryParams().get("code");
+                                int code = codeParam != null ? Integer.parseInt(codeParam): 200;
+                                ctx.getResponse().status(code).send();
+                            })
                             .get("users", ctx -> {
                                 final String user = ctx.getRequest().getQueryParams().get("user");
                                 final Span span = GlobalTracer.get().activeSpan();
@@ -203,6 +261,16 @@ public class Main {
                                 }
                                 datadog.appsec.api.blocking.Blocking.forUser(user).blockIfMatch();
                                 ctx.getResponse().send("text/plain", "Hello " + user);
+                            })
+                            .get("identify", ctx -> {
+                                final Map<String, String> metadata = new HashMap<>();
+                                metadata.put("email", "usr.email");
+                                metadata.put("name", "usr.name");
+                                metadata.put("session_id", "usr.session_id");
+                                metadata.put("role", "usr.role");
+                                metadata.put("scope", "usr.scope");
+                                setUser("usr.id", metadata);
+                                ctx.getResponse().send("text/plain", "OK");
                             })
                             .get("user_login_success_event", ctx -> {
                                 MultiValueMap<String, String> qp = ctx.getRequest().getQueryParams();
@@ -226,6 +294,24 @@ public class Main {
                                         .trackCustomEvent(
                                                 qp.getOrDefault("event_name", "system_tests_event"), METADATA);
                                 ctx.getResponse().send("ok");
+                            })
+                            .post("user_login_success_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    String userId = (String) data.getOrDefault("user_id", "system_tests_id");
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
+                            })
+                            .post("user_login_failure_event_v2", ctx -> {
+                                ctx.parse(Jackson.fromJson(Map.class)).then(data -> {
+                                    String login = (String) data.getOrDefault("login", "system_tests_login");
+                                    boolean exists = Boolean.parseBoolean((String) data.getOrDefault("exists", "true"));
+                                    Map<String, String> metadata = (Map<String, String>) data.getOrDefault("metadata", Map.of());
+                                    EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
+                                    ctx.getResponse().send("ok");
+                                });
                             })
                             .get("requestdownstream", ctx -> {
                                 final Promise<String> res = Blocking.get(() -> {
@@ -269,7 +355,19 @@ public class Main {
                                 final String value = ctx.getRequest().getQueryParams().get("value");
                                 ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
                                 ctx.getResponse().send("text/plain", "ok");
-                            });
+                            })
+                            // IAST Sampling endpoints
+                            .get("iast/sampling-by-route-method-count-2/:id", IastSamplingHandlers.getSamplingByRouteMethodCount2());
+                    chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
+                        ctx.byMethod(m -> m
+                                .get(ctxGet -> {
+                                    IastSamplingHandlers.getSamplingByRouteMethodCount().handle(ctxGet);
+                                })
+                                .post(ctxPost -> {
+                                    IastSamplingHandlers.postSamplingByRouteMethodCount().handle(ctxPost);
+                                })
+                        );
+                    });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);
                 })

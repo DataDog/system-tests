@@ -27,9 +27,9 @@ TODO=(
   utils/build/docker/php/common/install_ddtrace.sh
   utils/build/docker/dotnet/app.sh
   utils/build/docker/dotnet/install_ddtrace.sh
-  utils/build/docker/cpp/install_ddprof.sh
-  utils/build/docker/cpp/nginx/app.sh
-  utils/build/docker/cpp/nginx/install_ddtrace.sh
+  utils/build/docker/cpp_nginx/install_ddprof.sh
+  utils/build/docker/cpp_nginx/nginx/app.sh
+  utils/build/docker/cpp_nginx/install_ddtrace.sh
   utils/build/docker/ruby/install_ddtrace.sh
   utils/build/build.sh
   utils/interfaces/schemas/serve.sh

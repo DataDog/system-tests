@@ -7,25 +7,38 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
-import akka.http.scaladsl.unmarshalling._
-import akka.http.scaladsl.server.Directives._
-import akka.http.scaladsl.server.Route
-import scala.collection.JavaConverters._
 import datadog.appsec.api.blocking.Blocking
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
-import scala.concurrent.duration._
-import com.datadoghq.system_tests.iast.utils.Utils;
-import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import com.datadoghq.system_tests.iast.utils.Utils
+import com.datadoghq.system_tests.iast.utils.CryptoExamples
+
 import scala.concurrent.blocking
+import akka.http.javadsl.marshallers.jackson.Jackson
+import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import akka.http.scaladsl.model.{HttpEntity, MediaTypes}
+import akka.http.scaladsl.unmarshalling.{FromEntityUnmarshaller, Unmarshaller}
+import com.fasterxml.jackson.core.`type`.TypeReference
+import datadog.appsec.api.login.EventTrackerV2
 
 import java.util
 import scala.concurrent.Future
 import scala.xml.{Elem, XML}
+import datadog.appsec.api.user.User.setUser
+
+import scala.jdk.CollectionConverters._
 
 object AppSecRoutes {
 
   private val cryptoExamples = new CryptoExamples()
+
+  val objectMapper = new ObjectMapper().registerModule(DefaultScalaModule)
+  implicit val jsonNodeUnmarshaller: FromEntityUnmarshaller[JsonNode] =
+    Jackson.unmarshaller(objectMapper, classOf[JsonNode])
+      .asScala
+      .forContentTypes(MediaTypes.`application/json`)
 
   val route: Route =
     path("") {
@@ -53,35 +66,69 @@ object AppSecRoutes {
           }
         }
       } ~
-      path("tag_value" / Segment / """\d{3}""".r) { (value, code) =>
+      // Endpoint with five custom headers
+      path("customResponseHeaders") {
         get {
-          parameter("content-language".?) { clo =>
-            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
-
-            val resp = complete(
-              HttpResponse(
-                status = StatusCodes.custom(code.toInt, "some reason"),
-                entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
-              )
-            )
-
-            clo match {
-              case Some(cl) => respondWithHeaders(RawHeader("Content-Language", cl)) { resp }
-              case None => resp
-            }
+          val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Response with custom headers")
+          respondWithHeaders(
+            RawHeader("Content-Language", "en-US"),
+            RawHeader("X-Test-Header-1", "value1"),
+            RawHeader("X-Test-Header-2", "value2"),
+            RawHeader("X-Test-Header-3", "value3"),
+            RawHeader("X-Test-Header-4", "value4"),
+            RawHeader("X-Test-Header-5", "value5")
+          ) {
+            complete(entity)
+          }
+        }
+      } ~
+      // Endpoint exceeding default header budget with 50 headers
+      path("exceedResponseHeaders") {
+        get {
+          val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Response with more than 50 headers")
+          val extraHeaders = (1 to 50).map(i => RawHeader(s"X-Test-Header-$i", s"value$i"))
+          val allHeaders = RawHeader("Content-Language", "en-US") +: extraHeaders
+          respondWithHeaders(allHeaders.head, allHeaders.tail: _*) {
+            complete(entity)
+          }
+        }
+      } ~
+      path("tag_value" / Segment / """\d{3}""".r) { (tag_value, status_code) =>
+        (get | options) {
+          parameter("content-language".?, "X-option".?) { (clo, xOption) =>
+            handleTagValue(tag_value, status_code.toInt, clo, xOption, None)
           }
         } ~
-          post {
-            formFieldMap { _ =>
-              setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
-              complete(
-                HttpResponse(
-                  status = StatusCodes.custom(code.toInt, "some reason"),
-                  entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
-                )
-              )
+        post {
+          parameter("content-language".?, "X-option".?) { (clo, xOption) =>
+            formFieldMultiMap { formFields =>
+              val formJson: JsonNode = objectMapper.valueToTree(formFields.asJava)
+              handleTagValue(tag_value, status_code.toInt, clo, xOption, Some(formJson))
+            } ~ entity(as[JsonNode]) { body =>
+              handleTagValue(tag_value, status_code.toInt, clo, xOption, Some(body))
             }
           }
+        }
+      } ~
+      path("api_security/sampling" / """\d{3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.custom(i.toInt, "some reason"),
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Hello!\n")
+            )
+          )
+        }
+      } ~
+      path("api_security_sampling" / """\d{2,3}""".r) { (i) =>
+        get {
+          complete(
+            HttpResponse(
+              status = StatusCodes.OK,
+              entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "OK!\n")
+            )
+          )
+        }
       } ~
       path("params" / Segments) { segments: Seq[String] =>
         get {
@@ -131,6 +178,13 @@ object AppSecRoutes {
           }
         }
       } ~
+      path("stats-unique") {
+        get {
+          parameter("code".as[Int].withDefault(200)) { code =>
+            complete(StatusCodes.custom(code, "whatever reason"))
+          }
+        }
+      } ~
       path("users") {
         get {
           parameter("user") { user =>
@@ -144,6 +198,21 @@ object AppSecRoutes {
             Blocking.forUser(user).blockIfMatch()
             complete(s"Hello ${user}")
           }
+        }
+      } ~
+      path("identify") {
+        get {
+          setUser(
+            "usr.id",
+            Map.apply(
+              "email" -> "usr.email",
+              "name" -> "usr.name",
+              "session_id" -> "usr.session_id",
+              "role" -> "usr.role",
+              "scope" -> "usr.scope"
+            ).asJava
+          )
+          complete("OK")
         }
       } ~
       path("user_login_success_event") {
@@ -168,6 +237,30 @@ object AppSecRoutes {
           parameter("event_name".?("system_tests_event")) { eventName =>
             eventTracker.trackCustomEvent(eventName, metadata)
             complete("ok")
+          }
+        }
+      } ~
+      path("user_login_success_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val userId = payload.get("user_id").asText()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginSuccess(login, userId, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
+          }
+        }
+      } ~
+      path("user_login_failure_event_v2") {
+        post {
+          entity(as[JsonNode]) { payload =>
+            val login = payload.get("login").asText()
+            val exists = payload.get("exists").asBoolean()
+            val meta = objectMapper.convertValue(payload.get("metadata"), new TypeReference[Map[String, String]] {}).asJava
+            EventTrackerV2.trackUserLoginFailure(login, exists, meta)
+            val entity = HttpEntity(ContentTypes.`text/html(UTF-8)`, "<html><body>ok</body></html>")
+            complete(StatusCodes.OK, entity)
           }
         }
       } ~
@@ -247,5 +340,31 @@ object AppSecRoutes {
     h.put("metadata0", "value0")
     h.put("metadata1", "value1")
     h
+  }
+
+  private def handleTagValue(value: String, statusCode: Int, contentLanguage: Option[String], xOption: Option[String], body: Option[JsonNode]): Route = {
+    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+    var response = HttpResponse(status = statusCode)
+    response = contentLanguage match {
+      case Some(cl) => response.withHeaders(RawHeader("Content-Language", cl))
+      case None => response
+    }
+    response = xOption match {
+      case Some(option) => response.withHeaders(RawHeader("X-option", option))
+      case None => response
+    }
+    response = value match {
+      case s if s.startsWith("payload_in_response_body") => {
+        val responseBody = objectMapper.createObjectNode()
+        responseBody.set("body", body.get)
+        response.withEntity(
+          HttpEntity(ContentTypes.`application/json`, objectMapper.writeValueAsString(responseBody))
+        )
+      }
+      case _ => response.withEntity(
+        HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
+      )
+    }
+    complete(response)
   }
 }

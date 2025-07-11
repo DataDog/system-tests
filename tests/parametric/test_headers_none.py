@@ -1,15 +1,13 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import find_only_span
-from utils import missing_feature, context, scenarios, features, bug
+from utils import scenarios, features
 
 parametrize = pytest.mark.parametrize
 
 
-def enable_none() -> Any:
+def enable_none() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "none",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "none",
@@ -17,14 +15,14 @@ def enable_none() -> Any:
     return parametrize("library_env", [env])
 
 
-def enable_none_single_key() -> Any:
+def enable_none_single_key() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE": "none",
     }
     return parametrize("library_env", [env])
 
 
-def enable_none_invalid() -> Any:
+def enable_none_invalid() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "none,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "none,Datadog",

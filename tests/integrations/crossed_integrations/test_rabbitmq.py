@@ -2,25 +2,24 @@ from __future__ import annotations
 
 import json
 
-from utils.buddies import java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features
-from utils.tools import logger
+from utils.buddies import java_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, logger
 
 
-class _Test_RabbitMQ:
+class _BaseRabbitMQ:
     """Test RabbitMQ compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    WEBLOG_TO_BUDDY_EXCHANGE = None
-    BUDDY_TO_WEBLOG_EXCHANGE = None
-    BUDDY_TO_WEBLOG_ROUTING_KEY = None
-    WEBLOG_TO_BUDDY_ROUTING_KEY = None
-    buddy = None
-    buddy_interface = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    WEBLOG_TO_BUDDY_EXCHANGE: str
+    BUDDY_TO_WEBLOG_EXCHANGE: str
+    BUDDY_TO_WEBLOG_ROUTING_KEY: str
+    WEBLOG_TO_BUDDY_ROUTING_KEY: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, exchange, operation):
+    def get_span(cls, interface, span_kind, queue, exchange, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -44,9 +43,9 @@ class _Test_RabbitMQ:
                 if (
                     queue.lower() not in span.get("resource").lower()
                     and exchange.lower() not in span.get("resource").lower()
-                    and queue.lower() not in meta.get(f"rabbitmq.routing_key", "").lower()
+                    and queue.lower() not in meta.get("rabbitmq.routing_key", "").lower()
                     # this is where we find the queue name in dotnet 👇
-                    and queue.lower() not in meta.get(f"amqp.routing_key", "").lower()
+                    and queue.lower() not in meta.get("amqp.routing_key", "").lower()
                 ):
                     continue
 
@@ -57,8 +56,7 @@ class _Test_RabbitMQ:
         return None
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a RabbitMQ message
+        """Send request A to weblog : this request will produce a RabbitMQ message
         send request B to library buddy, this request will consume RabbitMQ message
         """
 
@@ -118,11 +116,12 @@ class _Test_RabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a RabbitMQ message
+        """Send request A to library buddy : this request will produce a RabbitMQ message
         send request B to weblog, this request will consume RabbitMQ message
 
         request A: GET /library_buddy/produce_rabbitmq_message
@@ -185,11 +184,12 @@ class _Test_RabbitMQ:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_rabbitmq_spans(self, producer_interface, consumer_interface, queue, exchange):
-        """
-        Validates production/consumption of RabbitMQ message.
+        """Validates production/consumption of RabbitMQ message.
         It works the same for both test_produce and test_consume
         """
 
@@ -232,7 +232,7 @@ class _Test_RabbitMQ:
 
 @scenarios.crossed_tracing_libraries
 @features.rabbitmq_span_creationcontext_propagation_with_dd_trace
-class Test_RabbitMQ_Trace_Context_Propagation(_Test_RabbitMQ):
+class Test_RabbitMQ_Trace_Context_Propagation(_BaseRabbitMQ):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
     WEBLOG_TO_BUDDY_QUEUE = "Test_RabbitMQ_Propagation_weblog_to_buddy"

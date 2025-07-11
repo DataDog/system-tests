@@ -1,4 +1,4 @@
-FROM datadog/system-tests:python3.12.base-v5
+FROM datadog/system-tests:python3.12.base-v6
 
 WORKDIR /app
 
@@ -16,7 +16,6 @@ RUN DJANGO_SUPERUSER_PASSWORD=abcd python3 manage.py createsuperuser --noinput -
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-
 
 # docker startup
 CMD ./app.sh

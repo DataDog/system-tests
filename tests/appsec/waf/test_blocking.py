@@ -1,38 +1,45 @@
-import os.path
+from pathlib import Path
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
 
 
-_CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"
+BLOCK_TEMPLATE_HTML_MIN_V2 = "blocked.v2.min.html"
 
-BLOCK_TEMPLATE_HTML_V0_JAVA = open(os.path.join(_CUR_DIR, "blocked.v0.java.html"), "r").read()
-BLOCK_TEMPLATE_HTML_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.html"), "r").read()
-BLOCK_TEMPLATE_HTML_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.html"), "r").read()
-BLOCK_TEMPLATE_HTML_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.html"), "r").read()
-BLOCK_TEMPLATE_HTML_MIN_V2 = open(os.path.join(_CUR_DIR, "blocked.v2.min.html"), "r").read()
 
-BLOCK_TEMPLATE_JSON_V0_GO = open(os.path.join(_CUR_DIR, "blocked.v0.go.json"), "r").read()
-BLOCK_TEMPLATE_JSON_V0_PYTHON = open(os.path.join(_CUR_DIR, "blocked.v0.python.json"), "r").read()
-BLOCK_TEMPLATE_JSON_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.json"), "r").read()
-BLOCK_TEMPLATE_JSON_MIN_V1 = open(os.path.join(_CUR_DIR, "blocked.v1.min.json"), "r").read()
+def _read_file(file_path: str) -> str:
+    with Path(__file__).resolve().parent.joinpath(file_path).open() as file:
+        return file.read()
 
-BLOCK_TEMPLATE_HTML_ANY = {
-    BLOCK_TEMPLATE_HTML_V0_JAVA,
-    BLOCK_TEMPLATE_HTML_V0_PYTHON,
-    BLOCK_TEMPLATE_HTML_V1,
-    BLOCK_TEMPLATE_HTML_MIN_V1,
-    BLOCK_TEMPLATE_HTML_MIN_V2,
-}
-BLOCK_TEMPLATE_JSON_ANY = {
-    BLOCK_TEMPLATE_JSON_V0_GO,
-    BLOCK_TEMPLATE_JSON_V0_PYTHON,
-    BLOCK_TEMPLATE_JSON_V1,
-    # No trailing new line in dotnet
-    BLOCK_TEMPLATE_JSON_V1.rstrip(),
-    BLOCK_TEMPLATE_JSON_MIN_V1,
-    BLOCK_TEMPLATE_JSON_MIN_V1.rstrip(),
-}
+
+def assert_valid_html_blocked_template(body: str) -> None:
+    """Returns true if body is a valid HTML response on a blocked requests"""
+
+    valid_templates = {
+        _read_file("blocked.v0.java.html"),
+        _read_file("blocked.v0.python.html"),
+        _read_file("blocked.v1.html"),
+        _read_file("blocked.v1.min.html"),
+        _read_file(BLOCK_TEMPLATE_HTML_MIN_V2),
+    }
+
+    assert body in valid_templates
+
+
+def assert_valid_json_blocked_template(body: str) -> None:
+    """Returns true if body is a valid JSON response on a blocked requests"""
+
+    valid_templates = {
+        _read_file("blocked.v0.go.json"),
+        _read_file("blocked.v0.python.json"),
+        _read_file("blocked.v1.json"),
+        _read_file("blocked.v1.json").rstrip(),  # No trailing new line in dotnet
+        _read_file(BLOCK_TEMPLATE_JSON_MIN_V1),
+        _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip(),
+    }
+    assert body in valid_templates
+
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
 JSON_CONTENT_TYPES = {
@@ -60,7 +67,7 @@ class Test_Blocking:
         """Blocking without an accept header"""
         assert self.r_na.status_code == 403
         assert self.r_na.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_na.text in BLOCK_TEMPLATE_JSON_ANY
+        assert_valid_json_blocked_template(self.r_na.text)
 
     def setup_blocking_appsec_blocked_tag(self):
         self.r_abt = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})
@@ -76,10 +83,10 @@ class Test_Blocking:
 
         def validate_appsec_blocked(span):
             if span.get("type") != "web":
-                return
+                return None
 
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if "appsec.blocked" not in span["meta"]:
                 raise ValueError("Can't find appsec.blocked in span's tags")
@@ -96,7 +103,7 @@ class Test_Blocking:
         """Blocking with Accept: */*"""
         assert self.r_aa.status_code == 403
         assert self.r_aa.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_aa.text in BLOCK_TEMPLATE_JSON_ANY
+        assert_valid_json_blocked_template(self.r_aa.text)
 
     def setup_accept_partial_json(self):
         # */* should be ignored because there are more specific matches for text/html and application/json
@@ -109,7 +116,7 @@ class Test_Blocking:
         """Blocking with Accept: application/*"""
         assert self.r_apj.status_code == 403
         assert self.r_apj.headers.get("content-type", "") in JSON_CONTENT_TYPES
-        assert self.r_apj.text in BLOCK_TEMPLATE_JSON_ANY
+        assert_valid_json_blocked_template(self.r_apj.text)
 
     def setup_accept_partial_html(self):
         self.r_aph = weblog.get(
@@ -126,7 +133,7 @@ class Test_Blocking:
         """Blocking with Accept: text/*"""
         assert self.r_aph.status_code == 403
         assert self.r_aph.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        assert self.r_aph.text in BLOCK_TEMPLATE_HTML_ANY
+        assert_valid_html_blocked_template(self.r_aph.text)
 
     def setup_accept_full_json(self):
         self.r_afj = weblog.get(
@@ -142,7 +149,7 @@ class Test_Blocking:
         """Blocking with Accept: application/json"""
         assert self.r_afj.status_code == 403
         assert self.r_afj.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
-        assert self.r_afj.text in BLOCK_TEMPLATE_JSON_ANY
+        assert_valid_json_blocked_template(self.r_afj.text)
 
     def setup_accept_full_html(self):
         self.r_afh = weblog.get(
@@ -161,7 +168,7 @@ class Test_Blocking:
         """Blocking with Accept: text/html"""
         assert self.r_afh.status_code == 403
         assert self.r_afh.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        assert self.r_afh.text in BLOCK_TEMPLATE_HTML_ANY
+        assert_valid_html_blocked_template(self.r_afh.text)
 
     def setup_json_template_v1(self):
         self.r_json_v1 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "application/json"})
@@ -177,7 +184,7 @@ class Test_Blocking:
         """HTML block template is v1 minified"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
-        assert self.r_json_v1.text.rstrip() == BLOCK_TEMPLATE_JSON_MIN_V1.rstrip()
+        assert self.r_json_v1.text.rstrip() == _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip()
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
@@ -193,7 +200,7 @@ class Test_Blocking:
         """HTML block template is v2 minified"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        assert self.r_html_v2.text == BLOCK_TEMPLATE_HTML_MIN_V2
+        assert self.r_html_v2.text == _read_file(BLOCK_TEMPLATE_HTML_MIN_V2)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
@@ -201,7 +208,7 @@ class Test_Blocking:
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
-        self.r_srh = weblog.get(f"/tag_value/anything/200?x-secret-header=123&content-language=krypton")
+        self.r_srh = weblog.get("/tag_value/anything/200?x-secret-header=123&content-language=krypton")
 
     def test_strip_response_headers(self):
         """Test if headers are stripped from the blocking response"""
@@ -248,4 +255,4 @@ class Test_CustomBlockingResponse:
     def test_custom_redirect_missing_location(self):
         """Block with an default page because location parameter is missing from redirect request configuration"""
         assert self.r_cr.status_code == 403
-        assert self.r_cr.text in BLOCK_TEMPLATE_JSON_ANY
+        assert_valid_json_blocked_template(self.r_cr.text)

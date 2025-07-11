@@ -1,10 +1,11 @@
 import json
 from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import timedelta
 import time
-from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc
-from utils.tools import logger
+from dateutil.parser import isoparse
+from utils import context, interfaces, missing_feature, bug, flaky, irrelevant, weblog, scenarios, features, rfc, logger
 from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.telemetry import get_lang_configs, load_telemetry_json
 
 INTAKE_TELEMETRY_PATH = "/api/v2/apmtelemetry"
 AGENT_TELEMETRY_PATH = "/telemetry/proxy/api/v2/apmtelemetry"
@@ -51,10 +52,10 @@ class Test_Telemetry:
     """Test that instrumentation telemetry is sent"""
 
     # containers for telemetry request to check consistency between library payloads and agent payloads
-    library_requests = {}
-    agent_requests = {}
+    library_requests: dict[tuple[str, str], dict] = {}
+    agent_requests: dict[tuple[str, str], dict] = {}
 
-    def validate_library_telemetry_data(self, validator, success_by_default=False):
+    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
@@ -63,7 +64,7 @@ class Test_Telemetry:
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, flatten_message_batches=True, success_by_default=False):
+    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, success_by_default=False):
         telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
         if len(telemetry_data) == 0 and not success_by_default:
@@ -102,13 +103,13 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
         header_match_validator = HeadersMatchValidator(
-            request_headers={"via": r"trace-agent 7\..+"}, response_headers=(), check_condition=not_onboarding_event
+            request_headers={"via": r"trace-agent 7\..+"}, check_condition=not_onboarding_event
         )
 
         self.validate_agent_telemetry_data(header_presence_validator)
         self.validate_agent_telemetry_data(header_match_validator)
 
-    @irrelevant(True, reason="cgroup in weblog is 0::/, so this test can't work")
+    @irrelevant(condition=True, reason="cgroup in weblog is 0::/, so this test can't work")
     def test_telemetry_message_has_datadog_container_id(self):
         """Test telemetry messages contain datadog-container-id"""
         interfaces.agent.assert_headers_presence(
@@ -126,66 +127,59 @@ class Test_Telemetry:
             check_condition=not_onboarding_event,
         )
 
-    @flaky(library="ruby", reason="AIT-8418")
     @irrelevant(library="php", reason="PHP registers 2 telemetry services")
     def test_seq_id(self):
         """Test that messages are sent sequentially"""
 
-        MAX_OUT_OF_ORDER_LAG = 0.3  # s
-        FMT = "%Y-%m-%dT%H:%M:%S.%f%z"
+        max_out_of_order_lag = timedelta(seconds=0.3)  # s
 
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         if len(telemetry_data) == 0:
             raise ValueError("No telemetry data to validate on")
 
-        runtime_ids = set((data["request"]["content"]["runtime_id"] for data in telemetry_data))
-        for runtime_id in runtime_ids:
+        data_list_per_runtime = defaultdict(list)
+        for data in telemetry_data:
+            data_list_per_runtime[data["request"]["content"]["runtime_id"]].append(data)
+
+        for runtime_id, data_list in data_list_per_runtime.items():
             logger.debug(f"Validating telemetry messages for runtime_id {runtime_id}")
-            max_seq_id = 0
-            received_max_time = None
-            seq_ids = []
 
-            for data in telemetry_data:
-                if runtime_id != data["request"]["content"]["runtime_id"]:
-                    continue
+            last_known_data = None
+
+            for data in data_list:
                 seq_id = data["request"]["content"]["seq_id"]
-                timestamp_start = data["request"]["timestamp_start"]
-                curr_message_time = datetime.strptime(timestamp_start, FMT)
-                logger.debug(f"Message at {timestamp_start.split('T')[1]} in {data['log_filename']}, seq_id: {seq_id}")
-
-                # IDs should be sent sequentially, even if there are errors
-                seq_ids.append((seq_id, data["log_filename"]))
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
+                logger.debug(f"Message at {curr_message_time.ctime()} in {data['log_filename']}, seq_id: {seq_id}")
 
                 if not (200 <= data["response"]["status_code"] < 300):
                     logger.info(f"Response is {data['response']['status_code']}")
 
-                if seq_id > max_seq_id:
-                    max_seq_id = seq_id
-                    received_max_time = curr_message_time
-                else:
-                    if received_max_time is not None and (curr_message_time - received_max_time) > timedelta(
-                        seconds=MAX_OUT_OF_ORDER_LAG
-                    ):
+                if last_known_data is None:
+                    # first payload sent, nothing to check
+                    continue
+
+                last_seq_id = last_known_data["request"]["content"]["seq_id"]
+                last_message_time = isoparse(last_known_data["request"]["timestamp_start"])
+
+                # in theory, this assertion can't fail, as timestamp_start is set by the proxy
+                assert curr_message_time > last_message_time
+
+                # check that the current seq_id is greater or equal than the previous one
+                assert (
+                    seq_id >= last_seq_id
+                ), f"Detected non consecutive seq_ids between {data['log_filename']} and {last_known_data['log_filename']}"
+
+                if seq_id == last_seq_id:
+                    # if consecutive requests sue the same number, it may be caused by a retry
+                    # in that situation, the time between the two requests should be very small
+                    # in theory less than 100ms, we allow a bit more time in the test
+                    if curr_message_time - last_message_time > max_out_of_order_lag:
                         raise ValueError(
                             f"Received message with seq_id {seq_id} to far more than"
-                            f"100ms after message with seq_id {max_seq_id}"
+                            f"100ms after message with seq_id {last_seq_id}"
                         )
 
-            # sort by seq_id, seq_ids is an array of (id, filename), so the key is the first element
-            seq_ids.sort(key=lambda item: item[0])
-
-            for i in range(len(seq_ids) - 1):
-                diff = seq_ids[i + 1][0] - seq_ids[i][0]
-                if diff == 0:
-                    raise ValueError(
-                        f"Detected 2 telemetry messages with same seq_id {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
-                    )
-
-                if diff > 1:
-                    logger.error(f"{seq_ids[i + 1][0]} {seq_ids[i][0]}")
-                    raise ValueError(
-                        f"Detected non consecutive seq_ids between {seq_ids[i + 1][1]} and {seq_ids[i][1]}"
-                    )
+                last_known_data = data
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @flaky(context.library <= "python@1.20.2", reason="APMRP-360")
@@ -194,7 +188,7 @@ class Test_Telemetry:
     def test_app_started_sent_exactly_once(self):
         """Request type app-started is sent exactly once"""
 
-        count_by_runtime_id = defaultdict(lambda: 0)
+        count_by_runtime_id: dict[str, int] = defaultdict(lambda: 0)
 
         for data in interfaces.library.get_telemetry_data():
             if get_request_type(data) == "app-started":
@@ -205,7 +199,7 @@ class Test_Telemetry:
                 if data["response"]["status_code"] == 202:
                     count_by_runtime_id[runtime_id] += 1
 
-        assert all((count == 1 for count in count_by_runtime_id.values()))
+        assert all(count == 1 for count in count_by_runtime_id.values())
 
     @missing_feature(context.library < "ruby@1.22.0", reason="app-started not sent")
     @bug(context.library >= "dotnet@3.4.0", reason="APMAPI-728")
@@ -222,7 +216,7 @@ class Test_Telemetry:
         else:
             # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
             # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = list(sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"]))
+            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
             app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
             assert app_started, "app-started message not found"
             min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
@@ -282,20 +276,17 @@ class Test_Telemetry:
                     )
 
         if len(self.library_requests) != 0:
-            for s, r in self.library_requests.keys():
+            for s, r in self.library_requests:
                 logger.error(f"seq_id: {s}, runtime_id: {r}")
 
             raise Exception("The following telemetry messages were not forwarded by the agent")
 
     @staticmethod
     def _get_heartbeat_delays_by_runtime() -> dict:
-        """
-        Returns a dict where :
+        """Returns a dict where :
         The key is the runtime id
         The value is a list of delay observed on this runtime id
         """
-
-        fmt = "%Y-%m-%dT%H:%M:%S.%f%z"
 
         telemetry_data = list(interfaces.library.get_telemetry_data())
         heartbeats_by_runtime = defaultdict(list)
@@ -312,12 +303,12 @@ class Test_Telemetry:
             logger.debug(f"Heartbeats for runtime {runtime_id}:")
 
             # In theory, it's sorted. Let be safe
-            heartbeats.sort(key=lambda data: datetime.strptime(data["request"]["timestamp_start"], fmt))
+            heartbeats.sort(key=lambda data: isoparse(data["request"]["timestamp_start"]))
 
             prev_message_time = None
-            delays = []
+            delays: list[float] = []
             for data in heartbeats:
-                curr_message_time = datetime.strptime(data["request"]["timestamp_start"], fmt)
+                curr_message_time = isoparse(data["request"]["timestamp_start"])
                 if prev_message_time is None:
                     logger.debug(f"  * {data['log_filename']}: {curr_message_time}")
                 else:
@@ -331,7 +322,8 @@ class Test_Telemetry:
 
         return delays_by_runtime
 
-    @missing_feature(library="cpp", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp_nginx", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
+    @missing_feature(library="cpp_httpd", reason="DD_TELEMETRY_HEARTBEAT_INTERVAL not supported")
     @flaky(context.library <= "java@1.38.1", reason="APMRP-360")
     @flaky(context.library <= "php@0.90", reason="APMRP-360")
     @flaky(library="ruby", reason="APMAPI-226")
@@ -339,8 +331,7 @@ class Test_Telemetry:
     @bug(context.library > "php@1.5.1", reason="APMAPI-971")
     @features.telemetry_heart_beat_collected
     def test_app_heartbeats_delays(self):
-        """
-        Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
+        """Check for telemetry heartbeat are not sent too fast/slow, regarding DD_TELEMETRY_HEARTBEAT_INTERVAL
         There are a lot of reason for individual heartbeats to be sent too slow/fast, and the subsequent ones
         to be sent too fast/slow so the RFC says that it must not drift. So we will check the average delay
         """
@@ -348,41 +339,42 @@ class Test_Telemetry:
         delays_by_runtime = self._get_heartbeat_delays_by_runtime()
 
         # This interval can't be perfeclty exact, give some room for tests
-        LOWER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
-        UPPER_LIMIT = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
+        lower_limit = timedelta(seconds=context.telemetry_heartbeat_interval * 0.75).total_seconds()
+        upper_limit = timedelta(seconds=context.telemetry_heartbeat_interval * 1.5).total_seconds()
         expectation = f"It should be sent every {context.telemetry_heartbeat_interval}s"
 
         for delays in delays_by_runtime.values():
             average_delay = sum(delays) / len(delays)
-            assert average_delay > LOWER_LIMIT, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
-            assert average_delay < UPPER_LIMIT, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
+            assert average_delay > lower_limit, f"Heartbeat sent too fast: {average_delay}s. {expectation}"
+            assert average_delay < upper_limit, f"Heartbeat sent too slow: {average_delay}s. {expectation}"
 
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
     @irrelevant(library="php")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
+    @irrelevant(library="cpp_httpd")
     @irrelevant(library="golang")
     @irrelevant(library="python")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     @irrelevant(
         library="java",
         reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process). 
+        A Java application can be redeployed to the same server for many times (for the same JVM process).
         That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
         """,
     )
     def test_app_dependencies_loaded(self):
-        """test app-dependencies-loaded requests"""
+        """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies = {
+        test_loaded_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies = {
+        test_defined_dependencies: dict[str, dict[str, bool]] = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -420,8 +412,8 @@ class Test_Telemetry:
             "ruby": {},
         }
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.library]
-        seen_defined_dependencies = test_defined_dependencies[context.library.library]
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
+        seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
@@ -457,7 +449,8 @@ class Test_Telemetry:
     @irrelevant(library="php")
     @irrelevant(library="java")
     @irrelevant(library="nodejs")
-    @irrelevant(library="cpp")
+    @irrelevant(library="cpp_nginx")
+    @irrelevant(library="cpp_httpd")
     def test_api_still_v1(self):
         """Test that the telemetry api is still at version v1
         If this test fails, please mark Test_TelemetryV2 as released for the current version of the tracer,
@@ -469,54 +462,69 @@ class Test_Telemetry:
 
         self.validate_library_telemetry_data(validator=validator, success_by_default=True)
 
-    @missing_feature(context.library in ("golang", "php"), reason="Telemetry is not implemented yet.")
+    @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
     def test_app_started_client_configuration(self):
         """Assert that default and other configurations that are applied upon start time are sent with the app-started event"""
 
         trace_agent_port = scenarios.default.weblog_container.trace_agent_port
 
-        test_configuration = {
+        test_configuration: dict[str, dict] = {
             "dotnet": {},
             "nodejs": {"hostname": "proxy", "port": trace_agent_port, "appsec.enabled": True},
             # to-do :need to add configuration keys once python bug is fixed
             "python": {},
-            "cpp": {"trace_agent_port": trace_agent_port},
+            "cpp_nginx": {"trace_agent_port": trace_agent_port},
+            "cpp_httpd": {"trace_agent_port": trace_agent_port},
             "java": {"trace_agent_port": trace_agent_port, "telemetry_heartbeat_interval": 2},
             "ruby": {"DD_AGENT_TRANSPORT": "TCP"},
+            "golang": {"lambda_mode": False},
         }
-        configuration_map = test_configuration[context.library.library]
+        configuration_map = test_configuration[context.library.name]
 
         def validator(data):
             if get_request_type(data) == "app-started":
                 content = data["request"]["content"]
                 configurations = content["payload"]["configuration"]
                 configurations_present = []
-                for cnf in configurations:
-                    configuration_name = cnf["name"]
-                    if context.library.library == "java":
+
+                # validator is updated to handle tracers sending configuration chaining data
+                for expected_config_name, expected_value in configuration_map.items():
+                    config_name_to_check = expected_config_name
+                    if context.library.name == "java":
                         # support for older versions of Java Tracer
-                        configuration_name = configuration_name.replace(".", "_")
-                    if configuration_name in configuration_map:
-                        expected_value = str(configuration_map.get(configuration_name))
-                        configuration_value = str(cnf["value"])
-                        if configuration_value != expected_value:
+                        config_name_to_check = expected_config_name.replace(".", "_")
+
+                    expected_value_str = str(expected_value).lower()
+
+                    # Check if any configuration entry matches the expected name and value
+                    config_found = False
+                    for cnf in configurations:
+                        # Handle different configuration structures - some might not have 'value' key
+                        if cnf.get("name") == config_name_to_check:
+                            config_value = cnf.get("value")
+                            if config_value is not None and str(config_value).lower() == expected_value_str:
+                                config_found = True
+                                configurations_present.append(expected_config_name)
+                                break
+
+                    if not config_found:
+                        # For debugging, show all entries with this config name
+                        matching_entries = [cnf for cnf in configurations if cnf.get("name") == config_name_to_check]
+                        if matching_entries:
+                            values_found = [
+                                f"{cnf.get('value', 'NO_VALUE')} (origin: {cnf.get('origin', 'unknown')}, keys: {list(cnf.keys())})"
+                                for cnf in matching_entries
+                            ]
                             raise Exception(
-                                "Client Configuration "
-                                + configuration_name
-                                + " expected value is "
-                                + str(expected_value)
-                                + " but found "
-                                + str(configuration_value)
+                                f"Client Configuration {expected_config_name} expected value is {expected_value_str} "
+                                f"but found values: {values_found}"
                             )
-                        configurations_present.append(configuration_name)
-                for cnf in configuration_map:
-                    if cnf not in configurations_present:
-                        raise Exception(
-                            "Client Configuration information is not accurately reported, "
-                            + cnf
-                            + " is not present in configuration on app-started event"
-                        )
+                        else:
+                            raise Exception(
+                                f"Client Configuration information is not accurately reported, "
+                                f"{expected_config_name} is not present in configuration on app-started event"
+                            )
 
         self.validate_library_telemetry_data(validator)
 
@@ -524,7 +532,7 @@ class Test_Telemetry:
         weblog.get("/enable_product")
 
     @missing_feature(
-        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp", "php", "ruby"),
+        context.library in ("dotnet", "nodejs", "java", "python", "golang", "cpp_nginx", "cpp_httpd", "php", "ruby"),
         reason="Weblog GET/enable_product and app-product-change event is not implemented yet.",
     )
     def test_app_product_change(self):
@@ -546,14 +554,179 @@ class Test_Telemetry:
                     dynamic_instrumentation_enabled = product["dynamic_instrumentation"]["enabled"]
                     assert (
                         appsec_enabled is True
-                    ), f"Product appsec Product profiler enabled was expected to be True, found False"
-                    assert profiler_enabled is True, f"Product profiler enabled was expected to be True, found False"
+                    ), "Product appsec Product profiler enabled was expected to be True, found False"
+                    assert profiler_enabled is True, "Product profiler enabled was expected to be True, found False"
                     assert (
                         dynamic_instrumentation_enabled is False
-                    ), f"Product dynamic_instrumentation enabled was expected to be False, found True"
+                    ), "Product dynamic_instrumentation enabled was expected to be False, found True"
 
         if app_product_change_event_found is False:
             raise Exception("app-product-change is not emitted when product change is enabled")
+
+
+@features.telemetry_app_started_event
+@scenarios.telemetry_app_started_config_chaining
+class Test_TelemetryConfigurationChaining:
+    """Test that configuration sources are sent with app-started event in correct precedence order"""
+
+    # Official configuration origin precedence order (from lowest to highest precedence)
+    # Based on Node.js tracer implementation
+    _ORIGIN_PRECEDENCE_ORDER = [
+        "default",
+        "calculated",
+        "local_stable_config",
+        "env_var",
+        "fleet_stable_config",
+        "code",
+        "remote_config",
+    ]
+
+    # Test configuration constant for config chaining tests
+    _CONFIG_CHAINING_TEST_CONFIG = {
+        "nodejs": {
+            "configuration": {
+                "DD_LOGS_INJECTION": [
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                ],
+            },
+        },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
+    }
+
+    @classmethod
+    def get_origin_precedence_order(cls) -> list[str]:
+        """Get the official configuration origin precedence order (lowest to highest)
+
+        Returns:
+            List of origin names in precedence order from lowest to highest
+
+        """
+        return cls._ORIGIN_PRECEDENCE_ORDER.copy()
+
+    @scenarios.telemetry_app_started_config_chaining
+    def test_app_started_config_chaining(self):
+        """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
+        self._validate_config_chaining(require_seq_id=True)
+
+    @scenarios.telemetry_app_started_config_chaining
+    def test_app_started_config_chaining_no_seq_id(self):
+        """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration
+        are sent with the app-started event in the correct order
+        """
+        self._validate_config_chaining(require_seq_id=False)
+
+    def _validate_config_chaining(self, *, require_seq_id: bool = True) -> None:
+        """Common validation logic for configuration chaining tests
+
+        Args:
+            require_seq_id: Whether to require and validate seq_id presence and ordering
+
+        """
+        nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
+
+        def validator(data):
+            if get_request_type(data) != "app-started":
+                return
+
+            content = data["request"]["content"]
+            configurations = content["payload"]["configuration"]
+
+            if require_seq_id:
+                # Assert that each configuration has a seq_id
+                for cnf in configurations:
+                    assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
+                    assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
+
+                # Sort configurations by seq_id in ascending order (lowest to highest precedence)
+                configurations.sort(key=lambda cnf: cnf["seq_id"])
+            else:
+                # For the no_seq_id test, configurations might not have seq_id
+                # Sort by name to have a consistent order for comparison
+                configurations.sort(key=lambda cnf: cnf.get("name", ""))
+
+            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
+
+        self.validate_library_telemetry_data(validator)
+
+    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+        """Reuse telemetry validation method from Test_Telemetry"""
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+
+        if len(telemetry_data) == 0 and not success_by_default:
+            raise ValueError("No telemetry data to validate on")
+
+        for data in telemetry_data:
+            validator(data)
+
+    def _validate_precedence_order(self, chain: list) -> None:
+        """Validate that a configuration chain follows the official precedence order
+
+        Args:
+            chain: List of configuration items with 'origin' keys
+
+        """
+        precedence_map = {origin: i for i, origin in enumerate(self._ORIGIN_PRECEDENCE_ORDER)}
+
+        for i in range(len(chain) - 1):
+            current_origin = chain[i]["origin"]
+            next_origin = chain[i + 1]["origin"]
+
+            current_precedence = precedence_map.get(current_origin, -1)
+            next_precedence = precedence_map.get(next_origin, -1)
+
+            assert current_precedence < next_precedence, (
+                f"Configuration precedence order violation: '{current_origin}' "
+                f"(precedence {current_precedence}) should come before '{next_origin}' "
+                f"(precedence {next_precedence}) according to {self._ORIGIN_PRECEDENCE_ORDER}"
+            )
+
+    def _validate_configuration_chains(
+        self, configurations: list, expected_config: dict, *, require_seq_id: bool
+    ) -> None:
+        """Validate individual configuration chains against expected values
+
+        Args:
+            configurations: Actual configurations from telemetry data
+            expected_config: Expected configuration structure
+            require_seq_id: Whether to validate seq_id ordering
+
+        """
+        for cnf_name, expected_chain in expected_config.items():
+            # Filter actual entries for this configuration name
+            actual_chain = [cnf for cnf in configurations if cnf["name"] == cnf_name]
+
+            assert len(actual_chain) == len(expected_chain), (
+                f"Config '{cnf_name}': expected {len(expected_chain)} items, " f"found {len(actual_chain)}"
+            )
+
+            # Validate that the expected chain follows precedence order
+            self._validate_precedence_order(expected_chain)
+
+            # Validate that the actual chain follows precedence order
+            self._validate_precedence_order(actual_chain)
+
+            for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
+                # Validate origin
+                assert actual["origin"] == expected["origin"], (
+                    f"Config '{cnf_name}[{i}]': origin mismatch - "
+                    f"expected '{expected['origin']}', got '{actual['origin']}'"
+                )
+
+                # Validate value
+                assert actual["value"] == expected["value"], (
+                    f"Config '{cnf_name}[{i}]': value mismatch - "
+                    f"expected {expected['value']}, got {actual['value']}"
+                )
+
+                # Validate seq_id ordering if required
+                if require_seq_id and i < len(actual_chain) - 1:
+                    next_item = actual_chain[i + 1]
+                    assert actual["seq_id"] < next_item["seq_id"], (
+                        f"Config '{cnf_name}': seq_id not in ascending order - "
+                        f"item[{i}] seq_id={actual['seq_id']} should be less than "
+                        f"item[{i+1}] seq_id={next_item['seq_id']}"
+                    )
 
 
 @features.telemetry_instrumentation
@@ -576,15 +749,37 @@ class Test_APMOnboardingInstallID:
         validate_at_least_one_span_with_tag("_dd.install.type")
 
 
+def get_all_keys_and_values(*objs: tuple[None | dict | list, ...]) -> list:
+    result: list = []
+    for obj in objs:
+        if obj is not None:
+            if isinstance(obj, dict):
+                result.extend(list(obj.keys()))
+                result.extend(list(obj.values()))
+            elif isinstance(obj, list):
+                result.extend(obj)
+            else:
+                logger.error(f"Unexpected type in concat: {type(obj).__name__}")
+    return result
+
+
+def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
+    lower_key = key.lower()
+    is_allowed_key = lower_key in allowed_keys
+    is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
+
+    return is_allowed_key or is_allowed_prefix
+
+
 @features.telemetry_api_v2_implemented
 class Test_TelemetryV2:
     """Test telemetry v2 specific constraints"""
 
-    @missing_feature(library="golang", reason="Product started missing")
     @missing_feature(library="dotnet", reason="Product started missing")
     @missing_feature(library="php", reason="Product started missing (both in libdatadog and php)")
     @missing_feature(library="python", reason="Product started missing in app-started payload")
-    @missing_feature(library="cpp", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp_nginx", reason="Product started missing in app-started payload")
+    @missing_feature(library="cpp_httpd", reason="Product started missing in app-started payload")
     def test_app_started_product_info(self):
         """Assert that product information is accurately reported by telemetry"""
 
@@ -597,55 +792,24 @@ class Test_TelemetryV2:
                     "appsec" in products
                 ), "Product information is not accurately reported by telemetry on app-started event"
 
-    @bug(library="java", reason="APMAPI-969")
+    @irrelevant(
+        library="dotnet",
+        reason="Re-enable when this automatically updates the dd-go files.",
+    )
+    @irrelevant(
+        condition=True, reason="This test causes to many friction. It has been replaced by alerts on slack channels"
+    )
     def test_config_telemetry_completeness(self):
-        """
-        Assert that config telemetry is handled properly by telemetry intake
+        """Assert that config telemetry is handled properly by telemetry intake
 
         Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness
         """
-
-        def lowercase_obj(obj):
-            if isinstance(obj, dict):
-                return {k.lower() if isinstance(k, str) else k: lowercase_obj(v) for k, v in obj.items()}
-            elif isinstance(obj, list):
-                return [lowercase_obj(item) for item in obj]
-            elif isinstance(obj, str):
-                return obj.lower()
-            else:
-                return obj
-
-        def load_telemetry_json(filename):
-            with open(f"tests/telemetry_intake/static/{filename}.json", encoding="utf-8") as fh:
-                return lowercase_obj(json.load(fh))
-
-        def get_all_keys_and_values(*objs):
-            result = []
-            for obj in objs:
-                if obj is not None:
-                    if isinstance(obj, dict):
-                        result.extend(list(obj.keys()))
-                        result.extend(list(obj.values()))
-                    elif isinstance(obj, list):
-                        result.extend(obj)
-                    else:
-                        logger.error(f"Unexpected type in concat: {type(obj).__name__}")
-            return result
-
-        def is_key_accepted_by_telemetry(key, allowed_keys, allowed_prefixes):
-            lower_key = key.lower()
-            is_allowed_key = lower_key in allowed_keys
-            is_allowed_prefix = any(lower_key.startswith(prefix) for prefix in allowed_prefixes)
-
-            return is_allowed_key or is_allowed_prefix
 
         config_norm_rules = load_telemetry_json("config_norm_rules")
         config_prefix_block_list = load_telemetry_json("config_prefix_block_list")
         config_aggregation_list = load_telemetry_json("config_aggregation_list")
 
-        lang_configs = {}
-        for lang in ["dotnet", "go", "jvm", "nodejs", "php", "python", "ruby"]:
-            lang_configs[lang] = load_telemetry_json(lang + "_config_rules")
+        lang_configs = get_lang_configs()
 
         for data in interfaces.library.get_telemetry_data(flatten_message_batches=True):
             if not is_v2_payload(data):
@@ -676,10 +840,11 @@ class Test_TelemetryV2:
                 if len(missing_config_keys) != 0:
                     logger.error(json.dumps(missing_config_keys, indent=2))
                     raise ValueError(
-                        "(NOT A FLAKE) Found unexpected config telemetry keys. Runbook: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
+                        "(NOT A FLAKE) Read this quick runbook to update allowed configs: https://github.com/DataDog/system-tests/blob/main/docs/edit/runbook.md#test_config_telemetry_completeness"
                     )
 
-    @missing_feature(library="cpp")
+    @missing_feature(library="cpp_nginx")
+    @missing_feature(library="cpp_httpd")
     @missing_feature(context.library < "ruby@1.22.0", reason="dd-client-library-version missing")
     @bug(context.library == "python" and context.library.version.prerelease is not None, reason="APMAPI-927")
     def test_telemetry_v2_required_headers(self):
@@ -701,6 +866,8 @@ class Test_ProductsDisabled:
     """Assert that product information are not reported when products are disabled in telemetry"""
 
     @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "python", reason="feature not implemented")
+    @missing_feature(context.library == "java", reason="feature not implemented")
     def test_app_started_product_disabled(self):
         data_found = False
         app_started_found = False
@@ -708,6 +875,7 @@ class Test_ProductsDisabled:
         telemetry_data = interfaces.library.get_telemetry_data()
 
         for data in telemetry_data:
+            logger.debug(f"Checking {data['log_filename']}")
             data_found = True
 
             if get_request_type(data) != "app-started":
@@ -717,13 +885,20 @@ class Test_ProductsDisabled:
 
             payload = data["request"]["content"]["payload"]
 
-            assert (
-                "products" in payload
-            ), f"Product information was expected in app-started event, but was missing in {data['log_filename']}"
+            assert "products" in payload, "Product information was expected in app-started event, but was missing"
 
+            logger.debug(json.dumps(payload["products"], indent=2))
             for product, details in payload["products"].items():
+                if product == "tracers":
+                    # tracers is enabled, otherwise, nothing is reported to the agent
+                    # to be confirmed it's the good behaviour
+                    continue
+
                 assert (
-                    details.get("enabled") is False
+                    "enabled" in details
+                ), f"Product information expected to indicate {product} is disabled, but missing"
+                assert (
+                    details["enabled"] is False
                 ), f"Product information expected to indicate {product} is disabled, but found enabled"
 
         if not data_found:
@@ -731,6 +906,52 @@ class Test_ProductsDisabled:
 
         if not app_started_found:
             raise ValueError("app-started event not found in telemetry data")
+
+    @scenarios.telemetry_app_started_products_disabled
+    @missing_feature(context.library == "ruby", reason="feature not implemented")
+    @missing_feature(context.library == "nodejs", reason="feature not implemented")
+    @irrelevant(library="golang")
+    def test_debugger_products_disabled(self):
+        """Assert that the debugger products are disabled by default including DI, and ER"""
+        data_found = False
+        config_norm_rules = load_telemetry_json("config_norm_rules")
+        lang_configs = get_lang_configs()
+        lang_configs["java"] = lang_configs["jvm"]
+
+        di_config, er_config, co_config = None, None, None
+        for data in interfaces.library.get_telemetry_data():
+            if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
+                continue
+
+            data_found = True
+
+            configuration = data["request"]["content"]["payload"]["configuration"]
+            language = data["request"]["content"]["application"]["language_name"]
+            lang_config = lang_configs.get(language, {})
+
+            normalized_config = {}
+            for item in configuration:
+                name = item["name"].lower()
+                if name in lang_config:
+                    name = lang_config[name]
+                elif name in config_norm_rules:
+                    name = config_norm_rules[name]
+
+                normalized_config[name] = item.get("value", None)
+
+            if normalized_config.get("dynamic_instrumentation_enabled") is not None:
+                di_config = str(normalized_config["dynamic_instrumentation_enabled"]).lower()
+
+            if normalized_config.get("exception_replay_enabled") is not None:
+                er_config = str(normalized_config["exception_replay_enabled"]).lower()
+
+            if normalized_config.get("code_origin_for_spans_enabled") is not None:
+                co_config = str(normalized_config["code_origin_for_spans_enabled"]).lower()
+
+        assert data_found, "No app-started event found in telemetry data"
+        assert di_config == "false", "DI should be disabled by default"
+        assert er_config == "false", "Exception Replay should be disabled by default"
+        assert co_config == "false", "Code Origin for Spans should be disabled by default"
 
 
 @features.dd_telemetry_dependency_collection_enabled_supported
@@ -804,12 +1025,13 @@ class Test_Metric_Generation_Disabled:
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
 
+    METRIC_FLUSH_INTERVAL = 10  # This is constant by design
+
     def setup_metric_generation_enabled(self):
         weblog.get("/")
         # Wait for at least 2 metric flushes, i.e. 20s
-        METRIC_FLUSH_INTERVAL = 10  # This is constant by design
         logger.debug("Waiting 20s for metric flushes...")
-        time.sleep(METRIC_FLUSH_INTERVAL * 2)
+        time.sleep(self.METRIC_FLUSH_INTERVAL * 2)
         logger.debug("Wait complete")
 
     def test_metric_generation_enabled(self):

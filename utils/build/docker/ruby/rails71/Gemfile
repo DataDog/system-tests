@@ -30,6 +30,9 @@ gem "jbuilder"
 # Talk with Kafka for propagation tests
 gem "rdkafka"
 
+# For AppSec Server-Side-Request-Forgery tests
+gem "faraday"
+
 # Use Redis adapter to run Action Cable in production
 # gem "redis", "~> 4.0"
 
@@ -77,4 +80,5 @@ end
 gem 'devise'
 
 gem 'pry'
+gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'

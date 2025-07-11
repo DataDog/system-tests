@@ -11,7 +11,7 @@ from debugger.collection_factory import CollectionFactory
 # dummy line
 debugger_blueprint = Blueprint("debugger", __name__, url_prefix="/debugger")
 
-intLocal = 0
+intLocal = 1000
 intMixLocal = 0
 
 
@@ -52,13 +52,16 @@ def mix_probe(arg, intArg):
     return f"Mixed result {intMixLocal}"
 
 
+# dummy line
+# dummy line
+# dummy line
 @debugger_blueprint.route("/pii", methods=["GET"])
 def pii():
     pii = Pii()
     customPii = CustomPii()
     value = pii.test_value
     custom_value = customPii.test_value
-    return f"PII {value}. CustomPII {custom_value}"
+    return f"PII {value}. CustomPII {custom_value}"  # must be line 64
 
 
 @debugger_blueprint.route("/expression", methods=["GET"])
@@ -131,3 +134,10 @@ def nulls():
         pii = Pii()
 
     return f"Pii is null {pii is None}. intValue is null {intValue is None}. strValue is null {strValue is None}."
+
+
+@debugger_blueprint.route("/budgets/<int:loops>", methods=["GET"])
+def budgets(loops):
+    for _ in range(loops):
+        pass
+    return "Budgets", 200

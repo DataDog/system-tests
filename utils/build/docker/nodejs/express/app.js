@@ -1,19 +1,31 @@
 'use strict'
 
-const tracer = require('dd-trace').init({
+const opts = {
   debug: true,
   flushInterval: 5000
-})
+}
+
+// This mimics a scenario where a user has one config setting set in multiple sources
+// so that config chaining data is sent
+if (process.env.CONFIG_CHAINING_TEST) {
+  opts.logInjection = true
+}
+
+const tracer = require('dd-trace').init(opts)
 
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
+const http = require('http')
 const fs = require('fs')
-const passport = require('passport')
 const crypto = require('crypto')
+const pino = require('pino')
+const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
 const dsm = require('./dsm')
+const di = require('./debugger')
+
 const { spawnSync } = require('child_process')
 
 const pgsql = require('./integrations/db/postgres')
@@ -31,6 +43,8 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
+const logger = pino()
+
 iast.initData().catch(() => {})
 
 app.use(require('body-parser').json())
@@ -38,6 +52,8 @@ app.use(require('body-parser').urlencoded({ extended: true }))
 app.use(require('express-xml-bodyparser')())
 app.use(require('cookie-parser')())
 iast.initMiddlewares(app)
+
+require('./auth')(app, tracer)
 
 app.get('/', (req, res) => {
   console.log('Received a request')
@@ -48,7 +64,7 @@ app.get('/healthcheck', (req, res) => {
   res.json({
     status: 'ok',
     library: {
-      language: 'nodejs',
+      name: 'nodejs',
       version: require('dd-trace/package.json').version
     }
   })
@@ -90,6 +106,28 @@ app.get('/headers', (req, res) => {
   res.send('Hello, headers!')
 })
 
+app.get('/customResponseHeaders', (req, res) => {
+  res.set({
+    'content-type': 'text/plain',
+    'content-language': 'en-US',
+    'x-test-header-1': 'value1',
+    'x-test-header-2': 'value2',
+    'x-test-header-3': 'value3',
+    'x-test-header-4': 'value4',
+    'x-test-header-5': 'value5'
+  })
+  res.send('OK')
+})
+
+app.get('/exceedResponseHeaders', (req, res) => {
+  res.set('content-language', 'text/plain')
+  for (let i = 0; i < 50; i++) {
+    res.set(`x-test-header-${i}`, `value${i}`)
+  }
+  res.set('content-language', 'en-US')
+  res.send('OK')
+})
+
 app.get('/identify', (req, res) => {
   tracer.setUser({
     id: 'usr.id',
@@ -103,6 +141,11 @@ app.get('/identify', (req, res) => {
   res.send('OK')
 })
 
+app.get('/session/new', (req, res) => {
+  req.session.someData = 'blabla' // needed for the session to be saved
+  res.send(req.sessionID)
+})
+
 app.get('/status', (req, res) => {
   res.status(parseInt(req.query.code)).send('OK')
 })
@@ -111,24 +154,44 @@ app.get('/make_distant_call', (req, res) => {
   const url = req.query.url
   console.log(url)
 
-  axios.get(url)
-    .then(response => {
+  const parsedUrl = new URL(url)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
       res.json({
         url,
         status_code: response.statusCode,
-        request_headers: null,
-        response_headers: null
+        request_headers: response.req._headers,
+        response_headers: response.headers,
+        response_body: responseBody
       })
     })
-    .catch(error => {
-      console.log(error)
-      res.json({
-        url,
-        status_code: 500,
-        request_headers: null,
-        response_headers: null
-      })
+  })
+
+  // Handle errors
+  request.on('error', (error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
     })
+  })
+
+  request.end()
 })
 
 app.get('/user_login_success_event', (req, res) => {
@@ -164,6 +227,26 @@ app.get('/custom_event', (req, res) => {
   res.send('OK')
 })
 
+app.post('/user_login_success_event_v2', (req, res) => {
+  const login = req.body.login
+  const userId = req.body.user_id
+  const metadata = req.body.metadata
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata)
+
+  res.send('OK')
+})
+
+app.post('/user_login_failure_event_v2', (req, res) => {
+  const login = req.body.login
+  const exists = req.body.exists?.trim() === 'true'
+  const metadata = req.body.metadata
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata)
+
+  res.send('OK')
+})
+
 app.get('/users', (req, res) => {
   const user = {}
   if (req.query.user) {
@@ -171,6 +254,8 @@ app.get('/users', (req, res) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {
@@ -235,6 +320,21 @@ app.get('/kafka/consume', (req, res) => {
       console.error(error)
       res.status(500).send('Internal Server Error during Kafka consume')
     })
+})
+
+app.get('/log/library', (req, res) => {
+  const msg = req.query.msg || 'msg'
+  switch (req.query.level) {
+    case 'warn':
+      logger.warn(msg)
+      break
+    case 'error':
+      logger.error(msg)
+      break
+    default:
+      logger.info(msg)
+  }
+  res.send('OK')
 })
 
 app.get('/sqs/produce', (req, res) => {
@@ -337,7 +437,7 @@ app.get('/rabbitmq/produce', (req, res) => {
   const routingKey = 'systemTestDirectRoutingKeyContextPropagation'
   console.log('[RabbitMQ] produce')
 
-  rabbitmqProduce(queue, exchange, routingKey, 'NodeJS Produce Context Propagation Test RabbitMQ')
+  rabbitmqProduce(queue, exchange, routingKey, 'Node.js Produce Context Propagation Test RabbitMQ')
     .then(() => {
       res.status(200).send('[RabbitMQ] produce ok')
     })
@@ -409,6 +509,29 @@ app.get('/db', async (req, res) => {
   }
 })
 
+app.get('/otel_drop_in_default_propagator_extract', (req, res) => {
+  const ctx = api.propagation.extract(api.context.active(), req.headers)
+  const spanContext = api.trace.getSpan(ctx).spanContext()
+
+  const result = {}
+  result.trace_id = parseInt(spanContext.traceId.substring(16), 16)
+  result.span_id = parseInt(spanContext.spanId, 16)
+  result.tracestate = spanContext.traceState.serialize()
+  // result.baggage = api.propagation.getBaggage(spanContext).toString()
+
+  res.json(result)
+})
+
+app.get('/otel_drop_in_default_propagator_inject', (req, res) => {
+  const tracer = api.trace.getTracer('my-application', '0.1.0')
+  const span = tracer.startSpan('main')
+  const result = {}
+
+  api.propagation.inject(
+    api.trace.setSpanContext(api.ROOT_CONTEXT, span.spanContext()), result, api.defaultTextMapSetter)
+  res.json(result)
+})
+
 app.post('/shell_execution', (req, res) => {
   const options = { shell: !!req?.body?.options?.shell }
   const reqArgs = req?.body?.args
@@ -436,7 +559,7 @@ app.get('/createextraservice', (req, res) => {
 
 iast.initRoutes(app, tracer)
 
-require('./auth')(app, passport, tracer)
+di.initRoutes(app)
 
 // try to flush as much stuff as possible from the library
 app.get('/flush', (req, res) => {
@@ -501,6 +624,14 @@ app.get('/set_cookie', (req, res) => {
 
   res.header('Set-Cookie', `${name}=${value}`)
   res.send('OK')
+})
+
+app.get('/add_event', (req, res) => {
+  const rootSpan = tracer.scope().active().context()._trace.started[0]
+
+  rootSpan.addEvent('span.event', { string: 'value', int: 1 }, Date.now())
+
+  res.status(200).json({ message: 'Event added' })
 })
 
 require('./rasp')(app)

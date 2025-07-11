@@ -103,4 +103,5 @@
         sudo yum -y install docker
         sudo systemctl start docker.service
         sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/bin/docker-compose && sudo chmod +x /usr/bin/docker-compose && sudo docker-compose --version
-
+    - os_type: windows
+      remote_command: echo "Unsupported OS... for now ;)"

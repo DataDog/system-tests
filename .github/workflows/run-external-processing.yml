@@ -3,6 +3,9 @@ name: External-processing tests
 on:
   workflow_call:
     inputs:
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -33,10 +36,21 @@ jobs:
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
       - name: Install runner
         uses: ./.github/actions/install_runner
 
@@ -55,17 +69,17 @@ jobs:
         with:
           library: golang
           weblog: golang-dummy
-          scenarios: '["EXTERNAL_PROCESSING"]'
+          scenarios: '["EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"]'
 
       - name: Build proxy image
         if: inputs.build_proxy_image
         run: ./build.sh -i proxy
 
-      - name: Build agent image
-        run: ./build.sh -i agent
-
       - name: Run EXTERNAL_PROCESSING scenario
         run: ./run.sh EXTERNAL_PROCESSING
+
+      - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
+        run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
 
       - name: Compress logs
         id: compress_logs

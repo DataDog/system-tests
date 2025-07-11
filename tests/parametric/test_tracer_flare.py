@@ -1,17 +1,16 @@
-"""
-Test the tracer flare feature of the APM libraries.
-"""
+"""Test the tracer flare feature of the APM libraries."""
 
 import json
 import zipfile
 from base64 import b64decode
 from io import BytesIO
-from typing import Any, Dict, List, Set
+from typing import Any
 from uuid import uuid4
 
 import pytest
 
-from utils import rfc, scenarios, features, missing_feature, context, bug
+from utils import rfc, scenarios, features, missing_feature, context
+from utils.dd_constants import RemoteConfigApplyState
 
 
 parametrize = pytest.mark.parametrize
@@ -29,14 +28,14 @@ DEFAULT_ENVVARS = {
 }
 
 
-def _tracer_flare_task_config() -> Dict[str, Any]:
+def _tracer_flare_task_config() -> dict[str, Any]:
     return {
         "args": {"case_id": "12345", "hostname": "my.hostname", "user_handle": "its.me@datadoghq.com"},
         "task_type": "tracer_flare",
     }
 
 
-def _flare_log_level_order() -> Dict[str, Any]:
+def _flare_log_level_order() -> dict[str, Any]:
     return {
         "order": [],
         "internal_order": [
@@ -51,12 +50,11 @@ def _flare_log_level_order() -> Dict[str, Any]:
     }
 
 
-def _java_tracer_flare_filenames() -> Set:
+def _java_tracer_flare_filenames() -> set:
     return {
         "classpath.txt",
         "flare_info.txt",
         "dynamic_config.txt",
-        "flare_info.txt",
         "initial_config.txt",
         "instrumenter_metrics.txt",
         "instrumenter_state.txt",
@@ -76,32 +74,36 @@ def _set_log_level(test_agent, log_level: str) -> str:
     test_agent.set_remote_config(
         path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={"name": cfg_id, "config": {"log_level": log_level}}
     )
-    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, post_only=True)
+    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
     return cfg_id
 
 
 def _clear_log_level(test_agent, cfg_id: str) -> None:
     """Helper to clear a previously set "flare-log-level" config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_CONFIG/{cfg_id}/config", payload={})
-    test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, clear=True, post_only=True)
+    test_agent.wait_for_rc_apply_state(
+        "AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, post_only=True
+    )
 
 
-def _add_task(test_agent, task_config: Dict[str, Any]) -> int:
+def _add_task(test_agent, task_config: dict[str, Any]) -> int:
     """Helper to create an agent task in RC with the given task arguments."""
     task_config["uuid"] = uuid4().hex
     task_id = hash(json.dumps(task_config))
     test_agent.add_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload=task_config)
-    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, post_only=True)
+    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
     return task_id
 
 
 def _clear_task(test_agent, task_id) -> None:
     """Helper to clear a previously created agent task config from RC."""
     test_agent.set_remote_config(path=f"datadog/2/AGENT_TASK/{task_id}/config", payload={})
-    test_agent.wait_for_rc_apply_state("AGENT_TASK", state=2, clear=True, post_only=True)
+    test_agent.wait_for_rc_apply_state(
+        "AGENT_TASK", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True, post_only=True
+    )
 
 
-def trigger_tracer_flare_and_wait(test_agent, task_overrides: Dict[str, Any]) -> Dict:
+def trigger_tracer_flare_and_wait(test_agent, task_overrides: dict[str, Any]) -> dict:
     """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
@@ -129,14 +131,14 @@ def assert_expected_files(content, min_files):
 
 def assert_java_log_file(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     # file content: 'No tracer log file specified and no prepare flare event received'
     assert flare_file.getinfo("tracer.log").file_size == 64, "tracer flare log file is not as expected"
 
 
 def assert_java_log_file_debug(content):
     flare_file = zipfile.ZipFile(BytesIO(b64decode(content)))
-    myfile = flare_file.open("tracer.log")
+    flare_file.open("tracer.log")
     assert flare_file.getinfo("tracer.log").file_size > 64, "tracer flare log file is not as expected"
 
 
@@ -155,7 +157,7 @@ class TestTracerFlareV1:
         test_agent.set_remote_config(
             path="datadog/2/AGENT_CONFIG/configuration_order/config", payload=_flare_log_level_order()
         )
-        test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=2, post_only=True)
+        test_agent.wait_for_rc_apply_state("AGENT_CONFIG", state=RemoteConfigApplyState.ACKNOWLEDGED, post_only=True)
 
     @missing_feature(library="php", reason="APMLP-195")
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")

@@ -28,38 +28,18 @@ traceparent_name_re = re.compile(r"^traceparent$", re.IGNORECASE)
 tracestate_name_re = re.compile(r"^tracestate$", re.IGNORECASE)
 
 
-def get_traceparent(headers):
-    retval = []
-    for key, value in headers.items():
-        if traceparent_name_re.match(key):
-            retval.append((key, value))
-
-    assert len(retval) == 1
-    version, trace_id, span_id, trace_flags = retval[0][1].split("-")
-
-    if len(version) != 2 or len(trace_id) != 32 or len(span_id) != 16 or len(trace_flags) != 2:
-        return None
-
-    if int(trace_id, 16) == 0 or int(span_id, 16) == 0:
-        return None
-
-    return Traceparent(version, trace_id, span_id, trace_flags)
-
-
-def get_tracestate(headers):
-    tracestate = Tracestate()
-    for key, value in headers.items():
-        if tracestate_name_re.match(key):
-            tracestate.from_string(value)
-    return tracestate
-
-
-def get_tracecontext(headers):
+def get_tracecontext(headers: dict[str, str]) -> tuple:
     return get_traceparent(headers), get_tracestate(headers)
 
 
 class Traceparent:
-    def __init__(self, version=0, trace_id=None, parent_id=None, trace_flags=0):
+    def __init__(
+        self,
+        version: int | str = 0,
+        trace_id: int | str | None = None,
+        parent_id: int | str | None = None,
+        trace_flags: int | str = 0,
+    ):
         self.version = version
         self.trace_id = trace_id
         self.parent_id = parent_id
@@ -83,7 +63,7 @@ class Tracestate:
     _VALUE_VALIDATION_RE = re.compile("^(" + _VALUE_FORMAT + ")$")
     _MEMBER_FORMAT_RE = re.compile(f"^({_KEY_FORMAT})(=)({_VALUE_FORMAT})$")
 
-    def __init__(self, *args, **kwds):
+    def __init__(self, *args, **kwds: str):  # noqa: ANN002
         if len(args) == 1 and not kwds:
             if isinstance(args[0], str):
                 self._traits: OrderedDict = OrderedDict()
@@ -94,7 +74,7 @@ class Tracestate:
                 return
         self._traits = OrderedDict(*args, **kwds)
 
-    def __contains__(self, key):
+    def __contains__(self, key: str):
         return key in self._traits
 
     def __len__(self):
@@ -103,10 +83,10 @@ class Tracestate:
     def __repr__(self):
         return f"{type(self).__name__}({self})"
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: str):
         return self._traits[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value: str):
         if not isinstance(key, str):
             raise TypeError("key must be an instance of str")
         if not re.match(self._KEY_VALIDATION_RE, key):
@@ -121,7 +101,7 @@ class Tracestate:
     def __str__(self):
         return self.to_string()
 
-    def from_string(self, string):
+    def from_string(self, string: str) -> "Tracestate":
         for member in re.split(self._DELIMITER_FORMAT_RE, string):
             if member:
                 match = self._MEMBER_FORMAT_RE.match(member)
@@ -135,24 +115,50 @@ class Tracestate:
                     # it. We opt for dropping it.
         return self
 
-    def to_string(self):
+    def to_string(self) -> str:
         return ",".join(key + "=" + self[key] for key in self._traits)
 
-    def split(self, char=","):
+    def split(self, char: str = ",") -> list[str]:
         ts = self.to_string()
         return ts.split(char)
 
     # make this an optional choice instead of enforcement during put/update
     # if the tracestate value size is bigger than 512 characters, the tracer
     # CAN decide to forward the tracestate
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if len(self) == 0:
             return False
         # combined header length MUST be less than or equal to 512 bytes
-        if len(self.to_string()) > 512:
+        if len(self.to_string()) > 512:  # noqa: PLR2004
             return False
         # there can be a maximum of 32 list-members in a list
-        return not len(self) > 32
+        return not len(self) > 32  # noqa: PLR2004
 
-    def pop(self):
+    def pop(self) -> tuple[str, str]:
         return self._traits.popitem()
+
+
+def get_traceparent(headers: dict[str, str]) -> Traceparent | None:
+    retval = []
+    for key, value in headers.items():
+        if traceparent_name_re.match(key):
+            retval.append((key, value))
+
+    assert len(retval) == 1
+    version, trace_id, span_id, trace_flags = retval[0][1].split("-")
+
+    if len(version) != 2 or len(trace_id) != 32 or len(span_id) != 16 or len(trace_flags) != 2:  # noqa: PLR2004
+        return None
+
+    if int(trace_id, 16) == 0 or int(span_id, 16) == 0:
+        return None
+
+    return Traceparent(version, trace_id, span_id, trace_flags)
+
+
+def get_tracestate(headers: dict[str, str]) -> Tracestate:
+    tracestate = Tracestate()
+    for key, value in headers.items():
+        if tracestate_name_re.match(key):
+            tracestate.from_string(value)
+    return tracestate

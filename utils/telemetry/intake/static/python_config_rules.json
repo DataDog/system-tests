@@ -1,0 +1,27 @@
+{
+    "normalization_rules": {
+        "DD_AIOHTTP_CLIENT_DISABLE_STREAM_TIMING_FOR_MEM_LEAK": "aiohttp_client_disable_stream_timing_for_mem_leak",
+        "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "dd_llmobs_evaluator_sampling_rules",
+        "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
+        "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
+        "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level",
+        "DD_TRACE_LOG_STREAM_HANDLER": "trace_log_file_stream_handler",
+        "_dd_trace_writer_log_error_payloads": "trace_writer_log_error_payloads",
+        "dd_crashtracking_alt_stack": "crashtracking_alt_stack",
+        "dd_django_include_user_email": "trace_django_include_user_email",
+        "dd_django_include_user_login": "trace_django_include_user_login",
+        "dd_django_include_user_name": "trace_django_include_user_name",
+        "dd_django_include_user_realname": "trace_django_include_user_realname",
+        "dd_trace_span_aggregator_rlock": "trace_span_aggregator_rlock_enabled",
+        "dd_user_model_email_field": "trace_user_model_email_field",
+        "dd_user_model_login_field": "trace_user_model_login_field",
+        "dd_user_model_name_field": "trace_user_model_name_field",
+        "python_build_gnu_type": "python_build_gnu_type",
+        "python_host_gnu_type": "python_host_gnu_type",
+        "python_soabi": "python_soabi",
+        "trace_report_handled_exceptions": "trace_report_handled_exceptions"
+    },
+    "prefix_block_list": [],
+    "redaction_list": [],
+    "reduce_rules": {}
+}

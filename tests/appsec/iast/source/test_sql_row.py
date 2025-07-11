@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import features
-from ..utils import BaseSourceTest
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_sql
@@ -12,5 +12,5 @@ class TestSqlRow(BaseSourceTest):
 
     endpoint = "/iast/source/sql/test"
     source_type = "sql.row.value"
-    source_names = ["0.username"]
+    source_names = ["0.username", "USERNAME"]
     requests_kwargs = [{"method": "GET"}]

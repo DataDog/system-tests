@@ -3,8 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 import re
-from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios
-from utils.tools import logger
+from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
 def validate_no_leak(needle, whitelist_pattern=None):
@@ -29,6 +28,9 @@ def validate_no_leak(needle, whitelist_pattern=None):
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.library_scrubbing
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
 
@@ -75,7 +77,7 @@ class Test_UrlField:
         context.weblog_variant in ("vertx3", "vertx4", "jersey-grizzly2", "akka-http"), reason="Need weblog endpoint"
     )
     def test_main(self):
-        """check that not data is leaked"""
+        """Check that not data is leaked"""
         assert self.r.status_code == 200
 
         def validate_report(trace):
@@ -83,6 +85,8 @@ class Test_UrlField:
                 if span.get("type") == "http":
                     logger.info(f"span found: {span}")
                     return "agent:8127" in span["meta"]["http.url"]
+
+            return None
 
         # check that the distant call is reported
         interfaces.library.validate_traces(self.r, validate_report)
@@ -98,7 +102,10 @@ class Test_UrlField:
         interfaces.library.validate(validate_no_leak("leak-name-url", whitelist_pattern), success_by_default=True)
 
 
+@features.envoy_external_processing
 @features.library_scrubbing
+@scenarios.default
+@scenarios.external_processing
 class Test_EnvVar:
     """Environnement variables are not leaked"""
 
@@ -111,6 +118,6 @@ class Test_EnvVar:
         interfaces.agent.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
 
     def test_logs(self):
-        interfaces.library_stdout.assert_absence(".*leaked-env-var.*")
-        interfaces.library_dotnet_managed.assert_absence(".*leaked-env-var.*")
-        interfaces.agent_stdout.assert_absence(".*leaked-env-var.*")
+        interfaces.library_stdout.assert_absence("leaked-env-var")
+        interfaces.library_dotnet_managed.assert_absence("leaked-env-var")
+        interfaces.agent_stdout.assert_absence("leaked-env-var")

@@ -159,5 +159,84 @@ public class IastSinkRouteProvider implements Consumer<Router> {
             final String param = request.getParam("param");
             ctx.response().end(reflection.insecureClassForName(param));
         });
+        router.post("/iast/sc/s/configured").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String sanitized = SecurityControlUtil.sanitize(request.getParam("param"));
+            cmd.insecureCmd(sanitized);
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/s/not-configured").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String sanitized = SecurityControlUtil.sanitize(request.getParam("param"));
+            ctx.response().end(Json.encodeToBuffer(sql.insecureSql(sanitized, "password")));
+        });
+
+        router.post("/iast/sc/s/all").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String sanitized = SecurityControlUtil.sanitizeForAllVulns(request.getParam("param"));
+            ctx.response().end(Json.encodeToBuffer(sql.insecureSql(sanitized, "password")));
+        });
+
+        router.post("/iast/sc/iv/configured").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String param = request.getParam("param");
+            if (SecurityControlUtil.validate(param)) {
+                cmd.insecureCmd(param);
+            }
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/iv/not-configured").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String param = request.getParam("param");
+            if (SecurityControlUtil.validate(param)) {
+                sql.insecureSql(param, "password");
+            }
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/iv/all").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String param = request.getParam("param");
+            if (SecurityControlUtil.validateForAllVulns(param)) {
+                sql.insecureSql(param, "password");
+            }
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/iv/overloaded/secure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String user = request.getParam("user");
+            String pass = request.getParam("password");
+            if (SecurityControlUtil.overloadedValidation(null, user, pass)) {
+                sql.insecureSql(user, pass);
+            }
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/iv/overloaded/insecure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String user = request.getParam("user");
+            String pass = request.getParam("password");
+            if (SecurityControlUtil.overloadedValidation(user, pass)) {
+                sql.insecureSql(user, pass);
+            }
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/s/overloaded/secure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String sanitized = SecurityControlUtil.overloadedSanitize(request.getParam("param"));
+            cmd.insecureCmd(sanitized);
+            ctx.response().end();
+        });
+
+        router.post("/iast/sc/s/overloaded/insecure").handler(ctx -> {
+            final HttpServerRequest request = ctx.request();
+            String sanitized = SecurityControlUtil.overloadedSanitize(request.getParam("param"), null);
+            cmd.insecureCmd(sanitized);
+            ctx.response().end();
+        });
     }
 }

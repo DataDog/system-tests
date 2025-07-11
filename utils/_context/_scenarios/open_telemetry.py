@@ -3,11 +3,12 @@ import os
 import pytest
 
 from watchdog.observers.polling import PollingObserver
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils.tools import logger
+from utils._logger import logger
 from utils import interfaces
-from utils._context.library_version import Version
+from utils.interfaces._core import ProxyBasedInterfaceValidator
+from utils._context.component_version import Version
 
 from utils._context.containers import (
     AgentContainer,
@@ -16,7 +17,7 @@ from utils._context.containers import (
 )
 
 
-from .core import ScenarioGroup
+from .core import scenario_groups
 from .endtoend import DockerScenario
 
 
@@ -25,28 +26,28 @@ class OpenTelemetryScenario(DockerScenario):
 
     def __init__(
         self,
-        name,
+        name: str,
         *,
-        doc,
-        weblog_env=None,
-        include_agent=True,
-        include_collector=True,
-        include_intake=True,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
-        backend_interface_timeout=20,
-        require_api_key=False,
+        doc: str,
+        weblog_env: dict | None = None,
+        include_agent: bool = True,
+        include_collector: bool = True,
+        include_intake: bool = True,
+        include_postgres_db: bool = False,
+        include_cassandra_db: bool = False,
+        include_mongo_db: bool = False,
+        include_kafka: bool = False,
+        include_rabbitmq: bool = False,
+        include_mysql_db: bool = False,
+        include_sqlserver: bool = False,
+        backend_interface_timeout: int = 20,
+        require_api_key: bool = False,
     ) -> None:
         super().__init__(
             name,
             doc=doc,
-            github_workflow="opentelemetry",
-            scenario_groups=[ScenarioGroup.ALL, ScenarioGroup.OPEN_TELEMETRY],
+            github_workflow="endtoend",
+            scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
@@ -74,20 +75,20 @@ class OpenTelemetryScenario(DockerScenario):
         self.backend_interface_timeout = backend_interface_timeout
         self._require_api_key = require_api_key
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
         self._check_env_vars()
         dd_site = os.environ.get("DD_SITE", "datad0g.com")
         if self.include_intake:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_INTAKE"] = "True"
             self.weblog_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_2")
             self.weblog_container.environment["DD_SITE"] = dd_site
         if self.include_collector:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_COLLECTOR"] = "True"
             self.collector_container.environment["DD_API_KEY"] = os.environ.get("DD_API_KEY_3")
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
-            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = True
+            self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
@@ -95,11 +96,11 @@ class OpenTelemetryScenario(DockerScenario):
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
+            def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
                 super().__init__()
                 self.interface = interface
 
-            def _ingest(self, event):
+            def _ingest(self, event: FileSystemEvent):
                 if event.is_directory:
                     return
 
@@ -143,7 +144,7 @@ class OpenTelemetryScenario(DockerScenario):
 
         interfaces.library_dotnet_managed.load_data()
 
-    def _wait_interface(self, interface, timeout):
+    def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 

@@ -38,11 +38,11 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			}
@@ -68,11 +68,11 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 321,
+				"length": 365,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "4180218218444e1e126a4e4ec41a475b89813d27537fba5c92662fe3510b951d"
+						"hash": "32c04cce9cd0820470f5b2d6d92609d51ad3c5619fa947fdc91445f641d977dc"
 					}
 				]
 			}
@@ -113,21 +113,21 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 209,
+				"length": 239,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
+						"hash": "8176095e451a5f4d49db40e5eadf7d79b0ca6956cf28c83f87d18f4d66ea2583"
 					}
 				]
 			}
@@ -158,21 +158,21 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/spanProbe_kepf0cf2-9top-45cf-9f39-59installed/config",
-				"length": 164,
+				"length": 188,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "8e897cbaccc2d604fbd5f4c910512e9c5d2ac7fee1f984929bf93e596d7a7461"
+						"hash": "d22df7cf36e9f2b0134c4f6535a7340b9a4435876b79280f91d80942c9562b5b"
 					}
 				]
 			}
@@ -208,31 +208,31 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/spanProbe_kepf0cf2-9top-45cf-9f39-59installed/config",
-				"length": 164,
+				"length": 188,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "8e897cbaccc2d604fbd5f4c910512e9c5d2ac7fee1f984929bf93e596d7a7461"
+						"hash": "d22df7cf36e9f2b0134c4f6535a7340b9a4435876b79280f91d80942c9562b5b"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 321,
+				"length": 365,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "3712620153e0f4d41f03ca93fc8618b9f6714918a1f117cf110f25e6131eef52"
+						"hash": "4f12b33894fd7178f2464d3fc2c63223c3ee2a29a5cf0936de60ceee88fd0656"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 209,
+				"length": 239,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
+						"hash": "8176095e451a5f4d49db40e5eadf7d79b0ca6956cf28c83f87d18f4d66ea2583"
 					}
 				]
 			}
@@ -263,21 +263,21 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 209,
+				"length": 239,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
+						"hash": "8176095e451a5f4d49db40e5eadf7d79b0ca6956cf28c83f87d18f4d66ea2583"
 					}
 				]
 			}
@@ -308,21 +308,21 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 209,
+				"length": 239,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
+						"hash": "8176095e451a5f4d49db40e5eadf7d79b0ca6956cf28c83f87d18f4d66ea2583"
 					}
 				]
 			}
@@ -353,21 +353,21 @@
 		"cached_target_files": [
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/metricProbe_33a64d99-fbed-5eab-bb10-80735405c09b/config",
-				"length": 316,
+				"length": 360,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "bbbaf6ac0011c040d5c15287f461b0b7fd39552958d546e9b41c8c07442634da"
+						"hash": "6daaa0eb13996d340d99983bb014ef17453bad39edf19041f24a87a159ff94fe"
 					}
 				]
 			},
 			{
 				"path": "datadog/2/LIVE_DEBUGGING/logProbe_22953c88-eadc-4f9a-aa0f-7f6243f4bf8a/config",
-				"length": 209,
+				"length": 239,
 				"hashes": [
 					{
 						"algorithm": "sha256",
-						"hash": "aec211179c64eff2acbeec327a6fb2866350882bddb9fed066cdbb3423ceffd0"
+						"hash": "8176095e451a5f4d49db40e5eadf7d79b0ca6956cf28c83f87d18f4d66ea2583"
 					}
 				]
 			}

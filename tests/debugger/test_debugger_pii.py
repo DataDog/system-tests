@@ -9,22 +9,22 @@ from utils import (
     features,
     bug,
     missing_feature,
-    irrelevant,
     context,
 )
 
 REDACTED_KEYS = [
     "_2fa",
-    "accesstoken",
-    "access_token",
-    "Access_Token",
-    "accessToken",
-    "AccessToken",
     "ACCESSTOKEN",
+    "Access_Token",
+    "AccessToken",
+    "accessToken",
+    "access_token",
+    "accesstoken",
     "aiohttpsession",
     "apikey",
     "apisecret",
     "apisignature",
+    "appkey",
     "applicationkey",
     "auth",
     "authorization",
@@ -46,7 +46,6 @@ REDACTED_KEYS = [
     "dburl",
     "encryptionkey",
     "encryptionkeyid",
-    "env",
     "geolocation",
     "gpgkey",
     "ipaddress",
@@ -112,10 +111,9 @@ REDACTED_TYPES = ["customPii"]
 
 
 @features.debugger_pii_redaction
-@scenarios.debugger_pii_redaction
-class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
+class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
     ############ setup ############
-    def _setup(self, line_probe=False):
+    def _setup(self, *, line_probe=False):
         self.initialize_weblog_remote_config()
 
         if line_probe:
@@ -125,35 +123,39 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
 
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request("/debugger/pii")
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
-    def _assert(self, redacted_keys, redacted_types, line_probe=False):
+    def _assert(self, excluded_identifiers=None, *, line_probe=False):
         self.collect()
         self.assert_setup_ok()
         self.assert_rc_state_not_error()
         self.assert_all_probes_are_emitting()
         self.assert_all_weblog_responses_ok()
 
-        self._validate_pii_keyword_redaction(redacted_keys, line_probe)
-        self._validate_pii_type_redaction(redacted_types, line_probe)
+        self._validate_pii_keyword_redaction(excluded_identifiers, line_probe)
+        if context.library != "nodejs":  # Node.js does not support type redacting
+            self._validate_pii_type_redaction(line_probe)
 
-    def _validate_pii_keyword_redaction(self, should_redact_field_names, line_probe):
+    def _validate_pii_keyword_redaction(self, excluded_identifiers, line_probe):
         not_redacted = []
-        not_found = list(set(should_redact_field_names))
+        not_found = list(set(REDACTED_KEYS))
+        improperly_redacted = []
+        excluded_identifiers = excluded_identifiers if excluded_identifiers else []
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
-            for field_name in should_redact_field_names:
-                if line_probe:
-                    fields = snapshot["captures"]["lines"]["33"]["locals"]["pii"]["fields"]
-                else:
-                    fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
+            if line_probe:
+                fields = snapshot["captures"]["lines"]["64"]["locals"]["pii"]["fields"]
+            else:
+                fields = snapshot["captures"]["return"]["locals"]["pii"]["fields"]
 
+            # Check if fields that should be redacted are properly redacted
+            for field_name in set(REDACTED_KEYS):
                 if context.library == "ruby":
                     check_field_name = "@" + field_name
                 else:
@@ -162,31 +164,42 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
                 if check_field_name in fields:
                     not_found.remove(field_name)
 
-                    if "value" in fields[check_field_name]:
+                    # Fields not included in excluded_identifiers should not have values
+                    if "value" in fields[check_field_name] and field_name not in excluded_identifiers:
                         not_redacted.append(field_name)
 
-        error_message = ""
+                    # Fields included in excluded_identifiers should have values
+                    if "value" not in fields[check_field_name] and field_name in excluded_identifiers:
+                        improperly_redacted.append(field_name)
+
+        error_message = []
         if not_redacted:
             not_redacted.sort()
-            error_message = "Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+            error_message.append("Fields not properly redacted: " + "".join([f"{item}, " for item in not_redacted]))
 
         if not_found:
             not_found.sort()
-            error_message += ". Fields not found: " + "".join([f"{item}, " for item in not_found])
+            error_message.append("Fields not found: " + "".join([f"{item}, " for item in not_found]))
 
-        if error_message != "":
-            raise ValueError(error_message)
+        if improperly_redacted:
+            improperly_redacted.sort()
+            error_message.append(
+                "Excluded fields improperly redacted: " + "".join([f"{item}, " for item in improperly_redacted])
+            )
 
-    def _validate_pii_type_redaction(self, should_redact_types, line_probe):
+        if error_message:
+            raise ValueError(". ".join(error_message))
+
+    def _validate_pii_type_redaction(self, line_probe):
         not_redacted = []
 
         for probe_id in self.probe_ids:
             base = self.probe_snapshots[probe_id][0]
             snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
 
-            for type_name in should_redact_types:
+            for type_name in REDACTED_TYPES:
                 if line_probe:
-                    type_info = snapshot["captures"]["lines"]["33"]["locals"][type_name]
+                    type_info = snapshot["captures"]["lines"]["64"]["locals"][type_name]
                 else:
                     type_info = snapshot["captures"]["return"]["locals"][type_name]
 
@@ -196,65 +209,46 @@ class Test_Debugger_PII_Redaction(debugger._Base_Debugger_Test):
         error_message = ""
         if not_redacted:
             not_redacted.sort()
-            error_message = "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
+            error_message += "Types not properly redacted: " + "".join([f"{item}, " for item in not_redacted])
 
         if error_message != "":
             raise ValueError(error_message)
 
+
+@scenarios.debugger_pii_redaction
+class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     ############ test ############
     ### method ###
     def setup_pii_redaction_method_full(self):
         self._setup()
 
-    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted")
-    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted")
+    @missing_feature(context.library < "java@1.34", reason="keywords are not fully redacted", force_skip=True)
+    @missing_feature(context.library < "dotnet@2.51", reason="keywords are not fully redacted", force_skip=True)
     @bug(context.library == "python@2.16.0", reason="DEBUG-3127")
     @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
-    @missing_feature(context.library == "ruby", reason="Local variable capture not implemented for method probes")
+    @missing_feature(
+        context.library == "ruby", reason="Local variable capture not implemented for method probes", force_skip=True
+    )
+    @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     def test_pii_redaction_method_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES)
+        self._assert()
 
     ### line ###
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
-    @missing_feature(
-        context.library != "ruby", reason="Ruby DI does not provide the functionality required for the test."
-    )
     def test_pii_redaction_line_full(self):
-        self._assert(REDACTED_KEYS, REDACTED_TYPES, line_probe=True)
+        self._assert(line_probe=True)
 
-    ############ old versions ############
-    def filter(keys_to_filter):
-        return [item for item in REDACTED_KEYS if item not in keys_to_filter]
 
-    def setup_pii_redaction_java_1_33(self):
-        self._setup()
+@scenarios.tracing_config_nondefault_4
+class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionTest):
+    ### excluded identifiers ###
+    def setup_pii_redaction_excluded_identifiers(self):
+        self._setup(line_probe=True)
 
-    @irrelevant(context.library != "java@1.33", reason="not relevant for other version")
-    def test_pii_redaction_java_1_33(self):
-        self._assert(
-            filter(
-                [
-                    "address",
-                    "connectionstring",
-                    "connectsid",
-                    "geolocation",
-                    "ipaddress",
-                    "oauthtoken",
-                    "secretkey",
-                    "xsrf",
-                ]
-            ),
-            REDACTED_TYPES,
-        )
-
-    def setup_pii_redaction_dotnet_2_50(self):
-        self._setup()
-
-    @irrelevant(context.library != "dotnet@2.50", reason="not relevant for other version")
-    @bug(
-        context.weblog_variant == "uds" and context.library == "dotnet@2.50.0", reason="APMRP-360"
-    )  # bug with UDS protocol on this version
-    def test_pii_redaction_dotnet_2_50(self):
-        self._assert(filter(["applicationkey", "connectionstring"]), REDACTED_TYPES)
+    @bug(context.library == "ruby", reason="DEBUG-3747")
+    @bug(context.library == "python", reason="DEBUG-3746")
+    def test_pii_redaction_excluded_identifiers(self):
+        excluded_identifiers = ["_2fa", "cookie", "sessionid"]
+        self._assert(excluded_identifiers, line_probe=True)

@@ -1,461 +1,250 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/include/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
+
 stages:
-  - nodejs_ssi_pipelines
-  - java_ssi_pipelines
-  - python_ssi_pipelines
-  - php_ssi_pipelines
-  - dotnet_ssi_pipelines
-  - ruby_ssi_pipelines
-  - stats_results
-  - parse_results
-  - before_tests
-  - k8s_lib_injection
+  - configure
+  - nodejs
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
+  - pipeline-status
+  - system-tests-utils
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
-.compute_aws_scenarios:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: ["arch:arm64"]
-  stage: nodejs_ssi_pipelines
-  allow_failure: true
-  variables:
-    TEST_LIBRARY: "nodejs"
-    ONBOARDING_FILTER_WEBLOG: "test-app-nodejs"
-    SCENARIO: "HOST_AUTO_INJECTION_INSTALL_SCRIPT"
-    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
-    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
-    DD_INSTALLER_LIBRARY_VERSION: "$INSTALLER_LIBRARY_VERSION"
-    DD_INSTALLER_INJECTOR_VERSION: "$INSTALLER_INJECTOR_VERSION"
-  before_script:
-    - export DD_API_KEY_ONBOARDING=xyz
-    - export DD_APP_KEY_ONBOARDING=xyz
-  script:
-      - ./build.sh -i runner
-      - ./run.sh $SCENARIO --vm-weblog ${ONBOARDING_FILTER_WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-gitlab-pipeline system-tests
-  after_script:
-    - SCENARIO_SUFIX=$(echo "$SCENARIO" | tr '[:upper:]' '[:lower:]')
-    - mkdir -p reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"
-    - cp -R logs_"${SCENARIO_SUFIX}"/gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}_${ONBOARDING_FILTER_WEBLOG}"/
-  artifacts:
-    paths:
-      - reports/
-
-.x_compute_docker_scenarios:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
+compute_pipeline:
+  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
-  stage: nodejs_ssi_pipelines
+  stage: configure
   variables:
-    TEST_LIBRARY: "nodejs"
-    #Because sometimes I don't want to run all pipeline, I only run step1_xx with env filter param
-    ONBOARDING_FILTER_ENV: "$FILTER_ENV"
+    CI_ENVIRONMENT: "prod"
   script:
-    - python utils/docker_ssi/docker_ssi_matrix_builder.py --language $TEST_LIBRARY --format yaml --output-file gitlab_pipeline.yml
-  needs:
-    - job: step1_generate_nodejs_ssi_pipeline
-      artifacts: true
-  after_script:
-    - SCENARIO_SUFIX="docker_ssi"
-    - mkdir -p reports/logs_"${SCENARIO_SUFIX}"
-    - cp gitlab_pipeline.yml reports/logs_"${SCENARIO_SUFIX}"/
-  artifacts:
-    paths:
-      - reports/
-
-.merge_aws_ssi_pipeline:
-  image: 486234852809.dkr.ecr.us-east-1.amazonaws.com/ci/test-infra-definitions/runner:a58cc31c
-  stage: nodejs_ssi_pipelines
-  tags: ["arch:amd64"]
-  script:
-      - |
-        for folder in reports/logs*/ ; do
-          echo "Checking folder:: ${folder}"
-          for filename in ./${folder}gitlab_pipeline.yml; do
-            if [ -e ${filename} ]
-            then
-              echo "Processing pipeline: ${filename}"
-              python utils/scripts/merge_gitlab_aws_pipelines.py --input ${filename} --output aws_gitlab_pipeline.yml
-            fi
-          done
-        done
-  needs: ["onboarding_nodejs"]
-  dependencies:
-    - onboarding_nodejs
-  artifacts:
-    paths:
-      - aws_gitlab_pipeline.yml
-
-.exec_aws_ssi_pipeline:
-  stage: nodejs_ssi_pipelines
-  needs: ["merge_aws_ssi_pipeline"]
+    - |
+      if [ -z "$SYSTEM_TESTS_SCENARIOS" ] && [ -z "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        echo "❌ Both SYSTEM_TESTS_SCENARIOS and SYSTEM_TESTS_SCENARIOS_GROUPS are not defined.Computing changes..."
+        ./build.sh -i runner
+        source venv/bin/activate
+        ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+        git clone https://github.com/DataDog/system-tests.git original
+        git fetch --all  # Ensure all branches are available
+        git branch --track $CI_COMMIT_REF_NAME origin/$CI_COMMIT_REF_NAME || true  # Track branch if not tracked
+        git checkout $CI_COMMIT_REF_NAME  # Ensure the branch is checked out
+        BASE_COMMIT=$(git merge-base origin/main $CI_COMMIT_REF_NAME)  # Get the base commit
+        echo "Branch was created from commit--> $BASE_COMMIT"
+        git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
+        cat modified_files.txt
+        python utils/scripts/compute_impacted_scenario.py >> impacted_scenarios.txt
+        cat impacted_scenarios.txt
+        source impacted_scenarios.txt
+      else
+          echo "✅ SYSTEM_TESTS_SCENARIOS OR SYSTEM_TESTS_SCENARIOS_GROUPS are set."
+          export scenarios=$SYSTEM_TESTS_SCENARIOS
+          export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
+          cd /system-tests
+          git pull
+          if [ -n "$SYSTEM_TESTS_REF" ]; then
+            git checkout $SYSTEM_TESTS_REF
+          else
+            echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
+          fi
+          ./build.sh -i runner
+          source venv/bin/activate
+      fi
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - |
+      if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
+        cp *.yml "$CI_PROJECT_DIR"
+      fi
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  artifacts:
+    paths:
+      - nodejs_ssi_gitlab_pipeline.yml
+      - java_ssi_gitlab_pipeline.yml
+      - dotnet_ssi_gitlab_pipeline.yml
+      - python_ssi_gitlab_pipeline.yml
+      - php_ssi_gitlab_pipeline.yml
+      - ruby_ssi_gitlab_pipeline.yml
+
+nodejs_ssi_pipeline:
+  stage: nodejs
+  needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: merge_aws_ssi_pipeline
+      - artifact: nodejs_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
-
-.step1_generate_aws_ssi_pipeline:
-  "image": "registry.ddbuild.io/docker:20.10.13-gbi-focal"
-  "tags": ["arch:amd64"]
-  stage: nodejs_ssi_pipelines
-  script:
-    - echo ">>>>>>>>>>>>>>> Generating lang pipeline >>>>>>>>>>>>>>>"
-    - echo "FILTER_ENV=${ONBOARDING_FILTER_ENV:-prod}" >> run.env
-    - echo "INSTALLER_LIBRARY_VERSION=${DD_INSTALLER_LIBRARY_VERSION:- }" >> run.env
-    - echo "INSTALLER_INJECTOR_VERSION=${DD_INSTALLER_INJECTOR_VERSION:- }" >> run.env
   rules:
-    - if: $CI_PIPELINE_SOURCE == "schedule"
-      when: always
-    - when: manual
-      allow_failure: true
-  artifacts:
-    reports:
-      dotenv: run.env
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-# ----------- Nodejs SSI ----------------
-step1_generate_nodejs_ssi_pipeline:
-  extends: .step1_generate_aws_ssi_pipeline
-  needs: []
-
-x_compute_nodejs_scenarios:
-  extends: .compute_aws_scenarios
+java_ssi_pipeline:
+  stage: java
+  needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
-    TEST_LIBRARY: "nodejs"
-  parallel:
-    matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs,test-app-nodejs-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-08, test-app-nodejs-16, test-app-nodejs-unsupported-defaults]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-nodejs-multicontainer,test-app-nodejs-esm]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_nodejs_ssi_pipeline
-      artifacts: true
-
-x_compute_nodejs_docker_scenarios:
-  extends: .x_compute_docker_scenarios
-  stage: nodejs_ssi_pipelines
-  variables:
-    TEST_LIBRARY: "nodejs"
-  needs:
-    - job: step1_generate_nodejs_ssi_pipeline
-      artifacts: true
-
-x_merge_nodejs_ssi_pipeline:
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_nodejs_scenarios", "x_compute_nodejs_docker_scenarios"]
-  dependencies:
-    - x_compute_nodejs_scenarios
-    - x_compute_nodejs_docker_scenarios
-
-step2_exec_nodejs_ssi_pipeline:
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_nodejs_ssi_pipeline"]
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_nodejs_ssi_pipeline
+      - artifact: java_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-
-# ----------- Java SSI ----------------
-step1_generate_java_ssi_pipeline:
-  stage: java_ssi_pipelines
-  dependencies: []
-  extends: .step1_generate_aws_ssi_pipeline
-
-x_compute_java_scenarios:
-  stage: java_ssi_pipelines
-  extends: .compute_aws_scenarios
+dotnet_ssi_pipeline:
+  stage: dotnet
+  needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
-    TEST_LIBRARY: "java"
-  parallel:
-    matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-container,test-app-java-alpine,test-app-java-buildpack]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java,test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-java-multicontainer,test-app-java-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_java_ssi_pipeline
-      artifacts: true
-
-x_compute_java_docker_scenarios:
-  extends: .x_compute_docker_scenarios
-  stage: java_ssi_pipelines
-  variables:
-    TEST_LIBRARY: "java"
-  needs:
-    - job: step1_generate_java_ssi_pipeline
-      artifacts: true
-
-x_merge_java_ssi_pipeline:
-  stage: java_ssi_pipelines
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_java_scenarios", "x_compute_java_docker_scenarios"]
-  dependencies:
-    - x_compute_java_scenarios
-    - x_compute_java_docker_scenarios
-
-step2_exec_java_ssi_pipeline:
-  stage: java_ssi_pipelines
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_java_ssi_pipeline"]
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_java_ssi_pipeline
+      - artifact: dotnet_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-# ----------- Python SSI ----------------
-step1_generate_python_ssi_pipeline:
-  stage: python_ssi_pipelines
-  dependencies: []
-  extends: .step1_generate_aws_ssi_pipeline
-
-x_compute_python_scenarios:
-  stage: python_ssi_pipelines
-  extends: .compute_aws_scenarios
+python_ssi_pipeline:
+  stage: python
+  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   variables:
-    TEST_LIBRARY: "python"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-container,test-app-python-alpine]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [
-            test-app-python,
-            test-app-python-container,
-            test-app-python-alpine
-          ]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-multicontainer,test-app-python-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-python-unsupported-defaults,test-app-python-27]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_python_ssi_pipeline
-      artifacts: true
-
-x_compute_python_docker_scenarios:
-  extends: .x_compute_docker_scenarios
-  stage: python_ssi_pipelines
-  variables:
-    TEST_LIBRARY: "python"
-  needs:
-    - job: step1_generate_python_ssi_pipeline
-      artifacts: true
-
-x_merge_python_ssi_pipeline:
-  stage: python_ssi_pipelines
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_python_scenarios", "x_compute_python_docker_scenarios"]
-  dependencies:
-    - x_compute_python_scenarios
-    - x_compute_python_docker_scenarios
-
-step2_exec_python_ssi_pipeline:
-  stage: python_ssi_pipelines
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_python_ssi_pipeline"]
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_python_ssi_pipeline
+      - artifact: python_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-# ----------- PHP SSI ----------------
-step1_generate_php_ssi_pipeline:
-  stage: php_ssi_pipelines
-  dependencies: []
-  extends: .step1_generate_aws_ssi_pipeline
-
-x_compute_php_scenarios:
-  stage: php_ssi_pipelines
-  extends: .compute_aws_scenarios
+php_ssi_pipeline:
+  stage: php
+  needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
-    TEST_LIBRARY: "php"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-83,test-app-php-alpine]
-          SCENARIO: [CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php, test-app-php-container-83, test-app-php-alpine]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-container-56]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-php-multicontainer, test-app-php-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_php_ssi_pipeline
-      artifacts: true
-
-x_compute_php_docker_scenarios:
-  extends: .x_compute_docker_scenarios
-  stage: php_ssi_pipelines
-  variables:
-    TEST_LIBRARY: "php"
-  needs:
-    - job: step1_generate_php_ssi_pipeline
-      artifacts: true
-
-x_merge_php_ssi_pipeline:
-  stage: php_ssi_pipelines
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_php_scenarios", "x_compute_php_docker_scenarios"]
-  dependencies:
-    - x_compute_php_scenarios
-    - x_compute_php_docker_scenarios
-
-step2_exec_php_ssi_pipeline:
-  stage: php_ssi_pipelines
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_php_ssi_pipeline"]
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_php_ssi_pipeline
+      - artifact: php_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-# ----------- Dotnet SSI ----------------
-step1_generate_dotnet_ssi_pipeline:
-  stage: dotnet_ssi_pipelines
-  dependencies: []
-  extends: .step1_generate_aws_ssi_pipeline
-
-x_compute_dotnet_scenarios:
-  stage: dotnet_ssi_pipelines
-  extends: .compute_aws_scenarios
+ruby_ssi_pipeline:
+  stage: ruby
+  needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
-    TEST_LIBRARY: "dotnet"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO:
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT
-            - HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-container]
-          SCENARIO:
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT
-            - CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet,test-app-dotnet-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION, SIMPLE_AUTO_INJECTION_PROFILING]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-multicontainer,test-app-dotnet-multialpine]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-dotnet-unsupported]
-          SCENARIO: [INSTALLER_NOT_SUPPORTED_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_dotnet_ssi_pipeline
-      artifacts: true
-
-x_merge_dotnet_ssi_pipeline:
-  stage: dotnet_ssi_pipelines
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_dotnet_scenarios"]
-  dependencies:
-    - x_compute_dotnet_scenarios
-
-step2_exec_dotnet_ssi_pipeline:
-  stage: dotnet_ssi_pipelines
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_dotnet_ssi_pipeline"]
+    PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
     include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_dotnet_ssi_pipeline
+      - artifact: ruby_ssi_gitlab_pipeline.yml
+        job: compute_pipeline
     strategy: depend
+  rules:
+    - if: '$SCHEDULED_JOB == ""'
+    - if: '$SCHEDULED_JOB == null'
+  when: always
 
-# ----------- Ruby SSI ----------------
-step1_generate_ruby_ssi_pipeline:
-  stage: ruby_ssi_pipelines
-  dependencies: []
-  extends: .step1_generate_aws_ssi_pipeline
-
-x_compute_ruby_scenarios:
-  stage: ruby_ssi_pipelines
-  extends: .compute_aws_scenarios
+delete_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
   variables:
-    TEST_LIBRARY: "ruby"
-  parallel:
-      matrix:
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [HOST_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-container]
-          SCENARIO: [ CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby,test-app-ruby-container]
-          SCENARIO: [INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby]
-          SCENARIO: [CHAOS_INSTALLER_AUTO_INJECTION]
-        - ONBOARDING_FILTER_WEBLOG: [test-app-ruby-multicontainer]
-          SCENARIO: [SIMPLE_INSTALLER_AUTO_INJECTION]
-  needs:
-    - job: step1_generate_ruby_ssi_pipeline
-      artifacts: true
+    AMI_RETENTION_DAYS: 10
+    AMI_LAST_LAUNCHED_DAYS: 10
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis --ami-retention-days $AMI_RETENTION_DAYS --ami-last-launched-days $AMI_LAST_LAUNCHED_DAYS
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis"'
+  after_script: echo "Finish"
+  timeout: 3h
 
-x_merge_ruby_ssi_pipeline:
-  stage: ruby_ssi_pipelines
-  extends: .merge_aws_ssi_pipeline
-  needs: ["x_compute_ruby_scenarios"]
-  dependencies:
-    - x_compute_ruby_scenarios
+delete_amis_by_name_or_lang:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - |
+          if [ -z "$AMI_NAME" ] && [ -z "$AMI_LANG" ]; then
+            echo "❌ ERROR: Either AMI_NAME or AMI_LANG must be set."
+            exit 1
+          fi
+          echo "✅ Proceeding with AMI_NAME=$AMI_NAME, AMI_LANG=$AMI_LANG"
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - |
+          CMD="python utils/scripts/pulumi_clean_up.py --component amis_by_name"
 
-step2_exec_ruby_ssi_pipeline:
-  stage: ruby_ssi_pipelines
-  extends: .exec_aws_ssi_pipeline
-  needs: ["x_merge_ruby_ssi_pipeline"]
-  trigger:
-    include:
-      - artifact: aws_gitlab_pipeline.yml
-        job: x_merge_ruby_ssi_pipeline
-    strategy: depend
+          if [ -n "$AMI_NAME" ]; then
+            CMD="$CMD --ami-name $AMI_NAME"
+          fi
 
+          if [ -n "$AMI_LANG" ]; then
+            CMD="$CMD --ami-lang $AMI_LANG"
+          fi
+
+          echo "Running: $CMD"
+          eval $CMD
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_amis_by_name_or_lang"'
+  after_script: echo "Finish"
+
+delete_ec2_instances:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  variables:
+    EC2_AGE_MINUTES: 45
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component ec2 --ec2-age-minutes $EC2_AGE_MINUTES
+  rules:
+    - if: '$SCHEDULED_JOB == "delete_ec2_instances"'
+  after_script: echo "Finish"
+
+count_amis:
+  extends: .base_job_onboarding
+  stage: system-tests-utils
+  allow_failure: false
+  script:
+        - ./build.sh -i runner
+        - source venv/bin/activate
+        - python utils/scripts/pulumi_clean_up.py --component amis_count
+  rules:
+    - if: '$SCHEDULED_JOB == "count_amis"'
+  after_script: echo "Finish"
 
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
-  image: registry.ddbuild.io/images/ci_docker_base
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
 
-  stage: before_tests
+  stage: system-tests-utils
   allow_failure: true
   before_script:
     - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
@@ -467,154 +256,37 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
-generate_system_tests_images:
-  image: registry.ddbuild.io/images/ci_docker_base
+generate_system_tests_end_to_end_images:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
-
-  stage: before_tests
+  needs: []
+  stage: system-tests-utils
   allow_failure: true
   before_script:
-    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
-      - ./lib-injection/build/build_lib_injection_images.sh
   when: manual
 
-.k8s_lib_injection_base:
-  image: registry.ddbuild.io/ci/libdatadog-build/system-tests:48436362
-  tags: [ "runner:docker" ]
-  stage: k8s_lib_injection
-  rules:
-    #- if: $CI_PIPELINE_SOURCE == "schedule"
-    #  when: always
-    - when: manual
+generate_system_tests_lib_injection_images:
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
   variables:
-    TEST_LIBRARY: "xyz"
-    K8S_WEBLOG: "xyz"
-    K8S_WEBLOG_IMG: "xyz"
-    K8S_SCENARIO: "xyz"
-    K8S_LIB_INIT_IMG: "xyz"
-    K8S_CLUSTER_VERSION: "xyz"
+    PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    PRIVATE_DOCKER_REGISTRY_USER: AWS
   script:
-    - ./build.sh -i runner # rebuild runner in case there were changes
-    - source venv/bin/activate
-    - python --version
-    - pip freeze
-    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-cluster-version ${K8S_CLUSTER_VERSION}
-  after_script:
-    - mkdir -p reports
-    - cp -R logs_*/ reports/
-    - kind delete clusters --all || true
-  artifacts:
-    when: always
-    paths:
-      - reports/
+      - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+      - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
+  when: manual
 
-k8s_java:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "java"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-djm-spark-test-app ]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-djm-spark-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION_SPARK_DJM]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-java-init-test-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-java-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-java-init:latest", "ghcr.io/datadog/dd-trace-java/dd-lib-java-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_dotnet:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "dotnet"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-dotnet-init-test-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-dotnet-init-test-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-dotnet-init:latest", "ghcr.io/datadog/dd-trace-dotnet/dd-lib-dotnet-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_nodejs:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "nodejs"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [sample-app]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/sample-app:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-js-init:latest", "ghcr.io/datadog/dd-trace-js/dd-lib-js-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_python:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "python"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-python-init-test-django]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-gunicorn-alpine]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-gunicorn-alpine:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-unsupported-package-force]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-unsupported-package-force:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-uvicorn]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-uvicorn:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-protobuf-old]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-protobuf-old:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_PROFILING_ENABLED]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-python-init-test-django-preinstalled]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-python-init-test-django-preinstalled:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-python-init:latest", "ghcr.io/datadog/dd-trace-py/dd-lib-python-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-
-k8s_ruby:
-  extends: .k8s_lib_injection_base
-  variables:
-    TEST_LIBRARY: "ruby"
-  parallel:
-      matrix:
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-explicit]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-explicit:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
-        - K8S_WEBLOG: [dd-lib-ruby-init-test-rails-gemsrb]
-          K8S_WEBLOG_IMG: [ghcr.io/datadog/system-tests/dd-lib-ruby-init-test-rails-gemsrb:latest]
-          K8S_SCENARIO: [K8S_LIB_INJECTION, K8S_LIB_INJECTION_UDS, K8S_LIB_INJECTION_NO_AC, K8S_LIB_INJECTION_NO_AC_UDS, K8S_LIB_INJECTION_PROFILING_DISABLED, K8S_LIB_INJECTION_PROFILING_ENABLED, K8S_LIB_INJECTION_PROFILING_OVERRIDE]
-          K8S_LIB_INIT_IMG: ["gcr.io/datadoghq/dd-lib-ruby-init:latest", "ghcr.io/datadog/dd-trace-rb/dd-lib-ruby-init:latest_snapshot"]
-          K8S_CLUSTER_VERSION: ['7.56.2', '7.57.0', '7.59.0']
+.delayed_base_job:
+    image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+    tags: ["arch:amd64"]
+    script:
+        - echo "⏳ Waiting before triggering the child pipeline..."
+    when: delayed
+    start_in: 5 minutes

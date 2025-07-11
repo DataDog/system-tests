@@ -718,7 +718,112 @@
       "on_match": [
         "block"
       ]
+    },
+    {
+      "id": "fp-001-001",
+      "name": "Block Endpoint Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.http.endpoint"
+              }
+            ],
+            "regex": "http-get-c9040f9d-a9d49319-[^-]*"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-002-001",
+      "name": "Block Network Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.http.network"
+              }
+            ],
+            "regex": "net-[0-2]-1000100000"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-003-001",
+      "name": "Block Header Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.http.header"
+              }
+            ],
+            "regex": "hdr-0110000100-[^-]*-[^-]*-[^-]*"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
+    },
+    {
+      "id": "fp-004-001",
+      "name": "Block Session Fingerprint",
+      "tags": {
+        "type": "block_fp",
+        "category": "security_response",
+        "module": "custom-acl"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "_dd.appsec.fp.session"
+              }
+            ],
+            "regex": "ssn-[^-]*-3cb51e60-[^-]*-[^-]*"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "transformers": [],
+      "on_match": [
+        "block"
+      ]
     }
+
   ],
   "actions": [
     {
@@ -794,6 +899,263 @@
           "expiration": 0
         }
       ]
+    }
+  ],
+  "rules_compat": [
+    {
+      "id": "ttr-000-001",
+      "name": "Trace Tagging Rule: Attributes, No Keep, No Event",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^TraceTagging\\/v1"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "output": {
+          "event": false,
+          "keep": false,
+          "attributes": {
+              "_dd.appsec.trace.integer": {
+                  "value": 662607015
+              },
+              "_dd.appsec.trace.agent": {
+                "address": "server.request.headers.no_cookies",
+                "key_path": ["user-agent"]
+              }
+          }
+      },
+      "on_match": []
+    },
+    {
+      "id": "ttr-000-002",
+      "name": "Trace Tagging Rule: Attributes, Keep, No Event",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^TraceTagging\\/v2"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "output": {
+          "event": false,
+          "keep": true,
+          "attributes": {
+              "_dd.appsec.trace.integer": {
+                  "value": 602214076
+              },
+              "_dd.appsec.trace.agent": {
+                "address": "server.request.headers.no_cookies",
+                "key_path": ["user-agent"]
+              }
+          }
+      },
+      "on_match": []
+    },
+    {
+      "id": "ttr-000-003",
+      "name": "Trace Tagging Rule: Attributes, Keep, Event",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^TraceTagging\\/v3"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "output": {
+          "event": true,
+          "keep": true,
+          "attributes": {
+              "_dd.appsec.trace.integer": {
+                  "value": 299792458
+              },
+              "_dd.appsec.trace.agent": {
+                "address": "server.request.headers.no_cookies",
+                "key_path": ["user-agent"]
+              }
+          }
+      },
+      "on_match": []
+    },
+    {
+      "id": "ttr-000-004",
+      "name": "Trace Tagging Rule: Attributes, No Keep, Event",
+      "tags": {
+        "type": "security_scanner",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.request.headers.no_cookies",
+                "key_path": [
+                  "user-agent"
+                ]
+              }
+            ],
+            "regex": "^TraceTagging\\/v4"
+          },
+          "operator": "match_regex"
+        }
+      ],
+      "output": {
+          "event": true,
+          "keep": false,
+          "attributes": {
+              "_dd.appsec.trace.integer": {
+                  "value": 1729
+              },
+              "_dd.appsec.trace.agent": {
+                "address": "server.request.headers.no_cookies",
+                "key_path": ["user-agent"]
+              }
+          }
+      },
+      "on_match": []
+    }
+  ],
+  "processors": [
+    {
+      "id": "http-endpoint-fingerprint",
+      "generator": "http_endpoint_fingerprint",
+      "conditions": [],
+      "parameters": {
+        "mappings": [
+          {
+            "method": [
+              {
+                "address": "server.request.method"
+              }
+            ],
+            "uri_raw": [
+              {
+                "address": "server.request.uri.raw"
+              }
+            ],
+            "body": [
+              {
+                "address": "server.request.body"
+              }
+            ],
+            "query": [
+              {
+                "address": "server.request.query"
+              }
+            ],
+            "output": "_dd.appsec.fp.http.endpoint"
+          }
+        ]
+      },
+      "evaluate": true,
+      "output": true
+    },
+    {
+      "id": "http-header-fingerprint",
+      "generator": "http_header_fingerprint",
+      "conditions": [],
+      "parameters": {
+        "mappings": [
+          {
+            "headers": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "output": "_dd.appsec.fp.http.header"
+          }
+        ]
+      },
+      "evaluate": true,
+      "output": true
+    },
+    {
+      "id": "http-network-fingerprint",
+      "generator": "http_network_fingerprint",
+      "conditions": [],
+      "parameters": {
+        "mappings": [
+          {
+            "headers": [
+              {
+                "address": "server.request.headers.no_cookies"
+              }
+            ],
+            "output": "_dd.appsec.fp.http.network"
+          }
+        ]
+      },
+      "evaluate": true,
+      "output": true
+    },
+    {
+      "id": "session-fingerprint",
+      "generator": "session_fingerprint",
+      "conditions": [],
+      "parameters": {
+        "mappings": [
+          {
+            "cookies": [
+              {
+                "address": "server.request.cookies"
+              }
+            ],
+            "session_id": [
+              {
+                "address": "usr.session_id"
+              }
+            ],
+            "user_id": [
+              {
+                "address": "usr.id"
+              }
+            ],
+            "output": "_dd.appsec.fp.session"
+          }
+        ]
+      },
+      "evaluate": true,
+      "output": true
     }
   ]
 }

@@ -1,0 +1,685 @@
+{
+    "scenario_matrix": [
+        {
+            "scenarios": [
+                "DEMO_AWS"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "demo-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-container"
+                    ],
+                    "java": [
+                        "test-app-java-container",
+                        "test-app-java-alpine"
+                    ],
+                    "python": [
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-container"
+                    ],
+                    "ruby": [
+                        "test-app-ruby-container"
+                    ],
+                    "php": [
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-multicontainer"
+                    ],
+                    "java": [
+                        "test-app-java-multicontainer",
+                        "test-app-java-multialpine"
+                    ],
+                    "python": [
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT",
+                "CHAOS_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ],
+                    "java": [
+                        "test-app-java"
+                    ],
+                    "python": [
+                        "test-app-python"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet"
+                    ],
+                    "ruby": [
+                        "test-app-ruby"
+                    ],
+                    "php": [
+                        "test-app-php"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs"
+                    ],
+                    "java": [
+                        "test-app-java"
+                    ],
+                    "python": [
+                        "test-app-python"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet"
+                    ],
+                    "php": [
+                        "test-app-php"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs",
+                        "test-app-nodejs-container"
+                    ],
+                    "java": [
+                        "test-app-java",
+                        "test-app-java-container",
+                        "test-app-java-alpine",
+                        "test-app-java-buildpack"
+                    ],
+                    "python": [
+                        "test-app-python",
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet",
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
+                    ],
+                    "ruby": [
+                        "test-app-ruby",
+                        "test-app-ruby-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-08",
+                        "test-app-nodejs-16",
+                        "test-app-nodejs-unsupported-defaults"
+                    ],
+                    "python": [
+                        "test-app-python-27",
+                        "test-app-python-unsupported-defaults"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-unsupported"
+                    ],
+                    "php": [
+                        "test-app-php-container-56"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "SIMPLE_AUTO_INJECTION_PROFILING",
+                "SIMPLE_AUTO_INJECTION_APPSEC"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs",
+                        "test-app-nodejs-container"
+                    ],
+                    "java": [
+                        "test-app-java",
+                        "test-app-java-container",
+                        "test-app-java-alpine"
+                    ],
+                    "python": [
+                        "test-app-python",
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet",
+                        "test-app-dotnet-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "SIMPLE_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-container",
+                        "test-app-nodejs",
+                        "test-app-nodejs-esm",
+                        "test-app-nodejs-alpine"
+                    ],
+                    "java": [
+                        "test-app-java",
+                        "test-app-java-container",
+                        "test-app-java-alpine",
+                        "test-app-java-buildpack"
+                    ],
+                    "python": [
+                        "test-app-python",
+                        "test-app-python-container",
+                        "test-app-python-alpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet",
+                        "test-app-dotnet-container",
+                        "test-app-dotnet-iis"
+                    ],
+                    "ruby": [
+                        "test-app-ruby",
+                        "test-app-ruby-container"
+                    ],
+                    "php": [
+                        "test-app-php",
+                        "test-app-php-container-83",
+                        "test-app-php-alpine"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "MULTI_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "test-app-nodejs-multicontainer"
+                    ],
+                    "java": [
+                        "test-app-java-multicontainer",
+                        "test-app-java-multialpine"
+                    ],
+                    "python": [
+                        "test-app-python-multicontainer",
+                        "test-app-python-multialpine"
+                    ],
+                    "dotnet": [
+                        "test-app-dotnet-multicontainer",
+                        "test-app-dotnet-multialpine"
+                    ],
+                    "ruby": [
+                        "test-app-ruby-multicontainer"
+                    ],
+                    "php": [
+                        "test-app-php-multicontainer",
+                        "test-app-php-multialpine"
+                    ]
+                }
+            ]
+        }
+    ],
+    "weblogs_spec": {
+        "nodejs": [
+            {
+                "name": "demo-app",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ]
+            },
+            {
+                "name": "test-app-nodejs",
+                "excluded_os_branches": [
+                    "ubuntu22_amd64",
+                    "ubuntu22_arm64",
+                    "ubuntu21",
+                    "ubuntu20_arm64",
+                    "ubuntu20_amd64",
+                    "centos_7_amd64",
+                    "rhel_7_amd64",
+                    "amazon_linux2",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-unsupported-defaults",
+                "exact_os_branches": [
+                    "ubuntu22_amd64",
+                    "ubuntu22_arm64",
+                    "ubuntu21",
+                    "ubuntu20_arm64",
+                    "ubuntu20_amd64",
+                    "centos_7_amd64",
+                    "debian"
+                ],
+                "excluded_os_names": [
+                    "Debian_12_amd64",
+                    "Debian_12_arm64"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-esm",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-container",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-16",
+                "excluded_os_branches": [
+                    "centos_7_amd64",
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-08",
+                "exact_os_branches": [
+                    "ubuntu20_amd64",
+                    "centos_7_amd64"
+                ]
+            }
+        ],
+        "java": [
+            {
+                "name": "test-app-java",
+                "excluded_os_branches": [
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-java-container",
+                "excluded_os_names": [
+                    "Ubuntu_23_04_arm64",
+                    "windows_server_2022_amd64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-java-alpine",
+                "excluded_os_names": [
+                    "Ubuntu_23_04_arm64",
+                    "windows_server_2022_amd64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-java-buildpack",
+                "excluded_os_branches": [
+                    "amazon_linux2",
+                    "ubuntu22_arm64",
+                    "amazon_linux2023_arm64",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-java-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            },
+            {
+                "name": "test-app-java-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64",
+                    "Debian_11_amd64",
+                    "Debian_11_arm64"
+                ]
+            }
+        ],
+        "python": [
+            {
+                "name": "test-app-python",
+                "excluded_os_branches": [
+                    "amazon_linux2",
+                    "centos_7_amd64",
+                    "centos_8_amd64",
+                    "rhel_7_amd64",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "RedHat_8_6_arm64",
+                    "RedHat_8_6_amd64",
+                    "Ubuntu_21_arm64",
+                    "Rocky_Linux_8_amd64",
+                    "Rocky_Linux_8_arm64"
+                ]
+            },
+            {
+                "name": "test-app-python-27",
+                "excluded_os_branches": [
+                    "amazon_linux2",
+                    "rhel_7_amd64",
+                    "redhat",
+                    "ubuntu23",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "OracleLinux_9_2_amd64",
+                    "OracleLinux_9_2_arm64",
+                    "OracleLinux_9_3_amd64",
+                    "OracleLinux_9_3_arm64"
+                ]
+            },
+            {
+                "name": "test-app-python-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-python-container",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-python-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-python-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-python-unsupported-defaults",
+                "exact_os_branches": [
+                    "RedHat_8_6_arm64",
+                    "RedHat_8_6_amd64",
+                    "centos_7_amd64",
+                    "centos_8_amd64",
+                    "rhel_7_amd64"
+                ]
+            }
+        ],
+        "dotnet": [
+            {
+                "name": "test-app-dotnet",
+                "excluded_os_branches": [
+                    "ubuntu18_amd64",
+                    "ubuntu20_arm64",
+                    "ubuntu21",
+                    "centos_7_amd64",
+                    "debian",
+                    "amazon_linux2022",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-container",
+                "excluded_os_names": [
+                    "AlmaLinux_8_arm64",
+                    "RedHat_8_6_arm64",
+                    "windows_server_2022_amd64",
+                    "Rocky_Linux_8_arm64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-unsupported",
+                "exact_os_branches": [
+                    "ubuntu20_amd64"
+                ]
+            },
+            {
+                "name": "test-app-dotnet-iis",
+                "exact_os_branches": [
+                    "windows"
+                ]
+            }
+        ],
+        "ruby": [
+            {
+                "name": "test-app-ruby",
+                "excluded_os_branches": [
+                    "ubuntu18_amd64",
+                    "ubuntu20_amd64",
+                    "ubuntu20_arm64",
+                    "oracle_linux",
+                    "alma_linux",
+                    "fedora",
+                    "debian",
+                    "rhel_7_amd64",
+                    "windows"
+                ],
+                "excluded_os_names": [
+                    "RedHat_9_0_amd64",
+                    "RedHat_9_0_arm64",
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-ruby-container",
+                "excluded_os_branches": [
+                    "fedora",
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-ruby-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-ruby-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            }
+        ],
+        "php": [
+            {
+                "name": "test-app-php",
+                "excluded_os_branches": [
+                    "centos_7_amd64",
+                    "rhel_7_amd64",
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-php-alpine",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-php-container-83",
+                "excluded_os_branches": [
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-php-container-56",
+                "excluded_os_branches": [
+                    "amazon_linux2",
+                    "centos_7_amd64",
+                    "windows"
+                ]
+            },
+            {
+                "name": "test-app-php-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-php-multialpine",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            }
+        ]
+    }
+}

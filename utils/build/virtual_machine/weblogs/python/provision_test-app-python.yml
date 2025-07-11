@@ -22,18 +22,38 @@ lang_variant:
 
       - os_type: linux
         os_distro: rpm
+        os_branch: fedora
+        remote-command: |
+          sudo dnf install -y python3
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo dnf install -y python-pip || sudo dnf install -y python3-pip
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: alma_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo ln -s /usr/bin/python3 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
+
+      - os_type: linux
+        os_distro: rpm
+        os_branch: oracle_linux
+        remote-command: |
+          sudo dnf install python39 -y
+          sudo dnf install python39-pip -y || sudo dnf install python3-pip -y 
+          sudo ln -s /usr/bin/python3.9 /usr/bin/python || true
+          sudo ln -s /usr/bin/pip3 /usr/bin/pip || true
+          
+      - os_type: linux
+        os_distro: rpm
         remote-command: |
           #works for: amazon_linux2022, amazon_linux2023_arm64 and amazon_linux2023_amd64
            sudo ln -s /usr/bin/python3 /usr/bin/python && sudo dnf install -y python-pip
 
 weblog:
     name: test-app-python
-    #AL2 uses the yum package manager that has a hard dependency on Python 2.7
-    #Centos 7 is going to install python 3.6. Not supported.
-    #Centos 8 is going to install python 3.6. Not supported.
-    #Rhel 7 is going to install python 3.6. Not supported.
-    excluded_os_branches: [ amazon_linux2, centos_7_amd64, centos_8_amd64, rhel_7_amd64]
-    excluded_os_names: [RedHat_8_6_arm64, RedHat_8_6_amd64]
     install:
       - os_type: linux
 
@@ -50,4 +70,4 @@ weblog:
           - name: copy-python-app
             local_path: lib-injection/build/docker/python/dd-lib-python-init-test-django
 
-        remote-command: export PATH="/home/datadog/.pyenv/bin:$PATH" && eval "$(pyenv init -)" && sudo sh test-app-python_run.sh
+        remote-command: sh test-app-python_run.sh

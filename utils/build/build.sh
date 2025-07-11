@@ -12,15 +12,15 @@ if [[ -f "./.env" ]]; then
 fi
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
-AGENT_BASE_IMAGE=
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
 readonly ALIAS_CACHE_TO="W" #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
-readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
+readonly DEFAULT_BUILD_IMAGES=weblog,runner
 readonly DEFAULT_DOCKER_MODE=0
+readonly DEFAULT_SAVE_TO_BINARIES=0
 
 # Define default weblog variants.
 # XXX: Avoid associative arrays for Bash 3 compatibility.
@@ -35,6 +35,8 @@ readonly DEFAULT_nodejs_otel=express4-otel
 readonly DEFAULT_php=apache-mod-8.0
 readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
+readonly DEFAULT_cpp_httpd=httpd
+readonly DEFAULT_cpp_nginx=nginx
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -63,7 +65,7 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
+    echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
     echo -e "${WHITE_BOLD}EXAMPLES${NC}"
@@ -71,9 +73,9 @@ print_usage() {
     echo -e "    ${SCRIPT_NAME}"
     echo -e "  Build images for Java and Spring Boot:"
     echo -e "    ${SCRIPT_NAME} --library java --weblog-variant spring-boot"
-    echo -e "  Build default images for Dotnet with binary path:"
+    echo -e "  Build default images for .NET with binary path:"
     echo -e "    ${SCRIPT_NAME} dotnet --binary-path "/mnt/c/dev/dd-trace-dotnet-linux/tmp/linux-x64""
-    echo -e "  Build default images for Dotnet with binary url:"
+    echo -e "  Build default images for .NET with binary url:"
     echo -e "    ${SCRIPT_NAME} ./build.sh dotnet --binary-url "https://github.com/DataDog/dd-trace-dotnet/releases/download/v2.27.0/datadog-dotnet-apm-2.27.0.tar.gz""
     echo -e "  List libraries:"
     echo -e "    ${SCRIPT_NAME} --list-libraries"
@@ -155,9 +157,11 @@ build() {
                     fi
                 fi
                 source venv/bin/activate
-                python -m pip install --upgrade pip wheel
+                python -m pip install --upgrade pip setuptools==75.8.0
             fi
-            pip install -r requirements.txt
+            python -m pip install -e .
+            cp requirements.txt venv/requirements.txt
+
 
         elif [[ $IMAGE_NAME == runner ]] && [[ $DOCKER_MODE == 1 ]]; then
             docker buildx build \
@@ -180,26 +184,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-            if test -z "$AGENT_BASE_IMAGE"; then
-                if [ -f ./binaries/agent-image ]; then
-                    AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-                else
-                    AGENT_BASE_IMAGE="datadog/agent"
-                fi
-            fi
-
-            echo "using $AGENT_BASE_IMAGE image for datadog agent"
-
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                -f utils/build/docker/agent.Dockerfile \
-                -t system_tests/agent \
-		--pull \
-                --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
-                $EXTRA_DOCKER_ARGS \
-                .
+            echo "Building agent is not needed anymore, system-tests now use directly the agent image from docker hub."
 
         elif [[ $IMAGE_NAME == weblog ]]; then
             clean-binaries() {
@@ -221,35 +206,48 @@ build() {
                 cd ..
             fi
 
-            DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+            # keep this name consistent with WeblogContainer.get_image_list()
+            BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
 
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                ${DOCKER_PLATFORM_ARGS} \
-                -f ${DOCKERFILE} \
-                --label "system-tests-library=${TEST_LIBRARY}" \
-                --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
-                -t system_tests/weblog \
-                $CACHE_TO \
-                $CACHE_FROM \
-                $EXTRA_DOCKER_ARGS \
-                .
+            if [ -f $BINARIES_FILENAME ]; then
+                echo "Loading image from $BINARIES_FILENAME"
+                docker load --input $BINARIES_FILENAME
+            else
 
-            if test -f "binaries/waf_rule_set.json"; then
+                DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                    -f ${DOCKERFILE} \
+                    --label "system-tests-library=${TEST_LIBRARY}" \
+                    --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
                     -t system_tests/weblog \
+                    $CACHE_TO \
+                    $CACHE_FROM \
                     $EXTRA_DOCKER_ARGS \
                     .
-            fi
 
+                if test -f "binaries/waf_rule_set.json"; then
+
+                    docker buildx build \
+                        --build-arg BUILDKIT_INLINE_CACHE=1 \
+                        --load \
+                        --progress=plain \
+                        ${DOCKER_PLATFORM_ARGS} \
+                        -f utils/build/docker/overwrite_waf_rules.Dockerfile \
+                        -t system_tests/weblog \
+                        $EXTRA_DOCKER_ARGS \
+                        .
+                fi
+
+                if [[ $SAVE_TO_BINARIES == 1 ]]; then
+                    echo "Saving image to $BINARIES_FILENAME"
+                    docker save system_tests/weblog | gzip > $BINARIES_FILENAME
+                fi
+            fi
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
@@ -262,7 +260,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
+        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -270,13 +268,14 @@ while [[ "$#" -gt 0 ]]; do
         -e|--extra-docker-args) EXTRA_DOCKER_ARGS="$2"; shift ;;
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
+        -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
         --binary-url) BINARY_URL="$2"; shift ;;
         --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
-        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;
+        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
     shift
@@ -287,6 +286,7 @@ DOCKER_CACHE_MODE="${DOCKER_CACHE_MODE:-}"
 EXTRA_DOCKER_ARGS="${EXTRA_DOCKER_ARGS:-}"
 DOCKER_PLATFORM="${DOCKER_PLATFORM:-}"
 DOCKER_MODE="${DOCKER_MODE:-${DEFAULT_DOCKER_MODE}}"
+SAVE_TO_BINARIES="${SAVE_TO_BINARIES:-${DEFAULT_SAVE_TO_BINARIES}}"
 BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"

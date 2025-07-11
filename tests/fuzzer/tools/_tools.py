@@ -3,15 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 
 
-class cached_property:
-    """
-    Descriptor (non-data) for building an attribute on-demand on first use.
-    """
+class cached_property:  # noqa: N801 (used as a decorator)
+    """Descriptor (non-data) for building an attribute on-demand on first use."""
 
     def __init__(self, factory):
-        """
-        <factory> is called such: factory(instance) to build the attribute.
-        """
+        """<factory> is called such: factory(instance) to build the attribute."""
         self._attr_name = factory.__name__
         self._factory = factory
 

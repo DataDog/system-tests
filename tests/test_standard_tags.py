@@ -2,10 +2,13 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features
+from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsMethod:
     """Tests to verify that libraries annotate spans with correct http.method tags"""
 
@@ -32,6 +35,9 @@ class Test_StandardTagsMethod:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 # Tests for verifying behavior when query string obfuscation is configured can be found in the Test_Config_ObfuscationQueryStringRegexp test classes
 class Test_StandardTagsUrl:
     """Tests to verify that libraries annotate spans with correct http.url tags"""
@@ -161,6 +167,9 @@ class Test_StandardTagsUrl:
 
 
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsUserAgent:
     """Tests to verify that libraries annotate spans with correct http.useragent tags"""
 
@@ -194,13 +203,15 @@ class Test_StandardTagsRoute:
         self.r = weblog.get("/sample_rate_route/1")
 
     def test_route(self):
+        assert self.r.status_code == 200
+
         tags = {"http.route": "/sample_rate_route/{i}"}
 
         # specify the route syntax if needed
         if context.library == "nodejs":
             tags["http.route"] = "/sample_rate_route/:i"
         if context.library == "golang":
-            if context.weblog_variant == "net-http":
+            if "net-http" in context.weblog_variant:
                 # net/http doesn't support parametrized routes but a path catches anything down the tree.
                 tags["http.route"] = "/sample_rate_route/"
             if context.weblog_variant in ("gin", "echo", "uds-echo"):
@@ -210,14 +221,20 @@ class Test_StandardTagsRoute:
         if context.library == "python":
             if context.weblog_variant in ("flask-poc", "uwsgi-poc", "uds-flask"):
                 tags["http.route"] = "/sample_rate_route/<i>"
-            elif context.weblog_variant in ("django-poc", "python3.12"):
+            elif context.weblog_variant in ("django-poc", "python3.12", "django-py3.13"):
                 tags["http.route"] = "sample_rate_route/<int:i>"
+        if context.library == "java":
+            if context.weblog_variant in ("ratpack", "vertx3", "vertx4"):
+                tags["http.route"] = "/sample_rate_route/:i"
 
         interfaces.library.add_span_tag_validation(request=self.r, tags=tags)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2118779066/Client+IP+addresses+resolution")
 @features.security_events_metadata
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
 
@@ -258,8 +275,8 @@ class Test_StandardTagsClientIp:
         for header, value in (self.FORWARD_HEADERS | self.FORWARD_HEADERS_VENDOR).items():
             self.requests_without_attack[header] = weblog.get("/waf/", headers={header: value})
 
-    def _test_client_ip(self, forward_headers):
-        for header, _ in forward_headers.items():
+    def _test_client_ip(self, forward_headers: dict[str, str]):
+        for header in forward_headers:
             request = self.requests_without_attack[header]
             meta = self._get_root_span_meta(request)
             assert "http.client_ip" in meta, f"Missing http.client_ip for {header}"
@@ -300,8 +317,7 @@ class Test_StandardTagsClientIp:
         assert "appsec.event" in meta
         assert "network.client.ip" in meta
         for header, value in self.FORWARD_HEADERS.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta
             assert meta[tag] == value
 
@@ -322,13 +338,74 @@ class Test_StandardTagsClientIp:
         """Test that meta tag are correctly filled when an appsec event is present and ASM is enabled, with vendor headers"""
         meta = self._get_root_span_meta(self.request_with_attack)
         for header, value in self.FORWARD_HEADERS_VENDOR.items():
-            header = header.lower()
-            tag = f"http.request.headers.{header}"
+            tag = f"http.request.headers.{header.lower()}"
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 
     def _get_root_span_meta(self, request):
-        root_spans = [s for _, s in interfaces.library.get_root_spans(request=request)]
-        assert len(root_spans) == 1
-        span = root_spans[0]
+        span = interfaces.library.get_root_span(request)
+        return span.get("meta", {})
+
+
+@features.referrer_hostname
+@scenarios.default
+class Test_StandardTagsReferrerHostname:
+    """Tests to verify that libraries annotate spans with correct http.referrer_hostname tags"""
+
+    def setup_referrer_hostname(self):
+        self.test_cases = [
+            # (request, expected_hostname)
+            (
+                weblog.get("/status?code=200", headers={"referer": "https://app.datadoghq.com/path"}),
+                "app.datadoghq.com",
+            ),
+            (
+                weblog.get(
+                    "/status?code=200",
+                    headers={"referer": "https://user:pass@example.com:8080/path?query=123#fragment"},
+                ),
+                "example.com",
+            ),
+            (
+                weblog.get("/status?code=200"),  # No referer header
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": ""}),  # Empty referer
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": "invalid-referer"}),  # Invalid referer
+                None,
+            ),
+            (
+                weblog.get("/status?code=200", headers={"referer": "file:///path/to/file"}),  # File scheme
+                None,
+            ),
+            (
+                weblog.get(
+                    "/status?code=200", headers={"referer": "https://192.0.2.1:8080/path?query=123#fragment"}
+                ),  # IP address
+                "192.0.2.1",
+            ),
+        ]
+
+    def test_referrer_hostname(self):
+        """Test http.referrer_hostname is correctly extracted from the referer header"""
+        for i, (request, expected_hostname) in enumerate(self.test_cases, 1):
+            meta = self._get_root_span_meta(request)
+            if expected_hostname is None:
+                assert (
+                    "http.referrer_hostname" not in meta
+                ), f'Test case #{i}: Expected no referrer hostname, but got "{meta.get('http.referrer_hostname')}"'
+            else:
+                assert (
+                    "http.referrer_hostname" in meta
+                ), f'Test case #{i}: Missing referrer hostname, but expected "{expected_hostname}"'
+                assert (
+                    meta["http.referrer_hostname"] == expected_hostname
+                ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
+
+    def _get_root_span_meta(self, request):
+        span = interfaces.library.get_root_span(request)
         return span.get("meta", {})

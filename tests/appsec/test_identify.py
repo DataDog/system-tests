@@ -27,4 +27,4 @@ class Test_Basic:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validate_identify_tags)
+        interfaces.library.validate_spans(self.r, validator=validate_identify_tags)

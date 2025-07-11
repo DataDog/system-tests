@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, irrelevant, features, flaky
-from ..utils import BaseSourceTest
+from tests.appsec.iast.utils import BaseSourceTest
 
 
 @features.iast_source_request_parameter_value
@@ -16,16 +16,13 @@ class TestParameterValue(BaseSourceTest):
         {"method": "POST", "data": {"table": "user"}},
     ]
     # In test case in node, the value is redacted
-    source_value = None if context.library.library == "nodejs" else "user"
-    source_type = (
-        "http.request.body"
-        if context.library.library == "nodejs" or context.library.library == "dotnet"
-        else "http.request.parameter"
-    )
+    source_value = None if context.library.name == "nodejs" else "user"
+    source_type = "http.request.body" if context.library.name in ("nodejs", "dotnet") else "http.request.parameter"
     source_names = ["table"]
 
     # remove the base test, to handle the source_type spcial use case in node
-    test_source_reported = None
+    @irrelevant()
+    def test_source_reported(self): ...
 
     setup_source_post_reported = BaseSourceTest.setup_source_reported
 

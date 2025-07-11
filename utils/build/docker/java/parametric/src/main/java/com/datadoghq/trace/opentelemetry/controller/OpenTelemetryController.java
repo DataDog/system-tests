@@ -6,26 +6,13 @@ import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTypeHelp
 import static com.datadoghq.trace.opentelemetry.controller.OpenTelemetryTypeHelper.parseSpanKindNumber;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 
-import com.datadoghq.trace.opentelemetry.dto.AddEventArgs;
-import com.datadoghq.trace.opentelemetry.dto.EndSpanArgs;
-import com.datadoghq.trace.opentelemetry.dto.FlushArgs;
-import com.datadoghq.trace.opentelemetry.dto.FlushResult;
-import com.datadoghq.trace.opentelemetry.dto.IsRecordingArgs;
-import com.datadoghq.trace.opentelemetry.dto.IsRecordingResult;
-import com.datadoghq.trace.opentelemetry.dto.RecordExceptionArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetAttributesArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetNameArgs;
-import com.datadoghq.trace.opentelemetry.dto.SetStatusArgs;
-import com.datadoghq.trace.opentelemetry.dto.SpanContextArgs;
-import com.datadoghq.trace.opentelemetry.dto.SpanContextResult;
-import com.datadoghq.trace.opentelemetry.dto.SpanLink;
-import com.datadoghq.trace.opentelemetry.dto.StartSpanArgs;
-import com.datadoghq.trace.opentelemetry.dto.StartSpanResult;
+import com.datadoghq.trace.opentelemetry.dto.*;
 import datadog.trace.api.DDSpanId;
 import datadog.trace.api.DDTraceId;
 import datadog.trace.api.GlobalTracer;
 import datadog.trace.api.internal.InternalTracer;
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.SpanContext;
@@ -44,10 +31,12 @@ import java.util.Map;
 public class OpenTelemetryController {
   private final Tracer tracer;
   private final Map<Long, Span> spans;
+  private Baggage baggage;
 
   public OpenTelemetryController() {
     this.tracer = GlobalOpenTelemetry.getTracer("java-client");
     this.spans = new HashMap<>();
+    this.baggage = Baggage.empty();
   }
 
   @PostMapping("start_span")
@@ -208,6 +197,45 @@ public class OpenTelemetryController {
       LOGGER.warn("Failed to flush OTel spans", e);
       return new FlushResult(false);
     }
+  }
+
+  @PostMapping("set_baggage")
+  public void setBaggage(@RequestBody SetBaggageArgs args) {
+    LOGGER.info("Setting OTel baggage: {}", args);
+    this.baggage = this.baggage
+            .toBuilder()
+            .put(args.key(), args.value())
+            .build();
+  }
+
+  @GetMapping("get_baggage")
+  public GetBaggageResult getBaggage(@RequestBody GetBaggageArgs args) {
+    LOGGER.info("Getting an OTel baggage entry");
+    var value = this.baggage.getEntryValue(args.key());
+    return new GetBaggageResult(value);
+  }
+
+  @GetMapping("get_all_baggage")
+  public GetAllBaggageResult getAllBaggage() {
+    LOGGER.info("Getting all OTel baggage entries");
+    Map<String, String> baggageMap = new HashMap<>();
+    this.baggage.forEach((key, entry) -> baggageMap.put(key, entry.getValue()));
+    return new GetAllBaggageResult(baggageMap);
+  }
+
+  @PostMapping("remove_baggage")
+  public void removeBaggage(@RequestBody RemoveBaggageArgs args) {
+    LOGGER.info("Removing OTel baggage entry: {}", args);
+    this.baggage = this.baggage
+            .toBuilder()
+            .remove(args.key())
+            .build();
+  }
+
+  @PostMapping("remove_all_baggage")
+  public void removeAllBaggage() {
+    LOGGER.info("Removing all OTel baggage entries");
+    this.baggage = Baggage.empty();
   }
 
   private Span getSpan(long spanId) {

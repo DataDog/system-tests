@@ -9,7 +9,7 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "60"
+          "47"
         ]
       }
     },
@@ -17,75 +17,14 @@
     "stack": [
       {
         "fileName": "/app/exception_replay_controller.py",
-        "function": "exception_replay_multiframe",
-        "lineNumber": 60
+        "function": "deep_function_c",
+        "lineNumber": 47
       },
       {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "captures": {
-      "lines": {
-        "60": {
-          "arguments": {},
-          "locals": {
-            "@exception": {
-              "type": "Exception",
-              "fields": "<scrubbed>"
-            }
-          },
-          "staticFields": "<scrubbed>",
-          "throwable": {
-            "type": "Exception",
-            "message": "'multiple stack frames exception'",
-            "stacktrace": [
-              {
-                "fileName": "/app/exception_replay_controller.py",
-                "function": "exception_replay_multiframe",
-                "lineNumber": 60
-              },
-              {
-                "fileName": "/app/exception_replay_controller.py",
-                "function": "deep_function_a",
-                "lineNumber": 55
-              },
-              {
-                "fileName": "/app/exception_replay_controller.py",
-                "function": "deep_function_b",
-                "lineNumber": 51
-              },
-              {
-                "fileName": "/app/exception_replay_controller.py",
-                "function": "deep_function_c",
-                "lineNumber": 47
-              },
-              {
-                "<runtime>": "<scrubbed>"
-              }
-            ]
-          }
-        }
-      }
-    },
-    "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
-  },
-  {
-    "id": "<scrubbed>",
-    "timestamp": "<scrubbed>",
-    "evaluationErrors": [],
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "file": "/app/exception_replay_controller.py",
-        "lines": [
-          "55"
-        ]
-      }
-    },
-    "language": "python",
-    "stack": [
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "deep_function_b",
+        "lineNumber": 51
+      },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_a",
@@ -102,7 +41,7 @@
     ],
     "captures": {
       "lines": {
-        "55": {
+        "47": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -144,7 +83,7 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
   },
   {
     "id": "<scrubbed>",
@@ -225,7 +164,7 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
   },
   {
     "id": "<scrubbed>",
@@ -237,22 +176,12 @@
       "location": {
         "file": "/app/exception_replay_controller.py",
         "lines": [
-          "47"
+          "55"
         ]
       }
     },
     "language": "python",
     "stack": [
-      {
-        "fileName": "/app/exception_replay_controller.py",
-        "function": "deep_function_c",
-        "lineNumber": 47
-      },
-      {
-        "fileName": "/app/exception_replay_controller.py",
-        "function": "deep_function_b",
-        "lineNumber": 51
-      },
       {
         "fileName": "/app/exception_replay_controller.py",
         "function": "deep_function_a",
@@ -269,7 +198,7 @@
     ],
     "captures": {
       "lines": {
-        "47": {
+        "55": {
           "arguments": {},
           "locals": {
             "@exception": {
@@ -311,6 +240,77 @@
       }
     },
     "duration": "<scrubbed>",
-    "exception-id": "<scrubbed>"
+    "exceptionId": "<scrubbed>"
+  },
+  {
+    "id": "<scrubbed>",
+    "timestamp": "<scrubbed>",
+    "evaluationErrors": [],
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "file": "/app/exception_replay_controller.py",
+        "lines": [
+          "60"
+        ]
+      }
+    },
+    "language": "python",
+    "stack": [
+      {
+        "fileName": "/app/exception_replay_controller.py",
+        "function": "exception_replay_multiframe",
+        "lineNumber": 60
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "captures": {
+      "lines": {
+        "60": {
+          "arguments": {},
+          "locals": {
+            "@exception": {
+              "type": "Exception",
+              "fields": "<scrubbed>"
+            }
+          },
+          "staticFields": "<scrubbed>",
+          "throwable": {
+            "type": "Exception",
+            "message": "'multiple stack frames exception'",
+            "stacktrace": [
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "exception_replay_multiframe",
+                "lineNumber": 60
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "deep_function_a",
+                "lineNumber": 55
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "deep_function_b",
+                "lineNumber": 51
+              },
+              {
+                "fileName": "/app/exception_replay_controller.py",
+                "function": "deep_function_c",
+                "lineNumber": 47
+              },
+              {
+                "<runtime>": "<scrubbed>"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "duration": "<scrubbed>",
+    "exceptionId": "<scrubbed>"
   }
 ]

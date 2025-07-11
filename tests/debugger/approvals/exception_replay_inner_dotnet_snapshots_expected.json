@@ -129,7 +129,7 @@
       {
         "function": "weblog.ExceptionReplayController.ExceptionReplayInner",
         "fileName": "/app/ExceptionReplayController.cs",
-        "lineNumber": 52
+        "lineNumber": 60
       },
       {
         "function": "Datadog.Trace.ClrProfiler.AutoInstrumentation.AspNetCore.BlockingMiddleware+<Invoke><scrubbed>",
@@ -143,6 +143,9 @@
         "<runtime>": "<scrubbed>"
       }
     ],
+    "exceptionHash": "304a8161-128e-39b5-9e50-737cd9af638a",
+    "exceptionId": "<scrubbed>",
+    "frameIndex": "1",
     "id": "<scrubbed>",
     "timestamp": "<scrubbed>",
     "duration": "<scrubbed>",

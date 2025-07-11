@@ -1,16 +1,16 @@
-from utils import context, bug, features, irrelevant, missing_feature, scenarios
-from utils.tools import logger
+from utils import context, bug, features, irrelevant, missing_feature, scenarios, logger
 from .utils import BaseDbIntegrationsTestClass
 
 
 class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
     """Verify basic DB operations over different databases.
-    Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645"""
+    Check integration spans status: https://docs.google.com/spreadsheets/d/1qm3B0tJ-gG11j_MHoEd9iMXf4_DvWAGCLwmBhWCxbA8/edit#gid=623219645
+    """
 
     def test_properties(self):
-        """generic check on all operations"""
+        """Generic check on all operations"""
 
-        db_container = context.scenario.get_container_by_dd_integration_name(self.db_service)
+        db_container = context.get_container_by_dd_integration_name(self.db_service)
 
         for db_operation, request in self.get_requests():
             logger.info(f"Validating {self.db_service}/{db_operation}")
@@ -119,7 +119,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     def test_sql_success(self):
         """We check all sql launched for the app work"""
-        for db_operation, request in self.get_requests(excluded_operations=["select_error"]):
+        for _, request in self.get_requests(excluded_operations=["select_error"]):
             span = self.get_span_from_agent(request)
             assert "error" not in span or span["error"] == 0
 
@@ -161,7 +161,8 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
     )
     def test_db_mssql_instance_name(self):
         """The Microsoft SQL Server instance name connecting to. This name is used to determine the port of a named instance.
-        This value should be set only if it’s specified on the mssql connection string."""
+        This value should be set only if it's specified on the mssql connection string.
+        """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
             assert span["meta"][

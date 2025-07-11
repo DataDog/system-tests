@@ -29,14 +29,27 @@ There are two ways for running the C++ library tests with a custom tracer:
 ## Golang library
 
 Create a file `golang-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+
 * Content example:
-    * `gopkg.in/DataDog/dd-trace-go.v1@main` Test the main branch
-    * `gopkg.in/DataDog/dd-trace-go.v1@v1.67.0` Test the 1.67.0 release
-    * `gopkg.in/DataDog/dd-trace-go.v1@<commit_hash>` Test un-merged changes
+    * `github.com/DataDog/dd-trace-go/v2@main` Test the main branch
+    * `github.com/DataDog/dd-trace-go/v2@v2.0.0` Test the 2.0.0 release
+    * `github.com/DataDog/dd-trace-go/v2@<commit_hash>` Test un-merged changes
+
+To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+* Content example:
+    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
+    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
+
+To change Orchestrion version, create a file `orchestrion-load-from-go-get` under the `binaries` directory that specifies the target build. The content of this file will be installed by the weblog or parametric app via `go get` when the test image is built.
+* Content example:
+    * `github.com/DataDog/orchestrion@main` Test the main branch
+    * `github.com/DataDog/orchestrion@v1.1.0` Test the 1.1.0 release
+    * `github.com/DataDog/orchestrion@<commit_hash>` Test un-merged changes
 
 ## Java library
 
-Follow these steps to run Parametric tests with a custom Java Tracer version:
+Follow these steps to run tests with a custom Java Tracer version:
 
 To run a custom Tracer version from a local branch:
 
@@ -58,7 +71,13 @@ By default you will be on the `master` branch, but if you'd like to run system-t
 
 Note, you should have only TWO jar files in `system-tests/binaries`. Do NOT copy sources or javadoc jars.
 
-4. Run Parametric tests from the `system-tests/parametric` folder:
+4. Build your selected weblog:
+
+```shell
+./build.sh java [--weblog-variant spring-boot]
+```
+
+5. Run tests from the `system-tests` folder:
 
 ```bash
 TEST_LIBRARY=java ./run.sh test_span_sampling.py::test_single_rule_match_span_sampling_sss001
@@ -81,7 +100,7 @@ Then run the OpenTelemetry drop-in test from the repo root folder:
 - `./build.sh java`
 - `TEST_LIBRARY=java ./run.sh INTEGRATIONS -k Test_Otel_Drop_In`
 
-## NodeJS library
+## Node.js library
 
 There are three ways to run system-tests with a custom node tracer.
 
@@ -136,9 +155,17 @@ echo “ddtrace @ git+https://github.com/DataDog/dd-trace-py.git@<name-of-your-b
 
 ## Ruby library
 
-* Create an file `ruby-load-from-bundle-add` in `binaries/`, the content will be installed by `bundle add`. Content example:
-  * `gem 'datadog', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'datadog/auto_instrument'`
-2. Clone the dd-trace-rb repo inside `binaries`
+You have two ways to run system-tests with a custom Ruby Tracer version:
+
+1. Create `ruby-load-from-bundle-add` in `binaries` directory with the content that should be added to `Gemfile`. Content example:
+  * `gem 'datadog', git: 'https://github.com/Datadog/dd-trace-rb', branch: 'master', require: 'datadog/auto_instrument'`. To point to a specific branch, replace `branch: 'master'` with `branch: '<your-branch>'`. If you want to point to a specific commit, delete the `branch: 'master'` entry and replace it with `ref: '<commit-hash>'`.
+2. Clone the dd-trace-rb repo inside `binaries` and checkout the branch that you want to test against.
+
+You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb` repo into the `binaries` folder:
+
+```bash
+./utils/scripts/watch.sh /path/to/dd-trace-rb
+```
 
 ## WAF rule set
 

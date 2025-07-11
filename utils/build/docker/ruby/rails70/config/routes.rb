@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   get '/status' => 'system_test#status'
   get '/read_file' => 'system_test#read_file'
   get '/make_distant_call' => 'system_test#make_distant_call'
+  get '/log/library' => 'system_test#log_library'
 
   get '/headers' => 'system_test#test_headers'
   get '/identify' => 'system_test#identify'
@@ -36,20 +37,38 @@ Rails.application.routes.draw do
   match '/tag_value/:tag_value/:status_code' => 'system_test#tag_value', via: :options
   get '/users' => 'system_test#users'
 
-  devise_for :users
-  %i[get post].each do |request_method|
+  devise_for :users, skip: :all
+  devise_scope :user do
     # We have to provide format: false to make sure the Test_DiscoveryScan test do not break
     # https://github.com/DataDog/system-tests/blob/515310b5fb1fd0792fc283c9ee134ab3803d6e7c/tests/appsec/waf/test_rules.py#L374
     # The test hits '/login.pwd' and expects a 404.
-    # By default rails parse format by default and consider the route to exists. We want want onlt '/login' to exists
-    send(request_method, '/login' => 'system_test#login', format: false)
+    # By default rails parse format by default and consider the route to exists. We want want only '/login' to exists
+    get '/login' => 'login_events#create', format: false
+    post '/login' => 'login_events#create', format: false
+    post '/signup' => 'signup_events#create', format: false
+
+    get 'session/new' => 'sessions#create'
   end
 
   get '/requestdownstream' => 'system_test#request_downstream'
   get '/returnheaders' => 'system_test#return_headers'
 
+  get '/otel_drop_in_default_propagator_extract' => 'system_test#otel_drop_in_default_propagator_extract'
+  get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
+
   get '/debugger/init' => 'debugger#init'
   get '/debugger/pii' => 'debugger#pii'
   get '/debugger/log' => 'debugger#log_probe'
   get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
+
+  get '/rasp/sqli' => 'rasp_sqli#show'
+  post '/rasp/sqli' => 'rasp_sqli#show'
+
+  get '/rasp/ssrf' => 'rasp_ssrf#show'
+  post '/rasp/ssrf' => 'rasp_ssrf#show'
+
+  get '/sample_rate_route/:i' => 'system_test#sample_rate_route'
+
+  get '/api_security_sampling/:i' => 'system_test#api_security_sampling'
+  get '/api_security/sampling/:status' => 'system_test#api_security_with_sampling'
 end

@@ -160,3 +160,23 @@
     #Install git and clone system tests repository
     sudo yum -y install git wget
     git clone https://github.com/DataDog/system-tests.git
+
+- os_type: windows
+  copy_files:
+    - name: copy-tracer-debug-config
+      local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+  remote-command: |
+    $filePath = "C:\ProgramData\ssh\sshd_config"
+    $acceptEnvEntry = "AcceptEnv LANG LC_* DD_*"
+
+    # Check if AcceptEnv exists in the file
+    if (Select-String -Path $filePath -Pattern "^AcceptEnv" -Quiet) {
+        # If AcceptEnv exists, replace it
+        (Get-Content $filePath) -replace "^AcceptEnv.*", $acceptEnvEntry | Set-Content $filePath
+    } else {
+        # If AcceptEnv does not exist, append it to the end of the file
+        Add-Content -Path $filePath -Value "`n$acceptEnvEntry"
+    }
+
+    # Restart SSH service to apply changes
+    Restart-Service sshd

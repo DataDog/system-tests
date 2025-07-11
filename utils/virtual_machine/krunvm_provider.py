@@ -8,7 +8,7 @@ import pexpect
 import shutil
 
 from utils.virtual_machine.virtual_machine_provider import VmProvider, Commander
-from utils.tools import logger
+from utils._logger import logger
 from utils import context
 from utils.virtual_machine.vm_logger import vm_logger
 
@@ -68,76 +68,67 @@ class KrunVmProvider(VmProvider):
         return image_id
 
     def stack_up(self):
-        for vm in self.vms:
-            logger.stdout(f"--------- Starting Krun VM MicroVM: {vm.name} -----------")
-            image_id = self._get_cached_image(vm)
-            # Create the MicroVM
-            cmd_create_microvm = (
-                f"krunvm create --name {vm.name} {vm.krunvm_config.oci_image_name if image_id is None else image_id}"
-            )
-            logger.debug(cmd_create_microvm)
-            vm_logger(context.scenario.name, vm.name).info(cmd_create_microvm)
-            output_create_microvm = subprocess.run(cmd_create_microvm.split(), capture_output=True, text=True).stdout
-            logger.info(f"[KrumVm] MicroVM created: {output_create_microvm}")
+        logger.stdout(f"--------- Starting Krun VM MicroVM: {self.vm.name} -----------")
+        image_id = self._get_cached_image(self.vm)
+        # Create the MicroVM
+        cmd_create_microvm = f"krunvm create --name {self.vm.name} {self.vm.krunvm_config.oci_image_name if image_id is None else image_id}"
+        logger.debug(cmd_create_microvm)
+        vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_create_microvm)
+        output_create_microvm = subprocess.run(cmd_create_microvm.split(), capture_output=True, text=True).stdout
+        logger.info(f"[KrumVm] MicroVM created: {output_create_microvm}")
 
-            # Attach volume. Volume is located on the log folder
-            path = os.path.join(context.scenario.host_log_folder, vm.name)
-            os.mkdir(path)
-            self.shared_volume = os.path.join(path, "shared_volume")
-            os.mkdir(self.shared_volume)
-            cmd_krunvm_mount_volume = (
-                f"krunvm changevm {vm.name} --volume {self.host_project_dir}/{self.shared_volume }:/shared_volume"
-            )
-            logger.debug(cmd_krunvm_mount_volume)
-            vm_logger(context.scenario.name, vm.name).info(cmd_krunvm_mount_volume)
-            output_mount_volume = subprocess.run(cmd_krunvm_mount_volume.split(), capture_output=True, text=True).stdout
-            logger.info(f"[KrumVm] MicroVM Share volume mounted: {output_mount_volume}")
+        # Attach volume. Volume is located on the log folder
+        path = os.path.join(context.scenario.host_log_folder, self.vm.name)
+        os.mkdir(path)
+        self.shared_volume = os.path.join(path, "shared_volume")
+        os.mkdir(self.shared_volume)
+        cmd_krunvm_mount_volume = (
+            f"krunvm changevm {self.vm.name} --volume {self.host_project_dir}/{self.shared_volume }:/shared_volume"
+        )
+        logger.debug(cmd_krunvm_mount_volume)
+        vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_krunvm_mount_volume)
+        output_mount_volume = subprocess.run(cmd_krunvm_mount_volume.split(), capture_output=True, text=True).stdout
+        logger.info(f"[KrumVm] MicroVM Share volume mounted: {output_mount_volume}")
 
-            # Copy the init script to the shared volume
-            shutil.copyfile(
-                "utils/build/virtual_machine/microvm/krunvm_init.sh", f"{self.shared_volume}/krunvm_init.sh"
-            )
-            os.chmod(f"{self.shared_volume}/krunvm_init.sh", 0o777)
+        # Copy the init script to the shared volume
+        shutil.copyfile("utils/build/virtual_machine/microvm/krunvm_init.sh", f"{self.shared_volume}/krunvm_init.sh")
+        os.chmod(f"{self.shared_volume}/krunvm_init.sh", 0o777)
 
-            # Set the shared volume as working directory
-            cmd_krunvm_workdir = f"krunvm changevm {vm.name} --workdir /shared_volume"
-            logger.debug(cmd_krunvm_workdir)
-            vm_logger(context.scenario.name, vm.name).info(cmd_krunvm_workdir)
-            output_workdir = subprocess.run(cmd_krunvm_workdir.split(), capture_output=True, text=True).stdout
-            logger.info(f"[KrumVm] MicroVM workdir: {output_workdir}")
+        # Set the shared volume as working directory
+        cmd_krunvm_workdir = f"krunvm changevm {self.vm.name} --workdir /shared_volume"
+        logger.debug(cmd_krunvm_workdir)
+        vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_krunvm_workdir)
+        output_workdir = subprocess.run(cmd_krunvm_workdir.split(), capture_output=True, text=True).stdout
+        logger.info(f"[KrumVm] MicroVM workdir: {output_workdir}")
 
-            # Calculate cache container
-            container_name = self._get_container_name(output_workdir)
+        # Calculate cache container
+        container_name = self._get_container_name(output_workdir)
 
-            # Start the MicroVM and wait for std.in to be ready
-            logger.info(f"[KrumVm] MicroVM [{vm.name}] starting ...")
-            cmd_krunvm_start = f"krunvm start {vm.name} /shared_volume/krunvm_init.sh"
-            logger.debug(cmd_krunvm_start)
-            vm_logger(context.scenario.name, vm.name).info(f"krunvm start {vm.name}")
-            microvm_process = pexpect.spawn(cmd_krunvm_start)
-            microvm_process.expect("Running krunvm_init.sh")
-            logger.info(f"[KrumVm] MicroVM [{vm.name}] started.")
-            logger.info(microvm_process.after)
-            self._microvm_processes.append(microvm_process)
+        # Start the MicroVM and wait for std.in to be ready
+        logger.info(f"[KrumVm] MicroVM [{self.vm.name}] starting ...")
+        cmd_krunvm_start = f"krunvm start {self.vm.name} /shared_volume/krunvm_init.sh"
+        logger.debug(cmd_krunvm_start)
+        vm_logger(context.scenario.host_log_folder, self.vm.name).info(f"krunvm start {self.vm.name}")
+        microvm_process = pexpect.spawn(cmd_krunvm_start)
+        microvm_process.expect("Running krunvm_init.sh")
+        logger.info(f"[KrumVm] MicroVM [{self.vm.name}] started.")
+        logger.info(microvm_process.after)
+        self._microvm_processes.append(microvm_process)
 
-            self.install_provision(vm, container_name, None)
-            # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
-            # Instead of use a network, we can use stdin to lauch commands on the microVM
-            vm.krunvm_config.stdin = self.commander._get_stdin_path(vm)
+        self.install_provision(self.vm, container_name, None)
+        # vm.set_ip("localhost"): Krunvm provides a special networking protocol, some apps may not work with it.
+        # Instead of use a network, we can use stdin to lauch commands on the microVM
+        self.vm.krunvm_config.stdin = self.commander._get_stdin_path(self.vm)
 
-        for vm in self.vms:
-            self.commander.wait_until_commands_processed(vm, timeout=600)
+        self.commander.wait_until_commands_processed(self.vm, timeout=600)
 
     def stack_destroy(self):
-        logger.info(f"Destroying VMs: {self.vms}")
+        logger.info(f"Destroying VM: {self.vm}")
 
-        for v in self.vms:
-            cmd_krunvm_destroy_vm = f"krunvm delete {v.name}"
-            logger.debug(cmd_krunvm_destroy_vm)
-            output_krunvm_destroy_vm = subprocess.run(
-                cmd_krunvm_destroy_vm.split(), capture_output=True, text=True
-            ).stdout
-            logger.info(f"[KrumVm] MicroVM [{v.name}] destroyed: {output_krunvm_destroy_vm}")
+        cmd_krunvm_destroy_vm = f"krunvm delete {self.vm.name}"
+        logger.debug(cmd_krunvm_destroy_vm)
+        output_krunvm_destroy_vm = subprocess.run(cmd_krunvm_destroy_vm.split(), capture_output=True, text=True).stdout
+        logger.info(f"[KrumVm] MicroVM [{self.vm.name}] destroyed: {output_krunvm_destroy_vm}")
 
         for microvm_process in self._microvm_processes:
             microvm_process.close()
@@ -174,7 +165,7 @@ class KrunVmCommander(Commander):
     def execute_local_command(self, local_command_id, local_command, env, last_task, logger_name):
         logger.info(f"KrunVM: Execute local command id: {local_command_id}")
         result = subprocess.run(local_command.split(" "), stdout=subprocess.PIPE, env=env)
-        vm_logger(context.scenario.name, logger_name).info(result.stdout)
+        vm_logger(context.scenario.host_log_folder, logger_name).info(result.stdout)
         return last_task
 
     def copy_file(self, id, local_path, remote_path, connection, last_task, vm=None):
@@ -227,7 +218,7 @@ class KrunVmCommander(Commander):
             source_folder = source_folder + "/"
 
         volume_path = None
-        if destination_folder is None or destination_folder == "" or destination_folder == "/":
+        if destination_folder is None or destination_folder in ("", "/"):
             destination_folder = "/"
             volume_path = self._get_shared_folder_path(vm) + "/"
         else:

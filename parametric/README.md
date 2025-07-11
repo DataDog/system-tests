@@ -1,1 +1,0 @@
-This folder is here for legacy reasons (other CI may need to call scripts here). Parametric tests are now a regular scenario of system-tests, they are in `tests/parametric/`, you can run then with `./run.sh PARAMETRIC`, and you can find their doc in [docs/scenarios/parametric.md](https://github.com/DataDog/system-tests/blob/main/docs/scenarios/parametric.md).

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from http import HTTPStatus
 import os
 import sys
 import pytest
@@ -8,9 +9,9 @@ from docker.models.networks import Network
 from docker.types import IPAMConfig, IPAMPool
 
 from watchdog.observers.polling import PollingObserver
-from watchdog.events import FileSystemEventHandler
+from watchdog.events import FileSystemEventHandler, FileSystemEvent
 
-from utils import interfaces, context
+from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
@@ -27,18 +28,20 @@ from utils._context.containers import (
     MsSqlServerContainer,
     BuddyContainer,
     TestedContainer,
+    LocalstackContainer,
+    ElasticMQContainer,
     _get_client as get_docker_client,
 )
 
-from utils.tools import logger
+from utils._logger import logger
 
-from .core import Scenario, ScenarioGroup
+from .core import Scenario, ScenarioGroup, scenario_groups as all_scenario_groups
 
 
 @dataclass
 class _SchemaBug:
     endpoint: str
-    data_path: str
+    data_path: str | None  # None means that all data_path will be considered as bug
     condition: bool
     ticket: str
 
@@ -50,23 +53,25 @@ class DockerScenario(Scenario):
 
     def __init__(
         self,
-        name,
+        name: str,
         *,
-        github_workflow,
-        doc,
-        scenario_groups=None,
+        github_workflow: str | None,
+        doc: str,
+        scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
-        use_proxy=True,
-        rc_api_enabled=False,
-        meta_structs_disabled=False,
-        span_events=True,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
+        use_proxy: bool = True,
+        rc_api_enabled: bool = False,
+        meta_structs_disabled: bool = False,
+        span_events: bool = True,
+        include_postgres_db: bool = False,
+        include_cassandra_db: bool = False,
+        include_mongo_db: bool = False,
+        include_kafka: bool = False,
+        include_rabbitmq: bool = False,
+        include_mysql_db: bool = False,
+        include_sqlserver: bool = False,
+        include_localstack: bool = False,
+        include_elasticmq: bool = False,
     ) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
@@ -114,6 +119,12 @@ class DockerScenario(Scenario):
         if include_sqlserver:
             self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
 
+        if include_localstack:
+            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+
+        if include_elasticmq:
+            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+
         self._required_containers.extend(self._supporting_containers)
 
     def get_image_list(self, library: str, weblog: str) -> list[str]:
@@ -123,26 +134,27 @@ class DockerScenario(Scenario):
             for image_name in container.get_image_list(library, weblog)
         ]
 
-    def configure(self, config):  # noqa: ARG002
-        docker_info = get_docker_client().info()
-        self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
+    def configure(self, config: pytest.Config):  # noqa: ARG002
+        if not self.replay:
+            docker_info = get_docker_client().info()
+            self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(self.replay)
+            container.configure(replay=self.replay)
 
-    def get_container_by_dd_integration_name(self, name):
+    def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
             if hasattr(container, "dd_integration_service") and container.dd_integration_service == name:
                 return container
         return None
 
-    def _start_interfaces_watchdog(self, interfaces):
+    def start_interfaces_watchdog(self, interfaces: list[ProxyBasedInterfaceValidator]):
         class Event(FileSystemEventHandler):
-            def __init__(self, interface) -> None:
+            def __init__(self, interface: ProxyBasedInterfaceValidator) -> None:
                 super().__init__()
                 self.interface = interface
 
-            def _ingest(self, event):
+            def _ingest(self, event: FileSystemEvent):
                 if event.is_directory:
                     return
 
@@ -210,7 +222,7 @@ class DockerScenario(Scenario):
             if container.healthy is False:
                 pytest.exit(f"Container {container.name} can't be started", 1)
 
-    def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):  # noqa: ARG002
         self.close_targets()
 
     def close_targets(self):
@@ -226,41 +238,46 @@ class EndToEndScenario(DockerScenario):
 
     def __init__(
         self,
-        name,
+        name: str,
         *,
-        doc,
-        github_workflow="endtoend",
-        scenario_groups=None,
-        weblog_env=None,
-        weblog_volumes=None,
-        agent_env=None,
+        doc: str,
+        github_workflow: str = "endtoend",
+        scenario_groups: list[ScenarioGroup] | None = None,
+        weblog_env: dict[str, str | None] | None = None,
+        weblog_volumes: dict | None = None,
+        agent_env: dict[str, str | None] | None = None,
         enable_ipv6: bool = False,
-        tracer_sampling_rate=None,
-        appsec_enabled=True,
-        iast_enabled=True,
-        additional_trace_header_tags=(),
-        library_interface_timeout=None,
-        agent_interface_timeout=5,
+        tracer_sampling_rate: float | None = None,
+        appsec_enabled: bool = True,
+        iast_enabled: bool = True,
+        additional_trace_header_tags: tuple[str, ...] = (),
+        library_interface_timeout: int | None = None,
+        agent_interface_timeout: int = 5,
         use_proxy_for_weblog: bool = True,
         use_proxy_for_agent: bool = True,
-        rc_api_enabled=False,
-        meta_structs_disabled=False,
-        span_events=True,
-        backend_interface_timeout=0,
-        include_postgres_db=False,
-        include_cassandra_db=False,
-        include_mongo_db=False,
-        include_kafka=False,
-        include_rabbitmq=False,
-        include_mysql_db=False,
-        include_sqlserver=False,
-        include_otel_drop_in=False,
-        include_buddies=False,
-        require_api_key=False,
+        rc_api_enabled: bool = False,
+        meta_structs_disabled: bool = False,
+        span_events: bool = True,
+        runtime_metrics_enabled: bool = False,
+        backend_interface_timeout: int = 0,
+        include_postgres_db: bool = False,
+        include_cassandra_db: bool = False,
+        include_mongo_db: bool = False,
+        include_kafka: bool = False,
+        include_rabbitmq: bool = False,
+        include_mysql_db: bool = False,
+        include_sqlserver: bool = False,
+        include_localstack: bool = False,
+        include_elasticmq: bool = False,
+        include_otel_drop_in: bool = False,
+        include_buddies: bool = False,
+        require_api_key: bool = False,
     ) -> None:
-        scenario_groups = [ScenarioGroup.ALL, ScenarioGroup.END_TO_END, ScenarioGroup.TRACER_RELEASE] + (
-            scenario_groups or []
-        )
+        scenario_groups = [
+            all_scenario_groups.all,
+            all_scenario_groups.end_to_end,
+            all_scenario_groups.tracer_release,
+        ] + (scenario_groups or [])
 
         super().__init__(
             name,
@@ -279,6 +296,8 @@ class EndToEndScenario(DockerScenario):
             include_rabbitmq=include_rabbitmq,
             include_mysql_db=include_mysql_db,
             include_sqlserver=include_sqlserver,
+            include_localstack=include_localstack,
+            include_elasticmq=include_elasticmq,
         )
 
         self._use_proxy_for_agent = use_proxy_for_agent
@@ -313,6 +332,7 @@ class EndToEndScenario(DockerScenario):
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
             iast_enabled=iast_enabled,
+            runtime_metrics_enabled=runtime_metrics_enabled,
             additional_trace_header_tags=additional_trace_header_tags,
             use_proxy=use_proxy_for_weblog,
             volumes=weblog_volumes,
@@ -320,6 +340,9 @@ class EndToEndScenario(DockerScenario):
 
         self.weblog_container.depends_on.append(self.agent_container)
         self.weblog_container.depends_on.extend(self._supporting_containers)
+
+        if use_proxy_for_weblog:
+            self.weblog_container.depends_on.append(self.proxy_container)
 
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
@@ -364,9 +387,9 @@ class EndToEndScenario(DockerScenario):
 
         self.agent_interface_timeout = agent_interface_timeout
         self.backend_interface_timeout = backend_interface_timeout
-        self.library_interface_timeout = library_interface_timeout
+        self._library_interface_timeout = library_interface_timeout
 
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
 
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
@@ -379,19 +402,19 @@ class EndToEndScenario(DockerScenario):
             self.weblog_container.environment["_DD_IAST_DEBUG"] = "true"  # probably not used anymore ?
             self.weblog_container.environment["DD_IAST_DEBUG_ENABLED"] = "true"
 
-        interfaces.agent.configure(self.host_log_folder, self.replay)
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.backend.configure(self.host_log_folder, self.replay)
-        interfaces.library_dotnet_managed.configure(self.host_log_folder, self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
         for container in self.buddies:
-            # a little bit of python wizzardry to solve circular import
-            container.interface = getattr(interfaces, container.name)
-            container.interface.configure(self.host_log_folder, self.replay)
+            container.interface.configure(self.host_log_folder, replay=self.replay)
 
         library = self.weblog_container.image.labels["system-tests-library"]
 
-        if self.library_interface_timeout is None:
+        if self._library_interface_timeout is None:
             if library == "java":
                 self.library_interface_timeout = 25
             elif library in ("golang",):
@@ -405,6 +428,8 @@ class EndToEndScenario(DockerScenario):
                 self.library_interface_timeout = 5
             else:
                 self.library_interface_timeout = 40
+        else:
+            self.library_interface_timeout = self._library_interface_timeout
 
     def _get_weblog_system_info(self):
         try:
@@ -423,8 +448,8 @@ class EndToEndScenario(DockerScenario):
 
         logger.stdout("")
 
-    def _start_interface_watchdog(self):
-        super()._start_interfaces_watchdog(
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog(
             [interfaces.library, interfaces.agent] + [container.interface for container in self.buddies]
         )
 
@@ -453,7 +478,7 @@ class EndToEndScenario(DockerScenario):
         warmups = super().get_warmups()
 
         if not self.replay:
-            warmups.insert(1, self._start_interface_watchdog)
+            warmups.insert(1, self._start_interfaces_watchdog)
             warmups.append(self._get_weblog_system_info)
             warmups.append(self._wait_for_app_readiness)
             warmups.append(self._set_weblog_domain)
@@ -520,7 +545,7 @@ class EndToEndScenario(DockerScenario):
                 # for weblogs who supports it, call the flush endpoint
                 try:
                     r = weblog.get("/flush", timeout=10)
-                    assert r.status_code == 200
+                    assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
                     logger.stdout(
@@ -546,66 +571,103 @@ class EndToEndScenario(DockerScenario):
                 interfaces.backend, 0 if force_interface_timout_to_zero else self.backend_interface_timeout
             )
 
-    def _wait_interface(self, interface, timeout):
+    def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 
         interface.wait(timeout)
 
-    def pytest_sessionfinish(self, session, exitstatus):
+    def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
+            _SchemaBug(endpoint="/v0.4/traces", data_path="$", condition=self.library == "java", ticket="APMAPI-1161"),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1",
+                condition=self.library >= "nodejs@2.27.1",
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
                 endpoint="/telemetry/proxy/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.48.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$[].content[].debugger.diagnostics",
-                condition=context.library == "nodejs",
+                condition=self.library == "nodejs",
                 ticket="DEBUG-3245",
             ),
             _SchemaBug(
                 endpoint="/debugger/v1/input",
                 data_path="$[].debugger.snapshot.stack[].lineNumber",
-                condition=context.library in ("python@2.16.2", "python@2.16.3")
+                condition=self.library in ("python@2.16.2", "python@2.16.3")
                 and self.name == "DEBUGGER_EXPRESSION_LANGUAGE",
                 ticket="APMRP-360",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/input",
+                data_path="$[].debugger.snapshot.probe.location.method",
+                condition=self.library == "dotnet",
+                ticket="DEBUG-3734",
+            ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path=None,
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
+            _SchemaBug(
+                endpoint="/telemetry/proxy/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="APMAPI-1270",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
             _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$",
+                condition=self.library > "nodejs@5.36.0",
+                ticket="DEBUG-3487",
+            ),
+            _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[]",
-                condition=context.library >= "nodejs@2.27.1"
+                condition=self.library >= "nodejs@2.27.1"
                 or self.name in ("CROSSED_TRACING_LIBRARIES", "GRAPHQL_APPSEC"),
                 ticket="APPSEC-52805",
             ),
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload",
-                condition=context.library < "python@v2.9.0.dev",
+                condition=self.library < "python@v2.9.0.dev",
                 ticket="APPSEC-52845",
             ),
             _SchemaBug(
@@ -614,27 +676,50 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/api/v2/apmtelemetry",
                 data_path="$.payload.configuration[].value",
-                condition=context.library == "golang",
+                condition=self.library == "golang",
                 ticket="APMS-12697",
             ),
             _SchemaBug(
                 endpoint="/api/v2/debugger",
                 data_path="$[].content",
-                condition=context.library > "nodejs@4.46.0",
+                condition=self.library < "nodejs@5.31.0",
                 ticket="DEBUG-2864",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=self.library == "dotnet" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-3298",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/apmtelemetry",
+                data_path="$.payload",
+                condition=self.library > "php@1.7.3",
+                ticket="XXX-1234",
+            ),
+            _SchemaBug(
+                endpoint="/api/v2/debugger",
+                data_path="$[]",
+                condition=self.library >= "php@1.8.3",
+                ticket="DEBUG-3709",
             ),
         ]
         self._test_schemas(session, interfaces.agent, agent_bugs)
 
         return super().pytest_sessionfinish(session, exitstatus)
 
-    def _test_schemas(self, session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]) -> None:
+    def _test_schemas(
+        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
+    ) -> None:
         long_repr = []
 
         excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
 
         for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points:
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
                 long_repr.append(f"* {error.message}")
 
         if len(long_repr) != 0:
@@ -693,7 +778,7 @@ class EndToEndScenario(DockerScenario):
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
-        result["dd_tags[systest.suite.context.library.name]"] = self.library.library
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
         result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate

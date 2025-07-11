@@ -12,6 +12,9 @@ on:
         description: "Library to test"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       version:
         description: "Version of the image to test"
         required: true
@@ -20,7 +23,6 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-
   compute-matrix:
     name: Get weblogs for Lib-Injection tests
     runs-on: ubuntu-latest
@@ -131,10 +133,21 @@ jobs:
       TEST_LIBRARY: ${{ inputs.library }}
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -180,8 +193,8 @@ jobs:
           name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
 
-  k8s-lib-injection-tests:
-    if: inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs'
+  build-weblogs-k8s-lib-injection:
+    if: inputs.build_lib_injection_app_images && (inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs')
     runs-on:
       group: "APM Larger Runners"
     permissions:
@@ -204,10 +217,21 @@ jobs:
       LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }}
       CLUSTER_AGENT_VERSION: ${{ matrix.cluster_agent_version }}
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -229,39 +253,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install runner
-        uses: ./.github/actions/install_runner
-
       - name: Build weblog base images (PR)
         id: build
-        if: inputs.build_lib_injection_app_images
         run: |
           #Build multiplatform
           lib-injection/build/build_lib_injection_weblog.sh -w ${{ matrix.weblog }} -l ${{ inputs.library }} --push-tag ${{ env.LIBRARY_INJECTION_TEST_APP_IMAGE }} --docker-platform linux/arm64,linux/amd64
-
-      - name: Kubernetes lib-injection tests
-        id: k8s-lib-injection-tests
-        if: ${{ !contains(fromJson(needs.compute-matrix.outputs.matrix_skip_basic), matrix.weblog) }}
-        run: ./run.sh K8S_LIBRARY_INJECTION_BASIC
-
-      - name: Kubernetes lib-injection profiling tests
-        id: k8s-lib-injection-tests-profiling
-        if: ${{ contains(fromJson(needs.compute-matrix.outputs.matrix_profiling_supported), matrix.weblog) }}
-        run: ./run.sh K8S_LIBRARY_INJECTION_PROFILING
-
-      - name: Kubernetes lib-injection DJM tests
-        id: k8s-lib-injection-tests-djm
-        if: ${{  matrix.weblog == 'dd-djm-spark-test-app' }}
-        run: ./run.sh K8S_LIBRARY_INJECTION_DJM
-
-      - name: Compress logs
-        id: compress_logs
-        if: always()
-        run: tar -czvf artifact.tar.gz $(ls | grep logs)
-
-      - name: Upload artifact
-        if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v4
-        with:
-          name: logs_k8s-lib-injection_${{ inputs.library}}_${{matrix.weblog}}_${{matrix.cluster_agent_version}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'dev' || 'prod'}}
-          path: artifact.tar.gz

@@ -24,7 +24,7 @@ class Test_Otel_Span:
     @flaky(library="golang", reason="APMAPI-178")
     def test_datadog_otel_span(self):
         spans = interfaces.agent.get_spans_list(self.req)
-        assert 2 <= len(spans), "Agent did not submit the spans we want!"
+        assert len(spans) >= 2, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
@@ -45,7 +45,7 @@ class Test_Otel_Span:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert 2 == len(spans)
+        assert len(spans) == 2
 
     def setup_distributed_otel_trace(self):
         self.req = weblog.get(
@@ -56,7 +56,7 @@ class Test_Otel_Span:
     @flaky(library="golang", reason="APMAPI-178")
     def test_distributed_otel_trace(self):
         spans = interfaces.agent.get_spans_list(self.req)
-        assert 3 <= len(spans), "Agent did not submit the spans we want!"
+        assert len(spans) >= 3, "Agent did not submit the spans we want!"
 
         # Assert the parent span sent by the agent.
         parent = _get_span_by_resource(spans, "root-otel-name.dd-resource")
@@ -77,7 +77,7 @@ class Test_Otel_Span:
 
         # Assert the spans received from the backend!
         spans = interfaces.backend.assert_request_spans_exist(self.req, query_filter="", retries=10)
-        assert 3 == len(spans)
+        assert len(spans) == 3
 
 
 def _get_span_by_name(spans, span_name):

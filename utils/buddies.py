@@ -13,7 +13,7 @@ class BuddyHostPorts(IntEnum):
 
 
 class _Buddy(_Weblog):
-    def __init__(self, port, language, domain="localhost"):
+    def __init__(self, port: int, language: str, domain: str = "localhost"):
         super().__init__()
 
         self.port = port

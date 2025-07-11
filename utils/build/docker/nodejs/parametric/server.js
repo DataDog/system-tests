@@ -8,7 +8,7 @@ tracer.use('dns', false)
 const SpanContext = require('dd-trace/packages/dd-trace/src/opentracing/span_context')
 const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/span_context')
 
-const { trace, ROOT_CONTEXT, SpanKind } = require('@opentelemetry/api')
+const { trace, ROOT_CONTEXT, SpanKind, propagation } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
 
 const { TracerProvider } = tracer
@@ -165,7 +165,7 @@ app.post('/trace/span/set_metric', (req, res) => {
 });
 
 app.post('/trace/stats/flush', (req, res) => {
-  // TODO: implement once available in NodeJS Tracer
+  // TODO: implement once available in Node.js Tracer
   res.json({});
 });
 
@@ -321,6 +321,7 @@ app.post('/trace/otel/set_attributes', (req, res) => {
 app.get('/trace/config', (req, res) => {
   const dummyTracer = require('dd-trace').init()
   const config = dummyTracer._tracer._config
+  const agentUrl = dummyTracer._tracer?._url ||  config?.url
   res.json( {
     config: {
       'dd_service': config?.service !== undefined ? `${config.service}`.toLowerCase() : 'null',
@@ -328,17 +329,20 @@ app.get('/trace/config', (req, res) => {
       'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
       'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
       'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
-      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics}`.toLowerCase() : 'null',
+      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics.enabled ?? config.runtimeMetrics}`.toLowerCase() : 'null',
       'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
       'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
       'dd_trace_sample_ignore_parent': 'null', // not implemented in node
       'dd_trace_otel_enabled': 'null', // not exposed in config object in node
       'dd_env': config?.tags?.env !== undefined ? `${config.tags.env}` : 'null',
       'dd_version': config?.tags?.version !== undefined ? `${config.tags.version}` : 'null',
-      'dd_trace_agent_url': config?.url !== undefined ? `${config.url.href}` : 'null',
+      'dd_trace_agent_url': agentUrl !== undefined ? agentUrl.toString() : 'null',
       'dd_trace_rate_limit': config?.sampler?.rateLimit !== undefined ? `${config?.sampler?.rateLimit}` : 'null',
       'dd_dogstatsd_host': config?.dogstatsd?.hostname !== undefined ? `${config.dogstatsd.hostname}` : 'null',
       'dd_dogstatsd_port': config?.dogstatsd?.port !== undefined ? `${config.dogstatsd.port}` : 'null',
+      'dd_profiling_enabled': config?.profiling?.enabled !== undefined ? `${config.profiling.enabled}` : 'false',
+      'dd_data_streams_enabled': config?.dsmEnabled !== undefined ? `${config.dsmEnabled}` : 'null',
+      'dd_logs_injection': config?.logInjection !== undefined ? `${config.logInjection}` : 'null',
     }
   });
 });
@@ -357,6 +361,15 @@ app.post("/trace/otel/record_exception", (req, res) => {
   span.recordException(new Error(message))
   res.json({})
 })
+
+app.post("/trace/otel/otel_set_baggage", (req, res) => {
+  const bag = propagation
+        .createBaggage()
+        .setEntry(req.body.key, { value: req.body.value });
+  const context = propagation.setBaggage(ROOT_CONTEXT, bag)
+  const value = propagation.getBaggage(context).getEntry(req.body.key).value
+  res.json({ value });
+});
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
 app.listen(port, () => {

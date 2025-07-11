@@ -4,7 +4,7 @@ set -e
 
 
 # scenario getting backedn data are not yet supported
-NOT_SUPPPORTED=("APM_TRACING_E2E_OTEL" "PARAMETRIC")
+NOT_SUPPPORTED=("APM_TRACING_E2E_OTEL" "PARAMETRIC" "OTEL_INTEGRATIONS" "OTEL_LOG_E2E" "OTEL_METRIC_E2E" "OTEL_TRACING_E2E" "APM_TRACING_E2E_SINGLE_SPAN")
 
 if [ -d "logs/" ]; then
     echo "[DEFAULT] Running replay mode"

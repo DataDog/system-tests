@@ -1,5 +1,3 @@
-from typing import Any
-
 import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
@@ -8,7 +6,7 @@ from utils import bug, missing_feature, context, scenarios, features
 parametrize = pytest.mark.parametrize
 
 
-def temporary_enable_propagationstyle_default() -> Any:
+def temporary_enable_propagationstyle_default() -> pytest.MarkDecorator:
     env = {
         "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext,Datadog",
         "DD_TRACE_PROPAGATION_STYLE_INJECT": "tracecontext,Datadog",
@@ -21,8 +19,7 @@ def temporary_enable_propagationstyle_default() -> Any:
 class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_samplingpriority(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -186,8 +183,7 @@ class Test_Headers_Tracestate_DD:
 
     @temporary_enable_propagationstyle_default()
     def test_headers_tracestate_dd_propagate_origin(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -269,7 +265,7 @@ class Test_Headers_Tracestate_DD:
         # Result: Origin set to header value, where invalid characters replaced by '_'
         origin = headers3["x-datadog-origin"]
         # allow implementations to split origin at the first ','
-        assert origin == "synthetics~;=web,z" or origin == "synthetics~;=web"
+        assert origin in ("synthetics~;=web,z", "synthetics~;=web")
 
         traceparent3, tracestate3 = get_tracecontext(headers3)
         dd_items3 = tracestate3["dd"].split(";")
@@ -319,8 +315,7 @@ class Test_Headers_Tracestate_DD:
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         """
@@ -430,8 +425,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "python", reason="Issue: Does not drop dm")
     @missing_feature(context.library == "ruby", reason="Issue: does not escape '~' characters to '=' in _dd.p.usr.id")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_same_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be passed through as DEFAULT
@@ -495,8 +489,7 @@ class Test_Headers_Tracestate_DD:
     @missing_feature(context.library == "python", reason="Issue: Does not reset dm to DEFAULT")
     @missing_feature(context.library == "ruby", reason="Issue: Does not reset dm to DEFAULT")
     def test_headers_tracestate_dd_propagate_propagatedtags_change_sampling_reset_dm(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent
+        """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
         expects the tracestate to be inherited
         expects the decision maker to be reset to DEFAULT
@@ -557,13 +550,12 @@ class Test_Headers_Tracestate_DD:
     @temporary_enable_propagationstyle_default()
     @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_keeps_32_or_fewer_list_members(self, test_agent, test_library):
-        """
-        harness sends requests with both tracestate and traceparent.
+        """Harness sends requests with both tracestate and traceparent.
         all items in the input tracestate are propagated because the resulting
         number of list-members in the tracestate is less than or equal to 32
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(
@@ -596,30 +588,30 @@ class Test_Headers_Tracestate_DD:
 
         # 1) Input: 32 list-members with 'dd' at the end of the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert "key31=value31" in tracestate1String
-        assert tracestate1String.startswith("dd=")
-        assert len(tracestate1String.split(",")) == 32
+        tracestate_1_string = str(tracestate1)
+        assert "key31=value31" in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")
+        assert len(tracestate_1_string.split(",")) == 32
 
         # 2) Input: 32 list-members with 'dd' at the beginning of the tracestate string
         _, tracestate2 = get_tracecontext(headers2)
-        tracestate2String = str(tracestate2)
-        assert "key31=value31" in tracestate2String
-        assert tracestate2String.startswith("dd=")
-        assert len(tracestate2String.split(",")) == 32
+        tracestate_2_string = str(tracestate2)
+        assert "key31=value31" in tracestate_2_string
+        assert tracestate_2_string.startswith("dd=")
+        assert len(tracestate_2_string.split(",")) == 32
 
         # 3) Input: 31 list-members without 'dd' in the tracestate string
         _, tracestate3 = get_tracecontext(headers3)
-        tracestate3String = str(tracestate3)
-        assert "key31=value31" in tracestate3String
-        assert tracestate3String.startswith("dd=")
-        assert len(tracestate3String.split(",")) == 32
+        tracestate_3_string = str(tracestate3)
+        assert "key31=value31" in tracestate_3_string
+        assert tracestate_3_string.startswith("dd=")
+        assert len(tracestate_3_string.split(",")) == 32
 
         # 4) Input: No tracestate string
         _, tracestate4 = get_tracecontext(headers4)
-        tracestate4String = str(tracestate4)
-        assert tracestate4String.startswith("dd=")
-        assert len(tracestate4String.split(",")) == 1
+        tracestate_4_string = str(tracestate4)
+        assert tracestate_4_string.startswith("dd=")
+        assert len(tracestate_4_string.split(",")) == 1
 
     @temporary_enable_propagationstyle_default()
     @missing_feature(context.library < "java@1.24.0", reason="Implemented in 1.24.0")
@@ -629,13 +621,12 @@ class Test_Headers_Tracestate_DD:
     @bug(library="python", reason="APMAPI-914")
     @bug(library="php", reason="APMAPI-916")
     def test_headers_tracestate_dd_evicts_32_or_greater_list_members(self, test_agent, test_library):
-        """
-        harness sends a request with both tracestate and traceparent.
+        """Harness sends a request with both tracestate and traceparent.
         the last list-member in the input tracestate is removed from the output
         tracestate string because the maximum number of list-members is 32.
         """
         with test_library:
-            other_vendors = ",".join("key%d=value%d" % (i, i) for i in range(1, 32))
+            other_vendors = ",".join(f"key{i}=value{i}" for i in range(1, 32))
 
             # 1) Input: 32 list-members without 'dd' in the tracestate string
             headers1 = test_library.dd_make_child_span_and_get_headers(
@@ -647,7 +638,7 @@ class Test_Headers_Tracestate_DD:
 
         # 1) Input: 32 list-members without 'dd' in the tracestate string
         _, tracestate1 = get_tracecontext(headers1)
-        tracestate1String = str(tracestate1)
-        assert len(tracestate1String.split(",")) == 32
-        assert "key32=value32" not in tracestate1String
-        assert tracestate1String.startswith("dd=")
+        tracestate_1_string = str(tracestate1)
+        assert len(tracestate_1_string.split(",")) == 32
+        assert "key32=value32" not in tracestate_1_string
+        assert tracestate_1_string.startswith("dd=")

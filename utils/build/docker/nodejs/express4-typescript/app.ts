@@ -1,13 +1,13 @@
 'use strict'
 
 import { Request, Response } from "express";
+import http from 'http';
 
 const tracer = require('dd-trace').init({ debug: true, flushInterval: 5000 });
 
 const { promisify } = require('util')
 const app = require('express')()
 const axios = require('axios')
-const passport = require('passport')
 const { Kafka } = require("kafkajs")
 const { spawnSync } = require('child_process')
 const crypto = require('crypto')
@@ -16,6 +16,7 @@ const multer = require('multer')
 const uploadToMemory = multer({ storage: multer.memoryStorage(), limits: { fileSize: 200000 } })
 
 const iast = require('./iast')
+const di = require('./debugger')
 
 iast.initData().catch(() => {})
 
@@ -26,8 +27,10 @@ app.use(require('cookie-parser')());
 
 iast.initMiddlewares(app)
 
-require('./auth')(app, passport, tracer)
+require('./auth')(app, tracer)
 iast.initRoutes(app)
+
+di.initRoutes(app)
 
 app.get('/', (req: Request, res: Response) => {
   console.log('Received a request');
@@ -38,7 +41,7 @@ app.get('/healthcheck', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     library: {
-      language: 'nodejs',
+      name: 'nodejs',
       version: require('dd-trace/package.json').version
     }
   });
@@ -80,6 +83,30 @@ app.get('/headers', (req: Request, res: Response) => {
   res.send('Hello, headers!');
 });
 
+app.get('/customResponseHeaders', (req: Request, res: Response) => {
+  res.set({
+    'content-type': 'text/plain',
+    'content-language': 'en-US',
+    'x-test-header-1': 'value1',
+    'x-test-header-2': 'value2',
+    'x-test-header-3': 'value3',
+    'x-test-header-4': 'value4',
+    'x-test-header-5': 'value5',
+  });
+
+  res.send('OK');
+});
+
+app.get('/exceedResponseHeaders', (req: Request, res: Response) => {
+  res.set('content-language', 'text/plain');
+  for (let i: number = 0; i < 50; i++) {
+    res.set(`x-test-header-${i}`, `value${i}`);
+  }
+  res.set('content-language', 'en-US');
+
+  res.send('OK');
+});
+
 app.get('/identify', (req: Request, res: Response) => {
   tracer.setUser({
     id: 'usr.id',
@@ -93,33 +120,59 @@ app.get('/identify', (req: Request, res: Response) => {
   res.send('OK');
 });
 
+app.get('/session/new', (req: Request, res: Response) => {
+  // I'm using assign otherwise typescript complains about the unknnown property
+  Object.assign(req.session, { someData: 'blabla' }) // needed for the session to be saved
+  res.send(req.sessionID)
+})
+
 app.get('/status', (req: Request, res: Response) => {
   res.status(parseInt('' + req.query.code)).send('OK');
 });
 
 app.get("/make_distant_call", (req: Request, res: Response) => {
-  const url = req.query.url;
-  console.log(url);
+  const url = req.query.url
+  console.log(url)
 
-  axios.get(url)
-    .then((response: Response) => {
-      res.json({
-        url: url,
-        status_code: response.statusCode,
-        request_headers: null,
-        response_headers: null,
-      });
+  const parsedUrl = new URL(url as string)
+
+  const options = {
+    hostname: parsedUrl.hostname,
+    port: parsedUrl.port || 80, // Use default port if not provided
+    path: parsedUrl.pathname,
+    method: 'GET'
+  }
+
+  const request = http.request(options, (response: http.IncomingMessage) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
     })
-    .catch((error: Error) => {
-      console.log(error);
+
+    response.on('end', () => {
       res.json({
-        url: url,
-        status_code: 500,
-        request_headers: null,
-        response_headers: null,
-      });
-    });
-});
+        url,
+        status_code: response.statusCode,
+        request_headers: (response as any).req._headers,
+        response_headers: response.headers,
+        response_body: responseBody
+      })
+    })
+  })
+
+  // Handle errors
+  request.on('error', (error: Error) => {
+    console.log(error)
+    res.json({
+      url,
+      status_code: 500,
+      request_headers: null,
+      response_headers: null
+    })
+  })
+
+  request.end()
+})
 
 app.get("/user_login_success_event", (req: Request, res: Response) => {
   const userId = req.query.event_user_id || "system_tests_user";
@@ -145,6 +198,26 @@ app.get("/user_login_failure_event", (req: Request, res: Response) => {
   res.send("OK");
 });
 
+app.post('/user_login_success_event_v2', (req: Request, res: Response) => {
+  const login = req.body.login;
+  const userId = req.body.user_id;
+  const metadata = req.body.metadata;
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginSuccess(login, userId, metadata);
+
+  res.send('OK');
+});
+
+app.post('/user_login_failure_event_v2', (req: Request, res: Response) => {
+  const login = req.body.login;
+  const exists = req.body.exists?.trim() === 'true';
+  const metadata = req.body.metadata;
+
+  tracer.appsec.eventTrackingV2?.trackUserLoginFailure(login, exists, metadata);
+
+  res.send('OK');
+});
+
 app.get("/custom_event", (req: Request, res: Response) => {
   const eventName = req.query.event_name || "system_tests_event";
 
@@ -160,6 +233,8 @@ app.get("/users", (req: Request, res: Response) => {
   } else {
     user.id = 'anonymous'
   }
+
+  tracer.setUser(user)
 
   const shouldBlock = tracer.appsec.isUserBlocked(user)
   if (shouldBlock) {
@@ -324,7 +399,7 @@ require('./rasp')(app)
 
 require('./graphql')(app).then(() => {
   app.listen(7777, '0.0.0.0', () => {
-    tracer.trace('init.service', () => { })
+    tracer.trace('init.service', () => {})
     console.log('listening')
   })
 })

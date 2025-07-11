@@ -19,6 +19,7 @@ SOFTWARE.
 
 import socket
 import time
+from utils._logger import logger
 
 
 def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
@@ -37,10 +38,9 @@ def wait_for_port(port: int, host: str = "localhost", timeout: float = 5.0):
     while True:
         try:
             with socket.create_connection((host, port), timeout=timeout):
-                break
-        except OSError as ex:
+                return True
+        except OSError:
             time.sleep(0.01)
             if time.perf_counter() - start_time >= timeout:
-                raise TimeoutError(
-                    f"Waited too long for the port {port} on host {host} to start accepting " "connections."
-                ) from ex
+                logger.error(f"Waited too long for the port {port} on host {host} to start accepting connections.")
+                return False

@@ -1,0 +1,35 @@
+{
+    "normalization_rules": {
+        "cgo_enabled": "go_cgo_enabled",
+        "endpoint_count_enabled": "endpoint_count_enabled",
+        "execution_trace_enabled": "execution_trace_enabled",
+        "execution_trace_period": "execution_trace_period",
+        "execution_trace_size_limit": "execution_trace_size_limit",
+        "goarch": "go_goarch",
+        "goos": "go_goos",
+        "goroutine_profile_enabled": "profiling_goroutine_enabled",
+        "goroutine_wait_profile_enabled": "profiling_goroutine_wait_enabled",
+        "heap_profile_enabled": "profiling_heap_enabled",
+        "mutex_profile_enabled": "profiling_mutex_enabled",
+        "waf_healthy": "appsec_waf_healthy",
+        "waf_supports_target": "appsec_waf_supports_target",
+        "withenablementmode": "appsec_enablement_mode"
+    },
+    "prefix_block_list": [
+        "agentless",
+        "block_",
+        "cpu_",
+        "delta_profiles",
+        "flush_on_exit",
+        "max_goroutines_wait",
+        "mutex_profile_fraction",
+        "num_custom_profiler_label_keys",
+        "osinfo_libdl_path",
+        "profile_period",
+        "profile_period",
+        "upload_timeout",
+        "upload_timeout"
+    ],
+    "redaction_list": [],
+    "reduce_rules": {}
+}

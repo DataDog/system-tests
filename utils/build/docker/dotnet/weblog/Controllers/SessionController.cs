@@ -1,4 +1,5 @@
 #if DDTRACE_2_7_0_OR_GREATER
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -6,7 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 using Microsoft.AspNetCore.Routing;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Datadog.Trace;
+using Datadog.Trace.AppSec;
 
 namespace weblog
 {
@@ -17,7 +18,8 @@ namespace weblog
 	    [HttpGet("new")]
         public IActionResult New()
         {
-            return Content($"Session created");
+            HttpContext.Session.Set(Guid.NewGuid().ToString(), [1, 2, 3, 4, 5]);
+            return Content(HttpContext.Session.Id);
         }
 		
         [HttpGet("user")]
@@ -25,11 +27,7 @@ namespace weblog
         {
             if (sdk_user != null)
             {
-                var userDetails = new UserDetails()
-                {
-                    Id = sdk_user,
-                };
-                Tracer.Instance.ActiveScope?.Span.SetUser(userDetails);
+                EventTrackingSdk.TrackUserLoginSuccessEvent(sdk_user);
             }
 
             return Content($"Hello, set the user to {sdk_user}");

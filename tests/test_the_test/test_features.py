@@ -1,5 +1,4 @@
-from utils import scenarios, features
-from utils.tools import logger
+from utils import scenarios, features, logger
 
 from .utils import run_system_tests
 
@@ -26,7 +25,6 @@ def test_not_reported():
 
 @scenarios.test_the_test
 def test_all_class_has_feature_decorator(session, deselected_items):
-    allow_no_feature_nodes = session.config.inicfg["allow_no_feature_nodes"]
     processed_nodes = set()
     shouldfail = False
 
@@ -38,14 +36,8 @@ def test_all_class_has_feature_decorator(session, deselected_items):
 
         processed_nodes.add(reported_node_id)
 
-        allow_missing_declaration = False
-
-        for node in allow_no_feature_nodes:
-            if item.nodeid.startswith(node):
-                allow_missing_declaration = True
-                break
-
-        if allow_missing_declaration:
+        if item.nodeid.startswith("tests/test_the_test/"):
+            # special use case of test the test folder
             continue
 
         declared_features = [marker.kwargs["feature_id"] for marker in item.iter_markers("features")]
@@ -54,6 +46,8 @@ def test_all_class_has_feature_decorator(session, deselected_items):
             logger.error(f"Missing feature declaration for {reported_node_id}")
             shouldfail = True
 
-    DOC_URL = "https://github.com/DataDog/system-tests/blob/main/docs/edit/add-new-test.md"
     if shouldfail:
-        raise ValueError(f"Some test classes misses @features decorator. More info on {DOC_URL}")
+        raise ValueError(
+            "Some test classes misses @features decorator. "
+            "More info on https://github.com/DataDog/system-tests/blob/main/docs/edit/add-new-test.md"
+        )

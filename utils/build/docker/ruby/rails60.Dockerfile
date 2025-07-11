@@ -6,11 +6,14 @@ RUN npm install -g yarn
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install gem dependencies prior to copying the entire application
+COPY utils/build/docker/ruby/rails60/Gemfile .
+COPY utils/build/docker/ruby/rails60/Gemfile.lock .
+RUN sed -i -e '/gem .ddtrace./d' Gemfile && bundle config set --local without test development && bundle install
+
 COPY utils/build/docker/ruby/rails60/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-
-RUN yarn install --check-files
 
 ENV DD_TRACE_HEADER_TAGS=user-agent
 ENV RAILS_ENV=production

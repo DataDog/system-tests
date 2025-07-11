@@ -5,6 +5,13 @@
 """singleton exposing all about test context"""
 
 import json
+from typing import Any
+
+from utils._context.component_version import ComponentVersion, Version
+from utils._context._scenarios.core import Scenario
+from utils._context._scenarios.endtoend import DockerScenario
+from utils.virtual_machine.virtual_machines import _VirtualMachine
+from utils._context.containers import SqlDbTestedContainer
 
 
 class _Context:
@@ -13,24 +20,24 @@ class _Context:
     scenario does not define them.
     """
 
-    scenario = None  # will be set by pytest_configure
+    scenario: Scenario  # will be set by pytest_configure
 
-    def _get_scenario_property(self, name, default):
+    def _get_scenario_property(self, name: str, default: Any) -> Any:  # noqa:ANN401
         if hasattr(self.scenario, name):
             return getattr(self.scenario, name)
 
         return default
 
     @property
-    def dd_site(self):
-        return self._get_scenario_property("dd_site", None)
+    def dd_site(self) -> str:
+        return self._get_scenario_property("dd_site", "")
 
     @property
-    def agent_version(self):
-        return self._get_scenario_property("agent_version", "")
+    def agent_version(self) -> Version:
+        return self._get_scenario_property("agent_version", Version("0.0.0"))
 
     @property
-    def weblog_variant(self):
+    def weblog_variant(self) -> str:
         return self._get_scenario_property("weblog_variant", "")
 
     @property
@@ -42,8 +49,10 @@ class _Context:
         return self._get_scenario_property("uds_socket", None)
 
     @property
-    def library(self):
-        return self._get_scenario_property("library", None)
+    def library(self) -> ComponentVersion:
+        result = self._get_scenario_property("library", None)
+        assert result is not None
+        return result
 
     @property
     def tracer_sampling_rate(self):
@@ -70,7 +79,8 @@ class _Context:
         return self._get_scenario_property("k8s_cluster_agent_version", "")
 
     @property
-    def components(self):
+    def components(self) -> dict[str, str]:
+        assert self.scenario is not None
         return self.scenario.components
 
     @property
@@ -80,6 +90,34 @@ class _Context:
     @property
     def configuration(self):
         return self._get_scenario_property("configuration", {})
+
+    @property
+    def virtual_machine(self) -> _VirtualMachine:
+        return self._get_scenario_property(
+            "virtual_machine",
+            _VirtualMachine(
+                name="",
+                aws_config=None,
+                vagrant_config=None,
+                krunvm_config=None,
+                os_type=None,
+                os_distro=None,
+                os_branch="",
+                os_cpu="",
+            ),
+        )
+
+    @property
+    def vm_os_branch(self) -> str:
+        return self.virtual_machine.os_branch
+
+    @property
+    def vm_os_cpu(self) -> str:
+        return self.virtual_machine.os_cpu
+
+    @property
+    def vm_name(self) -> str:
+        return self.virtual_machine.name
 
     def serialize(self):
         result = {
@@ -102,6 +140,12 @@ class _Context:
                 result["parametrized_tests_metadata"] = self.parametrized_tests_metadata
 
         return result
+
+    def get_container_by_dd_integration_name(self, name: str) -> SqlDbTestedContainer:
+        assert isinstance(self.scenario, DockerScenario)
+        container = self.scenario.get_container_by_dd_integration_name(name)
+        assert container is not None
+        return container
 
     def __str__(self):
         return json.dumps(self.serialize(), indent=4)

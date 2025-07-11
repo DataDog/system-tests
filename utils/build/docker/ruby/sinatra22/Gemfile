@@ -1,8 +1,10 @@
 source 'https://rubygems.org'
 
+gem 'faraday'
 gem 'sinatra', '~> 2.2.0'
 gem 'rack-contrib'
 gem 'pry'
 gem 'puma'
 
+gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'

@@ -6,6 +6,9 @@ on:
         description: "Library to test"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       scenarios:
         description: "Comma-separated list scenarios to run"
         default: DEFAULT
@@ -16,13 +19,23 @@ on:
         default: ''
         required: false
         type: string
+      excluded_scenarios:
+        description: "Comma-separated list of scenarios not to run"
+        type: string
+        default: ""
+        required: false
+      weblogs:
+        description: "Comma-separated list of weblogs to run. By default, all weblogs are run"
+        default: ''
+        required: false
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
         required: false
         type: string
       ci_environment:
-        description: "Which CI environment is running the tests, used for FPD"
+        description: "**DEPRECATED**"
         default: 'custom'
         required: false
         type: string
@@ -42,10 +55,10 @@ on:
         required: false
         type: boolean
       build_lib_injection_app_images:
-          description: "Shall we build and push k8s lib injection weblog images"
-          default: false
-          required: false
-          type: boolean
+        description: "Shall we build and push k8s lib injection weblog images"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -56,11 +69,36 @@ on:
         default: false
         required: false
         type: boolean
-      _experimental_parametric_job_count:
-        description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
+      parametric_job_count:
+        description: "How many jobs should be used to run PARAMETRIC scenario"
         default: 1
         required: false
         type: number
+      desired_execution_time:
+        description: "In seconds, system-tests will try to respect this time budget."
+        default: "-1"
+        required: false
+        type: string
+      enable_replay_scenarios:
+        description: "Enable replay scenarios, should only used in system-tests CI"
+        default: false
+        required: false
+        type: boolean
+      _experimental_parametric_job_count:
+        description: "*DEPRECATED*"
+        default: 1
+        required: false
+        type: number
+      _system_tests_dev_mode:
+        description: "Shall we run system tests in dev mode (library and agent dev binary)"
+        default: false
+        required: false
+        type: boolean
+      _system_tests_library_target_branch:
+        description: "If system-tests dev mode, the branch to use for the library"
+        default: ''
+        required: false
+        type: string
 
 jobs:
   compute_parameters:
@@ -68,41 +106,35 @@ jobs:
     uses: ./.github/workflows/compute-workflow-parameters.yml
     with:
       library: ${{ inputs.library }}
+      ref: ${{ inputs.ref }}
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
-      _experimental_parametric_job_count: ${{ inputs._experimental_parametric_job_count }}
+      excluded_scenarios: ${{ inputs.excluded_scenarios }}
+      weblogs: ${{ inputs.weblogs }}
+      parametric_job_count: ${{ inputs.parametric_job_count }}
+      desired_execution_time: ${{ inputs.desired_execution_time }}
+      binaries_artifact: ${{ inputs.binaries_artifact }}
+      _system_tests_dev_mode: ${{ inputs._system_tests_dev_mode }}
+      _system_tests_library_target_branch: ${{ inputs._system_tests_library_target_branch }}
 
   parametric:
     needs:
       - compute_parameters
-    if: needs.compute_parameters.outputs.parametric_scenarios != '[]'
+    if: needs.compute_parameters.outputs.parametric_enable == 'true'
     uses: ./.github/workflows/run-parametric.yml
     secrets: inherit
     with:
       library: ${{ inputs.library }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
-      _experimental_job_count: ${{ inputs._experimental_parametric_job_count }}
-      _experimental_job_matrix: ${{ needs.compute_parameters.outputs._experimental_parametric_job_matrix }}
+      ref: ${{ inputs.ref }}
+      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      job_count: ${{ inputs.parametric_job_count }}
+      job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
 
-  graphql:
+  lib_injection:
     needs:
       - compute_parameters
-    if: needs.compute_parameters.outputs.graphql_scenarios != '[]'
-    uses: ./.github/workflows/run-graphql.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.graphql_weblogs }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-
-  lib-injection:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
     uses: ./.github/workflows/run-lib-injection.yml
     permissions:
       contents: read
@@ -111,44 +143,91 @@ jobs:
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
       library: ${{ inputs.library }}
-      version: ${{ inputs.binaries_artifact == '' && 'prod' || 'dev' }}
+      ref: ${{ inputs.ref }}
+      version: ${{ needs.compute_parameters.outputs.ci_environment }}
 
-  end-to-end:
+  build_end_to_end:
+    name: Build end-to-end (${{ matrix.weblog }})
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.endtoend_scenarios != '[]' }}
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
+      fail-fast: false
+    steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
+      - name: Get binaries artifact
+        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+          path: binaries/
+      - name: Log binaries contents
+        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        run: ls -la binaries/
+      - name: Build weblog base images
+        if: inputs.library == 'python' && inputs.build_python_base_images
+        run: |
+          ./utils/build/build_python_base_images.sh
+      - name: Build weblog
+        id: build
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+          path: binaries/
+
+  run_end_to_end:
+    name: "End-to-end #${{ matrix.job.weblog_instance }}"
+    needs:
+      - compute_parameters
+      - build_end_to_end
+    if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
+    strategy:
+      matrix:
+        job: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_jobs) }}
+      fail-fast: false
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
-      library: ${{ inputs.library }}
-      build_python_base_images: ${{ inputs.build_python_base_images }}
+      library: ${{ matrix.job.library }}
+      ref: ${{ inputs.ref }}
+      weblog: ${{ matrix.job.weblog }}
+      weblog_instance: ${{ matrix.job.weblog_instance }}
+      scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      scenarios: ${{ needs.compute_parameters.outputs.endtoend_scenarios }}
-      weblogs: ${{ needs.compute_parameters.outputs.endtoend_weblogs }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
-      ci_environment: ${{ inputs.ci_environment }}
+      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
+      enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
 
-  open-telemetry:
+  external_processing:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.opentelemetry_scenarios != '[]' && inputs.binaries_artifact == '' }}
-    uses: ./.github/workflows/run-open-telemetry.yml
-    secrets: inherit
-    with:
-      library: ${{ inputs.library }}
-      weblogs: ${{ needs.compute_parameters.outputs.opentelemetry_weblogs }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-
-  external-processing:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && inputs.binaries_artifact != ''}}
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang'}}
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
+      ref: ${{ inputs.ref }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      ci_environment: ${{ inputs.ci_environment }}
-      binaries_artifact: ${{ inputs.binaries_artifact }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}

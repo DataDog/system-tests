@@ -1,0 +1,189 @@
+---
+tests/:
+  apm_tracing_e2e/:
+    test_otel.py:
+      Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
+    test_single_span.py:
+      Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
+  appsec/:
+    api_security/: irrelevant (ASM is not implemented in C++)
+    iast/:
+      sink/: irrelevant (ASM is not implemented in C++)
+      source/: irrelevant (ASM is not implemented in C++)
+      test_sampling_by_route_method_count.py: irrelevant (ASM is not implemented in C++)
+      test_security_controls.py: irrelevant (ASM is not implemented in C++)
+      test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
+    rasp/: irrelevant (ASM is not implemented in C++)
+    waf/: irrelevant (ASM is not implemented in C++)
+    test_alpha.py: irrelevant (ASM is not implemented in C++)
+    test_asm_standalone.py: irrelevant (ASM is not implemented in C++)
+    test_automated_login_events.py: irrelevant (ASM is not implemented in C++)
+    test_automated_user_and_session_tracking.py: irrelevant (ASM is not implemented in C++)
+    test_blocking_addresses.py: irrelevant (ASM is not implemented in C++)
+    test_client_ip.py: irrelevant (ASM is not implemented in C++)
+    test_conf.py: irrelevant (ASM is not implemented in C++)
+    test_customconf.py: irrelevant (ASM is not implemented in C++)
+    test_event_tracking.py: irrelevant (ASM is not implemented in C++)
+    test_event_tracking_v2.py: irrelevant (ASM is not implemented in C++)
+    test_extended_header_collection.py: irrelevant (ASM is not implemented in C++)
+    test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
+    test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
+    test_identify.py: irrelevant (ASM is not implemented in C++)
+    test_ip_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
+    test_logs.py: irrelevant (ASM is not implemented in C++)
+    test_metastruct.py: irrelevant (ASM is not implemented in C++)
+    test_rate_limiter.py: irrelevant (ASM is not implemented in C++)
+    test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
+    test_reports.py: irrelevant (ASM is not implemented in C++)
+    test_request_blocking.py: irrelevant (ASM is not implemented in C++)
+    test_runtime_activation.py: irrelevant (ASM is not implemented in C++)
+    test_service_activation_metric.py: irrelevant (ASM is not implemented in C++)
+    test_shell_execution.py: irrelevant (ASM is not implemented in C++)
+    test_suspicious_attacker_blocking.py: irrelevant (ASM is not implemented in C++)
+    test_trace_tagging.py: irrelevant (ASM is not implemented in C++)
+    test_traces.py: irrelevant (ASM is not implemented in C++)
+    test_user_blocking_full_denylist.py: irrelevant (ASM is not implemented in C++)
+    test_versions.py: irrelevant (ASM is not implemented in C++)
+  debugger/:
+    test_debugger_code_origins.py:
+      Test_Debugger_Code_Origins: irrelevant
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: irrelevant
+    test_debugger_expression_language.py:
+      Test_Debugger_Expression_Language: irrelevant
+    test_debugger_inproduct_enablement.py:
+      Test_Debugger_InProduct_Enablement_Code_Origin: irrelevant
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: irrelevant
+      Test_Debugger_InProduct_Enablement_Exception_Replay: irrelevant
+    test_debugger_pii.py:
+      Test_Debugger_PII_Redaction: irrelevant
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: irrelevant
+    test_debugger_probe_budgets.py:
+      Test_Debugger_Probe_Budgets: irrelevant
+    test_debugger_probe_snapshot.py:
+      Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots: irrelevant
+    test_debugger_probe_status.py:
+      Test_Debugger_Line_Probe_Statuses: irrelevant
+      Test_Debugger_Method_Probe_Statuses: irrelevant
+    test_debugger_symdb.py:
+      Test_Debugger_SymDb: irrelevant
+    test_debugger_telemetry.py:
+      Test_Debugger_Telemetry: irrelevant
+  integrations/:
+    crossed_integrations/:
+      test_kafka.py:
+        Test_Kafka: missing_feature
+      test_kinesis.py:
+        Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
+      test_rabbitmq.py:
+        Test_RabbitMQ_Trace_Context_Propagation: missing_feature
+      test_sns_to_sqs.py:
+        Test_SNS_Propagation: missing_feature (Endpoint not implemented)
+      test_sqs.py:
+        Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
+          "*": missing_feature (Endpoint not implemented)
+        Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
+          "*": missing_feature (Endpoint not implemented)
+    test_db_integrations_sql.py:
+      Test_MsSql: missing_feature
+      Test_MySql: missing_feature
+      Test_Postgres: missing_feature
+    test_dbm.py:
+      Test_Dbm: missing_feature
+    test_dsm.py:
+      Test_DsmContext_Extraction_Base64: missing_feature
+      Test_DsmContext_Injection_Base64: missing_feature
+      Test_DsmHttp: missing_feature
+      Test_DsmKafka: missing_feature
+      Test_DsmKinesis: missing_feature
+      Test_DsmRabbitmq: missing_feature
+      Test_DsmRabbitmq_FanoutExchange: missing_feature
+      Test_DsmRabbitmq_TopicExchange: missing_feature
+      Test_DsmSNS: missing_feature
+      Test_DsmSQS: missing_feature
+      Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
+      Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
+    test_inferred_proxy.py: missing_feature
+    test_otel_drop_in.py:
+      Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
+  otel/:
+    test_context_propagation.py:
+      Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
+  remote_config/:
+    test_remote_configuration.py:
+      Test_RemoteConfigurationExtraServices: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDD: missing_feature
+      Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceFeatures: missing_feature
+      Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+  serverless/:
+    span_pointers/:
+      aws/:
+        test_s3_span_pointers.py:
+          Test_CopyObject: missing_feature
+          Test_MultipartUpload: missing_feature
+          Test_PutObject: missing_feature
+  stats/:
+    test_miscs.py:
+      Test_Miscs: missing_feature
+    test_stats.py:
+      Test_Client_Stats: missing_feature
+  test_baggage.py:
+    Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
+    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
+    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not implemented)
+    Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not implemented)
+    Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not implemented)
+    Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not implemented)
+  test_config_consistency.py:
+    Test_Config_ClientIPHeaderEnabled_False: v1.2.1
+    Test_Config_ClientIPHeader_Configured: missing_feature (DD_TRACE_CLIENT_IP_HEADER not implemented)
+    Test_Config_ClientIPHeader_Precedence: missing_feature (http.client_ip is not supported)
+    Test_Config_ClientTagQueryString_Configured: missing_feature
+    Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)
+    Test_Config_HttpClientErrorStatuses_Default: missing_feature
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_Default: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_IntegrationEnabled_False: missing_feature
+    Test_Config_IntegrationEnabled_True: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
+    Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
+    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Enabled: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
+    Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
+    Test_Config_RuntimeMetrics_Default: missing_feature
+    Test_Config_RuntimeMetrics_Enabled: missing_feature
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
+    Test_Config_UnifiedServiceTagging_CustomService: missing_feature
+    Test_Config_UnifiedServiceTagging_Default: missing_feature
+  test_distributed.py:
+    Test_DistributedHttp: missing_feature
+    Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
+    Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_graphql.py: missing_feature
+  test_identify.py: irrelevant
+  test_ipv6.py: missing_feature (APMAPI-869)
+  test_library_conf.py: irrelevant
+  test_miscs.py: irrelevant
+  test_protobuf.py: missing_feature
+  test_sampling_rates.py:
+    Test_SampleRateFunction: v1.0.0  # real version unknown
+    Test_SamplingDecisionAdded: v1.0.0  # real version unknown
+    Test_SamplingDecisions: v1.0.0  # real version unknown
+    Test_SamplingDeterminism: v1.0.0  # real version unknown
+    Test_SamplingRates: v1.0.0  # real version unknown
+  test_scrubbing.py: irrelevant
+  test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
+  test_standard_tags.py: irrelevant
+  test_telemetry.py:
+    Test_Log_Generation: missing_feature
+    Test_MessageBatch: missing_feature
+    Test_Metric_Generation_Enabled: missing_feature
+    Test_ProductsDisabled: irrelevant
+    Test_TelemetrySCAEnvVar: missing_feature

@@ -1,8 +1,9 @@
 require 'pry'
 require 'sinatra'
-require "net/http"
-require "uri"
+require 'net/http'
+require 'uri'
 require 'json'
+require 'faraday'
 
 begin
   require 'datadog/auto_instrument'
@@ -13,9 +14,7 @@ end
 Datadog.configure do |c|
   c.diagnostics.debug = true
 
-  unless c.respond_to?(:tracing)
-    c.use :sinatra, service_name: (ENV['DD_SERVICE'] || 'sinatra')
-  end
+  c.use :sinatra, service_name: ENV.fetch('DD_SERVICE', 'sinatra') unless c.respond_to?(:tracing)
 end
 
 require 'rack/contrib/post_body_content_type_parser'
@@ -24,9 +23,9 @@ use Rack::PostBodyContentTypeParser
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
-  Datadog::Tracing.trace('init.service') { }
+  Datadog::Tracing.trace('init.service') {}
 else
-  Datadog.tracer.trace('init.service') { }
+  Datadog.tracer.trace('init.service') {}
 end
 
 get '/' do
@@ -42,11 +41,10 @@ get '/healthcheck' do
   {
     status: 'ok',
     library: {
-      language: 'ruby',
+      name: 'ruby',
       version: version
     }
   }.to_json
-
 end
 
 post '/' do
@@ -73,7 +71,6 @@ get '/params/:value' do
   'Hello, world!'
 end
 
-
 get '/spans' do
   begin
     repeats = Integer(request.params['repeats'] || 0)
@@ -83,7 +80,7 @@ get '/spans' do
 
     'bad request'
   else
-    repeats.times do |i|
+    repeats.times do |_i|
       Datadog::Tracing.trace('repeat-#{i}') do |span|
         garbage.times do |j|
           span.set_tag("garbage-#{j}", "#{j}")
@@ -127,7 +124,7 @@ end
 get '/make_distant_call' do
   content_type :json
 
-  url = request.params["url"]
+  url = request.params['url']
   uri = URI(url)
   request = nil
   response = nil
@@ -142,7 +139,7 @@ get '/make_distant_call' do
     "url": url,
     "status_code": response.code,
     "request_headers": request.each_header.to_h,
-    "response_headers": response.each_header.to_h,
+    "response_headers": response.each_header.to_h
   }
 
   result.to_json
@@ -152,7 +149,7 @@ require 'datadog/kit/appsec/events'
 
 get '/user_login_success_event' do
   Datadog::Kit::AppSec::Events.track_login_success(
-    Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
+    Datadog::Tracing.active_trace, user: { id: 'system_tests_user' }, metadata0: 'value0', metadata1: 'value1'
   )
 
   'Ok'
@@ -160,29 +157,30 @@ end
 
 get '/user_login_failure_event' do
   Datadog::Kit::AppSec::Events.track_login_failure(
-    Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
+    Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: 'value0', metadata1: 'value1'
   )
 
   'Ok'
 end
 
 get '/custom_event' do
-  Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
+  Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace, metadata0: 'value0',
+                                                                                          metadata1: 'value1')
 
   'Ok'
 end
 
-%i(get post options).each do |request_method|
+%i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
-    if request_method == :post && params["tag_value"].include?('payload_in_response_body')
+    if request_method == :post && params['tag_value'].include?('payload_in_response_body')
       content_type :json
-      return {"payload":  request.POST }.to_json
+      return { "payload": request.POST }.to_json
     end
 
     trace = Datadog::Tracing.active_trace
-    trace.set_tag("appsec.events.system_tests_appsec_event.value", params["tag_value"])
+    trace.set_tag('appsec.events.system_tests_appsec_event.value', params['tag_value'])
 
-    status params["status_code"]
+    status params['status_code']
     headers request.params || {}
 
     'Value tagged'
@@ -190,7 +188,7 @@ end
 end
 
 get '/users' do
-  user_id = request.params["user"]
+  user_id = request.params['user']
 
   Datadog::Kit::Identity.set_user(id: user_id)
 
@@ -218,8 +216,32 @@ get '/returnheaders' do
 
   # Convert headers from Rack format to browser format
 
-  headers = request.env.select { |k, v| k.start_with?('HTTP_') }
+  headers = request.env.select { |k, _v| k.start_with?('HTTP_') }
   headers = headers.transform_keys { |k| k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-') }
 
   headers.to_json
 end
+
+get '/sample_rate_route/:i' do
+  'OK'
+end
+
+get '/api_security_sampling/:i' do
+  'Hello!'
+end
+
+get '/api_security/sampling/:status' do
+  status params['status'].to_i
+  'OK'
+end
+
+ssrf_handler = lambda do
+  url = URI.parse(request.params['domain'])
+  url = "http://#{url}" unless url.scheme
+
+  Faraday.get(url)
+
+  'OK'
+end
+get '/rasp/ssrf', &ssrf_handler
+post '/rasp/ssrf', &ssrf_handler

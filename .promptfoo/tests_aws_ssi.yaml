@@ -1,0 +1,79 @@
+  - description: "[AWS SSI] tests execution"
+    vars:
+      user_prompt: "I want to run the aws ssi tests"
+    assert:
+        - type: icontains-all
+          value:
+            - "pulumi"
+            - "environment variables"
+            - "wizard script"
+            - "manual"
+            - "aws-vault"
+            - "--vm-only"
+        - type: icontains-any
+          value:
+            - "environment"
+            - "wizard"
+
+  - description: "[AWS SSI] onboarding tests execution"
+    vars:
+      user_prompt: "I want to run the onboarding tests"
+    assert:
+        - type: icontains-all
+          value:
+            - "pulumi"
+            - "environment variables"
+            - "wizard script"
+            - "manual"
+        - type: icontains-any
+          value:
+            - "environment"
+            - "wizard"
+
+  - description: "[AWS SSI] Create new virtual machine - general"
+    vars:
+      user_prompt: "Create a new virtual machine for aws ssi tests"
+    assert:
+        - type: icontains-any
+          value:
+            - "more information"
+            - "required fields"
+            - "Mandatory Fields"
+        - type: icontains-all
+          value:
+            - "AMI ID"
+            - "branch"
+            - "virtual_machines.json"
+
+  - description: "[AWS SSI] Create new virtual machine - specific"
+    vars:
+      user_prompt: "Create a new virtual machine for aws ssi tests with the name 'newvm' ami id ami-14567843, type linux debian, amd64, user test, branch mynewbranch"
+    assert:
+        - type: icontains-all
+          value:
+            - "virtual_machines.json"
+            - "ami-14567843"
+            - "aws_ssi_registration.py --vm"
+
+  - description: "[AWS SSI] Create Python weblog for AWS SSI"
+    vars:
+      user_prompt: "Create a python weblog named 'my-python-weblog' for the aws ssi tests"
+    assert:
+        - type: icontains-all
+          value:
+            - "lib-injection"
+            - "utils/build/virtual_machine/weblogs/python/provision_my-python-weblog.yml"
+            - "aws_ssi_registration.py --weblog"
+            - "aws_ssi.json"
+
+  - description: "[AWS SSI] Create new scenario for AWS SSI"
+    vars:
+      user_prompt: "Create a new scenario named 'mynewprovision' for the aws ssi tests"
+    assert:
+        - type: icontains-all
+          value:
+            - "utils/build/virtual_machine/provisions/mynewprovision/provision.yml"
+            - "utils/_context/_scenarios/__init__.py"
+            - "InstallerAutoInjectionScenario"
+            - "aws_ssi_registration.py --scenario"
+            - "aws_ssi.json"

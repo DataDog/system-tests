@@ -3,22 +3,23 @@
 # Copyright 2021 Datadog, Inc.
 
 import tests.debugger.utils as debugger
-import re, json
+import re
+import json
 from utils import scenarios, features, bug, missing_feature, context
 
 
 @features.debugger_expression_language
 @scenarios.debugger_expression_language
-class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
-    message_map = {}
+class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
+    message_map: dict = {}
 
     ############ setup ############
     def _setup(self, probes, request_path):
         self.set_probes(probes)
         self.send_rc_probes()
-        self.wait_for_all_probes_installed()
+        self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
-        self.wait_for_all_probes_emitting()
+        self.wait_for_all_probes(statuses=["EMITTING"])
 
     ############ assert ############
     def _assert(self, expected_response: int):
@@ -62,11 +63,11 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     ############ test ############
     ############ access variables ############
     def setup_expression_language_access_variables(self):
+        language, method = self.get_tracer()["language"], "Expression"
         message_map, probes = self._create_expression_probes(
-            methodName="Expression",
+            method_name=method,
             expressions=[
                 ["Accessing input", "asd", Dsl("ref", "inputValue")],
-                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
                 ["Accessing local", 3, Dsl("ref", "localValue")],
                 ["Accessing complex object int", 1, Dsl("getmember", [Dsl("ref", "testStruct"), "IntValue"])],
                 ["Accessing complex object double", 1.1, Dsl("getmember", [Dsl("ref", "testStruct"), "DoubleValue"])],
@@ -90,8 +91,8 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     2,
                     Dsl("index", [Dsl("getmember", [Dsl("ref", "testStruct"), "Dictionary"]), "two"]),
                 ],
-                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -100,23 +101,45 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def test_expression_language_access_variables(self):
         self._assert(expected_response=200)
 
+    def setup_expression_language_contextual_variables(self):
+        message_map, probes = self._create_expression_probes(
+            method_name="Expression",
+            expressions=[
+                ["Accessing return", ".*Great success number 3", Dsl("ref", "@return")],
+                ["Accessing duration", r"\d+(\.\d+)?", Dsl("ref", "@duration")],
+            ],
+            # We only capture @return and @duration in the context of a method probe.
+            lines=[],
+        )
+
+        self.message_map = message_map
+        self._setup(probes, "/debugger/expression?inputValue=asd")
+
+    @missing_feature(library="nodejs", reason="Not yet implemented")
+    def test_expression_language_contextual_variables(self):
+        self._assert(expected_response=200)
+
     ############ access exception ############
     def setup_expression_language_access_exception(self):
+        language, method = self.get_tracer()["language"], "ExpressionException"
         message_map, probes = self._create_expression_probes(
-            methodName="ExpressionException",
+            method_name=method,
             expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception")]],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/exception")
 
+    @missing_feature(library="nodejs", reason="Not yet implemented")
     def test_expression_language_access_exception(self):
         self._assert(expected_response=500)
 
     ############ comparison operators ############
     def setup_expression_language_comparison_operators(self):
+        language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName="ExpressionOperators",
+            method_name=method,
             expressions=[
                 ["intValue eq 5", True, Dsl("eq", [Dsl("ref", "intValue"), 5])],
                 ["intValue ne 0", True, Dsl("ne", [Dsl("ref", "intValue"), 0])],
@@ -166,6 +189,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue le a", False, Dsl("le", [Dsl("ref", "strValue"), "a"])],
                 ["strValue ge z", False, Dsl("ge", [Dsl("ref", "strValue"), "z"])],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -174,10 +198,11 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     def test_expression_language_comparison_operators(self):
         self._assert(expected_response=200)
 
-    ############ intance of ############
+    ############ instance of ############
     def setup_expression_language_instance_of(self):
+        language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName="ExpressionOperators",
+            method_name=method,
             expressions=[
                 ["intValue instanceof int", True, Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("int")])],
                 [
@@ -202,12 +227,12 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 [
                     "intValue instanceof float",
-                    False,
+                    self.get_tracer()["language"] == "nodejs",
                     Dsl("instanceof", [Dsl("ref", "intValue"), self._get_type("float")]),
                 ],
                 [
                     "floatValue instanceof int",
-                    False,
+                    self.get_tracer()["language"] == "nodejs",
                     Dsl("instanceof", [Dsl("ref", "floatValue"), self._get_type("int")]),
                 ],
                 [
@@ -217,19 +242,22 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 ["pii instanceof string", False, Dsl("instanceof", [Dsl("ref", "pii"), self._get_type("string")])],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
     @bug(library="dotnet", reason="DEBUG-2530")
+    @bug(library="nodejs", weblog_variant="express4-typescript", reason="DEBUG-3715")
     def test_expression_language_instance_of(self):
         self._assert(expected_response=200)
 
     ############ logical operators ############
     def setup_expression_language_logical_operators(self):
+        language, method = self.get_tracer()["language"], "ExpressionOperators"
         message_map, probes = self._create_expression_probes(
-            methodName="ExpressionOperators",
+            method_name=method,
             expressions=[
                 [
                     "intValue eq 5 and strValue ne 5",
@@ -254,19 +282,21 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ],
                 ["not intValue eq 10", False, Dsl("not", Dsl("eq", [Dsl("ref", "intValue"), 5]))],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
-    @bug(context.library >= "dotnet@3.5.0", reason="DEBUG-3115")
+    @bug(context.library == "dotnet@3.5.0", reason="DEBUG-3115")
     def test_expression_language_logical_operators(self):
         self._assert(expected_response=200)
 
     ############ string operations ############
     def setup_expression_language_string_operations(self):
+        language, method = self.get_tracer()["language"], "StringOperations"
         message_map, probes = self._create_expression_probes(
-            methodName="StringOperations",
+            method_name=method,
             expressions=[
                 ##### isempty
                 ["strValue isEmpty", False, Dsl("isEmpty", Dsl("ref", "strValue"))],
@@ -278,7 +308,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["strValue substring 0 5", "veryl", Dsl("substring", [Dsl("ref", "strValue"), 0, 5])],
                 ["strValue substring 5 10", "ongst", Dsl("substring", [Dsl("ref", "strValue"), 5, 10])],
                 ["strValue substring 0 0", "", Dsl("substring", [Dsl("ref", "strValue"), 0, 0])],
-                ["emptyStr substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyStr"), 0, 0])],
+                ["emptyString substring 0 0", "", Dsl("substring", [Dsl("ref", "emptyString"), 0, 0])],
                 ##### startsWith
                 ["strValue startsWith very", True, Dsl("startsWith", [Dsl("ref", "strValue"), "very"])],
                 ["strValue startsWith foo", False, Dsl("startsWith", [Dsl("ref", "strValue"), "foo"])],
@@ -300,6 +330,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["emptyString matches empty", True, Dsl("matches", [Dsl("ref", "emptyString"), ""])],
                 ["emptyString matches some", False, Dsl("matches", [Dsl("ref", "emptyString"), "foo"])],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -315,8 +346,9 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
     ## all collection are filled with incremented number values (e.g at the [0] = 0; [1] = 1)
 
     def setup_expression_language_collection_operations(self):
+        language, method = self.get_tracer()["language"], "CollectionOperations"
         message_map, probes = self._create_expression_probes(
-            methodName="CollectionOperations",
+            method_name=method,
             expressions=[
                 ##### len
                 ["Array0 len", 0, Dsl("len", Dsl("ref", "a0"))],
@@ -326,6 +358,7 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ["List1 len", 1, Dsl("len", Dsl("ref", "l1"))],
                 ["List5 len", 5, Dsl("len", Dsl("ref", "l5"))],
                 ##### index
+                # TODO: It's not a good test to check that index x contains the value x. Instead it should test that index x contains y
                 ["Array5 index 4", 4, Dsl("index", [Dsl("ref", "a5"), 4])],
                 ["List5 index 4", 4, Dsl("index", [Dsl("ref", "l5"), 4])],
                 ##### any
@@ -374,18 +407,26 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                     Dsl("len", Dsl("filter", [Dsl("ref", "l5"), Dsl("lt", [Dsl("ref", "@it"), 2])])),
                 ],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
-    @bug(library="dotnet", reason="DEBUG-2602")
     def test_expression_language_collection_operations(self):
         self._assert(expected_response=200)
 
     def setup_expression_language_hash_operations(self):
+        language, method = self.get_tracer()["language"], "CollectionOperations"
+        if self.get_tracer()["language"] == "dotnet":
+            get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "Value"])
+        elif self.get_tracer()["language"] == "nodejs":
+            get_hash_value = Dsl("ref", "@value")
+        else:
+            get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "value"])
+
         message_map, probes = self._create_expression_probes(
-            methodName="CollectionOperations",
+            method_name=method,
             expressions=[
                 ## at the app there are 3 types of collections are created - array, list and hash.
                 ## the number at the end of variable means the length of the collection
@@ -397,145 +438,59 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 ##### index
                 ["Hash5 index 4", 4, Dsl("index", [Dsl("ref", "h5"), 4])],
                 ##### any
-                [
-                    "Hash0 any gt 1",
-                    False,
-                    Dsl(
-                        "any",
-                        [
-                            Dsl("ref", "h0"),
-                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
-                        ],
-                    ),
-                ],
-                [
-                    "Hash1 any gt 1",
-                    False,
-                    Dsl(
-                        "any",
-                        [
-                            Dsl("ref", "h1"),
-                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
-                        ],
-                    ),
-                ],
-                [
-                    "Hash5 any gt 1",
-                    True,
-                    Dsl(
-                        "any",
-                        [
-                            Dsl("ref", "h5"),
-                            Dsl("gt", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
-                        ],
-                    ),
-                ],
+                ["Hash0 any gt 1", False, Dsl("any", [Dsl("ref", "h0"), Dsl("gt", [get_hash_value, 1])])],
+                ["Hash1 any gt 1", False, Dsl("any", [Dsl("ref", "h1"), Dsl("gt", [get_hash_value, 1])])],
+                ["Hash5 any gt 1", True, Dsl("any", [Dsl("ref", "h5"), Dsl("gt", [get_hash_value, 1])])],
                 ##### all
-                [
-                    "Hash0 all ge 0",
-                    True,
-                    Dsl(
-                        "all",
-                        [
-                            Dsl("ref", "h0"),
-                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
-                        ],
-                    ),
-                ],
-                [
-                    "Hash1 all ge 0",
-                    True,
-                    Dsl(
-                        "all",
-                        [
-                            Dsl("ref", "h1"),
-                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 0]),
-                        ],
-                    ),
-                ],
-                [
-                    "Hash5 all ge 1",
-                    False,
-                    Dsl(
-                        "all",
-                        [
-                            Dsl("ref", "h5"),
-                            Dsl("ge", [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 1]),
-                        ],
-                    ),
-                ],
+                ["Hash0 all ge 0", True, Dsl("all", [Dsl("ref", "h0"), Dsl("ge", [get_hash_value, 0])])],
+                ["Hash1 all ge 0", True, Dsl("all", [Dsl("ref", "h1"), Dsl("ge", [get_hash_value, 0])])],
+                ["Hash5 all ge 1", False, Dsl("all", [Dsl("ref", "h5"), Dsl("ge", [get_hash_value, 1])])],
                 ##### filter
                 [
                     "Hash0 len filter lt 2",
                     0,
-                    Dsl(
-                        "len",
-                        Dsl(
-                            "filter",
-                            [
-                                Dsl("ref", "h0"),
-                                Dsl(
-                                    "lt",
-                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
-                                ),
-                            ],
-                        ),
-                    ),
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h0"), Dsl("lt", [get_hash_value, 2])])),
                 ],
                 [
                     "Hash1 len filter lt 2",
                     1,
-                    Dsl(
-                        "len",
-                        Dsl(
-                            "filter",
-                            [
-                                Dsl("ref", "h1"),
-                                Dsl(
-                                    "lt",
-                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
-                                ),
-                            ],
-                        ),
-                    ),
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h1"), Dsl("lt", [get_hash_value, 2])])),
                 ],
                 [
                     "Hash5 len filter lt 2",
                     2,
-                    Dsl(
-                        "len",
-                        Dsl(
-                            "filter",
-                            [
-                                Dsl("ref", "h5"),
-                                Dsl(
-                                    "lt",
-                                    [Dsl("getmember", [Dsl("ref", "@it"), self._get_hash_value_property_name()]), 2],
-                                ),
-                            ],
-                        ),
-                    ),
+                    Dsl("len", Dsl("filter", [Dsl("ref", "h5"), Dsl("lt", [get_hash_value, 2])])),
                 ],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
     @bug(library="dotnet", reason="DEBUG-2602")
-    @missing_feature(library="python", reason="DEBUG-3240")
+    @missing_feature(library="python", reason="DEBUG-3240", force_skip=True)
     def test_expression_language_hash_operations(self):
         self._assert(expected_response=200)
 
     ############ nulls ############
     def setup_expression_language_nulls_true(self):
+        language, method = self.get_tracer()["language"], "Nulls"
+        expressions = [["pii eq null", True, Dsl("eq", [Dsl("ref", "pii"), None])]]
+
+        # In Node.js, numbers and strings cannot be null as they are not objects
+        if language != "nodejs":
+            expressions.extend(
+                [
+                    ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
+                    ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
+                ]
+            )
+
         message_map, probes = self._create_expression_probes(
-            methodName="Nulls",
-            expressions=[
-                ["intValue eq null", True, Dsl("eq", [Dsl("ref", "intValue"), None])],
-                ["strValue eq null", True, Dsl("eq", [Dsl("ref", "strValue"), None])],
-                ["pii eq null", True, Dsl("eq", [Dsl("ref", "pii"), None])],
-            ],
+            method_name=method,
+            expressions=expressions,
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -546,13 +501,15 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
         self._assert(expected_response=200)
 
     def setup_expression_language_nulls_false(self):
+        language, method = self.get_tracer()["language"], "Nulls"
         message_map, probes = self._create_expression_probes(
-            methodName="Nulls",
+            method_name=method,
             expressions=[
                 ["intValue eq null", False, Dsl("eq", [Dsl("ref", "intValue"), None])],
                 ["strValue eq null", False, Dsl("eq", [Dsl("ref", "strValue"), None])],
                 ["pii eq null", False, Dsl("eq", [Dsl("ref", "pii"), None])],
             ],
+            lines=self.method_and_language_to_line_number(method, language),
         )
 
         self.message_map = message_map
@@ -603,39 +560,57 @@ class Test_Debugger_Expression_Language(debugger._Base_Debugger_Test):
                 instance_type = "debugger.pii.PiiBase"
             else:
                 instance_type = value_type
+        elif self.get_tracer()["language"] == "nodejs":
+            if value_type in ("int", "float"):
+                instance_type = "number"
+            elif value_type == "string":
+                instance_type = "string"
+            elif value_type == "pii":
+                instance_type = "Pii"
+            elif value_type == "pii":
+                instance_type = "PiiBase"
+            else:
+                instance_type = value_type
         else:
             instance_type = value_type
 
         return instance_type
 
-    def _get_hash_value_property_name(self):
-        if self.get_tracer()["language"] == "dotnet":
-            return "Value"
-        else:
-            return "value"
-
-    def _create_expression_probes(self, methodName, expressions):
+    def _create_expression_probes(self, method_name, expressions, lines=()):
         probes = []
         expected_message_map = {}
+        prob_types = []
+        if self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
+            prob_types.append("method")
+        if len(lines) > 0:
+            prob_types.append("line")
 
-        for expression in expressions:
-            expression_to_test, expected_result, dsl = expression
-            message = f"Expression to test: '{expression_to_test}'. Result is: "
+        for probe_type in prob_types:
+            for expression in expressions:
+                expression_to_test, expected_result, dsl = expression
+                message = f"Expression to test: '{expression_to_test}'. Result is: "
 
-            if isinstance(expected_result, bool):
-                expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
-            elif isinstance(expected_result, str) and expected_result and expected_result != "":
-                expected_result = f"[']?{expected_result}[']?"
-            else:
-                expected_result = str(expected_result)
+                if isinstance(expected_result, bool):
+                    expected_result = "[Tt]rue" if expected_result else "[Ff]alse"
+                elif isinstance(expected_result, str) and expected_result and expected_result != "":
+                    expected_result = f"[']?{expected_result}[']?"
+                else:
+                    expected_result = str(expected_result)
 
-            probe = debugger.read_probes("expression_probe_base")[0]
-            probe["id"] = debugger.generate_probe_id("log")
-            probe["where"]["methodName"] = methodName
-            probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
-            probes.append(probe)
+                probe = debugger.read_probes("expression_probe_base")[0]
+                probe["id"] = debugger.generate_probe_id("log")
+                if probe_type == "method":
+                    probe["where"]["methodName"] = method_name
+                if probe_type == "line":
+                    del probe["where"]["methodName"]
+                    probe["where"]["lines"] = lines
+                    probe["where"]["sourceFile"] = "ACTUAL_SOURCE_FILE"
+                    probe["where"]["typeName"] = None
 
-            expected_message_map[probe["id"]] = message + expected_result
+                probe["segments"] = Segment().add_str(message).add_dsl(dsl).to_dict()
+                probes.append(probe)
+
+                expected_message_map[probe["id"]] = message + expected_result
 
         return expected_message_map, probes
 

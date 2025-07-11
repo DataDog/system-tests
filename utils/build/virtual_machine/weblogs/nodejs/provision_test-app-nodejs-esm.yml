@@ -1,7 +1,6 @@
 weblog:
     name: test-app-nodejs-esm
     nginx_config: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-esm/nginx.conf
-    exact_os_branches: [ubuntu24]
     install: 
       - os_type: linux
         copy_files:

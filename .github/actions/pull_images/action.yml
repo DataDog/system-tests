@@ -3,12 +3,12 @@ description: "Pull docker images"
 inputs:
   library:
     description: "Which library will be tested (python, cpp, java, ...)"
-    required: true
+    default: ""
   weblog:
     description: "Which weblog will be tested"
-    required: true
+    default: ""
   scenarios:
-    description: "JSON array of scenarios that will be executed"
+    description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
   cleanup:
     description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
@@ -46,7 +46,7 @@ runs:
       shell: bash
       run: |
         source venv/bin/activate
-        python utils/scripts/get-image-list.py ${{ inputs.library }} ${{ inputs.weblog }} '${{ inputs.scenarios }}' > compose.yaml
+        python utils/scripts/get-image-list.py '${{ inputs.scenarios }}' -l=${{ inputs.library }} -w=${{ inputs.weblog }} > compose.yaml
       env:
         PYTHONPATH: "."
 
@@ -57,6 +57,12 @@ runs:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
 
+#retry
     - name: Pull
-      shell: bash
-      run: docker compose pull
+      uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
+      with:
+        shell: bash
+        command: docker compose pull
+        timeout_minutes: 10
+        retry_wait_seconds: 10
+        max_attempts: 3

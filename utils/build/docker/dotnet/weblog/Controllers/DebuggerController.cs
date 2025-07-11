@@ -35,7 +35,7 @@ namespace weblog
             return Content("Span probe");
         }
 
-        private int intLocal = 0;
+        private int intLocal = 1000;
         [HttpGet("span-decoration/{arg}/{intArg}")]
         [Consumes("application/json", "application/xml")]
         public IActionResult SpanDecorationProbe(string arg, int intArg)
@@ -61,7 +61,7 @@ namespace weblog
             PiiBase? customPii = await Task.FromResult<PiiBase>(new CustomPii());
             var value = pii?.TestValue;
             var customValue = customPii?.TestValue;
-            return Content($"PII {value}. CustomPII {customValue}");
+            return Content($"PII {value}. CustomPII {customValue}"); // must be line 64
         }
 
         [HttpGet("expression")]
@@ -125,6 +125,17 @@ namespace weblog
             }
 
             return Content($"Pii is null {pii is null}. intValue is null {intValue is null}. strValue is null {strValue is null}.");
+        }
+
+        [HttpGet("budgets/{loops}")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult Budgets(int loops)
+        {
+            for (int i = 0; i < loops; i++)
+            {
+                int j = i; // Capture snapshot here to test budgets.
+            }
+            return Content("Budgets");
         }
     }
 }

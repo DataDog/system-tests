@@ -1,10 +1,10 @@
-FROM golang:1.22
+FROM golang:1.23
 
 # print important lib versions
 RUN go version && curl --version
 
 # install socat for the UDS
-RUN apt-get update && apt-get -y install socat
+RUN apt-get update && apt-get -y install socat jq
 
 # download go dependencies
 RUN mkdir -p /app

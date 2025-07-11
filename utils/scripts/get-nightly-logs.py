@@ -2,8 +2,10 @@ import argparse
 import logging
 import io
 import os
+from pathlib import Path
 import sys
 import tarfile
+from typing import Any
 import zipfile
 
 import requests
@@ -14,12 +16,12 @@ logging.basicConfig(level=logging.DEBUG, format="%(levelname)-5s %(message)s")
 logging.getLogger("urllib3").setLevel(logging.WARNING)
 
 
-def get_environ():
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
         with open(".env", encoding="utf-8") as f:
-            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
+            lines = [line.replace("export ", "").strip().split("=", 1) for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
@@ -27,7 +29,7 @@ def get_environ():
     return environ
 
 
-def get_json(session: requests.Session, url: str, params=None, timeout: int = 30):
+def get_json(session: requests.Session, url: str, params: dict | None = None, timeout: int = 30) -> Any:  # noqa: ANN401
     response = session.get(url, params=params, timeout=timeout)
     response.raise_for_status()
     return response.json()
@@ -37,7 +39,7 @@ def is_included(params: list[str], artifact_name: str) -> bool:
     return all(param in artifact_name for param in params)
 
 
-def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str, run_id: int | None):
+def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str, run_id: int | None) -> list:
     if run_id is None:
         data = get_json(
             session,
@@ -63,7 +65,7 @@ def get_artifacts(session: requests.Session, repo_slug: str, workflow_file: str,
     return artifacts
 
 
-def download_artifact(session: requests.Session, artifact: dict, output_dir: str | None = None):
+def download_artifact(session: requests.Session, artifact: dict, output_dir: str) -> None:
     logging.info("Downloading artifact: %s", artifact["name"])
     response = session.get(artifact["archive_download_url"], timeout=60)
     response.raise_for_status()
@@ -73,9 +75,9 @@ def download_artifact(session: requests.Session, artifact: dict, output_dir: str
         z.extractall(output_dir)
 
     for file in os.listdir(output_dir):
-        if file.endswith(".tar.gz") and os.path.isfile(os.path.join(output_dir, file)):
+        if file.endswith(".tar.gz") and Path(os.path.join(output_dir, file)).is_file():
             with tarfile.open(os.path.join(output_dir, file), "r:gz") as t:
-                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)
+                t.extractall(output_dir, filter=lambda tar_info, _: tar_info)  # type: ignore[call-arg]
 
 
 def main(
@@ -83,7 +85,7 @@ def main(
     params: list[str],
     repo_slug: str = "DataDog/system-tests-dashboard",
     workflow_file: str = "nightly.yml",
-):
+) -> None:
     environ = get_environ()
 
     with requests.Session() as session:

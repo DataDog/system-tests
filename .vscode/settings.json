@@ -8,5 +8,10 @@
     ],
     "python.testing.pytestEnabled": true,
     "ruff.enable": true,
+    "ruff.interpreter": [
+        "${workspaceFolder}/venv/bin/python",
+        "-m",
+        "ruff"
+    ],
     "pylint.ignorePatterns": ["*"]
 }

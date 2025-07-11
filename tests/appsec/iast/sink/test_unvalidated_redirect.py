@@ -3,11 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, irrelevant, features, missing_feature, rfc, weblog
-from ..utils import BaseSinkTestWithoutTelemetry, validate_stack_traces
+from tests.appsec.iast.utils import BaseSinkTestWithoutTelemetry, validate_extended_location_data, validate_stack_traces
 
 
 def _expected_location():
-    if context.library.library == "java":
+    if context.library.name == "java":
         if context.weblog_variant.startswith("spring-boot"):
             return "com.datadoghq.system_tests.springboot.AppSecIast"
         if context.weblog_variant == "resteasy-netty3":
@@ -18,11 +18,13 @@ def _expected_location():
             return "com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider"
         if context.weblog_variant == "vertx4":
             return "com.datadoghq.vertx4.iast.routes.IastSinkRouteProvider"
-    if context.library.library == "nodejs":
+    if context.library.name == "nodejs":
         if context.weblog_variant in ("express4", "express5"):
             return "iast/index.js"
         if context.weblog_variant == "express4-typescript":
             return "iast.ts"
+
+    return None
 
 
 @features.iast_sink_unvalidatedredirect
@@ -46,6 +48,7 @@ class TestUnvalidatedRedirect(BaseSinkTestWithoutTelemetry):
     @missing_feature(library="dotnet", reason="weblog does not respond")
     @missing_feature(library="java", reason="weblog does not respond")
     @missing_feature(library="nodejs", reason="weblog does not respond")
+    @missing_feature(library="python", reason="weblog does not respond")
     def test_secure(self):
         super().test_secure()
 
@@ -99,3 +102,35 @@ class TestUnvalidatedHeader_StackTrace:
 
     def test_stack_trace(self):
         validate_stack_traces(self.r)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestUnvalidatedRedirect_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post(
+            "/iast/unvalidated_redirect/test_insecure_redirect", data={"location": "http://dummy.location.com"}
+        )
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)
+
+
+@rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
+@features.iast_extended_location
+class TestUnvalidatedHeader_ExtendedLocation:
+    """Test extended location data"""
+
+    vulnerability_type = "UNVALIDATED_REDIRECT"
+
+    def setup_extended_location_data(self):
+        self.r = weblog.post(
+            "/iast/unvalidated_redirect/test_insecure_header", data={"location": "http://dummy.location.com"}
+        )
+
+    def test_extended_location_data(self):
+        validate_extended_location_data(self.r, self.vulnerability_type)

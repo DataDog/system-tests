@@ -5,12 +5,14 @@
 import re
 from urllib.parse import urlparse
 
-from utils import context, interfaces, bug, missing_feature, features
+from utils import context, interfaces, bug, missing_feature, features, scenarios
 
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
     "golang": "go",
     "java": "jvm",
+    "cpp_httpd": "cpp",
+    "cpp_nginx": "cpp",
 }
 
 """
@@ -36,7 +38,8 @@ VARIANT_COMPONENT_MAP = {
     "graphql-go": "graphql-go/graphql",
     "jersey-grizzly2": {"jakarta-rs.request": "jakarta-rs-controller", "grizzly.request": ["grizzly", "jakarta-rs"]},
     "net-http": "net/http",
-    "sinatra": {"rack.request": "rack"},
+    "net-http-orchestrion": "net/http",
+    "sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "spring-boot": {
         "servlet.request": "tomcat-server",
         "hsqldb.query": ["java-jdbc-prepared_statement", "java-jdbc-statement"],
@@ -101,6 +104,12 @@ VARIANT_COMPONENT_MAP = {
     "uds-echo": "labstack/echo.v4",
     "uds-express4": "express",
     "uds-flask": {"flask.request": "flask"},
+    "uds-rails": {
+        "rails.action_controller": "action_pack",
+        "rails.render_template": "action_view",
+        "rack.request": "rack",
+        "sinatra.request": "sinatra",
+    },
     "uds-sinatra": {"rack.request": "rack", "sinatra.route": "sinatra", "sinatra.request": "sinatra"},
     "uds-spring-boot": {
         "servlet.request": "tomcat-server",
@@ -116,7 +125,7 @@ VARIANT_COMPONENT_MAP = {
 def get_component_name(weblog_variant, language, span_name):
     if language == "ruby":
         # strip numbers from weblog_variant so rails70 -> rails, sinatra14 -> sinatra
-        weblog_variant_stripped_name = re.sub(r"\d+", "", weblog_variant)
+        weblog_variant_stripped_name = re.sub(r"\d+$", "", weblog_variant)
         expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant_stripped_name, weblog_variant_stripped_name)
     elif language == "dotnet":
         expected_component = "aspnet_core"
@@ -135,20 +144,24 @@ def get_component_name(weblog_variant, language, span_name):
 
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @features.unix_domain_sockets_support_for_traces
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
 
-    @bug(library="cpp", reason="APMAPI-924")
+    @bug(library="cpp_nginx", reason="APMAPI-924")
+    @bug(library="cpp_httpd", reason="APMAPI-924")
     @bug(library="php", reason="APMAPI-924")
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "span.kind" in span["meta"], "Web span expects a span.kind meta tag"
             assert span["meta"]["span.kind"] in ["server", "client"], "Meta tag span.kind should be client or server"
@@ -157,6 +170,7 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     @bug(library="ruby", reason="APMAPI-922")
     @bug(context.library < "golang@1.69.0-dev", reason="APMRP-360")
     @bug(context.library < "php@0.68.2", reason="APMRP-360")
@@ -165,10 +179,10 @@ class Test_Meta:
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.url" in span["meta"], "web span expect an http.url meta tag"
 
@@ -179,15 +193,16 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.status_code" in span["meta"], "web span expect an http.status_code meta tag"
 
@@ -197,15 +212,16 @@ class Test_Meta:
 
         interfaces.library.validate_spans(validator=validator)
 
+    @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
         def validator(span):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
-                return
+                return None
 
             if span.get("type") != "web":  # do nothing if is not web related
-                return
+                return None
 
             assert "http.method" in span["meta"], "web span expect an http.method meta tag"
 
@@ -245,7 +261,7 @@ class Test_Meta:
 
             assert "language" in span["meta"], "Span must have a language tag set."
 
-            library = context.library.library
+            library = context.library.name
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
             actual_language = span["meta"]["language"]
@@ -300,7 +316,7 @@ class Test_Meta:
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
 
-@features.add_metadata_globally_to_all_spans_dd_tags
+@features.trace_global_tags
 class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
@@ -319,12 +335,15 @@ class Test_MetaDatadogTags:
 
 
 @features.data_integrity
+@features.envoy_external_processing
+@scenarios.external_processing
+@scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
 
     def test_metrics_process_id(self):
         """Validates that root spans from traces contain a process_id field"""
         spans = [s for _, s in interfaces.library.get_root_spans()]
-        assert spans, "Did not recieve any root spans to validate."
+        assert spans, "Did not receive any root spans to validate."
         for span in spans:
             assert "process_id" in span["metrics"], "Root span expect a process_id metrics tag"

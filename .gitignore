@@ -62,9 +62,18 @@ node_modules/
 # vim
 /*.vim
 *.swp
+*.swo
 
 utils/build/docker/*/parametric/Dockerfile
 
 # debugger
 /tests/debugger/approvals/*received*
 .aider*
+
+# version check
+version-check-output/
+
+tmp/
+
+# Go
+go.work*

@@ -22,7 +22,15 @@ namespace weblog
 
         [HttpGet("recursion")]
         [Consumes("application/json", "application/xml")]
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         public IActionResult exceptionReplayRecursion(int depth)
+        {
+            return exceptionReplayRecursionHelper(depth, depth);
+        }
+
+        [HttpGet("recursion_inline")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult exceptionReplayRecursion_inline(int depth)
         {
             return exceptionReplayRecursionHelper(depth, depth);
         }
@@ -108,6 +116,27 @@ namespace weblog
         public async Task<IActionResult> ExceptionReplayAsync()
         {
             return await AsyncThrow();
+        }
+
+        [HttpGet("outofmemory")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayOutOfMemory()
+        {
+            throw new System.OutOfMemoryException("outofmemory");
+        }
+
+        [HttpGet("stackoverflow")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayStackOverflow()
+        {
+            throw new System.StackOverflowException("stackoverflow");
+        }
+
+        [HttpGet("firsthit")]
+        [Consumes("application/json", "application/xml")]
+        public IActionResult ExceptionReplayFirstHit()
+        {
+            throw new System.InvalidOperationException("firsthit");
         }
     }
 }

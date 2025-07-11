@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import random
+import shlex
 import subprocess
 import sys
 import typing
@@ -14,27 +15,35 @@ from fastapi import Form
 from fastapi import Header
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse
+from fastapi.responses import RedirectResponse
 from fastapi.responses import PlainTextResponse
+from fastapi.responses import Response
 from iast import weak_cipher
 from iast import weak_cipher_secure_algorithm
 from iast import weak_hash
 from iast import weak_hash_duplicates
 from iast import weak_hash_multiple
 from iast import weak_hash_secure_algorithm
+from jinja2 import Template
 import psycopg2
 from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
-from ddtrace import Pin
-from ddtrace import patch_all
-from ddtrace import tracer
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
+try:
+    from ddtrace.trace import Pin
+    from ddtrace.trace import tracer
+except ImportError:
+    from ddtrace import Pin
+    from ddtrace import tracer
 
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 tracer.trace("init.service").finish()
 logger = logging.getLogger(__name__)
@@ -45,6 +54,31 @@ except ImportError:
     set_user = lambda *args, **kwargs: None  # noqa E731
 
 app = FastAPI()
+
+
+# Custom middleware
+try:
+    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
+    current_ddtrace_version = (int(maj), int(min), int(patch))
+except Exception:
+    current_ddtrace_version = (0, 0, 0)
+
+if current_ddtrace_version >= (3, 1, 0):
+    """custom middleware only supported after PR 12413"""
+
+    @app.middleware("http")
+    async def add_process_time_header(request: Request, call_next):
+        try:
+            if request.session.get("user_id"):
+                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+        except Exception:
+            # to be compatible with all tracer versions
+            pass
+        response = await call_next(request)
+        return response
+
+
+app.add_middleware(SessionMiddleware, secret_key="just_for_tests")
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -74,7 +108,7 @@ async def healthcheck():
     return {
         "status": "ok",
         "library": {
-            "language": "python",
+            "name": "python",
             "version": ddtrace.__version__,
         },
     }
@@ -85,6 +119,56 @@ async def set_cookie(request: Request):
     return PlainTextResponse(
         "OK", headers={"Set-Cookie": f"{request.query_params['name']}={request.query_params['value']}"}
     )
+
+
+@app.post("/iast/header_injection/test_insecure", response_class=PlainTextResponse)
+async def iast_header_injection_insecure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Header-Injection"] = header_value
+    return response
+
+
+@app.post("/iast/header_injection/test_secure", response_class=PlainTextResponse)
+async def iast_header_injection_secure(request: Request):
+    form_data = await request.form()
+    header_value = form_data.get("test")
+    response = PlainTextResponse("OK")
+    # label iast_header_injection
+    response.headers["Vary"] = header_value
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_redirect")
+async def view_iast_unvalidated_redirect_insecure(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_insecure_header", response_class=RedirectResponse)
+async def view_iast_unvalidated_redirect_insecure_header(request: Request):
+    form_data = await request.form()
+    location = form_data.get("location")
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
+    return response
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_redirect")
+async def view_iast_unvalidated_redirect_secure():
+    location = "http://dummy.location.com"
+    return RedirectResponse(location)
+
+
+@app.post("/iast/unvalidated_redirect/test_secure_header", response_class=RedirectResponse)
+def view_iast_unvalidated_redirect_secure_header():
+    location = "http://dummy.location.com"
+    response = PlainTextResponse("OK")
+    response.headers["Location"] = location
+    return response
 
 
 @app.get("/sample_rate_route/{i}", response_class=PlainTextResponse)
@@ -99,6 +183,8 @@ async def api_security_sampling(i):
 
 @app.get("/api_security/sampling/{status_code}", response_class=PlainTextResponse)
 async def api_security_sampling_status(status_code: int = 200):
+    if status_code == 204:
+        return Response(status_code=status_code)
     return PlainTextResponse("Hello!", status_code=status_code)
 
 
@@ -148,24 +234,29 @@ async def tag_value_post(tag_value: str, status_code: int, request: Request):
 ### BEGIN EXPLOIT PREVENTION
 
 
-@app.get("/rasp/lfi")
-@app.post("/rasp/lfi")
-async def rasp_lfi(request: Request):
-    file = None
+async def retrieve_arg(request: Request, key: str):
+    data = None
     if request.method == "GET":
-        file = request.query_params.get("file")
+        data = request.query_params.get(key)
     elif request.method == "POST":
         body = await request.body()
         try:
-            file = ((await request.form()) or json.loads(body) or {}).get("file")
+            data = ((await request.form()) or json.loads(body) or {}).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
         try:
-            if file is None:
-                file = xmltodict.parse(body).get("file")
+            if data is None:
+                data = xmltodict.parse(body).get(key)
         except Exception as e:
             print(repr(e), file=sys.stderr)
             pass
+    return data
+
+
+@app.get("/rasp/lfi")
+@app.post("/rasp/lfi")
+async def rasp_lfi(request: Request):
+    file = await retrieve_arg(request, "file")
     if file is None:
         return PlainTextResponse("missing file parameter", status_code=400)
     try:
@@ -176,25 +267,28 @@ async def rasp_lfi(request: Request):
         return PlainTextResponse(f"{file} could not be open: {e!r}")
 
 
+@app.get("/rasp/multiple")
+@app.post("/rasp/multiple")
+async def rasp_multiple(request: Request):
+    file1 = await retrieve_arg(request, "file1")
+    file2 = await retrieve_arg(request, "file2")
+    if file1 is None or file2 is None:
+        return PlainTextResponse("missing file1 or file2 parameter", status_code=400)
+    lengths = []
+    for file in [file1, file2, "../etc/passwd"]:
+        try:
+            with open(file, "rb") as f_in:
+                f_in.seek(0, os.SEEK_END)
+                lengths.append(f_in.tell())
+        except Exception:
+            lengths.append(0)
+    return PlainTextResponse(f"files open with {lengths} bytes")
+
+
 @app.get("/rasp/ssrf")
 @app.post("/rasp/ssrf")
 async def rasp_ssrf(request: Request):
-    domain = None
-    if request.method == "GET":
-        domain = request.query_params.get("domain")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            domain = ((await request.form()) or json.loads(body) or {}).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if domain is None:
-                domain = xmltodict.parse(body).get("domain")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
-
+    domain = await retrieve_arg(request, "domain")
     if domain is None:
         return PlainTextResponse("missing domain parameter", status_code=400)
     try:
@@ -210,21 +304,7 @@ async def rasp_ssrf(request: Request):
 @app.get("/rasp/sqli")
 @app.post("/rasp/sqli")
 async def rasp_sqli(request: Request):
-    user_id = None
-    if request.method == "GET":
-        user_id = request.query_params.get("user_id")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            user_id = ((await request.form()) or json.loads(body) or {}).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if user_id is None:
-                user_id = xmltodict.parse(body).get("user_id")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    user_id = await retrieve_arg(request, "user_id")
 
     if user_id is None:
         return PlainTextResponse("missing user_id parameter", status_code=400)
@@ -244,21 +324,7 @@ async def rasp_sqli(request: Request):
 @app.get("/rasp/shi")
 @app.post("/rasp/shi")
 async def rasp_shi(request: Request):
-    list_dir = None
-    if request.method == "GET":
-        list_dir = request.query_params.get("list_dir")
-    elif request.method == "POST":
-        body = await request.body()
-        try:
-            list_dir = ((await request.form()) or json.loads(body) or {}).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-        try:
-            if list_dir is None:
-                list_dir = xmltodict.parse(body).get("list_dir")
-        except Exception as e:
-            print(repr(e), file=sys.stderr)
-            pass
+    list_dir = await retrieve_arg(request, "list_dir")
 
     if list_dir is None:
         return PlainTextResponse("missing list_dir parameter", status_code=400)
@@ -269,6 +335,34 @@ async def rasp_shi(request: Request):
     except Exception as e:
         print(f"Shell command failure: {e!r}", file=sys.stderr)
         return PlainTextResponse(f"Shell command failure: {e!r}", status_code=201)
+
+
+@app.get("/rasp/cmdi")
+@app.post("/rasp/cmdi")
+async def rasp_cmdi(request: Request):
+    cmd = None
+    if request.method == "GET":
+        cmd = request.query_params.get("command")
+    elif request.method == "POST":
+        body = await request.body()
+        try:
+            cmd = ((await request.form()) or json.loads(body) or {}).get("command")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+        try:
+            if cmd is None:
+                cmd = xmltodict.parse(body).get("command").get("cmd")
+        except Exception as e:
+            print(repr(e), file=sys.stderr)
+            pass
+
+    if cmd is None:
+        return PlainTextResponse("missing command parameter", status_code=400)
+    try:
+        res = subprocess.run(cmd, capture_output=True)
+        return PlainTextResponse(f"Exec command [{cmd}] with result: {res}")
+    except Exception as e:
+        return PlainTextResponse(f"Exec command [{cmd}] failure: {e!r}", status_code=201)
 
 
 ### END EXPLOIT PREVENTION
@@ -289,11 +383,15 @@ async def headers():
 
 @app.get("/status")
 async def status_code(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
 @app.get("/stats-unique")
 async def stats_unique(code: int = 200):
+    if code == 204:
+        return Response(status_code=code)
     return PlainTextResponse("OK, probably", status_code=code)
 
 
@@ -462,21 +560,28 @@ async def view_iast_source_header_value(table: typing.Annotated[str, Header()] =
     return "OK"
 
 
+@app.get("/iast/source/headername/test", response_class=PlainTextResponse)
+async def view_iast_source_header_value(request: Request):
+    table = [k for k in request.headers.keys() if k == "user"][0]
+    _sink_point_path_traversal(tainted_str=table)
+    return "OK"
+
+
 @app.get("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_get(request: Request):
-    param = [key for key in request.query_params if key == "user"]
+    param = [key for key in request.query_params.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
 
 @app.post("/iast/source/parametername/test", response_class=PlainTextResponse)
 async def view_iast_source_parametername_post(request: Request):
-    json_body = await request.form()
-    param = [key for key in json_body if key == "user"]
+    form_data = await request.form()
+    param = [key for key in form_data.keys() if key == "user"]
     if param:
-        _sink_point(id=param[0])
+        _sink_point_path_traversal(param[0])
         return "OK"
     return "KO"
 
@@ -489,6 +594,231 @@ async def view_iast_source_parameter(request: Request, table: typing.Optional[st
         table = json_body.get("table")
     _sink_point(table=table)
     return "OK"
+
+
+@app.post("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+@app.get("/iast/sampling-by-route-method-count/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method(request: Request, id):
+    """Test function for IAST vulnerability sampling algorithm.
+
+    This function contains 15 identical command injection vulnerabilities for both GET and POST methods.
+    The IAST sampling algorithm should only report the first 2 vulnerabilities per request and skip the rest,
+    then report the next 2 vulnerabilities in subsequent requests. This helps validate that the sampling
+    mechanism works correctly by limiting vulnerability reports while still ensuring coverage over time.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    if request.query_params:
+        param_tainted = request.query_params.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    else:
+        form_data = await request.form()
+        param_tainted = form_data.get("param")
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+        try:
+            m = open(param_tainted)
+        except Exception:
+            pass
+    return PlainTextResponse("OK")
+
+
+@app.get("/iast/sampling-by-route-method-count-2/{id}", response_class=PlainTextResponse)
+async def view_iast_sampling_by_route_method_2(request: Request, id):
+    """Secondary test function for IAST vulnerability sampling algorithm.
+
+    Similar to view_iast_sampling_by_route_method, this function contains 15 identical command injection
+    vulnerabilities but only for GET requests. It serves as an additional test case to verify that the
+    IAST sampling algorithm consistently reports only the first 2 vulnerabilities per request and skips
+    the rest, regardless of the endpoint being tested.
+
+    Args:
+        request: The HTTP request object
+        id: URL path parameter for the request
+
+    Returns:
+        HttpResponse with 200 status code
+    """
+    param_tainted = request.query_params.get("param")
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    try:
+        m = open(param_tainted)
+    except Exception:
+        pass
+    return PlainTextResponse("OK")
 
 
 @app.post("/iast/path_traversal/test_insecure", response_class=PlainTextResponse)
@@ -534,7 +864,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.get("/user_login_success_event", response_class=PlainTextResponse)
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return "OK"
 
 
@@ -568,38 +900,68 @@ async def login(request: Request):
     username = form.get("username")
     password = form.get("password")
     sdk_event = request.query_params.get("sdk_event")
-    if sdk_event:
-        sdk_user = request.query_params.get("sdk_user")
-        sdk_mail = request.query_params.get("sdk_mail")
-        sdk_user_exists = request.query_params.get("sdk_user_exists")
-        if sdk_event == "success":
-            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail)
-            return PlainTextResponse("OK")
-        elif sdk_event == "failure":
-            appsec_trace_utils.track_user_login_failure_event(
-                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists
-            )
-            return PlainTextResponse("login failure", status_code=401)
     authorisation = request.headers.get("Authorization")
     if authorisation:
         username, password = base64.b64decode(authorisation[6:]).decode().split(":")
     success, user_id = check(username, password)
     if success:
         # login_user(user)
-        appsec_trace_utils.track_user_login_success_event(tracer, user_id=user_id, login_events_mode="auto")
-        return PlainTextResponse("OK")
+        appsec_trace_utils.track_user_login_success_event(
+            tracer, user_id=user_id, login_events_mode="auto", login=username
+        )
+        request.session["user_id"] = user_id
     elif user_id:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer,
-            user_id=user_id,
-            exists=True,
-            login_events_mode="auto",
+            tracer, user_id=user_id, exists=True, login_events_mode="auto", login=username
         )
     else:
         appsec_trace_utils.track_user_login_failure_event(
-            tracer, user_id=username, exists=False, login_events_mode="auto"
+            tracer, user_id=username, exists=False, login_events_mode="auto", login=username
         )
+    if sdk_event:
+        sdk_user = request.query_params.get("sdk_user")
+        sdk_mail = request.query_params.get("sdk_mail")
+        sdk_user_exists = request.query_params.get("sdk_user_exists")
+        if sdk_event == "success":
+            appsec_trace_utils.track_user_login_success_event(tracer, user_id=sdk_user, email=sdk_mail, login=sdk_user)
+            success = True
+        elif sdk_event == "failure":
+            appsec_trace_utils.track_user_login_failure_event(
+                tracer, user_id=sdk_user, email=sdk_mail, exists=sdk_user_exists, login=sdk_user
+            )
+    if success:
+        return PlainTextResponse("OK")
     return PlainTextResponse("login failure", status_code=401)
+
+
+@app.post("/user_login_success_event_v2", response_class=PlainTextResponse)
+async def user_login_success_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    user_id = json_data.get("user_id")
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_success(login=login, user_id=user_id, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
+
+
+@app.post("/user_login_failure_event_v2", response_class=PlainTextResponse)
+async def user_login_failure_event(request: Request):
+    try:
+        from ddtrace.appsec import track_user_sdk
+    except ImportError:
+        return PlainTextResponse("KO", status_code=420)
+
+    json_data = await request.json()
+    login = json_data.get("login")
+    exists = False if json_data.get("exists") == "false" else True
+    metadata = json_data.get("metadata")
+    track_user_sdk.track_login_failure(login=login, exists=exists, metadata=metadata)
+    return PlainTextResponse("OK", status_code=200)
 
 
 MAGIC_SESSION_KEY = "random_session_id"
@@ -663,12 +1025,47 @@ async def view_iast_ssrf_insecure(url: typing.Annotated[str, Form()]):
     return "OK"
 
 
+@app.get("/iast/stack_trace_leak/test_insecure", response_class=PlainTextResponse)
+async def stacktrace_leak_insecure(request: Request):
+    return PlainTextResponse(
+        content="""
+  Traceback (most recent call last):
+  File "/usr/local/lib/python3.9/site-packages/some_module.py", line 42, in process_data
+    result = complex_calculation(data)
+  File "/usr/local/lib/python3.9/site-packages/another_module.py", line 158, in complex_calculation
+    intermediate = perform_subtask(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/subtask_module.py", line 27, in perform_subtask
+    processed = handle_special_case(data_slice)
+  File "/usr/local/lib/python3.9/site-packages/special_cases.py", line 84, in handle_special_case
+    return apply_algorithm(data_slice, params)
+  File "/usr/local/lib/python3.9/site-packages/algorithm_module.py", line 112, in apply_algorithm
+    step_result = execute_step(data, params)
+  File "/usr/local/lib/python3.9/site-packages/step_execution.py", line 55, in execute_step
+    temp = pre_process(data)
+  File "/usr/local/lib/python3.9/site-packages/pre_processing.py", line 33, in pre_process
+    validated_data = validate_input(data)
+  File "/usr/local/lib/python3.9/site-packages/validation.py", line 66, in validate_input
+    check_constraints(data)
+  File "/usr/local/lib/python3.9/site-packages/constraints.py", line 19, in check_constraints
+    raise ValueError("Constraint violation at step 9")
+ValueError: Constraint violation at step 9
+
+Lorem Ipsum Foobar
+        """
+    )
+
+
+@app.get("/iast/stack_trace_leak/test_secure", response_class=PlainTextResponse)
+async def stacktrace_leak_secure(request: Request):
+    return PlainTextResponse("OK")
+
+
 @app.post("/iast/ssrf/test_secure", response_class=PlainTextResponse)
 async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
     from urllib.parse import urlparse
 
     # Validate the URL and enforce whitelist
-    allowed_domains = ["example.com", "api.example.com"]
+    allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
     parsed_url = urlparse(str(url))
 
     if parsed_url.hostname not in allowed_domains:
@@ -760,21 +1157,14 @@ def test_weak_randomness_secure():
 @app.post("/iast/cmdi/test_insecure", response_class=PlainTextResponse)
 async def view_cmdi_insecure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-
-    subp = subprocess.Popen(args=[cmd, "-la", filename])
-    subp.communicate()
-    subp.wait()
+    os.system(cmd + " -la " + filename)
     return "OK"
 
 
 @app.post("/iast/cmdi/test_secure", response_class=PlainTextResponse)
 async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
     filename = "/"
-    command = " ".join([cmd, "-la", filename])  # noqa F841
-    # TODO: add secure command
-    # subp = subprocess.check_output(command, shell=False)
-    # subp.communicate()
-    # subp.wait()
+    os.system(shlex.quote(cmd) + " -la " + filename)
     return "OK"
 
 
@@ -793,10 +1183,50 @@ async def view_cmdi_secure(cmd: typing.Annotated[str, Form()]):
 #     return "YEAH"
 
 
+@app.post("/iast/code_injection/test_insecure", response_class=PlainTextResponse)
+async def view_iast_code_injection_insecure(code: typing.Annotated[str, Form()]):
+    _ = eval(code)
+    return "OK"
+
+
+@app.post("/iast/code_injection/test_secure", response_class=PlainTextResponse)
+async def view_iast_code_injection_secure(code: typing.Annotated[str, Form()]):
+    import operator
+
+    def safe_eval(expr):
+        ops = {
+            "+": operator.add,
+            "-": operator.sub,
+            "*": operator.mul,
+            "/": operator.truediv,
+        }
+        if len(expr) != 3 or expr[1] not in ops:
+            raise ValueError("Invalid expression")
+        a, op, b = expr
+        return ops[op](float(a), float(b))
+
+    _ = safe_eval(code)
+    return "OK"
+
+
+@app.post("/iast/xss/test_insecure", response_class=PlainTextResponse)
+async def view_iast_xss_insecure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param|safe }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
+
+
+@app.post("/iast/xss/test_secure", response_class=PlainTextResponse)
+async def view_iast_xss_secure(param: typing.Annotated[str, Form()]):
+    template = Template("<p>{{ param }}</p>")
+    html = template.render(param=param)
+    return HTMLResponse(html)
+
+
 @app.get("/createextraservice", response_class=PlainTextResponse)
 def create_extra_service(serviceName: str = ""):
     if serviceName:
-        Pin.override(fastapi, service=serviceName, tracer=tracer)
+        Pin.override(fastapi, service=serviceName)
     return "OK"
 
 

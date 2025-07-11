@@ -3,8 +3,10 @@
 import contextlib
 import time
 import urllib.parse
-from typing import TypedDict
-from collections.abc import Generator
+from typing import TypedDict, NotRequired
+from types import TracebackType
+from collections.abc import Generator, Iterable
+from http import HTTPStatus
 
 from docker.models.containers import Container
 import pytest
@@ -14,10 +16,10 @@ from opentelemetry.trace import SpanKind, StatusCode
 from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
-from utils.tools import logger
+from utils._logger import logger
 
 
-def _fail(message):
+def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
@@ -35,7 +37,7 @@ class SpanResponse(TypedDict):
 
 class Link(TypedDict):
     parent_id: int
-    attributes: dict
+    attributes: NotRequired[dict]
 
 
 class Event(TypedDict):
@@ -49,11 +51,12 @@ class APMLibraryClient:
         self._base_url = url
         self._session = requests.Session()
         self.container = container
+        self.timeout = timeout
 
         # wait for server to start
         self._wait(timeout)
 
-    def _wait(self, timeout):
+    def _wait(self, timeout: float):
         delay = 0.01
         for _ in range(int(timeout / delay)):
             try:
@@ -70,12 +73,16 @@ class APMLibraryClient:
             message = f"Timeout of {timeout} seconds exceeded waiting for HTTP server to start. Please check logs."
             _fail(message)
 
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
+
     def is_alive(self) -> bool:
         self.container.reload()
         return (
             self.container.status == "running"
             and self._session.get(self._url("/non-existent-endpoint-to-ping-until-the-server-starts")).status_code
-            == 404
+            == HTTPStatus.NOT_FOUND
         )
 
     def _print_logs(self):
@@ -94,7 +101,7 @@ class APMLibraryClient:
         except:
             logger.info("Expected exception when calling /trace/crash")
 
-    def container_exec_run(self, command: str) -> tuple[bool, str]:
+    def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
         try:
             code, (stdout, _) = self.container.exec_run(command, demux=True)
             if code is None:
@@ -105,9 +112,32 @@ class APMLibraryClient:
                 message = "Stdout from command in the parametric app container is None"
             else:
                 success = True
-                message = stdout.decode()
+                message = stdout
         except BaseException:
-            return False, "Encountered an issue running command in the parametric app container"
+            return (
+                False,
+                "Encountered an issue running command in the parametric app container",
+            )
+
+        return success, message
+
+    def container_exec_run(self, command: str) -> tuple[bool, str]:
+        try:
+            code, (stdout, stderr) = self.container.exec_run(command, demux=True)
+            if code is None:
+                success = False
+                message = "Exit code from command in the parametric app container is None"
+            elif stderr is not None or code != 0:
+                success = False
+                message = f"Error code {code}: {stderr.decode()}"
+            else:
+                success = True
+                message = stdout.decode() if stdout is not None else ""
+        except BaseException:
+            return (
+                False,
+                "Encountered an issue running command in the parametric app container",
+            )
 
         return success, message
 
@@ -116,7 +146,7 @@ class APMLibraryClient:
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ):
@@ -139,7 +169,7 @@ class APMLibraryClient:
             },
         )
 
-        if resp.status_code != 200:
+        if resp.status_code != HTTPStatus.OK:
             raise pytest.fail(f"Failed to start span: {resp.text}", pytrace=False)
 
         resp_json = resp.json()
@@ -155,66 +185,99 @@ class APMLibraryClient:
         self._session.post(self._url("/trace/span/finish"), json={"span_id": span_id})
 
     def span_set_resource(self, span_id: int, resource: str) -> None:
-        self._session.post(self._url("/trace/span/set_resource"), json={"span_id": span_id, "resource": resource})
+        self._session.post(
+            self._url("/trace/span/set_resource"),
+            json={"span_id": span_id, "resource": resource},
+        )
 
-    def span_set_meta(self, span_id: int, key: str, value) -> None:
-        self._session.post(self._url("/trace/span/set_meta"), json={"span_id": span_id, "key": key, "value": value})
+    def span_set_meta(self, span_id: int, key: str, value: str | bool | list[str | list[str]] | None) -> None:
+        self._session.post(
+            self._url("/trace/span/set_meta"),
+            json={"span_id": span_id, "key": key, "value": value},
+        )
 
     def span_set_baggage(self, span_id: int, key: str, value: str) -> None:
-        self._session.post(self._url("/trace/span/set_baggage"), json={"span_id": span_id, "key": key, "value": value})
+        self._session.post(
+            self._url("/trace/span/set_baggage"),
+            json={"span_id": span_id, "key": key, "value": value},
+        )
 
     def span_remove_baggage(self, span_id: int, key: str) -> None:
-        self._session.post(self._url("/trace/span/remove_baggage"), json={"span_id": span_id, "key": key})
+        self._session.post(
+            self._url("/trace/span/remove_baggage"),
+            json={"span_id": span_id, "key": key},
+        )
 
     def span_remove_all_baggage(self, span_id: int) -> None:
         self._session.post(self._url("/trace/span/remove_all_baggage"), json={"span_id": span_id})
 
-    def span_set_metric(self, span_id: int, key: str, value: float) -> None:
+    def span_set_metric(self, span_id: int, key: str, value: float | list[int]) -> None:
         self._session.post(self._url("/trace/span/set_metric"), json={"span_id": span_id, "key": key, "value": value})
 
     def span_set_error(self, span_id: int, typestr: str, message: str, stack: str) -> None:
         self._session.post(
             self._url("/trace/span/error"),
-            json={"span_id": span_id, "type": typestr, "message": message, "stack": stack},
+            json={
+                "span_id": span_id,
+                "type": typestr,
+                "message": message,
+                "stack": stack,
+            },
         )
 
     def span_add_link(self, span_id: int, parent_id: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_link"),
-            json={"span_id": span_id, "parent_id": parent_id, "attributes": attributes or {}},
+            json={
+                "span_id": span_id,
+                "parent_id": parent_id,
+                "attributes": attributes or {},
+            },
         )
 
-    def span_add_event(self, span_id: int, name: str, timestamp: int, attributes: dict | None = None):
+    def span_add_event(self, span_id: int, name: str, time_unix_nano: int, attributes: dict | None = None):
         self._session.post(
             self._url("/trace/span/add_event"),
-            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes or {}},
+            json={
+                "span_id": span_id,
+                "name": name,
+                "timestamp": time_unix_nano,
+                "attributes": attributes or {},
+            },
         )
 
     def span_get_baggage(self, span_id: int, key: str) -> str:
         resp = self._session.get(self._url("/trace/span/get_baggage"), json={"span_id": span_id, "key": key})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
     def span_get_all_baggage(self, span_id: int) -> dict:
         resp = self._session.get(self._url("/trace/span/get_all_baggage"), json={"span_id": span_id})
-        resp = resp.json()
-        return resp["baggage"]
+        data = resp.json()
+        return data["baggage"]
 
-    def trace_inject_headers(self, span_id):
+    def trace_inject_headers(self, span_id: int):
         resp = self._session.post(self._url("/trace/span/inject_headers"), json={"span_id": span_id})
         # TODO: translate json into list within list
         # so server.xx do not have to
         return resp.json()["http_headers"]
 
-    def trace_extract_headers(self, http_headers: list[tuple[str, str]]):
-        resp = self._session.post(self._url("/trace/span/extract_headers"), json={"http_headers": http_headers})
+    def trace_extract_headers(self, http_headers: Iterable[tuple[str, str]]):
+        resp = self._session.post(
+            self._url("/trace/span/extract_headers"),
+            json={"http_headers": http_headers},
+        )
         return resp.json()["span_id"]
 
     def trace_flush(self) -> bool:
-        return (
-            self._session.post(self._url("/trace/span/flush"), json={}).status_code < 300
-            and self._session.post(self._url("/trace/stats/flush"), json={}).status_code < 300
-        )
+        r = self._session.post(self._url("/trace/span/flush"), json={})
+
+        if not HTTPStatus(r.status_code).is_success:
+            return False
+
+        r = self._session.post(self._url("/trace/stats/flush"), json={})
+
+        return HTTPStatus(r.status_code).is_success
 
     def otel_trace_start_span(
         self,
@@ -243,10 +306,16 @@ class APMLibraryClient:
         return StartSpanResponse(span_id=resp["span_id"], trace_id=resp["trace_id"])
 
     def otel_end_span(self, span_id: int, timestamp: int | None) -> None:
-        self._session.post(self._url("/trace/otel/end_span"), json={"id": span_id, "timestamp": timestamp})
+        self._session.post(
+            self._url("/trace/otel/end_span"),
+            json={"id": span_id, "timestamp": timestamp},
+        )
 
-    def otel_set_attributes(self, span_id: int, attributes) -> None:
-        self._session.post(self._url("/trace/otel/set_attributes"), json={"span_id": span_id, "attributes": attributes})
+    def otel_set_attributes(self, span_id: int, attributes: dict) -> None:
+        self._session.post(
+            self._url("/trace/otel/set_attributes"),
+            json={"span_id": span_id, "attributes": attributes},
+        )
 
     def otel_set_name(self, span_id: int, name: str) -> None:
         self._session.post(self._url("/trace/otel/set_name"), json={"span_id": span_id, "name": name})
@@ -257,13 +326,18 @@ class APMLibraryClient:
             json={"span_id": span_id, "code": code.name, "description": description},
         )
 
-    def otel_add_event(self, span_id: int, name: str, timestamp: int, attributes) -> None:
+    def otel_add_event(self, span_id: int, name: str, timestamp: int | None, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/add_event"),
-            json={"span_id": span_id, "name": name, "timestamp": timestamp, "attributes": attributes},
+            json={
+                "span_id": span_id,
+                "name": name,
+                "timestamp": timestamp,
+                "attributes": attributes,
+            },
         )
 
-    def otel_record_exception(self, span_id: int, message: str, attributes) -> None:
+    def otel_record_exception(self, span_id: int, message: str, attributes: dict | None) -> None:
         self._session.post(
             self._url("/trace/otel/record_exception"),
             json={"span_id": span_id, "message": message, "attributes": attributes},
@@ -289,10 +363,11 @@ class APMLibraryClient:
 
     def otel_set_baggage(self, span_id: int, key: str, value: str) -> None:
         resp = self._session.post(
-            self._url("/trace/otel/otel_set_baggage"), json={"span_id": span_id, "key": key, "value": value}
+            self._url("/trace/otel/otel_set_baggage"),
+            json={"span_id": span_id, "key": key, "value": value},
         )
-        resp = resp.json()
-        return resp["value"]
+        data = resp.json()
+        return data["value"]
 
     def config(self) -> dict[str, str | None]:
         resp = self._session.get(self._url("/trace/config")).json()
@@ -314,6 +389,9 @@ class APMLibraryClient:
             "dd_trace_rate_limit": config_dict.get("dd_trace_rate_limit", None),
             "dd_dogstatsd_host": config_dict.get("dd_dogstatsd_host", None),
             "dd_dogstatsd_port": config_dict.get("dd_dogstatsd_port", None),
+            "dd_logs_injection": config_dict.get("dd_logs_injection", None),
+            "dd_profiling_enabled": config_dict.get("dd_profiling_enabled", None),
+            "dd_data_streams_enabled": config_dict.get("dd_data_streams_enabled", None),
         }
 
     def otel_current_span(self) -> SpanResponse | None:
@@ -334,10 +412,10 @@ class _TestSpan:
     def set_resource(self, resource: str):
         self._client.span_set_resource(self.span_id, resource)
 
-    def set_meta(self, key: str, val):
+    def set_meta(self, key: str, val: str | bool | list[str | list[str]] | None):
         self._client.span_set_meta(self.span_id, key, val)
 
-    def set_metric(self, key: str, val: float):
+    def set_metric(self, key: str, val: float | list[int]):
         self._client.span_set_metric(self.span_id, key, val)
 
     def set_baggage(self, key: str, val: str):
@@ -361,6 +439,9 @@ class _TestSpan:
     def add_link(self, parent_id: int, attributes: dict | None = None):
         self._client.span_add_link(self.span_id, parent_id, attributes)
 
+    def add_event(self, name: str, time_unix_nano: int, attributes: dict | None = None):
+        self._client.span_add_event(self.span_id, name, time_unix_nano, attributes)
+
     def finish(self):
         self._client.finish_span(self.span_id)
 
@@ -373,16 +454,16 @@ class _TestOtelSpan:
 
     # API methods
 
-    def set_attributes(self, attributes):
+    def set_attributes(self, attributes: dict):
         self._client.otel_set_attributes(self.span_id, attributes)
 
-    def set_attribute(self, key, value):
+    def set_attribute(self, key: str, value: str | float | list[str | float | list[str]] | None):
         self._client.otel_set_attributes(self.span_id, {key: value})
 
-    def set_name(self, name):
+    def set_name(self, name: str):
         self._client.otel_set_name(self.span_id, name)
 
-    def set_status(self, code: StatusCode, description):
+    def set_status(self, code: StatusCode, description: str):
         self._client.otel_set_status(self.span_id, code, description)
 
     def add_event(self, name: str, timestamp: int | None = None, attributes: dict | None = None):
@@ -405,14 +486,16 @@ class _TestOtelSpan:
 
 
 class APMLibrary:
-    def __init__(self, client: APMLibraryClient, lang):
+    def __init__(self, client: APMLibraryClient, lang: str):
         self._client = client
         self.lang = lang
 
     def __enter__(self) -> "APMLibrary":
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
+    ) -> bool | None:
         # Only attempt a flush if there was no exception raised.
         if exc_type is None:
             self.dd_flush()
@@ -420,11 +503,19 @@ class APMLibrary:
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
 
+        return None
+
     def crash(self) -> None:
         self._client.crash()
 
     def container_exec_run(self, command: str) -> tuple[bool, str]:
         return self._client.container_exec_run(command)
+
+    def container_restart(self):
+        self._client.container_restart()
+
+    def container_exec_run_raw(self, command: str) -> tuple[bool, str]:
+        return self._client.container_exec_run_raw(command)
 
     @contextlib.contextmanager
     def dd_start_span(
@@ -432,22 +523,27 @@ class APMLibrary:
         name: str,
         service: str | None = None,
         resource: str | None = None,
-        parent_id: str | None = None,
+        parent_id: str | int | None = None,
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ) -> Generator[_TestSpan, None, None]:
         resp = self._client.trace_start_span(
-            name=name, service=service, resource=resource, parent_id=parent_id, typestr=typestr, tags=tags
+            name=name,
+            service=service,
+            resource=resource,
+            parent_id=parent_id,
+            typestr=typestr,
+            tags=tags,
         )
         span = _TestSpan(self._client, resp["span_id"], resp["trace_id"])
         yield span
         span.finish()
 
-    def dd_extract_headers_and_make_child_span(self, name, http_headers):
+    def dd_extract_headers_and_make_child_span(self, name: str, http_headers: Iterable[tuple[str, str]]):
         parent_id = self.dd_extract_headers(http_headers=http_headers)
         return self.dd_start_span(name=name, parent_id=parent_id)
 
-    def dd_make_child_span_and_get_headers(self, headers):
+    def dd_make_child_span_and_get_headers(self, headers: Iterable[tuple[str, str]]) -> dict[str, str]:
         with self.dd_extract_headers_and_make_child_span("name", headers) as span:
             headers = self.dd_inject_headers(span.span_id)
             return {k.lower(): v for k, v in headers}
@@ -488,10 +584,10 @@ class APMLibrary:
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
-    def dd_inject_headers(self, span_id) -> list[tuple[str, str]]:
+    def dd_inject_headers(self, span_id: int) -> list[tuple[str, str]]:
         return self._client.trace_inject_headers(span_id)
 
-    def dd_extract_headers(self, http_headers: list[tuple[str, str]]) -> int:
+    def dd_extract_headers(self, http_headers: Iterable[tuple[str, str]]) -> int:
         return self._client.trace_extract_headers(http_headers)
 
     def otel_set_baggage(self, span_id: int, key: str, value: str):

@@ -4,44 +4,42 @@
 
 """Check data that are sent to logs file on weblog"""
 
+from collections.abc import Callable
 import json
-import re
 import os
+from pathlib import Path
+import re
 
-from utils._context.core import context
-from utils.tools import logger
+from utils._logger import logger
 from utils.interfaces._core import InterfaceValidator
+from utils._context.component_version import ComponentVersion
 
 
 class _LogsInterfaceValidator(InterfaceValidator):
-    def __init__(self, name, new_log_line_pattern=None):
+    def __init__(self, name: str, new_log_line_pattern: str | None = None):
         super().__init__(name)
 
         self._skipped_patterns = [
             re.compile(r"^\s*$"),
         ]
         self._new_log_line_pattern = re.compile(new_log_line_pattern or ".")
-        self._parsers = []
+        self._parsers: list[re.Pattern] = []
         self.timeout = 0
-        self._data_list = []
+        self._data_list: list[dict] = []
 
     def _get_files(self):
         raise NotImplementedError
 
-    def _clean_line(self, line):
+    def _clean_line(self, line: str):
         return line
 
-    def _is_new_log_line(self, line):
+    def _is_new_log_line(self, line: str):
         return self._new_log_line_pattern.search(line)
 
-    def _is_skipped_line(self, line):
-        for pattern in self._skipped_patterns:
-            if pattern.search(line):
-                return True
+    def _is_skipped_line(self, line: str):
+        return any(pattern.search(line) for pattern in self._skipped_patterns)
 
-        return False
-
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         return level
 
     def _read(self):
@@ -50,7 +48,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
             log_count = 0
             try:
                 with open(filename, encoding="utf-8") as f:
-                    buffer = []
+                    buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
                         if line.endswith("\n"):
@@ -94,7 +92,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator, *, success_by_default=False):
+    def validate(self, validator: Callable, *, success_by_default: bool = False):
         for data in self.get_data():
             try:
                 if validator(data) is True:
@@ -106,24 +104,24 @@ class _LogsInterfaceValidator(InterfaceValidator):
         if not success_by_default:
             raise ValueError("Test has not been validated by any data")
 
-    def assert_presence(self, pattern, **extra_conditions):
+    def assert_presence(self, pattern: str, **extra_conditions: str):
         validator = _LogPresence(pattern, **extra_conditions)
         self.validate(validator.check, success_by_default=False)
 
-    def assert_absence(self, pattern, allowed_patterns=None):
+    def assert_absence(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         validator = _LogAbsence(pattern, allowed_patterns)
         self.validate(validator.check, success_by_default=True)
 
 
 class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):
-    def __init__(self, container_name, new_log_line_pattern=None):
+    def __init__(self, container_name: str, new_log_line_pattern: str | None = None):
         super().__init__(f"{container_name} stdout", new_log_line_pattern=new_log_line_pattern)
         self.container_name = container_name
 
     def _get_files(self):
         return [
-            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stdout.log",
-            f"{context.scenario.host_log_folder}/docker/{self.container_name}/stderr.log",
+            f"{self.host_log_folder}/docker/{self.container_name}/stdout.log",
+            f"{self.host_log_folder}/docker/{self.container_name}/stderr.log",
         ]
 
 
@@ -132,7 +130,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
         super().__init__("weblog")
         self.library = None
 
-    def init_patterns(self, library):
+    def init_patterns(self, library: ComponentVersion):
         self.library = library
         p = "(?P<{}>{})".format
 
@@ -160,11 +158,13 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             klass = p("klass", r"[\w\.$\[\]/]+")
             self._parsers.append(re.compile(rf"^{timestamp} +{level} \d -+ \[ *{thread}\] +{klass} *: *{message}"))
 
-        elif library == "dotnet":
-            self._new_log_line_pattern = re.compile(r"^\s*(info|debug|error)")
         elif library == "php":
             self._skipped_patterns += [
-                re.compile(r"^(?!\[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}\]\[[a-z]+\]\[\d+\])"),
+                re.compile(
+                    # Ensure env vars are not leaked in logs
+                    # Ex: export SOME_SECRET_ENV=api_key OR env[SOME_SECRET_ENV] = api_key
+                    r"export \w+\s*=\s*.*|" r"env\[\w+\]\s*=.*"
+                ),
             ]
 
             timestamp = p("timestamp", r"\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}")
@@ -176,13 +176,13 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._new_log_line_pattern = re.compile(r".")
             self._parsers.append(re.compile(p("message", r".*")))
 
-    def _clean_line(self, line):
+    def _clean_line(self, line: str):
         if line.startswith("weblog_1         | "):
             line = line[19:]
 
         return line
 
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         if self.library == "php":
             return level.upper()
 
@@ -212,19 +212,19 @@ class _LibraryDotnetManaged(_LogsInterfaceValidator):
         result = []
 
         try:
-            files = os.listdir(f"{context.scenario.host_log_folder}/docker/weblog/logs/")
+            files = os.listdir(f"{self.host_log_folder}/docker/weblog/logs/")
         except FileNotFoundError:
             files = []
 
         for f in files:
-            filename = os.path.join(f"{context.scenario.host_log_folder}/docker/weblog/logs/", f)
+            filename = os.path.join(f"{self.host_log_folder}/docker/weblog/logs/", f)
 
-            if os.path.isfile(filename) and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
+            if Path(filename).is_file() and re.search(r"dotnet-tracer-managed-dotnet-\d+(_\d+)?.log", filename):
                 result.append(filename)
 
         return result
 
-    def _get_standardized_level(self, level):
+    def _get_standardized_level(self, level: str):
         return {"DBG": "DEBUG", "INF": "INFO", "ERR": "ERROR"}.get(level, level)
 
 
@@ -257,11 +257,11 @@ class _PostgresStdout(_StdoutLogsInterfaceValidator):
 
 
 class _LogPresence:
-    def __init__(self, pattern, **extra_conditions):
+    def __init__(self, pattern: str, **extra_conditions: str):
         self.pattern = re.compile(pattern)
         self.extra_conditions = {k: re.compile(pattern) for k, pattern in extra_conditions.items()}
 
-    def check(self, data):
+    def check(self, data: dict):
         if "message" in data and self.pattern.search(data["message"]):
             for key, extra_pattern in self.extra_conditions.items():
                 if key not in data:
@@ -283,12 +283,11 @@ class _LogPresence:
 
 
 class _LogAbsence:
-    def __init__(self, pattern, allowed_patterns=None):
+    def __init__(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         self.pattern = re.compile(pattern)
-        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns] if allowed_patterns else []
-        self.failed_logs = []
+        self.allowed_patterns = [re.compile(pattern) for pattern in allowed_patterns]
 
-    def check(self, data):
+    def check(self, data: dict):
         if self.pattern.search(data["raw"]):
             for pattern in self.allowed_patterns:
                 if pattern.search(data["raw"]):
@@ -303,6 +302,7 @@ class Test:
         """Test example"""
 
         from utils._context._scenarios import scenarios
+        from utils import context
 
         context.scenario = scenarios.default
 

@@ -15,12 +15,12 @@ class Test_StrictMode:
 
 
 @scenarios.mock_the_test
-@bug(True, reason="FAKE-001")
+@bug(condition=True, reason="FAKE-001")
 def test_strict_bug():
     assert True, "Bug fixed"
 
 
 @scenarios.mock_the_test
-@missing_feature(True)
+@missing_feature(condition=True)
 def test_strict_missing_feature():
     assert True, "I'm a feature implemented"

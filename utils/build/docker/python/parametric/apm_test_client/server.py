@@ -10,6 +10,7 @@ import os
 from fastapi import FastAPI
 import opentelemetry.trace
 from pydantic import BaseModel
+from urllib.parse import urlparse
 
 import opentelemetry
 from opentelemetry.trace import set_tracer_provider
@@ -26,15 +27,23 @@ from opentelemetry.baggage import set_baggage
 from opentelemetry.baggage import get_baggage
 
 import ddtrace
-from ddtrace import Span
 from ddtrace import config
+from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
-from ddtrace.context import Context
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
+
+try:
+    from ddtrace.trace import Span
+    from ddtrace.trace import Context
+    from ddtrace._trace.sampling_rule import SamplingRule
+except ImportError:
+    from ddtrace import Span
+    from ddtrace.context import Context
+    from ddtrace.sampling_rule import SamplingRule
 
 log = logging.getLogger(__name__)
 
@@ -56,6 +65,24 @@ Implement the API specified below to enable your library to run all of the share
 
 # Ensures the Datadog and OpenTelemetry tracers are interoperable
 opentelemetry.trace.set_tracer_provider(TracerProvider())
+
+
+try:
+    # ddtrace.internal.agent.config is only available in ddtrace>=3.3.0
+    from ddtrace.internal.agent import config as agent_config
+
+    def trace_agent_url():
+        return agent_config.trace_agent_url
+
+    def dogstatsd_url():
+        return agent_config.dogstatsd_url
+except ImportError:
+    # TODO: Remove this block once we stop running parametric tests for ddtrace<3.3.0
+    def trace_agent_url():
+        return ddtrace.tracer._agent_url
+
+    def dogstatsd_url():
+        return ddtrace.tracer._dogstatsd_url
 
 
 class StartSpanArgs(BaseModel):
@@ -110,7 +137,7 @@ def trace_config() -> TraceConfigReturn:
         config={
             "dd_service": config.service,
             "dd_log_level": None,
-            "dd_trace_sample_rate": str(config._trace_sample_rate),
+            "dd_trace_sample_rate": str(_global_sampling_rate()),
             "dd_trace_enabled": str(config._tracing_enabled).lower(),
             "dd_runtime_metrics_enabled": str(config._runtime_metrics_enabled).lower(),
             "dd_tags": ",".join(f"{k}:{v}" for k, v in config.tags.items()),
@@ -121,9 +148,12 @@ def trace_config() -> TraceConfigReturn:
             "dd_env": config.env,
             "dd_version": config.version,
             "dd_trace_rate_limit": str(config._trace_rate_limit),
-            "dd_trace_agent_url": config._trace_agent_url,
-            "dd_dogstatsd_host": config._stats_agent_hostname,
-            "dd_dogstatsd_port": config._stats_agent_port,
+            "dd_trace_agent_url": trace_agent_url(),
+            "dd_dogstatsd_host": urlparse(dogstatsd_url()).hostname,
+            "dd_dogstatsd_port": urlparse(dogstatsd_url()).port,
+            "dd_logs_injection": str(config._logs_injection).lower(),
+            "dd_profiling_enabled": str(profiling_config.enabled).lower(),
+            "dd_data_streams_enabled": str(config._data_streams_enabled).lower(),
         }
     )
 
@@ -676,6 +706,19 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
 
 def get_ddtrace_version() -> Tuple[int, int, int]:
     return parse_version(getattr(ddtrace, "__version__", ""))
+
+
+def _global_sampling_rate():
+    for rule in ddtrace.tracer._sampler.rules:
+        if (
+            rule.service == SamplingRule.NO_RULE
+            and rule.name == SamplingRule.NO_RULE
+            and rule.resource == SamplingRule.NO_RULE
+            and rule.tags == SamplingRule.NO_RULE
+            and rule.provenance == "default"
+        ):
+            return rule.sample_rate
+    return 1.0
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features, flaky, waf_rules
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 
@@ -24,16 +24,18 @@ class Test_ConfigurationVariables:
         self.r_enabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     def test_enabled(self):
-        """test DD_APPSEC_ENABLED = true"""
+        """Test DD_APPSEC_ENABLED = true"""
         interfaces.library.assert_waf_attack(self.r_enabled)
 
     def setup_disabled(self):
         self.r_disabled = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
+    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.everything_disabled
     def test_disabled(self):
-        """test DD_APPSEC_ENABLED = false"""
+        """Test DD_APPSEC_ENABLED = false"""
+        assert self.r_disabled.status_code == 200
         interfaces.library.assert_no_appsec_event(self.r_disabled)
 
     def setup_appsec_rules(self):
@@ -41,21 +43,24 @@ class Test_ConfigurationVariables:
 
     @scenarios.appsec_custom_rules
     def test_appsec_rules(self):
-        """test DD_APPSEC_RULES = custom rules file"""
+        """Test DD_APPSEC_RULES = custom rules file"""
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
 
     def setup_waf_timeout(self):
-        long_payload = "?" + "&".join(f"{k}={v}" for k, v in ((f"key_{i}", f"value_{i}" * (i + 1)) for i in range(255)))
-        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(254)}
+        long_payload = "?" + "&".join(
+            f"{k}={v}" for k, v in ((f"java.io.{i}", f"java.io.{i}" * (i + 1)) for i in range(15))
+        )
+        long_headers = {f"key_{i}" * (i + 1): f"value_{i}" * (i + 1) for i in range(10)}
+        long_headers["Referer"] = "javascript:alert('XSS');"
         long_headers["User-Agent"] = "Arachni/v1"
         self.r_waf_timeout = weblog.get(f"/waf/{long_payload}", headers=long_headers)
 
     @missing_feature(context.library < "java@0.113.0")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-openliberty")
-    @missing_feature(context.library == "java" and context.weblog_variant == "spring-boot-wildfly")
+    @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
     @scenarios.appsec_low_waf_timeout
     def test_waf_timeout(self):
-        """test DD_APPSEC_WAF_TIMEOUT = low value"""
+        """Test DD_APPSEC_WAF_TIMEOUT = low value"""
+        assert self.r_waf_timeout.status_code == 200
         interfaces.library.assert_no_appsec_event(self.r_waf_timeout)
 
     def setup_obfuscation_parameter_key(self):
@@ -65,9 +70,9 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_key(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
@@ -83,12 +88,39 @@ class Test_ConfigurationVariables:
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
     @scenarios.appsec_custom_obfuscation
     def test_obfuscation_parameter_value(self):
-        """test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
-        def validate_appsec_span_tags(span, appsec_data):  # pylint: disable=unused-argument
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
             assert not nested_lookup(
                 self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
             ), "The security events contain the secret value that should be obfuscated"
 
         interfaces.library.assert_waf_attack(self.r_op_value, pattern="<Redacted>")
+        interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)
+
+
+@rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
+@features.threats_configuration
+@scenarios.appsec_blocking
+class Test_ConfigurationVariables_New_Obfuscation:
+    """Check for new obfuscation features in libddwaf 1.25.0 and later
+    Requires libddwaf 1.25.0 or later and updated obfuscation regex for values
+    """
+
+    SECRET_WITH_HIDDEN_VALUE = "hide_value"
+
+    def setup_partial_obfuscation_parameter_value(self):
+        self.r_op_value = weblog.get(f"/.git?password={self.SECRET_WITH_HIDDEN_VALUE}")
+
+    @missing_feature(context.library <= "ruby@1.0.0")
+    def test_partial_obfuscation_parameter_value(self):
+        """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
+
+        def validate_appsec_span_tags(span, appsec_data):  # noqa: ARG001
+            assert not nested_lookup(
+                self.SECRET_WITH_HIDDEN_VALUE, appsec_data, look_in_keys=True
+            ), "The security events contain the secret value that should be obfuscated"
+
+        # previously, the value was obfuscated as "<Redacted>", now only the secret part is obfuscated
+        interfaces.library.assert_waf_attack(self.r_op_value, value="/.git?password=<Redacted>")
         interfaces.library.validate_appsec(self.r_op_value, validate_appsec_span_tags, success_by_default=True)

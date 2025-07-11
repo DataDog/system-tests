@@ -1,0 +1,158 @@
+{
+  "docker_ssi_runtimes": {
+    "java": [
+      {
+        "version_id": "JAVA_24",
+        "version": "24.0.1-zulu"
+      },
+      {
+        "version_id": "JAVA_21",
+        "version": "21.0.7-zulu"
+      },
+      {
+        "version_id": "JAVA_17",
+        "version": "17.0.15-zulu"
+      },
+      {
+        "version_id": "JAVA_11",
+        "version": "11.0.27-zulu"
+      }
+    ],
+    "nodejs": [
+      {
+        "version_id": "JS1200",
+        "version": "12.0"
+      },
+      {
+        "version_id": "JS1222",
+        "version": "12.22"
+      },
+      {
+        "version_id": "JS1400",
+        "version": "14.0"
+      },
+      {
+        "version_id": "JS1421",
+        "version": "14.21"
+      },
+      {
+        "version_id": "JS1600",
+        "version": "16.0"
+      },
+      {
+        "version_id": "JS1620",
+        "version": "16.20"
+      },
+      {
+        "version_id": "JS1800",
+        "version": "18.0"
+      },
+      {
+        "version_id": "JS1820",
+        "version": "18.20"
+      },
+      {
+        "version_id": "JS2000",
+        "version": "20.0"
+      },
+      {
+        "version_id": "JS2018",
+        "version": "20.18"
+      },
+      {
+        "version_id": "JS2200",
+        "version": "22.0"
+      },
+      {
+        "version_id": "JS2211",
+        "version": "22.11"
+      },
+      {
+        "version_id": "JS2300",
+        "version": "23.0"
+      },
+      {
+        "version_id": "JS2303",
+        "version": "23.3"
+      }
+    ],
+    "python": [
+      {
+        "version_id": "PY36",
+        "version": "3.6.15"
+      },
+      {
+        "version_id": "PY37",
+        "version": "3.7.16"
+      },
+      {
+        "version_id": "PY38",
+        "version": "3.8.20"
+      },
+      {
+        "version_id": "PY39",
+        "version": "3.9.20"
+      },
+      {
+        "version_id": "PY310",
+        "version": "3.10.15"
+      },
+      {
+        "version_id": "PY311",
+        "version": "3.11.10"
+      },
+      {
+        "version_id": "PY312",
+        "version": "3.12.7"
+      }
+    ],
+    "php": [
+      {
+        "version_id": "PHP56",
+        "version": "5.6"
+      },
+      {
+        "version_id": "PHP70",
+        "version": "7.0"
+      },
+      {
+        "version_id": "PHP71",
+        "version": "7.1"
+      },
+      {
+        "version_id": "PHP72",
+        "version": "7.2"
+      },
+      {
+        "version_id": "PHP73",
+        "version": "7.3"
+      },
+      {
+        "version_id": "PHP74",
+        "version": "7.4"
+      },
+      {
+        "version_id": "PHP80",
+        "version": "8.0"
+      },
+      {
+        "version_id": "PHP81",
+        "version": "8.1"
+      },
+      {
+        "version_id": "PHP82",
+        "version": "8.2"
+      },
+      {
+        "version_id": "PHP83",
+        "version": "8.3"
+      }
+    ],
+    "dotnet": [
+      {
+        "version_id": "DOTNET70",
+        "version": "7.0.410"
+      }
+    ]
+  }
+}

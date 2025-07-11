@@ -1,41 +1,44 @@
-from utils import bug, context, interfaces, irrelevant, features, flaky, missing_feature, rfc, scenarios, weblog
-from utils.tools import logger
+from utils import bug, context, interfaces, features, rfc, scenarios, weblog, logger
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 
-def _setup(self):
-    """
-    Common setup for all tests in this module. They all depend on the same set
-    of requests, which must be run only once.
-    """
-    # Run only once, even across multiple class instances.
-    if hasattr(Test_TelemetryMetrics, "__common_setup_done"):
-        return
-    r_plain = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
-    r_triggered = weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
-    r_blocked = weblog.get(
-        "/",
-        headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
-        # XXX: hack to prevent rid inhibiting the dd-test-scanner-log-block rule
-        rid_in_user_agent=False,
-    )
-    Test_TelemetryMetrics.__common_setup_done = True
-
-
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
+@rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @scenarios.appsec_waf_telemetry
 @features.waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""
+
+    __common_setup_done = False
+
+    def _setup(self):
+        """Common setup for all tests in this module. They all depend on the same set
+        of requests, which must be run only once.
+        """
+        # Run only once, even across multiple class instances.
+        if Test_TelemetryMetrics.__common_setup_done:
+            return
+
+        weblog.get("/", headers={"x-forwarded-for": "80.80.80.80"})
+        weblog.get("/", headers={"x-forwarded-for": "80.80.80.80", "user-agent": "Arachni/v1"})
+        weblog.get(
+            "/",
+            headers={"x-forwarded-for": "80.80.80.80", "user-agent": "dd-test-scanner-log-block"},
+            # Hack to prevent rid inhibiting the dd-test-scanner-log-block rule
+            rid_in_user_agent=False,
+        )
+        Test_TelemetryMetrics.__common_setup_done = True
 
     setup_headers_are_correct = _setup
 
     @bug(context.library < "java@1.13.0", reason="APMRP-360")
     def test_headers_are_correct(self):
         """Tests that all telemetry requests have correct headers."""
-        for data in interfaces.library.get_telemetry_data(flatten_message_batches=False):
+        datas = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        assert len(datas) > 0, "No telemetry received"
+        for data in datas:
             request_type = data["request"]["content"].get("request_type")
             _validate_headers(data["request"]["headers"], request_type)
 
@@ -53,6 +56,7 @@ class Test_TelemetryMetrics:
             "event_rules_version",
             "version",
             "lib_language",
+            "success",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
@@ -90,13 +94,12 @@ class Test_TelemetryMetrics:
             "waf_timeout",
             "version",
             "lib_language",
+            "waf_error",
+            "block_failure",
+            "rate_limited",
+            "input_truncated",
         }
-        mandatory_tag_prefixes = {
-            "waf_version",
-            "event_rules_version",
-            "rule_triggered",
-            "request_blocked",
-        }
+        mandatory_tag_prefixes = self._get_waf_requests_mandatory_tags()
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
         logger.debug(series)
         # Depending on the timing, there might be more than 3 series. For example, if a warmup
@@ -106,6 +109,10 @@ class Test_TelemetryMetrics:
         matched_not_blocked = 0
         matched_triggered = 0
         matched_blocked = 0
+        matched_input_truncated = 0
+        matched_rate_limited = 0
+        matched_block_failure = 0
+
         for s in series:
             assert s["_computed_namespace"] == "appsec"
             assert s["metric"] == expected_metric_name
@@ -131,10 +138,25 @@ class Test_TelemetryMetrics:
             else:
                 raise ValueError(f"Unexpected tags: {full_tags}")
 
+            if "input_truncated:false" in full_tags:
+                matched_input_truncated += 1
+            if "rate_limited:false" in full_tags:
+                matched_rate_limited += 1
+            if "block_failure:false" in full_tags:
+                matched_block_failure += 1
+
         # XXX: Warm up requests might generate more than one series.
         assert matched_not_blocked >= 1
         assert matched_triggered == 1
         assert matched_blocked == 1
+
+        # Assert only if the tags exist in mandatory_tag_prefixes
+        if "input_truncated" in mandatory_tag_prefixes:
+            assert matched_input_truncated >= 3
+        if "rate_limited" in mandatory_tag_prefixes:
+            assert matched_rate_limited >= 3
+        if "block_failure" in mandatory_tag_prefixes:
+            assert matched_block_failure >= 3
 
     setup_waf_requests_match_traced_requests = _setup
 
@@ -186,11 +208,24 @@ class Test_TelemetryMetrics:
         missing_tags = mandatory_prefixes - tag_prefixes
         assert not missing_tags
 
+    def _get_waf_requests_mandatory_tags(self):
+        mandatory_tag_prefixes = {
+            "waf_version",
+            "event_rules_version",
+            "rule_triggered",
+            "request_blocked",
+        }
+
+        if context.library >= "java@1.47.0" or context.library >= "nodejs@5.44.0":
+            mandatory_tag_prefixes.update({"block_failure", "rate_limited", "input_truncated"})
+
+        return mandatory_tag_prefixes
+
 
 def _validate_headers(headers, request_type):
     """https://github.com/DataDog/instrumentation-telemetry-api-docs/blob/main/GeneratedDocumentation/ApiDocs/v2/how-to-use.md"""
 
-    expected_language = context.library.library
+    expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
 

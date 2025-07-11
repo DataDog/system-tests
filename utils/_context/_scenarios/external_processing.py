@@ -2,24 +2,39 @@ import pytest
 
 from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
 from utils import interfaces
+from utils.interfaces._core import ProxyBasedInterfaceValidator
 
-from utils.tools import logger
+from utils._logger import logger
 
-from .endtoend import DockerScenario, ScenarioGroup
+from .core import scenario_groups
+from .endtoend import DockerScenario
 
 
 class ExternalProcessingScenario(DockerScenario):
-    def __init__(self, name):
+    def __init__(
+        self,
+        name: str,
+        doc: str,
+        *,
+        extproc_env: dict[str, str | None] | None = None,
+        extproc_volumes: dict[str, dict[str, str]] | None = None,
+        rc_api_enabled: bool = False,
+    ) -> None:
         super().__init__(
             name,
-            doc="Envoy + external processing",
+            doc=doc,
             github_workflow="externalprocessing",
-            scenario_groups=[ScenarioGroup.END_TO_END, ScenarioGroup.EXTERNAL_PROCESSING],
+            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing, scenario_groups.all],
             use_proxy=True,
+            rc_api_enabled=rc_api_enabled,
         )
 
         self._agent_container = AgentContainer(self.host_log_folder)
-        self._external_processing_container = ExternalProcessingContainer(self.host_log_folder)
+        self._external_processing_container = ExternalProcessingContainer(
+            self.host_log_folder,
+            env=extproc_env,
+            volumes=extproc_volumes,
+        )
         self._envoy_container = EnvoyContainer(self.host_log_folder)
         self._http_app_container = DummyServerContainer(self.host_log_folder)
 
@@ -31,31 +46,14 @@ class ExternalProcessingScenario(DockerScenario):
         self._required_containers.append(self._envoy_container)
         self._required_containers.append(self._http_app_container)
 
-        # start envoyproxy/envoy:v1.31-latest⁠
-        # -> envoy.yaml configuration in tests/external_processing/envoy.yaml
-
-        # start dummy http app on weblog port
-        # -> server.py in tests/external_processing/server.py
-
-        # start system-tests proxy
-        # start agent
-        # start service extension
-        #    with agent url threw system-tests proxy
-
-        # service extension image:
-        # https://github.com/DataDog/dd-trace-go/pkgs/container/dd-trace-go%2Fservice-extensions-callout
-        # Version:
-        # tag: dev
-        # base: latest/v*.*.*
-
-    def configure(self, config):
+    def configure(self, config: pytest.Config):
         super().configure(config)
 
-        interfaces.library.configure(self.host_log_folder, self.replay)
-        interfaces.agent.configure(self.host_log_folder, self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
-    def _start_interfaces_watchdog(self, _=None):
-        super()._start_interfaces_watchdog([interfaces.library, interfaces.agent])
+    def _start_interfaces_watchdog(self):
+        super().start_interfaces_watchdog([interfaces.library, interfaces.agent])
 
     def _wait_for_app_readiness(self):
         logger.debug("Wait for app readiness")
@@ -106,7 +104,7 @@ class ExternalProcessingScenario(DockerScenario):
             self._agent_container.stop()
             interfaces.agent.check_deserialization_errors()
 
-    def _wait_interface(self, interface, timeout):
+    def _wait_interface(self, interface: ProxyBasedInterfaceValidator, timeout: int):
         logger.terminal.write_sep("-", f"Wait for {interface} ({timeout}s)")
         logger.terminal.flush()
 
@@ -114,7 +112,7 @@ class ExternalProcessingScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "external-processing"
+        return "gcp-service-extension"
 
     @property
     def library(self):

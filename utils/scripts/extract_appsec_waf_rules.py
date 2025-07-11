@@ -6,7 +6,7 @@ from collections import defaultdict
 import requests
 
 
-def to_camel_case(str_input):
+def to_camel_case(str_input: str) -> str:
     return "".join(ele.title() for ele in str_input.split("_"))
 
 
@@ -18,7 +18,7 @@ version = data["version"]
 
 rules_key = {"1.0": "events", "2.1": "rules", "2.2": "rules"}[version]
 
-result = defaultdict(dict)
+result: dict = defaultdict(dict)
 for event in data[rules_key]:
     name = event["id"]
     name = name.replace("-", "_")

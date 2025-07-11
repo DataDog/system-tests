@@ -1,7 +1,7 @@
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, ORIGIN
 from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.trace import find_only_span
-from utils import features, scenarios, bug, context
+from utils import features, scenarios
 
 
 @features.datadog_headers_propagation
@@ -12,7 +12,7 @@ class Test_Headers_Datadog:
         and activated properly.
         """
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "123456789"],
                     ["x-datadog-parent-id", "987654321"],
@@ -27,14 +27,14 @@ class Test_Headers_Datadog:
         assert span.get("parent_id") == 987654321
         origin = span["meta"].get(ORIGIN)
         # allow implementations to split origin at the first ','
-        assert origin == "synthetics;=web,z" or origin == "synthetics;=web"
+        assert origin in ("synthetics;=web,z", "synthetics;=web")
         assert span["meta"].get("_dd.p.dm") == "-4"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     def test_distributed_headers_extract_datadog_invalid_D002(self, test_agent, test_library):
         """Ensure that invalid Datadog distributed tracing headers are not extracted."""
         with test_library:
-            headers = test_library.dd_make_child_span_and_get_headers(
+            test_library.dd_make_child_span_and_get_headers(
                 [
                     ["x-datadog-trace-id", "0"],
                     ["x-datadog-parent-id", "0"],
@@ -76,7 +76,7 @@ class Test_Headers_Datadog:
                 ],
             )
 
-        span = find_only_span(test_agent.wait_for_num_traces(1))
+        find_only_span(test_agent.wait_for_num_traces(1))
         assert headers["x-datadog-trace-id"] == "123456789"
         assert headers["x-datadog-parent-id"] != "987654321"
         assert headers["x-datadog-sampling-priority"] == "2"

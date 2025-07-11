@@ -1,0 +1,14 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata:
+  name: lib-injection-testing-eks-sandbox
+  region: us-east-1
+  tags:
+    user: system-tests
+    team: APM reliability
+managedNodeGroups:
+  - name: standard
+    instanceType: t3.medium
+    desiredCapacity: 1
+    minSize: 0
+    volumeSize: 30

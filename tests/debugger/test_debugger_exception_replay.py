@@ -2,14 +2,14 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-import tests.debugger.utils as debugger
-import os
 import re
-from utils import scenarios, features, bug, context, flaky
-from utils.tools import logger
+import os
+import tests.debugger.utils as debugger
+import time
+from utils import scenarios, features, bug, context, flaky, irrelevant, missing_feature, logger
 
 
-def get_env_bool(env_var_name, default=False):
+def get_env_bool(env_var_name, *, default=False) -> bool:
     value = os.getenv(env_var_name, str(default)).lower()
     return value in {"true", "True", "1"}
 
@@ -24,9 +24,13 @@ _timeout_next = 30
 
 @features.debugger_exception_replay
 @scenarios.debugger_exception_replay
-class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
-    snapshots = {}
-    spans = {}
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
+    snapshots: dict = {}
+    spans: dict = {}
 
     ############ setup ############
     def _setup(self, request_path, exception_message):
@@ -47,42 +51,80 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
     ############ assert ############
     def _assert(self, test_name, expected_exception_messages):
-        def __filter_snapshots_by_message():
-            filtered_snapshots = []
+        def __filter_contents_by_message():
+            filtered_contents = []
 
             for contents in self.probe_snapshots.values():
                 for content in contents:
                     for expected_exception_message in expected_exception_messages:
                         exception_message = self.get_exception_message(content["debugger"]["snapshot"])
-                        if expected_exception_message in self.get_exception_message(content["debugger"]["snapshot"]):
-                            filtered_snapshots.append((exception_message, content["debugger"]["snapshot"]))
+                        if expected_exception_message in exception_message:
+                            filtered_contents.append((exception_message, content))
 
-            # Sort by exception message
-            filtered_snapshots.sort(key=lambda x: x[0])
+            def get_sort_key(content_tuple):
+                message, content = content_tuple
+                snapshot = content["debugger"]["snapshot"]
 
-            # Return only the snapshots
-            return [snapshot for _, snapshot in filtered_snapshots]
+                method_name = snapshot.get("probe", {}).get("location", {}).get("method", "")
+                line_number = snapshot.get("probe", {}).get("location", {}).get("lines", [])
+
+                if "recursion" in message.lower():
+                    args = snapshot.get("captures", {}).get("return", {}).get("arguments", {})
+                    if "currentDepth" in args:
+                        current_depth = args["currentDepth"].get("value")
+                    else:
+                        current_depth = "-1"
+                    return (message, method_name, line_number, current_depth)
+                else:
+                    return (message, method_name, line_number)
+
+            filtered_contents.sort(key=get_sort_key)
+
+            return [snapshot for _, snapshot in filtered_contents]
 
         def __filter_spans_by_snapshot_id(snapshots):
             filtered_spans = {}
 
-            for span in self.probe_spans.values():
-                snapshot_ids_in_span = {
-                    key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
-                }.values()
-                for snapshot in snapshots:
-                    if snapshot["id"] in snapshot_ids_in_span:
-                        filtered_spans[snapshot["id"]] = span
+            for snapshot in snapshots:
+                snapshot_id = snapshot["id"]
+                for spans in self.probe_spans.values():
+                    for span in spans:
+                        snapshot_ids_in_span = {
+                            key: value for key, value in span["meta"].items() if key.endswith("snapshot_id")
+                        }.values()
+
+                        if snapshot_id in snapshot_ids_in_span:
+                            filtered_spans[snapshot_id] = span
+                            break
+
+            return filtered_spans
+
+        def __filter_spans_by_span_id(contents):
+            filtered_spans = {}
+            for content in contents:
+                span_id = content.get("dd", {}).get("span_id") or content.get("dd.span_id")
+                snapshot_id = content["debugger"]["snapshot"]["id"]
+
+                for spans_list in self.probe_spans.values():
+                    for span in spans_list:
+                        if span.get("spanID") == span_id:
+                            filtered_spans[snapshot_id] = span
+                            break
 
             return filtered_spans
 
         self.collect()
         self.assert_all_weblog_responses_ok(expected_code=500)
 
-        snapshots = __filter_snapshots_by_message()
+        contents = __filter_contents_by_message()
+        snapshots = [content["debugger"]["snapshot"] for content in contents]
+
         self._validate_exception_replay_snapshots(test_name, snapshots)
 
-        spans = __filter_spans_by_snapshot_id(snapshots)
+        if self.get_tracer()["language"] in ["python", "java"]:
+            spans = __filter_spans_by_span_id(contents)
+        else:
+            spans = __filter_spans_by_snapshot_id(snapshots)
         self._validate_spans(test_name, spans)
 
     def _validate_exception_replay_snapshots(self, test_name, snapshots):
@@ -143,7 +185,7 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
             return __scrub(value)
 
-        def __scrub_dotnet(key, value, parent):
+        def __scrub_dotnet(key, value, parent):  # noqa: ARG001
             if key == "Id":
                 return "<scrubbed>"
             elif key == "StackTrace" and isinstance(value, dict):
@@ -168,12 +210,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):
+        def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
 
-            elif key == "exception-id" or key == "staticFields":
+            elif key in ("exception-id", "staticFields"):
                 return "<scrubbed>"
 
             elif key in ["stacktrace", "stack"]:
@@ -189,10 +231,9 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_none(key, value, parent):
+        def __scrub_none(key, value, parent):  # noqa: ARG001
             return __scrub(value)
 
-        scrub_language = None
         if self.get_tracer()["language"] == "java":
             scrub_language = __scrub_java
         elif self.get_tracer()["language"] == "dotnet":
@@ -203,12 +244,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             scrub_language = __scrub_none
 
         def __approve(snapshots):
-            debugger.write_approval(snapshots, test_name, "snapshots_received")
+            self.write_approval(snapshots, test_name, "snapshots_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(snapshots, test_name, "snapshots_expected")
+                self.write_approval(snapshots, test_name, "snapshots_expected")
 
-            expected_snapshots = debugger.read_approval(test_name, "snapshots_expected")
+            expected_snapshots = self.read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
             assert all(
                 "exceptionId" in snapshot for snapshot in snapshots
@@ -256,12 +297,12 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
             return scrubbed_spans
 
         def __approve(spans):
-            debugger.write_approval(spans, test_name, "spans_received")
+            self.write_approval(spans, test_name, "spans_received")
 
             if _OVERRIDE_APROVALS:
-                debugger.write_approval(spans, test_name, "spans_expected")
+                self.write_approval(spans, test_name, "spans_expected")
 
-            expected = debugger.read_approval(test_name, "spans_expected")
+            expected = self.read_approval(test_name, "spans_expected")
             assert expected == spans
 
             missing_keys_dict = {}
@@ -291,19 +332,20 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         self.spans = spans
         __approve(spans)
 
-    def _validate_recursion_snapshots(self, snapshots, depth):
-        # Extract depth from test name and validate snapshot count
+    def _validate_recursion_snapshots(self, snapshots, limit):
         assert (
-            len(snapshots) == depth + 1
-        ), f"Expected {depth + 1} snapshots for recursion depth {depth}, got {len(snapshots)}"
+            len(snapshots) == limit + 1
+        ), f"Expected {limit + 1} snapshots for recursion limit {limit}, got {len(snapshots)}"
 
         entry_method = "exceptionReplayRecursion"
         helper_method = "exceptionReplayRecursionHelper"
-        is_dotnet = self.get_tracer()["language"] == "dotnet"
 
         def get_frames(snapshot):
-            if is_dotnet:
-                return snapshot.get("captures", {}).get("return", {}).get("throwable", {}).get("stacktrace", [])
+            if self.get_tracer()["language"] in ["java", "dotnet"]:
+                method = snapshot.get("probe", {}).get("location", {}).get("method", None)
+                if method:
+                    return [{"function": method}]
+
             return snapshot.get("stack", [])
 
         found_top = False
@@ -311,14 +353,16 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
 
         def check_frames(frames):
             nonlocal found_top, found_lowest
+
             for frame in frames:
-                if isinstance(frame, dict) and "function" in frame:
-                    if entry_method in frame["function"]:
-                        found_top = True
-                    if helper_method in frame["function"]:
-                        found_lowest = True
-                    if found_top and found_lowest:
-                        break
+                if "<runtime>" in frame:
+                    continue
+                if entry_method == frame["function"]:
+                    found_top = True
+                if helper_method == frame["function"]:
+                    found_lowest = True
+                if found_top and found_lowest:
+                    break
 
         for snapshot in snapshots:
             check_frames(get_frames(snapshot))
@@ -329,54 +373,89 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         assert found_top, "Top layer snapshot not found"
         assert found_lowest, "Lowest layer snapshot not found"
 
-    ############ test ############
-    ############ Simple ############
+    def _validate_no_capture_reason(self, exception_key: str, expected_reason: str):
+        """Validate no_capture_reason field from collected spans."""
+        spans_with_no_capture_reason = self.probe_spans.get(exception_key, [])
+        assert (
+            spans_with_no_capture_reason
+        ), f"No spans with _dd.debug.error.no_capture_reason found for {exception_key}"
+
+        found_expected_reason = False
+        actual_reasons = []
+
+        for span in spans_with_no_capture_reason:
+            meta = span.get("meta", {})
+            actual_reason = meta["_dd.debug.error.no_capture_reason"]
+            actual_reasons.append(actual_reason)
+
+            logger.debug(f"Found _dd.debug.error.no_capture_reason: {actual_reason}")
+
+            if actual_reason == expected_reason:
+                found_expected_reason = True
+                logger.debug(f"Expected reason '{expected_reason}' matches actual reason '{actual_reason}'")
+            else:
+                logger.warning(f"Expected reason '{expected_reason}' but got '{actual_reason}'")
+
+        assert (
+            found_expected_reason
+        ), f"Expected no_capture_reason '{expected_reason}' not found. Actual reasons: {actual_reasons}"
+
+    ########### test ############
+    ########### Simple ############
     def setup_exception_replay_simple(self):
         self._setup("/exceptionreplay/simple", "simple exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_simple(self):
         self._assert("exception_replay_simple", ["simple exception"])
 
-    ############ Recursion ############
+    ########### Recursion ############
     def setup_exception_replay_recursion_3(self):
         self._setup("/exceptionreplay/recursion?depth=3", "recursion exception depth 3")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_3(self):
         self._assert("exception_replay_recursion_3", ["recursion exception depth 3"])
-        self._validate_recursion_snapshots(self.snapshots, 3)
+        self._validate_recursion_snapshots(self.snapshots, 4)
 
     def setup_exception_replay_recursion_5(self):
         self._setup("/exceptionreplay/recursion?depth=5", "recursion exception depth 5")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_recursion_5(self):
         self._assert("exception_replay_recursion_5", ["recursion exception depth 5"])
-        self._validate_recursion_snapshots(self.snapshots, 5)
+        self._validate_recursion_snapshots(self.snapshots, 6)
 
     def setup_exception_replay_recursion_20(self):
         self._setup("/exceptionreplay/recursion?depth=20", "recursion exception depth 20")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799, DEBUG-3283")
-    @bug(context.library == "python", reason="DEBUG-3257, DEBUG-3282")
-    @bug(context.library == "java", reason="DEBUG-3284, DEBUG-3285")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library == "dotnet", reason="DEBUG-3283")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
+    @bug(context.library == "java", reason="DEBUG-3390")
     def test_exception_replay_recursion_20(self):
         self._assert("exception_replay_recursion_20", ["recursion exception depth 20"])
-        self._validate_recursion_snapshots(self.snapshots, 10)
+        self._validate_recursion_snapshots(self.snapshots, 9)
+
+    def setup_exception_replay_recursion_inlined(self):
+        self._setup("/exceptionreplay/recursion_inline?depth=4", "recursion exception depth 4")
+
+    @irrelevant(context.library != "dotnet", reason="Test for specific bug in dotnet")
+    @bug(context.library == "dotnet", reason="DEBUG-3447")
+    def test_exception_replay_recursion_inlined(self):
+        self._assert("exception_replay_recursion_4", ["recursion exception depth 4"])
+        self._validate_recursion_snapshots(self.snapshots, 4)
 
     ############ Inner ############
     def setup_exception_replay_inner(self):
         self._setup("/exceptionreplay/inner", "outer exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3256, DEBUG-3257")
-    @bug(context.library == "java", reason="DEBUG-3304")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_inner(self):
         self._assert("exception_replay_inner", ["outer exception"])
 
@@ -387,11 +466,10 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
         retries = 0
         timeout = _timeout_first
 
-        shapes = {"rock": False, "paper": False, "scissors": False}
+        shapes: dict[str, bool] = {"rock": False, "paper": False, "scissors": False}
 
         while not all(shapes.values()) and retries < _max_retries:
-            for shape in shapes.keys():
-                shape_found = shapes[shape]
+            for shape, shape_found in shapes.items():
                 logger.debug(f"{shape} found: {shape_found}, retry #{retries}")
 
                 if shape_found:
@@ -401,12 +479,15 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
                 shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                if self.get_tracer()["language"] == "python":
+                    time.sleep(1)
+
                 timeout = _timeout_next
 
             retries += 1
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_rockpaperscissors(self):
         self._assert("exception_replay_rockpaperscissors", ["rock", "paper", "scissors"])
 
@@ -414,8 +495,8 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_multiframe(self):
         self._setup("/exceptionreplay/multiframe", "multiple stack frames exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
-    @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "dotnet@3.10.0", reason="DEBUG-2799")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_multiframe(self):
         self._assert("exception_replay_multiframe", ["multiple stack frames exception"])
 
@@ -423,8 +504,44 @@ class Test_Debugger_Exception_Replay(debugger._Base_Debugger_Test):
     def setup_exception_replay_async(self):
         self._setup("/exceptionreplay/async", "async exception")
 
-    @bug(context.library == "dotnet", reason="DEBUG-2799")
     @flaky(context.library == "dotnet", reason="DEBUG-3281")
-    @bug(context.library == "python", reason="DEBUG-3257")
+    @bug(context.library < "java@1.46.0", reason="DEBUG-3285")
     def test_exception_replay_async(self):
         self._assert("exception_replay_async", ["async exception"])
+
+    ############ No capture reason ############
+    no_capture_reason_span_found = False
+
+    def _setup_no_capture_exception(self, exception_key: str):
+        self.send_weblog_request(f"/exceptionreplay/{exception_key}")
+        self.wait_for_no_capture_reason_span(exception_key, _timeout_next)
+
+    def _test_no_capture_exception(self, exception_key: str, expected_reason: str):
+        self.collect()
+        self.assert_all_weblog_responses_ok(expected_code=500)
+        self._validate_no_capture_reason(exception_key, expected_reason)
+
+    ############ dotnet OutOfMemoryException Test ############
+    def setup_exception_replay_outofmemory(self):
+        self._setup_no_capture_exception("outofmemory")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    def test_exception_replay_outofmemory(self):
+        self._test_no_capture_exception("outofmemory", "NonSupportedExceptionType")
+
+    ############ .NET StackOverflowException Test ############
+    def setup_exception_replay_stackoverflow(self):
+        self._setup_no_capture_exception("stackoverflow")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    @bug(context.library == "dotnet", reason="DEBUG-3999")
+    def test_exception_replay_stackoverflow(self):
+        self._test_no_capture_exception("stackoverflow", "NonSupportedExceptionType")
+
+    ############ .NET First Hit Exception Test ############
+    def setup_exception_replay_firsthit(self):
+        self._setup_no_capture_exception("firsthit")
+
+    @missing_feature(context.library != "dotnet", reason="Implemented only for dotnet", force_skip=True)
+    def test_exception_replay_firsthit(self):
+        self._test_no_capture_exception("firsthit", "FirstOccurrence")

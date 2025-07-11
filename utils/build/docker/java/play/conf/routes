@@ -1,18 +1,26 @@
 GET  /                         controllers.AppSecController.index
 GET  /healthcheck              controllers.AppSecController.healthcheck
 GET  /headers                  controllers.AppSecController.headers
-GET  /tag_value/:value/:code   controllers.AppSecController.tagValue(value: String, code: Int)
-POST /tag_value/:value/:code   controllers.AppSecController.tagValuePost(value: String, code: Int)
+GET  /tag_value/:tag_value/:status_code   controllers.AppSecController.tagValue(tag_value: String, status_code: Int)
+POST /tag_value/:tag_value/:status_code   controllers.AppSecController.tagValuePost(tag_value: String, status_code: Int)
+GET  /sample_rate_route/:i     controllers.MainController.sampleRateRoute(i: Int)
+GET  /api_security/sampling/:i controllers.AppSecController.apiSecuritySamplingWithStatus(i: Int)
+GET  /api_security_sampling/:i controllers.AppSecController.apiSecuritySampling(i: Int)
 GET  /params/*segments         controllers.AppSecController.params(segments: Seq[String])
 GET  /waf                      controllers.AppSecController.waf
+GET  /waf/                      controllers.AppSecController.waf
 GET  /waf/*segments            controllers.AppSecController.params(segments: Seq[String])
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
+GET  /stats-unique             controllers.AppSecController.statsUnique(code: Option[Int])
 GET  /users                    controllers.AppSecController.users(user: String)
+GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
 GET  /user_login_failure_event controllers.AppSecController.loginFailure(event_user_id: Option[String], event_user_exists: Option[Boolean])
 GET  /custom_event             controllers.AppSecController.customEvent(event_name: Option[String])
+POST  /user_login_success_event_v2   controllers.AppSecController.loginSuccessV2
+POST  /user_login_failure_event_v2   controllers.AppSecController.loginFailureV2
 GET  /rasp/sqli                controllers.RaspController.sqli
 POST /rasp/sqli                controllers.RaspController.sqli
 GET  /rasp/lfi                 controllers.RaspController.lfi
@@ -27,3 +35,10 @@ GET  /requestdownstream        controllers.AppSecController.requestdownstream
 GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerableRequestdownstream
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
+GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
+GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
+
+# IAST Sampling endpoints
+GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
+POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
+GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)

@@ -1,45 +1,93 @@
-import json
-import os
-import requests
-import time
-import pytest
-import paramiko
-from utils.tools import logger
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
 from utils.onboarding.backend_interface import wait_backend_trace_id
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
-from utils import context
+from utils import context, logger
 from threading import Timer
 
 
 class AutoInjectBaseTest:
-    def _test_install(self, virtual_machine, profile: bool = False):
+    def _test_install(self, virtual_machine, *, profile: bool = False, appsec: bool = False):
+        """If there is a multicontainer app, we need to make a request to each app"""
+
+        if virtual_machine.get_deployed_weblog().app_type == "multicontainer":
+            for app in virtual_machine.get_deployed_weblog().multicontainer_apps:
+                vm_context_url = (
+                    f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{app.app_context_url}"
+                )
+                self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
+
+        else:
+            vm_context_url = f"http://{virtual_machine.get_ip()}:{virtual_machine.deffault_open_port}{virtual_machine.get_deployed_weblog().app_context_url}"
+            self._check_install(virtual_machine, vm_context_url, profile=profile, appsec=appsec)
+
+    def _check_install(self, virtual_machine, vm_context_url, *, profile: bool = False, appsec: bool = False):
         """We can easily install agent and lib injection software from agent installation script. Given a  sample application we can enable tracing using local environment variables.
         After starting application we can see application HTTP requests traces in the backend.
-        Using the agent installation script we can install different versions of the software (release or beta) in different OS."""
+        Using the agent installation script we can install different versions of the software (release or beta) in different OS.
+        """
         vm_ip = virtual_machine.get_ip()
         vm_port = virtual_machine.deffault_open_port
-        vm_context_url = f"http://{vm_ip}:{vm_port}{virtual_machine.get_deployed_weblog().app_context_url}"
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the install for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
         if virtual_machine.krunvm_config is not None and virtual_machine.krunvm_config.stdin is not None:
             logger.info(
-                f"We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
+                "We are testing on krunvm. The request to the weblog will be done using the stdin (inside the microvm)"
             )
-            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port)
+            request_uuid = make_internal_get_request(virtual_machine.krunvm_config.stdin, vm_port, appsec=appsec)
         else:
             logger.info(f"Waiting for weblog available [{vm_ip}:{vm_port}]")
-            wait_for_port(vm_port, vm_ip, 80.0)
+            assert wait_for_port(vm_port, vm_ip, 80), "Weblog port not reachable. Is the weblog running?"
             logger.info(f"[{vm_ip}]: Weblog app is ready!")
+            logger.info(f"Making a request to weblog [{vm_context_url}]")
             warmup_weblog(vm_context_url)
-            request_uuid = make_get_request(vm_context_url)
+            request_uuid = make_get_request(vm_context_url, appsec=appsec)
             logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-        wait_backend_trace_id(request_uuid, 120.0, profile=profile)
 
-    def close_channel(self, channel):
+        validator = None
+        if appsec:
+            validator = self._appsec_validator
+
+        try:
+            wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
+        except (TimeoutError, AssertionError) as e:
+            self._log_trace_debug_message(e, request_uuid)
+            raise
+
+    def _appsec_validator(self, _, trace_data):
+        """Validator for Appsec traces that checks if the trace contains an Appsec event."""
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        meta = root_span.get("meta", {})
+        metrics = root_span.get("metrics", {})
+
+        if "_dd.appsec.enabled" not in metrics or metrics["_dd.appsec.enabled"] != 1:
+            logger.error(
+                "expected '_dd.appsec.enabled' to be 1 in trace span metrics but found",
+                metrics.get("_dd.appsec.enabled"),
+            )
+            return False
+
+        if "appsec.event" not in meta or meta["appsec.event"] != "true":
+            logger.error("expected 'appsec.event' to be true in trace meta but found", meta.get("appsec.event"))
+            return False
+
+        return True
+
+    def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
+        logger.error(
+            f"❌ Exception during trace in backend verification: {exc}\n"
+            "🔍 Possible causes:\n"
+            "- A bug/problem in the tracer (check app logs in `/var/log/datadog_weblog`)\n"
+            "- A problem in the agent (check agent logs in `/var/log/datadog`)\n"
+            "- A problem in the Docker daemon?? (check logs in `/var/log/journalctl_docker.log`)\n"
+            f"- A problem processing the intake in the backend (manually locate the trace id [{request_uuid}] in the DD console, using the system-tests organization)\n"
+        )
+
+    def close_channel(self, channel) -> None:
         try:
             if not channel.eof_received:
                 channel.close()
@@ -54,7 +102,7 @@ class AutoInjectBaseTest:
 
         command_with_env = f"{prefix_env} {command}"
 
-        with virtual_machine.ssh_config.get_ssh_connection() as ssh:
+        with virtual_machine.get_ssh_connection() as ssh:
             timeout = 120
 
             _, stdout, _ = ssh.exec_command(command_with_env, timeout=timeout + 5)
@@ -70,7 +118,7 @@ class AutoInjectBaseTest:
                 if not line.startswith("export"):
                     command_output += line
             header = "*****************************************************************"
-            vm_logger(context.scenario.name, virtual_machine.name).info(
+            vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
                 f"{header} \n  - COMMAND:  \n {header} \n {command} \n\n {header} \n COMMAND OUTPUT \n\n {header} \n {command_output}"
             )
 
@@ -82,7 +130,8 @@ class AutoInjectBaseTest:
         """We can unistall the auto injection software. We can start the app again
         The weblog app should work but no sending traces to the backend.
         We can reinstall the auto inject software. The weblog app should be instrumented
-        and reporting traces to the backend."""
+        and reporting traces to the backend.
+        """
         logger.info(f"Launching _test_uninstall for : [{virtual_machine.name}]")
 
         vm_ip = virtual_machine.get_ip()
@@ -103,21 +152,21 @@ class AutoInjectBaseTest:
         logger.info(f"[Uninstall {virtual_machine.name}] Start app done")
 
         request_uuids = []
-        wait_for_port(vm_port, vm_ip, 40.0)
-        responseJson = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
-        if responseJson is not None:
-            logger.info(f"There is a multicontainer app: {responseJson}")
-            for app in responseJson["apps"]:
+        assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
+        response_json = warmup_weblog(f"http://{vm_ip}:{vm_port}/")
+        if response_json is not None:
+            logger.info(f"There is a multicontainer app: {response_json}")
+            for app in response_json["apps"]:
                 logger.info(f"Making a request to weblog [http://{vm_ip}:{vm_port}{app['url']}]")
                 request_uuids.append(make_get_request(f"http://{vm_ip}:{vm_port}{app['url']}"))
         else:
-            logger.info(f"Making a request to weblog [weblog_url]")
+            logger.info(f"Making a request to weblog {weblog_url}")
             request_uuids.append(make_get_request(weblog_url))
 
         try:
             for request_uuid in request_uuids:
                 logger.info(f"Http request done with uuid: [{request_uuid}] for ip [{vm_ip}]")
-                wait_backend_trace_id(request_uuid, 10.0)
+                wait_backend_trace_id(request_uuid)
                 raise AssertionError("The weblog application is instrumented after uninstall DD software")
         except TimeoutError:
             # OK there are no traces, the weblog app is not instrumented
@@ -141,18 +190,18 @@ class AutoInjectBaseTest:
 
     def _test_uninstall(self, virtual_machine):
         header = "----------------------------------------------------------------------"
-        vm_logger(context.scenario.name, virtual_machine.name).info(
+        vm_logger(context.scenario.host_log_folder, virtual_machine.name).info(
             f"{header} \n {header}  \n  Launching the uninstall for VM: {virtual_machine.name}  \n {header} \n {header}"
         )
-        if context.weblog_variant == f"test-app-{context.scenario.library.library}":  # Host
+        if context.weblog_variant == f"test-app-{context.library.name}":  # Host
             stop_weblog_command = "sudo systemctl kill -s SIGKILL test-app.service"
             start_weblog_command = "sudo systemctl start test-app.service"
-            if context.scenario.library.library in ["ruby", "python", "dotnet"]:
+            if context.library.name in ["ruby", "python", "dotnet"]:
                 start_weblog_command = virtual_machine._vm_provision.weblog_installation.remote_command
         else:  # Container
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
-            #   On older Docker versions, the network recreation can hang. The solution is to restart Docker.
-            #   https://github.com/docker-archive/classicswarm/issues/1931
+            # On older Docker versions, the network recreation can hang. The solution is to restart Docker.
+            # https://github.com/docker-archive/classicswarm/issues/1931
             start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"

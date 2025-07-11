@@ -1,11 +1,11 @@
 import json
-import os
+from pathlib import Path
 
-from utils.tools import logger
+from utils._logger import logger
 
 
 def exclude_telemetry_logs_filter(line):
-    return '"command":"telemetry"' not in line
+    return '"command":"telemetry"' not in line and '"caller":"telemetry/' not in line
 
 
 def command_injection_skipped(command_line, log_local_path):
@@ -58,7 +58,7 @@ def _parse_command(command):
         if "=" in com:
             command_args.remove(com)
             continue
-        return os.path.basename(com), command_args
+        return Path(com).name, command_args
 
     return None, None
 

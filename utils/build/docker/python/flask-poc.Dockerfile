@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-v7
+FROM datadog/system-tests:flask-poc.base-v9
 
 WORKDIR /app
 
@@ -16,7 +16,6 @@ ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
 # Cross Tracer Integration Testing for Trace Context Propagation
 ENV DD_BOTOCORE_PROPAGATION_ENABLED=true
 ENV DD_KAFKA_PROPAGATION_ENABLED=true
-
 ENV LOG_LEVEL='DEBUG'
 
 # docker startup

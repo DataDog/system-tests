@@ -1,0 +1,198 @@
+{
+    "scenario_matrix": [
+        {
+            "scenarios": [
+                "DOCKER_SSI","DOCKER_SSI_CRASHTRACKING"
+            ],
+            "weblogs": [
+                {
+                    "java": [
+                        "jetty-app",
+                        "java7-app"
+                    ],
+                    "nodejs": [
+                        "js-app"
+                    ],
+                    "python": [
+                        "py-app"
+                    ],
+                    "php": [
+                        "php-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+                "DOCKER_SSI_SERVICENAMING"
+            ],
+            "weblogs": [
+                {
+                    "java": [
+                        "tomcat-app",
+                        "websphere-app",
+                        "jboss-app"
+                    ]
+                }
+            ]
+        }
+    ],
+    "weblogs_spec": {
+        "nodejs": [
+            {
+                "name": "js-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "java": [
+            {
+                "name": "jetty-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_9_3_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_9_3_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_8_10_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "OracleLinux_8_10_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_9_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_9_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_8_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "AlmaLinux_8_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "tomcat-app",
+                "supported_images": [
+                    {
+                        "name": "Tomcat_9_arm64"
+                    }
+                ]
+            },
+            {
+                "name": "java7-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64"
+                    }
+                ]
+            },
+            {
+                "name": "websphere-app",
+                "supported_images": [
+                    {
+                        "name": "Websphere_amd64"
+                    }
+                ]
+            },
+            {
+                "name": "jboss-app",
+                "supported_images": [
+                    {
+                        "name": "Wildfly_amd64"
+                    }
+                ]
+            }
+        ],
+        "python": [
+            {
+                "name": "py-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "php": [
+            {
+                "name": "php-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}

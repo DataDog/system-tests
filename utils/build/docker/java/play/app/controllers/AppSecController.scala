@@ -6,7 +6,7 @@ import akka.util.ByteString
 import datadog.appsec.api.blocking.Blocking
 import datadog.trace.api.interceptor.MutableSpan
 import io.opentracing.util.GlobalTracer
-import play.api.libs.json.{Json, Writes}
+import play.api.libs.json.{JsValue, Json, Writes}
 import play.api.libs.ws.ahc.{AhcWSClient, AhcWSRequest, StandaloneAhcWSResponse}
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.mvc._
@@ -15,12 +15,15 @@ import play.shaded.ahc.org.asynchttpclient.{AsyncCompletionHandler, AsyncHttpCli
 import java.util
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future, Promise}
-
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets
 import scala.util.{Failure, Success, Try}
 import com.datadoghq.system_tests.iast.utils.CryptoExamples
+import datadog.appsec.api.login.EventTrackerV2
+import datadog.appsec.api.user.User.setUser
+
+import scala.jdk.CollectionConverters._
 
 @Singleton
 class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient, mat: Materializer)
@@ -46,7 +49,7 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val response = Json.obj(
       "status" -> "ok",
       "library" -> Json.obj(
-        "language" -> "java",
+        "name" -> "java",
         "version" -> version
       )
     )
@@ -72,25 +75,56 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       .withHeaders("Content-Language" -> "en-US")
   }
 
+  /**
+   * Endpoint for testing custom headers. Adds five custom headers to the response.
+   */
+  def customResponseHeaders = Action {
+    Results.Ok("Response with custom headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(
+        "Content-Language"      -> "en-US",
+        "X-Test-Header-1"       -> "value1",
+        "X-Test-Header-2"       -> "value2",
+        "X-Test-Header-3"       -> "value3",
+        "X-Test-Header-4"       -> "value4",
+        "X-Test-Header-5"       -> "value5"
+      )
+  }
+
+  /**
+   * Endpoint exceeding default header budget with 50 custom headers.
+   */
+  def exceedResponseHeaders = Action {
+    // Generate 50 custom headers
+    val customHeaders = (1 to 50).map { i => s"X-Test-Header-$i" -> s"value$i" }
+    // Prepend the standard Content-Language header
+    val allHeaders = ("Content-Language" -> "en-US") +: customHeaders
+    Results.Ok("Response with more than 50 headers")
+      .as("text/plain; charset=utf-8")
+      .withHeaders(allHeaders: _*)
+  }
+
 
   def tagValue(value: String, code: Int) = Action { request =>
-    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
-
-    val result = Results.Status(code)("Value tagged")
-      .as("text/plain; charset=utf-8")
-
-    request.queryString.get("content-language").flatMap(_.headOption) match {
-      case Some(cl) => result.withHeaders(CONTENT_LANGUAGE -> cl)
-      case None => result
-    }
+    handleTagValue(value, code, request.queryString, None)
   }
 
   def tagValuePost(value: String, code: Int) = Action { request =>
-    request.body.asFormUrlEncoded // needs to be read, though we do nothing with it
+    val bodyJson = request.body match {
+      case AnyContentAsFormUrlEncoded(data) => Some(Json.toJson(data))
+      case AnyContentAsJson(data) => Some(data)
+      case _ => None
+    }
+    handleTagValue(value, code, request.queryString, bodyJson)
+  }
 
-    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+  def apiSecuritySamplingWithStatus(code: Int) = Action { request =>
+    Results.Status(code)("Hello!\n")
+      .as("text/plain; charset=utf-8")
+  }
 
-    Results.Status(code)("Value tagged")
+  def apiSecuritySampling(code: Int) = Action { request =>
+    Results.Status(200)("OK!\n")
       .as("text/plain; charset=utf-8")
   }
 
@@ -155,6 +189,10 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Status(code)
   }
 
+  def statsUnique(code: Option[Int]) = Action {
+    Results.Status(code.getOrElse(200))
+  }
+
   def users(user: String) = Action {
     var span = GlobalTracer.get().activeSpan()
     span match {
@@ -167,6 +205,20 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
       .forUser(user)
       .blockIfMatch();
     Results.Ok(s"Hello $user")
+  }
+
+  def identify = Action {
+    setUser(
+      "usr.id",
+      Map.apply(
+        "email" -> "usr.email",
+        "name" -> "usr.name",
+        "session_id" -> "usr.session_id",
+        "role" -> "usr.role",
+        "scope" -> "usr.scope"
+      ).asJava
+    )
+    Results.Ok("OK")
   }
 
   def loginSuccess(event_user_id: Option[String]) = Action {
@@ -183,6 +235,28 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
   def customEvent(event_name: Option[String]) = Action {
     eventTracker.trackCustomEvent(event_name.getOrElse("system_tests_event"), metadata)
     Results.Ok("ok")
+  }
+
+  def loginSuccessV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val userId = (data \ "user_id").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginSuccess(login, userId, javaMeta)
+    }
+    Results.Ok("OK")
+  }
+
+  def loginFailureV2 = Action { request =>
+    request.body.asJson.map { data =>
+      val login = (data \ "login").as[String]
+      val exists = (data \ "exists").as[String]
+      val meta = (data \ "metadata").asOpt[Map[String, String]].getOrElse(Map.empty)
+      val javaMeta = meta.asJava
+      EventTrackerV2.trackUserLoginFailure(login, exists.toBoolean, javaMeta)
+    }
+    Results.Ok("OK")
   }
 
   def requestdownstream =  Action.async {
@@ -220,6 +294,27 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     val cookieName = name.getOrElse("defaultName")
     val cookieValue = value.getOrElse("defaultValue")
     Results.Ok("ok").withCookies(Cookie(cookieName, cookieValue))
+  }
+
+  private def handleTagValue(value: String, statusCode: Int, queryString: Map[String,Seq[String]], body: Option[JsValue]): Result = {
+    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+    
+    var result = if (value.startsWith("payload_in_response_body")) {
+      val responseBody = Json.obj("payload" -> body.get)
+      Results.Status(statusCode)(responseBody).as("application/json")
+    } else {
+      Results.Status(statusCode)("Value tagged").as("text/plain; charset=utf-8")
+    }
+    
+    result = queryString.get("content-language").flatMap(_.headOption) match {
+      case Some(cl) => result.withHeaders(CONTENT_LANGUAGE -> cl)
+      case None => result
+    }
+
+    queryString.get("X-option").flatMap(_.headOption) match {
+      case Some(option) => result.withHeaders("X-option" -> option)
+      case None => result
+    }
   }
 
   case class DistantCallResponse(

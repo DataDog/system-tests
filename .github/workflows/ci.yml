@@ -8,26 +8,24 @@ on:
     types:
     - opened
     - synchronize
-    - labeled
-    - unlabeled
+    - reopened
+  # push:
+  #   branches:
+  #   - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-
   lint:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Run lints
-      uses: ./.github/actions/lint_code
+    uses: ./.github/workflows/lint.yml
 
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read # need to read releases
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -36,6 +34,8 @@ jobs:
       # force /bin/bash in order to test against bash 3.2 on macOS
       - name: Test the test (direct)
         run: /bin/bash run.sh TEST_THE_TEST
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Test group parsing
         run: |
           /bin/bash run.sh ++dry APPSEC_SCENARIOS
@@ -49,35 +49,17 @@ jobs:
     name: Get impacted libraries
     uses: ./.github/workflows/compute-impacted-libraries.yml
 
-  get_dev_artifacts:
+  fail-if-target-branch:
+    name: Fail if target branch is specified
     needs:
-    - impacted_libraries
-    strategy:
-      matrix:
-        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
-      fail-fast: false
+      - impacted_libraries
+    if: needs.impacted_libraries.outputs.target-branch != ''
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Get library artifact
-        run: ./utils/scripts/load-binary.sh ${{ matrix.library }}
-
-      - name: Get agent artifact
-        run: ./utils/scripts/load-binary.sh agent
-
-      # ### appsec-event-rules is now a private repo. The GH_TOKEN provided can't read private repos.
-      # ### skipping this, waiting for a proper solution
-      # - name: Load WAF rules
-      #   if: matrix.version == 'dev'
-      #   run: ./utils/scripts/load-binary.sh waf_rule_set
-      #   env:
-      #     GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: binaries_dev_${{ matrix.library }}
-          path: binaries/
+      - name: Fail if PR title contains a target branch
+        run: |
+          echo "This PR can't be merged, due to the title specifying a target branch"
+          exit 1
 
   system_tests:
     name: System Tests
@@ -86,13 +68,10 @@ jobs:
     - test_the_test
     - scenarios
     - impacted_libraries
-    - get_dev_artifacts
     strategy:
       matrix:
-        library: ${{ fromJson(needs.impacted_libraries.outputs.impacted_libraries) }}
-        version:
-        - prod
-        - dev
+        include: ${{ fromJson(needs.impacted_libraries.outputs.library_matrix) }}
+
       fail-fast: false
     uses: ./.github/workflows/system-tests.yml
     permissions:
@@ -103,14 +82,16 @@ jobs:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.scenarios.outputs.scenarios }}
       scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
-      binaries_artifact: ${{ matrix.version == 'dev' && format('binaries_dev_{0}', matrix.library) || '' }}
-      ci_environment: ${{ matrix.version }}
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
-      _experimental_parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
+      parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
+      enable_replay_scenarios: true
+      desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
+      _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
+      _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
@@ -118,8 +99,7 @@ jobs:
     - lint
     - test_the_test
     - impacted_libraries
-    - get_dev_artifacts  # non official set-up, this needs put this job in last
-    if: contains(needs.impacted_libraries.outputs.impacted_libraries, 'ruby')
+    if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
     uses: ./.github/workflows/run-docker-mode.yml
     permissions:
       packages: write
@@ -127,24 +107,33 @@ jobs:
 
   exotics:
     name: Exotics scenarios
-    if: contains(github.event.pull_request.labels.*.name, 'run-all-scenarios')
+    needs:
+      - scenarios
+    if: contains(needs.scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
-  fancy-report:
+  all-jobs-are-green:  # if this must be renamed, you need to update utils/scripts/get-workflow-summary.py
+    # name: All jobs are green  # DO NOT SET A NAME
     runs-on: ubuntu-latest
+    permissions:
+      checks: read
+      statuses: read
+      actions: read
     needs:
     - system_tests
-    if: always()
+    if: '!cancelled()'
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
       with:
-        python-version: '3.11'
-    - run: pip install requests
-    - run: python utils/scripts/get-workflow-summary.py ${{ github.run_id }} >> $GITHUB_STEP_SUMMARY
-      env:
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
+        polling-interval-seconds: '60'
+        max-retries: '120'
+        # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
+        # https://regex101.com/r/Bo5Kpn/1
+
+        ignored-name-patterns: |
+          dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
 
   update-CI-visibility:
     name: Update CI Visibility Dashboard

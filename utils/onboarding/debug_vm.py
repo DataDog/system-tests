@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 import paramiko
-from utils.tools import logger
+from utils._logger import logger
 
 
 def extract_logs_to_file(logs_data, log_folder):
@@ -113,7 +113,9 @@ def _print_app_tracer_host_logs(sshClient, file_to_write):
 
 def _print_app_tracer_host_dotnet_logs(sshClient, file_to_write):
     """App tracer logs for dotnet (dotnet tracer doesn't write debug tracer in stdout)"""
-    file_to_write_dotnet = os.path.splitext(file_to_write)[0] + "_dotnet.log"
+    path = Path(file_to_write)
+    root = path.parent / path.stem
+    file_to_write_dotnet = f"{root}_dotnet.log"
     _, stdout_dotnet, _ = sshClient.exec_command("sudo find /var/log/datadog/dotnet/ -type f | xargs tail -n +1")
     _write_to_debug_file(stdout_dotnet, file_to_write_dotnet)
 

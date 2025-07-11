@@ -1,18 +1,24 @@
 import time
 from random import randint
 import os
+from pathlib import Path
 import requests
 
 
-def make_get_request(app_url):
+def make_get_request(app_url, appsec: bool = False):
     generated_uuid = str(randint(1, 100000000000000000))
+    headers = {
+        "x-datadog-trace-id": generated_uuid,
+        "x-datadog-parent-id": generated_uuid,
+        "x-datadog-sampling-priority": "2",
+    }
+
+    if appsec:
+        headers["user-agent"] = "dd-test-scanner-log"
+
     requests.get(
         app_url,
-        headers={
-            "x-datadog-trace-id": generated_uuid,
-            "x-datadog-parent-id": generated_uuid,
-            "x-datadog-sampling-priority": "2",
-        },
+        headers=headers,
         timeout=15,
     )
     return generated_uuid
@@ -27,7 +33,7 @@ def warmup_weblog(app_url):
             time.sleep(5)
 
 
-def make_internal_get_request(stdin_file, vm_port):
+def make_internal_get_request(stdin_file, vm_port, appsec: bool = False):
     """Exclusively for testing through KrunVm microVM.
     It is used to make a request to the weblog application inside the VM, using stdin file
     """
@@ -40,9 +46,9 @@ URL="http://localhost:{vm_port}/"
 TIMEOUT={timeout}
 TRACE_ID={generated_uuid}
 PARENT_ID={generated_uuid}
-ps
+USER_AGENT={"'dd-test-scanner-log'" if appsec else "'Firefox'"}
 while true; do
-  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" -H "x-datadog-sampling-priority: 2" $URL)
+  RESPONSE=$(curl -i -m 2 -H "x-datadog-trace-id: $TRACE_ID" -H "x-datadog-parent-id: $PARENT_ID" -H "x-datadog-sampling-priority: 2" -H "user-agent: $USER_AGENT" $URL)
   echo "$RESPONSE"
   if [[ $(echo "$RESPONSE" | grep "HTTP/1.1 200 OK") ]]; then
     echo "HTTP status 200 received: OK"
@@ -56,7 +62,7 @@ while true; do
   sleep 1
 done"""
     script_name = "request_weblog.sh"
-    shared_folder = os.path.dirname(os.path.abspath(stdin_file))
+    shared_folder = Path(Path(stdin_file).resolve()).parent
 
     # Write the script in the shared folder
     with open(os.path.join(shared_folder, script_name), "w", encoding="utf-8") as file:
@@ -69,9 +75,9 @@ done"""
 
     # Wait for the script to finish
     start = time.time()
-    while os.stat(stdin_file).st_size != 0 and time.time() - start < (timeout + 5):
+    while Path(stdin_file).stat().st_size != 0 and time.time() - start < (timeout + 5):
         time.sleep(1)
-    if os.stat(stdin_file).st_size != 0:
+    if Path(stdin_file).stat().st_size != 0:
         raise TimeoutError("Timed out waiting for weblog ready")
 
     return generated_uuid

@@ -1,0 +1,181 @@
+include:
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
+
+stages:
+  - SSI_TESTS
+  - DOCKER_SSI
+  - K8S_LIB_INJECTION
+
+variables:
+  PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+  PRIVATE_DOCKER_REGISTRY_USER: AWS
+
+ssi_tests:
+  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
+  tags: ["arch:amd64"]
+  stage: SSI_TESTS
+  script:
+    - echo "NO AWS TESTS TO RUN"
+
+.base_docker_ssi_job:
+    extends: .base_job_k8s_docker_ssi
+    needs: []
+    allow_failure: false
+    variables:
+      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+      FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    after_script: |
+        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+        mkdir -p reports/
+        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+            cp -R logs_"${SCENARIO_SUFIX}" reports/
+        else
+            cp -R /system-tests/logs_"${SCENARIO_SUFIX}" reports/
+        fi
+        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+          for folder in reports/logs*/ ; do
+            echo "Checking folder: ${folder}"
+            for filename in ./${folder}feature_parity.json; do
+              if [ -e ${filename} ]
+              then
+                echo "Processing report: ${filename}"
+                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+              fi
+            done
+          done
+        fi
+    retry:
+      max: 2
+      when:
+        - unknown_failure
+        - data_integrity_failure
+        - runner_system_failure
+        - scheduler_failure
+        - api_failure
+      #System-tests exit code 1 if there are tests failures
+      #System-tests exit code 3 if there is a issue starting the scenario
+      #Timeout 124
+      exit_codes:
+        - 3
+        - 124
+    artifacts:
+      when: always
+      paths:
+        - reports/
+
+.base_job_onboarding_system_tests:
+    extends: .base_job_onboarding
+    needs: []
+    allow_failure: false
+    variables:
+      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+      FF_USE_NEW_BASH_EVAL_STRATEGY: true
+    script:
+        - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+    after_script: |
+        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+        mkdir -p reports/
+        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+            cp -R logs_"${SCENARIO_SUFIX}" reports/
+        else
+            cp -R system-tests/logs_"${SCENARIO_SUFIX}" reports/
+        fi
+        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+          for folder in reports/logs*/ ; do
+            echo "Checking folder: ${folder}"
+            for filename in ./${folder}*_feature_parity.json; do
+              if [ -e ${filename} ]
+              then
+                echo "Processing report: ${filename}"
+                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+              fi
+            done
+          done
+        fi
+    retry:
+      max: 2
+      when:
+        - unknown_failure
+        - data_integrity_failure
+        - runner_system_failure
+        - scheduler_failure
+        - api_failure
+      #System-tests exit code 1 if there are tests failures
+      #System-tests exit code 3 if there is a issue starting the scenario
+      exit_codes:
+        - 3
+    artifacts:
+        when: always
+        paths:
+            - reports/
+
+.k8s_lib_injection_base:
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  stage: K8S_LIB_INJECTION
+  allow_failure: false
+  timeout: 20 minutes
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  script:
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner # rebuild runner in case there were changes
+    - source venv/bin/activate
+    - python --version
+    - pip freeze
+    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+    - export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
+    - |
+      if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
+        ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
+          --push-tag ${PRIVATE_DOCKER_REGISTRY}/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
+          --docker-platform linux/arm64,linux/amd64
+      else
+        TAG_NAME="latest"
+      fi
+    - ./run.sh ${K8S_SCENARIO} --k8s-library ${TEST_LIBRARY} --k8s-weblog ${K8S_WEBLOG} --k8s-weblog-img ${K8S_WEBLOG_IMG}:${TAG_NAME} --k8s-lib-init-img ${K8S_LIB_INIT_IMG} --k8s-injector-img ${K8S_INJECTOR_IMG} --k8s-cluster-img ${K8S_CLUSTER_IMG} --report-run-url $CI_JOB_URL --report-environment ${REPORT_ENVIRONMENT}
+
+  after_script: |
+    kind delete clusters --all || true
+    mkdir -p reports
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        cp -R logs_*/ reports/
+    else
+        cp -R /system-tests/logs_*/ reports/
+    fi
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+         for filename in ./${folder}feature_parity.json; do
+           if [ -e ${filename} ]
+           then
+              echo "Processing report: ${filename}"
+              curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+           fi
+        done
+      done
+      fi
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    exit_codes:
+      - 3
+  artifacts:
+    when: always
+    paths:
+      - reports/

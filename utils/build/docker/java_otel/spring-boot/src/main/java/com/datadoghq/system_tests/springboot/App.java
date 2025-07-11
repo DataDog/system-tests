@@ -144,7 +144,7 @@ public class App {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java_otel");
+        library.put("name", "java_otel");
         library.put("version", version.strip());
 
         Map<String, Object> response = new HashMap<>();

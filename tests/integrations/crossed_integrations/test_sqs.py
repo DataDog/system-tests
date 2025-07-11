@@ -1,24 +1,21 @@
 from __future__ import annotations
 import json
 
-from utils.buddies import python_buddy, java_buddy
-from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant
-from utils.tools import logger
-
-from tests.integrations.utils import delete_sqs_queue
+from utils.buddies import python_buddy, java_buddy, _Weblog as Weblog
+from utils import interfaces, scenarios, weblog, missing_feature, features, context, irrelevant, logger
 
 
-class _Test_SQS:
+class _BaseSQS:
     """Test sqs compatibility with inputted datadog tracer"""
 
-    BUDDY_TO_WEBLOG_QUEUE = None
-    WEBLOG_TO_BUDDY_QUEUE = None
-    buddy = None
-    buddy_interface = None
-    unique_id = None
+    BUDDY_TO_WEBLOG_QUEUE: str
+    WEBLOG_TO_BUDDY_QUEUE: str
+    buddy: Weblog
+    buddy_interface: interfaces.LibraryInterfaceValidator
+    unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, queue, operation):
+    def get_span(cls, interface, span_kind, queue, operation) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and queue: {queue} in {interface}")
         manual_span_found = False
 
@@ -56,10 +53,7 @@ class _Test_SQS:
 
                 elif operation.lower() == "receivemessage" and span["meta"].get("language", "") == "javascript":
                     # for nodejs we propagate from aws.response span which does not have the queue included on the span
-                    if span["resource"] != "aws.response":
-                        continue
-                    # if we found the manual span, and now have the aws.response span, we will return this span
-                    elif not manual_span_found:
+                    if span["resource"] != "aws.response" or not manual_span_found:
                         continue
                 elif queue != cls.get_queue(span):
                     continue
@@ -87,26 +81,22 @@ class _Test_SQS:
         return queue
 
     def setup_produce(self):
-        """
-        send request A to weblog : this request will produce a sqs message
+        """Send request A to weblog : this request will produce a sqs message
         send request B to library buddy, this request will consume sqs message
         """
-        try:
-            message = (
-                "[crossed_integrations/sqs.py][SQS] Hello from SQS "
-                f"[{context.library.library} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/sqs.py][SQS] Hello from SQS "
+            f"[{context.library.name} weblog->{self.buddy_interface.name}] test produce: {self.unique_id}"
+        )
 
-            self.production_response = weblog.get(
-                "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = self.buddy.get(
-                "/sqs/consume",
-                params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.WEBLOG_TO_BUDDY_QUEUE)
+        self.production_response = weblog.get(
+            "/sqs/produce", params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = self.buddy.get(
+            "/sqs/consume",
+            params={"queue": self.WEBLOG_TO_BUDDY_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
@@ -125,7 +115,7 @@ class _Test_SQS:
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
         library="java",
-        reason="Expected to fail, Dotnet does not propagate context via msg attrs or uses xray which also doesn't work",
+        reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
     )
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
@@ -151,29 +141,25 @@ class _Test_SQS:
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def setup_consume(self):
-        """
-        send request A to library buddy : this request will produce a sqs message
+        """Send request A to library buddy : this request will produce a sqs message
         send request B to weblog, this request will consume sqs message
 
         request A: GET /library_buddy/produce_sqs_message
         request B: GET /weblog/consume_sqs_message
         """
-        try:
-            message = (
-                "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
-                f"[{self.buddy_interface.name}->{context.library.library} weblog] test consume: {self.unique_id}"
-            )
+        message = (
+            "[crossed_integrations/test_sqs.py][SQS] Hello from SQS "
+            f"[{self.buddy_interface.name}->{context.library.name} weblog] test consume: {self.unique_id}"
+        )
 
-            self.production_response = self.buddy.get(
-                "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
-            )
-            self.consume_response = weblog.get(
-                "/sqs/consume",
-                params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
-                timeout=61,
-            )
-        finally:
-            delete_sqs_queue(self.BUDDY_TO_WEBLOG_QUEUE)
+        self.production_response = self.buddy.get(
+            "/sqs/produce", params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "message": message}, timeout=60
+        )
+        self.consume_response = weblog.get(
+            "/sqs/consume",
+            params={"queue": self.BUDDY_TO_WEBLOG_QUEUE, "timeout": 60, "message": message},
+            timeout=61,
+        )
 
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
@@ -190,7 +176,7 @@ class _Test_SQS:
 
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
-    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet does not propagate context")
+    @missing_feature(library="dotnet", reason="Expected to fail, .NET does not propagate context")
     def test_consume_trace_equality(self):
         """This test relies on the setup for consume, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -209,11 +195,12 @@ class _Test_SQS:
         # Both producer and consumer spans should be part of the same trace
         # Different tracers can handle the exact propagation differently, so for now, this test avoids
         # asserting on direct parent/child relationships
+        assert producer_span is not None
+        assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
     def validate_sqs_spans(self, producer_interface, consumer_interface, queue):
-        """
-        Validates production/consumption of sqs message.
+        """Validates production/consumption of sqs message.
         It works the same for both test_produce and test_consume
         """
 
@@ -235,9 +222,8 @@ class _Test_SQS:
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
+class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_BaseSQS):
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
@@ -248,9 +234,9 @@ class Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES(_Test_SQS):
 
 
 @scenarios.crossed_tracing_libraries
-@irrelevant(True, reason="AWS Tests are not currently stable.")
 @features.aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace
-class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
+@irrelevant(condition=True, reason="Localstack SQS does not support AWS Xray Header parsing")
+class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_BaseSQS):
     buddy_interface = interfaces.java_buddy
     buddy = java_buddy
 
@@ -261,7 +247,7 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
 
     @missing_feature(
         library="nodejs",
-        reason="Expected to fail, NodeJS will not create a response span \
+        reason="Expected to fail, Node.js will not create a response span \
                      propagating context since it cannot extract AWSTracerHeader context that Java injects",
     )
     def test_consume(self):
@@ -275,7 +261,7 @@ class Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS(_Test_SQS):
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="python", reason="Expected to fail, Python does not propagate context")
-    @missing_feature(library="nodejs", reason="Expected to fail, Nodejs does not propagate context")
-    @missing_feature(library="dotnet", reason="Expected to fail, Dotnet will not extract from XRay headers")
+    @missing_feature(library="nodejs", reason="Expected to fail, Node.js does not propagate context")
+    @missing_feature(library="dotnet", reason="Expected to fail, .NET will not extract from XRay headers")
     def test_consume_trace_equality(self):
         super().test_consume_trace_equality()

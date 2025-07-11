@@ -7,17 +7,18 @@ PYTHONPATH=. python utils/interfaces/_schemas_validators.py
 """
 
 from dataclasses import dataclass
+import functools
+import json
 import os
 from pathlib import Path
-import json
 import re
-import functools
+from typing import Any
 
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
 
-def _is_bytes_or_string(_checker, instance):
+def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
 
 
@@ -58,7 +59,7 @@ def _get_schemas_store():
 
 
 @functools.lru_cache
-def _get_schema_validator(schema_id):
+def _get_schema_validator(schema_id: str):
     store = _get_schemas_store()
 
     if schema_id not in store:
@@ -86,14 +87,14 @@ class SchemaError:
 
 
 class SchemaValidator:
-    def __init__(self, interface, allowed_errors=None):
-        self.interface = interface
+    def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
+        self.interface = interface_name
         self.allowed_errors = []
 
-        for pattern in allowed_errors or []:
+        for pattern in allowed_errors:
             self.allowed_errors.append(re.compile(pattern))
 
-    def get_errors(self, data) -> list[SchemaError]:
+    def get_errors(self, data: dict) -> list[SchemaError]:
         path = "/" if data["path"] == "" else data["path"]
         schema_id = f"/{self.interface}{path}-request.json"
 
@@ -101,6 +102,11 @@ class SchemaValidator:
             return []
 
         validator = _get_schema_validator(schema_id)
+        if "content" not in data["request"]:
+            # something went wrong on the proxy side
+            # it's not the schema job to complain about it
+            return []
+
         if validator.is_valid(data["request"]["content"]):
             return []
 
@@ -117,9 +123,9 @@ def _main():
         for folder in folders:
             path = f"{folder}/interfaces/{interface}"
 
-            if not os.path.exists(path):
+            if not Path(path).exists():
                 continue
-            files = [file for file in os.listdir(path) if os.path.isfile(os.path.join(path, file))]
+            files = [file for file in os.listdir(path) if Path(os.path.join(path, file)).is_file()]
             for file in files:
                 with open(os.path.join(path, file), encoding="utf-8") as f:
                     data = json.load(f)

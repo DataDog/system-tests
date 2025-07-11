@@ -14,31 +14,43 @@ import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForFanout
 import com.datadoghq.system_tests.springboot.rabbitmq.RabbitmqConnectorForTopicExchange;
 import com.datadoghq.system_tests.iast.utils.Utils;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlText;
+import com.google.protobuf.DescriptorProtos;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import datadog.appsec.api.blocking.Blocking;
+import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.EventTracker;
 import datadog.trace.api.Trace;
 import datadog.trace.api.experimental.*;
 import datadog.trace.api.interceptor.MutableSpan;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import org.springframework.boot.autoconfigure.r2dbc.R2dbcAutoConfiguration;
 import org.springframework.web.server.ResponseStatusException;
 
 
+import io.opentelemetry.api.baggage.Baggage;
 import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.propagation.ContextPropagators;
+import io.opentelemetry.context.propagation.TextMapGetter;
+import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.context.Context;
 import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 import ognl.Ognl;
@@ -65,6 +77,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.Headers;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -75,6 +92,7 @@ import java.io.InputStreamReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Scanner;
 import java.util.LinkedHashMap;
@@ -107,12 +125,14 @@ import io.opentracing.Span;
 import io.opentracing.util.GlobalTracer;
 
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
+import proto_message.Message;
 
 import static com.mongodb.client.model.Filters.eq;
+import static datadog.appsec.api.user.User.setUser;
 import static io.opentelemetry.api.trace.SpanKind.INTERNAL;
 import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.time.temporal.ChronoUnit.SECONDS;
-
+import static java.util.Collections.emptyMap;
 
 @RestController
 @EnableAutoConfiguration(exclude = R2dbcAutoConfiguration.class)
@@ -154,7 +174,7 @@ public class App {
         }
 
         Map<String, String> library = new HashMap<>();
-        library.put("language", "java");
+        library.put("name", "java");
         library.put("version", version);
 
         Map<String, Object> response = new HashMap<>();
@@ -170,16 +190,71 @@ public class App {
         return "012345678901234567890123456789012345678901";
     }
 
-    @RequestMapping(value = "/tag_value/{value}/{code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
-    ResponseEntity<String> tagValue(@PathVariable final String value, @PathVariable final int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return ResponseEntity.status(code).body("Value tagged");
+    @GetMapping("/customResponseHeaders")
+    String customResponseHeaders(HttpServletResponse response) {
+        response.setHeader("Content-Language", "en-US");
+        response.setHeader("X-Test-Header-1", "value1");
+        response.setHeader("X-Test-Header-2", "value2");
+        response.setHeader("X-Test-Header-3", "value3");
+        response.setHeader("X-Test-Header-4", "value4");
+        response.setHeader("X-Test-Header-5", "value5");
+        return "Response with custom headers";
     }
 
-    @PostMapping(value = "/tag_value/{value}/{code}", headers = "accept=*",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
-    ResponseEntity<String> tagValueWithUrlencodedBody(@PathVariable final String value, @PathVariable final int code, @RequestParam MultiValueMap<String, String> body) {
-        return tagValue(value, code);
+    @GetMapping("/exceedResponseHeaders")
+    String exceedResponseHeaders(HttpServletResponse response) {
+        for (int i = 1; i <= 50; i++) {
+            response.setHeader("X-Test-Header-" + i, "value" + i);
+        }
+        response.setHeader("content-language", "en-US");
+        return "Response with more than 50 headers";
+    }
+
+    @RequestMapping(value = "/tag_value/{tag_value}/{status_code}", method = {RequestMethod.GET, RequestMethod.OPTIONS}, headers = "accept=*")
+    ResponseEntity<?> tagValue(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption) {
+        return handleTagValue(tag_value, status_code, xOption, null);
+    }
+
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    ResponseEntity<?> tagValueWithUrlencodedBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestParam MultiValueMap<String, String> form) {
+        ObjectNode body = null;
+        if (form != null) {
+            body = new ObjectMapper().valueToTree(form);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
+    }
+
+    @PostMapping(value = "/tag_value/{tag_value}/{status_code}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    ResponseEntity<?> tagValueWithJsonBody(@PathVariable final String tag_value, @PathVariable final int status_code, @RequestParam(value = "X-option", required = false) String xOption, @RequestBody Map<String, Object> json) {
+        ObjectNode body = null;
+        if (json != null) {
+            body = new ObjectMapper().valueToTree(json);
+        }
+        return handleTagValue(tag_value, status_code, xOption, body);
+    }
+
+    private ResponseEntity<?> handleTagValue(final String value, final int status, final String xOption, final JsonNode body) {
+        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        ResponseEntity.BodyBuilder response = ResponseEntity.status(status);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            JsonNode responseBody = new ObjectMapper().createObjectNode().set("payload", body);
+            return response.contentType(MediaType.APPLICATION_JSON).body(responseBody);
+        } else {
+            return response.contentType(MediaType.TEXT_PLAIN).body("Value tagged");
+        }
+    }
+
+    @GetMapping("/api_security/sampling/{i}")
+    ResponseEntity<String> apiSecuritySamplingWithStatus(@PathVariable final int i) {
+        return ResponseEntity.status(i).body("Hello!\n");
+    }
+
+    @GetMapping("/api_security_sampling/{i}")
+    ResponseEntity<String> apiSecuritySampling(@PathVariable final int i) {
+        return ResponseEntity.status(200).body("OK!\n");
     }
 
     @RequestMapping("/waf/**")
@@ -218,12 +293,17 @@ public class App {
     @GetMapping(value = "/session/user")
     ResponseEntity<String> userSession(@RequestParam("sdk_user") final String sdkUser, final HttpServletRequest request) {
         EventTracker tracker = datadog.trace.api.GlobalTracer.getEventTracker();
-        tracker.trackLoginSuccessEvent(sdkUser, Collections.emptyMap());
+        tracker.trackLoginSuccessEvent(sdkUser, emptyMap());
         return ResponseEntity.ok(request.getRequestedSessionId());
     }
 
     @RequestMapping("/status")
     ResponseEntity<String> status(@RequestParam Integer code) {
+        return new ResponseEntity<>(HttpStatus.valueOf(code));
+    }
+
+    @RequestMapping("/stats-unique")
+    ResponseEntity<String> statsUnique(@RequestParam(defaultValue = "200") Integer code) {
         return new ResponseEntity<>(HttpStatus.valueOf(code));
     }
 
@@ -246,6 +326,18 @@ public class App {
                 .forUser(user)
                 .blockIfMatch();
         return "Hello " + user;
+    }
+
+    @GetMapping("/identify")
+    public String identify() {
+        final Map<String, String> metadata = new HashMap<>();
+        metadata.put("email", "usr.email");
+        metadata.put("name", "usr.name");
+        metadata.put("session_id", "usr.session_id");
+        metadata.put("role", "usr.role");
+        metadata.put("scope", "usr.scope");
+        setUser("usr.id", metadata);
+        return "OK";
     }
 
     @GetMapping("/user_login_success_event")
@@ -273,6 +365,26 @@ public class App {
         datadog.trace.api.GlobalTracer.getEventTracker()
                 .trackCustomEvent(eventName, METADATA);
 
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_success_event_v2")
+    public String userLoginSuccessV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final String userId = body.getOrDefault("user_id", "system_tests_user_id").toString();
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginSuccess(login, userId, metadata);
+        return "ok";
+    }
+
+    @SuppressWarnings("unchecked")
+    @PostMapping("/user_login_failure_event_v2")
+    public String userLoginFailureV2(@RequestBody final Map<String, Object> body) {
+        final String login = body.getOrDefault("login", "system_tests_login").toString();
+        final boolean exists = Boolean.parseBoolean(body.getOrDefault("exists", "true").toString());
+        final Map<String, String> metadata = (Map<String, String>) body.getOrDefault("metadata", emptyMap());
+        EventTrackerV2.trackUserLoginFailure(login, exists, metadata);
         return "ok";
     }
 
@@ -420,7 +532,9 @@ public class App {
         @RequestParam(required = true) String queue,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         try {
             sqs.produceMessageWithoutNewThread(message);
         } catch (Exception e) {
@@ -437,7 +551,9 @@ public class App {
         @RequestParam(required = false) Integer timeout,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
@@ -456,8 +572,10 @@ public class App {
         @RequestParam(required = true) String topic,
         @RequestParam(required = true) String message
     ) {
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
         SnsConnector sns = new SnsConnector(topic);
-        SqsConnector sqs = new SqsConnector(queue);
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         try {
             sns.produceMessageWithoutNewThread(message, sqs);
         } catch (Exception e) {
@@ -474,7 +592,9 @@ public class App {
         @RequestParam(required = false) Integer timeout,
         @RequestParam(required = true) String message
     ) {
-        SqsConnector sqs = new SqsConnector(queue);
+        String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+        SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
         if (timeout == null) timeout = 60;
         boolean consumed = false;
         try {
@@ -639,7 +759,9 @@ public class App {
                 return "failed to start consuming message";
             }
         } else if ("sqs".equals(integration)) {
-            SqsConnector sqs = new SqsConnector(queue);
+            String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
+            SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
             try {
                 Thread produceThread = sqs.startProducingMessage(message);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
@@ -657,8 +779,10 @@ public class App {
                 return "[SQS] failed to start consuming message";
             }
         } else if ("sns".equals(integration)) {
+            String systemTestsAwsUrl = System.getenv("SYSTEM_TESTS_AWS_URL");
+
             SnsConnector sns = new SnsConnector(topic);
-            SqsConnector sqs = new SqsConnector(queue);
+            SqsConnector sqs = new SqsConnector(queue, systemTestsAwsUrl);
             try {
                 Thread produceThread = sns.startProducingMessage(message, sqs);
                 produceThread.join(this.PRODUCE_CONSUME_THREAD_TIMEOUT);
@@ -695,6 +819,33 @@ public class App {
             return "unknown integration: " + integration;
         }
         return "ok";
+    }
+
+    @RequestMapping("/inferred-proxy/span-creation")
+    ResponseEntity<String> inferredProxySpanCheck(
+        @RequestParam(required = false, name = "status_code") String statusCodeParam,
+        final HttpServletRequest request
+    ) {
+        // Default status code
+        int statusCode = 200;
+
+        if (statusCodeParam != null && !statusCodeParam.isEmpty()) {
+            try {
+                statusCode = Integer.parseInt(statusCodeParam);
+            } catch (NumberFormatException e) {
+                statusCode = 400; // Bad request if parsing fails
+            }
+        }
+
+        // Log request headers
+        System.out.println("Received an API Gateway request:");
+        java.util.Enumeration<String> headerNames = request.getHeaderNames();
+        while (headerNames.hasMoreElements()) {
+            String header = headerNames.nextElement();
+            System.out.println(header + ": " + request.getHeader(header));
+        }
+
+        return ResponseEntity.status(statusCode).body("ok");
     }
 
     @RequestMapping("/dsm/inject")
@@ -866,30 +1017,34 @@ public class App {
 
     @RequestMapping("/make_distant_call")
     DistantCallResponse make_distant_call(@RequestParam String url) throws Exception {
-        URL urlObject = new URL(url);
+        HashMap<String, String> request_headers = new HashMap<>();
 
-        HttpURLConnection con = (HttpURLConnection) urlObject.openConnection();
-        con.setRequestMethod("GET");
-
-        // Save request headers
-        HashMap<String, String> request_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getRequestProperties().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
+        OkHttpClient client = new OkHttpClient.Builder()
+        .addNetworkInterceptor(chain -> { // Save request headers
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            Headers finalHeaders = request.headers();
+            for (String name : finalHeaders.names()) {
+                request_headers.put(name, finalHeaders.get(name));
             }
 
-            request_headers.put(header.getKey(), header.getValue().get(0));
-        }
+            return response;
+        })
+        .build();
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        Response response = client.newCall(request).execute();
 
         // Save response headers and status code
-        int status_code = con.getResponseCode();
+        int status_code = response.code();
         HashMap<String, String> response_headers = new HashMap<String, String>();
-        for (Map.Entry<String, List<String>> header: con.getHeaderFields().entrySet()) {
-            if (header.getKey() == null) {
-                continue;
-            }
-
-            response_headers.put(header.getKey(), header.getValue().get(0));
+        Headers headers = response.headers();
+        for (String name : headers.names()) {
+            response_headers.put(name, headers.get(name));
         }
 
         DistantCallResponse result = new DistantCallResponse();
@@ -997,30 +1152,32 @@ public class App {
     }
 
     @PostMapping(value = "/shell_execution", consumes = MediaType.APPLICATION_JSON_VALUE)
-    ResponseEntity<String> shellExecution(@RequestBody final ShellExecutionRequest request) throws IOException, InterruptedException {
-        Process p;
-        if (request.options.shell) {
-            throw new RuntimeException("Not implemented");
-        } else {
-            final String[] args = request.args.split("\\s+");
-            final String[] command = new String[args.length + 1];
-            command[0] = request.command;
-            System.arraycopy(args, 0, command, 1, args.length);
-            p = new ProcessBuilder(command).start();
+    ResponseEntity<String> shellExecution(@RequestBody final JsonNode request) throws IOException, InterruptedException {
+        // args can be a string or array. Just do some custom mapping here to avoid object mapping mambo.
+        if (request.get("options") != null && request.get("options").get("shell") != null && request.get("options").get("shell").asBoolean()) {
+            throw new RuntimeException("Actual shell execution is not supported");
         }
+        final String commandArg = request.get("command").asText();
+        final String[] args;
+        if (request.get("args").isTextual()) {
+            args = request.get("args").asText().split("\\s+");
+        } else if (request.get("args").isArray()) {
+            final JsonNode argsNode = request.get("args");
+            args = new String[argsNode.size()];
+            for (int i = 0; i < argsNode.size(); i++) {
+                args[i] = argsNode.get(i).asText();
+            }
+        } else {
+            throw new RuntimeException("Invalid args type");
+        }
+
+        final String[] command = new String[args.length + 1];
+        command[0] = commandArg;
+        System.arraycopy(args, 0, command, 1, args.length);
+        final Process p = new ProcessBuilder(command).start();
         p.waitFor(10, TimeUnit.SECONDS);
         final int exitCode = p.exitValue();
         return new ResponseEntity<>("OK: " + exitCode, HttpStatus.OK);
-    }
-
-    private static class ShellExecutionRequest {
-        public String command;
-        public String args;
-        public Options options;
-
-        static class Options {
-            public boolean shell;
-        }
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -1094,6 +1251,60 @@ public class App {
         return "OK";
     }
 
+    @RequestMapping("/otel_drop_in_default_propagator_extract")
+    public String otelDropInDefaultPropagatorExtract(@RequestHeader Map<String, String> headers) throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Context extractedContext = textMapPropagator.extract(Context.current(), headers, new TextMapGetter<Map<String, String>>() {
+            @Override
+            public Iterable<String> keys(Map<String, String> map) {
+            return map.keySet();
+            }
+
+            @Override
+            public String get(Map<String, String> map, String key) {
+                return map.get(key);
+            }
+        });
+
+        io.opentelemetry.api.trace.SpanContext spanContext = io.opentelemetry.api.trace.Span.fromContext(extractedContext).getSpanContext();
+        Long ddTraceId = Long.parseLong(spanContext.getTraceId().substring(16), 16);
+        Long ddSpanId = Long.parseLong(spanContext.getSpanId(), 16);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put("trace_id", ddTraceId);
+        map.put("span_id", ddSpanId);
+        map.put("tracestate", spanContext.getTraceState().asMap().toString());
+        map.put("baggage", Baggage.fromContext(extractedContext).asMap().toString());
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
+    }
+
+    @RequestMapping("/otel_drop_in_default_propagator_inject")
+    public String otelDropInDefaultPropagatorInject() throws com.fasterxml.jackson.core.JsonProcessingException {
+        ContextPropagators propagators = GlobalOpenTelemetry.getPropagators();
+        TextMapPropagator textMapPropagator = propagators.getTextMapPropagator();
+
+        Map<String, String> map = new HashMap<>();
+        textMapPropagator.inject(Context.current(), map, new TextMapSetter<Map<String, String>>() {
+            @Override
+            public void set(Map<String, String> map, String key, String value) {
+                map.put(key, value);
+            }
+        });
+
+        // Convert headers map to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = mapper.writeValueAsString(map);
+
+        return jsonString;
+    }
+
     @GetMapping(value = "/requestdownstream")
     public String requestdownstream(HttpServletResponse response) throws IOException {
         String url = "http://localhost:7777/returnheaders";
@@ -1117,6 +1328,34 @@ public class App {
         return ResponseEntity.ok().header("Set-Cookie", name + "=" + value).body("Cookie set");
     }
 
+    @GetMapping("/protobuf/serialize")
+    public ResponseEntity<String> protobufSerialize() {
+        // the content of the message does not really matter since it's the schema that is observed.
+        Message.AddressBook msg = Message.AddressBook.newBuilder()
+                .setCentral(Message.PhoneNumber.newBuilder()
+                        .setNumber("0123")
+                        .setType(Message.PhoneType.WORK))
+                .build();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        try {
+            msg.writeTo(stream);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(e.toString());
+        }
+
+        return ResponseEntity.ok(Base64.getEncoder().encodeToString(stream.toByteArray()));
+    }
+
+    @GetMapping("/protobuf/deserialize")
+    public ResponseEntity<String> protobufDeserialize(@RequestParam("msg") final String b64Message) {
+        try {
+            byte[] rawBytes = Base64.getDecoder().decode(b64Message);
+            Message.AddressBook.parseFrom(rawBytes);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.toString());
+        }
+        return ResponseEntity.ok("ok");
+    }
 
     @Bean
     @ConditionalOnProperty(

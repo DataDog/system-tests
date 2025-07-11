@@ -31,13 +31,13 @@ class RequestGenerator:
         self.not_found_response_is_parsed = False
         self.parsed = set()
 
-    def add_in_buffer(self, request):
+    def add_in_buffer(self, request) -> None:
         if not request.get("path", None):
             return
 
         self.buffer.append(request)
 
-    def add_in_corpus(self, request):
+    def add_in_corpus(self, request) -> None:
         if not request.get("path", None):
             return
 
@@ -51,7 +51,7 @@ class RequestGenerator:
         while len(self.corpus) > self.corpus_max_size:
             self.corpus.pop(0)
 
-    def get_request(self):
+    def get_request(self) -> dict:
         if len(self.buffer) != 0:
             request = self.buffer.pop(0)
         else:
@@ -65,7 +65,7 @@ class RequestGenerator:
         return request
 
     #############################
-    async def feedback(self, request, response, base_url):
+    async def feedback(self, request, response, base_url) -> None:
         endpoint = request["method"], request["path"]
 
         if response.status == 404 and not self.not_found_response_is_parsed:

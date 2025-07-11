@@ -1,15 +1,47 @@
 import base64
+import dictdiffer
 import os
 import time
 
-from utils import context, weblog, interfaces, scenarios, irrelevant
-from utils.tools import logger, get_rid_from_request
+from utils import context, weblog, interfaces, scenarios, irrelevant, features, logger
 from utils.otel_validators.validator_trace import validate_all_traces
 from utils.otel_validators.validator_log import validate_log, validate_log_trace_correlation
-from utils.otel_validators.validator_metric import validate_metrics
 
 
-def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
+# Validates the JSON logs from backend and returns the OTel log trace attributes
+def validate_metrics(metrics_1: list[dict], metrics_2: list[dict], metrics_source1: str, metrics_source2: str) -> None:
+    diff = list(dictdiffer.diff(metrics_1[0], metrics_2[0]))
+    assert len(diff) == 0, f"Diff between count metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+    validate_example_counter(metrics_1[0])
+    idx = 1
+    for histogram_suffix in ["", ".sum", ".count"]:
+        diff = list(dictdiffer.diff(metrics_1[idx], metrics_2[idx]))
+        assert (
+            len(diff) == 0
+        ), f"Diff between histogram{histogram_suffix} metrics from {metrics_source1} vs. from {metrics_source2}: {diff}"
+        validate_example_histogram(metrics_1[idx], histogram_suffix)
+        idx += 1
+
+
+def validate_example_counter(counter_metric: dict) -> None:
+    assert len(counter_metric["series"]) == 1
+    counter_series = counter_metric["series"][0]
+    assert counter_series["metric"] == "example.counter"
+    assert counter_series["display_name"] == "example.counter"
+    assert len(counter_series["pointlist"]) == 1
+    assert counter_series["pointlist"][0][1] == 11.0
+
+
+def validate_example_histogram(histogram_metric: dict, histogram_suffix: str) -> None:
+    assert len(histogram_metric["series"]) == 1
+    histogram_series = histogram_metric["series"][0]
+    assert histogram_series["metric"] == "example.histogram" + histogram_suffix
+    assert histogram_series["display_name"] == "example.histogram" + histogram_suffix
+    assert len(histogram_series["pointlist"]) == 1
+    assert histogram_series["pointlist"][0][1] == 33.0 if histogram_suffix != ".count" else 1.0
+
+
+def _get_dd_trace_id(otel_trace_id: str, *, use_128_bits_trace_id: bool) -> int:
     otel_trace_id_bytes = base64.b64decode(otel_trace_id)
     if use_128_bits_trace_id:
         return int.from_bytes(otel_trace_id_bytes, "big")
@@ -18,6 +50,7 @@ def _get_dd_trace_id(otel_trace_id: str, use_128_bits_trace_id: bool) -> int:
 
 @scenarios.otel_tracing_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelTracingE2E:
     def setup_main(self):
         self.use_128_bits_trace_id = False
@@ -26,7 +59,10 @@ class Test_OTelTracingE2E:
     def test_main(self):
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 2
-        dd_trace_ids = [_get_dd_trace_id(otel_trace_id, self.use_128_bits_trace_id) for otel_trace_id in otel_trace_ids]
+        dd_trace_ids = [
+            _get_dd_trace_id(otel_trace_id, use_128_bits_trace_id=self.use_128_bits_trace_id)
+            for otel_trace_id in otel_trace_ids
+        ]
 
         try:
             # The 1st account has traces sent by DD Agent
@@ -73,6 +109,7 @@ class Test_OTelTracingE2E:
 
 @scenarios.otel_metric_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelMetricE2E:
     def setup_main(self):
         self.start = int(time.time())
@@ -88,7 +125,7 @@ class Test_OTelMetricE2E:
 
     def test_main(self):
         end = int(time.time())
-        rid = get_rid_from_request(self.r).lower()
+        rid = self.r.get_rid().lower()
         try:
             # The 1st account has metrics sent by DD Agent
             metrics_agent = [
@@ -139,16 +176,17 @@ class Test_OTelMetricE2E:
 
 @scenarios.otel_log_e2e
 @irrelevant(context.library != "java_otel")
+@features.not_reported  # FPD does not support otel libs
 class Test_OTelLogE2E:
     def setup_main(self):
         self.r = weblog.get(path="/basic/log")
         self.use_128_bits_trace_id = False
 
     def test_main(self):
-        rid = get_rid_from_request(self.r)
+        rid = self.r.get_rid()
         otel_trace_ids = set(interfaces.open_telemetry.get_otel_trace_id(request=self.r))
         assert len(otel_trace_ids) == 1
-        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], self.use_128_bits_trace_id)
+        dd_trace_id = _get_dd_trace_id(list(otel_trace_ids)[0], use_128_bits_trace_id=self.use_128_bits_trace_id)
 
         # The 1st account has logs and traces sent by Agent
         try:

@@ -5,7 +5,6 @@
 from utils import bug
 from utils import context
 from utils import features
-from utils import flaky
 from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
@@ -21,7 +20,7 @@ def _send_config(config):
         rc.rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
         rc.rc_state.reset()
-    return rc.rc_state.apply()[rc.RC_STATE]
+    return rc.rc_state.apply().state
 
 
 @scenarios.appsec_runtime_activation

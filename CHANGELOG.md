@@ -2,6 +2,73 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-06 (128 PR merged)
+
+* 2025-06-26 [Check that all declared production version exists for java](https://github.com/DataDog/system-tests/pull/4840) by @cbeauchesne
+* 2025-06-25 [Implement AI Testing Framework and Specialized Prompts](https://github.com/DataDog/system-tests/pull/4815) by @robertomonteromiguel
+* 2025-06-16 [Use the bare agent image in end-to-end scenario](https://github.com/DataDog/system-tests/pull/4771) by @cbeauchesne
+* 2025-06-12 [Add optional inputs ref for system-tests.yml](https://github.com/DataDog/system-tests/pull/4750) by @TonyCTHsu
+* 2025-06-09 [Robertomonteromiguel/cursor copilot endtoend scenarios](https://github.com/DataDog/system-tests/pull/4722) by @robertomonteromiguel
+* 2025-06-04 [Test that tracer version is reported as semver to RC](https://github.com/DataDog/system-tests/pull/4712) by @smola
+* 2025-06-11 [[Nodejs] init fastify weblog](https://github.com/DataDog/system-tests/pull/4708) by @IlyasShabi
+* 2025-06-03 [Robertomonteromiguel/GitHub copilot and docs](https://github.com/DataDog/system-tests/pull/4665) by @robertomonteromiguel
+
+
+### 2025-05 (110 PR merged)
+
+* 2025-05-27 [add a script that adds a label on tickets referenced in system-tests](https://github.com/DataDog/system-tests/pull/4697) by @cbeauchesne
+* 2025-05-22 [Allow parametric tests to run against an arbitrary system-tests ref](https://github.com/DataDog/system-tests/pull/4685) by @cbeauchesne
+* 2025-05-21 [do not require ca-certificate for agent image #4676](https://github.com/DataDog/system-tests/pull/4677) by @cbeauchesne
+* 2025-05-05 [Use ensure-ci-success for all-green gatekeeper](https://github.com/DataDog/system-tests/pull/4573) by @cbeauchesne
+* 2025-05-09 [ssi: track ssi configurations via telemetry](https://github.com/DataDog/system-tests/pull/4543) by @mabdinur
+
+
+### 2025-04 (137 PR merged)
+
+* 2025-04-22 [Add an option to exclude some scenarios in system-tests.yml](https://github.com/DataDog/system-tests/pull/4546) by @cbeauchesne
+* 2025-04-04 [Introduce a way to add extra argument to library cmd on parametric scenario](https://github.com/DataDog/system-tests/pull/4470) by @cbeauchesne
+
+
+### 2025-03 (175 PR merged)
+
+* 2025-03-28 [Add core dump on PHP weblogs](https://github.com/DataDog/system-tests/pull/4411) by @cbeauchesne
+* 2025-03-24 [Create cpp_nginx library](https://github.com/DataDog/system-tests/pull/4371) by @cbeauchesne
+* 2025-03-20 [onboarding: force the apm instrumentation after install the installer.](https://github.com/DataDog/system-tests/pull/4350) by @robertomonteromiguel
+* 2025-03-30 [retry npm install when it fails](https://github.com/DataDog/system-tests/pull/4334) by @rochdev
+* 2025-03-18 [Add library cpp_httpd](https://github.com/DataDog/system-tests/pull/4328) by @cbeauchesne
+* 2025-03-18 [Allow manifest to declare skips on entire folder](https://github.com/DataDog/system-tests/pull/4325) by @cbeauchesne
+* 2025-03-19 [Add order checking to format.sh](https://github.com/DataDog/system-tests/pull/4320) by @bm1549
+* 2025-03-10 [support for TARGET_BRANCH load_binary.sh golang](https://github.com/DataDog/system-tests/pull/4236) by @eliottness
+* 2025-03-12 [Add parallel mode in CI #4035](https://github.com/DataDog/system-tests/pull/4158) by @cbeauchesne
+* 2025-03-04 [Onboarding: gitlab ci](https://github.com/DataDog/system-tests/pull/4132) by @robertomonteromiguel
+
+
+### 2025-02 (236 PR merged)
+
+* 2025-02-12 [Add yamlfmt + yamllint](https://github.com/DataDog/system-tests/pull/4077) by @bm1549
+* 2025-02-10 Green CI policy by @cbeauchesne
+* 2025-02-04 [Extend mypy to full project](https://github.com/DataDog/system-tests/pull/3963) by @cbeauchesned
+* SSI:
+  * Implement retry policies on Gitlab pipeline with the aim of reducing flakiness
+  * Improvements in exception handling and messages displayed to the end user
+  * Enable all new vm distros and report to feature parity dashboard
+
+### 2025-01 (179 PR merged)
+
+* 2025-01-20 [Deserialize JSON in multipart](https://github.com/DataDog/system-tests/pull/3854) by @cbeauchesne
+* 2025-01-14 [[python] add new python weblog: django-py3.13](https://github.com/DataDog/system-tests/pull/3798) by @christophe-papazian
+* 2025-01-09 [Removes CircleCI job](https://github.com/DataDog/system-tests/pull/3792) by @cbeauchesne
+* 2025-01-03 [Add an option that skip all tests if scenario contains only xfail/skip](https://github.com/DataDog/system-tests/pull/3768) by @cbeauchesne
+* 2025-01-27 [Try to get TARGET_BRANCH from PR's title](https://github.com/DataDog/system-tests/pull/3675) by @iunanua
+* 2025-01-30 [[golang] new orchestrion go weblog](https://github.com/DataDog/system-tests/pull/3555) by @eliottness
+* 2025-01-16 [Add tests for Service Extension (Envoy External Processing)](https://github.com/DataDog/system-tests/pull/3377) by @e-n-0
+
+### 2024-12 (138 PR merged)
+
+* 2024-12-31 [Allow a class to declare several scenarios](https://github.com/DataDog/system-tests/pull/3757) by @cbeauchesne
+* 2024-12-17 Optimization of java weblogs [1](https://github.com/DataDog/system-tests/pull/3701), [2](https://github.com/DataDog/system-tests/pull/3697), [3](https://github.com/DataDog/system-tests/pull/3694) and [4](https://github.com/DataDog/system-tests/pull/3693) by @smola
+* 2024-12-13 Use ruff instead of black as [formatter](https://github.com/DataDog/system-tests/pull/3656) and [linter](https://github.com/DataDog/system-tests/pull/3631) by @cbeauchesne
+* 2024-12-03 Lot ofrevamp of k8 tests by @robertomonteromiguel
 
 ### 2024-11 (207 PR merged)
 
@@ -64,7 +131,7 @@ All notable changes to this project will be documented in this file.
 
 * 2024-05-27 [Use semver for version parser](https://github.com/DataDog/system-tests/pull/2487) by @cbeauchesne
 * 2024-05-07 [[python] decrease the waiting time for python libraries from 25s to 5s](https://github.com/DataDog/system-tests/pull/2431) by @christophe-papazian
-* 2024-05-29 [Manifest references + Node semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
+* 2024-05-29 [Manifest references + Node.js semver migration](https://github.com/DataDog/system-tests/pull/2416) by @simon-id
 * 2024-05-03 [Dynamically compute scenarios to run](https://github.com/DataDog/system-tests/pull/2408) by @cbeauchesne
 
 
@@ -116,7 +183,7 @@ All notable changes to this project will be documented in this file.
 ### October 2023 (100 PR merged)
 
 * 2023-10-09 [New python/FastAPI variant](https://github.com/DataDog/system-tests/pull/1663) by @christophe-papazian
-* 2023-10-27 [New NodeJS/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
+* 2023-10-27 [New Node.js/NextJS variant](https://github.com/DataDog/system-tests/pull/1662) by @uurien
 * 2023-10-01 [New scenario for testing debugger probes](https://github.com/DataDog/system-tests/pull/1632) by @shurivich
 
 ### September 2023 (84 PR merged)

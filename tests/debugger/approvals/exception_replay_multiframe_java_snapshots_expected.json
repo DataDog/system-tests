@@ -36,7 +36,167 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
+              "lineNumber": 55
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "org.springframework.web.server.ResponseStatusException"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "deepFunctionA",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
+        "lineNumber": 65
+      },
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
+        "lineNumber": 69
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 55
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  },
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
+              "lineNumber": 56
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
+              "lineNumber": 60
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
+              "lineNumber": 64
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
+              "lineNumber": 69
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 55
+            },
+            {
+              "<runtime>": "<scrubbed>"
+            }
+          ],
+          "type": "org.springframework.web.server.ResponseStatusException"
+        }
+      }
+    },
+    "exceptionId": "<scrubbed>",
+    "id": "<scrubbed>",
+    "language": "java",
+    "probe": {
+      "id": "<scrubbed>",
+      "version": 0,
+      "location": {
+        "lines": [],
+        "method": "deepFunctionB",
+        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
+      }
+    },
+    "stack": [
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
+        "lineNumber": 61
+      },
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
+        "lineNumber": 64
+      },
+      {
+        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
+        "lineNumber": 69
+      },
+      {
+        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+        "lineNumber": 55
+      },
+      {
+        "<runtime>": "<scrubbed>"
+      }
+    ],
+    "timestamp": "<scrubbed>"
+  },
+  {
+    "captures": {
+      "entry": {
+        "arguments": {},
+        "locals": {},
+        "staticFields": {}
+      },
+      "return": {
+        "arguments": {
+          "this": {
+            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
+            "fields": {}
+          }
+        },
+        "locals": {},
+        "staticFields": {},
+        "throwable": {
+          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
+          "stacktrace": [
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
+              "lineNumber": 56
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
+              "lineNumber": 60
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
+              "lineNumber": 64
+            },
+            {
+              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
+              "lineNumber": 69
+            },
+            {
+              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
+              "lineNumber": 55
             },
             {
               "<runtime>": "<scrubbed>"
@@ -77,7 +237,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
+        "lineNumber": 55
       },
       {
         "<runtime>": "<scrubbed>"
@@ -122,413 +282,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "deepFunctionC",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-        "lineNumber": 56
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 60
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 64
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 69
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "deepFunctionB",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 61
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 64
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 69
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "deepFunctionB",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-        "lineNumber": 61
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 64
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 69
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "deepFunctionA",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 65
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 69
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "deepFunctionA",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-        "lineNumber": 65
-      },
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 69
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
+              "lineNumber": 55
             },
             {
               "<runtime>": "<scrubbed>"
@@ -557,81 +311,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
-      },
-      {
-        "<runtime>": "<scrubbed>"
-      }
-    ],
-    "timestamp": "<scrubbed>"
-  },
-  {
-    "captures": {
-      "entry": {
-        "arguments": {},
-        "locals": {},
-        "staticFields": {}
-      },
-      "return": {
-        "arguments": {
-          "this": {
-            "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController",
-            "fields": {}
-          }
-        },
-        "locals": {},
-        "staticFields": {},
-        "throwable": {
-          "message": "500 INTERNAL_SERVER_ERROR \"multiple stack frames exception\"",
-          "stacktrace": [
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionC",
-              "lineNumber": 56
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionB",
-              "lineNumber": 60
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.deepFunctionA",
-              "lineNumber": 64
-            },
-            {
-              "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-              "lineNumber": 69
-            },
-            {
-              "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 50
-            },
-            {
-              "<runtime>": "<scrubbed>"
-            }
-          ],
-          "type": "org.springframework.web.server.ResponseStatusException"
-        }
-      }
-    },
-    "exceptionId": "<scrubbed>",
-    "id": "<scrubbed>",
-    "language": "java",
-    "probe": {
-      "id": "<scrubbed>",
-      "version": 0,
-      "location": {
-        "lines": [],
-        "method": "exceptionReplayMultiframe",
-        "type": "com.datadoghq.system_tests.springboot.ExceptionReplayController"
-      }
-    },
-    "stack": [
-      {
-        "function": "com.datadoghq.system_tests.springboot.ExceptionReplayController.exceptionReplayMultiframe",
-        "lineNumber": 70
-      },
-      {
-        "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 50
+        "lineNumber": 55
       },
       {
         "<runtime>": "<scrubbed>"

@@ -6,12 +6,12 @@ import random
 import argparse
 
 from utils._context.containers import WeblogContainer, AgentContainer, create_network
-from utils.tools import get_logger
+from utils._logger import get_logger
 from utils import context, scenarios
 from tests.fuzzer.core import Fuzzer
 
 
-def main():
+def main() -> None:
     context.scenario = scenarios.fuzzer
 
     parser = argparse.ArgumentParser(description="Send a bunch of requests to an url.")
@@ -62,12 +62,13 @@ def main():
     network = create_network()
 
     agent = AgentContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    agent.configure(False)
+    agent.configure(replay=False)
     agent.start(network)
 
     weblog = WeblogContainer(host_log_folder="logs_fuzzer", use_proxy=False)
-    weblog.configure(False)
+    weblog.configure(replay=False)
     weblog.start(network)
+    weblog.post_start()
 
     Fuzzer(
         corpus=args.corpus,

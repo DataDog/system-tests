@@ -25,18 +25,18 @@ class Test_ForceSkip:
 
 @scenarios.mock_the_test
 class Test_Bug:
-    @bug(True, reason="FAKE-001")
+    @bug(condition=True, reason="FAKE-001")
     def test_bug_executed(self):
         assert True
 
-    @missing_feature(True)
+    @missing_feature(condition=True)
     def test_missing_feature_executed(self):
         assert True
 
-    @bug(True, reason="FAKE-001", force_skip=True)
+    @bug(condition=True, reason="FAKE-001", force_skip=True)
     def test_bug_not_executed(self):
         assert True
 
-    @missing_feature(True, force_skip=True)
+    @missing_feature(condition=True, force_skip=True)
     def test_missing_feature_not_executed(self):
         assert True

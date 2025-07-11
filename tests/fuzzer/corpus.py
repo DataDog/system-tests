@@ -5,14 +5,15 @@
 import os
 import sys
 import json
+from pathlib import Path
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru
 
 
-def get_simple_gets_corpus():
+def get_simple_gets_corpus() -> list:
     return [{"method": "GET", "path": "/"}]
 
 
-def get_attack10_corpus():
+def get_attack10_corpus() -> list:
     result = []
     for _ in range(9):
         result.append({"method": "GET", "path": "/"})
@@ -22,9 +23,8 @@ def get_attack10_corpus():
     return result
 
 
-def get_big_requests_corpus():
-    """
-    Send huge requests.
+def get_big_requests_corpus() -> list:
+    """Send huge requests.
 
     Should be run with -c 1
     Need a better ouput to interrpret results...
@@ -134,9 +134,9 @@ def get_big_requests_corpus():
     return result
 
 
-def get_saved_corpus(source):
+def get_saved_corpus(source) -> list:
     if source is None:
-        source = os.path.dirname(os.path.realpath(__file__))
+        source = str(Path(os.path.realpath(__file__)).parent)
         source = os.path.join(source, "corpus")
 
     result = []
@@ -148,7 +148,7 @@ def get_saved_corpus(source):
         elif filename.endswith(".dump"):
             with open(filename, "r", encoding="utf-8") as f:
                 for line in f:
-                    if len(line.strip() != 0):
+                    if len(line.strip()) != 0:
                         _add_request(json.loads(line))
         else:
             raise ValueError(f"{filename} file must be a .dump or a .json")
@@ -163,12 +163,12 @@ def get_saved_corpus(source):
                 _load_dir(os.path.join(base_dirname, dirname))
 
             for filename in filenames:
-                if filename.endswith(".json") or filename.endswith(".dump"):
+                if filename.endswith((".json", ".dump")):
                     _load_file(os.path.join(base_dirname, filename))
 
-    if os.path.isfile(source):
+    if Path(source).is_file():
         _load_file(source)
-    elif os.path.isdir(source):
+    elif Path(source).is_dir():
         _load_dir(source)
     else:
         raise ValueError(f"{source} is not a file or a dir")
@@ -176,7 +176,7 @@ def get_saved_corpus(source):
     return result
 
 
-def get_corpus(corpus=None):
+def get_corpus(corpus=None) -> list:
     if corpus == "attack10":
         return get_attack10_corpus()
 

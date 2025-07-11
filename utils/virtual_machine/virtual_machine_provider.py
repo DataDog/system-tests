@@ -1,6 +1,8 @@
 import os
 
-from utils.tools import logger
+from utils._logger import logger
+from utils.virtual_machine.vm_logger import vm_logger
+from utils import context
 
 
 class VmProviderFactory:
@@ -30,13 +32,13 @@ class VmProvider:
     """
 
     def __init__(self):
-        self.vms = None
+        self.vm = None
         self.provision = None
-        # Responsibility of the commander to execute commands on the VMs
+        # Responsibility of the commander to execute commands on the VM
         self.commander = None
 
-    def configure(self, required_vms):
-        self.vms = required_vms
+    def configure(self, virtual_machine):
+        self.vm = virtual_machine
 
     def stack_up(self):
         """Each provider should implement the method that start up all the machines.
@@ -69,6 +71,7 @@ class VmProvider:
                 logger.stdout(f"[{vm.name}] Provisioning lang variant {provision.lang_variant_installation.id}")
                 last_task = self._remote_install(server_connection, vm, last_task, provision.lang_variant_installation)
 
+            # After cacheable installations, we update the cache
             if vm.datadog_config.update_cache and not vm.datadog_config.skip_cache:
                 last_task = self.commander.create_cache(vm, server, last_task)
 
@@ -95,20 +98,22 @@ class VmProvider:
         # (we are going to copy weblog sources from git instead from local machine)
         # We commit the branch reference of the CI_COMMIT_BRANCH env variable only if the gitlab project is system-tests
         # Proabably we need to change this in the future, and translate this logic to the pipelines or another class
-        ci_commit_branch = os.getenv("GITLAB_CI")
-        if ci_commit_branch:
-            ci_commit_branch = (
-                os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
-            )
-            logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
-            last_task = self.commander.remote_command(
-                vm,
-                "checkout_branch",
-                f"cd system-tests && git reset --hard HEAD && git pull && git checkout {ci_commit_branch}",
-                vm.get_command_environment(),
-                server_connection,
-                last_task,
-            )
+        # Not for windows, because we don't have git installed on windows
+        if vm.os_type != "windows":
+            ci_commit_branch = os.getenv("GITLAB_CI")
+            if ci_commit_branch:
+                ci_commit_branch = (
+                    os.getenv("CI_COMMIT_BRANCH") if os.getenv("CI_PROJECT_NAME", "") == "system-tests" else "main"
+                )
+                logger.stdout(f"[{vm.name}] Checkout branch {ci_commit_branch}")
+                last_task = self.commander.remote_command(
+                    vm,
+                    "checkout_branch",
+                    f"cd system-tests && git reset --hard HEAD && git stash && git pull && git stash && git checkout {ci_commit_branch}",
+                    vm.get_command_environment(),
+                    server_connection,
+                    last_task,
+                )
 
         # Finally install weblog
         logger.stdout(f"[{vm.name}] Installing {provision.weblog_installation.id}")
@@ -132,6 +137,12 @@ class VmProvider:
         """Manages a installation.
         The installation must satisfy the class utils/virtual_machine/virtual_machine_provisioner.py#Installation
         """
+        # Store the provision script in a file (debug purposes)
+        provision_script_logger = vm_logger(
+            context.scenario.host_log_folder, f"{vm.name}_provision_script", show_timestamp=False
+        )
+        provision_script_logger.info(f"echo '------------- Provision step: {installation.id} -------------'")
+
         local_command = None
         command_environment = vm.get_command_environment()
         # Execute local command if we need
@@ -165,6 +176,7 @@ class VmProvider:
                         file_to_copy.git_path = file_to_copy.git_path + "/*"
 
                     # system-tests is cloned into home folder
+                    provision_script_logger.info(f"cp -r system-tests/{file_to_copy.git_path} {remote_path}")
                     last_task = self.commander.remote_command(
                         vm,
                         file_to_copy.name + f"-{vm.name}-{installation.id}",
@@ -182,7 +194,7 @@ class VmProvider:
                         file_to_copy.local_path = file_to_copy.local_path.replace(f"${key}", value)
                         remote_path = remote_path.replace(f"${key}", value)
 
-                    # logger.debug(f"Copy file from {file_to_copy.local_path} to {remote_path}")
+                    provision_script_logger.info(f"echo 'Copy file from {file_to_copy.local_path} to {remote_path}'")
                     # Launch copy file command
                     last_task = self.commander.copy_file(
                         file_to_copy.name + f"-{vm.name}-{installation.id}",
@@ -202,7 +214,13 @@ class VmProvider:
                         vm=vm,
                     )
 
-        # Execute a basic command on our server.
+        # Write the command in the log file (debug purposes)
+        if installation.populate_env:
+            for key, value in command_environment.items():
+                provision_script_logger.info(f"export {key}={value} \n ")
+        provision_script_logger.info(installation.remote_command)
+
+        # Execute remote command
         return self.commander.remote_command(
             vm,
             installation.id,
