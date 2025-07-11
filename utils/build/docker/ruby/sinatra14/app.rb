@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'timeout'
 
 begin
   require 'datadog/auto_instrument'
@@ -275,3 +276,19 @@ ssrf_handler = lambda do
 end
 get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
+
+get '/flush' do
+  reserved_seconds = 1
+  timeout_seconds = (request.params['timeout'] || 10).to_i
+  max_wait_seconds = [1, timeout_seconds - reserved_seconds].max
+
+  begin
+    Timeout.timeout(max_wait_seconds) do
+      Datadog.send(:components)&.telemetry&.flush
+    end
+  rescue Timeout::Error
+    STDERR.puts("Unable to flush telemetry within #{max_wait_seconds} seconds")
+  end
+
+  'OK'
+end
