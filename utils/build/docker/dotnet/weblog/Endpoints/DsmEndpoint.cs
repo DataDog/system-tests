@@ -13,7 +13,6 @@ using Amazon.SQS.Model;
 using Amazon.SimpleNotificationService;
 using Amazon.SimpleNotificationService.Model;
 using RabbitMQ.Client;
-using Newtonsoft.Json;
 
 namespace weblog
 {
@@ -468,8 +467,6 @@ namespace weblog
                     Console.WriteLine($"  MD5OfBody: {receivedMessage.MD5OfBody}");
                     Console.WriteLine($"  Body: {receivedMessage.Body}");
 
-                    continueProcessing = false;
-
                     if (receivedMessage.Attributes != null && receivedMessage.Attributes.Count > 0)
                     {
                         Console.WriteLine("  Attributes:");
@@ -488,21 +485,8 @@ namespace weblog
                         }
                     }
 
-                    // Check if the message body matches directly
-                    if (receivedMessage.Body == message)
-                    {
-                        Console.WriteLine($"[SNS] Consumed message from {qUrl}: {receivedMessage.Body}");
-                        break;
-                    }
-
-                    var messageJson = JsonConvert.DeserializeObject<Dictionary<string, object>>(receivedMessage.Body);
-                    if (messageJson != null && messageJson.ContainsKey("Message") && messageJson["Message"]?.ToString() == message)
-                    {
-                        Console.WriteLine($"[SNS] Consumed SNS message from {qUrl}: {messageJson["Message"]}");
-                        break;
-                    }
-
-                    await Task.Delay(1000);
+                    Console.WriteLine($"[SNS] Consumed message from {qUrl}: {receivedMessage.Body}");
+                    continueProcessing = false;
                 }
             }
         }
