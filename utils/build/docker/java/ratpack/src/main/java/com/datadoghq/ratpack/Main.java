@@ -355,7 +355,19 @@ public class Main {
                                 final String value = ctx.getRequest().getQueryParams().get("value");
                                 ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
                                 ctx.getResponse().send("text/plain", "ok");
-                            });
+                            })
+                            // IAST Sampling endpoints
+                            .get("iast/sampling-by-route-method-count-2/:id", IastSamplingHandlers.getSamplingByRouteMethodCount2());
+                    chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
+                        ctx.byMethod(m -> m
+                                .get(ctxGet -> {
+                                    IastSamplingHandlers.getSamplingByRouteMethodCount().handle(ctxGet);
+                                })
+                                .post(ctxPost -> {
+                                    IastSamplingHandlers.postSamplingByRouteMethodCount().handle(ctxPost);
+                                })
+                        );
+                    });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);
                 })

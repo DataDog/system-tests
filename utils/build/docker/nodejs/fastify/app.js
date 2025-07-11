@@ -31,6 +31,7 @@ const logger = pino()
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
+fastify.register(require('@fastify/multipart'), { attachFieldsToBody: true })
 fastify.register(cookie)
 
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {

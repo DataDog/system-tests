@@ -492,10 +492,10 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature
-      Test_DsmRabbitmq: v2.29.0
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSNS: v3.20.0
+      Test_DsmRabbitmq: v3.21.0
+      Test_DsmRabbitmq_FanoutExchange: v3.21.0
+      Test_DsmRabbitmq_TopicExchange: v3.21.0
+      Test_DsmSNS: v3.21.0
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
@@ -647,6 +647,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v3.0.0-prerelease
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       "*": v1.0  # real version not known
