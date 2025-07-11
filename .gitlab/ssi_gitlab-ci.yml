@@ -83,19 +83,7 @@ ssi_tests:
         # Clean up any existing config and recreate it
         rm -f ~/.aws/config
         aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text > ~/.aws/config
-
-        # Debug: Check config file content
-        echo "AWS config file content:"
-        cat ~/.aws/config || echo "Failed to read config file"
-
         export AWS_PROFILE=apm-ecosystems-reliability-ci
-
-        # Verify AWS credentials are working
-        echo "Testing AWS credentials..."
-        aws sts get-caller-identity || echo "AWS credentials test failed"
-
-        # Alternative: Set AWS region explicitly if config file fails
-        export AWS_DEFAULT_REGION=us-east-1
 
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
@@ -111,7 +99,7 @@ ssi_tests:
             EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
             LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
             S3_BUCKET="system-tests-aws-ssi-apm"
-            S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/"
+            S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
 
             echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
             echo "Local folder: ${LOGS_FOLDER}"
@@ -120,7 +108,7 @@ ssi_tests:
             aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive || echo "Failed to upload logs to S3"
 
             # Generate AWS Console URL for the uploaded folder
-            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/"
+            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
             echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
 
             # Delete large files (>100MB) to avoid CI/CD archiving
