@@ -485,17 +485,6 @@ app.all('/tag_value/:tag_value/:status_code', (req, res) => {
   }
 })
 
-app.get('/read_file', (req, res) => {
-  const path = req.query.file
-  fs.readFile(path, (err, data) => {
-    if (err) {
-      console.error(err)
-      res.status(500).send('ko')
-    }
-    res.send(data)
-  })
-})
-
 app.get('/db', async (req, res) => {
   console.log('Service: ' + req.query.service)
   console.log('Operation: ' + req.query.operation)

@@ -498,23 +498,6 @@ fastify.all('/tag_value/:tag_value/:status_code', async (request, reply) => {
   }
 })
 
-fastify.get('/read_file', async (request, reply) => {
-  const path = request.query.file
-
-  return new Promise((resolve, reject) => {
-    const fs = require('fs')
-    fs.readFile(path, (err, data) => {
-      if (err) {
-        console.error(err)
-        reply.status(500)
-        resolve('ko')
-      } else {
-        resolve(data)
-      }
-    })
-  })
-})
-
 fastify.get('/db', async (request, reply) => {
   console.log('Service: ' + request.query.service)
   console.log('Operation: ' + request.query.operation)

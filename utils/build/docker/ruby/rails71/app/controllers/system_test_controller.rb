@@ -74,10 +74,6 @@ class SystemTestController < ApplicationController
     render plain: "Ok", status: params[:code]
   end
 
-  def read_file
-    render plain: File.read(params[:file])
-  end
-
   def make_distant_call
     url = params[:url]
     uri = URI(url)
