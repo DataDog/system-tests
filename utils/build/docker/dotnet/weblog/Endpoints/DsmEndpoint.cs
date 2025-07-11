@@ -485,8 +485,15 @@ namespace weblog
                         }
                     }
 
-                    Console.WriteLine($"[SNS] Consumed message from {qUrl}: {receivedMessage.Body}");
-                    continueProcessing = false;
+                    // Check if the message body matches directly
+                    if (receivedMessage.Body == message)
+                    {
+                        Console.WriteLine($"[SNS] Consumed message from {qUrl}: {receivedMessage.Body}");
+                        continueProcessing = false;
+                        break;
+                    }
+
+                    await Task.Delay(1000);
                 }
             }
         }
