@@ -810,8 +810,6 @@ class Test_AppSecStandalone_NotEnabled:
 @features.appsec_standalone_experimental
 @scenarios.appsec_standalone_experimental
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-@flaky(context.library >= "python@2.19.0", weblog_variant="flask-poc", reason="APPSEC-57145")
-@flaky(context.library >= "python@2.19.0", weblog_variant="uwsgi-poc", reason="APPSEC-57145")
 class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
 
@@ -852,6 +850,7 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
+@bug(context.library >= "python@3.10.1" and context.weblog_variant in ["flask-poc", "uds-flask"], reason="APPSEC-58276")
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1234,7 +1233,7 @@ class Test_UserEventsStandalone_SDK_V2:
         return None
 
     def _call_endpoint(self, endpoint, data, trace_id):
-        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), data=data)
+        self.r = weblog.post(endpoint, headers=self._get_test_headers(trace_id), json=data)
 
     def setup_user_login_success_event_generates_asm_event(self):
         trace_id = 1212121212121212111

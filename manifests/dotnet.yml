@@ -322,9 +322,9 @@ tests/:
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
-      Test_V2_Login_Events: v3.1.0
-      Test_V2_Login_Events_Anon: v3.1.0
-      Test_V2_Login_Events_RC: v3.1.0
+      Test_V2_Login_Events: v3.1.0-prerelease
+      Test_V2_Login_Events_Anon: v3.1.0-prerelease
+      Test_V2_Login_Events_RC: v3.1.0-prerelease
       Test_V3_Auto_User_Instrum_Mode_Capability: v3.10.0
       Test_V3_Login_Events: v3.10.0
       Test_V3_Login_Events_Anon: v3.10.0
@@ -365,14 +365,20 @@ tests/:
       Test_UserLoginSuccessEvent: v2.27.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v3.15.0
       Test_UserLoginFailureEventV2_Libddwaf: v3.15.0
-      Test_UserLoginFailureEventV2_Metrics: v3.15.0
-      Test_UserLoginFailureEventV2_Tags: v3.15.0
-      Test_UserLoginSuccessEventV2_HeaderCollection: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v3.15.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v3.15.0
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v3.15.0
       Test_UserLoginSuccessEventV2_Libddwaf: v3.15.0
-      Test_UserLoginSuccessEventV2_Metrics: v3.15.0
-      Test_UserLoginSuccessEventV2_Tags: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.15.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v3.15.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -407,11 +413,11 @@ tests/:
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
-      Test_Info: v2.0.0
+      Test_Info: v2.0.0-prerelease
       Test_RequestHeaders: v1.30.0
       Test_StatusCode: v1.28.6
     test_request_blocking.py:
-      Test_AppSecRequestBlocking: v2.25.0
+      Test_AppSecRequestBlocking: v2.26.0
     test_runtime_activation.py:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
@@ -462,11 +468,11 @@ tests/:
   integrations/:
     crossed_integrations/:
       test_kafka.py:
-        Test_Kafka: v2.0.0
+        Test_Kafka: v2.0.0-prerelease
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
       test_rabbitmq.py:
-        Test_RabbitMQ_Trace_Context_Propagation: v2.0.0
+        Test_RabbitMQ_Trace_Context_Propagation: v2.0.0-prerelease
       test_sns_to_sqs.py:
         Test_SNS_Propagation: missing_feature (Endpoint not implemented)
       test_sqs.py:
@@ -486,10 +492,10 @@ tests/:
       Test_DsmHttp: missing_feature
       Test_DsmKafka: v2.29.0
       Test_DsmKinesis: missing_feature
-      Test_DsmRabbitmq: v2.29.0
-      Test_DsmRabbitmq_FanoutExchange: missing_feature
-      Test_DsmRabbitmq_TopicExchange: missing_feature
-      Test_DsmSNS: missing_feature
+      Test_DsmRabbitmq: v3.21.0
+      Test_DsmRabbitmq_FanoutExchange: v3.21.0
+      Test_DsmRabbitmq_TopicExchange: v3.21.0
+      Test_DsmSNS: v3.21.0
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
@@ -609,9 +615,9 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Empty: v3.4.1
-    Test_Config_RuntimeMetrics_Default: v2.0.0
-    Test_Config_RuntimeMetrics_Enabled: v2.0.0
-    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0
+    Test_Config_RuntimeMetrics_Default: v2.0.0-prerelease
+    Test_Config_RuntimeMetrics_Enabled: v2.0.0-prerelease
+    Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: v2.0.0-prerelease
     Test_Config_UnifiedServiceTagging_CustomService: v3.3.0
     Test_Config_UnifiedServiceTagging_Default: v3.3.0
   test_data_integrity.py:
@@ -634,14 +640,16 @@ tests/:
     Test_ExtractBehavior_Restart_With_Extract_First: v3.10.0
     Test_HeaderTags: v2.27.0
     Test_HeaderTags_Colon_Leading: v2.1.0
-    Test_HeaderTags_Colon_Trailing: v3.0.0
+    Test_HeaderTags_Colon_Trailing: v3.0.0-prerelease
     Test_HeaderTags_DynamicConfig: missing_feature
     Test_HeaderTags_Long: v2.1.0
     Test_HeaderTags_Short: v2.1.0
     Test_HeaderTags_Whitespace_Header: v2.1.0
-    Test_HeaderTags_Whitespace_Tag: v3.0.0
+    Test_HeaderTags_Whitespace_Tag: v3.0.0-prerelease
     Test_HeaderTags_Whitespace_Val_Long: v2.1.0
     Test_HeaderTags_Whitespace_Val_Short: v2.1.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       "*": v1.0  # real version not known
@@ -662,10 +670,10 @@ tests/:
   test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.26.0
-    Test_StandardTagsMethod: v2.0.0
+    Test_StandardTagsMethod: v2.0.0-prerelease
     Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute: v2.13.0
-    Test_StandardTagsStatusCode: v2.0.0
+    Test_StandardTagsStatusCode: v2.0.0-prerelease
     Test_StandardTagsUrl: v2.13.0
     Test_StandardTagsUserAgent: v2.13.0
   test_telemetry.py:

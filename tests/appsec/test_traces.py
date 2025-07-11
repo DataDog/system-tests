@@ -230,7 +230,9 @@ class Test_AppSecObfuscator:
             params={"pwd": f'{self.SECRET_VALUE_WITH_SENSITIVE_KEY} o:3:"d":3:{{}}'},
         )
 
-    @missing_feature(context.weblog_variant == "fastify", reason="Cookies not supported yet")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
+    )
     @scenarios.appsec_custom_rules
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
@@ -255,7 +257,9 @@ class Test_AppSecObfuscator:
         self.r_cookies_custom = weblog.get("/waf/", cookies=cookies)
 
     @scenarios.appsec_custom_rules
-    @missing_feature(context.weblog_variant == "fastify", reason="Cookies not supported yet")
+    @missing_feature(
+        context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
+    )
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.

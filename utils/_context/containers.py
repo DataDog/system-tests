@@ -811,6 +811,8 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
+            base_environment["DD_IAST_VULNERABILITIES_PER_REQUEST"] = "10"
+            base_environment["DD_IAST_MAX_CONTEXT_OPERATIONS"] = "10"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
@@ -872,7 +874,14 @@ class WeblogContainer(TestedContainer):
         return result
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
-        """Parse the Dockerfile and extract all images reference in a FROM section"""
+        """Returns images needed to build the weblog"""
+
+        # If an image is saved as a file in binaries, we don't need any image
+        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        if Path(filename).is_file():
+            return []
+
+        # else, parse the Dockerfile and extract all images reference in a FROM section"""
         result: list[str] = []
 
         if not library or not weblog:

@@ -515,13 +515,13 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: bug (APPSEC-57145)
+        flask-poc: v3.9.0
         uds-flask: v3.9.0
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
-      Test_UserEventsStandalone_SDK_V1: missing_feature
-      Test_UserEventsStandalone_SDK_V2: missing_feature
+      Test_UserEventsStandalone_SDK_V1: v3.9.0
+      Test_UserEventsStandalone_SDK_V2: v3.9.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -675,21 +675,33 @@ tests/:
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginFailureEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Metrics:
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Tags:
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Metrics:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Tags:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
@@ -717,7 +729,7 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
     test_only_python.py:
       Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
     test_rate_limiter.py:
@@ -739,8 +751,8 @@ tests/:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationEnvVarMetric: v3.11.0.dev
+      TestServiceActivationRemoteConfigMetric: v3.11.0.dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -1207,6 +1219,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1  # actual version unknown
