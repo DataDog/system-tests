@@ -170,9 +170,8 @@ get '/custom_event' do
   'Ok'
 end
 
-require 'datadog/kit/appsec/events/v2'
-
 post '/user_login_success_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
   request.body.rewind
   params = JSON.parse(request.body.read)
 
@@ -186,6 +185,7 @@ post '/user_login_success_event_v2' do
 end
 
 post '/user_login_failure_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
   request.body.rewind
   params = JSON.parse(request.body.read)
 
