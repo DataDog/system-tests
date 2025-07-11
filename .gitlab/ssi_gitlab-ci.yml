@@ -79,8 +79,23 @@ ssi_tests:
         # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
         echo "Setting up AWS credentials for after_script..."
         mkdir -p ~/.aws
-        aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text >> ~/.aws/config
+
+        # Clean up any existing config and recreate it
+        rm -f ~/.aws/config
+        aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text > ~/.aws/config
+
+        # Debug: Check config file content
+        echo "AWS config file content:"
+        cat ~/.aws/config || echo "Failed to read config file"
+
         export AWS_PROFILE=apm-ecosystems-reliability-ci
+
+        # Verify AWS credentials are working
+        echo "Testing AWS credentials..."
+        aws sts get-caller-identity || echo "AWS credentials test failed"
+
+        # Alternative: Set AWS region explicitly if config file fails
+        export AWS_DEFAULT_REGION=us-east-1
 
         SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
         mkdir -p reports/
