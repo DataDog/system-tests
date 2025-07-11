@@ -5,6 +5,8 @@
     curl --head -X GET --retry 5 --max-time 20 --retry-connrefused --retry-delay 2 http://localhost:5985
     #Create directories if they don't exist
     sudo mkdir -p /var/log/datadog_weblog
+    #Add write permissions for all users
+    sudo chmod 777 /var/log/datadog_weblog
     #If there are docker services running extract info
     sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true
     sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true
