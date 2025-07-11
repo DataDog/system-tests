@@ -75,8 +75,8 @@ class VirtualMachineProvisioner:
         installations = provision_step["install"]
         installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
         installation.id = step_name
-        installation.cache = provision_step["cache"] if "cache" in provision_step else False
-        installation.populate_env = provision_step["populate_env"] if "populate_env" in provision_step else True
+        installation.cache = provision_step.get("cache", False)
+        installation.populate_env = provision_step.get("populate_env", True)
         return installation
 
     def _get_tested_components(self, env, library_name, os_type, os_distro, os_branch, os_cpu, provsion_raw_data):
@@ -106,9 +106,9 @@ class VirtualMachineProvisioner:
         installations = lang_variant["install"]
         installation = self._get_installation(env, library_name, os_type, os_distro, os_branch, os_cpu, installations)
         installation.id = lang_variant["name"]
-        installation.cache = lang_variant["cache"] if "cache" in lang_variant else False
-        installation.populate_env = lang_variant["populate_env"] if "populate_env" in lang_variant else True
-        installation.version = lang_variant["version"] if "version" in lang_variant else None
+        installation.cache = lang_variant.get("cache", False)
+        installation.populate_env = lang_variant.get("populate_env", True)
+        installation.version = lang_variant.get("version", None)
         return installation
 
     def _get_weblog_provision(
@@ -131,12 +131,12 @@ class VirtualMachineProvisioner:
             use_git=ci_commit_branch is not None,
         )
         installation.id = weblog["name"]
-        installation.nginx_config = weblog["nginx_config"] if "nginx_config" in weblog else None
-        installation.version = weblog["runtime_version"] if "runtime_version" in weblog else None
+        installation.nginx_config = weblog.get("nginx_config", None)
+        installation.version = weblog.get("runtime_version", None)
         return installation
 
     def _get_installation(
-        self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data, use_git=False
+        self, env, library_name, os_type, os_distro, os_branch, os_cpu, installations_raw_data, *, use_git: bool = False
     ):
         installation_raw_data = None
         for install in installations_raw_data:
@@ -157,22 +157,16 @@ class VirtualMachineProvisioner:
             installation_raw_data is not None
         ), f"Installation data not found for {env} {library_name} {os_type} {os_distro} {os_branch} {os_cpu}"
         installation = Intallation()
-        installation.local_command = (
-            installation_raw_data["local-command"] if "local-command" in installation_raw_data else None
-        )
-        installation.local_script = (
-            installation_raw_data["local-script"] if "local-script" in installation_raw_data else None
-        )
-        installation.remote_command = (
-            installation_raw_data["remote-command"] if "remote-command" in installation_raw_data else None
-        )
+        installation.local_command = installation_raw_data.get("local-command", None)
+        installation.local_script = installation_raw_data.get("local-script", None)
+        installation.remote_command = installation_raw_data.get("remote-command", None)
 
         if "copy_files" in installation_raw_data:
             for copy_file in installation_raw_data["copy_files"]:
                 installation.copy_files.append(
                     CopyFile(
                         copy_file["name"],
-                        copy_file["remote_path"] if "remote_path" in copy_file else None,
+                        copy_file.get("remote_path", None),
                         copy_file["local_path"] if "local_path" in copy_file and not use_git else None,
                         copy_file["local_path"] if "local_path" in copy_file and use_git else None,
                     )
@@ -205,7 +199,9 @@ class Provision:
         self.deployed_weblog = None
 
     def get_deployed_weblog(self):
-        """Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple weblogs deployed."""
+        """Usually we have only one weblog deployed in the VM. But in some cases(multicontainer) we can have multiple
+        weblogs deployed.
+        """
         if not self.deployed_weblog:
             # App on Container/Alpine
             if self.weblog_installation and self.weblog_installation.version:
