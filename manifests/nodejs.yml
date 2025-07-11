@@ -1343,10 +1343,7 @@ tests/:
       '*': *ref_3_0_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled:
-      '*': *ref_3_0_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: irrelevant (nodejs does not support log injection for unstructored logs)
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_RuntimeMetrics_Default: *ref_3_0_0
