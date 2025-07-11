@@ -35,6 +35,7 @@ class _ScenarioGroups:
     ipv6 = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
+    k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
     profiling = ScenarioGroup()
     sampling = ScenarioGroup()
@@ -75,6 +76,7 @@ VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
     "libinjection",
+    "k8s_injector_dev",
     "aws_ssi",
     "parametric",
     "testthetest",
