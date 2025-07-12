@@ -951,16 +951,6 @@ def track_custom_event(request):
     return HttpResponse("OK")
 
 
-def read_file(request):
-    if "file" not in request.GET:
-        return HttpResponseBadRequest("Please provide a file parameter")
-
-    filename = request.GET["file"]
-
-    with open(filename, "r") as f:
-        return HttpResponse(f.read())
-
-
 VALUE_STORED = ""
 
 
@@ -1173,7 +1163,6 @@ urlpatterns = [
     path("session/user", session_user),
     path("signup", signup_user),
     path("custom_event", track_custom_event),
-    path("read_file", read_file),
     path("mock_s3/put_object", s3_put_object),
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
