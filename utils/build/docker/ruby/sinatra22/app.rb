@@ -4,6 +4,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'timeout'
 
 begin
   require 'datadog/auto_instrument'
@@ -170,6 +171,34 @@ get '/custom_event' do
   'Ok'
 end
 
+post '/user_login_success_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+    params['login'],
+    params['user_id'],
+    **params.fetch('metadata', {})
+  )
+
+  'OK'
+end
+
+post '/user_login_failure_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+    params['login'],
+    params.fetch('exists', 'false') == 'true',
+    **params.fetch('metadata', {})
+  )
+
+  'OK'
+end
+
 %i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
     if request_method == :post && params['tag_value'].include?('payload_in_response_body')
@@ -245,3 +274,19 @@ ssrf_handler = lambda do
 end
 get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
+
+get '/flush' do
+  reserved_seconds = 1
+  timeout_seconds = (request.params['timeout'] || 10).to_i
+  max_wait_seconds = [1, timeout_seconds - reserved_seconds].max
+
+  begin
+    Timeout.timeout(max_wait_seconds) do
+      Datadog.send(:components)&.telemetry&.flush
+    end
+  rescue Timeout::Error
+    STDERR.puts("Unable to flush telemetry within #{max_wait_seconds} seconds")
+  end
+
+  'OK'
+end
