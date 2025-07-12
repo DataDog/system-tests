@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import bug, context, missing_feature, features, rfc, weblog
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.iast_sink_ssrf
@@ -17,7 +22,7 @@ class TestSSRF(BaseSinkTest):
     data = {"url": "https://www.datadoghq.com"}
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.SsrfExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": get_nodejs_iast_file_paths(),
         "python": {"flask-poc": "app.py", "django-poc": "app/urls.py", "fastapi": "main.py"},
     }
 
