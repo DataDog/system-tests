@@ -2699,13 +2699,15 @@ class _Features:
         pytest.mark.features(feature_id=474)(test_object)
         return test_object
 
+    @staticmethod
     def unstructured_log_injection(test_object):
-        """DD_LOGS_INJECTION_UNSTRUCTURED
+        """DD_LOGS_INJECTION=all
 
         https://feature-parity.us1.prod.dog/#/?feature=477
         """
         pytest.mark.features(feature_id=477)(test_object)
 
+    @staticmethod
     def auto_instrumentation_appsec(test_object):
         """Appsec works when manually enabled with library injection in Host environments
 
