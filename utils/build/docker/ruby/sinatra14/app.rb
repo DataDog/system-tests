@@ -180,7 +180,7 @@ post '/user_login_success_event_v2' do
   Datadog::Kit::AppSec::Events::V2.track_user_login_success(
     params['login'],
     params['user_id'],
-    **params.fetch('metadata', {})
+    **params.fetch('metadata', {}).transform_keys(&:to_sym)
   )
 
   'OK'
@@ -195,7 +195,7 @@ post '/user_login_failure_event_v2' do
   Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
     params['login'],
     params.fetch('exists', 'false') == 'true',
-    **params.fetch('metadata', {})
+    params.fetch('metadata', {}).transform_keys(&:to_sym)
   )
 
   'OK'

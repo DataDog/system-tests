@@ -16,6 +16,7 @@ rescue LoadError
 end
 
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 Datadog.configure do |c|
   c.diagnostics.debug = true
@@ -345,15 +346,13 @@ module UserLoginSuccessEventV2
   module_function
 
   def run(request)
-    require 'datadog/kit/appsec/events/v2'
-
     request.body.rewind
     payload = JSON.parse(request.body.read)
 
     Datadog::Kit::AppSec::Events::V2.track_user_login_success(
       payload['login'],
       payload['user_id'],
-      **payload.fetch('metadata', {})
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
     )
 
     [200, { 'Content-Type' => 'text/plain' }, ['OK']]
@@ -365,15 +364,13 @@ module UserLoginFailureEventV2
   module_function
 
   def run(request)
-    require 'datadog/kit/appsec/events/v2'
-
     request.body.rewind
     payload = JSON.parse(request.body.read)
 
     Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
       payload['login'],
       payload.fetch('exists', 'false') == 'true',
-      **payload.fetch('metadata', {})
+      payload.fetch('metadata', {}).transform_keys(&:to_sym)
     )
 
     [200, { 'Content-Type' => 'text/plain' }, ['OK']]

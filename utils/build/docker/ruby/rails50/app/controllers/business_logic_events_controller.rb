@@ -1,6 +1,7 @@
 require 'json'
 
 require 'datadog/kit/appsec/events'
+require 'datadog/kit/appsec/events/v2'
 
 class BusinessLogicEventsController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -42,11 +43,10 @@ class BusinessLogicEventsController < ApplicationController
   def user_login_success_event_v2
     payload = params.to_unsafe_h
 
-    require 'datadog/kit/appsec/events/v2'
     Datadog::Kit::AppSec::Events::V2.track_user_login_success(
       payload['login'],
       payload['user_id'],
-      **payload.fetch('metadata', {}).symbolize_keys
+      payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'
@@ -55,11 +55,10 @@ class BusinessLogicEventsController < ApplicationController
   def user_login_failure_event_v2
     payload = params.to_unsafe_h
 
-    require 'datadog/kit/appsec/events/v2'
     Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
       payload['login'],
       payload.fetch('exists', 'false') == 'true',
-      **payload.fetch('metadata', {}).symbolize_keys
+      payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'

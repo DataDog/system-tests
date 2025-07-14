@@ -46,7 +46,7 @@ class BusinessLogicEventsController < ApplicationController
     Datadog::Kit::AppSec::Events::V2.track_user_login_success(
       payload['login'],
       payload['user_id'],
-      payload.fetch('metadata', {}).symbolize_keys
+      **payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'
@@ -58,9 +58,9 @@ class BusinessLogicEventsController < ApplicationController
     Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
       payload['login'],
       payload.fetch('exists', 'false') == 'true',
-      payload.fetch('metadata', {}).symbolize_keys
+      **payload.fetch('metadata', {}).symbolize_keys
     )
 
     render plain: 'OK'
   end
-end 
+end

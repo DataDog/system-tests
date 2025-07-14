@@ -171,29 +171,29 @@ get '/custom_event' do
   'Ok'
 end
 
+require 'datadog/kit/appsec/events/v2'
+
 post '/user_login_success_event_v2' do
-  require 'datadog/kit/appsec/events/v2'
   request.body.rewind
   params = JSON.parse(request.body.read)
 
   Datadog::Kit::AppSec::Events::V2.track_user_login_success(
     params['login'],
     params['user_id'],
-    **params.fetch('metadata', {})
+    **params.fetch('metadata', {}).transform_keys(&:to_sym)
   )
 
   'OK'
 end
 
 post '/user_login_failure_event_v2' do
-  require 'datadog/kit/appsec/events/v2'
   request.body.rewind
   params = JSON.parse(request.body.read)
 
   Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
     params['login'],
     params.fetch('exists', 'false') == 'true',
-    **params.fetch('metadata', {})
+    params.fetch('metadata', {}).transform_keys(&:to_sym)
   )
 
   'OK'
