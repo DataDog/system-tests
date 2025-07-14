@@ -17,7 +17,16 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: bug (APPSEC-58244)
       test_schemas.py:
-        Test_Scanners: v1.11.0-dev
+        Test_Scanners:
+          '*': v1.11.0-dev
+          apache-mod-7.0: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.0-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.1: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.1-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.2: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.2-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.3: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.3-zts: missing_feature (Needs configuring apache to use auth_digest)
         Test_Schema_Request_Cookies: v0.94.0
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
