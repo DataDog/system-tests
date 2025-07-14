@@ -276,16 +276,20 @@ get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
 
 get '/flush' do
-  reserved_seconds = 1
-  timeout_seconds = (request.params['timeout'] || 10).to_i
-  max_wait_seconds = [1, timeout_seconds - reserved_seconds].max
+  # NOTE: If anything needs to be flushed here before the test suite ends,
+  #       this is the place to do it.
+  #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+  if (telemetry = Datadog.send(:components)&.telemetry)
+    worker = telemetry.instance_variable_get(:@worker)
+    worker.loop_wait_time = 0
 
-  begin
-    Timeout.timeout(max_wait_seconds) do
-      Datadog.send(:components)&.telemetry&.flush
-    end
-  rescue Timeout::Error
-    STDERR.puts("Unable to flush telemetry within #{max_wait_seconds} seconds")
+    # HACK: In the current implementation there is no way to force the flushing.
+    #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+    #       and just wait till all penging messages are flushed.
+    #
+    # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+    #       value carefully.
+    sleep 0.2
   end
 
   'OK'

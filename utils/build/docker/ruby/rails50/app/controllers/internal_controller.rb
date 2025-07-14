@@ -15,20 +15,17 @@ class InternalController < ApplicationController
     # NOTE: If anything needs to be flushed here before the test suite ends,
     #       this is the place to do it.
     #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
-    #
-    # WARNING: To be able to respond on time to the system-tests we are flushing
-    #          and time-boxing execution to time less than system-tests allows
-    #          See: https://github.com/DataDog/system-tests/blob/7d555e474e6ce32825dd79c1b65ac64805ab09a8/utils/_context/_scenarios/endtoend.py#L547
-    reserved_seconds = 1
-    timeout_seconds = params.fetch('timeout', 10).to_i
-    max_wait_seconds = [1, timeout_seconds - reserved_seconds].max
+    if telemetry = Datadog.send(:components)&.telemetry
+      worker = telemetry.instance_variable_get(:@worker)
+      worker.loop_wait_time = 0
 
-    begin
-      Timeout.timeout(max_wait_seconds) do
-        Datadog.send(:components)&.telemetry&.flush
-      end
-    rescue Timeout::Error
-      Rails.logger.warn("Unable to flush telemetry withint #{max_wait_seconds} seconds")
+      # HACK: In the current implementation there is no way to force the flushing.
+      #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+      #       and just wait till all penging messages are flushed.
+      #
+      # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+      #       value carefully.
+      sleep 0.2
     end
 
     render plain: 'OK'

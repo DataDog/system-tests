@@ -547,7 +547,7 @@ class EndToEndScenario(DockerScenario):
 
                 # for weblogs who supports it, call the flush endpoint
                 try:
-                    r = weblog.get("/flush?timeout=10", timeout=10)
+                    r = weblog.get("/flush", timeout=10)
                     assert r.status_code == HTTPStatus.OK
                 except:
                     self.weblog_container.healthy = False
