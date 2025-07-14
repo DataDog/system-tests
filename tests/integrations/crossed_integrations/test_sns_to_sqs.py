@@ -246,6 +246,7 @@ class _BaseSNS:
 @scenarios.crossed_tracing_libraries
 @features.aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace
 class Test_SNS_Propagation(_BaseSNS):
+    # Test
     buddy_interface = interfaces.python_buddy
     buddy = python_buddy
 
