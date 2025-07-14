@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   post '/' => 'system_test#root'
 
   get  '/healthcheck' => 'system_test#healthcheck'
+  get  '/flush' => 'system_test#flush'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
@@ -22,6 +23,9 @@ Rails.application.routes.draw do
 
   get '/headers' => 'system_test#test_headers'
   get  '/identify' => 'system_test#identify'
+
+  post 'user_login_success_event_v2' => 'system_test#user_login_success_event_v2'
+  post 'user_login_failure_event_v2' => 'system_test#user_login_failure_event_v2'
 
   get 'user_login_success_event' => 'system_test#user_login_success_event'
   get 'user_login_failure_event' => 'system_test#user_login_failure_event'
