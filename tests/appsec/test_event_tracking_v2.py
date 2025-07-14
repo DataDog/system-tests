@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant, bug
+from utils import weblog, interfaces, features, scenarios, irrelevant
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
@@ -201,7 +201,6 @@ class BaseUserLoginSuccessEventV2HeaderCollection(ABC):
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
 
-    @bug(library="golang", reason="LANGPLAT-583")
     @abstractmethod
     def test_user_login_success_header_collection(self):
         raise AssertionError("Not implemented")
@@ -462,7 +461,6 @@ class BaseUserLoginFailureEventV2HeaderCollection(ABC):
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=HEADERS)
 
-    @bug(library="golang", reason="LANGPLAT-583")
     @abstractmethod
     def test_user_login_failure_header_collection(self):
         raise AssertionError("Not implemented")
