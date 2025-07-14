@@ -207,30 +207,18 @@ elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
     mkdir -p temp
     if [ $VERSION = 'dev' ]; then
-        LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
-        COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-php/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
-        VERSION=$(curl -sS --fail "https://raw.githubusercontent.com/DataDog/dd-trace-php/refs/heads/$LIBRARY_TARGET_BRANCH/VERSION")
-
-        # if we have e.g. a beta suffix, just strip it
-        if [[ $VERSION == *-* ]]; then
-            VERSION=${VERSION%-*}
-        else
-            # otherwise increment minor VERSION
-            parts=($(echo -n "$VERSION" | tr '.' '\n'))
-            parts[1]=$((parts[1]+1))
-            parts[2]=0
-            VERSION=$(export IFS=.; (echo "${parts[*]}"))
-        fi
-        VERSION_HASH="$VERSION+$COMMIT_ID"
-        VERSION_HASH_ENCODED="$VERSION%2B$COMMIT_ID"
-
-        echo "Using git commit $COMMIT_ID"
-        echo "Downloading version $VERSION"
-
-        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/datadog-setup.php"
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/latest/datadog-setup.php"
         echo "Downloading datadog-setup.php from: $URL"
         curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
         echo "datadog-setup.php downloaded"
+
+        VERSION_HASH=$(grep "define('RELEASE_VERSION'" ./temp/datadog-setup.php | sed -E "s/.*urlencode\('([^']+)'\).*/\1/")
+        if [ -z "$VERSION_HASH" ]; then
+            echo "Failed to extract VERSION_HASH from datadog-setup.php"
+            exit 1
+        fi
+
+        VERSION_HASH_ENCODED=$(echo "$VERSION_HASH" | sed 's/+/%2B/g')
 
         URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
         echo "Downloading dd-library-php from: $URL"
