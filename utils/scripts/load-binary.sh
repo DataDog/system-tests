@@ -205,14 +205,30 @@ elif [ "$TARGET" = "ruby" ]; then
 
 elif [ "$TARGET" = "php" ]; then
     rm -rf *.tar.gz
+    mkdir -p temp
     if [ $VERSION = 'dev' ]; then
-        ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest_snapshot ./temp
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/latest/datadog-setup.php"
+        echo "Downloading datadog-setup.php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/datadog-setup.php "$URL"
+        echo "datadog-setup.php downloaded"
+
+        VERSION_HASH=$(grep "define('RELEASE_VERSION'" ./temp/datadog-setup.php | sed -E "s/.*urlencode\('([^']+)'\).*/\1/")
+        if [ -z "$VERSION_HASH" ]; then
+            echo "Failed to extract VERSION_HASH from datadog-setup.php"
+            exit 1
+        fi
+
+        VERSION_HASH_ENCODED=$(echo "$VERSION_HASH" | sed 's/+/%2B/g')
+
+        URL="https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/${VERSION_HASH_ENCODED}/dd-library-php-${VERSION_HASH_ENCODED}-x86_64-linux-gnu.tar.gz"
+        echo "Downloading dd-library-php from: $URL"
+        curl --fail --location --silent --show-error --output ./temp/dd-library-php-${VERSION_HASH}-x86_64-linux-gnu.tar.gz "$URL"
+        echo "dd-library-php downloaded"
     elif [ $VERSION = 'prod' ]; then
         ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-php/dd-library-php:latest ./temp
     else
         echo "Don't know how to load version $VERSION for $TARGET"
     fi
-    assert_target_branch_is_not_set
     mv ./temp/dd-library-php*.tar.gz . && mv ./temp/datadog-setup.php . && rm -rf ./temp
 
 elif [ "$TARGET" = "golang" ]; then
