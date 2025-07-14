@@ -177,6 +177,7 @@ class _BaseSQS:
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, .NET does not propagate context")

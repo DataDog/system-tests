@@ -86,6 +86,7 @@ class _BaseKinesis:
             timeout=61,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     def test_produce(self):
         """Check that a message produced to Kinesis is correctly ingested by a Datadog tracer"""
 
@@ -99,6 +100,7 @@ class _BaseKinesis:
             stream=self.WEBLOG_TO_BUDDY_STREAM,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(
@@ -147,6 +149,7 @@ class _BaseKinesis:
             timeout=61,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
 
@@ -160,6 +163,7 @@ class _BaseKinesis:
             stream=self.BUDDY_TO_WEBLOG_STREAM,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(

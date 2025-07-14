@@ -115,6 +115,7 @@ class _BaseSNS:
             timeout=61,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     def test_produce(self):
         """Check that a message produced to sns is correctly ingested by a Datadog tracer"""
         assert self.production_response.status_code == 200
@@ -128,6 +129,7 @@ class _BaseSNS:
             topic=self.WEBLOG_TO_BUDDY_TOPIC,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_produce_trace_equality(self):
@@ -177,6 +179,7 @@ class _BaseSNS:
             timeout=61,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
 
@@ -191,6 +194,7 @@ class _BaseSNS:
             topic=self.BUDDY_TO_WEBLOG_TOPIC,
         )
 
+    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     def test_consume_trace_equality(self):
