@@ -98,7 +98,6 @@ class _BaseSQS:
             timeout=61,
         )
 
-    @missing_feature(reason="Expected to fail, SQS propagation via message attributes not working")
     def test_produce(self):
         """Check that a message produced to sqs is correctly ingested by a Datadog tracer"""
 
@@ -118,7 +117,6 @@ class _BaseSQS:
         library="java",
         reason="Expected to fail, .NET does not propagate context via msg attrs or uses xray which also doesn't work",
     )
-    @missing_feature(reason="Expected to fail, SQS propagation via message attributes not working")
     def test_produce_trace_equality(self):
         """This test relies on the setup for produce, it currently cannot be run on its own"""
         producer_span = self.get_span(
@@ -163,7 +161,6 @@ class _BaseSQS:
             timeout=61,
         )
 
-    @missing_feature(reason="Expected to fail, SQS propagation via message attributes not working")
     def test_consume(self):
         """Check that a message by an app instrumented by a Datadog tracer is correctly ingested"""
 
@@ -177,7 +174,6 @@ class _BaseSQS:
             queue=self.BUDDY_TO_WEBLOG_QUEUE,
         )
 
-    @missing_feature(reason="Expected to fail, Node.js does not propagate context")
     @missing_feature(library="golang", reason="Expected to fail, Golang does not propagate context")
     @missing_feature(library="ruby", reason="Expected to fail, Ruby does not propagate context")
     @missing_feature(library="dotnet", reason="Expected to fail, .NET does not propagate context")
