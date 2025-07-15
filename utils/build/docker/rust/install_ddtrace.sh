@@ -1,20 +1,16 @@
 #!/bin/bash
 
-# this script is temporary until repo is public
+REPO_URL=https://github.com/DataDog/dd-trace-rs
+
 set +e
 if [ -e /binaries/rust-load-from-git ]; then
     rev_or_branch=$(</binaries/rust-load-from-git)
 
-    echo "trying to clone git@github.com:DataDog/dd-trace-rs.git - '$rev_or_branch'"
-
-    git clone git@github.com:DataDog/dd-trace-rs.git /binaries/dd-trace-rs
-    cd /binaries/dd-trace-rs
-
-    if [[ -n "$rev_or_branch" ]]; then
-        git checkout "$rev_or_branch"
+    if git clone -b "$rev_or_branch" $REPO_URL /binaries/dd-trace-rs; then
+        echo "cloned $REPO_URL -b $rev_or_branch into /binaries/dd-trace-rs"
+    else
+        echo "git clone failed for $REPO_URL $rev_or_branch"
     fi
-
-    echo "cloned git@github.com:DataDog/dd-trace-rs.git && checkout $rev_or_branch"
 fi
 
 set -eu
@@ -27,10 +23,10 @@ if [ -e /binaries/dd-trace-rs ]; then
 
     echo "install from /binaries/dd-trace-rs"
 else
-    cargo add --git https://github.com/DataDog/dd-trace-rs datadog-opentelemetry
-    cargo add --git https://github.com/DataDog/dd-trace-rs dd-trace
+    # TODO: add last release from crates.io
+    cargo add --git $REPO_URL datadog-opentelemetry
+    cargo add --git $REPO_URL dd-trace
 
-    echo "install from https://github.com/DataDog/dd-trace-rs"
-
+    echo "install from $REPO_URL"
 fi
 

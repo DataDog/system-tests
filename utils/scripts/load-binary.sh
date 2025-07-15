@@ -280,20 +280,8 @@ elif [ "$TARGET" = "nodejs" ]; then
 elif [ "$TARGET" = "rust" ]; then
     assert_version_is_dev
 
-    TARGET_BRANCH="${TARGET_BRANCH:-main}"
-
-    rm -rf dd-trace-rs/
-
-    # cloning here because repo is private
-    #curl -L \
-    #    -H "Authorization: token $GH_TOKEN" \
-    #    -H "Accept: application/vnd.github+json" \
-    #    --output dd-trace-rs.tar \
-    #    https://api.github.com/repos/Datadog/dd-trace-rs/tarball/$TARGET_BRANCH
-    #cat dd-trace-rs.tar
-    #tar xzvf dd-trace-rs.tar --one-top-level=dd-trace-rs --strip-components 1
-
-    echo "$TARGET_BRANCH" > rust-load-from-git
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "$LIBRARY_TARGET_BRANCH" > rust-load-from-git
     echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
