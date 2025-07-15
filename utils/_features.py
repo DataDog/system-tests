@@ -390,7 +390,7 @@ class _Features:
 
     @staticmethod
     def structured_log_injection(test_object):
-        """DD_LOGS_INJECTION=structured
+        """DD_LOGS_INJECTION
 
         https://feature-parity.us1.prod.dog/#/?feature=42
         """
@@ -2701,7 +2701,7 @@ class _Features:
 
     @staticmethod
     def unstructured_log_injection(test_object):
-        """DD_LOGS_INJECTION_FORCED=true
+        """DD_LOGS_INJECTION_ALL
 
         https://feature-parity.us1.prod.dog/#/?feature=477
         """
