@@ -44,11 +44,7 @@ const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/k
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
 // Unstructured logging (plain text)
-const plainLogger = winston.createLogger({
-  level: 'info',
-  format: winston.format.simple(), // plain text
-  transports: [new winston.transports.Console()]
-})
+const plainLogger = console
 
 // Structured logging (JSON)
 const jsonLogger = winston.createLogger({
