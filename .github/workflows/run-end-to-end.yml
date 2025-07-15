@@ -117,6 +117,7 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
+        cleanup: "false"
         library: ${{ inputs.library }}
         weblog: ${{ inputs.weblog }}
         scenarios: ${{ inputs.scenarios }}

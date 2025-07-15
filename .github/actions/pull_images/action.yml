@@ -26,6 +26,22 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Free some place for scenarios known to require lot of images
+      if: ${{ (inputs.cleanup == 'true') && (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
+      shell: bash
+      run: |
+        df -h
+
+        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
+
+        sudo rm -rf /usr/local/lib/android  # 9Gb!
+        sudo rm -rf /opt/hostedtoolcache/CodeQL  # 5Gb !
+        sudo rm -rf /usr/share/dotnet # 1Gb
+
+        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
+
+        df -h
+
     - name: Get image list
       shell: bash
       run: |
