@@ -300,7 +300,7 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': missing_feature
-          flask-poc: v3.10.0
+          flask-poc: v3.11.0.dev
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
