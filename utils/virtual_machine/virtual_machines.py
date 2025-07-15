@@ -106,7 +106,6 @@ class _VirtualMachine:
         self.app_env = None
         self.default_vm = default_vm
         self._deployed_weblog = None
-        self._vm_logs = None
         self.provision_install_error = None
 
     def get_deployed_weblog(self):
@@ -155,13 +154,6 @@ class _VirtualMachine:
     def set_tested_components(self, components_json):
         """Set installed software components version as json. ie {comp_name:version,comp_name2:version2...}"""
         self.tested_components = json.loads(components_json.replace("'", '"'))
-
-    def set_vm_logs(self, vm_logs):
-        """Store the logs of the VM"""
-        self._vm_logs = vm_logs
-
-    def get_vm_logs(self):
-        return self._vm_logs
 
     def get_cache_name(self):
         """Generate a unique name for the  cache.

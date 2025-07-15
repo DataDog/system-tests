@@ -4,6 +4,8 @@ import com.datadoghq.system_tests.iast.utils.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
 import datadog.trace.api.interceptor.MutableSpan;
@@ -130,31 +132,60 @@ public class MyResource {
 
     @GET
     @Path("/tag_value/{tag_value}/{status_code}")
-    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
-        setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
-        return Response.status(code)
-                .header("content-type", "text/plain")
-                .entity("Value tagged").build();
+    public Response tagValue(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @OPTIONS
     @Path("/tag_value/{tag_value}/{status_code}")
-    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code) {
-        return tagValue(value, code);
+    public Response tagValueOptions(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption) {
+        return handleTagValue(value, code, xOption, null);
     }
 
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
-    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, MultivaluedMap<String, String> form) {
-        return tagValue(value, code);
+    public Response tagValuePostForm(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, MultivaluedMap<String, String> form) {
+        ObjectNode body = null;
+        if (form != null) {
+            final ObjectMapper mapper = new ObjectMapper();
+            body = mapper.createObjectNode();
+            for (final String key : form.keySet()) {
+                final ArrayNode payloadValue = mapper.createArrayNode();
+                for (final String formValue : form.get(key)) {
+                    payloadValue.add(formValue);
+                }
+                body.put(key, payloadValue);
+            }
+        }
+        return handleTagValue(value, code, xOption, body);
     }
 
     @POST
     @Path("/tag_value/{tag_value}/{status_code}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, JsonNode body) {
-        return tagValue(value, code);
+    public Response tagValuePostJson(@PathParam("tag_value") String value, @PathParam("status_code") int code, @QueryParam("X-option") String xOption, JsonNode body) {
+        return handleTagValue(value, code, xOption, body);
+    }
+
+    private Response handleTagValue(final String value, final int code, final String xOption, final JsonNode body) {
+            setRootSpanTag("appsec.events.system_tests_appsec_event.value", value);
+        Response.ResponseBuilder response = Response.status(code);
+        if (xOption != null) {
+            response = response.header("X-option", xOption);
+        }
+        if (value.startsWith("payload_in_response_body")) {
+            final ObjectNode responseBody = new ObjectMapper().createObjectNode();
+            responseBody.put("payload", body);
+            response = response
+                    .entity(responseBody)
+                    .header("Content-Type", "application/json");
+        } else {
+            response = response
+                    .entity("Value tagged")
+                    .header("Content-Type", "text/plain");
+        }
+        return response.build();
     }
 
     @GET
@@ -237,6 +268,12 @@ public class MyResource {
     @GET
     @Path("/status")
     public Response status(@QueryParam("code") Integer code) {
+        return Response.status(code).build();
+    }
+
+    @GET
+    @Path("/stats-unique")
+    public Response statsUnique(@QueryParam("code") @DefaultValue("200") Integer code) {
         return Response.status(code).build();
     }
 

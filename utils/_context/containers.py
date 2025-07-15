@@ -573,6 +573,10 @@ class ProxyContainer(TestedContainer):
 
         """
 
+        # Adjust healthcheck for IPv6 scenarios
+        host_target = "::1" if enable_ipv6 else "localhost"
+        socket_family = "socket.AF_INET6" if enable_ipv6 else "socket.AF_INET"
+
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
@@ -594,6 +598,10 @@ class ProxyContainer(TestedContainer):
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
             command="python utils/proxy/core.py",
+            healthcheck={
+                "test": f"python -c \"import socket; s=socket.socket({socket_family}); s.settimeout(2); s.connect(('{host_target}', {ProxyPorts.weblog})); s.close()\"",  # noqa: E501
+                "retries": 30,
+            },
         )
 
 
@@ -621,7 +629,7 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
-            image_name="system_tests/agent",
+            image_name=self._get_image_name(),
             name="agent",
             host_log_folder=host_log_folder,
             environment=environment,
@@ -630,22 +638,24 @@ class AgentContainer(TestedContainer):
                 "retries": 60,
             },
             stdout_interface=interfaces.agent_stdout,
-            local_image_only=True,
+            volumes={
+                # this certificate comes from utils/proxy/.mitmproxy/mitmproxy-ca-cert.cer
+                "./utils/build/docker/agent/ca-certificates.crt": {
+                    "bind": "/etc/ssl/certs/ca-certificates.crt",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/agent/datadog.yaml": {"bind": "/etc/datadog-agent/datadog.yaml", "mode": "ro"},
+            },
         )
 
         self.agent_version: str | None = ""
 
-    def get_image_list(self, library: str, weblog: str) -> list[str]:  # noqa: ARG002
+    def _get_image_name(self) -> str:
         try:
             with open("binaries/agent-image", encoding="utf-8") as f:
-                return [
-                    f.read().strip(),
-                ]
+                return f.read().strip()
         except FileNotFoundError:
-            # not the cleanest way to do it, but we save ARG parsing
-            return [
-                "datadog/agent:latest",
-            ]
+            return "datadog/agent:latest"
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -801,6 +811,8 @@ class WeblogContainer(TestedContainer):
             base_environment["DD_IAST_REQUEST_SAMPLING"] = "100"
             base_environment["DD_IAST_MAX_CONCURRENT_REQUESTS"] = "10"
             base_environment["DD_IAST_DEDUPLICATION_ENABLED"] = "false"
+            base_environment["DD_IAST_VULNERABILITIES_PER_REQUEST"] = "10"
+            base_environment["DD_IAST_MAX_CONTEXT_OPERATIONS"] = "10"
 
         if tracer_sampling_rate:
             base_environment["DD_TRACE_SAMPLE_RATE"] = str(tracer_sampling_rate)
@@ -862,7 +874,14 @@ class WeblogContainer(TestedContainer):
         return result
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
-        """Parse the Dockerfile and extract all images reference in a FROM section"""
+        """Returns images needed to build the weblog"""
+
+        # If an image is saved as a file in binaries, we don't need any image
+        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        if Path(filename).is_file():
+            return []
+
+        # else, parse the Dockerfile and extract all images reference in a FROM section"""
         result: list[str] = []
 
         if not library or not weblog:
@@ -1373,7 +1392,7 @@ class ExternalProcessingContainer(TestedContainer):
             with open("binaries/golang-service-extensions-callout-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:latest"
+            image = "ghcr.io/datadog/dd-trace-go/service-extensions-callout:system-tests-latest"
 
         environment: dict[str, str | None] = {
             "DD_APPSEC_ENABLED": "true",

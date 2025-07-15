@@ -17,6 +17,7 @@ class ProfilingScenario(EndToEndScenario):
                 "USE_NATIVE_PROFILING": "presence",
                 # Reduce noise
                 "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "false",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],

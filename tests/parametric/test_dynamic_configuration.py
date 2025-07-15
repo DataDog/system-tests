@@ -29,6 +29,8 @@ DEFAULT_ENVVARS = {
     # Decrease the heartbeat/poll intervals to speed up the tests
     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.2",
     "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+    # Disable CSS which is enabled by default on Go
+    "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
 }
 
 

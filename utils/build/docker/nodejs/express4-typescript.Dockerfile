@@ -22,8 +22,6 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
-
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node dist/app.js' >> app.sh

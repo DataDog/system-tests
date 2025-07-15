@@ -27,12 +27,14 @@ telemetry_name_mapping = {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
         "python": "DD_TRACE_SAMPLE_RATE",
+        "ruby": "DD_TRACE_SAMPLE_RATE",
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
         "nodejs": "DD_LOG_INJECTION",  # TODO: rename to DD_LOGS_INJECTION in subsequent PR
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
+        "ruby": "tracing.log_injection",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
@@ -40,13 +42,24 @@ telemetry_name_mapping = {
         "python": "DD_TRACE_HEADER_TAGS",
     },
     "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing", "python": "DD_TRACE_ENABLED"},
+    "trace_enabled": {
+        "dotnet": "DD_TRACE_ENABLED",
+        "nodejs": "tracing",
+        "python": "DD_TRACE_ENABLED",
+        "ruby": "tracing.enabled",
+    },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
+        "ruby": "profiling.enabled",
     },
-    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled", "python": "DD_APPSEC_ENABLED"},
+    "appsec_enabled": {
+        "dotnet": "DD_APPSEC_ENABLED",
+        "nodejs": "appsec.enabled",
+        "python": "DD_APPSEC_ENABLED",
+        "ruby": "appsec.enabled",
+    },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
@@ -56,12 +69,14 @@ telemetry_name_mapping = {
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
+        "ruby": "runtime_metrics_enabled",
     },
     "dynamic_instrumentation_enabled": {
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "nodejs": "dynamicInstrumentation.enabled",
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
+        "ruby": "dynamic_instrumentation.enabled",
     },
 }
 

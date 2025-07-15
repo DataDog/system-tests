@@ -83,6 +83,10 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         ]
         return injection_metrics
 
+    def get_injection_metadata_for_autoinject(self):
+        logger.debug("Try to find injection metadata related to autoinject")
+        return [t["payload"] for t in self._data_telemetry_list if t["request_type"] == "injection-metadata"]
+
     def get_telemetry_logs(self):
         logger.debug("Try to find telemetry data related to logs")
         return [t for t in self._data_telemetry_list if t["request_type"] == "logs"]
@@ -97,11 +101,19 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
             # If payload is a list, iterate through its items
             if isinstance(payload, list):
                 crash_reports.extend(
-                    p for p in payload if "signame" in p.get("tags", "") or "signum" in p.get("tags", "")
+                    p
+                    for p in payload
+                    if "si_signo" in p.get("tags", "")
+                    or "signame" in p.get("tags", "")
+                    or "signum" in p.get("tags", "")
                 )
             # If payload is a single object, check it directly
             elif isinstance(payload, dict):
-                if "signame" in payload.get("tags", "") or "signum" in payload.get("tags", ""):
+                if (
+                    "si_signo" in payload.get("tags", "")
+                    or "signame" in payload.get("tags", "")
+                    or "signum" in payload.get("tags", "")
+                ):
                     crash_reports.append(payload)
 
         return crash_reports

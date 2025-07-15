@@ -34,6 +34,8 @@ from iast import (
 import ddtrace
 from ddtrace import patch_all
 
+from ddtrace.appsec import trace_utils as ato_user_sdk_v1
+
 try:
     from ddtrace.appsec import track_user_sdk
 except ImportError:
@@ -847,16 +849,15 @@ _TRACK_USER = "system_tests_user"
 
 
 def track_user_login_success_event(request):
-    track_user_sdk.track_login_success(login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_user_login_success_event(
+        None, login=_TRACK_USER, user_id=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return HttpResponse("OK")
 
 
 def track_user_login_failure_event(request):
-    track_user_sdk.track_login_failure(
-        login=_TRACK_USER,
-        exists=True,
-        user_id=_TRACK_USER,
-        metadata=_TRACK_METADATA,
+    ato_user_sdk_v1.track_user_login_failure_event(
+        None, login=_TRACK_USER, exists=True, user_id=_TRACK_USER, metadata=_TRACK_METADATA
     )
     return HttpResponse("OK")
 
@@ -946,7 +947,7 @@ _TRACK_CUSTOM_EVENT_NAME = "system_tests_event"
 
 
 def track_custom_event(request):
-    track_user_sdk.track_custom_event(event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
+    ato_user_sdk_v1.track_custom_event(None, event_name=_TRACK_CUSTOM_EVENT_NAME, metadata=_TRACK_METADATA)
     return HttpResponse("OK")
 
 

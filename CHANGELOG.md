@@ -1,6 +1,19 @@
 ## Change Log
 
 All notable changes to this project will be documented in this file.
+
+### 2025-06 (128 PR merged)
+
+* 2025-06-26 [Check that all declared production version exists for java](https://github.com/DataDog/system-tests/pull/4840) by @cbeauchesne
+* 2025-06-25 [Implement AI Testing Framework and Specialized Prompts](https://github.com/DataDog/system-tests/pull/4815) by @robertomonteromiguel
+* 2025-06-16 [Use the bare agent image in end-to-end scenario](https://github.com/DataDog/system-tests/pull/4771) by @cbeauchesne
+* 2025-06-12 [Add optional inputs ref for system-tests.yml](https://github.com/DataDog/system-tests/pull/4750) by @TonyCTHsu
+* 2025-06-09 [Robertomonteromiguel/cursor copilot endtoend scenarios](https://github.com/DataDog/system-tests/pull/4722) by @robertomonteromiguel
+* 2025-06-04 [Test that tracer version is reported as semver to RC](https://github.com/DataDog/system-tests/pull/4712) by @smola
+* 2025-06-11 [[Nodejs] init fastify weblog](https://github.com/DataDog/system-tests/pull/4708) by @IlyasShabi
+* 2025-06-03 [Robertomonteromiguel/GitHub copilot and docs](https://github.com/DataDog/system-tests/pull/4665) by @robertomonteromiguel
+
+
 ### 2025-05 (110 PR merged)
 
 * 2025-05-27 [add a script that adds a label on tickets referenced in system-tests](https://github.com/DataDog/system-tests/pull/4697) by @cbeauchesne

@@ -329,7 +329,7 @@ app.get('/trace/config', (req, res) => {
       'dd_trace_debug': config?.debug !== undefined ? `${config.debug}`.toLowerCase() : 'null',
       'dd_trace_sample_rate': config?.sampleRate !== undefined ? `${config.sampleRate}` : 'null',
       'dd_trace_enabled': config ? 'true' : 'false', // in node if dd_trace_enabled is true the tracer won't have a config object
-      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics}`.toLowerCase() : 'null',
+      'dd_runtime_metrics_enabled': config?.runtimeMetrics !== undefined ? `${config.runtimeMetrics.enabled ?? config.runtimeMetrics}`.toLowerCase() : 'null',
       'dd_tags': config?.tags !== undefined ? Object.entries(config.tags).map(([key, val]) => `${key}:${val}`).join(',') : 'null',
       'dd_trace_propagation_style': config?.tracePropagationStyle?.inject.join(',') ?? 'null',
       'dd_trace_sample_ignore_parent': 'null', // not implemented in node

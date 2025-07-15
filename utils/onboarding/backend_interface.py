@@ -63,13 +63,14 @@ def _query_for_trace_id(trace_id, validator=None):
         logger.info("Backend trace is valid")
 
     root_id = trace_data["trace"]["root_id"]
-    start_time = trace_data["trace"]["spans"][root_id]["start"]
+    root_span = trace_data["trace"]["spans"][root_id]
+    start_time = root_span["start"]
     start_date = datetime.fromtimestamp(start_time)
     if (datetime.now() - start_date).days > 1:
         logger.info("Backend trace is too old")
         return None
 
-    return trace_data["trace"]["spans"][root_id]["meta"]["runtime-id"]
+    return root_span["meta"]["runtime-id"]
 
 
 def _make_request(

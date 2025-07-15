@@ -50,9 +50,8 @@ class Version(version_module.Version):
 
 
 class ComponentVersion:
-    known_versions: dict = defaultdict(set)
+    known_versions: dict[str, set[str]] = defaultdict(set)
     version: Version
-    # name: str
 
     def add_known_version(self, version: Version | None, library: str | None = None):
         library = self.name if library is None else library

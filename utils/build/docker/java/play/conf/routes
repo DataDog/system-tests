@@ -13,6 +13,7 @@ GET  /waf/*segments            controllers.AppSecController.params(segments: Seq
 POST /waf                      controllers.AppSecController.wafPost
 GET  /make_distant_call        controllers.AppSecController.distantCall(url: String)
 GET  /status                   controllers.AppSecController.status(code: Int)
+GET  /stats-unique             controllers.AppSecController.statsUnique(code: Option[Int])
 GET  /users                    controllers.AppSecController.users(user: String)
 GET  /identify                 controllers.AppSecController.identify
 GET  /user_login_success_event controllers.AppSecController.loginSuccess(event_user_id: Option[String])
@@ -36,3 +37,8 @@ GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
 GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
 GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
+
+# IAST Sampling endpoints
+GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
+POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
+GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)

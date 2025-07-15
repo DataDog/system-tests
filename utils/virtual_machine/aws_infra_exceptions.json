@@ -25,5 +25,14 @@
     "docker_build_error_reading_from_server_3": "ERROR: failed to solve: Unavailable: error reading from server: EOF",
     "java_buildpack_build_error": "java.io.IOException: Downloading from https://github.com/bantonsson/gradle/releases/download/v7.5-patched/gradle-7.5.47-all.zip failed: timeout",
     "java_buildpack_build_error_2": "BuildPack: Received an UnknownHostException when attempting to interact with a service.",
-    "java_buildpack_build_error_3": "BuildPack: Execution failed for task ':bootBuildImage'."
+    "java_buildpack_build_error_3": "BuildPack: Execution failed for task ':bootBuildImage'.",
+    "docker_sock_reset_by_peer": "ERROR: failed to receive status: rpc error: code = Unavailable desc = error reading from server: read unix @->/run/docker.sock: read: connection reset by peer",
+    "docker_sock_reset_by_peer_unknown_host_exception":"Received an UnknownHostException when attempting to interact with a service.",
+    "docker_build_python":"ERROR: failed to solve: process \"/bin/sh -c pip3 install django\" did not complete successfully: exit code: 1",
+    "git_error":"fatal: unable to access 'https://github.com/DataDog/system-tests.git/'",
+    "builder_lifecycle_creator":"Builder lifecycle 'creator' failed with status code 51",
+    "unexpected_eof":"unexpected EOF",
+    "jdk11_build_error":"#6 ERROR: process \"/bin/sh -c apk --no-cache add openjdk11\" did not complete successfully: exit code: 1",
+    "timeout_while_waiting_for_state":"timeout while waiting for state to become 'running' (last state: 'pending', timeout: 10m0s)",
+    "fatal_expected_flush_after_ref_listing":"fatal: expected flush after ref listing"
 }

@@ -82,17 +82,17 @@ def test_version_range():
         class LocalClass:
             pass
 
-        original_library = scenarios.test_the_test.library  # not very clean, TODO: add a fixture for that purpose
-        scenarios.test_the_test.library = ComponentVersion("java", tested_version)
-        decorated_class = released(java=declaration)(LocalClass)
-        scenarios.test_the_test.library = original_library
+        agent_version = scenarios.test_the_test.agent_version  # not very clean, TODO: add a fixture for that purpose
+        scenarios.test_the_test.agent_version = ComponentVersion("agent", tested_version).version
+        decorated_class = released(agent=declaration)(LocalClass)
+        scenarios.test_the_test.agent_version = agent_version
 
         if should_be_skipped:
             assert hasattr(decorated_class, "pytestmark")
             markers = decorated_class.pytestmark
             assert (
                 markers[0].kwargs["reason"]
-                == f"missing_feature for java: declared released version is {declaration}, tested version is {tested_version}"
+                == f"missing_feature for agent: declared released version is {declaration}, tested version is {tested_version}"
             )
         else:
             assert not hasattr(decorated_class, "pytestmark")

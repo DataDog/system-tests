@@ -19,7 +19,6 @@ RUN DJANGO_SUPERUSER_PASSWORD=abcd python3 manage.py createsuperuser --noinput -
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=5
 
 # docker startup
 CMD ./app.sh

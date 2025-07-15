@@ -341,6 +341,9 @@ class EndToEndScenario(DockerScenario):
         self.weblog_container.depends_on.append(self.agent_container)
         self.weblog_container.depends_on.extend(self._supporting_containers)
 
+        if use_proxy_for_weblog:
+            self.weblog_container.depends_on.append(self.proxy_container)
+
         self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)

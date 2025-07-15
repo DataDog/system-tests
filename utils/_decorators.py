@@ -28,6 +28,15 @@ class _DecoratorType(enum.StrEnum):
     INCOMPLETE_TEST_APP = "incomplete_test_app"
 
 
+SKIP_DECLARATIONS = (
+    _DecoratorType.MISSING_FEATURE,
+    _DecoratorType.BUG,
+    _DecoratorType.FLAKY,
+    _DecoratorType.IRRELEVANT,
+    _DecoratorType.INCOMPLETE_TEST_APP,
+)
+
+
 # semver module offers two spec engine :
 # 1. SimpleSpec : not a good fit because it does not allows OR clause
 # 2. NpmSpec : not a good fit because it disallow prerelease version by default (6.0.0-pre is not in ">=5.0.0")
@@ -260,7 +269,7 @@ def released(
 
             assert declaration != "?"  # ensure there is no more ? in version declaration
 
-            if declaration.startswith(("missing_feature", "bug", "flaky", "irrelevant", "incomplete_test_app")):
+            if declaration.startswith(SKIP_DECLARATIONS):
                 return declaration
 
             # declaration must be now a version number

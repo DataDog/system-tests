@@ -6,6 +6,7 @@
 
 set -eu
 
+docker pull datadog/agent:latest
 
 for lib in ${1:-dotnet golang java nodejs php python ruby}
 do

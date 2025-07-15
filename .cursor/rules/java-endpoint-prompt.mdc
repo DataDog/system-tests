@@ -1,0 +1,202 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Java Endpoint Generation Guidelines
+
+## Repository Structure
+
+```
+system-tests/
+|-- docs/                   # Documentation files. Folder to provide good and accurate answers. Follow the links.
+|   |-- weblog/             # Weblog service documentation
+|-- utils/                  # Util files
+|   |-- build/              # Build utilities
+|   |   |-- docker/         # Here you can find the Docker applications (weblogs) for the tests
+|   |   |   |-- java/       # Weblog implementation for java
+|   |   |   |   |-- akka-http/          # Weblog implementation for akka-http
+|   |   |   |   |-- jersey-grizzly2/    # Weblog implementation for jersey-grizzly2
+|   |   |   |   |-- play/               # Weblog implementation for play
+|   |   |   |   |-- ratpack/            # Weblog implementation for ratpack
+|   |   |   |   |-- resteasy-netty3/    # Weblog implementation for resteasy-netty3
+|   |   |   |   |-- spring-boot/        # Weblog implementation for spring-boot 
+|   |   |   |   |-- vertx3/             # Weblog implementation for vertx3
+|   |   |   |   |-- vertx4/             # Weblog implementation for vertx4
+|-- build.sh                # Script to build test environment
+|-- run.sh                  # Script to run tests and scenarios
+```
+
+## Code Style
+- All code, comments, and documentation must be written in English.
+- Never write redundant or superfluous comments in code.
+- If the next line is obvious, really, do not add a comment.
+- If a code block is self-documenting for a Senior Engineer, DO NOT ADD A COMMENT.
+
+## Critical Implementation Rules
+
+### 1. Dependency Preservation
+- **NEVER remove existing imports, fields, or methods** unless explicitly asked to do only the requested endpoints
+- When adding new functionality, only add what's necessary - don't modify existing working code
+- Pay special attention to:
+  - Import statements (especially framework-specific imports)
+  - Class fields (like `emailExamples`, `sqlExamples`, etc.)
+  - Constructor initialization
+  - Existing endpoint methods
+
+### 2. Validation Before Changes
+- **ALWAYS search for existing endpoints** with similar paths before creating new ones
+- Use `grep_search` to find existing implementations in other languages (Node.js, Python, etc.)
+- Check if the test file already has endpoint definitions to understand requirements
+- Look for existing controller classes that handle the same base path (e.g., `/iast/`)
+
+## Endpoint Implementation Process
+
+### Step 1: Analysis
+1. Read the test file to understand:
+   - Required HTTP methods (GET, POST, OPTIONS)
+   - Expected parameters
+   - Number of vulnerabilities needed
+   - Expected response format
+
+2. Search for existing implementations:
+   ```bash
+   # Find existing implementations in other languages
+   grep -r "endpoint-path" utils/build/docker/
+   ```
+
+3. Identify the correct controller class:
+   - For `/iast/*` paths → Usually `AppSecIast.java`
+   - For `/appsec/*` paths → Usually `AppSec.java`
+   - Look for classes with `@RequestMapping` annotations
+
+### Step 2: Implementation
+1. Add endpoints to the appropriate controller class
+2. Follow existing patterns in the same class
+3. Use proper Spring Boot annotations:
+   - `@GetMapping`, `@PostMapping` for HTTP methods
+   - `@PathVariable` for URL parameters
+   - `@RequestParam` for query parameters
+   - `ServletRequest` for form parameters
+
+### Step 3: Build and Test
+1. **Build the weblog**:
+   ```bash
+   ./utils/build/build.sh --library java --weblog-variant [framework]
+   ```
+   
+2. **Run the test to validate**:
+   ```bash
+   ./run.sh tests/path/to/test_file.py
+   ```
+
+3. **Check build errors carefully** - they often indicate missing dependencies
+
+
+## Framework-Specific Notes
+
+### Spring Boot
+- Controller classes are in `src/main/java/com/datadoghq/system_tests/springboot/`
+- Use `@RestController` and `@RequestMapping` at class level
+- Common imports needed: `ServletRequest`, `HttpServletRequest`, `@PathVariable`
+- Example classes: `AppSecIast.java`, `AppSec.java`, `Rasp.java`
+
+### Vert.x 3
+- Route providers are in `src/main/java/com/datadoghq/vertx3/` organized by feature (e.g., `iast/routes/`, `rasp/`)
+- Implement `Consumer<Router>` interface with `accept(Router router)` method
+- Use `router.get()`, `router.post()` for HTTP methods with `.handler()` for implementation
+- Path parameters use `:paramName` syntax (e.g., `/endpoint/:key`)
+- Access request with `ctx.request()` and get parameters with `request.getParam("paramName")`
+- Response with `ctx.response().end("message")` or `ctx.response().putHeader().end()`
+- Common imports needed: `HttpServerRequest`, `Router`, `Json` for JSON responses
+- Route providers implement specific functionality (security, performance, etc.)
+- Constructor receives dependencies via dependency injection
+- Route registration done in Main.java by adding provider to router
+
+### Vert.x 4
+- Route providers are in `src/main/java/com/datadoghq/vertx4/` organized by feature (e.g., `iast/routes/`, `rasp/`)
+- Implement `Consumer<Router>` interface with `accept(Router router)` method
+- Use `router.get()`, `router.post()` for HTTP methods with `.handler()` for implementation
+- Path parameters use `:paramName` syntax (e.g., `/endpoint/:key`)
+- Access request with `ctx.request()` and get parameters with `request.getParam("paramName")`
+- Response with `ctx.response().end("message")` or `ctx.response().putHeader().end()`
+- Common imports needed: `HttpServerRequest`, `Router`, `Json` for JSON responses
+- Route providers implement specific functionality (security, performance, etc.)
+- Constructor receives dependencies via dependency injection
+- Route registration done in Main.java by adding provider to router
+
+### Jersey (JAX-RS) with Grizzly2
+- Resource classes are in `src/main/java/com/datadoghq/jersey/`
+- Use JAX-RS annotations: `@Path`, `@GET`, `@POST`, `@PathParam`, `@FormParam`
+- Class-level `@Path("/base")` and method-level `@Path("/endpoint/{param}")` 
+- Parameters: `@PathParam("id")` for URL params, `@FormParam("param")` for form data
+- Response with `String` return or `Response.builder()` for complex responses
+- Common imports needed: `jakarta.ws.rs.*`, `Response`, `MediaType`
+- Use `@Produces(MediaType.TEXT_PLAIN)` or `MediaType.APPLICATION_JSON`
+- Constructor receives dependencies via static references or injection
+- Automatic registration via JAX-RS scanning
+
+### Play Framework (Scala)
+- Controllers are in `app/controllers/` using Scala
+- Extend `AbstractController` and use dependency injection with `@Inject`
+- Define actions with `def endpointName = Action { request =>` or `Action.async`
+- URL parameters via method parameters, form data via `request.body`
+- Response with `Results.Ok("message")`, `Json.toJson()` for JSON responses
+- Path parameters defined in routes file: `GET /endpoint/:id controllers.Controller.method(id: String)`
+- Common imports needed: `play.api.mvc._`, `play.api.libs.json.Json`
+- Request parsing: `AnyContentAsFormUrlEncoded`, `AnyContentAsJson`, etc.
+- Async support with `Future` and `Action.async`
+
+### Ratpack
+- Handler classes are in `src/main/java/com/datadoghq/ratpack/`
+- Implement setup method that receives `Chain` parameter
+- Use `chain.path("endpoint", ctx -> ctx.getResponse().send("message"))`
+- Path parameters via `chain.path("endpoint/:id", ctx -> ...)` 
+- Access request with `ctx.getRequest()` and query params with `getQueryParams().get("param")`
+- Response with `ctx.getResponse().send("message")`
+- Common imports needed: `ratpack.handling.Chain`, `ratpack.handling.Context`
+- Chain-based routing with method chaining
+- Registration done in Main.java by adding handler to server spec
+
+### Akka-HTTP (Scala)
+- Route objects are in `src/main/scala/com/datadoghq/akka_http/`
+- Define routes with DSL: `pathPrefix("base") { get { path("endpoint") { complete("response") } } }`
+- Path parameters with `path(Segment)` or `pathPrefix(Segment)`
+- Form parameters with `paramOrFormField("param")` or `formField("param")`
+- Response with `complete("message")` or `complete(StatusCodes.OK, data)`
+- Common imports needed: `akka.http.scaladsl.server.Directives._`, `akka.http.scaladsl.server.Route`
+- Nested routing with `pathPrefix` and `~` for route composition
+- JSON marshalling with custom marshallers
+- Route registration done in Main.scala by combining routes
+
+### RESTEasy with Netty3
+- Resource classes are in `src/main/java/com/datadoghq/resteasy/`
+- Use JAX-RS annotations: `@Path`, `@GET`, `@POST`, `@PathParam`, `@FormParam`
+- Similar pattern to Jersey but with RESTEasy-specific features
+- Class-level `@Path("/base")` and method-level `@Path("/endpoint/{param}")`
+- Parameters: `@PathParam("id")` for URL params, `@FormParam("param")` for form data
+- Response with `String` return or `Response.builder()` for complex responses
+- Common imports needed: `jakarta.ws.rs.*`, `Response`, `MediaType`
+- Constructor receives dependencies via static references
+- Registration done via RESTEasy application scanning
+
+## Troubleshooting
+
+### Build Failures
+1. **Missing imports**: Check if you removed necessary imports
+2. **Missing fields**: Verify all class fields are preserved
+3. **Constructor issues**: Ensure all field initializations remain
+
+### Test Failures
+1. **404 errors**: Check endpoint path matches test expectations
+2. **500 errors**: Usually dependency injection or method signature issues
+3. **xfailed tests**: Normal for new endpoints, indicates test ran successfully
+
+## Quality Checklist
+Before submitting:
+- [ ] All existing imports and fields preserved
+- [ ] Build passes without errors
+- [ ] Test runs (even if xfailed)
+- [ ] Code follows existing patterns in the same controller
+- [ ] No unnecessary comments added
+- [ ] Only implemented what was explicitly requested

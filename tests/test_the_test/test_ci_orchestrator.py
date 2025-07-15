@@ -12,7 +12,7 @@ def test_get_endtoend_definitions():
         ],
     }
 
-    defs = get_endtoend_definitions("ruby", scenario_map, "dev", 200000, 256)
+    defs = get_endtoend_definitions("ruby", scenario_map, [], "dev", 200000, 256)
     weblog_count = len(defs["endtoend_defs"]["parallel_weblogs"])
 
     # if there is an issue, ruby weblog count will be 0 or 1 or 2 ...

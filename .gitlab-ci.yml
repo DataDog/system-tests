@@ -1,5 +1,5 @@
 include:
-  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/553c9649e1dececdf1be41f90dd58366328a69aaa8b92c0743096933bd3b049c/single-step-instrumentation-tests.yml
+  - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
 
 stages:
   - configure
@@ -46,7 +46,12 @@ compute_pipeline:
           export scenarios=$SYSTEM_TESTS_SCENARIOS
           export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
           cd /system-tests
-          git pull # update to most recent system-tests
+          git pull
+          if [ -n "$SYSTEM_TESTS_REF" ]; then
+            git checkout $SYSTEM_TESTS_REF
+          else
+            echo "⚠️  SYSTEM_TESTS_REF variable is not set, skipping git checkout"
+          fi
           ./build.sh -i runner
           source venv/bin/activate
       fi
@@ -75,7 +80,6 @@ compute_pipeline:
 nodejs_ssi_pipeline:
   stage: nodejs
   needs: ["compute_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -86,11 +90,11 @@ nodejs_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
+  when: always
 
 java_ssi_pipeline:
   stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -101,11 +105,11 @@ java_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
+  when: always
 
 dotnet_ssi_pipeline:
   stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -116,11 +120,11 @@ dotnet_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
+  when: always
 
 python_ssi_pipeline:
   stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -131,11 +135,11 @@ python_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
+  when: always
 
 php_ssi_pipeline:
   stage: php
   needs: ["compute_pipeline", "python_ssi_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -146,11 +150,11 @@ php_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
+  when: always
 
 ruby_ssi_pipeline:
   stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
-  allow_failure: true
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
@@ -161,76 +165,7 @@ ruby_ssi_pipeline:
   rules:
     - if: '$SCHEDULED_JOB == ""'
     - if: '$SCHEDULED_JOB == null'
-
-check_pipeline_status:
-  stage: pipeline-status
-  image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
-  tags: ["runner:docker"]
-  script:
-    - set -e  # Exit immediately if any command fails
-    - echo "Checking for failed jobs in parent and child pipelines..."
-    - export GITLAB_TOKEN=$(aws ssm get-parameter --region us-east-1 --name "ci.$CI_PROJECT_NAME.gitlab.token" --with-decryption --query "Parameter.Value" --out text)
-
-    # Function to fetch all jobs from a paginated GitLab API endpoint
-    - |
-      fetch_all_jobs() {
-        local url="$1"
-        local failed_count=0
-        local page=1
-
-        while true; do
-          RESPONSE=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" "$url&page=$page&per_page=100")
-
-          # Validate JSON response
-          if ! echo "$RESPONSE" | jq -e type > /dev/null 2>&1; then
-            echo "❌ Error: Invalid JSON response from GitLab API."
-            exit 1
-          fi
-
-          # Count failed jobs on this page
-          local page_failed_jobs
-          page_failed_jobs=$(echo "$RESPONSE" | jq '[.[] | select(.status == "failed")] | length')
-          failed_count=$((failed_count + page_failed_jobs))
-
-          # Check if there are more pages (by checking if we got less than 100 results)
-          local jobs_count
-          jobs_count=$(echo "$RESPONSE" | jq 'length')
-
-          if [ "$jobs_count" -lt 100 ]; then
-            break
-          fi
-
-          ((page++))
-        done
-
-        echo "$failed_count"
-      }
-
-    # Fetch failed jobs in the parent pipeline
-    - |
-      FAILED_JOBS=$(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/jobs?")
-
-      # Fetch child pipelines
-      CHILD_PIPELINES=$(curl --silent --header "PRIVATE-TOKEN: $GITLAB_TOKEN" \
-        "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CI_PIPELINE_ID/bridges" | jq -r '.[].downstream_pipeline.id')
-
-      FAILED_CHILD_JOBS=0
-      for CHILD_PIPELINE in $CHILD_PIPELINES; do
-        FAILED_CHILD_JOBS=$((FAILED_CHILD_JOBS + $(fetch_all_jobs "$CI_API_V4_URL/projects/$CI_PROJECT_ID/pipelines/$CHILD_PIPELINE/jobs?")))
-      done
-
-      TOTAL_FAILED=$((FAILED_JOBS + FAILED_CHILD_JOBS))
-
-      if [ "$TOTAL_FAILED" -gt 0 ]; then
-        echo "❌ Pipeline failed: $TOTAL_FAILED job(s) did not succeed."
-        exit 1
-      fi
-
-    - echo "✅ All jobs and child pipelines passed!"
   when: always
-  rules:
-    - if: '$SCHEDULED_JOB == ""'
-    - if: '$SCHEDULED_JOB == null'
 
 delete_amis:
   extends: .base_job_onboarding
@@ -321,21 +256,31 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
-generate_system_tests_images:
+generate_system_tests_end_to_end_images:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   needs: []
   stage: system-tests-utils
   allow_failure: true
   before_script:
-    - export GH_TOKEN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.gh-token --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
-      -  echo $GH_TOKEN | docker login ghcr.io -u publisher --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
-      - ./lib-injection/build/build_lib_injection_images.sh
+  when: manual
+
+generate_system_tests_lib_injection_images:
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  stage: system-tests-utils
+  allow_failure: true
+  variables:
+    PRIVATE_DOCKER_REGISTRY: 235494822917.dkr.ecr.us-east-1.amazonaws.com
+    PRIVATE_DOCKER_REGISTRY_USER: AWS
+  script:
+      - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+      - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
   when: manual
 
 .delayed_base_job:

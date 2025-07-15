@@ -42,6 +42,13 @@ public class Main {
         // in com.datadoghq.jersey package
         final ResourceConfig rc = new ResourceConfig().packages("com.datadoghq.jersey");
 
+        // Register resources
+        rc.register(MyResource.class);
+        rc.register(RaspResource.class);
+        rc.register(IastSinkResource.class);
+        rc.register(IastSourceResource.class);
+        rc.register(IastSamplingResource.class);
+
         // create and start a new instance of grizzly http server
         // exposing the Jersey application at BASE_URI
         return GrizzlyHttpServerFactory.createHttpServer(URI.create(BASE_URI), rc);

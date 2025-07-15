@@ -5,7 +5,9 @@
 """Misc checks around data integrity during components' lifetime"""
 
 import re
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, scenarios, features, context
+from utils._decorators import missing_feature
+from utils.interfaces._library.miscs import validate_process_tags
 
 
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
@@ -42,6 +44,22 @@ class Test_Profile:
     def test_agent(self):
         """All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.validate_profiling(self._validate_data)
+
+    def setup_process_tags(self):
+        self._common_setup()
+
+    @features.process_tags
+    @missing_feature(
+        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
+    def test_process_tags(self):
+        """All profiling libraries payload have process tags field"""
+        profiling_data_list = list(interfaces.agent.get_profiling_data())
+        for data in profiling_data_list:
+            for content in data["request"]["content"]:
+                if "content" in content:
+                    validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
     def _validate_data(data) -> bool:

@@ -44,7 +44,8 @@
         },
         {
             "scenarios": [
-                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
                 {
@@ -99,7 +100,8 @@
         },
         {
             "scenarios": [
-                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
                 {
@@ -185,7 +187,8 @@
         },
         {
             "scenarios": [
-                "SIMPLE_AUTO_INJECTION_PROFILING"
+                "SIMPLE_AUTO_INJECTION_PROFILING",
+                "SIMPLE_AUTO_INJECTION_APPSEC"
             ],
             "weblogs": [
                 {

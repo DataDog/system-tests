@@ -12,14 +12,13 @@ if [[ -f "./.env" ]]; then
 fi
 
 WEBLOG_VARIANT=${WEBLOG_VARIANT:-${HTTP_FRAMEWORK:-}}
-AGENT_BASE_IMAGE=
 
 readonly DOCKER_REGISTRY_CACHE_PATH="${DOCKER_REGISTRY_CACHE_PATH:-ghcr.io/datadog/system-tests}"
 readonly ALIAS_CACHE_FROM="R" #read cache
 readonly ALIAS_CACHE_TO="W" #write cache
 
 readonly DEFAULT_TEST_LIBRARY=nodejs
-readonly DEFAULT_BUILD_IMAGES=weblog,runner,agent
+readonly DEFAULT_BUILD_IMAGES=weblog,runner
 readonly DEFAULT_DOCKER_MODE=0
 readonly DEFAULT_SAVE_TO_BINARIES=0
 
@@ -66,7 +65,6 @@ print_usage() {
     echo -e "  ${CYAN}--default-weblog${NC}           Prints the name of the default weblog for a given library and exits."
     echo -e "  ${CYAN}--binary-path${NC}              Optional. Path of a directory binaries will be copied from. Should be used for local development only."
     echo -e "  ${CYAN}--binary-url${NC}               Optional. Url of the client library redistributable. Should be used for local development only."
-    echo -e "  ${CYAN}--agent-base-image${NC}         Optional. Base image of docker agent to use, default: datadog/agent"
     echo -e "  ${CYAN}--save-to-binaries${NC}         Optional. Save image in binaries folder as a tar.gz file."
     echo -e "  ${CYAN}--help${NC}                     Prints this message and exits."
     echo
@@ -186,37 +184,7 @@ build() {
                 .
 
         elif [[ $IMAGE_NAME == agent ]]; then
-
-            if [ -f ./binaries/agent.tar.gz ]; then
-                echo "Loading image from binaries/agent.tar.gz"
-                docker load --input binaries/agent.tar.gz
-            else
-                if test -z "$AGENT_BASE_IMAGE"; then
-                    if [ -f ./binaries/agent-image ]; then
-                        AGENT_BASE_IMAGE=$(cat ./binaries/agent-image)
-                    else
-                        AGENT_BASE_IMAGE="datadog/agent"
-                    fi
-                fi
-
-                echo "using $AGENT_BASE_IMAGE image for datadog agent"
-
-                docker buildx build \
-                    --build-arg BUILDKIT_INLINE_CACHE=1 \
-                    --load \
-                    --progress=plain \
-                    -f utils/build/docker/agent.Dockerfile \
-                    -t system_tests/agent \
-                    --pull \
-                    --build-arg AGENT_IMAGE="$AGENT_BASE_IMAGE" \
-                    $EXTRA_DOCKER_ARGS \
-                    .
-
-                if [[ $SAVE_TO_BINARIES == 1 ]]; then
-                    echo "Saving image to binaries/agent.tar.gz"
-                    docker save system_tests/agent | gzip > binaries/agent.tar.gz
-                fi
-            fi
+            echo "Building agent is not needed anymore, system-tests now use directly the agent image from docker hub."
 
         elif [[ $IMAGE_NAME == weblog ]]; then
             clean-binaries() {
@@ -238,6 +206,7 @@ build() {
                 cd ..
             fi
 
+            # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
 
             if [ -f $BINARIES_FILENAME ]; then
@@ -306,7 +275,7 @@ while [[ "$#" -gt 0 ]]; do
         --list-weblogs) COMMAND=list-weblogs ;;
         --default-weblog) COMMAND=default-weblog ;;
         -h|--help) print_usage; exit 0 ;;
-        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;
+        --agent-base-image) AGENT_BASE_IMAGE="$2"; shift ;;  # deprecated
         *) echo "Invalid argument: ${1:-}"; echo; print_usage; exit 1 ;;
     esac
     shift
