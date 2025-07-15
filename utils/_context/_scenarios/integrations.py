@@ -109,7 +109,6 @@ class CrossedTracingLibraryScenario(EndToEndScenario):
             include_elasticmq=True,
             doc="Spawns a buddy for each supported language of APM, requires AWS authentication.",
             weblog_env={
-                "DD_TRACE_API_VERSION": "v0.4",
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
                 "SYSTEM_TESTS_AWS_SQS_URL": "http://elasticmq:9324",
             },
