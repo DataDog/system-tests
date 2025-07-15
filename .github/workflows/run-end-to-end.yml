@@ -75,7 +75,7 @@ env:
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ${{ contains(fromJSON('["CROSSED_TRACING_LIBRARIES", "INTEGRATIONS"]'), inputs.scenario) && 'ubuntu-latest-16-cores' || 'ubuntu-latest' }}
+    runs-on: ${{ (contains(inputs.scenarios, 'CROSSED_TRACING_LIBRARIES') || contains(inputs.scenarios, 'INTEGRATIONS')) && 'ubuntu-latest-16-cores' || 'ubuntu-latest' }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
