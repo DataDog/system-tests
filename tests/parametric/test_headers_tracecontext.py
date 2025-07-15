@@ -1043,9 +1043,7 @@ class Test_Headers_Tracecontext:
     @missing_feature(
         context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
     )
-    @missing_feature(
-        context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation"
-    )
+    @missing_feature(context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation")
     def test_tracestate_ows_handling(self, test_agent, test_library):
         """Harness sends a request with a valid tracestate header with OWS
         expects the tracestate to be inherited
