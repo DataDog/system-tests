@@ -1,4 +1,5 @@
-FROM golang:1.23 AS build
+# Pin base image using SHA256 digest for reproducible builds  
+FROM golang@sha256:eea67064303df95be6d972549b76fafb0372befe7c70dbb178dabad0e2ca378f AS build
 
 # print important lib versions
 RUN go version && curl --version

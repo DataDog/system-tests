@@ -1,3 +1,6 @@
+# TODO: Pin base image using SHA256 digest for reproducible builds
+# Note: ghcr.io/datadog/images-rb/engines/ruby:3.1 requires authentication to get SHA256 digest
+# Manual action needed: Get SHA256 digest and replace with: FROM ghcr.io/datadog/images-rb/engines/ruby@sha256:DIGEST
 FROM ghcr.io/datadog/images-rb/engines/ruby:3.1
 
 RUN apt-get update && apt-get install -y nodejs npm

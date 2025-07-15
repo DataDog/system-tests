@@ -1,4 +1,5 @@
-FROM maven:3.9-eclipse-temurin-11 as build
+# Pin base image using SHA256 digest for reproducible builds
+FROM maven@sha256:30e3a6e5189da1867ac44454657f3a6bbbc901fde8f62acd8bc97f4f6b397813 as build
 
 ENV JAVA_TOOL_OPTIONS="-Djava.net.preferIPv4Stack=true"
 

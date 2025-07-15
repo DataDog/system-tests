@@ -1,4 +1,5 @@
-FROM datadog/system-tests:flask-poc.base-v9
+# Pin base image using SHA256 digest for reproducible builds
+FROM datadog/system-tests@sha256:cb31f7a40de078b51d59fa59ab862c9833f34e6848e9c3d33fe45b6c3a2649ce
 
 WORKDIR /app
 
