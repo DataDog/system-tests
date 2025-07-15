@@ -545,7 +545,7 @@ class Test_Config_LogInjection_Default_Structured:
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200
-        log_records = get_structured_log_records(self.message)
+        log_records = get_trace_details_structured(self.message)
         assert len(log_records) == 1, f"Expected one structured log record {log_records}"
 
         tid = parse_log_trace_id(log_records[0])
@@ -569,9 +569,8 @@ class Test_Config_LogInjection_Default_Unstructured:
 
     def test_test_log_injection_default(self):
         assert self.r.status_code == 200
-        stdout.assert_absence(r'"dd":\{[^}]*\}')
-        stdout.assert_absence(r'"dd.trace_id":\{[^}]*\}')
-        stdout.assert_absence(r'"dd_trace_id":\{[^}]*\}')
+        trace_details = get_trace_details_unstructured(self.message)
+        assert not trace_details, f"Expected no trace details in unstructured log message, but got: {trace_details}"
 
 
 @rfc("https://docs.google.com/document/d/1kI-gTAKghfcwI7YzKhqRv2ExUstcHqADIWA4-TZ387o/edit#heading=h.8v16cioi7qxp")
@@ -792,21 +791,20 @@ def get_runtime_metrics(agent):
 
 
 def parse_log_injection_message(log_message: str) -> dict:
-    structured_logs = get_structured_log_records(log_message)
-    unstructured_logs = get_unstructured_log_records(log_message)
+    if context.library == "ruby":
+        # TODO: Update ruby weblog app to support structured logs
+        trace_details = get_trace_details_unstructured(log_message)
+    else:
+        trace_details = get_trace_details_structured(log_message)
 
-    if len(structured_logs) + len(unstructured_logs) > 1:
-        raise ValueError(
-            f"Found more than one log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
-        )
-    if not structured_logs and not unstructured_logs:
-        raise ValueError(
-            f"Did not find any log with {log_message}. Structured logs: {structured_logs}, Unstructured logs: {unstructured_logs}"
-        )
-    return (structured_logs + unstructured_logs)[0]
+    if not trace_details:
+        raise ValueError(f"Did not find any log with {log_message}. Trace details: {trace_details}")
+    elif len(trace_details) > 1:
+        raise ValueError(f"Found more than one log with {log_message}. Trace details: {trace_details}")
+    return trace_details[0]
 
 
-def get_unstructured_log_records(log_message: str) -> list[dict]:
+def get_trace_details_unstructured(log_message: str) -> list[dict]:
     # check that we didn't found more than one logs
     results = []
     # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
@@ -820,22 +818,20 @@ def get_unstructured_log_records(log_message: str) -> list[dict]:
 
         logs = raw.split("\n")
         for log in logs:
-            if context.library == "ruby":
-                # Extract key-value pairs and messages
-                match = regex_pattern_raw.search(log)
-                if match:
-                    curr_message = match.group(2).strip()  # Extract message after last bracket
-                    if curr_message != log_message:
-                        continue
-                    dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
-                    logger.debug(f"Found log: {data}")
-                    results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
-                    break
-            # TODO(munir): Support parsing unstructured logs for other languages
+            # Extract key-value pairs and messages
+            match = regex_pattern_raw.search(log)
+            if match:
+                curr_message = match.group(2).strip()  # Extract message after last bracket
+                if curr_message != log_message:
+                    continue
+                dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
+                logger.debug(f"Found log: {data}")
+                results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
+                break
     return results
 
 
-def get_structured_log_records(log_message: str) -> list[dict]:
+def get_trace_details_structured(log_message: str) -> list[dict]:
     results = []
     # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
     processed_raws: set[str] = set()
