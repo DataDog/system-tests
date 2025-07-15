@@ -2701,7 +2701,7 @@ class _Features:
 
     @staticmethod
     def unstructured_log_injection(test_object):
-        """DD_LOGS_INJECTION=all
+        """DD_LOGS_INJECTION_FORCED=true
 
         https://feature-parity.us1.prod.dog/#/?feature=477
         """
