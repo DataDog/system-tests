@@ -1,6 +1,6 @@
 import json
 
-from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS
+from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
@@ -72,6 +72,7 @@ class _Scenarios:
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
+            "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
         },
         doc=(
             "End to end testing with DD_TRACE_COMPUTE_STATS=1. This feature compute stats at tracer level, and"
@@ -83,7 +84,7 @@ class _Scenarios:
     sampling = EndToEndScenario(
         "SAMPLING",
         tracer_sampling_rate=0.5,
-        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000"},
+        weblog_env={"DD_TRACE_RATE_LIMIT": "10000000", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"},
         doc="Test sampling mechanism. Not included in default scenario because it's a little bit too flaky",
         scenario_groups=[scenario_groups.sampling],
     )
@@ -214,7 +215,7 @@ class _Scenarios:
         appsec_enabled=False,
         include_postgres_db=True,
         doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
     )
 
     appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
@@ -388,6 +389,7 @@ class _Scenarios:
             # added to test Test_ExtendedHeaderCollection
             "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
             "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="Appsec standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -429,6 +431,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -443,6 +447,8 @@ class _Scenarios:
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -456,6 +462,7 @@ class _Scenarios:
             "DD_APM_TRACING_ENABLED": "false",
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -480,6 +487,8 @@ class _Scenarios:
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DEDUPLICATION_ENABLED": "true",
             "DD_IAST_REQUEST_SAMPLING": "100",
+            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
         },
         doc="Iast scenario with deduplication enabled",
         scenario_groups=[scenario_groups.appsec],
@@ -599,6 +608,7 @@ class _Scenarios:
 
     tracing_config_nondefault = EndToEndScenario(
         "TRACING_CONFIG_NONDEFAULT",
+        additional_trace_header_tags=tuple(CONFIG_WILDCARD),
         weblog_env={
             "DD_TRACE_HTTP_SERVER_ERROR_STATUSES": "200-201,202",
             "DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP": r"ssn=\d{3}-\d{2}-\d{4}",
@@ -610,11 +620,13 @@ class _Scenarios:
             "DD_TRACE_PDO_ENABLED": "false",  # Use PDO for PHP,
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "datadog,tracecontext,b3multi,baggage",
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
+            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
         },
         appsec_enabled=False,  # disable ASM to test non asm client ip tagging
         iast_enabled=False,
         include_kafka=True,
         include_postgres_db=True,
+        rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.tracing_config, scenario_groups.essentials],
     )
@@ -681,6 +693,7 @@ class _Scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
         },
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
@@ -823,6 +836,35 @@ class _Scenarios:
         vm_provision="container-auto-inject-install-script",
         agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={"DD_PROFILING_UPLOAD_PERIOD": "10", "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    simple_auto_injection_appsec = InstallerAutoInjectionScenario(
+        "SIMPLE_AUTO_INJECTION_APPSEC",
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
+        app_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
+        github_workflow="aws_ssi",
+    )
+
+    host_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        doc=(
+            "Onboarding Host Single Step Instrumentation scenario using agent "
+            "auto install script with Appsec activated by the installation process"
+        ),
+        vm_provision="host-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
+        scenario_groups=[scenario_groups.all],
+        github_workflow="aws_ssi",
+    )
+
+    container_auto_injection_install_script_appsec = InstallerAutoInjectionScenario(
+        "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC",
+        "Onboarding Container Single Step Instrumentation Appsec scenario using agent auto install script",
+        vm_provision="container-auto-inject-install-script",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all],
         github_workflow="aws_ssi",
     )

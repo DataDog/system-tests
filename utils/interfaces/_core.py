@@ -90,7 +90,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             self._append_data(data)
             self._ingested_files.add(src_path)
 
-            # make 100% sure that the list is sorted
+            # Ensure the list is completely sorted
             self._data_list.sort(key=lambda data: data["log_filename"])
 
         if self._wait_for_function and self._wait_for_function(data):

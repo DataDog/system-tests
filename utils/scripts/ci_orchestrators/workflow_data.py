@@ -219,9 +219,10 @@ class Job:
     def split_for_parallel_execution(self, desired_execution_time: float) -> list["Job"]:
         result: list[Job] = []
 
-        for i, scenarios in enumerate(
-            _split_scenarios_for_parallel_execution(self._scenarios_times, desired_execution_time - self.build_time)
-        ):
+        backpacks = _split_scenarios_for_parallel_execution(
+            self._scenarios_times, desired_execution_time - self.build_time
+        )
+        for i, scenarios in enumerate(backpacks):
             result.append(
                 Job(
                     library=self.library,
@@ -235,7 +236,7 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str) -> list[str]:
+def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
     folder = f"utils/build/docker/{library}"
     result = [
         f.replace(".Dockerfile", "")
@@ -243,11 +244,20 @@ def _get_endtoend_weblogs(library: str) -> list[str]:
         if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
     ]
 
+    if len(weblogs_filter) != 0:
+        # filter weblogs by the weblogs_filter set
+        result = [weblog for weblog in result if weblog in weblogs_filter]
+
     return sorted(result)
 
 
 def get_endtoend_definitions(
-    library: str, scenario_map: dict, ci_environment: str, desired_execution_time: int, maximum_parallel_jobs: int
+    library: str,
+    scenario_map: dict,
+    weblogs_filter: list[str],
+    ci_environment: str,
+    desired_execution_time: int,
+    maximum_parallel_jobs: int,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -256,7 +266,7 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs = _get_endtoend_weblogs(library)
+    weblogs = _get_endtoend_weblogs(library, weblogs_filter)
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -328,30 +338,39 @@ def _split_jobs_for_parallel_execution(
     return result
 
 
-def _split_scenarios_for_parallel_execution(scenario_times: dict[str, float], desired_execution_time: float):
-    total_execution_time = sum(scenario_times.values())
+def _split_scenarios_for_parallel_execution(
+    scenario_times: dict[str, float], desired_execution_time: float
+) -> list[list[str]]:
+    class BackPack:
+        def __init__(self, scenario: str, execution_time: float):
+            self.scenarios: list[str] = [scenario]
+            self.execution_time: float = execution_time
 
-    # 1 minute minimum, almost no scenario will be less than that
-    desired_execution_time = max(desired_execution_time, 60)
+    # First Fit Decreasing algorithm to split scenarios into backpacks
+    # https://en.wikipedia.org/wiki/First-fit-decreasing_bin_packing
+    sorted_scenarios = sorted(scenario_times.items(), key=lambda item: item[1], reverse=True)
 
-    backpack_count = int(total_execution_time / desired_execution_time) + 1
-    backpack_average_time = total_execution_time / backpack_count
+    backpacks: list[BackPack] = []
 
-    backpack: list[str] = []
-    backpack_time = 0.0
+    for scenario, execution_time in sorted_scenarios:
+        if execution_time > desired_execution_time or len(backpacks) == 0:
+            # if the scenario is too long, or if we don't have any backpack, create a new one
+            backpacks.append(BackPack(scenario, execution_time))
+        else:
+            placed = False
+            for backpack in backpacks:
+                if backpack.execution_time + execution_time <= desired_execution_time:
+                    # if the scenario fits in the backpack, add it
+                    backpack.scenarios.append(scenario)
+                    backpack.execution_time += execution_time
+                    placed = True
+                    break
 
-    for scenario, execution_time in scenario_times.items():
-        backpack.append(scenario)
-        backpack_time += execution_time
+            if not placed:
+                # if the scenario doesn't fit in any backpack, create a new one
+                backpacks.append(BackPack(scenario, execution_time))
 
-        if backpack_time > backpack_average_time:
-            yield backpack
-
-            backpack = []
-            backpack_time = 0
-
-    if len(backpack) > 0:
-        yield backpack
+    return [backpack.scenarios for backpack in backpacks]
 
 
 def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
@@ -537,4 +556,4 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, "dev", 20, 256)
+    get_endtoend_definitions("ruby", m, [], "dev", desired_execution_time=400, maximum_parallel_jobs=256)

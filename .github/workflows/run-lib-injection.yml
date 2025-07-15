@@ -12,6 +12,9 @@ on:
         description: "Library to test"
         required: true
         type: string
+      ref:
+        description: "system-tests ref to run the tests on (can be any valid branch, tag or SHA in system-tests repo)"
+        type: string
       version:
         description: "Version of the image to test"
         required: true
@@ -20,7 +23,6 @@ env:
   REGISTRY: ghcr.io
 
 jobs:
-
   compute-matrix:
     name: Get weblogs for Lib-Injection tests
     runs-on: ubuntu-latest
@@ -131,10 +133,21 @@ jobs:
       TEST_LIBRARY: ${{ inputs.library }}
       LIB_INIT_IMAGE: ${{ matrix.lib_init_image }}
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -204,10 +217,21 @@ jobs:
       LIBRARY_INJECTION_TEST_APP_IMAGE: ghcr.io/datadog/system-tests/${{ matrix.weblog }}:${{ inputs.build_lib_injection_app_images != true && 'latest' || github.sha }}
       CLUSTER_AGENT_VERSION: ${{ matrix.cluster_agent_version }}
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
+          ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

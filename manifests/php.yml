@@ -11,11 +11,11 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: v1.6.2
         Test_API_Security_RC_ASM_DD_scanners: v1.6.2
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints: v1.8.0
-        Test_API_Security_Sampling_Different_Paths: v1.8.0
-        Test_API_Security_Sampling_Different_Status: v1.8.0
+        Test_API_Security_Sampling_Different_Endpoints: bug (APPSEC-58244)
+        Test_API_Security_Sampling_Different_Paths: bug (APPSEC-58244)
+        Test_API_Security_Sampling_Different_Status: bug (APPSEC-58244)
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
-        Test_API_Security_Sampling_With_Delay: v1.8.0
+        Test_API_Security_Sampling_With_Delay: bug (APPSEC-58244)
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v0.94.0
@@ -357,14 +357,20 @@ tests/:
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -389,6 +395,8 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+    test_rate_limiter.py:
+      Test_Main: bug (APPSEC-58244)
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v1.6.2
@@ -642,6 +650,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.5.0
     Test_HeaderTags_Whitespace_Val_Long: v1.5.0
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_protobuf.py: missing_feature
