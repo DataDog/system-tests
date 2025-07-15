@@ -314,6 +314,10 @@ class Test_Headers_Tracestate_DD:
     )
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
+    @missing_feature(
+        context.library == "rust",
+        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
+    )
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
