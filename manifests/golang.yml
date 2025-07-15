@@ -425,15 +425,15 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
       Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: bug (LANGPLAT-583)
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: bug (LANGPLAT-583)
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
       Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
       Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v2.1.0-dev
       Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.1.0-dev
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: bug (LANGPLAT-583)
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: bug (LANGPLAT-583)
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
       Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.1.0-dev
