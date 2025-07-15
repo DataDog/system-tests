@@ -98,7 +98,6 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime > "3.8.0")
     @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime > "3.7.0")
     @bug(context.library == "nodejs" and context.installed_language_runtime < "12.17.0", reason="INPLAT-252")
-    @bug(context.library == "java" and context.installed_language_runtime == "1.7.0-201", reason="INPLAT-427")
     @bug(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0", reason="INPLAT-448")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime >= "17.0")
     def test_telemetry_abort(self):
