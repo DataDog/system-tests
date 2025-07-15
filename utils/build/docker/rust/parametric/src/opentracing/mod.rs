@@ -44,28 +44,19 @@ async fn start_span(
 ) -> Json<StartSpanResult> {
     let mut attributes = vec![];
     if let Some(service) = args.service {
-        attributes.push(opentelemetry::KeyValue::new(
-            "SERVICE_NAME".to_string(),
-            service,
-        ));
+        attributes.push(opentelemetry::KeyValue::new("SERVICE_NAME", service));
     }
 
     if let Some(resource) = args.resource {
-        attributes.push(opentelemetry::KeyValue::new(
-            "RESOURCE_NAME".to_string(),
-            resource,
-        ));
+        attributes.push(opentelemetry::KeyValue::new("RESOURCE_NAME", resource));
     }
 
     if let Some(span_type) = args.r#type {
-        attributes.push(opentelemetry::KeyValue::new(
-            "SPAN_TYPE".to_string(),
-            span_type,
-        ));
+        attributes.push(opentelemetry::KeyValue::new("SPAN_TYPE", span_type));
     }
 
     // hack to prevent libdatadog from dropping trace chunks
-    attributes.push(opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1));
+    attributes.push(opentelemetry::KeyValue::new("_dd.top_level", 1));
 
     args.span_tags.iter().for_each(|tag| {
         debug!("start_span: add received tag {tag:?}");
@@ -74,6 +65,12 @@ async fn start_span(
             tag.value.clone(),
         ))
     });
+
+    // is this ok? some tests don't pass without it
+    attributes.push(opentelemetry::KeyValue::new(
+        "operation.name",
+        args.name.clone(),
+    ));
 
     let builder = get_tracer()
         .span_builder(args.name.clone())

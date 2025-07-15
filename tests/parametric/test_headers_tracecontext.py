@@ -94,6 +94,10 @@ class Test_Headers_Tracecontext:
         context.library == "ruby",
         reason="the tracer should reject the incoming traceparent(s) when there are multiple traceparent headers",
     )
+    @missing_feature(
+        context.library == "rust",
+        reason="multi-value header extraction is not supported by otel rust yet",
+    )
     def test_traceparent_duplicated(self, test_agent, test_library):
         """Harness sends a request with two traceparent headers
         expects a valid traceparent from the output header, with a newly generated trace_id
@@ -548,6 +552,10 @@ class Test_Headers_Tracecontext:
         context.library == "python",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
     )
+    @missing_feature(
+        context.library == "rust",
+        reason="multi-value header extraction is not supported by otel rust yet",
+    )
     def test_tracestate_empty_header(self, test_agent, test_library):
         """Harness sends a request with empty tracestate header
         expects the empty tracestate to be discarded
@@ -602,6 +610,10 @@ class Test_Headers_Tracecontext:
     @missing_feature(
         context.library == "python",
         reason="python does not reconcile duplicate http headers, if duplicate headers received one only one will be used",
+    )
+    @missing_feature(
+        context.library == "rust",
+        reason="multi-value header extraction is not supported by otel rust yet",
     )
     def test_tracestate_multiple_headers_different_keys(self, test_agent, test_library):
         """Harness sends a request with multiple tracestate headers, each contains different set of keys
@@ -1030,6 +1042,9 @@ class Test_Headers_Tracecontext:
     @temporary_enable_optin_tracecontext()
     @missing_feature(
         context.library == "php", reason="PHP may preserve whitespace of foreign vendors trracestate (allowed per spec)"
+    )
+    @missing_feature(
+        context.library == "rust", reason="Invalid tracestate keys for OpenTelemetry's implementation"
     )
     def test_tracestate_ows_handling(self, test_agent, test_library):
         """Harness sends a request with a valid tracestate header with OWS
