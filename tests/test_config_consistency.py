@@ -565,6 +565,7 @@ class Test_Config_LogInjection_Default:
 @scenarios.tracing_config_empty
 @features.log_injection
 @features.log_injection_128bit_traceid
+@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
 class Test_Config_LogInjection_128Bit_TraceId_Enabled:
     """Verify trace IDs are logged in 128bit format by default when log injection is enabled"""
 
@@ -623,6 +624,7 @@ class Test_Config_LogInjection_128Bit_TraceId_Enabled:
 @scenarios.tracing_config_nondefault_4
 @features.log_injection
 @features.log_injection_128bit_traceid
+@bug(context.library == "golang@2.1.0", reason="LANGPLAT-670")
 @irrelevant(
     context.library == "python", reason="The Python tracer does not support disabling logging 128-bit trace IDs"
 )
