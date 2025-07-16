@@ -44,15 +44,15 @@ async fn start_span(
 ) -> Json<StartSpanResult> {
     let mut attributes = vec![];
     if let Some(service) = args.service {
-        attributes.push(opentelemetry::KeyValue::new("SERVICE_NAME", service));
+        attributes.push(opentelemetry::KeyValue::new("service.name", service));
     }
 
     if let Some(resource) = args.resource {
-        attributes.push(opentelemetry::KeyValue::new("RESOURCE_NAME", resource));
+        attributes.push(opentelemetry::KeyValue::new("resource.name", resource));
     }
 
     if let Some(span_type) = args.r#type {
-        attributes.push(opentelemetry::KeyValue::new("SPAN_TYPE", span_type));
+        attributes.push(opentelemetry::KeyValue::new("span.type", span_type));
     }
 
     // hack to prevent libdatadog from dropping trace chunks
