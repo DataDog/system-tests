@@ -244,7 +244,6 @@ class ParametricScenario(Scenario):
                 dockf_path,
                 apm_test_server_definition.container_build_context,
             ]
-
             log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
