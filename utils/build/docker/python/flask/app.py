@@ -1878,3 +1878,111 @@ def inferred_proxy_span_creation():
     logging.info("Request headers: " + str(headers))
 
     return Response("ok", status=status)
+
+
+def _sc_s_validate(param):
+    return param
+
+
+def _sc_s_validate_for_all(param):
+    return param
+
+
+def _sc_s_overloaded(p1, p2):
+    if p1:
+        return p1
+    return p2
+
+
+def _sc_v_validate(param):
+    return True
+
+
+def _sc_v_validate_for_all(param):
+    return True
+
+
+def _sc_v_overloaded(p1=None, p2=None, param=None):
+    return True
+
+
+@app.route("/iast/sc/s/configured", methods=["POST"])
+def view_iast_sc_s_configured():
+    param = flask_request.form["param"]
+    param2 = _sc_s_validate(param)
+    os.system(f"ls {param2}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/not-configured", methods=["POST"])
+def view_iast_sc_s_not_configured():
+    param = flask_request.form.get("param")
+    param = _sc_s_validate(param)
+    _sink_point_sqli(table=param)
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/all", methods=["POST"])
+def view_iast_sc_s_all():
+    param = flask_request.form.get("param")
+    param = _sc_s_validate_for_all(param)
+    _sink_point_sqli(table=param)
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/overloaded/secure", methods=["POST"])
+def view_iast_sc_s_overloaded_secure():
+    param = flask_request.form.get("param")
+    param = _sc_s_overloaded(param, None)
+    os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/s/overloaded/insecure", methods=["POST"])
+def view_iast_sc_s_overloaded_insecure():
+    param = flask_request.form.get("param")
+    param = _sc_s_overloaded(None, param)
+    os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/configured", methods=["POST"])
+def view_iast_sc_iv_configured():
+    param = flask_request.form.get("param")
+    if _sc_v_validate(param):
+        os.system(f"ls {param}")
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/not-configured", methods=["POST"])
+def view_iast_sc_iv_not_configured():
+    table = flask_request.form.get("param")
+    if _sc_v_validate(table):
+        _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/all", methods=["POST"])
+def view_iast_sc_iv_not_all():
+    table = flask_request.form.get("param")
+    if _sc_v_validate_for_all(table):
+        _sink_point_sqli(table=table)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/overloaded/secure", methods=["POST"])
+def view_iast_sc_iv_overloaded_secure():
+    user = flask_request.form.get("user")
+    password = flask_request.form.get("password")
+    if _sc_v_overloaded(None, user, password):
+        _sink_point_sqli(table=user)
+    return Response("OK")
+
+
+@app.route("/iast/sc/iv/overloaded/insecure", methods=["POST"])
+def view_iast_sc_iv_overloaded_insecure():
+    user = flask_request.form.get("user")
+    password = flask_request.form.get("password")
+    if _sc_v_overloaded(user, password):
+        _sink_point_sqli(table=user)
+    return Response("OK")

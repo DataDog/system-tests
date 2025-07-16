@@ -29,47 +29,47 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_RC_ASM_DD_scanners:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Paths:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Status:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0

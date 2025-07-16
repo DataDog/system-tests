@@ -34,5 +34,6 @@
     "unexpected_eof":"unexpected EOF",
     "jdk11_build_error":"#6 ERROR: process \"/bin/sh -c apk --no-cache add openjdk11\" did not complete successfully: exit code: 1",
     "timeout_while_waiting_for_state":"timeout while waiting for state to become 'running' (last state: 'pending', timeout: 10m0s)",
-    "fatal_expected_flush_after_ref_listing":"fatal: expected flush after ref listing"
+    "fatal_expected_flush_after_ref_listing":"fatal: expected flush after ref listing",
+    "error_creating_lease":"error creating lease: grpc: the client connection is closing: context canceled"
 }
