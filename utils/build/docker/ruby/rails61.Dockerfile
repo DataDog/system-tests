@@ -3,10 +3,10 @@ FROM ghcr.io/datadog/images-rb/engines/ruby:3.0
 RUN mkdir -p /app
 WORKDIR /app
 
-ENV RAILS_ENV=production
-ENV RAILS_MASTER_KEY=9d319c57ec128e905d9e2ce5742bf2de
+ENV RAILS_ENV="production"
+ENV RAILS_MASTER_KEY="9d319c57ec128e905d9e2ce5742bf2de"
 ENV BUNDLE_WITHOUT="development test"
-ENV DD_TRACE_HEADER_TAGS=user-agent
+ENV DD_TRACE_HEADER_TAGS="user-agent"
 
 COPY utils/build/docker/ruby/rails61/Gemfile* ./
 RUN bundle install
