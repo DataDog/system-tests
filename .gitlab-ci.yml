@@ -240,7 +240,7 @@ count_amis:
   after_script: echo "Finish"
 
 check_merge_labels:
-  #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
+  #Build docker images if it's needed. Check if the PR has the labels associated with the image build..
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   needs: []
