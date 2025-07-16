@@ -13,8 +13,6 @@ RUN bundle install
 
 COPY utils/build/docker/ruby/rails72/ .
 COPY utils/build/docker/ruby/shared/rails/ .
-COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
 
 RUN bundle exec rails db:prepare
 
