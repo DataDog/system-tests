@@ -142,7 +142,7 @@ class TestSecurityControls:
         self.r = weblog.post("iast/sc/s/overloaded/insecure", data={"param": "param"})
 
     @irrelevant(library="nodejs", reason="no overloaded methods with different signatures in js")
-    @irrelevant(library="python", reason="no overloaded methods with different signatures in js")
+    @irrelevant(library="python", reason="no overloaded methods with different signatures in python")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
     ):
