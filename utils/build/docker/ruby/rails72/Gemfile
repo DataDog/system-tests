@@ -10,7 +10,7 @@ gem 'bootsnap', require: false
 gem 'rdkafka'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
-gem "faraday", '~> 2.8.0'
+gem "faraday", '~> 2.13.0'
 
 group :development do
   gem 'pry-byebug'

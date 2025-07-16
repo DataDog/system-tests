@@ -101,11 +101,12 @@ GEM
     drb (2.2.3)
     erb (5.0.2)
     erubi (1.13.1)
-    faraday (2.8.1)
-      base64
-      faraday-net_http (>= 2.0, < 3.1)
-      ruby2_keywords (>= 0.0.4)
-    faraday-net_http (3.0.2)
+    faraday (2.13.2)
+      faraday-net_http (>= 2.0, < 3.5)
+      json
+      logger
+    faraday-net_http (3.4.1)
+      net-http (>= 0.5.0)
     ffi (1.17.2)
     ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-aarch64-linux-musl)
@@ -126,6 +127,7 @@ GEM
       pp (>= 0.6.0)
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
+    json (2.12.2)
     libdatadog (14.1.0.1.0)
     libdatadog (14.1.0.1.0-aarch64-linux)
     libdatadog (14.1.0.1.0-x86_64-linux)
@@ -154,6 +156,8 @@ GEM
     mini_portile2 (2.8.9)
     minitest (5.25.5)
     msgpack (1.8.0)
+    net-http (0.6.0)
+      uri
     net-imap (0.5.9)
       date
       net-protocol
@@ -249,7 +253,6 @@ GEM
     responders (3.1.1)
       actionpack (>= 5.2)
       railties (>= 5.2)
-    ruby2_keywords (0.0.5)
     securerandom (0.4.1)
     sqlite3 (1.7.3)
       mini_portile2 (~> 2.8.0)
@@ -264,6 +267,7 @@ GEM
     timeout (0.4.3)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uri (1.0.3)
     useragent (0.16.11)
     warden (1.2.9)
       rack (>= 2.0.9)
@@ -294,7 +298,7 @@ DEPENDENCIES
   datadog (~> 2.7.0)
   devise (~> 4.9)
   dogstatsd-ruby
-  faraday (~> 2.8.0)
+  faraday (~> 2.13.0)
   pry-byebug
   puma (~> 6.0)
   rails (~> 7.2.2)
