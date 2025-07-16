@@ -206,6 +206,14 @@ jobs:
         with:
           name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
           path: binaries/
+      - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
+        if: runner.os == 'Linux'
+        uses: actions/checkout@v4
+        with:
+          repository: DataDog/civis-gha-monitor-action
+          token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
+          ref: main
+          path: ./civis-action
 
   run_end_to_end:
     name: "End-to-end #${{ matrix.job.weblog_instance }}"

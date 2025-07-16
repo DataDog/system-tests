@@ -82,6 +82,7 @@ jobs:
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
     steps:
     - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
+      if: runner.os == 'Linux'
       uses: actions/checkout@v4
       with:
         repository: DataDog/civis-gha-monitor-action
@@ -89,6 +90,7 @@ jobs:
         ref: main
         path: ./civis-action
     - name: Setup CI Visibility GitHub SaaS Runner Monitoring
+      if: runner.os == 'Linux'
       uses: ./civis-action
       with:
         upload-artifacts: 'true'
@@ -452,3 +454,12 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
+    - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
+      if: runner.os == 'Linux'
+      uses: actions/checkout@v4
+      with:
+        repository: DataDog/civis-gha-monitor-action
+        token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
+        ref: main
+        path: ./civis-action-end
