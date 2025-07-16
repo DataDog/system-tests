@@ -7,12 +7,6 @@ import tests.auto_inject.utils as base
 @features.host_auto_installation_script
 @scenarios.host_auto_injection_install_script
 class TestHostAutoInjectInstallScript(base.AutoInjectBaseTest):
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     def test_install(self):
         self._test_install(context.virtual_machine)
@@ -160,12 +154,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
     # on the installer. As we can not only uninstall the injector, we are skipping
     # the uninstall test today
 
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @irrelevant(condition=context.weblog_variant == "test-app-dotnet-iis")
     def test_install_uninstall(self):
         virtual_machine = context.virtual_machine
@@ -188,12 +176,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @irrelevant(
         context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
         reason="python 3.7 is not supported on ddtrace >= 3.x",
