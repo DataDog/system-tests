@@ -588,7 +588,7 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 @app.route("/session/new")
 def session_new():
-    response = Response("OK")
+    response = Response(MAGIC_SESSION_KEY)
     response.set_cookie("session_id", MAGIC_SESSION_KEY)
     return response
 
@@ -1421,10 +1421,18 @@ def track_user_login_failure_event():
 def before_request():
     try:
         current_user = DB_USER.get(flask.session.get("login"), None)
-        if current_user:
-            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+        login = current_user.login if current_user else None
+        user_id = current_user.uid if current_user else None
+        session_id = flask_request.cookies.get("session_id", None)
+        if current_user or session_id:
+            try:
+                import ddtrace.appsec.track_user_sdk as track_user_sdk
+
+                track_user_sdk.track_user(login=login, user_id=user_id, session_id=session_id, _auto=True)
+            except Exception:
+                # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
+                set_user(ddtrace.tracer, user_id=user_id, email=login, session_id=session_id, mode="auto")
     except Exception:
-        # to be compatible with all tracer versions
         pass
 
 
