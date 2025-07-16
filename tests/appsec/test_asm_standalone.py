@@ -120,6 +120,14 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
+    def fix_priority_lambda(self, span, default_checks):
+        if "_dd.appsec.s.req.headers" in span["meta"]:
+            return {
+                "_sampling_priority_v1": lambda x: x == 2
+            }  # if we find evidence of API Sec schema, priority should be 2 (Manual Keep)
+        else:
+            return default_checks
+
     @bug(
         condition=(
             context.scenario.name == scenarios.appsec_standalone_api_security.name
@@ -135,7 +143,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
-            assert assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -181,7 +189,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
-            assert assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -227,7 +235,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
-            assert assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
@@ -273,7 +281,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
-            assert assert_tags(trace[0], span, "metrics", tested_metrics)
+            assert assert_tags(trace[0], span, "metrics", self.fix_priority_lambda(span, tested_metrics))
 
             assert span["metrics"]["_dd.apm.enabled"] == 0  # if key missing -> APPSEC-55222
             assert span["trace_id"] == 1212121212121212121
