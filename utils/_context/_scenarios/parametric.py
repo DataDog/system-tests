@@ -233,7 +233,6 @@ class ParametricScenario(Scenario):
             if docker is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
-            env = os.environ.copy()
             root_path = ".."
             cmd = [
                 docker,
@@ -246,13 +245,10 @@ class ParametricScenario(Scenario):
                 apm_test_server_definition.container_build_context,
             ]
 
-            if env.get("DOCKER_BUILDKIT") == "1":
-                idx = cmd.index("-f")
-                cmd[idx:idx] = ["--ssh", "default"]
-
             log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
 
+            env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
             # python tracer takes more than 5mn to build
@@ -675,15 +671,10 @@ COPY {rust_reldir}/Cargo.toml /usr/app/
 COPY {rust_reldir}/src /usr/app/
 
 RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
-RUN --mount=type=ssh \
-    mkdir -p -m 0600 ~/.ssh && \
-    ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-RUN --mount=type=ssh \
-    /binaries/install_ddtrace.sh
+RUN /binaries/install_ddtrace.sh
 
 RUN \
-    --mount=type=ssh \
     --mount=type=cache,target=/usr/app/target/ \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp ./target/release/ddtrace-rs-client /usr/app
