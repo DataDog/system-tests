@@ -32,9 +32,7 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     echo -e "gem '$GEM_NAME', '$GEM_VERSION', require: '$GEM_NAME/auto_instrument'" >> Gemfile
 
     bundle install
-elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
-    # nothing to do - the Gemfile should already point to the latest released version
-else
+elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) != 0 ]; then
     # Remove gem reference from Gemfile
     sed -i -e '/gem .ddtrace./d' Gemfile
     sed -i -e '/gem .datadog./d' Gemfile
