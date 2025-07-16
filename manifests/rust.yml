@@ -82,7 +82,6 @@ tests/:
       Test_Trace_Sampling_Tags: missing_feature
       Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
       Test_Trace_Sampling_With_W3C: missing_feature
-    test_tracer.py:
-      Test_TracerSCITagging: missing_feature
+    test_tracer.py: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
