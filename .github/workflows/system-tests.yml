@@ -157,6 +157,19 @@ jobs:
         weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
       fail-fast: false
     steps:
+      - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
+        if: runner.os == 'Linux'
+        uses: actions/checkout@v4
+        with:
+          repository: DataDog/civis-gha-monitor-action
+          token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
+          ref: main
+          path: civis-action
+      - name: Setup CI Visibility GitHub SaaS Runner Monitoring
+        if: runner.os == 'Linux'
+        uses: civis-action
+        with:
+          upload-artifacts: 'true'
       - name: Compute ref
         id: compute_ref
         run: |
