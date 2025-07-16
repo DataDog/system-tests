@@ -7,7 +7,9 @@ gem 'sqlite3', '~> 1.4'
 gem 'puma', '~> 6.0'
 gem 'bootsnap', require: false
 # Tracing related dependencies
-gem 'rdkafka'
+gem 'ruby-kafka', '~> 1.5.0'
+gem 'opentelemetry-api', '~> 1.5.0'
+gem 'opentelemetry-sdk', '~> 1.8.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem "faraday", '~> 2.13.0'

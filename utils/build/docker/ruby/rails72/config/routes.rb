@@ -50,6 +50,14 @@ Rails.application.routes.draw do
   get '/requestdownstream' => 'system_test#request_downstream'
   get '/returnheaders' => 'system_test#return_headers'
 
+  get '/otel_drop_in_default_propagator_extract' => 'system_test#otel_drop_in_default_propagator_extract'
+  get '/otel_drop_in_default_propagator_inject' => 'system_test#otel_drop_in_default_propagator_inject'
+
+  get '/debugger/init' => 'debugger#init'
+  get '/debugger/pii' => 'debugger#pii'
+  get '/debugger/log' => 'debugger#log_probe'
+  get '/debugger/mix/:string_arg/:int_arg' => 'debugger#mix_probe'
+
   get '/rasp/sqli' => 'rasp_sqli#show'
   post '/rasp/sqli' => 'rasp_sqli#show'
 

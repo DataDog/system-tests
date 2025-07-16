@@ -7,7 +7,7 @@ gem 'sqlite3', '>= 2.1'
 gem 'puma', '~> 6.0'
 gem 'bootsnap', require: false
 # Tracer related dependencies
-gem 'rdkafka'
+gem 'rdkafka', '~> 0.21.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem 'faraday', '~> 2.13.0'

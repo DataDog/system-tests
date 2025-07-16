@@ -11,6 +11,7 @@ COPY utils/build/docker/ruby/rails72/Gemfile.lock .
 RUN sed -i -e '/gem .ddtrace./d' Gemfile && bundle config set --local without test development && bundle install
 
 COPY utils/build/docker/ruby/rails72/ .
+COPY utils/build/docker/ruby/shared/rails/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
