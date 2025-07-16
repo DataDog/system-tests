@@ -100,6 +100,12 @@ class SystemTestController < ApplicationController
     render json: result
   end
 
+  def log_library
+    message = params[:msg]
+    Rails.logger.info(message)
+    render plain: 'OK'
+  end
+
   def user_login_success_event
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
