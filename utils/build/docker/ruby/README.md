@@ -1,9 +1,17 @@
 # System test apps for Ruby
 
+TODO: Write a better readme
+
 ## Updating lockfiles
 
+### Ruby 2.5 bundler issue
 
+``` text
+$ docker run --rm -it -v "${PWD}":"${PWD}" -w "${PWD}" ghcr.io/datadog/images-rb/engines/ruby:2.5 bash
+$ root@c262f9bc5bd8: gem install -N bundler:1.17.3
+$ root@c262f9bc5bd8: rm $(ruby -e 'puts Gem.default_specifications_dir')/bundler-2.*.gemspec
 ```
+
 # example with rails71
 
 # get base image to use same ruby version
