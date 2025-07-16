@@ -74,8 +74,9 @@ if current_ddtrace_version >= (3, 1, 0):
                 try:
                     import ddtrace.appsec.track_user_sdk as track_user_sdk
 
-                    track_user_sdk.track_user(login=user_id, user_id=user_id, session_id=session_id)
-                except ImportError:
+                    track_user_sdk.track_user(login=user_id, user_id=user_id, session_id=session_id, _auto=True)
+                except Exception:
+                    # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
                     set_user(tracer, user_id=user_id, session_id=session_id, mode="auto")
         except Exception:
             # to be compatible with all tracer versions
