@@ -164,10 +164,10 @@ jobs:
           repository: DataDog/civis-gha-monitor-action
           token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
           ref: main
-          path: civis-action
+          path: ./civis-action
       - name: Setup CI Visibility GitHub SaaS Runner Monitoring
         if: runner.os == 'Linux'
-        uses: civis-action
+        uses: ./civis-action
         with:
           upload-artifacts: 'true'
       - name: Compute ref
