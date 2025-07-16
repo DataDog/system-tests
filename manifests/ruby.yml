@@ -750,7 +750,7 @@ tests/:
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v2.18.0
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
@@ -779,7 +779,8 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py:
@@ -790,7 +791,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v2.18.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
       Test_TelemetrySSIConfigs: missing_feature
@@ -896,6 +897,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8599)
     Test_HeaderTags_Whitespace_Val_Long: v1.13.0
     Test_HeaderTags_Whitespace_Val_Short: v1.13.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature

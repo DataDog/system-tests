@@ -194,10 +194,6 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         and context.weblog_variant == "test-app-ruby",
         reason="INPLAT-103",
     )
-    @bug(
-        context.vm_name == "Ubuntu_24_arm64" and context.weblog_variant == "test-app-dotnet-multialpine",
-        reason="INPLAT-484",
-    )
     @irrelevant(
         context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
         reason="python 3.7 is not supported on ddtrace >= 3.x",

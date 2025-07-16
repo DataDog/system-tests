@@ -247,6 +247,11 @@ public class Main {
                                 int code = Integer.parseInt(codeParam);
                                 ctx.getResponse().status(code).send();
                             })
+                            .path("stats-unique", ctx -> {
+                                String codeParam = ctx.getRequest().getQueryParams().get("code");
+                                int code = codeParam != null ? Integer.parseInt(codeParam): 200;
+                                ctx.getResponse().status(code).send();
+                            })
                             .get("users", ctx -> {
                                 final String user = ctx.getRequest().getQueryParams().get("user");
                                 final Span span = GlobalTracer.get().activeSpan();
@@ -350,7 +355,19 @@ public class Main {
                                 final String value = ctx.getRequest().getQueryParams().get("value");
                                 ctx.getResponse().getHeaders().add("Set-Cookie", name + "=" + value);
                                 ctx.getResponse().send("text/plain", "ok");
-                            });
+                            })
+                            // IAST Sampling endpoints
+                            .get("iast/sampling-by-route-method-count-2/:id", IastSamplingHandlers.getSamplingByRouteMethodCount2());
+                    chain.path("iast/sampling-by-route-method-count/:id", ctx -> {
+                        ctx.byMethod(m -> m
+                                .get(ctxGet -> {
+                                    IastSamplingHandlers.getSamplingByRouteMethodCount().handle(ctxGet);
+                                })
+                                .post(ctxPost -> {
+                                    IastSamplingHandlers.postSamplingByRouteMethodCount().handle(ctxPost);
+                                })
+                        );
+                    });
                         iastHandlers.setup(chain);
                         raspHandlers.setup(chain);
                 })

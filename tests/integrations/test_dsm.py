@@ -146,7 +146,6 @@ class Test_DsmRabbitmq:
         )
 
     @bug(library="java", reason="APMAPI-840")
-    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
     def test_dsm_rabbitmq(self):
@@ -206,30 +205,32 @@ class Test_DsmRabbitmq_TopicExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        parent_hash = 14115675228093516275
         DsmHelper.assert_checkpoint_presence(
-            hash_=18436203392999142109,
+            hash_=parent_hash,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=11364757106893616177,
-            parent_hash=18436203392999142109,
+            hash_=17456221739323133462,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15562446431583779,
-            parent_hash=18436203392999142109,
+            hash_=6709599110187021152,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=13344154764958581569,
-            parent_hash=18436203392999142109,
+            hash_=4518514625593640902,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
 
@@ -242,30 +243,33 @@ class Test_DsmRabbitmq_FanoutExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        parent_hash = 528013466165804625
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=877077567891168935,
+            hash_=parent_hash,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=6900956252542091373,
-            parent_hash=877077567891168935,
+            hash_=1551162056316679489,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=497609944035068818,
-            parent_hash=877077567891168935,
+            hash_=5919279740143028634,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15446107644012012909,
-            parent_hash=877077567891168935,
+            hash_=10096313447786601025,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
 
@@ -333,7 +337,8 @@ class Test_DsmSNS:
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        arn = f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        topic = self.topic if context.library in ["java", "dotnet"] else arn
 
         if context.library == "nodejs":
             producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713

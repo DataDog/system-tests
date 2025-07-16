@@ -298,7 +298,9 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount: v3.9.0.dev
       test_security_controls.py:
-        TestSecurityControls: missing_feature
+        TestSecurityControls:
+          '*': missing_feature
+          flask-poc: v3.11.0.dev
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
@@ -729,7 +731,7 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
     test_only_python.py:
       Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
     test_rate_limiter.py:
@@ -751,10 +753,8 @@ tests/:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
-    test_telemetry_appsec_configuration.py:
-      TestTelemetryAppSecRemoteConfigEnabled: missing_feature
+      TestServiceActivationEnvVarMetric: v3.11.0.dev
+      TestServiceActivationRemoteConfigMetric: v3.11.0.dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -1218,6 +1218,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1  # actual version unknown
