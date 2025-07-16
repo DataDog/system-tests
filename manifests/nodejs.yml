@@ -1032,7 +1032,7 @@ tests/:
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
-      Test_Suspicious_Attacker_Blocking: missing_feature
+      Test_Suspicious_Attacker_Blocking: *ref_5_59_0
     test_trace_tagging.py:
       Test_TraceTaggingRules: missing_feature
       Test_TraceTaggingRulesRcCapability: missing_feature
