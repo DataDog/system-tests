@@ -13,7 +13,6 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
     #search for labels
     PR_DATA=$(curl -L \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GH_TOKEN" \
     -H "X-GitHub-Api-Version: 2022-11-28" \
     "https://api.github.com/repos/DataDog/system-tests/issues/$PR_NUMBER/labels");
 
@@ -37,7 +36,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
-        ./utils/build/build_tracer_buddies.sh --push
+        ./utils/build/build_tracer_buddies.sh
         echo "------------- The buddies images have been built and pushed ------------- "
     fi
 
@@ -47,7 +46,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-python-base-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-python-base-images' label. Launching the images generation process "
-        ./utils/build/build_python_base_images.sh --push
+        ./utils/build/build_python_base_images.sh
         echo "------------- The python base images have been built and pushed ------------- "
     fi
 
