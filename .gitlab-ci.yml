@@ -264,6 +264,7 @@ generate_system_tests_end_to_end_images:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
+      - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
   when: manual
@@ -279,7 +280,9 @@ generate_system_tests_lib_injection_images:
   script:
       - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
       - ./lib-injection/build/build_lib_injection_images.sh $PRIVATE_DOCKER_REGISTRY
-  when: manual
+  rules:
+    - if: '$SCHEDULED_JOB == "generate_system_tests_lib_injection_images"'
+    - when: manual
 
 .delayed_base_job:
     image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
