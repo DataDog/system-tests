@@ -112,23 +112,6 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
-def monitor(fun):
-    """Decorator to monitor function calls with a trace."""
-
-    def wrapper(*args, **kwargs):
-        print(f"Function {fun.__name__} called with args: {args}, kwargs: {kwargs}", file=sys.stderr)
-        res = fun(*args, **kwargs)
-        print(f"Function {fun.__name__} returned: {res}\n", file=sys.stderr)
-        return res
-
-    return wrapper
-
-
-import ddtrace.appsec._ddwaf.waf as _myddwaf
-
-_myddwaf.DDWaf.run = monitor(_myddwaf.DDWaf.run)
-_myddwaf.DDWaf.update_rules = monitor(_myddwaf.DDWaf.update_rules)
-
 logging.basicConfig(
     level=logging.INFO,
     format=(
