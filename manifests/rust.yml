@@ -60,8 +60,9 @@ tests/:
     test_process_discovery.py: missing_feature
     test_sampling_span_tags.py: missing_feature
     test_span_events.py: missing_feature
-    test_span_links.py: missing_feature
-    test_span_sampling: missing_feature
+    test_span_links.py:
+      Test_Span_Links: missing_feature
+    test_span_sampling.py: missing_feature
     test_telemetry.py:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
