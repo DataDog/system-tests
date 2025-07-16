@@ -2,7 +2,7 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI","DOCKER_SSI_CRASHTRACKING"
+                "DOCKER_SSI"
             ],
             "weblogs": [
                 {
@@ -18,6 +18,21 @@
                     ],
                     "php": [
                         "php-app"
+                    ]
+                }
+            ]
+        },
+        {
+            "scenarios": [
+               "DOCKER_SSI_CRASHTRACKING"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                        "js-app"
+                    ],
+                    "python": [
+                        "py-app"
                     ]
                 }
             ]
