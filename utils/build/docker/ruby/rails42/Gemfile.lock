@@ -129,7 +129,7 @@ GEM
     pry-byebug (3.9.0)
       byebug (~> 11.0)
       pry (~> 0.13.0)
-    puma (5.6.9)
+    puma (6.6.0)
       nio4r (~> 2.0)
     racc (1.8.1)
     rack (1.6.13)
@@ -190,7 +190,7 @@ DEPENDENCIES
   dogstatsd-ruby
   faraday (~> 1.10)
   pry-byebug
-  puma (~> 5.0)
+  puma (~> 6.0)
   rails (= 4.2.11.3)
   sqlite3 (< 1.4)
 
