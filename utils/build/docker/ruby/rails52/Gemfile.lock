@@ -74,23 +74,12 @@ GEM
       ruby2_keywords (>= 0.0.4)
     faraday-net_http (3.0.2)
     ffi (1.17.2-aarch64-linux-gnu)
-    ffi (1.17.2-arm64-darwin)
-    ffi (1.17.2-x86_64-darwin)
-    ffi (1.17.2-x86_64-linux-gnu)
     globalid (1.1.0)
       activesupport (>= 5.0)
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    libdatadog (18.1.0.1.0)
     libdatadog (18.1.0.1.0-aarch64-linux)
-    libdatadog (18.1.0.1.0-x86_64-linux)
     libddwaf (1.24.1.0.0-aarch64-linux)
-      ffi (~> 1.0)
-    libddwaf (1.24.1.0.0-arm64-darwin)
-      ffi (~> 1.0)
-    libddwaf (1.24.1.0.0-x86_64-darwin)
-      ffi (~> 1.0)
-    libddwaf (1.24.1.0.0-x86_64-linux)
       ffi (~> 1.0)
     logger (1.7.0)
     loofah (2.24.1)
@@ -118,12 +107,6 @@ GEM
       net-protocol
     nio4r (2.7.4)
     nokogiri (1.15.7-aarch64-linux)
-      racc (~> 1.4)
-    nokogiri (1.15.7-arm64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.15.7-x86_64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.15.7-x86_64-linux)
       racc (~> 1.4)
     orm_adapter (0.5.0)
     pry (0.14.2)
@@ -193,10 +176,6 @@ GEM
 
 PLATFORMS
   aarch64-linux
-  aarch64-linux-gnu
-  arm64-darwin
-  x86_64-darwin
-  x86_64-linux-gnu
 
 DEPENDENCIES
   bootsnap (>= 1.1.0)
