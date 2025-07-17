@@ -1,6 +1,10 @@
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
 
+concurrency:
+  group: $CI_COMMIT_REF_SLUG
+  cancel_outdated_jobs: true
+
 stages:
   - configure
   - nodejs
