@@ -692,6 +692,7 @@ tests/:
             '*': v1.1.0
             akka-http: v1.12.0
             jersey-grizzly2: v1.41.0
+            play: v1.22.0
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
