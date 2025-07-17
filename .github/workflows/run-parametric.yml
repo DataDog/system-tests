@@ -48,7 +48,7 @@ on:
         type: string
       _experimental_runs_on:
         description: "Runner definition"
-        default: '{ "group": "Large Runner Shared Public" }'
+        default: '{ "group": "Large Runner Shared Public", "labels":"ubuntu-8-core-latest"}'
         required: false
         type: string
 
