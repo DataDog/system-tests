@@ -9,7 +9,7 @@ ENV BUNDLE_WITHOUT="development test"
 ENV DD_TRACE_HEADER_TAGS="user-agent"
 
 COPY utils/build/docker/ruby/rails72/Gemfile* ./
-RUN bundle install && bundle info sqlite3
+RUN bundle install
 
 COPY utils/build/docker/ruby/rails72/ .
 COPY utils/build/docker/ruby/shared/rails/ .
