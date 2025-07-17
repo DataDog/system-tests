@@ -64,6 +64,7 @@ refs:
   - &ref_5_56_0 '>=5.56.0'
   - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
   - &ref_5_59_0 '>=5.59.0'
+  - &ref_5_60_0 '>=5.60.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1034,8 +1035,8 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
-      Test_TraceTaggingRules: *ref_5_59_0
-      Test_TraceTaggingRulesRcCapability: *ref_5_59_0
+      Test_TraceTaggingRules: *ref_5_60_0
+      Test_TraceTaggingRulesRcCapability: *ref_5_60_0
     test_traces.py:
       Test_AppSecEventSpanTags: v2.0.0
       Test_AppSecObfuscator:
