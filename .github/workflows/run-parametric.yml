@@ -79,6 +79,7 @@ jobs:
         uses: ./civis-action
         with:
           upload-artifacts: 'true'
+          artifact-prefix: ${{ inputs.library }}
       - name: Compute ref
         id: compute_ref
         run: |
