@@ -1173,7 +1173,8 @@ class Test_UserEventsStandalone_SDK_V1:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                for header, value in data["request"]["headers"]
             )
             return span["meta"]
 
@@ -1236,7 +1237,8 @@ class Test_UserEventsStandalone_SDK_V2:
 
             # Some tracers use true while others use yes
             assert any(
-                ["Datadog-Client-Computed-Stats", trueish] in data["request"]["headers"] for trueish in ["yes", "true"]
+                header.lower() == "datadog-client-computed-stats" and value.lower() in ["yes", "true"]
+                for header, value in data["request"]["headers"]
             )
             return span["meta"]
 
