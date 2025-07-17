@@ -541,8 +541,8 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implemented)
       Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
