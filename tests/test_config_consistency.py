@@ -805,49 +805,63 @@ def parse_log_injection_message(log_message: str) -> dict:
 
 
 def get_trace_details_unstructured(log_message: str) -> list[dict]:
-    # check that we didn't found more than one logs
-    results = []
-    # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
-    processed_raws: set[str] = set()
-    regex_pattern_raw = re.compile(r"\[(?:[^\]]*\b(dd\.\w+=\S+)\b[^\]]*)+\]\s*(.*)")
-    for data in stdout.get_data():
-        raw: str = data.get("raw")
-        if raw in processed_raws:  # check if we already processed this log
-            continue
-        processed_raws.add(raw)
+    """Extract Datadog trace details from unstructured logs that contain
+    Datadog key-value attributes prefixed with `dd.`.
+    """
+    if len(log_message.split()) != 1:
+        raise ValueError(f"Log message must be a single word, got: {log_message}")
 
-        logs = raw.split("\n")
-        for log in logs:
-            # Extract key-value pairs and messages
-            match = regex_pattern_raw.search(log)
-            if match:
-                curr_message = match.group(2).strip()  # Extract message after last bracket
-                if curr_message != log_message:
-                    continue
-                dd_pairs = re.findall(r"dd\.\w+=\S+", match.group(0))  # Extract key-value pairs that start with dd.
-                logger.debug(f"Found log: {data}")
-                results.append({pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs})
-                break
+    results = []
+    processed_logs: set[str] = set()
+
+    # Matches logs like: dd.trace_id=... dd.span_id=... actual_log_message
+    log_pattern = re.compile(r"((?:dd\.\w+=\S+\s*)+)")
+
+    for data in stdout.get_data():
+        raw_log: str = data.get("raw")
+        if raw_log in processed_logs:
+            continue
+        processed_logs.add(raw_log)
+        # Split the raw logs into lines to process each record separately
+        for log_line in raw_log.splitlines():
+            match = log_pattern.search(log_line)
+            if not match:
+                # Skip lines that do not match the expected pattern
+                logger.debug(f"Log line does not contain `dd.` attributes: {log_line}")
+                continue
+            # Check if the log message matches the expected log message
+            extracted_message = get_log_message_from_record(log_line)
+            logger.debug(f"Log line: {log_line}, Extracted log message: {extracted_message}, Expected: {log_message}")
+            if log_message != extracted_message:
+                continue
+            # Extract all dd.*=value pairs
+            dd_pairs = match.group(1).strip().split()
+            trace_details = {pair.split("=")[0]: pair.split("=")[1] for pair in dd_pairs}
+            logger.debug(f"Found unstructured log with trace details: {trace_details}")
+            results.append(trace_details)
     return results
 
 
 def get_trace_details_structured(log_message: str) -> list[dict]:
+    """Extract Datadog trace details from structured logs (JSON format),
+    where trace attributes are stored under common keys like 'dd', 'mdc', or 'record'.
+    """
     results = []
-    # some tracers (PHP) duplicates logs entries, this set ensure we do no process them twice
-    processed_raws: set[str] = set()
-    regex_pattern_json = re.compile(r"({.*})")
-    for data in stdout.get_data():
-        raw = data.get("raw")
-        if raw in processed_raws:
-            continue
-        processed_raws.add(raw)
+    processed_logs: set[str] = set()
 
-        logs = raw.split("\n")
-        for log in logs:
-            logger.debug(f"Processing log: {log}")
+    # Match the first JSON object in the log line
+    json_pattern = re.compile(r"({.*})")
+
+    for data in stdout.get_data():
+        raw_log: str = data.get("raw")
+        if raw_log in processed_logs:
+            continue
+        processed_logs.add(raw_log)
+
+        for log_line in raw_log.splitlines():
+            logger.debug(f"Processing structured log line: {log_line}")
             try:
-                # Extract the JSON string from the log. This matches the contents between the first and last bracket.
-                json_string = regex_pattern_json.search(log).group(1)  # type: ignore[union-attr]
+                json_string = json_pattern.search(log_line).group(1)  # type: ignore[union-attr]
                 log_record = json.loads(json_string)
             except Exception:  # noqa: S112
                 continue
@@ -855,23 +869,27 @@ def get_trace_details_structured(log_message: str) -> list[dict]:
             if get_log_message_from_record(log_record) != log_message:
                 continue
 
-            logger.debug(f"Found log: {data}")
-            if log_record.get("dd"):
-                results.append(log_record.get("dd"))
-            elif log_record.get("mdc"):
-                # dd-trace-java stores injected trace information under the "mdc" key
-                results.append(log_record.get("mdc"))
-            elif log_record.get("record"):
-                # python loguru stores injected trace information under the "record" key
-                results.append(log_record.get("record", {}).get("extra"))
+            logger.debug(f"Found structured log matching message: {data}")
+
+            # Extract trace details from known keys
+            if "dd" in log_record:
+                results.append(log_record["dd"])
+            elif "mdc" in log_record:
+                results.append(log_record["mdc"])  # Java tracer key
+            elif "record" in log_record:
+                results.append(log_record["record"].get("extra"))  # Python Loguru key
             else:
-                results.append(log_record)
+                results.append(log_record)  # Fallback to entire record if no known key found
+
     return results
 
 
-# represents the key under which the log library used in /log/library endpoint prints a log message
-def get_log_message_from_record(record: dict) -> str | None:
-    if context.library.name == "dotnet":
+def get_log_message_from_record(record: dict | str) -> str | None:
+    """Extract the log message from a structured or unstructured log record."""
+    if isinstance(record, str):
+        # If log is unstructured, extract the log message from the end of the line.
+        return record.strip().split()[-1] if record.strip() else ""
+    elif context.library.name == "dotnet":
         return record.get("@mt")
     elif context.library.name == "python":
         return record.get("record", {}).get("message")
