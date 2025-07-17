@@ -9,6 +9,9 @@ with a caveat covered in previous sentence.
 
 Otherwise, please use `dd-trace-rb` repository tests to cover a specific permutation.
 
+The Ruby version must be the most recent version of the major release, unless it's
+a specific version is required by the framework.
+
 # Permutations
 
 Some weblogs contain additional enpoints and gem versions that are not present in
