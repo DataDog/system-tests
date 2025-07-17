@@ -4,7 +4,7 @@ ruby '~> 2.7.0'
 
 gem 'rails', '~> 5.2.6'
 gem 'sqlite3'
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 6.0'
 gem 'bootsnap', '>= 1.1.0', require: false
 # AppSec related dependencies
 gem 'devise', '~> 4.9'

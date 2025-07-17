@@ -2,7 +2,7 @@ source 'https://rubygems.org'
 
 gem 'rails', '4.2.11.3'
 gem 'sqlite3', '< 1.4'
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 6.0'
 # AppSec related dependencies
 gem 'devise', '~> 4.9'
 gem "faraday", '~> 1.10'

@@ -4,7 +4,7 @@ ruby '~> 3.0.0'
 
 gem 'rails', '~> 6.1.4', '>= 6.1.4.1'
 gem 'sqlite3', '~> 1.4'
-gem 'puma', '~> 5.0'
+gem 'puma', '~> 6.0'
 # NOTE: https://github.com/ruby-concurrency/concurrent-ruby/commit/d7ce956dacd0b772273d39b8ed31a30cff7ecf38
 gem 'concurrent-ruby', '= 1.3.4'
 gem 'bootsnap', '>= 1.4.4', require: false

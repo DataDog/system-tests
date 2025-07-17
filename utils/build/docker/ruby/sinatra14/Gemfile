@@ -3,8 +3,11 @@ source 'https://rubygems.org'
 gem 'faraday'
 gem 'sinatra', '~> 1.4.0'
 gem 'rack-contrib'
-gem 'pry'
-gem 'puma'
+gem 'puma', '~> 6.0'
+
+group :development do
+  gem 'pry-byebug'
+end
 
 gem 'dogstatsd-ruby'
 gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
