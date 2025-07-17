@@ -169,7 +169,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: ./civis-action
         with:
-          upload-artifacts: 'true'
+          upload-artifacts: 'false'
       - name: Compute ref
         id: compute_ref
         run: |
