@@ -62,7 +62,8 @@ class Test_Client_Stats:
         ), "expect exactly 5 'No Content' hits and top level hits across all payloads"
 
     @missing_feature(
-        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        condition=context.library in ("cpp", "dotnet", "golang", "nodejs", "php", "python", "ruby")
+        or context.library < "java@1.52.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_is_trace_root(self):
