@@ -4,6 +4,7 @@ import time
 
 from requests.structures import CaseInsensitiveDict
 
+from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
 
@@ -33,7 +34,7 @@ def assert_tags(first_trace, span, obj, expected_tags) -> bool:
         for tag, value in expected_tags.items():
             if value is None:
                 assert tag not in struct
-            elif tag == "_sampling_priority_v1":  # special case, it's a lambda to check for a condition
+            elif tag == SAMPLING_PRIORITY_KEY:  # special case, it's a lambda to check for a condition
                 assert value(struct[tag])
             else:
                 assert struct[tag] == value
@@ -123,7 +124,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def fix_priority_lambda(self, span, default_checks):
         if "_dd.appsec.s.req.headers" in span["meta"]:
             return {
-                "_sampling_priority_v1": lambda x: x == 2
+                SAMPLING_PRIORITY_KEY: lambda x: x == SamplingPriority.USER_KEEP
             }  # if we find evidence of API Sec schema, priority should be 2 (Manual Keep)
         else:
             return default_checks
@@ -132,7 +133,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -178,7 +179,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -224,7 +225,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -270,7 +271,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): None, "_dd.p.other": "1"}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x < 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x < 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -314,7 +315,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -358,7 +359,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -404,7 +405,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x in [0, 2]}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x in [0, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -449,7 +450,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x in [1, 2]}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x in [1, 2]}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -494,7 +495,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -536,7 +537,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -578,7 +579,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -620,7 +621,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
         spans_checked = 0
         tested_meta = {self.propagated_tag(): self.propagated_tag_value()}
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2}
 
         for data, trace, span in interfaces.library.get_spans(request=self.r):
             assert assert_tags(trace[0], span, "meta", tested_meta)
@@ -714,7 +715,7 @@ class BaseSCAStandaloneTelemetry:
         # test standalone is enabled and dropping traces
         spans_checked = 0
         for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
-            if span["metrics"]["_sampling_priority_v1"] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+            if span["metrics"][SAMPLING_PRIORITY_KEY] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
                 spans_checked += 1
 
         assert spans_checked > 0
@@ -916,7 +917,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
         """Check if trace is retained with expected sampling priority"""
 
         spans_checked = 0
-        tested_metrics = {"_sampling_priority_v1": lambda x: x == 2 if should_be_retained else x <= 0}
+        tested_metrics = {SAMPLING_PRIORITY_KEY: lambda x: x == 2 if should_be_retained else x <= 0}
         for data, trace, span in interfaces.library.get_spans(request=request):
             assert span["trace_id"] == 1212121212121212121
             assert trace[0]["trace_id"] == 1212121212121212121
