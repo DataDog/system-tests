@@ -3,7 +3,7 @@ FROM ghcr.io/datadog/images-rb/engines/ruby:3.4
 RUN mkdir -p /app
 WORKDIR /app
 
-ENV DD_TRACE_HEADER_TAGS=user-agent
+ENV DD_TRACE_HEADER_TAGS="user-agent"
 
 COPY utils/build/docker/ruby/rack/Gemfile* ./
 RUN bundle install
