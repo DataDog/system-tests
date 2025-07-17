@@ -8,7 +8,7 @@ ENV RAILS_MASTER_KEY="9d319c57ec128e905d9e2ce5742bf2de"
 ENV BUNDLE_WITHOUT="development test"
 ENV DD_TRACE_HEADER_TAGS="user-agent"
 
-COPY utils/build/docker/ruby/rails72/Gemfile* ./
+COPY utils/build/docker/ruby/rails42/Gemfile* ./
 RUN bundle install
 
 COPY utils/build/docker/ruby/rails42/ .
