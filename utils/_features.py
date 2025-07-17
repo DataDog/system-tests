@@ -392,7 +392,7 @@ class _Features:
     def structured_log_injection(test_object):
         """DD_LOGS_INJECTION=structured
 
-        https://feature-parity.us1.prod.dog/#/?feature=41
+        https://feature-parity.us1.prod.dog/#/?feature=42
         """
         pytest.mark.features(feature_id=42)(test_object)
         return test_object
