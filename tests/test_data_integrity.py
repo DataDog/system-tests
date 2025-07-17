@@ -84,6 +84,7 @@ class Test_TraceHeaders:
         logger.info(f"cgroup: weblogcontainer-id is {self.weblog_container_id}")
 
     @missing_feature(context.library == "cpp_httpd", reason="Missing endpoint")
+    @missing_feature(context.library == "cpp_nginx", reason="Not implemented yet")
     def test_trace_header_container_tags(self):
         """Datadog-Container-ID header value is right in all traces submitted to the agent"""
 
