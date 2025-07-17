@@ -1,7 +1,5 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:3.4
 
-RUN apt-get update && apt-get install -y libsqlite3-dev
-
 RUN mkdir -p /app
 WORKDIR /app
 
