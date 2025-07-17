@@ -854,8 +854,9 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
-    Test_Config_LogInjection_Default:
-      "*": irrelevant (endpoint not implemented)
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured:
+      '*': irrelevant (endpoint not implemented)
       rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
       "*": irrelevant (endpoint not implemented)
