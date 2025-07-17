@@ -5,7 +5,6 @@ concurrency:
   group: $CI_COMMIT_REF_SLUG
   cancel_outdated_jobs: true
 
-
 stages:
   - SSI_TESTS
   - DOCKER_SSI
