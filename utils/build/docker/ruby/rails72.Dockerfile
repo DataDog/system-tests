@@ -1,5 +1,7 @@
 FROM ghcr.io/datadog/images-rb/engines/ruby:3.4
 
+RUN apt-get update && apt-get install -y libsqlite3-dev
+
 RUN mkdir -p /app
 WORKDIR /app
 
@@ -9,7 +11,7 @@ ENV BUNDLE_WITHOUT="development test"
 ENV DD_TRACE_HEADER_TAGS="user-agent"
 
 COPY utils/build/docker/ruby/rails72/Gemfile* ./
-RUN bundle install
+RUN bundle install && bundle info sqlite3
 
 COPY utils/build/docker/ruby/rails72/ .
 COPY utils/build/docker/ruby/shared/rails/ .
