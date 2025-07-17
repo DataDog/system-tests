@@ -6,7 +6,7 @@ const tracer = require('dd-trace').init({
 })
 
 const { promisify } = require('util')
-const fastify = require('fastify')()
+const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
