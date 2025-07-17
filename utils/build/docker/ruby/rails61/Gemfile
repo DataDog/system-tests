@@ -17,4 +17,4 @@ group :development do
 end
 
 gem 'dogstatsd-ruby'
-gem 'ddtrace', '~> 1.0.0.a', require: 'ddtrace/auto_instrument'
+gem 'datadog', '~> 2.0', require: 'datadog/auto_instrument'

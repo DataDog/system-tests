@@ -12,7 +12,6 @@ if [ -e "/binaries/dd-trace-rb" ]; then
     echo "Build and install gem from /binaries/dd-trace-rb"
 
     # Remove gem reference from Gemfile
-    sed -i -e '/gem .ddtrace./d' Gemfile
     sed -i -e '/gem .datadog./d' Gemfile
 
     cat Gemfile
@@ -33,10 +32,10 @@ if [ -e "/binaries/dd-trace-rb" ]; then
 
     bundle install
 elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
+    # nothing to do - the Gemfile should already point to the latest released version
     bundle update datadog
 else
     # Remove gem reference from Gemfile
-    sed -i -e '/gem .ddtrace./d' Gemfile
     sed -i -e '/gem .datadog./d' Gemfile
 
     #
@@ -44,7 +43,7 @@ else
     # to the Gemfile to install the gem of any configuration. Please allows maximum flexibility.
     #
     # Example of content:
-    # `gem 'ddtrace', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'`
+    # `gem 'datadog', git: "https://github.com/Datadog/dd-trace-rb", branch: "master", require: 'ddtrace/auto_instrument'`
     #
     options=$(cat /binaries/ruby-load-from-bundle-add)
     echo "Install from $options"
