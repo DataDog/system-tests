@@ -129,6 +129,14 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         else:
             return default_checks
 
+    @missing_feature(
+        condition=(
+            context.scenario.name == scenarios.appsec_standalone_api_security.name
+            and context.weblog_variant in ("django-poc", "django-py3.13", "python3.12")
+            and context.library < "python@3.11.0.dev"
+        ),
+        reason="APPSEC-57830 (python tracer was using MANUAL_KEEP for 1 trace in 60 seconds to keep instead of AUTO_KEEP)",
+    )
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
