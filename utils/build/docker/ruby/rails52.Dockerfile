@@ -17,6 +17,6 @@ COPY utils/build/docker/ruby/shared/rails/ .
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 
-RUN bundle exec rails db:prepare
+RUN bundle exec rake db:create db:migrate db:seed
 
 CMD [ "./app.sh" ]
