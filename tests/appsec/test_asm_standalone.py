@@ -128,13 +128,6 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
         else:
             return default_checks
 
-    @bug(
-        condition=(
-            context.scenario.name == scenarios.appsec_standalone_api_security.name
-            and context.weblog_variant in ("django-poc", "django-py3.13", "python3.12")
-        ),
-        reason="APPSEC-57830",
-    )
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
