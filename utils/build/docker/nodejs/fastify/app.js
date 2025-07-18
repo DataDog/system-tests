@@ -660,6 +660,8 @@ fastify.get('/add_event', async (request, reply) => {
   return { message: 'Event added' }
 })
 
+require('./rasp')(fastify)
+
 const startServer = async () => {
   try {
     await fastify.listen({ port: 7777, host: '0.0.0.0' })
