@@ -1100,7 +1100,9 @@ tests/:
           play: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_custom_rules.py:
-        Test_CustomRules: missing_feature
+        Test_CustomRules:
+          '*': v1.51.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_exclusions.py:
         Test_Exclusions:
           '*': v1.6.0
