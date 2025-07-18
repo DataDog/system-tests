@@ -24,6 +24,15 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c = vm.get_ssh_connection()
         logger.info(f"Connected [{vm.get_ip()}]")
 
+        # Execute docker-compose logs command first to capture container logs
+        docker_logs_command = "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true"
+        logger.info(f"Executing remote command: {docker_logs_command}")
+        try:
+            c.run(docker_logs_command)
+            logger.info(f"Docker logs command executed successfully on {vm.get_ip()}")
+        except Exception as e:
+            logger.warning(f"Failed to execute docker logs command on {vm.get_ip()}: {e}")
+
         # Create SFTP client
         sftp = c.open_sftp()
 
