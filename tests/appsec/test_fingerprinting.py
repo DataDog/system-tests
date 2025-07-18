@@ -6,6 +6,7 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils import missing_feature
+from utils import context
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
@@ -192,6 +193,11 @@ class Test_Fingerprinting_Session_Preprocessor:
         self.cookies = self.r_create_session.cookies
         self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
 
+    @missing_feature(context.weblog_variant == "akka-http", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "jersey-grizzly2", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "play", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "ratpack", reason="missing_feature (endpoint not implemented)")
+    @missing_feature(context.weblog_variant == "resteasy-netty3", reason="missing_feature (endpoint not implemented)")
     def test_session_non_blocking(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
