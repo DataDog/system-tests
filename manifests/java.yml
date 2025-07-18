@@ -1622,11 +1622,11 @@ tests/:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Session_Preprocessor:
         '*': v1.40.0
-        akka-http: missing_feature (endpoint not implemented)
-        jersey-grizzly2: missing_feature (endpoint not implemented)
-        play: missing_feature (endpoint not implemented)
-        ratpack: missing_feature (endpoint not implemented)
-        resteasy-netty3: missing_feature (endpoint not implemented)
+        akka-http: v1.42.0
+        jersey-grizzly2: v1.42.0
+        play: v1.42.0
+        ratpack: v1.42.0
+        resteasy-netty3: v1.42.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.42.0
         spring-boot-undertow: v1.42.0
