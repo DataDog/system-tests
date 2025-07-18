@@ -1489,7 +1489,9 @@ tests/:
         '*': v0.100.0
         akka-http: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables_New_Obfuscation:
+        '*': v1.51.0
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_customconf.py:
       Test_ConfRuleSet:
         '*': v0.93.0
