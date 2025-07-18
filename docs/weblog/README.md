@@ -688,6 +688,7 @@ The following query parameters are optional:
 
 - `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
 - `level`: Specifies the log level to be used. If not provided, the default log level is "info".
+- `structured`: Specifies whether a log message should be generated via a structured or unstructured logger is used. If not provided the default value is True.
 
 ### GET /e2e_single_span
 

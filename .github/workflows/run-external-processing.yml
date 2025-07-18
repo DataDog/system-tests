@@ -67,6 +67,7 @@ jobs:
       - name: Pull images
         uses: ./.github/actions/pull_images
         with:
+          cleanup: "false"
           library: golang
           weblog: golang-dummy
           scenarios: '["EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"]'
