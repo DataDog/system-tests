@@ -266,17 +266,6 @@ func main() {
 		appsec.TrackCustomEvent(ctx.Request.Context(), name, map[string]string{"metadata0": "value0", "metadata1": "value1"})
 	})
 
-	r.GET("/read_file", func(ctx *gin.Context) {
-		path := ctx.Query("file")
-		content, err := os.ReadFile(path)
-
-		if err != nil {
-			logrus.Fatalln(err)
-			ctx.Writer.WriteHeader(500)
-		}
-		ctx.Writer.Write(content)
-	})
-
 	r.GET("/session/new", func(ctx *gin.Context) {
 		sessionID := strconv.Itoa(rand.Int())
 		ctx.SetCookie("session", sessionID, 3600, "/", "", false, true)

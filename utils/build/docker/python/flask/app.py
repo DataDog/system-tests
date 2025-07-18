@@ -504,17 +504,6 @@ def add_event():
     return {"message": "event added", "status_code": 200}
 
 
-@app.route("/read_file", methods=["GET"])
-def read_file():
-    if "file" not in flask_request.args:
-        return "Please provide a file parameter", 400
-
-    filename = flask_request.args.get("file")
-
-    with open(filename, "r") as f:
-        return f.read()
-
-
 @app.route("/headers")
 def headers():
     resp = Response("OK")

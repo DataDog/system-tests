@@ -452,18 +452,6 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Query().Get("file")
-		content, err := os.ReadFile(path)
-
-		if err != nil {
-			logrus.Fatalln(err)
-			w.WriteHeader(500)
-			return
-		}
-		w.Write([]byte(content))
-	})
-
 	mux.HandleFunc("/dsm", func(w http.ResponseWriter, r *http.Request) {
 		var message = "Test DSM Context Propagation"
 

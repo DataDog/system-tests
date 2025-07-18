@@ -275,18 +275,6 @@ func main() {
 		return nil
 	})
 
-	r.GET("/read_file", func(ctx echo.Context) error {
-		path := ctx.QueryParam("file")
-		content, err := os.ReadFile(path)
-
-		if err != nil {
-			logrus.Fatalln(err)
-			return ctx.String(500, "KO")
-		}
-
-		return ctx.String(http.StatusOK, string(content))
-	})
-
 	r.GET("/session/new", func(ctx echo.Context) error {
 		sessionID := strconv.Itoa(rand.Int())
 		ctx.SetCookie(&http.Cookie{
