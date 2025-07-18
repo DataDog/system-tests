@@ -3,7 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, scenarios, features, rfc, weblog
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @scenarios.integrations
@@ -17,11 +22,14 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
     secure_endpoint = "/iast/mongodb-nosql-injection/test_secure"
     data = {"key": "somevalue"}
     location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     @missing_feature(
         context.weblog_variant == "express5", reason="express-mongo-sanitize is not yet compatible with express5"
+    )
+    @missing_feature(
+        context.weblog_variant == "fastify", reason="we do not support a sanitizer for mongodb and fastify yet"
     )
     def test_secure(self):
         super().test_secure()

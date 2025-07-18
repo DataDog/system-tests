@@ -8,6 +8,7 @@ from tests.appsec.iast.utils import (
     BaseTestCookieNameFilter,
     validate_extended_location_data,
     validate_stack_traces,
+    get_nodejs_iast_file_paths,
 )
 
 
@@ -20,9 +21,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
     insecure_endpoint = "/iast/no-samesite-cookie/test_insecure"
     secure_endpoint = "/iast/no-samesite-cookie/test_secure"
     data = {}
-    location_map = {
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"}
-    }
+    location_map = {"nodejs": get_nodejs_iast_file_paths()}
 
     @bug(context.library < "java@1.18.3", reason="APMRP-360")
     def test_secure(self):
