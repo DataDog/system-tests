@@ -5,7 +5,7 @@ const { execSync, execFileSync } = require('child_process')
 const http = require('http')
 const pg = require('pg')
 
-function initRaspEndpoints(fastify) {
+function initRaspEndpoints (fastify) {
   const pool = new pg.Pool()
 
   fastify.get('/rasp/ssrf', (request, reply) => {
