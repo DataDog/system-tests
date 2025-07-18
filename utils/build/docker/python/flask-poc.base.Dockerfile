@@ -26,6 +26,9 @@ RUN pip install 'flask[async]'==2.2.4 flask-login==0.6.3 gunicorn==21.2.0 gevent
 
 RUN pip install boto3==1.34.141 kombu==5.3.7 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19
 
+# Install dependencies for OpenTelemetry API support
+RUN pip install opentelemetry-api==1.34.1 opentelemetry-exporter-otlp==1.34.1
+
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
 ENV PATH="/root/.cargo/bin:$PATH"
