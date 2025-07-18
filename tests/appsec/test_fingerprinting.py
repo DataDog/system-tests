@@ -88,6 +88,7 @@ class Test_Fingerprinting_Session:
         self.cookies = self.r_create_session.cookies
         self.r_user = weblog.get("/user_login_success_event", cookies=self.cookies)
 
+    @missing_feature(context.library < "python@3.0.0", reason="missing_feature")
     def test_session(self):
         assert self.r_create_session.status_code == 200
         assert self.r_user.status_code == 200
