@@ -24,7 +24,7 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c = vm.get_ssh_connection()
         logger.info(f"Connected [{vm.get_ip()}]")
 
-        # Execute docker-compose logs command first to capture container logs
+        # Execute docker-compose logs command first to capture container logs.
         docker_logs_command = "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true"
         logger.info(f"Executing remote command: {docker_logs_command}")
         try:
