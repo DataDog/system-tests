@@ -29,106 +29,117 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_RC_ASM_DD_scanners:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Paths:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Status:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           spring-boot-payara: bug (APPSEC-57921)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Cookies:
           '*': v1.31.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_FormUrlEncoded_Body:
           '*': v1.31.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Headers:
           '*': v1.31.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Json_Body:
           '*': v1.36.0
           akka-http: bug (APPSEC-56888)
-          jersey-grizzly2: missing_feature
-          play: bug (APPSEC-56869)
-          resteasy-netty3: missing_feature
+          jersey-grizzly2: bug (APPSEC-56846)
+          play: v1.51.0-SNAPSHOT
+          resteasy-netty3: bug (APPSEC-56846)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Path_Parameters:
           '*': v1.36.0
           akka-http: missing_feature (path parameters not suported & APPSEC-56888)
           jersey-grizzly2: bug (APPSEC-56846)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           resteasy-netty3: bug (APPSEC-56846)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Query_Parameters:
           '*': v1.31.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
-        Test_Schema_Response_Body: missing_feature
+          vertx3: v1.51.0-SNAPSHOT
+          vertx4: v1.51.0-SNAPSHOT
+        Test_Schema_Response_Body:
+          '*': v1.51.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
-        Test_Schema_Response_Headers: missing_feature
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_Headers:
+          '*': v1.51.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+        Test_Schema_Response_on_Block:
+          '*': v1.51.0-SNAPSHOT
+          akka-http: bug (APPSEC-56888)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+          vertx3: missing_feature
     iast/:
       sink/:
         test_code_injection.py:
@@ -724,7 +735,12 @@ tests/:
             vertx3: missing_feature
             vertx4: missing_feature
       test_sampling_by_route_method_count.py:
-        TestSamplingByRouteMethodCount: missing_feature
+        TestSamplingByRouteMethodCount:
+          '*': v1.51.0-SNAPSHOT
+          akka-http: bug (APPSEC-57926)
+          play: bug (APPSEC-57926)
+          ratpack: bug (APPSEC-58210)
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_security_controls.py:
         TestSecurityControls:
           '*': v1.46.0
@@ -2078,8 +2094,6 @@ tests/:
   stats/:
     test_miscs.py:
       Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.2.1
@@ -2139,7 +2153,8 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured: missing_feature (dd attributes are not injected into logs))
+    Test_Config_LogInjection_Default_Unstructured:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Enabled:
@@ -2186,7 +2201,7 @@ tests/:
       spring-boot: v1.48.0
     Test_ExtractBehavior_Ignore:
       '*': incomplete_test_app (weblog endpoint not implemented)
-      spring-boot: bug (APMAPI-1443)
+      spring-boot: v1.50.1
     Test_ExtractBehavior_Restart:
       '*': incomplete_test_app (weblog endpoint not implemented)
       spring-boot: v1.48.0
@@ -2205,6 +2220,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v0.102.0
     Test_HeaderTags_Whitespace_Val_Long: v0.102.0
     Test_HeaderTags_Whitespace_Val_Short: v0.102.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0

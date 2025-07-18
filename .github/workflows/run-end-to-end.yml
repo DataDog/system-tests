@@ -75,17 +75,27 @@ env:
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ (contains(inputs.scenarios, 'CROSSED_TRACING_LIBRARIES') || contains(inputs.scenarios, 'INTEGRATIONS')) && 'ubuntu-latest-16-cores' || 'ubuntu-latest' }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
     steps:
+    - name: Compute ref
+      id: compute_ref
+      run: |
+        if [[ "${{ inputs.ref }}" != "" ]]; then
+          echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+          echo "ref=" >> $GITHUB_OUTPUT
+        else
+          echo "ref=main" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-        ref: ${{ inputs.ref }}
+        ref: ${{ steps.compute_ref.outputs.ref }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
@@ -107,6 +117,7 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
+        cleanup: "false"
         library: ${{ inputs.library }}
         weblog: ${{ inputs.weblog }}
         scenarios: ${{ inputs.scenarios }}

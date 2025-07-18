@@ -504,7 +504,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         [
             {
                 "apm_configuration_default": {
-                    "DD_LOGS_INJECTION": True,
+                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
                     "DD_FOOBAR_ENABLED": "baz",
                 },
                 "expected": {

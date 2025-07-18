@@ -189,6 +189,10 @@ class AppSecController @Inject()(cc: MessagesControllerComponents, ws: WSClient,
     Results.Status(code)
   }
 
+  def statsUnique(code: Option[Int]) = Action {
+    Results.Status(code.getOrElse(200))
+  }
+
   def users(user: String) = Action {
     var span = GlobalTracer.get().activeSpan()
     span match {

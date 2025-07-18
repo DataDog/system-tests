@@ -1,7 +1,7 @@
 import uuid
 from scp import SCPClient
 
-from utils import scenarios, context, features, irrelevant, bug, logger
+from utils import scenarios, context, features, irrelevant, logger
 from utils.onboarding.injection_log_parser import command_injection_skipped
 
 
@@ -72,12 +72,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
     )
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.library == "ruby",
-        reason="INPLAT-103",
-    )
     def test_builtin_block_commands(self):
         """Check that commands are skipped from the auto injection. This commands are defined on the buildIn processes to block"""
         virtual_machine = context.virtual_machine
@@ -91,12 +85,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
-    )
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.library == "ruby",
-        reason="INPLAT-103",
     )
     def test_builtin_block_args(self):
         """Check that we are blocking command with args. These args are defined in the buildIn args ignore list for each language."""
@@ -113,12 +101,6 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         condition="container" in context.weblog_variant
         or "alpine" in context.weblog_variant
         or "buildpack" in context.weblog_variant
-    )
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.library == "ruby",
-        reason="INPLAT-103",
     )
     def test_builtin_instrument_args(self):
         """Check that we are instrumenting the command with args that it should be instrumented. The args are not included on the buildIn args list"""

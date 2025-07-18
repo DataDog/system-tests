@@ -282,6 +282,76 @@ object IastRoutes {
                 }
             }
           }
+      } ~
+      path("sampling-by-route-method-count" / Segment) { id =>
+        get {
+          try {
+            java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            complete("ok")
+          } catch {
+            case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
+        } ~
+          post {
+            try {
+              java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+              complete("ok")
+            } catch {
+              case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+            }
+          }
+      } ~
+      path("sampling-by-route-method-count-2" / Segment) { id =>
+        get {
+          try {
+            java.security.MessageDigest.getInstance("SHA1").digest("hash1".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash2".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash3".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash4".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash5".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash6".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash7".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash8".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash9".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash10".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash11".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash12".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash13".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash14".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            java.security.MessageDigest.getInstance("SHA1").digest("hash15".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            complete("ok")
+          } catch {
+            case e: Exception => complete(StatusCodes.InternalServerError, e.getMessage)
+          }
+        }
       }
   }
 

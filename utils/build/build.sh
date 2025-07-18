@@ -206,6 +206,7 @@ build() {
                 cd ..
             fi
 
+            # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
 
             if [ -f $BINARIES_FILENAME ]; then
