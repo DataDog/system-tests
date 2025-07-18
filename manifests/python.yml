@@ -301,6 +301,8 @@ tests/:
         TestSecurityControls:
           '*': missing_feature
           flask-poc: v3.11.0.dev
+          uds-flask: v3.11.0.dev
+          uwsgi-poc: v3.11.0.dev
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
