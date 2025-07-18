@@ -502,6 +502,8 @@ tests/:
   otel/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
+    test_metrics.py:
+      Test_OTelMetrics: v3.22.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.42.0
