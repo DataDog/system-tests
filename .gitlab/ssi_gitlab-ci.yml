@@ -122,7 +122,7 @@ ssi_tests:
         cp -R "$LOGS_FOLDER" reports/
 
         # Feature parity
-        if [ "$CI_COMMIT_BRANCH" = "robertomonteromiguel/aws_ssi_fpd" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
           for folder in reports/logs*/ ; do
             echo "Checking folder: ${folder}"
             for filename in ./${folder}*_feature_parity.json; do
