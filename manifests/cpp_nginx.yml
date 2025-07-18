@@ -151,7 +151,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
-    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature

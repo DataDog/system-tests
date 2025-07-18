@@ -298,7 +298,11 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount: v3.9.0.dev
       test_security_controls.py:
-        TestSecurityControls: missing_feature
+        TestSecurityControls:
+          '*': missing_feature
+          flask-poc: v3.11.0.dev
+          uds-flask: v3.11.0.dev
+          uwsgi-poc: v3.11.0.dev
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
@@ -547,7 +551,7 @@ tests/:
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
-        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        '*': v3.11.0.dev
         django-poc: v3.3.0.dev
         django-py3.13: v3.3.0.dev
         python3.12: v3.3.0.dev
@@ -1171,7 +1175,10 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': irrelevant (log endpoint is not implemented)
       flask-poc: v3.0.0
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.10.0.dev
+    Test_Config_LogInjection_Default_Unstructured:
       '*': irrelevant (log endpoint is not implemented)
       flask-poc: v3.0.0
     Test_Config_LogInjection_Enabled:

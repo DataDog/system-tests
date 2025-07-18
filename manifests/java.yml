@@ -29,47 +29,47 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_RC_ASM_DD_scanners:
           '*': v1.38.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_apisec_sampling.py:
         Test_API_Security_Sampling_Different_Endpoints:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Paths:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Different_Status:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay:
           '*': v1.48.0
           akka-http: bug (APPSEC-56888)
-          play: bug (APPSEC-56869)
+          play: v1.51.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          vertx3: bug (APPSEC-56870)
-          vertx4: bug (APPSEC-56871)
+          vertx3: v1.51.0
+          vertx4: v1.51.0
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0
@@ -692,7 +692,7 @@ tests/:
             '*': v1.1.0
             akka-http: v1.12.0
             jersey-grizzly2: v1.41.0
-            play: missing_feature
+            play: v1.22.0
             ratpack: missing_feature
             resteasy-netty3: v1.11.0
             spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -782,18 +782,15 @@ tests/:
         Test_Cmdi_StackTrace:
           '*': v1.45.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: missing_feature (APPSEC-54966)
         Test_Cmdi_UrlQuery:
           '*': v1.45.0
           akka-http: missing_feature (APPSEC-56196)
@@ -1103,7 +1100,9 @@ tests/:
           play: v1.22.0
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_custom_rules.py:
-        Test_CustomRules: missing_feature
+        Test_CustomRules:
+          '*': v1.51.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_exclusions.py:
         Test_Exclusions:
           '*': v1.6.0
@@ -1625,11 +1624,11 @@ tests/:
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       Test_Fingerprinting_Session_Preprocessor:
         '*': v1.40.0
-        akka-http: missing_feature (endpoint not implemented)
-        jersey-grizzly2: missing_feature (endpoint not implemented)
-        play: missing_feature (endpoint not implemented)
-        ratpack: missing_feature (endpoint not implemented)
-        resteasy-netty3: missing_feature (endpoint not implemented)
+        akka-http: v1.42.0
+        jersey-grizzly2: v1.42.0
+        play: v1.42.0
+        ratpack: v1.42.0
+        resteasy-netty3: v1.42.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
         spring-boot-jetty: v1.42.0
         spring-boot-undertow: v1.42.0
@@ -2153,7 +2152,8 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured: missing_feature (dd attributes are not injected into logs))
+    Test_Config_LogInjection_Default_Unstructured:
       '*': incomplete_test_app (weblog endpoint not implemented)
       'spring-boot-3-native': v1.48.0
     Test_Config_LogInjection_Enabled:

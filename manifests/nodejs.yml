@@ -895,7 +895,7 @@ tests/:
       Test_StandardTagsClientIp: *ref_3_6_0
     test_conf.py:
       Test_ConfigurationVariables: v2.7.0
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables_New_Obfuscation: *ref_5_59_0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
       Test_CorruptedRules_Telemetry: *ref_5_44_0
@@ -1033,7 +1033,7 @@ tests/:
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
-      Test_Suspicious_Attacker_Blocking: missing_feature
+      Test_Suspicious_Attacker_Blocking: *ref_5_59_0
     test_trace_tagging.py:
       Test_TraceTaggingRules: *ref_5_60_0
       Test_TraceTaggingRulesRcCapability: *ref_5_60_0
@@ -1355,14 +1355,15 @@ tests/:
       '*': *ref_5_38_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured:
+      '*': *ref_5_57_0
+      express4-typescript: incomplete_test_app (endpoint not implemented)
+      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured:
       '*': *ref_3_0_0
       express4-typescript: incomplete_test_app (endpoint not implemented)
       nextjs: incomplete_test_app (endpoint not implemented)
-    Test_Config_LogInjection_Enabled:
-      '*': *ref_3_0_0
-      express4-typescript: incomplete_test_app (endpoint not implemented)
-      nextjs: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Enabled: irrelevant (nodejs does not support log injection for unstructured logs)
     Test_Config_ObfuscationQueryStringRegexp_Configured: *ref_3_0_0
     Test_Config_ObfuscationQueryStringRegexp_Empty: *ref_3_0_0
     Test_Config_RuntimeMetrics_Default: *ref_3_0_0

@@ -309,7 +309,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v3.17.0
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -495,7 +495,7 @@ tests/:
       Test_DsmRabbitmq: v3.21.0
       Test_DsmRabbitmq_FanoutExchange: v3.21.0
       Test_DsmRabbitmq_TopicExchange: v3.21.0
-      Test_DsmSNS: missing_feature
+      Test_DsmSNS: v3.21.0
       Test_DsmSQS: v2.48.0
       Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
       Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
@@ -609,7 +609,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v3.13.0
-    Test_Config_LogInjection_Default: v3.5.0
+    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Unstructured: v3.5.0
     Test_Config_LogInjection_Enabled: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1
