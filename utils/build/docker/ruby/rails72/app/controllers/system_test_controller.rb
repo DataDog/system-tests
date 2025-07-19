@@ -1,7 +1,8 @@
 require 'json'
+require 'kafka'
+require 'opentelemetry'
 
 require 'datadog/kit/appsec/events'
-require 'rdkafka'
 
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
@@ -100,6 +101,12 @@ class SystemTestController < ApplicationController
     render json: result
   end
 
+  def log_library
+    message = params[:msg]
+    Rails.logger.info(message)
+    render plain: 'OK'
+  end
+
   def user_login_success_event
     Datadog::Kit::AppSec::Events.track_login_success(
       Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
@@ -152,64 +159,42 @@ class SystemTestController < ApplicationController
   end
 
   def kafka_produce
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-producer",
-      :"group.id" => "system-tests-group",
-    }
-    topic = request.params["topic"]
-    producer = Rdkafka::Config.new(config).producer
-    stop = false
-    while stop == false
-      delivery_handles = []
-      begin
-        Datadog::Tracing.trace('kafka_produce') do |span|
-          delivery_handles << producer.produce(
-            topic:   topic,
-            payload: "Hello, world!",
-          )
-          # This has to be done manually for now, because ruby does not add the topic
-          # to the span at all
-          span.set_tag("span.kind", "producer")
-          span.set_tag("kafka.topic", topic)
-          stop = true
-        end
-      rescue Rdkafka::BaseError
-      end
-      delivery_handles.each(&:wait)
+    kafka = Kafka.new(
+      seed_brokers: ["kafka:9092"],
+      client_id: "system-tests-client-producer",
+    )
+    producer = kafka.producer
+    topic = request.params["topic"] || "DistributedTracing"
+    begin
+      producer.produce(
+        "Hello, world!",
+        topic:   topic,
+      )
+      producer.deliver_messages
+      producer.shutdown
+    rescue Exception => e
+      puts "An error has occurred while consuming messages from Kafka: #{e}"
     end
-    producer.close
-
     render plain: "Done"
   end
 
-
   def kafka_consume
-    config = {
-      :"bootstrap.servers" => "kafka:9092",
-      :"client.id" => "system-tests-client-consumer",
-      :"group.id" => "system-tests-group",
-      :"auto.offset.reset" => "earliest",
-    }
-    topic = request.params["topic"]
-    consumer = Rdkafka::Config.new(config).consumer
-    consumer.subscribe(topic)
+    kafka = Kafka.new(
+      seed_brokers: ["kafka:9092"],
+      client_id: "system-tests-client-consumer",
+      socket_timeout: 20,
+    )
+    topic = request.params["topic"] || "DistributedTracing"
     begin
-      consumer.each do |message|
+      kafka.each_message(topic: topic) do |message|
         if not message.nil?
-          Datadog::Tracing.trace('kafka_consume') do |span|
-            span.set_tag("span.kind", "consumer")
-            span.set_tag("kafka.topic", topic)
-          end
+          puts "Received message: #{message.value}"
           break
         end
       end
     rescue Exception => e
       puts "An error has occurred while consuming messages from Kafka: #{e}"
-    ensure
-      consumer.close
     end
-
     render plain: "Done"
   end
 
@@ -235,6 +220,36 @@ class SystemTestController < ApplicationController
       k.sub(/^HTTP_/, '').split('_').map(&:capitalize).join('-')
     end
     render json: JSON.generate(request_headers), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_extract
+    # The extract operation succeeds with a custom OpenTelemetry propagator, but not with the default one.
+    # To see this, uncomment the next line, and use that propagator to do the context extraction
+    # propagator = OpenTelemetry::Context::Propagation::CompositeTextMapPropagator.compose_propagators([OpenTelemetry::Trace::Propagation::TraceContext.text_map_propagator, OpenTelemetry::Baggage::Propagation.text_map_propagator])
+    context = OpenTelemetry.propagation.extract(request.headers)
+
+    span_context = OpenTelemetry::Trace.current_span(context).context
+
+    baggage = OpenTelemetry::Baggage.raw_entries()
+    baggage_str = ""
+    baggage.each_pair do |key, value|
+      baggage_str << value << ','
+    end
+    baggage_str.chop!
+
+    result = {}
+    result["trace_id"] = span_context.hex_trace_id.from(16).to_i(16)
+    result["span_id"] = span_context.hex_span_id.to_i(16)
+    result["tracestate"] = span_context.tracestate.to_s
+    result["baggage"] = baggage_str
+
+    render json: JSON.generate(result), content_type: 'application/json'
+  end
+
+  def otel_drop_in_default_propagator_inject
+    headers = {}
+    OpenTelemetry.propagation.inject(headers)
+    render json: JSON.generate(headers), content_type: 'application/json'
   end
 
   def handle_path_params
