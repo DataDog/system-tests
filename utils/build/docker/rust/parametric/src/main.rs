@@ -26,6 +26,7 @@ use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Env
 
 mod opentelemetry;
 mod opentracing;
+mod datadog;
 
 pub(crate) fn get_tracer() -> &'static BoxedTracer {
     static TRACER: OnceLock<BoxedTracer> = OnceLock::new();
@@ -124,8 +125,8 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
     };
 
     let app = Router::new()
-        .nest("/trace", opentracing::app())
         .nest("/trace/otel", opentelemetry::app())
+        .nest("/trace", datadog::app())
         .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http().make_span_with(make_span)))
         .with_state(state);
 
