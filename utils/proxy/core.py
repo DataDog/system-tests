@@ -48,6 +48,9 @@ class _RequestLogger:
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
+        self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
+        self.tracing_agent_target_port = int(os.environ.get("PROXY_TRACING_AGENT_TARGET_PORT", "8127"))
+
         span_events = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_EVENTS")
         self.span_events = span_events != "False"
 
@@ -122,7 +125,10 @@ class _RequestLogger:
             ProxyPorts.golang_buddy,
             ProxyPorts.weblog,
         ):
-            flow.request.host, flow.request.port = "agent", 8127
+            flow.request.host, flow.request.port = (
+                self.tracing_agent_target_host,
+                self.tracing_agent_target_port,
+            )
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
