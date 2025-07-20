@@ -4,8 +4,8 @@
     "error": 1,
     "meta": {
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+      "_dd.debug.error.exception_capture_id": "<scrubbed>",
       "_dd.debug.error.exception_hash": "<scrubbed>",
-      "_dd.debug.error.exception_id": "<scrubbed>",
       "_dd.integration": "spring-web-controller",
       "_dd.p.tid": "<scrubbed>",
       "component": "spring-web-controller",
@@ -36,8 +36,8 @@
     "error": 1,
     "meta": {
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+      "_dd.debug.error.exception_capture_id": "<scrubbed>",
       "_dd.debug.error.exception_hash": "<scrubbed>",
-      "_dd.debug.error.exception_id": "<scrubbed>",
       "_dd.integration": "spring-web-controller",
       "_dd.p.tid": "<scrubbed>",
       "component": "spring-web-controller",
@@ -68,8 +68,8 @@
     "error": 1,
     "meta": {
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+      "_dd.debug.error.exception_capture_id": "<scrubbed>",
       "_dd.debug.error.exception_hash": "<scrubbed>",
-      "_dd.debug.error.exception_id": "<scrubbed>",
       "_dd.integration": "spring-web-controller",
       "_dd.p.tid": "<scrubbed>",
       "component": "spring-web-controller",
