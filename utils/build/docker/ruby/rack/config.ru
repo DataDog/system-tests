@@ -317,6 +317,27 @@ module AddEvent
   end
 end
 
+# /api_security/sampling/:status
+module ApiSecurityWithSampling
+  module_function
+
+  def run(request)
+    status = request.path.split('/').last
+    status_code = status.to_i
+
+    [status_code, { 'Content-Type' => 'application/json' }, ['OK']]
+  end
+end
+
+# /api_security_sampling/:i
+module ApiSecuritySampling
+  module_function
+
+  def run(request)
+    [200, { 'Content-Type' => 'application/json' }, ['Hello!']]
+  end
+end
+
 # any other route
 module NotFound
   module_function
@@ -325,6 +346,22 @@ module NotFound
     [404, { 'Content-Type' => 'text/plain' }, ['not found']]
   end
 end
+
+# NOTE: This is a workaround to ensure that the trace was sampled before the
+#       request lifecycle ends, like in other higher level frameworks (Rails, Sinatra, etc.).
+class TraceSamplingMiddleware
+  def initialize(app)
+    @app = app
+  end
+
+  def call(env)
+    response = @app.call(env)
+    Datadog.send(:components).tracer.sampler.sample!(Datadog::Tracing.active_trace)
+    response
+  end
+end
+
+use TraceSamplingMiddleware
 
 # trivial rack endpoint. We use a proc instead of Rack Builder because
 # we compare the request path using regexp and include?
@@ -365,6 +402,10 @@ app = proc do |env|
     AddEvent.run(request)
   elsif request.path == '/rasp/ssrf'
     SSRFHandler.run(request)
+  elsif request.path.include?('/api_security/sampling/')
+    ApiSecurityWithSampling.run(request)
+  elsif request.path.include?('/api_security_sampling/')
+    ApiSecuritySampling.run(request)
   else
     NotFound.run
   end

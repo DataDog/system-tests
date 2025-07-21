@@ -6,7 +6,7 @@ import re
 
 from utils.dd_constants import Capabilities
 from tests.appsec.utils import find_series
-from utils import context
+from utils import context, missing_feature
 from utils import bug
 from utils import features
 from utils import interfaces
@@ -328,6 +328,7 @@ class Test_AsmDdMultiConfiguration:
     and provide the ASM_DD_MULTICONFIG(42) capability
     """
 
+    @missing_feature(context.library == "java")
     def test_asm_dd_multiconfig_capability(self):
         interfaces.library.assert_rc_capability(Capabilities.ASM_DD_MULTICONFIG)
 

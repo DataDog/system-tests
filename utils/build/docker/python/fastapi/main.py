@@ -55,7 +55,6 @@ except ImportError:
 
 app = FastAPI()
 
-
 # Custom middleware
 try:
     maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
@@ -68,9 +67,17 @@ if current_ddtrace_version >= (3, 1, 0):
 
     @app.middleware("http")
     async def add_process_time_header(request: Request, call_next):
+        user_id = request.session.get("user_id")
+        session_id = request.cookies.get("session_id")
         try:
-            if request.session.get("user_id"):
-                set_user(tracer, user_id=request.session["user_id"], mode="auto")
+            if user_id or session_id:
+                try:
+                    import ddtrace.appsec.track_user_sdk as track_user_sdk
+
+                    track_user_sdk.track_user(login=user_id, user_id=user_id, session_id=session_id, _auto=True)
+                except Exception:
+                    # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
+                    set_user(tracer, user_id=user_id, session_id=session_id, mode="auto")
         except Exception:
             # to be compatible with all tracer versions
             pass
@@ -864,7 +871,9 @@ _TRACK_USER = "system_tests_user"
 
 @app.get("/user_login_success_event", response_class=PlainTextResponse)
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(tracer, user_id=_TRACK_USER, metadata=_TRACK_METADATA)
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
     return "OK"
 
 
@@ -967,7 +976,7 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 @app.get("/session/new")
 async def session_new(request: Request):
-    response = PlainTextResponse("OK")
+    response = PlainTextResponse(MAGIC_SESSION_KEY)
     response.set_cookie(key="session_id", value=MAGIC_SESSION_KEY)
     return response
 

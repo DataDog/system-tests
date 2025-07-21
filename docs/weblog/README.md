@@ -688,6 +688,7 @@ The following query parameters are optional:
 
 - `msg`: Specifies the message to be logged. If not provided, the default message "msg" will be logged.
 - `level`: Specifies the log level to be used. If not provided, the default log level is "info".
+- `structured`: Specifies whether a log message should be generated via a structured or unstructured logger is used. If not provided the default value is True.
 
 ### GET /e2e_single_span
 
@@ -1100,8 +1101,6 @@ There are several rules shared between all the existing end-to-end weblogs.
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent\'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV DD_DATA_STREAMS_ENABLED=true
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
-
 ```
 
 ### Naming Conventions & Patterns

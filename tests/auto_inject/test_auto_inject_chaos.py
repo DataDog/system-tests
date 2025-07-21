@@ -1,5 +1,5 @@
 import requests
-from utils import scenarios, features, context, bug, irrelevant, missing_feature, logger
+from utils import scenarios, features, context, irrelevant, missing_feature, logger
 from utils.onboarding.weblog_interface import warmup_weblog
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 import tests.auto_inject.utils as base
@@ -86,12 +86,6 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
 @features.installer_auto_instrumentation
 @scenarios.chaos_installer_auto_injection
 class TestAutoInjectChaos(BaseAutoInjectChaos):
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @irrelevant(
         context.vm_name in ["Amazon_Linux_2023_amd64", "Amazon_Linux_2023_arm64"],
         reason="LD library failures impact on the docker engine, causes flakiness",
@@ -109,12 +103,6 @@ class TestAutoInjectChaos(BaseAutoInjectChaos):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]")
 
-    @bug(
-        context.vm_os_branch in ["redhat", "amazon_linux2"]
-        and context.vm_os_cpu == "arm64"
-        and context.weblog_variant == "test-app-ruby",
-        reason="INPLAT-103",
-    )
     @missing_feature(context.vm_os_branch == "windows", reason="Not implemented on Windows")
     @irrelevant(
         context.vm_name in ["AlmaLinux_8_amd64", "AlmaLinux_8_arm64", "OracleLinux_8_8_amd64", "OracleLinux_8_8_arm64"]

@@ -24,6 +24,11 @@ on:
         type: string
         default: ""
         required: false
+      weblogs:
+        description: "Comma-separated list of weblogs to run. By default, all weblogs are run"
+        default: ''
+        required: false
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -71,9 +76,9 @@ on:
         type: number
       desired_execution_time:
         description: "In seconds, system-tests will try to respect this time budget."
-        default: -1
+        default: "-1"
         required: false
-        type: number
+        type: string
       enable_replay_scenarios:
         description: "Enable replay scenarios, should only used in system-tests CI"
         default: false
@@ -105,6 +110,7 @@ jobs:
       scenarios: ${{ inputs.scenarios }}
       scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
+      weblogs: ${{ inputs.weblogs }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
       desired_execution_time: ${{ inputs.desired_execution_time }}
       binaries_artifact: ${{ inputs.binaries_artifact }}
@@ -151,30 +157,41 @@ jobs:
         weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
       fail-fast: false
     steps:
+      - name: Compute ref
+        id: compute_ref
+        run: |
+          if [[ "${{ inputs.ref }}" != "" ]]; then
+            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+            echo "ref=" >> $GITHUB_OUTPUT
+          else
+            echo "ref=main" >> $GITHUB_OUTPUT
+          fi
       - name: Checkout
         uses: actions/checkout@v4
         with:
           repository: 'DataDog/system-tests'
-          ref: ${{ inputs.ref }}
+          ref: ${{ steps.compute_ref.outputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.compute_parameters.outputs.binaries_artifact }}
           path: binaries/
-      - name: Build python's weblog base images
+      - name: Log binaries contents
+        if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
+        run: ls -la binaries/
+      - name: Build weblog base images
         if: inputs.library == 'python' && inputs.build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
-      - name: Build agent
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i agent -s
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}
+          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
           path: binaries/
 
   run_end_to_end:
@@ -193,19 +210,20 @@ jobs:
       library: ${{ matrix.job.library }}
       ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
+      weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
-      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}
+      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
       enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
-      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}
+      logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
 
   external_processing:
     needs:
       - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang' && needs.compute_parameters.outputs.binaries_artifact != ''}}
+    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang'}}
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:

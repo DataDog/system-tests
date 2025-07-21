@@ -4,6 +4,8 @@ WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+# TODO(munir): Move loguru install to the base image, currently lack permissions to push a new base image.
+RUN pip install loguru==0.7.3
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -13,7 +15,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
 ENV DD_DATA_STREAMS_ENABLED=True
 ENV _DD_APPSEC_DEDUPLICATION_ENABLED=false
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=5
+ENV UWSGI_ENABLED=true
 
 # docker startup
 # note, only thread mode is supported
