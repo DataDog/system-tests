@@ -92,6 +92,7 @@ jobs:
       desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
+      _experimental_runs_on: ${{ matrix.library == 'java' && '{"labels":"ubuntu-8-core-latest","group":"Large Runner Shared Public"}' || '{"labels":"ubuntu-4-core-latest","group":"Large Runner Shared Public"}' }}
 
   system_tests_docker_mode:
     name: Ruby Docker Mode

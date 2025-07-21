@@ -99,6 +99,11 @@ on:
         default: ''
         required: false
         type: string
+      _experimental_runs_on:
+        description: "Runner definition"
+        default: '{ "group": "APM Larger Runners" }'
+        required: false
+        type: string
 
 jobs:
   compute_parameters:
@@ -130,6 +135,7 @@ jobs:
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
+      _experimental_runs_on: ${{ inputs._experimental_runs_on }}
 
   lib_injection:
     needs:

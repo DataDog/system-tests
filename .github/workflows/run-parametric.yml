@@ -66,6 +66,19 @@ jobs:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
+        if: runner.os == 'Linux'
+        uses: actions/checkout@v4
+        with:
+          repository: DataDog/civis-gha-monitor-action
+          token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
+          ref: main
+          path: ./civis-action
+      - name: Setup CI Visibility GitHub SaaS Runner Monitoring
+        if: runner.os == 'Linux'
+        uses: ./civis-action
+        with:
+          upload-artifacts: 'true'
       - name: Compute ref
         id: compute_ref
         run: |
