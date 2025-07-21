@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-# Checks in binary folder otherwise download from GH
+# Checks in binary folder otherwise download from github
 ddprof_name=$(ls -1 ddprof*.xz  2> /dev/null || true)
 if [ "$(echo $ddprof_name | wc -l)" -ge "2" ]; then
     echo "Clean up the folder in ${PWD}"
