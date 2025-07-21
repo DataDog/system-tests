@@ -28,6 +28,7 @@ class TestCommandInjection(BaseSinkTest):
 
     @missing_feature(library="nodejs", reason="Endpoint not implemented")
     @missing_feature(library="java", reason="Endpoint not implemented")
+    @missing_feature(context.library < "python@3.0.0", reason="Endpoint not implemented")
     def test_secure(self):
         super().test_secure()
 
