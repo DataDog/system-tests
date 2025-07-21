@@ -48,7 +48,7 @@ on:
         type: string
       _experimental_runs_on:
         description: "Runner definition"
-        default: '{ "labels": "ubuntu-4-core-latest", "group": "Large Runner Shared Public" }'
+        default: ${{ fromJson('{ "labels":"ubuntu-4-core-latest","group":"Large Runner Shared Public"}') }}
         required: false
         type: string
       artifact_retention_days:
@@ -62,7 +62,7 @@ env:
 jobs:
 
   parametric:
-    runs-on: ${{ fromJson( inputs._experimental_runs_on ) }}
+    runs-on: ${{ inputs._experimental_runs_on }}
     strategy:
       fail-fast: false
       matrix:
