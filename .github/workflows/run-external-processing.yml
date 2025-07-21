@@ -91,3 +91,4 @@ jobs:
         with:
           name: logs_externalprocessing_golang_golang-dummy_${{ inputs.ci_environment }}
           path: artifact.tar.gz
+          retention-days: 7

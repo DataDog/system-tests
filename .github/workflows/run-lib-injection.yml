@@ -192,6 +192,7 @@ jobs:
         with:
           name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
+          retention-days: 7
 
   build-weblogs-k8s-lib-injection:
     if: inputs.build_lib_injection_app_images && (inputs.library == 'dotnet' || inputs.library == 'java' || inputs.library == 'python' || inputs.library == 'ruby' || inputs.library == 'nodejs')
