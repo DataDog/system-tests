@@ -115,6 +115,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
@@ -147,6 +148,7 @@ class BaseUserLoginSuccessEventV2Tags:
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
+    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     def setup_user_login_success_event_deep_metadata(self):
         headers = {
@@ -162,6 +164,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
@@ -423,6 +426,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=headers)
 
+    @irrelevant(library="ruby", reason="dd-trace-rb only accepts string metadata values")
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
