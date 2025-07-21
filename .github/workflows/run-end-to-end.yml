@@ -427,6 +427,7 @@ jobs:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: ${{ inputs.logs_artifact_name }}
         path: artifact.tar.gz
+        retention-days: 7
 
     - name: Push results to Feature Parity Dashboard
       if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now

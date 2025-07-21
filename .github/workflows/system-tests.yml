@@ -193,6 +193,7 @@ jobs:
         with:
           name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
           path: binaries/
+          retention-days: 7
 
   run_end_to_end:
     name: "End-to-end #${{ matrix.job.weblog_instance }}"
