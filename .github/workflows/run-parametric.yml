@@ -48,7 +48,7 @@ on:
         type: string
       _experimental_runs_on:
         description: "Runner definition"
-        default: '{ "group": "APM Larger Runners" }'
+        default: '{ "labels": "ubuntu-4-core-latest", "group": "Large Runner Shared Public" }'
         required: false
         type: string
       artifact_retention_days:
