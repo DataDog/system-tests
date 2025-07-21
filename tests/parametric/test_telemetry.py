@@ -110,6 +110,11 @@ class Test_Defaults:
             pass
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        # DSM is enabled by default in .NET, but not in other languages
+        if context.library == "dotnet":
+            data_streams_enabled = ("true", True)
+        else:
+            data_streams_enabled = ("false", False)
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
@@ -118,7 +123,7 @@ class Test_Defaults:
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
-            ("data_streams_enabled", ("false", False)),
+            ("data_streams_enabled", data_streams_enabled),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
