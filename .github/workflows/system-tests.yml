@@ -104,6 +104,11 @@ on:
         default: 14
         required: false
         type: number
+      _experimental_runs_on:
+        description: "Runner definition"
+        default: '{ "labels": "ubuntu-4-core-latest", "group": "Large Runner Shared Public" }'
+        required: false
+        type: string
 
 jobs:
   compute_parameters:
@@ -136,6 +141,7 @@ jobs:
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      _experimental_runs_on: ${{ inputs._experimental_runs_on }}
 
   lib_injection:
     needs:
