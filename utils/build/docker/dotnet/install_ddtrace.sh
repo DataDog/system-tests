@@ -4,7 +4,12 @@ set -eu
 cd /binaries
 
 get_latest_release() {
-    curl "https://api.github.com/repos/$1/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
+    local releases
+    if ! releases=$(curl --fail --retry 3 "https://api.github.com/repos/$1/releases/latest"); then
+        echo "Failed to get latest release"
+        exit 1
+    fi
+    echo $releases | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/';
 }
 
 mkdir -p /opt/datadog
@@ -17,7 +22,10 @@ else
         echo "Install ddtrace from $(ls datadog-dotnet-apm*.tar.gz)"
     else
         echo "Install ddtrace from github releases"
-        DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"
+        if ! DDTRACE_VERSION="$(get_latest_release DataDog/dd-trace-dotnet)"; then
+            echo "Failed to get latest release version"
+            exit 1
+        fi
 
         if [ $(uname -m) = "aarch64" ]; then
             artifact=datadog-dotnet-apm-${DDTRACE_VERSION}.arm64.tar.gz
