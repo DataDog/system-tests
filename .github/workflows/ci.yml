@@ -93,7 +93,7 @@ jobs:
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
       artifact_retention_days: 3
-      _experimental_runs_on: ${{ matrix.library == 'java' && fromJson('{"labels":"ubuntu-8-core-latest","group":"Large Runner Shared Public"}') || fromJson('{"labels":"ubuntu-4-core-latest","group":"Large Runner Shared Public"}') }}
+      _experimental_runs_on: ${{ matrix.library == 'java' && fromJson('{"labels":"ubuntu-8-core-latest","group":"Large Runner Shared Public"}') || fromJson('{"labels":"ubuntu-8-core-latest","group":"Large Runner Shared Public"}') }}
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
