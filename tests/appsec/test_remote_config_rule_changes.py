@@ -43,6 +43,18 @@ BLOCK_REDIRECT = (
     },
 )
 
+# This is used to test that configuring a new undefined action like "extended_data_collection" does not break the library RC feature.
+# it also tests that the library can handle multiple actions in the same remote config.
+BLOCK_EXTENDED_DATA = (
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "block", "parameters": {"status_code": 406, "type": "json"}, "type": "block_request"},
+            {"id": "extended_data", "type": "extended_data_collection"},
+        ]
+    },
+)
+
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
@@ -66,8 +78,11 @@ class Test_BlockingActionChangesWithRemoteConfig:
             "/waf/", headers={"User-Agent": "dd-test-scanner-log-block"}, allow_redirects=False
         )
 
-        self.config_state_5 = rc.rc_state.reset().apply()
+        self.config_state_5 = rc.rc_state.set_config(*BLOCK_EXTENDED_DATA).apply()
         self.response_5 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_6 = rc.rc_state.reset().apply()
+        self.response_6 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
     def test_block_405(self):
         # normal block
@@ -94,10 +109,15 @@ class Test_BlockingActionChangesWithRemoteConfig:
         assert self.response_4.text == "" or '<a href="http://google.com">' in self.response_4.text
         assert self.response_4.headers["location"] == "http://google.com"
 
-        # ASM disabled
+        # block on 406 and extended data collection with RC
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
-        assert self.response_5.status_code == 200
-        interfaces.library.assert_no_appsec_event(self.response_5)
+        interfaces.library.assert_waf_attack(self.response_5, rule="ua0-600-56x")
+        assert self.response_5.status_code == 406
+
+        # ASM disabled
+        assert self.config_state_6.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_6.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_6)
 
 
 RULE_FILE: tuple[str, dict] = (
