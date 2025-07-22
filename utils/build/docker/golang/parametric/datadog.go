@@ -18,8 +18,6 @@ import (
 )
 
 func (s *apmClientServer) startSpanHandler(w http.ResponseWriter, r *http.Request) {
-	tracer.Start(tracer.WithDebugMode(true))
-	defer tracer.Stop()
 	var args StartSpanArgs
 	if err := json.NewDecoder(r.Body).Decode(&args); err != nil {
 		http.Error(w, fmt.Sprintf("Error decoding JSON: %v", err), http.StatusBadRequest)

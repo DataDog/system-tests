@@ -434,7 +434,6 @@ class _TestAgentAPI:
             for event_type in ["app-started", "app-client-configuration-change"]:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
-                    print("MTOFF: EVENTB ", event)
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
                         # Store only the latest configuration for each name. This is the configuration
                         # that should be used by the application.
