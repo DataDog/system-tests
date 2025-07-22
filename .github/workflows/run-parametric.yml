@@ -66,20 +66,6 @@ jobs:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
-      - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
-        if: runner.os == 'Linux'
-        uses: actions/checkout@v4
-        with:
-          repository: DataDog/civis-gha-monitor-action
-          token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
-          ref: main
-          path: ./civis-action
-      - name: Setup CI Visibility GitHub SaaS Runner Monitoring
-        if: runner.os == 'Linux'
-        uses: ./civis-action
-        with:
-          upload-artifacts: 'true'
-          artifact-prefix: ${{ inputs.library }}
       - name: Compute ref
         id: compute_ref
         run: |
@@ -117,14 +103,6 @@ jobs:
         with:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
           path: artifact.tar.gz
-      - name: Checkout CI Visibility GitHub SaaS Runner Monitoring action
-        if: runner.os == 'Linux'
-        uses: actions/checkout@v4
-        with:
-          repository: DataDog/civis-gha-monitor-action
-          token: ${{ secrets.DD_CIVIS_GHA_MONITORING_ACTION_KEY }}
-          ref: main
-          path: ./civis-action
       # - name: Upload results CI Visibility
       #   if: ${{ always() }}
       #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
