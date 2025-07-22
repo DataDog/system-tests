@@ -46,3 +46,7 @@ GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingCont
 # IAST Source endpoints
 GET     /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterGet
 POST    /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterPost
+
+# IAST Sink endpoints
+POST    /iast/cmdi/test_insecure                    controllers.IastSinkController.cmdiInsecure
+POST    /iast/cmdi/test_secure                      controllers.IastSinkController.cmdiSecure

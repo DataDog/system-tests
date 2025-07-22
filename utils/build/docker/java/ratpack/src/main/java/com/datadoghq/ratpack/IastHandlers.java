@@ -1,5 +1,6 @@
 package com.datadoghq.ratpack;
 
+import com.datadoghq.system_tests.iast.utils.CmdExamples;
 import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.system_tests.iast.utils.WeakRandomnessExamples;
 import com.datadoghq.system_tests.iast.utils.XPathExamples;
@@ -8,6 +9,7 @@ import ratpack.handling.Chain;
 public class IastHandlers {
 
     private final String superSecretAccessKey = "insecure";
+    private final CmdExamples cmdExamples = new CmdExamples();
     private final CryptoExamples cryptoExamples = new CryptoExamples();
     private final WeakRandomnessExamples weakRandomnessExamples = new WeakRandomnessExamples();
     private final XPathExamples xPathExamples = new XPathExamples();
@@ -23,7 +25,14 @@ public class IastHandlers {
                 .path("iast/weak_randomness/test_insecure", ctx -> ctx.getResponse().send(weakRandomnessExamples.weakRandom()))
                 .path("iast/weak_randomness/test_secure", ctx -> ctx.getResponse().send(weakRandomnessExamples.secureRandom()))
                 .path("iast/xpathi/test_insecure", ctx -> ctx.getResponse().send(xPathExamples.insecureXPath(ctx.getRequest().getQueryParams().get("expression"))))
-                .path("iast/xpathi/test_secure", ctx -> ctx.getResponse().send(xPathExamples.secureXPath()));
+                .path("iast/xpathi/test_secure", ctx -> ctx.getResponse().send(xPathExamples.secureXPath()))
+                .post("iast/cmdi/test_insecure", ctx -> {
+                    String cmd = ctx.getRequest().getForm().get("cmd");
+                    ctx.getResponse().send(cmdExamples.insecureCmd(cmd));
+                })
+                .post("iast/cmdi/test_secure", ctx -> {
+                    ctx.getResponse().send("Command executed: ls");
+                });
     }
 
 }
