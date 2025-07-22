@@ -567,14 +567,7 @@ class Test_Telemetry:
 @features.telemetry_app_started_event
 @scenarios.telemetry_app_started_config_chaining
 class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order.
-
-    IMPORTANT: The order of configuration entries in the telemetry payload does NOT matter.
-    What matters is that the `seq_id` values reported for each configuration reflect the correct
-    precedence order as defined in `_ORIGIN_PRECEDENCE_ORDER`. This test verifies that for each
-    configuration, the `seq_id` increases as the origin precedence increases, regardless of the
-    order in which the entries appear in the payload.
-    """
+    """Test that configuration sources are sent with app-started event in correct precedence order"""
 
     # Official configuration origin precedence order (from lowest to highest precedence)
     # Based on Node.js tracer implementation
@@ -667,14 +660,10 @@ class Test_TelemetryConfigurationChaining:
             validator(data)
 
     def _validate_precedence_order(self, chain: list) -> None:
-        """Validate that a configuration chain follows the official precedence order.
+        """Validate that a configuration chain follows the official precedence order
 
         Args:
-            chain: List of configuration items with 'origin' keys.
-
-        NOTE: This method is used to check that the origins in a configuration chain are in the correct
-        precedence order. In the context of this test, the actual order in the payload is not important;
-        only the relationship between origin precedence and seq_id is validated in the main test logic.
+            chain: List of configuration items with 'origin' keys
 
         """
         precedence_map = {origin: i for i, origin in enumerate(self._ORIGIN_PRECEDENCE_ORDER)}
