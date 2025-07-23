@@ -450,7 +450,6 @@ FOO_ACTION = (
     "datadog/2/ASM/actions/config",
     {
         "actions": [
-            {"id": "block", "parameters": {"status_code": 406, "type": "json"}, "type": "block_request"},
             {"id": "foo", "type": "foo"},
         ]
     },
