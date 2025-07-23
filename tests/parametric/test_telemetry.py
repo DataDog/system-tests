@@ -112,7 +112,7 @@ class Test_Defaults:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # DSM is enabled by default in .NET, but not in other languages
         # see https://github.com/DataDog/dd-trace-dotnet/pull/7244 for more details
-        if context.library == "dotnet":
+        if context.library > "dotnet@3.21.0":
             data_streams_enabled = ("true", True)
         else:
             data_streams_enabled = ("false", False)
