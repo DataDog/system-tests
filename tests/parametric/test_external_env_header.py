@@ -29,22 +29,24 @@ class Test_External_Env_Header:
 
         # Get all requests made to the agent
         requests = test_agent.requests()
-        
+
         # Find requests to the traces endpoint
         trace_requests = [req for req in requests if req["url"].endswith("/traces")]
-        
+
         # Verify that at least one trace request was made
         assert len(trace_requests) > 0, "No trace requests found"
-        
+
         # Check that the datadog-external-env header is present and has the correct value
         for request in trace_requests:
             headers = request["headers"]
-            assert "datadog-external-env" in headers, f"datadog-external-env header missing in request to {request['url']}"
-            
+            assert (
+                "datadog-external-env" in headers
+            ), f"datadog-external-env header missing in request to {request['url']}"
+
             # Get the expected value from the library_env parameter
             expected_value = library_env.get("DD_EXTERNAL_ENV")
             assert expected_value is not None, "DD_EXTERNAL_ENV environment variable not set"
-            
+
             # Verify the header value matches the environment variable
             actual_value = headers["datadog-external-env"]
             assert actual_value == expected_value, (
@@ -66,13 +68,13 @@ class Test_External_Env_Header:
 
         # Get all requests made to the agent
         requests = test_agent.requests()
-        
+
         # Find requests to the traces endpoint
         trace_requests = [req for req in requests if req["url"].endswith("/traces")]
-        
+
         # Verify that at least one trace request was made
         assert len(trace_requests) > 0, "No trace requests found"
-        
+
         # Check that the datadog-external-env header is not present when DD_EXTERNAL_ENV is not set
         for request in trace_requests:
             headers = request["headers"]
@@ -80,4 +82,4 @@ class Test_External_Env_Header:
             assert "datadog-external-env" not in headers, (
                 f"datadog-external-env header should not be present when DD_EXTERNAL_ENV is not set, "
                 f"but found value: {headers.get('datadog-external-env')}"
-            ) 
+            )
