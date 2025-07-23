@@ -188,13 +188,25 @@ jobs:
       - name: Log binaries contents
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         run: ls -la binaries/
+      - name: Export github token to a file
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Build weblog base images
         if: inputs.library == 'python' && inputs.build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+      - name: Remove secrets
+        if: always()
+        run: |
+          TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
+          if [ -f "$TOKEN_FILE" ]; then
+            echo "Removing token file at $TOKEN_FILE"
+            rm -f "$TOKEN_FILE"
+          else
+            echo "Token file not found — nothing to clean up"
+          fi
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
