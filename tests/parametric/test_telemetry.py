@@ -116,7 +116,7 @@ class Test_Defaults:
             data_streams_enabled = ("true", True)
         else:
             data_streams_enabled = ("false", False)
-        
+
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
