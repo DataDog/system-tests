@@ -3,9 +3,17 @@ set -eu
 
 cd /binaries
 
+# Secret will be available here at build time only
+GITHUB_TOKEN_FILE="/run/secrets/github_token"
+GITHUB_AUTH_HEADER=()
+if [ -f "$GITHUB_TOKEN_FILE" ]; then
+    echo "Using GitHub token for authentication"
+    GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $(cat "$GITHUB_TOKEN_FILE")")
+fi
+
 get_latest_release() {
     local releases
-    if ! releases=$(curl --fail --retry 3 "https://api.github.com/repos/$1/releases/latest"); then
+    if ! releases=$(curl --fail --retry 3 "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/$1/releases/latest"); then
         echo "Failed to get latest release"
         exit 1
     fi
@@ -34,7 +42,7 @@ else
         fi
 
         echo "Using artifact ${artifact}"
-        curl -L https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
+        curl -L --fail "${GITHUB_AUTH_HEADER[@]}" https://github.com/DataDog/dd-trace-dotnet/releases/download/v${DDTRACE_VERSION}/${artifact} --output ${artifact}
     fi
 
     tar xzf $(ls datadog-dotnet-apm*.tar.gz) -C /opt/datadog
