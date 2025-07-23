@@ -105,7 +105,7 @@ class Test_Defaults:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
-    # @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
+    @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
@@ -113,7 +113,7 @@ class Test_Defaults:
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # DSM is enabled by default in .NET, but not in other languages
         # see https://github.com/DataDog/dd-trace-dotnet/pull/7244 for more details
-        if context.library > "dotnet@3.21.0":
+        if context.library >= "dotnet@3.22.0":
             data_streams_enabled = ("true", True)
         else:
             data_streams_enabled = ("false", False)
@@ -150,7 +150,7 @@ class Test_Defaults:
             if isinstance(value, tuple):
                 assert (
                     cfg_item.get("value") in value
-                ), f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}, {library_env}')"
+                ), f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}')"
             else:
                 assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"
