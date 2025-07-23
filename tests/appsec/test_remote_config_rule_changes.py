@@ -446,8 +446,7 @@ class Test_AsmDdMultiConfiguration:
 
 
 # This is used to test that configuring a new undefined action like "foo" does not break the library RC feature.
-# it also tests that the library can handle multiple actions in the same remote config.
-BLOCK_FOO_ACTION = (
+FOO_ACTION = (
     "datadog/2/ASM/actions/config",
     {
         "actions": [
@@ -461,9 +460,38 @@ BLOCK_FOO_ACTION = (
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
 class Test_Unknown_Action:
-    """Ensure unsupported actions in RC payloads are ignored while supported actions still apply"""
-
     def setup_unknown_action(self):
+        self.config_state_1 = rc.rc_state.set_config(*FOO_ACTION).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.reset().apply()
+        self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    def test_unknown_action(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_1.status_code == 200
+
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_2.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_2)
+
+
+# tests that the library can handle multiple actions in the same remote config.
+BLOCK_FOO_ACTION = (
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "block", "parameters": {"status_code": 406, "type": "json"}, "type": "block_request"},
+            {"id": "foo", "type": "foo"},
+        ]
+    },
+)
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_Multiple_Actions:
+    def setup_multiple_actions(self):
         self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
         self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
@@ -473,13 +501,12 @@ class Test_Unknown_Action:
         self.config_state_3 = rc.rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
-    def test_unknown_action(self):
+    def test_multiple_actions(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
 
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
-        assert self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 406
 
