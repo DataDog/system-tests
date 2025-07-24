@@ -673,7 +673,8 @@ class Test_Stable_Config_Default(StableConfigWriter):
                             {
                                 "origin": "process_arguments",
                                 "key": "-Darg1",
-                                "operator": "exists",
+                                "operator": "equals",
+                                "matches": ["value"],
                             }
                         ],
                         "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},
