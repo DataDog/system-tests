@@ -36,14 +36,28 @@ flowchart TD
     TESTS[Tests Container] -->|Send Requests| LambdaProxy
     LambdaProxy[Lambda Proxy] -->|Send Lambda Event| Application
     subgraph APP[Application Container]
-        Extension[Extension *:8126]
+        socat[socat *:8127] --> Extension
+        Extension[Extension localhost:8126]
         Application[Application *:8080]
     end
     Application --> | Send Traces | APPPROXY
-    APPPROXY[Application Proxy] --> | Send back traces | Extension
+    APPPROXY[Application Proxy] --> | Send back traces | socat
     APPPROXY -->|mitmdump| TESTS
     Extension --> AGENTPROXY
     AGENTPROXY[Agent Proxy] -->|remote request| BACKEND
     AGENTPROXY -->|mitmdump| TESTS
     BACKEND[Datadog] -->|trace API| TESTS
 ```
+
+## Specific considerations for the weblogs
+
+On top of responding to the regular [`/healthcheck`](../weblog/README.md#get-healthcheck) endpoint.
+
+Lambda Weblogs should respond the same JSON dict response to the non HTTP event:
+```json
+{
+    "healthcheck": true
+}
+```
+
+This is because the healthcheck is sent by the Lambda Weblog container itself which has no knowledge of how to serialize it as the event type expected by the weblog.

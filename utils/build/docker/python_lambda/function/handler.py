@@ -32,20 +32,6 @@ def version_info():
     }
 
 
-@app.get("/tag_value/<tag_value>/<status_code>")
-@app.route("/tag_value/<tag_value>/<status_code>", method="OPTIONS")
-def tag_value(tag_value: str, status_code: int):
-    appsec_trace_utils.track_custom_event(
-        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
-    )
-    return Response(
-        status_code=status_code,
-        content_type="text/plain",
-        body="Value tagged",
-        headers=app.current_event.query_string_parameters,
-    )
-
-
 @app.get("/")
 @app.post("/")
 @app.route("/", method="OPTIONS")
@@ -80,6 +66,20 @@ def waf_params(path: str = ""):
         status_code=200,
         content_type="text/plain",
         body="Hello, World!\n",
+    )
+
+
+@app.get("/tag_value/<tag_value>/<status_code>")
+@app.route("/tag_value/<tag_value>/<status_code>", method="OPTIONS")
+def tag_value(tag_value: str, status_code: int):
+    appsec_trace_utils.track_custom_event(
+        tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
+    )
+    return Response(
+        status_code=status_code,
+        content_type="text/plain",
+        body="Value tagged",
+        headers=app.current_event.query_string_parameters,
     )
 
 
