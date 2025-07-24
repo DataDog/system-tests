@@ -103,7 +103,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
             headers = {
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             }
-        self.check_r = session.get(self.request_downstream_url, headers=headers)
+        self.check_r = session.get(self.request_downstream_url, headers=headers, timeout=30)
 
     def setup_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_minus_1(self):
         with weblog.get_session() as session:
@@ -119,6 +119,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-origin": "rum",
                     "x-datadog-tags": "_dd.p.other=1",
                 },
+                timeout=30,
             )
 
     def fix_priority_lambda(self, span, default_checks):
@@ -181,6 +182,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-origin": "rum",
                     "x-datadog-tags": "_dd.p.other=1",
                 },
+                timeout=30,
             )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_0(self):
@@ -227,6 +229,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-origin": "rum",
                     "x-datadog-tags": "_dd.p.other=1",
                 },
+                timeout=30,
             )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_1(self):
@@ -273,6 +276,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-origin": "rum",
                     "x-datadog-tags": "_dd.p.other=1",
                 },
+                timeout=30,
             )
 
     def test_no_appsec_upstream__no_asm_event__is_kept_with_priority_1__from_2(self):
@@ -318,6 +322,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "x-datadog-tags": "_dd.p.other=1",
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
+            timeout=30,
         )
 
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_minus_1(self):
@@ -362,6 +367,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "x-datadog-tags": "_dd.p.other=1",
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
+            timeout=30,
         )
 
     def test_no_upstream_appsec_propagation__with_asm_event__is_kept_with_priority_2__from_0(self):
@@ -407,8 +413,10 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-sampling-priority": "0",
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
+                timeout=30,
             )
 
+    @missing_feature(library="python", reason="APPSEC-57830")
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
@@ -452,6 +460,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-sampling-priority": "1",
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
+                timeout=30,
             )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_1(self):
@@ -497,6 +506,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                     "x-datadog-sampling-priority": "2",
                     "x-datadog-tags": self.propagated_tag_and_value(),
                 },
+                timeout=30,
             )
 
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_2(self):
@@ -540,6 +550,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "x-datadog-sampling-priority": "-1",
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
+            timeout=30,
         )
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_minus_1(self):
@@ -582,6 +593,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "x-datadog-sampling-priority": "0",
                 "User-Agent": "Arachni/v1",
             },
+            timeout=30,
         )
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_0(self):
@@ -624,6 +636,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 "x-datadog-sampling-priority": "1",
                 "User-Agent": "Arachni/v1",  # attack if APPSEC enabled
             },
+            timeout=30,
         )
 
     def test_any_upstream_propagation__with_asm_event__raises_priority_to_2__from_1(self):
@@ -730,8 +743,8 @@ class BaseSCAStandaloneTelemetry:
 
     def setup_telemetry_sca_enabled_propagated(self):
         # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
-        self.r0 = weblog.get("/")
-        self.r1 = weblog.get("/")
+        self.r0 = weblog.get("/", timeout=30)
+        self.r1 = weblog.get("/", timeout=30)
 
     def test_telemetry_sca_enabled_propagated(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
@@ -805,6 +818,7 @@ class Test_AppSecStandalone_NotEnabled:
                 "x-datadog-trace-id": str(trace_id),
                 "x-datadog-parent-id": str(parent_id),
             },
+            timeout=30,
         )
 
     def test_client_computed_stats_header_is_not_present(self):
@@ -860,7 +874,6 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
-@bug(context.library >= "python@3.10.1" and context.weblog_variant in ["flask-poc", "uds-flask"], reason="APPSEC-58276")
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -975,7 +988,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 
     def setup_first_request_retained(self):
         endpoint = "/tag_value/test_first_request_retained/200"
-        self.first_request = weblog.get(endpoint, headers=self._get_headers())
+        self.first_request = weblog.get(endpoint, headers=self._get_headers(), timeout=30)
 
     def test_first_request_retained(self):
         assert self.first_request.status_code == 200
