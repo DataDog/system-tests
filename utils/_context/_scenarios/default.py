@@ -46,6 +46,7 @@ _iast_security_controls_map = {
         "INPUT_VALIDATOR:*:app:_sc_v_overloaded:1,2"
     ),
     "ruby": "TODO",
+    "rust": "TODO",
 }
 
 
