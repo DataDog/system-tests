@@ -29,7 +29,6 @@ class LambdaScenario(DockerScenario):
         weblog_volumes: dict[str, dict[str, str]] | None = None,
     ):
         scenario_groups = [
-            all_scenario_groups.appsec,
             all_scenario_groups.tracer_release,
         ] + (scenario_groups or [])
 
@@ -53,7 +52,7 @@ class LambdaScenario(DockerScenario):
         self.proxy_container.environment.update(
             {
                 "PROXY_TRACING_AGENT_TARGET_HOST": self.lambda_weblog.name,
-                "PROXY_TRACING_AGENT_TARGET_PORT": "8126",
+                "PROXY_TRACING_AGENT_TARGET_PORT": "8127",
             }
         )
 
