@@ -23,7 +23,12 @@ def invoke_lambda_function():
     This function is used to invoke the Lambda function with the provided event.
     It constructs a v1 event from the Flask request and sends it to the RIE URL.
     """
-    converted_event = construct_v1_event(request, PORT, binary_types=["application/octet-stream"], stage_name="Prod")
+    converted_event = construct_v1_event(
+        request,
+        PORT,
+        binary_types=["application/octet-stream"],
+        stage_name="Prod",
+    )
 
     response = post(
         RIE_URL,
@@ -32,22 +37,33 @@ def invoke_lambda_function():
     )
 
     (status_code, headers, body) = LocalApigwService._parse_v1_payload_format_lambda_output(
-        response.content.decode("utf-8"), binary_types=[], flask_request=request, event_type="Api"
+        response.content.decode("utf-8"),
+        binary_types=[],
+        flask_request=request,
+        event_type="Api",
     )
 
     return app.response_class(response=body, status=status_code, headers=headers)
 
 
-@app.route("/", methods=["GET", "POST", "OPTIONS"])
-@app.route("/finger_print")
-@app.get("/headers")
-@app.get("/healthcheck")
-@app.route("/params/<path>/", methods=["GET", "POST", "OPTIONS"])
-@app.route("/tag_value/<string:tag_value>/<int:status_code>", methods=["GET", "POST", "OPTIONS"])
-@app.get("/users")
-@app.route("/waf", methods=["GET", "POST", "OPTIONS"])
-@app.route("/waf/", methods=["GET", "POST", "OPTIONS"])
-@app.route("/waf/<path:url>", methods=["GET", "POST", "OPTIONS"])
-@app.get("/.git")
-def main(**kwargs):
-    return invoke_lambda_function()
+ROUTES = [
+    ("/", ["GET", "POST", "OPTIONS"]),
+    ("/finger_print", ["GET"]),
+    ("/headers", ["GET"]),
+    ("/healthcheck", ["GET"]),
+    ("/params/<path>/", ["GET", "POST", "OPTIONS"]),
+    ("/tag_value/<tag_value>/<status_code>", ["GET", "POST", "OPTIONS"]),
+    ("/users", ["GET"]),
+    ("/waf", ["GET", "POST", "OPTIONS"]),
+    ("/waf/", ["GET", "POST", "OPTIONS"]),
+    ("/waf/<path>", ["GET", "POST", "OPTIONS"]),
+    ("/.git", ["GET"]),
+]
+
+for endpoint, methods in ROUTES:
+    app.add_url_rule(
+        endpoint,
+        endpoint,
+        lambda **kwargs: invoke_lambda_function(),
+        methods=methods,
+    )
