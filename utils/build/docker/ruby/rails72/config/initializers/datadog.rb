@@ -6,6 +6,9 @@ Datadog.configure do |c|
   c.appsec.instrument :active_record
 end
 
+::OpenTelemetry::SDK.configure do |c|
+end
+
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
