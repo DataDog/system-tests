@@ -741,6 +741,8 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_Multiple_Actions: v2.10.1
+      Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
@@ -1024,7 +1026,7 @@ tests/:
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
-      Test_Stable_Config_Default: v3.11.0  # default value of log injection changed in v3.10.0
+      Test_Stable_Config_Default: v3.12.0.dev  # default value of log injection changed in v3.12.0
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
