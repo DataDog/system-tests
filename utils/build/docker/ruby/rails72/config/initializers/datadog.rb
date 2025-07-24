@@ -1,3 +1,6 @@
+require 'opentelemetry/sdk'
+require 'datadog/opentelemetry'
+
 Datadog.configure do |c|
   c.diagnostics.debug = true
   c.appsec.instrument :active_record
