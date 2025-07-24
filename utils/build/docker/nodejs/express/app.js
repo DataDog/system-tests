@@ -19,7 +19,7 @@ const axios = require('axios')
 const http = require('http')
 const fs = require('fs')
 const crypto = require('crypto')
-const pino = require('pino')
+const winston = require('winston')
 const api = require('@opentelemetry/api')
 
 const iast = require('./iast')
@@ -43,7 +43,15 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = console
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 iast.initData().catch(() => {})
 
@@ -324,6 +332,13 @@ app.get('/kafka/consume', (req, res) => {
 
 app.get('/log/library', (req, res) => {
   const msg = req.query.msg || 'msg'
+  const logger = (
+    req.query.structured === true ||
+    req.query.structured?.toString().toLowerCase() === 'true' ||
+    req.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (req.query.level) {
     case 'warn':
       logger.warn(msg)

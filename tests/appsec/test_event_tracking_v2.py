@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant, bug
+from utils import weblog, interfaces, features, scenarios, irrelevant
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 
@@ -117,6 +117,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
+    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_multi_type_metadata(self):
         # Call the user login success SDK and validate tags
 
@@ -164,6 +165,7 @@ class BaseUserLoginSuccessEventV2Tags:
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
+    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_success_event_deep_metadata(self):
         # Call the user login success SDK with deep metadata and validate tags
 
@@ -201,7 +203,6 @@ class BaseUserLoginSuccessEventV2HeaderCollection(ABC):
 
         self.r = weblog.post("/user_login_success_event_v2", json=data, headers=HEADERS)
 
-    @bug(library="golang", reason="LANGPLAT-583")
     @abstractmethod
     def test_user_login_success_header_collection(self):
         raise AssertionError("Not implemented")
@@ -425,6 +426,7 @@ class BaseUserLoginFailureEventV2Tags:
     @irrelevant(library="golang", reason="dd-trace-go only accepts string metadata values")
     @irrelevant(library="java", reason="dd-trace-java only accepts string metadata values")
     @irrelevant(library="dotnet", reason="dd-trace-dotnet only accepts string metadata values")
+    @irrelevant(library="php", reason="dd-trace-php only accepts string metadata values")
     def test_user_login_failure_event_deep_metadata(self):
         # Call the user login failure SDK with deep metadata and validate tags
 
@@ -462,7 +464,6 @@ class BaseUserLoginFailureEventV2HeaderCollection(ABC):
 
         self.r = weblog.post("/user_login_failure_event_v2", json=data, headers=HEADERS)
 
-    @bug(library="golang", reason="LANGPLAT-583")
     @abstractmethod
     def test_user_login_failure_header_collection(self):
         raise AssertionError("Not implemented")

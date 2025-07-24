@@ -105,11 +105,19 @@ class Test_Defaults:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        # DSM is enabled by default in .NET, but not in other languages
+        # see https://github.com/DataDog/dd-trace-dotnet/pull/7244 for more details
+        if context.library >= "dotnet@3.22.0":
+            data_streams_enabled = ("true", True)
+        else:
+            data_streams_enabled = ("false", False)
+
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
@@ -118,7 +126,7 @@ class Test_Defaults:
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
-            ("data_streams_enabled", ("false", False)),
+            ("data_streams_enabled", data_streams_enabled),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
@@ -140,7 +148,9 @@ class Test_Defaults:
             cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
             assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+                assert (
+                    cfg_item.get("value") in value
+                ), f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}')"
             else:
                 assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"

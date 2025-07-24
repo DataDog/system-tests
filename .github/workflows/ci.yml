@@ -92,6 +92,7 @@ jobs:
       desired_execution_time: ${{ needs.impacted_libraries.outputs.desired_execution_time }}
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
+      artifact_retention_days: 3
 
   system_tests_docker_mode:
     name: Ruby Docker Mode

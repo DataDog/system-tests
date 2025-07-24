@@ -389,6 +389,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def structured_log_injection(test_object):
+        """DD_LOGS_INJECTION
+
+        https://feature-parity.us1.prod.dog/#/?feature=42
+        """
+        pytest.mark.features(feature_id=42)(test_object)
+        return test_object
+
+    @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
         """Report tracer drop rate (_dd.tracer_kr)
 
@@ -2688,6 +2697,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=474
         """
         pytest.mark.features(feature_id=474)(test_object)
+        return test_object
+
+    @staticmethod
+    def unstructured_log_injection(test_object):
+        """DD_LOGS_INJECTION_ALL
+
+        https://feature-parity.us1.prod.dog/#/?feature=477
+        """
+        pytest.mark.features(feature_id=477)(test_object)
         return test_object
 
     @staticmethod

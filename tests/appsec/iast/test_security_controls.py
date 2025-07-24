@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, features, rfc, weblog, interfaces, irrelevant
+from utils import features, rfc, weblog, interfaces, irrelevant
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
 
 
@@ -18,9 +18,10 @@ class TestSecurityControls:
             if "_dd.iast.json" in meta:
                 product_enabled = True
                 break
+
             # Check if the product is enabled in meta_struct
-            meta_struct = span["meta_struct"]
-            if meta_struct and meta_struct.get("vulnerability"):
+            meta_struct = span.get("meta_struct", {})
+            if meta_struct and meta_struct.get("iast", {}).get("vulnerabilities"):
                 product_enabled = True
                 break
 
@@ -140,7 +141,8 @@ class TestSecurityControls:
         self.setup_iast_is_enabled()
         self.r = weblog.post("iast/sc/s/overloaded/insecure", data={"param": "param"})
 
-    @irrelevant(context.library == "nodejs", reason="no overloaded methods with different signatures in js")
+    @irrelevant(library="nodejs", reason="no overloaded methods with different signatures in js")
+    @irrelevant(library="python", reason="no overloaded methods with different signatures in python")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_an_overloaded_method_with_specific_signature(
         self,
     ):

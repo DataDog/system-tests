@@ -600,7 +600,10 @@
                     "RedHat_9_0_amd64",
                     "RedHat_9_0_arm64",
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Amazon_Linux_2_arm64",
+                    "RedHat_8_6_arm64",
+                    "Rocky_Linux_8_arm64"
                 ]
             },
             {

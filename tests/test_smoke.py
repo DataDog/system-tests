@@ -14,8 +14,15 @@ class Test_Backend:
         """Agent reads and use DD_SITE env var"""
         expected_domain: str = context.dd_site
 
-        # temporary skip, waiting for more details from agent team
-        ignored_hosts = ("apt.datadoghq.com", "install.datadoghq.com", "yum.datadoghq.com", "keys.datadoghq.com")
+        # agent performs some requests to perform a connectivity check
+        # those requests use those 4 domains, regardless the value of DD_SITE
+        # https://docs.datadoghq.com/agent/configuration/network/?site=us5
+        connectivity_check_hosts = (
+            "apt.datadoghq.com",
+            "install.datadoghq.com",
+            "yum.datadoghq.com",
+            "keys.datadoghq.com",
+        )
 
         # if DD_SITE is set to a known datadog backend, then the agent adds a tailing '.' at the end
         # to make it a FQDN, and save useless DNS requests. See https://github.com/DataDog/datadog-agent/pull/36972
@@ -29,7 +36,7 @@ class Test_Backend:
 
             logger.debug(f"{data['log_filename']} host: {host}")
 
-            if not domain.endswith(expected_domain) and host not in ignored_hosts:
+            if not domain.endswith(expected_domain) and host not in connectivity_check_hosts:
                 raise ValueError(f"Message {data['log_filename']} uses domain {domain} instead of {expected_domain}")
 
 

@@ -1,0 +1,34 @@
+{
+    "scenario_matrix": [
+        {
+            "scenarios": ["K8S_INJECTOR_DEV_SINGLE_SERVICE", "K8S_INJECTOR_DISABLED"],
+            "weblogs": [
+                {
+                    "java": [
+                        "dd-lib-java-init-test-app"
+                    ],
+                    "dotnet": [
+                        "dd-lib-dotnet-init-test-app"
+                    ],
+                    "nodejs": [
+                        "sample-app"
+                    ],
+                    "python": [
+                        "dd-lib-python-init-test-django",
+                        "dd-lib-python-init-test-django-gunicorn",
+                        "dd-lib-python-init-test-django-gunicorn-alpine",
+                        "dd-lib-python-init-test-django-unsupported-package-force",
+                        "dd-lib-python-init-test-django-uvicorn",
+                        "dd-lib-python-init-test-protobuf-old",
+                        "dd-lib-python-init-test-django-preinstalled"
+                    ],
+                    "ruby": [
+                        "dd-lib-ruby-init-test-rails",
+                        "dd-lib-ruby-init-test-rails-explicit",
+                        "dd-lib-ruby-init-test-rails-gemsrb"
+                    ]
+                }
+            ]
+        }
+    ]
+}

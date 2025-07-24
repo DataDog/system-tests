@@ -711,11 +711,13 @@ def get_ddtrace_version() -> Tuple[int, int, int]:
 def _global_sampling_rate():
     for rule in ddtrace.tracer._sampler.rules:
         if (
-            rule.service == SamplingRule.NO_RULE
-            and rule.name == SamplingRule.NO_RULE
-            and rule.resource == SamplingRule.NO_RULE
-            and rule.tags == SamplingRule.NO_RULE
-            and rule.provenance == "default"
+            # Note: SamplingRule.NO_RULE was removed in ddtrace v3.12.0
+            # but we keep it here for compatibility with older versions
+            rule.service == getattr(SamplingRule, "NO_RULE", None)
+            and rule.name == getattr(SamplingRule, "NO_RULE", None)
+            and rule.resource == getattr(SamplingRule, "NO_RULE", None)
+            and rule.tags == getattr(SamplingRule, "NO_RULE", {})
+            and rule.provenance in ("default", None)
         ):
             return rule.sample_rate
     return 1.0

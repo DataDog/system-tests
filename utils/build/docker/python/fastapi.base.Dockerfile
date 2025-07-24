@@ -7,7 +7,8 @@ RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
 RUN python --version && curl --version
 
 # install python deps
-RUN pip install fastapi uvicorn cryptography==42.0.8 pycryptodome python-multipart jinja2
+RUN pip install --upgrade pip
+RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg2-binary itsdangerous xmltodict==0.14.2
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y

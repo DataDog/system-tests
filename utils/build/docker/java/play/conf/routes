@@ -42,3 +42,7 @@ GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseH
 GET     /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.getSamplingByRouteMethodCount(id: String)
 POST    /iast/sampling-by-route-method-count/:id    controllers.IastSamplingController.postSamplingByRouteMethodCount(id: String)
 GET     /iast/sampling-by-route-method-count-2/:id  controllers.IastSamplingController.getSamplingByRouteMethodCount2(id: String)
+
+# IAST Source endpoints
+GET     /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterGet
+POST    /iast/source/parameter/test                 controllers.IastSourceController.sourceParameterPost

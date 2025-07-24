@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
-from utils.onboarding.debug_vm import extract_logs_to_file
+from utils.onboarding.debug_vm import download_vm_logs
 from utils.virtual_machine.utils import get_tested_apps_vms
 from utils.virtual_machine.virtual_machines import _VirtualMachine, load_virtual_machines
 from .core import Scenario
@@ -154,8 +154,11 @@ class _VirtualMachineScenario(Scenario):
     def close_targets(self):
         if self.is_main_worker:
             # Extract logs from the VM before destroy
-            if self.virtual_machine.get_vm_logs() is not None:
-                extract_logs_to_file(self.virtual_machine.get_vm_logs(), self.host_log_folder)
+            download_vm_logs(
+                vm=self.virtual_machine,
+                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog"],
+                local_base_logs_folder=self.host_log_folder,
+            )
             logger.info("Destroying virtual machines")
             self.vm_provider.stack_destroy()
 

@@ -18,7 +18,8 @@ RUN apt-get update \
 RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
 #pip install driver pymysql and pyodbc(mssql)
-RUN pip install pymysql==1.1.1 cryptography==42.0.8 pyodbc==5.1.0 'moto[ec2,s3,all]'==5.0.14
+RUN pip install --upgrade pip
+RUN pip install pymysql==1.1.1 cryptography==42.0.8 pyodbc==5.1.0 'moto[ec2,s3,all]'==5.0.14 xmltodict==0.14.2
 
 # install python deps
 # Tracer does not support flask 2.3.0 or higher, pin the flask version for now

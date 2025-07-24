@@ -2,7 +2,12 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import context, missing_feature, flaky, features, weblog, rfc
-from tests.appsec.iast.utils import BaseSinkTest, validate_extended_location_data, validate_stack_traces
+from tests.appsec.iast.utils import (
+    BaseSinkTest,
+    validate_extended_location_data,
+    validate_stack_traces,
+    get_nodejs_iast_file_paths,
+)
 
 
 @features.weak_cipher_detection
@@ -16,7 +21,7 @@ class TestWeakCipher(BaseSinkTest):
     data = None
     location_map = {
         "java": "com.datadoghq.system_tests.iast.utils.CryptoExamples",
-        "nodejs": {"express4": "iast/index.js", "express4-typescript": "iast.ts", "express5": "iast/index.js"},
+        "nodejs": get_nodejs_iast_file_paths(),
     }
     evidence_map = {"nodejs": "des-ede-cbc", "java": "Blowfish"}
 

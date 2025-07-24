@@ -37,7 +37,14 @@ _iast_security_controls_map = {
         "INPUT_VALIDATOR:*:dist/utils/securityControlUtil.js:overloadedValidation:1,2"
     ),
     "php": "TODO",
-    "python": "TODO",
+    "python": (
+        "SANITIZER:COMMAND_INJECTION:app:_sc_s_validate;"
+        "SANITIZER:*:app:_sc_s_validate_for_all;"
+        "SANITIZER:*:app:_sc_s_overloaded:0;"
+        "INPUT_VALIDATOR:COMMAND_INJECTION:app:_sc_v_validate;"
+        "INPUT_VALIDATOR:*:app:_sc_v_validate_for_all;"
+        "INPUT_VALIDATOR:*:app:_sc_v_overloaded:1,2"
+    ),
     "ruby": "TODO",
 }
 
