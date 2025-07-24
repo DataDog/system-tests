@@ -409,6 +409,7 @@ class BaseAsmStandaloneUpstreamPropagation(ABC):
                 },
             )
 
+    @missing_feature(library="python", reason="APPSEC-57830")
     def test_upstream_appsec_propagation__no_asm_event__is_propagated_as_is__being_0(self):
         self.assert_product_is_enabled(self.check_r, self.tested_product)
         spans_checked = 0
