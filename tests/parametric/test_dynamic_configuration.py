@@ -224,6 +224,10 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
         Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+        Capabilities.APM_TRACING_ENABLE_DYNAMIC_INSTRUMENTATION,
+        Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
+        Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
+        Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
     },
     "cpp": {
         Capabilities.APM_TRACING_SAMPLE_RATE,
