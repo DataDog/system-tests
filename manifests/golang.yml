@@ -470,6 +470,8 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
+      Test_Multiple_Actions: v1.69.0
+      Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule:
