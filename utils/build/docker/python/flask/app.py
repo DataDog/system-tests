@@ -1,14 +1,3 @@
-import os
-
-if os.environ.get("UWSGI_ENABLED", "false") == "false":
-    # Patch with gevent but not for uwsgi-poc
-    import ddtrace.auto  # noqa: E402
-    import gevent  # noqa: E402
-    from gevent import monkey  # noqa: E402
-
-    monkey.patch_all(thread=True)  # noqa: E402
-
-
 import base64
 import http.client
 import json
@@ -28,7 +17,6 @@ import mock
 import urllib3
 import xmltodict
 import graphene
-import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
