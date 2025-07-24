@@ -434,6 +434,7 @@ class _Scenarios:
             "DD_IAST_REQUEST_SAMPLING": "100",
             "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
             "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+            "_DD_IAST_PROPAGATION_ENABLED": "false",
         },
         doc="Source code vulnerability standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
