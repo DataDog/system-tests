@@ -1,3 +1,4 @@
+import ddtrace.auto  # noqa: F401  # isort: skip
 import base64
 import http.client
 import json
@@ -77,7 +78,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -149,7 +149,6 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
 def main():
     # IAST Flask patch
-    ddtrace_iast_flask_patch()
     app = Flask(__name__)
     app.secret_key = "SECRET_FOR_TEST"
     app.config["SESSION_TYPE"] = "memcached"
