@@ -4,8 +4,6 @@ WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN python3.11 -m pip install --upgrade pip
-RUN python3.11 -m pip install PyYAML uvicorn requests psycopg2-binary python-multipart itsdangerous xmltodict
 
 COPY utils/build/docker/python/fastapi/app.sh /app/app.sh
 COPY utils/build/docker/python/fastapi/main.py /app/main.py
