@@ -5,10 +5,10 @@ WORKDIR /app
 
 ENV DD_TRACE_HEADER_TAGS="user-agent"
 
-COPY utils/build/docker/ruby/sinatra14/Gemfile* ./
+COPY utils/build/docker/ruby/sinatra41/Gemfile* ./
 RUN bundle install
 
-COPY utils/build/docker/ruby/sinatra14/ .
+COPY utils/build/docker/ruby/sinatra41/ .
 
 COPY utils/build/docker/ruby/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

@@ -1,4 +1,3 @@
-require 'pry'
 require 'sinatra'
 require 'net/http'
 require 'uri'
