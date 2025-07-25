@@ -16,7 +16,24 @@ sudo systemctl start docker # Start docker service if it's not started
 sudo rm -rf system-tests || true
 
 #The parameter RUNTIME is used only for dotnet
-sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .
+# Retry docker build up to 3 times
+retry_count=0
+max_retries=3
+while [ $retry_count -lt $max_retries ]; do
+    if sudo docker build --no-cache --build-arg RUNTIME="bullseye-slim" -t system-tests/local .; then
+        echo "Docker build succeeded on attempt $((retry_count + 1))"
+        break
+    else
+        retry_count=$((retry_count + 1))
+        if [ $retry_count -lt $max_retries ]; then
+            echo "Docker build failed on attempt $retry_count, retrying... ($retry_count/$max_retries)"
+            sleep 5  # Wait 5 seconds before retrying
+        else
+            echo "Docker build failed after $max_retries attempts"
+            exit 1
+        fi
+    fi
+done
 
 if [ -f docker-compose-agent-prod.yml ]; then
     # Agent may be installed in a different way

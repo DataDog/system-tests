@@ -1,0 +1,9 @@
+  - description: "[k8s] Run k8s tests"
+    vars:
+      user_prompt: "how can i run the k8s tests?"
+    assert:
+        - type: icontains-all
+          value:
+            - "K8s Library Injection Tests"
+            - "K8s Injector Dev Tests"
+            - "aws ecr get-login-password"

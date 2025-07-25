@@ -11,6 +11,7 @@ from utils.k8s_lib_injection.k8s_command_utils import (
 )
 from utils.k8s_lib_injection.k8s_logger import k8s_logger
 from retry import retry
+from utils.k8s_lib_injection.k8s_cluster_provider import PrivateRegistryConfig
 
 
 class K8sDatadog:
@@ -132,6 +133,8 @@ class K8sDatadog:
             image_ref, tag = split_docker_image(self.dd_cluster_img)
             self.dd_cluster_feature["clusterAgent.image.tag"] = tag
             self.dd_cluster_feature["clusterAgent.image.repository"] = image_ref
+            if PrivateRegistryConfig.is_configured():
+                self.dd_cluster_feature["clusterAgent.image.pullSecrets[0].name"] = "private-registry-secret"
 
         helm_install_chart(
             host_log_folder,
@@ -340,8 +343,11 @@ def add_cluster_agent_img_operator_yaml(image_tag, output_directory):
     # Override the operator spec for cluster image
     yaml_data["spec"]["override"] = {}
     yaml_data["spec"]["override"]["clusterAgent"] = {}
-    yaml_data["spec"]["override"]["clusterAgent"]["image"] = {"name": image_tag}
+    cluster_agent_image_spec = {"name": image_tag}
+    if PrivateRegistryConfig.is_configured():
+        cluster_agent_image_spec["pullSecrets"] = [{"name": "private-registry-secret"}]
 
+    yaml_data["spec"]["override"]["clusterAgent"]["image"] = cluster_agent_image_spec
     # Construct the output file path (the folder should already exist)
     output_file = os.path.join(output_directory, Path(operator_template).name)
 

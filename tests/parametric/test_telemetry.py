@@ -27,12 +27,14 @@ telemetry_name_mapping = {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
         "nodejs": "DD_TRACE_SAMPLE_RATE",
         "python": "DD_TRACE_SAMPLE_RATE",
+        "ruby": "DD_TRACE_SAMPLE_RATE",
     },
     "logs_injection_enabled": {
         "dotnet": "DD_LOGS_INJECTION",
         "nodejs": "DD_LOG_INJECTION",  # TODO: rename to DD_LOGS_INJECTION in subsequent PR
         "python": "DD_LOGS_INJECTION",
         "php": "trace.logs_enabled",
+        "ruby": "tracing.log_injection",
     },
     "trace_header_tags": {
         "dotnet": "DD_TRACE_HEADER_TAGS",
@@ -40,13 +42,24 @@ telemetry_name_mapping = {
         "python": "DD_TRACE_HEADER_TAGS",
     },
     "trace_tags": {"dotnet": "DD_TAGS", "nodejs": "DD_TAGS", "python": "DD_TAGS"},
-    "trace_enabled": {"dotnet": "DD_TRACE_ENABLED", "nodejs": "tracing", "python": "DD_TRACE_ENABLED"},
+    "trace_enabled": {
+        "dotnet": "DD_TRACE_ENABLED",
+        "nodejs": "tracing",
+        "python": "DD_TRACE_ENABLED",
+        "ruby": "tracing.enabled",
+    },
     "profiling_enabled": {
         "dotnet": "DD_PROFILING_ENABLED",
         "nodejs": "profiling.enabled",
         "python": "DD_PROFILING_ENABLED",
+        "ruby": "profiling.enabled",
     },
-    "appsec_enabled": {"dotnet": "DD_APPSEC_ENABLED", "nodejs": "appsec.enabled", "python": "DD_APPSEC_ENABLED"},
+    "appsec_enabled": {
+        "dotnet": "DD_APPSEC_ENABLED",
+        "nodejs": "appsec.enabled",
+        "python": "DD_APPSEC_ENABLED",
+        "ruby": "appsec.enabled",
+    },
     "data_streams_enabled": {
         "dotnet": "DD_DATA_STREAMS_ENABLED",
         "nodejs": "dsmEnabled",
@@ -56,12 +69,14 @@ telemetry_name_mapping = {
         "dotnet": "DD_RUNTIME_METRICS_ENABLED",
         "nodejs": "runtime.metrics.enabled",
         "python": "DD_RUNTIME_METRICS_ENABLED",
+        "ruby": "runtime_metrics_enabled",
     },
     "dynamic_instrumentation_enabled": {
         "dotnet": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "nodejs": "dynamicInstrumentation.enabled",
         "python": "DD_DYNAMIC_INSTRUMENTATION_ENABLED",
         "php": "dynamic_instrumentation.enabled",
+        "ruby": "dynamic_instrumentation.enabled",
     },
 }
 
@@ -90,11 +105,19 @@ class Test_Defaults:
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Reports configurations with unexpected names")
+    @missing_feature(context.library >= "dotnet@3.22.0", reason="Disabled for migration, will be re-enabled shortly")
     def test_library_settings(self, library_env, test_agent, test_library):
         with test_library.dd_start_span("test"):
             pass
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        # DSM is enabled by default in .NET, but not in other languages
+        # see https://github.com/DataDog/dd-trace-dotnet/pull/7244 for more details
+        if context.library >= "dotnet@3.22.0":
+            data_streams_enabled = ("true", True)
+        else:
+            data_streams_enabled = ("false", False)
+
         for apm_telemetry_name, value in [
             ("trace_sample_rate", (1.0, None, "1.0")),
             ("logs_injection_enabled", ("false", False, "true", True, "structured")),
@@ -103,7 +126,7 @@ class Test_Defaults:
             ("trace_enabled", ("true", True)),
             ("profiling_enabled", ("false", False, None)),
             ("appsec_enabled", ("false", False, "inactive", None)),
-            ("data_streams_enabled", ("false", False)),
+            ("data_streams_enabled", data_streams_enabled),
         ]:
             # The Go tracer does not support logs injection.
             if context.library == "golang" and apm_telemetry_name in ("logs_injection_enabled",):
@@ -125,7 +148,9 @@ class Test_Defaults:
             cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
             assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(value, tuple):
-                assert cfg_item.get("value") in value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
+                assert (
+                    cfg_item.get("value") in value
+                ), f"Unexpected value for '{mapped_apm_telemetry_name}' ('{context.library}')"
             else:
                 assert cfg_item.get("value") == value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
             assert cfg_item.get("origin") == "default", f"Unexpected origin for '{mapped_apm_telemetry_name}'"

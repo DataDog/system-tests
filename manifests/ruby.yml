@@ -8,9 +8,18 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: missing_feature
-        Test_API_Security_RC_ASM_DD_scanners: missing_feature
-      test_apisec_sampling.py: missing_feature
+        Test_API_Security_RC_ASM_DD_processors: v2.17.1-dev
+        Test_API_Security_RC_ASM_DD_scanners: v2.17.1-dev
+      test_apisec_sampling.py:
+        Test_API_Security_Sampling_Different_Endpoints: v2.17.1-dev
+        Test_API_Security_Sampling_Different_Paths:
+          "*": v2.17.1-dev
+          rack: irrelevant (rack does not have path parameters support)
+        Test_API_Security_Sampling_Different_Status:
+          "*": v2.17.1-dev
+          rack: irrelevant (rack does not have path parameters support)
+        Test_API_Security_Sampling_Rate: irrelevant
+        Test_API_Security_Sampling_With_Delay: v2.17.1-dev
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v1.15.0
@@ -19,7 +28,7 @@ tests/:
         Test_Schema_Request_Json_Body: v1.15.0
         Test_Schema_Request_Path_Parameters:
           "*": v1.15.0
-          rack: missing_feature (rack does not have path parameters support)
+          rack: irrelevant (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: missing_feature
@@ -364,7 +373,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v2.17.1-dev
       Test_AppSecStandalone_NotEnabled: v2.13.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -492,14 +501,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
       Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -551,8 +566,10 @@ tests/:
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
-      Test_BlockingActionChangesWithRemoteConfig: missing_feature
-      Test_UpdateRuleFileWithRemoteConfig: missing_feature
+      Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
+      Test_Multiple_Actions: missing_feature (the test relies on remote AppSec activation)
+      Test_Unknown_Action: missing_feature (the test relies on remote AppSec activation)
+      Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.15.0
     test_request_blocking.py:
@@ -733,7 +750,7 @@ tests/:
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v2.18.0
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
@@ -762,7 +779,8 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
     test_partial_flushing.py:  # Not configurable in a standard way
       Test_Partial_Flushing: missing_feature
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
     test_span_events.py:
@@ -773,7 +791,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v2.18.0
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v2.1.0
       Test_TelemetrySSIConfigs: missing_feature
@@ -830,19 +848,20 @@ tests/:
       "*": irrelevant (endpoint not implemented)
       rails70: v2.0.0
     Test_Config_IntegrationEnabled_True:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured:
       '*': irrelevant (endpoint not implemented)
       rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails70: v2.13.0-dev
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
@@ -879,6 +898,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8599)
     Test_HeaderTags_Whitespace_Val_Long: v1.13.0
     Test_HeaderTags_Whitespace_Val_Short: v1.13.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature

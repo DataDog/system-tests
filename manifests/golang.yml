@@ -425,14 +425,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.47.0
       Test_UserLoginSuccessEvent_Metrics: v2.1.0-dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
       Test_UserLoginFailureEventV2_Libddwaf: v2.1.0-dev
-      Test_UserLoginFailureEventV2_Metrics: v2.1.0-dev
-      Test_UserLoginFailureEventV2_Tags: v2.1.0-dev
-      Test_UserLoginSuccessEventV2_HeaderCollection: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v2.1.0-dev
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.2.0-dev  # LANGPLAT-583
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.2.0-dev  # LANGPLAT-583
       Test_UserLoginSuccessEventV2_Libddwaf: v2.1.0-dev
-      Test_UserLoginSuccessEventV2_Metrics: v2.1.0-dev
-      Test_UserLoginSuccessEventV2_Tags: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v2.1.0-dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.1.0-dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -464,6 +470,8 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
+      Test_Multiple_Actions: v1.69.0
+      Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
     test_reports.py:
       Test_ExtraTagsFromRule:
@@ -662,7 +670,7 @@ tests/:
       Test_Config_TraceEnabled: v1.67.0
       Test_Config_TraceLogDirectory: v1.70.0
       Test_Config_UnifiedServiceTagging: v1.72.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v2.1.0-dev.2
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigSamplingRules: v1.64.0
@@ -747,7 +755,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: irrelevant (not applicable to Go because of how they do auto instrumentation)
     Test_Config_LogInjection_128Bit_TraceId_Disabled: 2.1.0-dev
     Test_Config_LogInjection_128Bit_TraceId_Enabled: 2.1.0-dev
-    Test_Config_LogInjection_Default: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_LogInjection_Enabled: incomplete_test_app (weblog endpoint not implemented)
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.67.0
     Test_Config_ObfuscationQueryStringRegexp_Default: v1.67.0
@@ -790,6 +799,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.53.0
     Test_HeaderTags_Whitespace_Val_Long: v1.53.0
     Test_HeaderTags_Whitespace_Val_Short: v1.53.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_protobuf.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.72.1  # real version unknown

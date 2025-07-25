@@ -94,42 +94,21 @@ object AppSecRoutes {
         }
       } ~
       path("tag_value" / Segment / """\d{3}""".r) { (tag_value, status_code) =>
-        get {
-          parameter("content-language".?) { clo =>
-            setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
-
-            val resp = complete(
-              HttpResponse(
-                status = StatusCodes.custom(status_code.toInt, "some reason"),
-                entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
-              )
-            )
-
-            clo match {
-              case Some(cl) => respondWithHeaders(RawHeader("Content-Language", cl)) { resp }
-              case None => resp
-            }
+        (get | options) {
+          parameter("content-language".?, "X-option".?) { (clo, xOption) =>
+            handleTagValue(tag_value, status_code.toInt, clo, xOption, None)
           }
         } ~
-          post {
-            formFieldMap { _ =>
-              setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
-              complete(
-                HttpResponse(
-                  status = StatusCodes.custom(status_code.toInt, "some reason"),
-                  entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
-                )
-              )
-            } ~ (entity(as[JsonNode])) { _ =>
-              setRootSpanTag("appsec.events.system_tests_appsec_event.value", tag_value)
-              complete(
-                HttpResponse(
-                  status = StatusCodes.custom(status_code.toInt, "some reason"),
-                  entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
-                )
-              )
+        post {
+          parameter("content-language".?, "X-option".?) { (clo, xOption) =>
+            formFieldMultiMap { formFields =>
+              val formJson: JsonNode = objectMapper.valueToTree(formFields.asJava)
+              handleTagValue(tag_value, status_code.toInt, clo, xOption, Some(formJson))
+            } ~ entity(as[JsonNode]) { body =>
+              handleTagValue(tag_value, status_code.toInt, clo, xOption, Some(body))
             }
           }
+        }
       } ~
       path("api_security/sampling" / """\d{3}""".r) { (i) =>
         get {
@@ -195,6 +174,13 @@ object AppSecRoutes {
       path("status") {
         get {
           parameter("code".as[Int]) { code =>
+            complete(StatusCodes.custom(code, "whatever reason"))
+          }
+        }
+      } ~
+      path("stats-unique") {
+        get {
+          parameter("code".as[Int].withDefault(200)) { code =>
             complete(StatusCodes.custom(code, "whatever reason"))
           }
         }
@@ -354,5 +340,31 @@ object AppSecRoutes {
     h.put("metadata0", "value0")
     h.put("metadata1", "value1")
     h
+  }
+
+  private def handleTagValue(value: String, statusCode: Int, contentLanguage: Option[String], xOption: Option[String], body: Option[JsonNode]): Route = {
+    setRootSpanTag("appsec.events.system_tests_appsec_event.value", value)
+    var response = HttpResponse(status = statusCode)
+    response = contentLanguage match {
+      case Some(cl) => response.withHeaders(RawHeader("Content-Language", cl))
+      case None => response
+    }
+    response = xOption match {
+      case Some(option) => response.withHeaders(RawHeader("X-option", option))
+      case None => response
+    }
+    response = value match {
+      case s if s.startsWith("payload_in_response_body") => {
+        val responseBody = objectMapper.createObjectNode()
+        responseBody.set("body", body.get)
+        response.withEntity(
+          HttpEntity(ContentTypes.`application/json`, objectMapper.writeValueAsString(responseBody))
+        )
+      }
+      case _ => response.withEntity(
+        HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Value tagged")
+      )
+    }
+    complete(response)
   }
 }

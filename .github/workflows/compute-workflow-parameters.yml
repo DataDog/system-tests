@@ -22,6 +22,11 @@ on:
         description: "Comma-separated list of scenarios not to run"
         type: string
         default: ""
+      weblogs:
+        description: "Comma-separated list of weblogs to run. By default, all weblogs are run"
+        default: ''
+        required: false
+        type: string
       parametric_job_count:
         description: "*EXPERIMENTAL* : How many jobs should be used to run PARAMETRIC scenario"
         default: 1
@@ -29,9 +34,9 @@ on:
         type: number
       desired_execution_time:
         description: "In seconds, system-tests will try to respect this time budget."
-        default: -1
+        default: "-1"
         required: false
-        type: number
+        type: string
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -86,6 +91,9 @@ on:
       binaries_artifact:
         description: ""
         value: ${{ jobs.main.outputs.binaries_artifact }}
+      unique_id:
+        description: "A unique ID for the workflow run, used to set unique artifact names if the workflow is called in a matrix"
+        value: ${{ jobs.main.outputs.unique_id }}
 
 jobs:
   main:
@@ -105,12 +113,23 @@ jobs:
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
+      unique_id: ${{ steps.unique_id.outputs.value }}
     steps:
+    - name: Compute ref
+      id: compute_ref
+      run: |
+        if [[ "${{ inputs.ref }}" != "" ]]; then
+          echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
+        elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
+          echo "ref=" >> $GITHUB_OUTPUT
+        else
+          echo "ref=main" >> $GITHUB_OUTPUT
+        fi
     - name: Checkout
       uses: actions/checkout@v4
       with:
         repository: 'DataDog/system-tests'
-        ref: ${{ inputs.ref }}
+        ref: ${{ steps.compute_ref.outputs.ref }}
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: main
@@ -122,6 +141,7 @@ jobs:
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
@@ -134,6 +154,7 @@ jobs:
           -s "${{ inputs.scenarios }}" \
           -g "${{ inputs.scenarios_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
+          --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
           --explicit-binaries-artifact "${{ inputs.binaries_artifact }}" \
           --system-tests-dev-mode "${{ inputs._system_tests_dev_mode }}" \
@@ -155,3 +176,6 @@ jobs:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' }}
+    - name: Set unique ID
+      id: unique_id
+      run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT
