@@ -1025,19 +1025,6 @@ public class App {
         return "Loaded Dependency\n".concat(klass.toString());
     }
 
-    @RequestMapping("/read_file")
-    public ResponseEntity<String> readFile(@RequestParam String file) {
-        String content;
-        try {
-            content = new Scanner(new File(file)).useDelimiter("\\Z").next();
-        }
-        catch (FileNotFoundException ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
-        return new ResponseEntity<>(content, HttpStatus.OK);
-    }
-
     @RequestMapping("/db")
     String db_sql_integrations(@RequestParam(required = true, name="service") String service,
                          @RequestParam(required = true, name="operation") String operation)

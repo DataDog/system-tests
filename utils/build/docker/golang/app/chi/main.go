@@ -310,18 +310,6 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	mux.HandleFunc("/read_file", func(w http.ResponseWriter, r *http.Request) {
-		path := r.URL.Query().Get("file")
-		content, err := os.ReadFile(path)
-
-		if err != nil {
-			logrus.Fatalln(err)
-			w.WriteHeader(500)
-			return
-		}
-		w.Write([]byte(content))
-	})
-
 	mux.HandleFunc("/session/new", func(w http.ResponseWriter, r *http.Request) {
 		sessionID := strconv.Itoa(rand.Int())
 		w.Header().Add("Set-Cookie", "session="+sessionID+"; Path=/; Max-Age=3600; Secure; HttpOnly")

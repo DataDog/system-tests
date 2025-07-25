@@ -375,14 +375,6 @@ async def rasp_cmdi(request: Request):
 ### END EXPLOIT PREVENTION
 
 
-@app.get("/read_file", response_class=PlainTextResponse)
-async def read_file(file: typing.Optional[str] = None):
-    if file is None:
-        return PlainTextResponse("Please provide a file parameter", status_code=400)
-    with open(file, "r") as f:
-        return f.read()
-
-
 @app.get("/headers")
 async def headers():
     return PlainTextResponse("OK", headers={"Content-Language": "en-US"})
