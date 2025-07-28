@@ -158,6 +158,11 @@ class BaseDebuggerTest:
                         ).lower()
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
+                    elif language == "golang":
+                        probe["where"]["typeName"] = "-"  # Ignored
+                        method = probe["where"]["methodName"]
+                        method = method[0].lower() + method[1:] if method else ""
+                        probe["where"]["methodName"] = "main." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
