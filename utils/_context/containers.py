@@ -1060,15 +1060,13 @@ class LambdaWeblogContainer(WeblogContainer):
             "DD_SITE": os.environ.get("DD_SITE", "datad0g.com"),
             "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
             "DD_SERVERLESS_FLUSH_STRATEGY": "periodically,100",
+            "DD_TRACE_MANAGED_SERVICES": "false",
         }
 
         volumes = volumes or {}
 
         environment["DD_PROXY_HTTPS"] = f"http://proxy:{ProxyPorts.agent}"
-        environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
-        environment["DD_APM_NON_LOCAL_TRAFFIC"] = (
-            "true"  # Required for the extension to receive traces from outside the container
-        )
+        environment["DD_LOG_LEVEL"] = "debug"
         volumes.update(
             {
                 "./utils/build/docker/agent/ca-certificates.crt": {
@@ -1076,10 +1074,10 @@ class LambdaWeblogContainer(WeblogContainer):
                     "mode": "ro",
                 },
                 "./utils/build/docker/agent/datadog.yaml": {
-                    "bind": "/etc/datadog-agent/datadog.yaml",
+                    "bind": "/var/task/datadog.yaml",
                     "mode": "ro",
                 },
-            },
+            }
         )
 
         super().__init__(

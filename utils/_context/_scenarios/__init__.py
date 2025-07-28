@@ -1,10 +1,10 @@
 import json
 
-from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
+from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
@@ -1083,6 +1083,22 @@ class _Scenarios:
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
         doc="Default Lambda scenario",
+        scenario_groups=[scenario_groups.appsec],
+    )
+    appsec_lambda_api_security = LambdaScenario(
+        "APPSEC_LAMBDA_API_SECURITY",
+        weblog_env={
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+        },
+        doc="""
+        Scenario for API Security feature in lambda, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
         scenario_groups=[scenario_groups.appsec],
     )
 
