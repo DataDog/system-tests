@@ -357,6 +357,7 @@ async fn flush_spans(State(state): State<AppState>) -> Json<FlushResult> {
 }
 
 async fn flush_stats(State(_): State<AppState>) -> StatusCode {
+    debug!("flush_stats: OK");
     StatusCode::OK
 }
 

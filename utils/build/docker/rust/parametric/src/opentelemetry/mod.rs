@@ -74,7 +74,7 @@ async fn start_span(
         // hack to prevent libdatadog from dropping trace chunks
         opentelemetry::KeyValue::new("_dd.top_level".to_string(), 1),
         // hack to fix some test_otel_span_methods.py with wrong resorce name
-        opentelemetry::KeyValue::new("datadog.resource".to_string(), args.name),
+        opentelemetry::KeyValue::new("resource.name".to_string(), args.name),
     ];
     attributes.append(&mut parse_attributes(args.attributes.as_ref()));
     builder = builder.with_attributes(attributes);
@@ -293,6 +293,11 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
     let result = state.tracer_provider.force_flush();
 
     state.contexts.lock().unwrap().clear();
+
+    debug!(
+        "otel_flush: all spans and contexts cleared ok: {}",
+        result.is_ok()
+    );
 
     Json(FlushResult {
         success: result.is_ok(),
