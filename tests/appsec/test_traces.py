@@ -68,15 +68,20 @@ class Test_AppSecEventSpanTags:
         weblog.get("/waf", params={"key": "\n :"})  # rules.http_protocol_violation.crs_921_160
         weblog.get("/waf", headers={"random-key": "acunetix-user-agreement"})  # rules.security_scanner.crs_913_110
 
-    @bug(library="python_lambda", reason="APPSEC-58201")
     def test_custom_span_tags(self):
         """AppSec should store in all APM spans some tags when enabled."""
 
         spans = [span for _, span in interfaces.library.get_root_spans()]
         assert spans, "No root spans to validate"
-        spans = [s for s in spans if s.get("type") == "web"]
-        assert spans, "No spans of type web to validate"
+        spans = [s for s in spans if s.get("type") in ("web", "serverless")]
+        assert spans, "No spans of type web or serverless to validate"
         for span in spans:
+            if span.get("type") == "serverless" and "_dd.appsec.unsupported_event_type" in span["metrics"]:
+                # For serverless, the `healthcheck` event is not supported
+                assert (
+                    span["metrics"]["_dd.appsec.unsupported_event_type"] == 1
+                ), "_dd.appsec.unsupported_event_type should be 1 or 1.0"
+                continue
             assert "_dd.appsec.enabled" in span["metrics"], "Cannot find _dd.appsec.enabled in span metrics"
             assert span["metrics"]["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
             assert "_dd.runtime_family" in span["meta"], "Cannot find _dd.runtime_family in span meta"
@@ -87,6 +92,7 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
+    @bug(library="python_lambda", reason="APPSEC-58202")
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
@@ -94,7 +100,7 @@ class Test_AppSecEventSpanTags:
         weblog_variant="fastify",
         reason="APPSEC-57432",  # Response headers collection not supported yet
     )
-    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
+    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.

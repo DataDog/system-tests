@@ -1,10 +1,10 @@
 import json
 
-from utils._context._scenarios.aws_lambda import LambdaScenario
 from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFIG_WILDCARD
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
+from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
