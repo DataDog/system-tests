@@ -14,7 +14,7 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
-
+from typing import Never
 
 CONFIG_ENABLED = (
     "datadog/2/ASM_FEATURES/asm_features_activation/config",
@@ -516,6 +516,38 @@ class Test_Multiple_Actions:
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 406
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
+
+
+EMPTY_FILE: tuple[str, dict[Never, Never]] = (
+    "datadog/2/ASM_DATA-base/ASM_DATA-base/config",
+    {},
+)
+
+
+@scenarios.appsec_runtime_activation
+class Test_Empty_File:
+    def setup_empty_file(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*EMPTY_FILE).apply()
+        self.response_2 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    def test_empty_file(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED  # empty file should not be sent to the WAF
+        interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
+        assert self.response_2.status_code == 403
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200

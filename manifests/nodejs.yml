@@ -1013,6 +1013,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
+      Test_Empty_File: missing_feature
       Test_Multiple_Actions: *ref_4_1_0
       Test_Unknown_Action: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0

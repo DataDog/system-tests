@@ -410,6 +410,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
+      Test_Empty_File: missing_feature
       Test_Multiple_Actions: v3.4.0
       Test_Unknown_Action: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
