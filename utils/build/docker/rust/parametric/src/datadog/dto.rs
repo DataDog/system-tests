@@ -152,6 +152,12 @@ impl StartSpanResult {
     }
 }
 
+// --- FlushResult ---
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FlushResult {
+    pub success: bool,
+}
+
 // Custom serialization: as [["key", "value"], ...]
 impl Serialize for KeyValue {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>

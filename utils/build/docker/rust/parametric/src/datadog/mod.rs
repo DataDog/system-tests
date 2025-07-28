@@ -2,7 +2,7 @@ mod dto;
 
 use axum::{
     extract::{Json, State},
-    http::{HeaderMap, HeaderName},
+    http::{HeaderMap, HeaderName, StatusCode},
     routing::{get, post},
     Router,
 };
@@ -29,6 +29,7 @@ pub fn app() -> Router<AppState> {
         .route("/span/inject_headers", post(inject_headers))
         .route("/span/extract_headers", post(extract_headers))
         .route("/span/flush", post(flush_spans))
+        .route("/stats/flush", post(flush_stats))
     // .route("/span/set_baggage", post(set_baggage))
     // .route("/span/get_baggage", get(get_baggage))
     // .route("/span/get_all_baggage", get(get_all_baggage))
@@ -336,7 +337,7 @@ async fn extract_headers(
     })
 }
 
-async fn flush_spans(State(state): State<AppState>) {
+async fn flush_spans(State(state): State<AppState>) -> Json<FlushResult> {
     let result = state.tracer_provider.force_flush();
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
@@ -349,6 +350,14 @@ async fn flush_spans(State(state): State<AppState>) {
         "flush_spans: all spans and contexts cleared ok: {}",
         result.is_ok()
     );
+
+    Json(FlushResult {
+        success: result.is_ok(),
+    })
+}
+
+async fn flush_stats(State(_): State<AppState>) -> StatusCode {
+    StatusCode::OK
 }
 
 /*

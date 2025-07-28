@@ -1,6 +1,9 @@
 use ::opentelemetry::global::{self, BoxedTracer};
 use anyhow::{Context, Result};
-use axum::{body::Body, extract::Request, Router};
+use axum::{
+    body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
+    Router,
+};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use serde::Deserialize;
 use serde_json::json;
@@ -24,8 +27,8 @@ use tower_http::trace::TraceLayer;
 use tracing::{error, field, info, info_span, Span};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
+mod datadog;
 mod opentelemetry;
-mod opentracing;
 
 pub(crate) fn get_tracer() -> &'static BoxedTracer {
     static TRACER: OnceLock<BoxedTracer> = OnceLock::new();
@@ -82,6 +85,7 @@ fn init_tracing() -> Result<SdkTracerProvider> {
     Ok(datadog_opentelemetry::init_datadog(
         builder.build(),
         SdkTracerProvider::builder(),
+        None,
     ))
 }
 
@@ -124,9 +128,20 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
     };
 
     let app = Router::new()
-        .nest("/trace", opentracing::app())
+        .nest("/trace", datadog::app())
         .nest("/trace/otel", opentelemetry::app())
-        .layer(ServiceBuilder::new().layer(TraceLayer::new_for_http().make_span_with(make_span)))
+        .layer(
+            ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(|err: BoxError| async move {
+                    log_error(&err);
+                    (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("Unhandled error: {err}"),
+                    )
+                }))
+                .layer(TraceLayer::new_for_http().make_span_with(make_span))
+                .timeout(Duration::from_secs(30)),
+        )
         .with_state(state);
 
     let listener = TcpListener::bind((addr, port))

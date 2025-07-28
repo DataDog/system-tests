@@ -662,7 +662,7 @@ def rust_library_factory() -> APMLibraryTestServer:
         container_name="rust-test-client",
         container_tag="rust-test-client",
         container_img=f"""
-FROM rust:1.82.0-slim-bookworm AS builder
+FROM rust:1.84.1-slim-bookworm AS builder
 WORKDIR /usr/app
 COPY {rust_reldir} .
 COPY {rust_reldir}/../install_ddtrace.sh ./binaries/ /binaries/
