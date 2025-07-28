@@ -58,6 +58,7 @@ print_usage() {
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
     echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
     echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
     echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
     echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
     echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
@@ -207,6 +208,7 @@ build() {
                 cd ..
             fi
 
+            # keep this name consistent with WeblogContainer.get_image_list()
             BINARIES_FILENAME=binaries/${TEST_LIBRARY}-${WEBLOG_VARIANT}-weblog.tar.gz
 
             if [ -f $BINARIES_FILENAME ]; then
@@ -216,11 +218,24 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
+                GITHUB_TOKEN_SECRET_ARG=()
+
+                if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
+                    if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
+                        echo "Error: GitHub token file not found at $GITHUB_TOKEN_FILE" >&2
+                        exit 1
+                    fi
+
+                    echo "Using GitHub token from $GITHUB_TOKEN_FILE"
+                    GITHUB_TOKEN_SECRET_ARG=(--secret id=github_token,src="$GITHUB_TOKEN_FILE")
+                fi
+
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
+                    "${GITHUB_TOKEN_SECRET_ARG[@]}" \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
@@ -269,6 +284,7 @@ while [[ "$#" -gt 0 ]]; do
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
         -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
+        --github-token-file) GITHUB_TOKEN_FILE="$2"; shift ;;
         --binary-url) BINARY_URL="$2"; shift ;;
         --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
@@ -291,6 +307,7 @@ BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
+GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
 
 if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"

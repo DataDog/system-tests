@@ -79,9 +79,11 @@ def _check_telemetry_response_from_agent():
 def get_all_iast_events() -> list:
     spans = [span[2] for span in interfaces.library.get_spans()]
     assert spans, "No spans found"
-    spans_meta = [span.get("meta") for span in spans]
-    assert spans_meta, "No spans meta found"
+    spans_meta = [span.get("meta") for span in spans if span.get("meta")]
+    spans_meta_struct = [span.get("meta_struct") for span in spans if span.get("meta_struct")]
+    assert spans_meta or spans_meta_struct, "No spans meta found"
     iast_events = [meta.get("_dd.iast.json") for meta in spans_meta if meta.get("_dd.iast.json")]
+    iast_events += [metastruct.get("iast") for metastruct in spans_meta_struct if metastruct.get("iast")]
     assert iast_events, "No iast events found"
 
     return iast_events
@@ -183,7 +185,7 @@ class BaseSinkTestWithoutTelemetry:
         assert request.status_code == 200, f"Request failed with status code {request.status_code}"
 
         meta, meta_struct = _get_span_meta(request=request)
-        iast_json = meta.get("_dd.iast.json") if meta else meta_struct.get("iast")
+        iast_json = (meta or {}).get("_dd.iast.json", (meta_struct or {}).get("iast"))
         if iast_json is not None:
             if tested_vulnerability_type is None:
                 logger.error(json.dumps(iast_json, indent=2))
@@ -288,7 +290,7 @@ def validate_extended_location_data(
     request: HttpResponse, vulnerability_type: str | None, *, is_expected_location_required: bool = True
 ) -> None:
     span = interfaces.library.get_root_span(request)
-    iast = span.get("meta", {}).get("_dd.iast.json")
+    iast = span.get("meta", {}).get("_dd.iast.json") or span.get("meta_struct", {}).get("iast")
     assert iast, f"Expected at least one vulnerability in span {span.get('span_id')}"
     assert iast["vulnerabilities"], f"Expected at least one vulnerability: {iast['vulnerabilities']}"
 
@@ -615,3 +617,13 @@ class BaseTestCookieNameFilter:
         meta, meta_struct = _get_span_meta(self.req3)
         assert "_dd.iast.json" not in meta, "No IAST info expected in span"
         assert "iast" not in meta_struct, "No IAST info expected in span"
+
+
+def get_nodejs_iast_file_paths() -> dict[str, str]:
+    return {
+        "express4": "iast/index.js",
+        "express4-typescript": "iast.ts",
+        "express5": "iast/index.js",
+        "fastify": "iast/index.js",
+        "uds-express4": "iast/index.js",
+    }

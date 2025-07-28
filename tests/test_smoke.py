@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 import re
-from utils import context, weblog, interfaces, features, missing_feature
+from utils import context, weblog, interfaces, features, missing_feature, logger
 
 
 @features.unix_domain_sockets_support_for_traces
@@ -14,6 +14,16 @@ class Test_Backend:
         """Agent reads and use DD_SITE env var"""
         expected_domain: str = context.dd_site
 
+        # agent performs some requests to perform a connectivity check
+        # those requests use those 4 domains, regardless the value of DD_SITE
+        # https://docs.datadoghq.com/agent/configuration/network/?site=us5
+        connectivity_check_hosts = (
+            "apt.datadoghq.com",
+            "install.datadoghq.com",
+            "yum.datadoghq.com",
+            "keys.datadoghq.com",
+        )
+
         # if DD_SITE is set to a known datadog backend, then the agent adds a tailing '.' at the end
         # to make it a FQDN, and save useless DNS requests. See https://github.com/DataDog/datadog-agent/pull/36972
 
@@ -21,10 +31,13 @@ class Test_Backend:
             expected_domain = expected_domain + "."
 
         for data in interfaces.agent.get_data():
-            domain: str = data["host"][-len(expected_domain) :]
+            host: str = data["host"]
+            domain: str = host[-len(expected_domain) :]
 
-            if not domain.endswith(expected_domain):
-                raise ValueError(f"Message #{data['log_filename']} uses host {domain} instead of {expected_domain}")
+            logger.debug(f"{data['log_filename']} host: {host}")
+
+            if not domain.endswith(expected_domain) and host not in connectivity_check_hosts:
+                raise ValueError(f"Message {data['log_filename']} uses domain {domain} instead of {expected_domain}")
 
 
 @features.unix_domain_sockets_support_for_traces

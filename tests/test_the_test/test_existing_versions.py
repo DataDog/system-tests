@@ -14,7 +14,10 @@ from manifests.parser.core import load as load_manifests
         # ("cpp", "dd-trace-cpp"),
         # ("cpp_httpd", "httpd-datadog"),
         # ("cpp_nginx", "nginx-datadog"),
-        # ("dotnet", "dd-trace-dotnet"),  # GH releases
+        # dd-trace-dotnet: GH releases.
+        # But this repo use production versions, for their master branch and they are used to declare production
+        # versions in manifest, so we cannot really yet activate the safe guard
+        # ("dotnet", "dd-trace-dotnet"),
         # ("golang", "dd-trace-go"),  # GH releases
         ("java", "dd-trace-java"),  # GH releases
         # ("nodejs", "dd-trace-js"),
@@ -63,7 +66,7 @@ def test_existing_version(component: str, github_repo: str):
 def all_declared_exist(declared: list[Version], existing: list[Version]) -> bool:
     d = e = 0
 
-    found = True
+    contains_error = True
 
     while d < len(declared) and e < len(existing):
         if declared[d].prerelease or declared[d].build:
@@ -80,22 +83,24 @@ def all_declared_exist(declared: list[Version], existing: list[Version]) -> bool
             e += 1
         else:  # declared[i] < existing[j]
             logger.error(f"Found declared version {declared[d]} that does not exists")
-            found = False
+            contains_error = False
             d += 1
 
     # most common error: declare a version higher than the highest existing version
     while d < len(declared):
-        logger.error(f"Found declared version {declared[d]} that does not exists")
-        found = False
+        if not declared[d].prerelease and not declared[d].build:
+            logger.error(f"Found declared version {declared[d]} that does not exists")
+            contains_error = False
         d += 1
 
-    return found
+    return contains_error
 
 
 def get_github_releases(owner, repo) -> list[Version]:
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     headers = {}
     if "GITHUB_TOKEN" in os.environ:
+        logger.debug("Using GITHUB_TOKEN for GitHub API authentication")
         headers["Authorization"] = f"token {os.environ['GITHUB_TOKEN']}"
 
     versions = []

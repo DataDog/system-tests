@@ -389,6 +389,15 @@ class _Features:
         return test_object
 
     @staticmethod
+    def structured_log_injection(test_object):
+        """DD_LOGS_INJECTION
+
+        https://feature-parity.us1.prod.dog/#/?feature=42
+        """
+        pytest.mark.features(feature_id=42)(test_object)
+        return test_object
+
+    @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
         """Report tracer drop rate (_dd.tracer_kr)
 
@@ -2688,6 +2697,51 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=474
         """
         pytest.mark.features(feature_id=474)(test_object)
+        return test_object
+
+    @staticmethod
+    def unstructured_log_injection(test_object):
+        """DD_LOGS_INJECTION_ALL
+
+        https://feature-parity.us1.prod.dog/#/?feature=477
+        """
+        pytest.mark.features(feature_id=477)(test_object)
+        return test_object
+
+    @staticmethod
+    def auto_instrumentation_appsec(test_object):
+        """Appsec works when manually enabled with library injection in Host environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=478
+        """
+        pytest.mark.features(feature_id=478)(test_object)
+        return test_object
+
+    @staticmethod
+    def host_auto_installation_script_appsec(test_object):
+        """Appsec works when enabled through the agent installer script in Host environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=479
+        """
+        pytest.mark.features(feature_id=479)(test_object)
+        return test_object
+
+    @staticmethod
+    def container_auto_installation_script_appsec(test_object):
+        """Appsec works when enabled through the agent installer script in Container environments
+
+        https://feature-parity.us1.prod.dog/#/?feature=480
+        """
+        pytest.mark.features(feature_id=480)(test_object)
+        return test_object
+
+    @staticmethod
+    def ssi_injection_metadata(test_object):
+        """Appsec supports trace-tagging rules
+
+        https://feature-parity.us1.prod.dog/#/?feature=481
+        """
+        pytest.mark.features(feature_id=481)(test_object)
         return test_object
 
 

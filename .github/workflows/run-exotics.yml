@@ -36,8 +36,6 @@ jobs:
     - name: Install runner
       uses: ./.github/actions/install_runner
     - name: Build
-      run: |
-        ./build.sh -i agent
-        ./build.sh golang -i weblog
+      run: ./build.sh golang -i weblog
     - name: Run
       run: ./tests/fuzzer/run.sh

@@ -178,6 +178,13 @@ object AppSecRoutes {
           }
         }
       } ~
+      path("stats-unique") {
+        get {
+          parameter("code".as[Int].withDefault(200)) { code =>
+            complete(StatusCodes.custom(code, "whatever reason"))
+          }
+        }
+      } ~
       path("users") {
         get {
           parameter("user") { user =>

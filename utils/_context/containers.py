@@ -874,7 +874,14 @@ class WeblogContainer(TestedContainer):
         return result
 
     def get_image_list(self, library: str | None, weblog: str | None) -> list[str]:
-        """Parse the Dockerfile and extract all images reference in a FROM section"""
+        """Returns images needed to build the weblog"""
+
+        # If an image is saved as a file in binaries, we don't need any image
+        filename = f"binaries/{library}-{weblog}-weblog.tar.gz"
+        if Path(filename).is_file():
+            return []
+
+        # else, parse the Dockerfile and extract all images reference in a FROM section"""
         result: list[str] = []
 
         if not library or not weblog:

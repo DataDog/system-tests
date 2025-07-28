@@ -250,8 +250,10 @@ class ParametricScenario(Scenario):
             env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
-            # python tracer takes more than 5mn to build
-            timeout = default_subprocess_run_timeout if apm_test_server_definition.lang != "python" else 600
+            # python and golang tracer takes more than 5mn to build
+            timeout = (
+                default_subprocess_run_timeout if apm_test_server_definition.lang not in ("python", "golang") else 600
+            )
 
             p = subprocess.run(
                 cmd,

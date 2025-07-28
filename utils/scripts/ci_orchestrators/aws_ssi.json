@@ -44,7 +44,8 @@
         },
         {
             "scenarios": [
-                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
                 {
@@ -99,7 +100,8 @@
         },
         {
             "scenarios": [
-                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING"
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING",
+                "HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC"
             ],
             "weblogs": [
                 {
@@ -185,7 +187,8 @@
         },
         {
             "scenarios": [
-                "SIMPLE_AUTO_INJECTION_PROFILING"
+                "SIMPLE_AUTO_INJECTION_PROFILING",
+                "SIMPLE_AUTO_INJECTION_APPSEC"
             ],
             "weblogs": [
                 {
@@ -597,7 +600,10 @@
                     "RedHat_9_0_amd64",
                     "RedHat_9_0_arm64",
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Amazon_Linux_2_arm64",
+                    "RedHat_8_6_arm64",
+                    "Rocky_Linux_8_arm64"
                 ]
             },
             {

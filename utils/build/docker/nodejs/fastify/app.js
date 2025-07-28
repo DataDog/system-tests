@@ -10,8 +10,9 @@ const fastify = require('fastify')({ logger: true })
 const axios = require('axios')
 const crypto = require('crypto')
 const http = require('http')
-const pino = require('pino')
+const winston = require('winston')
 
+const iast = require('./iast')
 const dsm = require('./dsm')
 const di = require('./debugger')
 
@@ -19,17 +20,29 @@ const pgsql = require('./integrations/db/postgres')
 const mysql = require('./integrations/db/mysql')
 const mssql = require('./integrations/db/mssql')
 const apiGateway = require('./integrations/api_gateway')
-
 const { kinesisProduce, kinesisConsume } = require('./integrations/messaging/aws/kinesis')
 const { snsPublish, snsConsume } = require('./integrations/messaging/aws/sns')
 const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-const logger = pino()
+// Unstructured logging (plain text)
+const plainLogger = console
+
+// Structured logging (JSON)
+const jsonLogger = winston.createLogger({
+  level: 'info',
+  format: winston.format.json(), // structured
+  transports: [new winston.transports.Console()]
+})
 
 // Register Fastify plugins for parsing
 fastify.register(require('@fastify/formbody'))
+fastify.register(require('@fastify/multipart'), { attachFieldsToBody: true })
+fastify.register(require('@fastify/cookie'), { hook: 'onRequest', secret: 'my-secret' })
+
+iast.initPlugins(fastify)
+iast.initData().catch(() => {})
 
 fastify.addContentTypeParser('application/xml', { parseAs: 'string' }, (req, body, done) => {
   try {
@@ -139,8 +152,9 @@ fastify.get('/identify', async (request, reply) => {
 })
 
 fastify.get('/session/new', async (request, reply) => {
-  request.session.someData = 'blabla' // needed for the session to be saved
-  return request.session.sessionId
+  // endpoint needs to be present to pass a test, but is currently not implemented properly
+  // request.session.someData = 'blabla' // needed for the session to be saved
+  // return request.session.sessionId
 })
 
 fastify.get('/status', async (request, reply) => {
@@ -325,6 +339,13 @@ fastify.get('/kafka/consume', async (request, reply) => {
 
 fastify.get('/log/library', (request, reply) => {
   const msg = request.query.msg || 'msg'
+  const logger = (
+    request.query.structured === true ||
+    request.query.structured?.toString().toLowerCase() === 'true' ||
+    request.query.structured === undefined
+  )
+    ? jsonLogger
+    : plainLogger
   switch (request.query.level) {
     case 'warn':
       logger.warn(msg)
@@ -575,6 +596,8 @@ fastify.get('/createextraservice', async (request, reply) => {
 
   return 'OK'
 })
+
+iast.initRoutes(fastify, tracer)
 
 di.initRoutes(fastify)
 

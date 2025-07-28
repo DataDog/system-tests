@@ -314,6 +314,7 @@ class Test_Headers_Tracestate_DD:
     )
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
+    @bug(context.library >= "php@1.11.0", reason="APMAPI-1539")
     @missing_feature(
         context.library == "rust",
         reason="can't guarantee the order of strings in the tracestate since they came from the map.",
