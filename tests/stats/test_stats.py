@@ -78,3 +78,64 @@ class Test_Client_Stats:
     def test_disable(self):
         requests = list(interfaces.library.get_data("/v0.6/stats"))
         assert len(requests) == 0, "Stats should be disabled by default"
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Agent_Info_Endpoint:
+    """Test agent /info endpoint feature detection for Client-Side Stats"""
+
+
+    def test_info_endpoint_supports_client_side_stats(self):
+        """Test that agent /info endpoint contains required fields for Client-Side Stats feature detection"""
+        info_requests = list(interfaces.library.get_data("/info"))
+        info_data = info_requests[0]["response"]["content"]
+
+        assert isinstance(info_data, dict), f"Agent info response should be a JSON object, got: {type(info_data)}"
+
+        # Required fields
+        assert "endpoints" in info_data, "Agent info should contain endpoints array"
+        assert "client_drop_p0s" in info_data, "Agent info should contain client_drop_p0s field"
+        assert "version" in info_data, "Agent info should contain version field"
+
+        # Validate endpoints contain required stats endpoint
+        endpoints = info_data["endpoints"]
+        assert isinstance(endpoints, list), "endpoints should be an array"
+        assert "/v0.6/stats" in endpoints, "Agent should support /v0.6/stats endpoint"
+
+        # Validate client_drop_p0s capability
+        client_drop_p0s = info_data["client_drop_p0s"]
+        assert isinstance(client_drop_p0s, bool), "client_drop_p0s should be boolean"
+        assert client_drop_p0s is True, "Agent should support client-side P0 dropping"
+
+        # Validate version format
+        version = info_data["version"]
+        assert isinstance(version, str), "version should be a string"
+        assert len(version) > 0, "version should not be empty"
+
+        # Validate optional fields
+        if "feature_flags" in info_data:
+            feature_flags = info_data["feature_flags"]
+            assert isinstance(feature_flags, list), "feature_flags should be an array if present"
+            # Common feature flags to check for if present
+            if "discovery" in feature_flags:
+                logger.debug("Agent supports discovery feature flag")
+            if "receive_stats" in feature_flags:
+                logger.debug("Agent supports receive_stats feature flag")
+
+        if "statsd_port" in info_data:
+            assert isinstance(info_data["statsd_port"], int), "statsd_port should be integer"
+            assert info_data["statsd_port"] > 0, "statsd_port should be positive"
+
+        if "peer_tags" in info_data:
+            peer_tags = info_data["peer_tags"]
+            assert isinstance(peer_tags, list), "peer_tags should be an array"
+            expected_peer_tags = ["_dd.peer.service", "peer.service", "out.host", "db.instance", "messaging.destination"]
+            for tag in expected_peer_tags:
+                if tag in peer_tags:  # Some may be missing depending on agent version
+                    assert isinstance(tag, str), f"peer tag {tag} should be string"
+
+        if "obfuscation_version" in info_data:
+            obfuscation_version = info_data["obfuscation_version"]
+            assert isinstance(obfuscation_version, int), "obfuscation_version should be integer"
+            assert obfuscation_version >= 0, "obfuscation_version should be non-negative"
