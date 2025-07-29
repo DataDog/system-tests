@@ -216,3 +216,58 @@ class Test_Peer_Tags:
 
         assert client_stats_found, "Should find client spans with peer tags from /make_distant_call endpoint"
         assert server_stats_found, "Should find server spans without peer tags from /healthcheck endpoint"
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Transport_Headers:
+    """Test transport headers validation for Client-Side Stats"""
+
+    def setup_transport_headers(self):
+        """Setup for transport headers test - generates stats to trigger transport"""
+        for _ in range(2):
+            weblog.get("/")
+
+    def test_transport_headers(self):
+        """Test that stats transport includes required and optional headers"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        # Test the most recent stats request
+        stats_request = stats_requests[-1]
+        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+
+        logger.debug(f"Stats request headers: {headers}")
+
+        assert "Content-Type" in headers, "Stats request should have Content-Type header"
+        assert headers["Content-Type"] == "application/msgpack", \
+                f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+
+        content_length = headers.get("Content-Length")
+        assert content_length and int(content_length) > 0, \
+                f"Content-Length should be positive, found: {content_length}"
+
+        assert "Datadog-Meta-Lang" in headers, "Datadog-Meta-Lang header not found"
+        assert headers["Datadog-Meta-Lang"], "Datadog-Meta-Lang header should not be empty"
+
+        assert "Datadog-Meta-Tracer-Version" in headers, "Datadog-Meta-Tracer-Version header not found"
+        assert headers["Datadog-Meta-Tracer-Version"], "Datadog-Meta-Tracer-Version header should not be empty"
+
+        # we must have at least one of the CID resolution headers
+        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
+        cid_heaaders = [h for h in headers if h in cid_headers_list]
+        assert len(cid_heaaders) > 0, f"ContainerID resolution headers not found: {headers}"
+        for h in cid_heaaders:
+            assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
+
+        if "Datadog-Obfuscation-Version" in headers:
+            obfuscation_version = headers["Datadog-Obfuscation-Version"]
+            # Validate it's a positive integer string
+            assert obfuscation_version.isdigit() and int(obfuscation_version) > 0, \
+                f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+            logger.debug(f"Found Obfuscation-Version header: {obfuscation_version}")
+
+        # Validate that the request has proper MessagePack content
+        content_length = headers.get("Content-Length")
+        assert content_length and int(content_length) > 0, \
+                f"Content-Length should be positive, found: {content_length}"
