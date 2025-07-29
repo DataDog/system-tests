@@ -9,7 +9,7 @@ from utils import scenarios, features, bug, missing_feature, context, flaky
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     """Base class with common methods for status probe tests"""
 
-    expected_diagnostics: dict = {}
+    expected_diagnostics: dict[str, debugger.ProbeStatus] = {}
 
     def _setup(self, probes_name: str, probe_type: str):
         self.initialize_weblog_remote_config()
@@ -46,7 +46,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
         self._validate_diagnostics()
 
     def _validate_diagnostics(self):
-        def _check_probe_status(expected_id, expected_status):
+        def _check_probe_status(expected_id, expected_status: debugger.ProbeStatus):
             if expected_id not in self.probe_diagnostics:
                 return f"Probe {expected_id} was not received."
 
