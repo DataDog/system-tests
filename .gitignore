@@ -4,6 +4,7 @@
 .direnv
 __pycache__
 binaries/*
+!binaries/agent-image
 !binaries/README.md
 
 venv
