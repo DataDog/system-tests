@@ -61,6 +61,30 @@ class Test_Client_Stats:
             no_content_hits == no_content_top_hits == 3
         ), "expect exactly 5 'No Content' hits and top level hits across all payloads"
 
+    def setup_obfuscation(self):
+        """Setup for obfuscation test - generates SQL spans for obfuscation testing"""
+        # Use existing RASP SQL injection endpoints to generate spans with obfuscated resource names
+        test_user_ids = ["1", "2", "admin", "test"]
+        for user_id in test_user_ids:
+            weblog.get(f"/rasp/sqli?user_id={user_id}")
+
+    def test_obfuscation(self):
+        stats_count = 0
+        hits = 0
+        top_hits = 0
+        resource = "SELECT * FROM users WHERE id = ?"
+        for s in interfaces.agent.get_stats(resource):
+            stats_count += 1
+            logger.debug(f"asserting on {s}")
+            hits += s["Hits"]
+            top_hits += s["TopLevelHits"]
+            assert s["Service"] == "sqlite3.db", "expect sqlite3.db as service"
+            assert s["Type"] == "sql", "expect 'sql' type"
+        assert (
+            stats_count <= 4
+        ), "expect <= 4 stats"  # Normally this is exactly 2 but in certain high load this can flake and result in additional payloads where hits are split across two payloads
+        assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
+
     @missing_feature(
         context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
@@ -138,4 +162,4 @@ class Test_Agent_Info_Endpoint:
         if "obfuscation_version" in info_data:
             obfuscation_version = info_data["obfuscation_version"]
             assert isinstance(obfuscation_version, int), "obfuscation_version should be integer"
-            assert obfuscation_version >= 0, "obfuscation_version should be non-negative"
+            assert obfuscation_version >= 1, "obfuscation_version should be at least 1 for Client-Side Stats"
