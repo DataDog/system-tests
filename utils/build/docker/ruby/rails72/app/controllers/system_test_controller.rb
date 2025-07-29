@@ -2,8 +2,6 @@ require 'json'
 require 'kafka'
 require 'opentelemetry'
 
-require 'datadog/kit/appsec/events'
-
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
 
