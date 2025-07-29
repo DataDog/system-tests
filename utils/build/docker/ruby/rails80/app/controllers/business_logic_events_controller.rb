@@ -63,4 +63,4 @@ class BusinessLogicEventsController < ApplicationController
 
     render plain: 'OK'
   end
-end 
+end

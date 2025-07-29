@@ -3,7 +3,6 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
-require 'timeout'
 
 begin
   require 'datadog/auto_instrument'
