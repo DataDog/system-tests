@@ -34,6 +34,7 @@ class ProbeDiagnosticsData(TypedDict):
 
     probeId: str
     status: ProbeStatus
+    status_history: list[ProbeStatus]
     query: dict[str, list[str]]  # Result of parse_qs()
 
 
@@ -528,8 +529,12 @@ class BaseDebuggerTest:
                     current_status = probe_diagnostics[probe_id]["status"]
                     if _should_update_status(current_status, status):
                         probe_diagnostics[probe_id]["status"] = status
+                    status_history = probe_diagnostics[probe_id]["status_history"]
+                    if status_history[-1] != status:
+                        status_history.append(status)
                 else:
                     probe_diagnostics[probe_id] = diagnostics.copy()
+                    probe_diagnostics[probe_id]["status_history"] = [status]
 
                 probe_diagnostics[probe_id]["query"] = parse_qs(query)
 

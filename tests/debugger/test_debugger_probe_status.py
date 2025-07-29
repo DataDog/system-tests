@@ -50,8 +50,28 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
             if expected_id not in self.probe_diagnostics:
                 return f"Probe {expected_id} was not received."
 
-            actual_status = self.probe_diagnostics[expected_id]["status"]
+            probe_data = self.probe_diagnostics[expected_id]
+            actual_status = probe_data["status"]
+            status_history = probe_data["status_history"]
+
             if actual_status != expected_status:
+                # For golang probes targeting non-existent methods, check for RECEIVED->ERROR sequence
+                if (
+                    expected_status == "RECEIVED"
+                    and actual_status == "ERROR"
+                    and context.library == "golang"
+                    and expected_id.endswith("received")
+                ):
+                    # Verify that we saw RECEIVED before ERROR
+                    if "RECEIVED" in status_history and status_history.index("RECEIVED") < status_history.index(
+                        "ERROR"
+                    ):
+                        return None  # This is the expected sequence: RECEIVED -> ERROR
+                    else:
+                        return (
+                            f"Probe {expected_id} with ERROR status did not have RECEIVED in history: {status_history}"
+                        )
+
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
 
             return None
