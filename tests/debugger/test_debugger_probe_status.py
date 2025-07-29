@@ -73,6 +73,9 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
 @flaky(context.library > "php@1.8.3", reason="DEBUG-3814")
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(
+    context.library == "golang" and context.agent_version < "7.69.0", reason="Not yet implemented", force_skip=True
+)
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
