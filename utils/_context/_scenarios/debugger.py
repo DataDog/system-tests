@@ -46,6 +46,9 @@ class DebuggerScenario(EndToEndScenario):
             # Additionally, the system-probe needs to be able to access the
             # kernel debug and cgroup filesystems so that it can discover
             # process container information and load bpf programs.
+            #
+            # Docker for mac magically does the right thing to make this work
+            # when run from macOS as well.
             self.agent_container.volumes["/sys/kernel/debug"] = {"bind": "/sys/kernel/debug", "mode": "ro"}
             self.agent_container.volumes["/sys/fs/cgroup"] = {"bind": "/sys/fs/cgroup", "mode": "ro"}
             # Set the system-probe to output to the proxy the same way the
