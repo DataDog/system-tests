@@ -352,8 +352,8 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
         result
     );
 
-    // this is weird
-    tokio::time::sleep(Duration::from_secs(1)).await;
+    // TODO: review. This is weird. Without this sleep /trace/stats/flush sometimes is closed by the server producing flaky test results
+    tokio::time::sleep(Duration::from_millis(500)).await;
 
     if result.is_ok() {
         StatusCode::OK
