@@ -1,8 +1,8 @@
 use ::opentelemetry::global::{self, BoxedTracer};
 use anyhow::{Context, Result};
 use axum::{
-    body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
-    Router,
+    body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, routing::get,
+    BoxError, Router,
 };
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use serde::Deserialize;
@@ -23,8 +23,8 @@ use tokio::{
     time::sleep,
 };
 use tower::ServiceBuilder;
-use tower_http::trace::TraceLayer;
-use tracing::{error, field, info, info_span, Span};
+use tower_http::trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer};
+use tracing::{debug, error, field, info, info_span, Level, Span};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
 mod datadog;
@@ -72,7 +72,7 @@ fn init_tracing() -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
-                "{}=debug", // tower_http=trace,
+                "{}=debug", // ,hyper=debug,tower_http=debug
                 env!("CARGO_CRATE_NAME")
             )
             .into()
@@ -81,7 +81,8 @@ fn init_tracing() -> Result<SdkTracerProvider> {
         .try_init()
         .context("initialize tracing subscriber");
 
-    let builder = dd_trace::Config::builder();
+    let mut builder = dd_trace::Config::builder();
+    builder.set_log_level_filter(dd_trace::log::LevelFilter::Debug);
     Ok(datadog_opentelemetry::init_datadog(
         builder.build(),
         SdkTracerProvider::builder(),
@@ -133,13 +134,19 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(|err: BoxError| async move {
-                    log_error(&err);
+                    error!("HandleErrorLayer: {}", &err);
                     (
                         StatusCode::INTERNAL_SERVER_ERROR,
                         format!("Unhandled error: {err}"),
                     )
                 }))
-                .layer(TraceLayer::new_for_http().make_span_with(make_span))
+                .layer(
+                    TraceLayer::new_for_http()
+                        .make_span_with(make_span)
+                        .on_request(DefaultOnRequest::new().level(Level::DEBUG))
+                        .on_response(DefaultOnResponse::new().level(Level::DEBUG))
+                        .on_failure(DefaultOnFailure::new().level(Level::ERROR)),
+                )
                 .timeout(Duration::from_secs(30)),
         )
         .with_state(state);
@@ -161,14 +168,19 @@ async fn shutdown_signal(shutdown_timeout: Option<Duration>) {
         .expect("install SIGTERM handler")
         .recv()
         .await;
+    debug!("Shutdown signal received, preparing to close server.");
     if let Some(shutdown_timeout) = shutdown_timeout {
         sleep(shutdown_timeout).await;
+        debug!("Shutdown signal received, closing!!");
     }
 }
 
 fn make_span(request: &Request<Body>) -> Span {
     let headers = request.headers();
     let path = request.uri().path();
+
+    debug!("creating span for {path}");
+
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 

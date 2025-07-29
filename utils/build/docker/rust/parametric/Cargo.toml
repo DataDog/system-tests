@@ -15,15 +15,15 @@ bench = false
 
 [dependencies]
 anyhow                  = { version = "1.0", features = [ "backtrace" ] }
-axum                    = { version = "0.7", features = [ "http2", "json" ] }
+axum                    = { version = "0.8.4", features = [ "http2", "json" ] }
 configured              = { version = "0.7" }
 humantime-serde         = { version = "1.1" }
 serde                   = { version = "1.0", features = [ "derive" ] }
 serde_json              = { version = "1.0" }
 time                    = { version = "0.3", features = [ "formatting" ] }
 tokio                   = { version = "1", features = [ "macros", "rt-multi-thread", "signal" ] }
-tower                   = { version = "0.4", features = [ "timeout" ] }
-tower-http              = { version = "0.5", features = [ "trace" ] }
+tower                   = { version = "0.5.2", features = [ "timeout" ] }
+tower-http              = { version = "0.6.6", features = [ "trace" ] }
 tracing                 = { version = "0.1", default-features = false }
 tracing-subscriber      = { version = "0.3", default-features = false, features = [ "env-filter", "fmt", "json" ] }
 opentelemetry           = { version = "0.30.0" }

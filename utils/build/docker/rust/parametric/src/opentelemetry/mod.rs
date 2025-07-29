@@ -10,6 +10,7 @@ use opentelemetry::{
     Context, KeyValue,
 };
 
+use opentelemetry_sdk::error::OTelSdkError;
 use tracing::debug;
 
 use crate::{get_tracer, opentelemetry::dto::*, AppState};
@@ -293,10 +294,16 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
     let result = state.tracer_provider.force_flush();
 
     state.contexts.lock().unwrap().clear();
+    state.extracted_span_contexts.lock().unwrap().clear();
+    state
+        .current_context
+        .lock()
+        .unwrap()
+        .clone_from(&Context::current());
 
     debug!(
-        "otel_flush: all spans and contexts cleared ok: {}",
-        result.is_ok()
+        "otel_flush: all spans and contexts cleared ok: {:?}",
+        result
     );
 
     Json(FlushResult {

@@ -12,7 +12,8 @@ use opentelemetry::{
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
-use std::{collections::HashMap, vec};
+use opentelemetry_sdk::error::OTelSdkError;
+use std::{collections::HashMap, time::Duration, vec};
 use tracing::debug;
 
 use crate::{get_tracer, AppState};
@@ -337,7 +338,7 @@ async fn extract_headers(
     })
 }
 
-async fn flush_spans(State(state): State<AppState>) -> Json<FlushResult> {
+async fn flush_spans(State(state): State<AppState>) -> StatusCode {
     let result = state.tracer_provider.force_flush();
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
@@ -347,13 +348,18 @@ async fn flush_spans(State(state): State<AppState>) -> Json<FlushResult> {
         .unwrap()
         .clone_from(&Context::current());
     debug!(
-        "flush_spans: all spans and contexts cleared ok: {}",
-        result.is_ok()
+        "flush_spans: all spans and contexts cleared ok: {:?}",
+        result
     );
 
-    Json(FlushResult {
-        success: result.is_ok(),
-    })
+    // this is weird
+    tokio::time::sleep(Duration::from_secs(1)).await;
+
+    if result.is_ok() {
+        StatusCode::OK
+    } else {
+        StatusCode::INTERNAL_SERVER_ERROR
+    }
 }
 
 async fn flush_stats(State(_): State<AppState>) -> StatusCode {
