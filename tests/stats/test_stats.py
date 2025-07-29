@@ -163,3 +163,56 @@ class Test_Agent_Info_Endpoint:
             obfuscation_version = info_data["obfuscation_version"]
             assert isinstance(obfuscation_version, int), "obfuscation_version should be integer"
             assert obfuscation_version >= 1, "obfuscation_version should be at least 1 for Client-Side Stats"
+
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Peer_Tags:
+    """Test peer tags aggregation for Client-Side Stats"""
+
+    def setup_peer_tags(self):
+        """Setup for peer tags test - generates client and server spans"""
+        # Generate client spans by making outbound HTTP calls (should have peer tags)
+        for _ in range(3):
+            weblog.get(f"/make_distant_call?url=http://weblog:7777/healthcheck")
+
+        # Generate server spans by hitting regular endpoints (should not have peer tags)
+        for _ in range(2):
+            weblog.get("/healthcheck")
+
+    def test_peer_tags(self):
+        """Test that client spans include peer tags while server spans don't"""
+        client_stats_found = False
+        server_stats_found = False
+
+        for s in interfaces.agent.get_stats():
+            resource = s.get("Resource", "")
+            span_kind = s.get("SpanKind", "")
+            peer_tags = s.get("PeerTags", [])
+            service = s.get("Service", "")
+            span_type = s.get("Type", "")
+
+            logger.debug(f"Checking stats - Resource: {resource}, SpanKind: {span_kind}, PeerTags: {peer_tags}, Service: {service}, Type: {span_type}")
+
+            # Client spans should have peer tags
+            if span_kind == "client" and span_type == "http":
+                client_stats_found = True
+
+                assert len(peer_tags) > 0, f"Client spans should have peer tags, found: {peer_tags}"
+
+                # Common peer tags we expect for HTTP client calls
+                expected_peer_tag_prefixes = ["out.host", "http.host", "network.destination", "server.address"]
+                found_expected_tags = any(
+                        any(tag.startswith(prefix) for prefix in expected_peer_tag_prefixes)
+                        for tag in peer_tags
+                        )
+                assert found_expected_tags, f"Client span does not contain expected peer tags: {peer_tags}"
+
+            # Server spans should not have peer tags (except _dd.base_service)
+            elif span_kind == "server" and span_type == "web":
+                server_stats_found = True
+
+                assert len(peer_tags) == 0, f"Server spans should have peer tags, found: {peer_tags}"
+
+        assert client_stats_found, "Should find client spans with peer tags from /make_distant_call endpoint"
+        assert server_stats_found, "Should find server spans without peer tags from /healthcheck endpoint"
