@@ -1674,7 +1674,7 @@ tests/:
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_Empty_File:
+      Test_Empty_Config:
         '*': missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Multiple_Actions:
