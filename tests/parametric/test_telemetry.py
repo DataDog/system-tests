@@ -578,19 +578,18 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
 
         configurations = test_agent.wait_for_telemetry_configurations()
 
-        # Check for logs_injection_enabled
-        if context.library != "golang":  # The Go tracer does not support logs injection.
+        # Check for runtime_metrics_enabled for golang
+        if context.library == "golang":
+            apm_telemetry_name = _mapped_telemetry_name(context, "runtime_metrics_enabled")
+            telemetry_item = configurations[apm_telemetry_name]
+            assert telemetry_item["origin"] == "fleet_stable_config"
+            assert telemetry_item["config_id"] == fleet_config_id
+        else:  # The Go tracer does not support logs injection.
             # Configuration set via fleet config should have the config_id set
             apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
             telemetry_item = configurations[apm_telemetry_name]
             assert telemetry_item["origin"] == "fleet_stable_config"
             assert telemetry_item["config_id"] == fleet_config_id
-
-        # Check for runtime_metrics_enabled
-        apm_telemetry_name = _mapped_telemetry_name(context, "runtime_metrics_enabled")
-        telemetry_item = configurations[apm_telemetry_name]
-        assert telemetry_item["origin"] == "fleet_stable_config"
-        assert telemetry_item["config_id"] == fleet_config_id
 
         # Configuration set via local config should not have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "dynamic_instrumentation_enabled")
