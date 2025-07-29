@@ -66,6 +66,7 @@ refs:
   - &ref_5_59_0 '>=5.59.0'
   - &ref_5_60_0 '>=5.60.0'
   - &ref_5_61_0 '>=5.61.0'  # fastify iast support
+  - &ref_5_62_0 '>=5.62.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
