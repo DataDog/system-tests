@@ -765,7 +765,6 @@ class Test_TelemetrySSIConfigs:
         if expected_value != "none":
             assert inject_force.get("origin") == "env_var"
 
-    @missing_feature(context.library == "dotnet", reason="Not implemented")
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_SERVICE": "service_test"}])
     def test_instrumentation_source_non_ssi(self, library_env, test_agent, test_library):
         # Some libraries require a first span for telemetry to be emitted.
