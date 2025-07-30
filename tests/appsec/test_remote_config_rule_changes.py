@@ -544,7 +544,7 @@ class Test_Empty_Config:
 
         assert (
             self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
-        )  # empty config should not be sent to the WAF
+        )  # empty configs should be acknowledged and should not trigger errors
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 403
 
