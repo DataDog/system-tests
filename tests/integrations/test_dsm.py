@@ -67,8 +67,8 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 7021878731777772655
-            consumer_hash = 4591800307942911915
+            producer_hash = 8001907834230501985
+            consumer_hash = 12353223394116417855
         elif context.library == "golang":
             producer_hash = 4463699290244539355
             consumer_hash = 13758451224913876939
@@ -156,8 +156,8 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 5246740674878013159
-            consumer_hash = 8116149247198652772
+            producer_hash = 16680966241789857864
+            consumer_hash = 7235406874724180592
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
@@ -302,8 +302,8 @@ class Test_DsmSQS:
         tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
         if context.library == "nodejs":
-            producer_hash = 8993664068648876726
-            consumer_hash = 8544812442360155699
+            producer_hash = 2649573563161019048
+            consumer_hash = 3674518247845931278
         else:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
@@ -341,8 +341,8 @@ class Test_DsmSNS:
         topic = self.topic if context.library in ["java", "dotnet"] else arn
 
         if context.library == "nodejs":
-            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713
-            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963
+            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 4474403991591098370
+            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 3839681565914825635
             tags_out = ("direction:out", f"topic:{topic}", "type:sns")
             tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
         else:
@@ -386,8 +386,8 @@ class Test_DsmKinesis:
         if context.library == "nodejs":
             tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
-            producer_hash = 2387568642918822206
-            consumer_hash = 10101425062685840509
+            producer_hash = 6996061165171108813
+            consumer_hash = 18286084103800622023
         else:
             tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
@@ -413,7 +413,7 @@ class Test_DsmContext_Injection_Base64:
         assert self.r.status_code == 200
 
         if context.library == "nodejs":
-            producer_hash = 18431567370843181989
+            producer_hash = 11949115791662959359
         else:
             producer_hash = 6031446427375485596
 
@@ -465,8 +465,8 @@ class Test_DsmContext_Extraction_Base64:
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            consumer_hash = 18410421833994263340
-            producer_hash = 11295735785862509651
+            consumer_hash = 3232267919319990015
+            producer_hash = 6031446427375485596
         else:
             consumer_hash = 12795903374559614717
             producer_hash = 6031446427375485596
@@ -506,8 +506,8 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 16586338448658789200
-            consumer_hash = 9706550123902107656
+            producer_hash = 9931057434765374197
+            consumer_hash = 17324614250411467957
             parent_producer_hash = 0
         elif context.library == "java":
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
@@ -574,8 +574,8 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 5168239543453408764
-            consumer_hash = 1957306998450816025
+            producer_hash = 12899996614288916469
+            consumer_hash = 4416193018187534291
             parent_producer_hash = 0
         elif context.library == "java":
             producer_hash = 4667583249035065277
