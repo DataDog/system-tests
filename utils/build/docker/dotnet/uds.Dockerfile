@@ -18,7 +18,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
 
 # install dd-trace-dotnet (must be done before setting LD_PRELOAD)
 COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
+RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 
 # Enable Datadog .NET SDK
 ENV CORECLR_ENABLE_PROFILING=1
@@ -28,7 +28,6 @@ ENV DD_DOTNET_TRACER_HOME=/opt/datadog
 
 # Datadog .NET SDK config
 ENV DD_IAST_REQUEST_SAMPLING=100
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=14
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_DATA_STREAMS_ENABLED=true
 ENV DD_INTERNAL_TELEMETRY_V2_ENABLED=true

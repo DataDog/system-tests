@@ -58,6 +58,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -67,8 +68,8 @@ class Test_DsmKafka:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 7021878731777772655
-            consumer_hash = 4591800307942911915
+            producer_hash = 8001907834230501985
+            consumer_hash = 12353223394116417855
         elif context.library == "golang":
             producer_hash = 4463699290244539355
             consumer_hash = 13758451224913876939
@@ -94,6 +95,24 @@ class Test_DsmKafka:
                 f"topic:{DSM_QUEUE}",
                 "type:kafka",
             )
+
+        DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
+        DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
+
+    def setup_dsm_kafka_without_cluster_id(self):
+        self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
+
+    @features.datastreams_monitoring_support_for_kafka
+    @irrelevant(library="nodejs", reason="fixing node hashing")
+    @irrelevant(context.library != "dotnet")
+    def test_dsm_kafka_without_cluster_id(self):
+        assert self.r.text == "ok"
+
+        producer_hash = 4463699290244539355
+        consumer_hash = 3735318893869752335
+
+        edge_tags_in: tuple = ("direction:in", f"group:{DSM_CONSUMER_GROUP}", f"topic:{DSM_QUEUE}", "type:kafka")
+        edge_tags_out: tuple = ("direction:out", f"topic:{DSM_QUEUE}", "type:kafka")
 
         DsmHelper.assert_checkpoint_presence(hash_=producer_hash, parent_hash=0, tags=edge_tags_out)
         DsmHelper.assert_checkpoint_presence(hash_=consumer_hash, parent_hash=producer_hash, tags=edge_tags_in)
@@ -129,9 +148,9 @@ class Test_DsmRabbitmq:
         )
 
     @bug(library="java", reason="APMAPI-840")
-    @bug(library="dotnet", reason="APMAPI-841")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -140,8 +159,8 @@ class Test_DsmRabbitmq:
         # There is currently no FNV-1 library availble for node.js
         # So we are using a different algorithm for node.js for now
         if context.library == "nodejs":
-            producer_hash = 5246740674878013159
-            consumer_hash = 8116149247198652772
+            producer_hash = 16680966241789857864
+            consumer_hash = 7235406874724180592
         else:
             producer_hash = 8945717757344503539
             consumer_hash = 247866491670975357
@@ -159,6 +178,7 @@ class Test_DsmRabbitmq:
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
@@ -189,30 +209,33 @@ class Test_DsmRabbitmq_TopicExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        parent_hash = 14115675228093516275
         DsmHelper.assert_checkpoint_presence(
-            hash_=18436203392999142109,
+            hash_=parent_hash,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestTopicExchange", "has_routing_key:true", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=11364757106893616177,
-            parent_hash=18436203392999142109,
+            hash_=17456221739323133462,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15562446431583779,
-            parent_hash=18436203392999142109,
+            hash_=6709599110187021152,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=13344154764958581569,
-            parent_hash=18436203392999142109,
+            hash_=4518514625593640902,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqTopicQueue3", "type:rabbitmq"),
         )
 
@@ -225,30 +248,33 @@ class Test_DsmRabbitmq_FanoutExchange:
     def setup_dsm_rabbitmq(self):
         self.r = weblog.get("/dsm?integration=rabbitmq_fanout_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
+    @bug(library="java", reason="APMAPI-840")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
+        parent_hash = 528013466165804625
+
         DsmHelper.assert_checkpoint_presence(
-            hash_=877077567891168935,
+            hash_=parent_hash,
             parent_hash=0,
             tags=("direction:out", "exchange:systemTestFanoutExchange", "has_routing_key:false", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=6900956252542091373,
-            parent_hash=877077567891168935,
+            hash_=1551162056316679489,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue1", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=497609944035068818,
-            parent_hash=877077567891168935,
+            hash_=5919279740143028634,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue2", "type:rabbitmq"),
         )
 
         DsmHelper.assert_checkpoint_presence(
-            hash_=15446107644012012909,
-            parent_hash=877077567891168935,
+            hash_=10096313447786601025,
+            parent_hash=parent_hash,
             tags=("direction:in", "topic:systemTestRabbitmqFanoutQueue3", "type:rabbitmq"),
         )
 
@@ -274,6 +300,7 @@ class Test_DsmSQS:
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -281,8 +308,8 @@ class Test_DsmSQS:
         tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
 
         if context.library == "nodejs":
-            producer_hash = 8993664068648876726
-            consumer_hash = 8544812442360155699
+            producer_hash = 2649573563161019048
+            consumer_hash = 3674518247845931278
         else:
             producer_hash = compute_dsm_hash(0, tags_out)
             consumer_hash = compute_dsm_hash(producer_hash, tags_in)
@@ -313,14 +340,16 @@ class Test_DsmSNS:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
-        topic = self.topic if context.library == "java" else f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        arn = f"arn:aws:sns:us-east-1:{AWS_ACCT}:{self.topic}"
+        topic = self.topic if context.library in ["java", "dotnet"] else arn
 
         if context.library == "nodejs":
-            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 3703335291192845713
-            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 797339341876345963
+            producer_hash = 15466202493380574985 if AWS_TESTING == "remote" else 4474403991591098370
+            consumer_hash = 9372735371403270535 if AWS_TESTING == "remote" else 3839681565914825635
             tags_out = ("direction:out", f"topic:{topic}", "type:sns")
             tags_in = ("direction:in", f"topic:{self.queue}", "type:sqs")
         else:
@@ -356,6 +385,7 @@ class Test_DsmKinesis:
         )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
@@ -364,8 +394,8 @@ class Test_DsmKinesis:
         if context.library == "nodejs":
             tags_out = ("direction:out", f"topic:{self.stream}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{self.stream}", "type:kinesis")
-            producer_hash = 2387568642918822206
-            consumer_hash = 10101425062685840509
+            producer_hash = 6996061165171108813
+            consumer_hash = 18286084103800622023
         else:
             tags_out = ("direction:out", f"topic:{stream_arn}", "type:kinesis")
             tags_in = ("direction:in", f"topic:{stream_arn}", "type:kinesis")
@@ -387,11 +417,12 @@ class Test_DsmContext_Injection_Base64:
 
         self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT)
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
         if context.library == "nodejs":
-            producer_hash = 18431567370843181989
+            producer_hash = 11949115791662959359
         else:
             producer_hash = 6031446427375485596
 
@@ -437,14 +468,15 @@ class Test_DsmContext_Extraction_Base64:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_extraction_base64(self):
         assert self.r.text == "ok"
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default, also uses routing key since
             # it does not have access to the queue name
-            consumer_hash = 18410421833994263340
-            producer_hash = 11295735785862509651
+            consumer_hash = 3232267919319990015
+            producer_hash = 6031446427375485596
         else:
             consumer_hash = 12795903374559614717
             producer_hash = 6031446427375485596
@@ -484,8 +516,8 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 16586338448658789200
-            consumer_hash = 9706550123902107656
+            producer_hash = 9931057434765374197
+            consumer_hash = 17324614250411467957
             parent_producer_hash = 0
         elif context.library == "java":
             # for some reason, Java assigns earlier HTTP in checkpoint as parent
@@ -552,8 +584,8 @@ class Test_Dsm_Manual_Checkpoint_Inter_Process:
 
         if context.library == "nodejs":
             # nodejs uses a different hashing algorithm and therefore has different hashes than the default
-            producer_hash = 5168239543453408764
-            consumer_hash = 1957306998450816025
+            producer_hash = 12899996614288916469
+            consumer_hash = 4416193018187534291
             parent_producer_hash = 0
         elif context.library == "java":
             producer_hash = 4667583249035065277

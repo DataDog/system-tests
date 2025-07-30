@@ -298,7 +298,11 @@ tests/:
       test_sampling_by_route_method_count.py:
         TestSamplingByRouteMethodCount: v3.9.0.dev
       test_security_controls.py:
-        TestSecurityControls: missing_feature
+        TestSecurityControls:
+          '*': missing_feature
+          flask-poc: v3.11.0.dev
+          uds-flask: v3.11.0.dev
+          uwsgi-poc: v3.11.0.dev
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
@@ -515,13 +519,13 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: bug (APPSEC-57145)
+        flask-poc: v3.9.0
         uds-flask: v3.9.0
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
-      Test_UserEventsStandalone_SDK_V1: missing_feature
-      Test_UserEventsStandalone_SDK_V2: missing_feature
+      Test_UserEventsStandalone_SDK_V1: v3.9.0
+      Test_UserEventsStandalone_SDK_V2: v3.9.0
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.10.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.10.0 but will be replaced by V2)
@@ -547,7 +551,7 @@ tests/:
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
-        '*': missing_feature (no auto instrumentation for session on non Django weblogs)
+        '*': v3.11.0.dev
         django-poc: v3.3.0.dev
         django-py3.13: v3.3.0.dev
         python3.12: v3.3.0.dev
@@ -675,21 +679,33 @@ tests/:
         'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginFailureEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Metrics:
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginFailureEventV2_Tags:
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_HeaderCollection:
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Libddwaf:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Metrics:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled:
         '*': v3.7.0.dev
-      Test_UserLoginSuccessEventV2_Tags:
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled:
+        '*': v3.7.0.dev
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
@@ -717,7 +733,7 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Appsec_Metastruct_Enabled: v3.0.0.rc
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
-      Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+      Test_SecurityEvents_Iast_Metastruct_Enabled: v3.11.0.dev
     test_only_python.py:
       Test_ImportError: v3.3.0.dev (was v2.20.0.dev but a regression was introduced in v3.2/v3.1)
     test_rate_limiter.py:
@@ -725,6 +741,8 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_Multiple_Actions: v2.10.1
+      Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.14.0
@@ -739,8 +757,8 @@ tests/:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationEnvVarMetric: v3.11.0.dev
+      TestServiceActivationRemoteConfigMetric: v3.11.0.dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -1008,7 +1026,7 @@ tests/:
       Test_Config_TraceEnabled: v2.12.2
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
-      Test_Stable_Config_Default: v3.11.0  # default value of log injection changed in v3.10.0
+      Test_Stable_Config_Default: v3.12.0.dev  # default value of log injection changed in v3.12.0
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -1159,7 +1177,10 @@ tests/:
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       '*': irrelevant (log endpoint is not implemented)
       flask-poc: v3.0.0
-    Test_Config_LogInjection_Default:
+    Test_Config_LogInjection_Default_Structured:
+      '*': irrelevant (log endpoint is not implemented)
+      flask-poc: v3.10.0.dev
+    Test_Config_LogInjection_Default_Unstructured:
       '*': irrelevant (log endpoint is not implemented)
       flask-poc: v3.0.0
     Test_Config_LogInjection_Enabled:
@@ -1204,6 +1225,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
     Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile:
       '*': v0.1  # actual version unknown

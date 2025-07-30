@@ -22,8 +22,6 @@ ENV PGPORT=5433
 
 ENV DD_DATA_STREAMS_ENABLED=true
 
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
-
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
 RUN printf 'node dist/app.js' >> app.sh
@@ -31,7 +29,7 @@ CMD ./app.sh
 
 COPY utils/build/docker/nodejs/install_ddtrace.sh binaries* /binaries/
 
-RUN npm install || npm install
+RUN npm install || sleep 60 && npm install
 RUN /binaries/install_ddtrace.sh
 RUN npm run build
 ENV DD_TRACE_HEADER_TAGS=user-agent

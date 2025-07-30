@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, features, context, rfc
-from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stack_traces
+from tests.appsec.iast.utils import get_hardcoded_vulnerabilities, validate_stack_traces, get_nodejs_iast_file_paths
 
 # Test_HardcodedPasswords doesn't inherit from BaseSinkTest
 # Hardcode passwords detection implementation change a lot between different languages
@@ -16,12 +16,7 @@ class Test_HardcodedPasswords:
     """Test Hardcoded passwords detection."""
 
     location_map = {
-        "nodejs": {
-            "express4": "iast/index.js",
-            "express4-typescript": "iast.ts",
-            "express5": "iast/index.js",
-            "uds-express4": "iast/index.js",
-        },
+        "nodejs": get_nodejs_iast_file_paths(),
     }
 
     insecure_request = None

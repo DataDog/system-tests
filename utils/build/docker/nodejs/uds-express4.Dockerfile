@@ -13,9 +13,10 @@ WORKDIR /usr/app
 
 ENV NODE_ENV=production
 
-RUN npm install || npm install
+RUN npm install || sleep 60 && npm install
 RUN npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0" \
-  || npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
+  || sleep 60 \
+  && npm install "express@4.17.2" "apollo-server-express@3.13.0" "express-mongo-sanitize@2.2.0"
 
 EXPOSE 7777
 
@@ -29,8 +30,6 @@ ENV DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
 ENV UDS_WEBLOG=1
 
 ENV DD_DATA_STREAMS_ENABLED=true
-
-ENV DD_IAST_MAX_CONTEXT_OPERATIONS=10
 
 # docker startup
 COPY utils/build/docker/nodejs/app.sh app.sh
