@@ -583,7 +583,9 @@ class _Scenarios:
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="", include_collector=False, include_intake=False)
+    otel_metric_e2e = OpenTelemetryScenario(
+        "OTEL_METRIC_E2E", require_api_key=True, doc="", include_collector=False, include_intake=False
+    )
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(

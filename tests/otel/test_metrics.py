@@ -161,7 +161,11 @@ def validate_gauge(metric: dict, name: str, value: object, _: str) -> None:
 
 
 def validate_number_data_point(
-    data_point: dict, value_type: object, value: object, default_value: object = None, start_time_is_required: bool = True
+    data_point: dict,
+    value_type: object,
+    value: object,
+    default_value: object = None,
+    start_time_is_required: bool = True,
 ) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
     # message NumberDataPoint {

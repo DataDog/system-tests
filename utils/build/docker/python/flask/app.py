@@ -151,15 +151,19 @@ del AIOMYSQL_CONFIG["database"]
 MARIADB_CONFIG = dict(AIOMYSQL_CONFIG)
 MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
+
 # Define OTel Metrics usage
 def observable_counter_func(options: CallbackOptions):
     yield Observation(22, {})
 
+
 def observable_updown_counter_func(options: CallbackOptions):
     yield Observation(66, {})
 
+
 def observable_gauge_func(options: CallbackOptions):
     yield Observation(88.0, {})
+
 
 meter = get_meter_provider().get_meter("flask")
 
@@ -169,8 +173,11 @@ updown_counter = meter.create_up_down_counter("example.upDownCounter")
 gauge = meter.create_gauge("example.gauge")
 
 async_counter = meter.create_observable_counter("example.async.counter", [observable_counter_func])
-async_updown_counter = meter.create_observable_up_down_counter("example.async.upDownCounter", [observable_updown_counter_func])
+async_updown_counter = meter.create_observable_up_down_counter(
+    "example.async.upDownCounter", [observable_updown_counter_func]
+)
 async_gauge = meter.create_observable_gauge("example.async.gauge", [observable_gauge_func])
+
 
 def main():
     # IAST Flask patch
