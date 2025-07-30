@@ -1134,21 +1134,24 @@ class Test_Metric_Generation_Enabled:
 class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_propagated(self):
         target_service_name = "weblog"
-        target_request_type = "app-started"
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        target_request_type = ["app-started", "app-client-configuration-change"]
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         events = []
 
         for t in telemetry_data:
-            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+            if get_request_type(t) in target_request_type and get_service_name(t) == target_service_name:
                 events.append(t)
 
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
-        configurations = get_configurations(events[0])
         found = False
-        for c in configurations:
-            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
-                found = True
+        for e in events:
+            configurations = get_configurations(e)
+            for c in configurations:
+                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                    found = True
+                    break
+            if found:
                 break
 
         assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
