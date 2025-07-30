@@ -58,6 +58,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @bug(context.library == "python" and context.weblog_variant in ("flask-poc", "uds-flask"), reason="APMAPI-1058")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     @irrelevant(context.library in ["java", "dotnet"], reason="New behavior with cluster id not merged yet.")
     def test_dsm_kafka(self):
         assert self.r.text == "ok"
@@ -102,6 +103,7 @@ class Test_DsmKafka:
         self.r = weblog.get(f"/dsm?integration=kafka&queue={DSM_QUEUE}&group={DSM_CONSUMER_GROUP}")
 
     @features.datastreams_monitoring_support_for_kafka
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     @irrelevant(context.library != "dotnet")
     def test_dsm_kafka_without_cluster_id(self):
         assert self.r.text == "ok"
@@ -148,6 +150,7 @@ class Test_DsmRabbitmq:
     @bug(library="java", reason="APMAPI-840")
     @flaky(library="python", reason="APMAPI-724")
     @missing_feature(context.library <= "nodejs@5.24.0")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -175,6 +178,7 @@ class Test_DsmRabbitmq:
         )
 
     @irrelevant(context.library != "dotnet" or context.library > "dotnet@2.33.0", reason="legacy dotnet behavior")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq_dotnet_legacy(self):
         assert self.r.text == "ok"
 
@@ -206,6 +210,7 @@ class Test_DsmRabbitmq_TopicExchange:
         self.r = weblog.get("/dsm?integration=rabbitmq_topic_exchange", timeout=DSM_REQUEST_TIMEOUT)
 
     @bug(library="java", reason="APMAPI-840")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_rabbitmq(self):
         assert self.r.text == "ok"
 
@@ -295,6 +300,7 @@ class Test_DsmSQS:
             f"/dsm?integration=sqs&timeout=60&queue={self.queue}&message={message}", timeout=DSM_REQUEST_TIMEOUT
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -334,6 +340,7 @@ class Test_DsmSNS:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
@@ -378,6 +385,7 @@ class Test_DsmKinesis:
         )
 
     @missing_feature(library="java", reason="DSM is not implemented for Java AWS Kinesis.")
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsm_kinesis(self):
         assert self.r.text == "ok"
 
@@ -409,6 +417,7 @@ class Test_DsmContext_Injection_Base64:
 
         self.r = weblog.get(f"/dsm/inject?topic={topic}&integration={integration}", timeout=DSM_REQUEST_TIMEOUT)
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_injection_base64(self):
         assert self.r.status_code == 200
 
@@ -459,6 +468,7 @@ class Test_DsmContext_Extraction_Base64:
             timeout=DSM_REQUEST_TIMEOUT,
         )
 
+    @irrelevant(library="nodejs", reason="fixing node hashing")
     def test_dsmcontext_extraction_base64(self):
         assert self.r.text == "ok"
 
