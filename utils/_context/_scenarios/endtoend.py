@@ -539,7 +539,10 @@ class EndToEndScenario(DockerScenario):
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            if self.library in ("nodejs",):
+            if self.library in (
+                "nodejs",
+                "ruby",
+            ):
                 from utils import weblog  # TODO better interface
 
                 # for weblogs who supports it, call the flush endpoint
