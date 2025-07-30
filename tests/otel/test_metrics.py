@@ -165,6 +165,7 @@ def validate_number_data_point(
     value_type: object,
     value: object,
     default_value: object = None,
+    *,
     start_time_is_required: bool = True,
 ) -> None:
     # Assert the following protobuf structure from https://github.com/open-telemetry/opentelemetry-proto/blob/v1.7.0/opentelemetry/proto/metrics/v1/metrics.proto:
