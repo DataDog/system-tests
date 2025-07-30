@@ -109,7 +109,6 @@ class Test_Client_Stats:
 class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
-
     def test_info_endpoint_supports_client_side_stats(self):
         """Test that agent /info endpoint contains required fields for Client-Side Stats feature detection"""
         info_requests = list(interfaces.library.get_data("/info"))
@@ -154,7 +153,13 @@ class Test_Agent_Info_Endpoint:
         if "peer_tags" in info_data:
             peer_tags = info_data["peer_tags"]
             assert isinstance(peer_tags, list), "peer_tags should be an array"
-            expected_peer_tags = ["_dd.peer.service", "peer.service", "out.host", "db.instance", "messaging.destination"]
+            expected_peer_tags = [
+                "_dd.peer.service",
+                "peer.service",
+                "out.host",
+                "db.instance",
+                "messaging.destination",
+            ]
             for tag in expected_peer_tags:
                 if tag in peer_tags:  # Some may be missing depending on agent version
                     assert isinstance(tag, str), f"peer tag {tag} should be string"
@@ -174,7 +179,7 @@ class Test_Peer_Tags:
         """Setup for peer tags test - generates client and server spans"""
         # Generate client spans by making outbound HTTP calls (should have peer tags)
         for _ in range(3):
-            weblog.get(f"/make_distant_call?url=http://weblog:7777/healthcheck")
+            weblog.get("/make_distant_call?url=http://weblog:7777/healthcheck")
 
         # Generate server spans by hitting regular endpoints (should not have peer tags)
         for _ in range(2):
@@ -192,7 +197,9 @@ class Test_Peer_Tags:
             service = s.get("Service", "")
             span_type = s.get("Type", "")
 
-            logger.debug(f"Checking stats - Resource: {resource}, SpanKind: {span_kind}, PeerTags: {peer_tags}, Service: {service}, Type: {span_type}")
+            logger.debug(
+                f"Checking stats - Resource: {resource}, SpanKind: {span_kind}, PeerTags: {peer_tags}, Service: {service}, Type: {span_type}"
+            )
 
             # Client spans should have peer tags
             if span_kind == "client" and span_type == "http":
@@ -203,9 +210,8 @@ class Test_Peer_Tags:
                 # Common peer tags we expect for HTTP client calls
                 expected_peer_tag_prefixes = ["out.host", "http.host", "network.destination", "server.address"]
                 found_expected_tags = any(
-                        any(tag.startswith(prefix) for prefix in expected_peer_tag_prefixes)
-                        for tag in peer_tags
-                        )
+                    any(tag.startswith(prefix) for prefix in expected_peer_tag_prefixes) for tag in peer_tags
+                )
                 assert found_expected_tags, f"Client span does not contain expected peer tags: {peer_tags}"
 
             # Server spans should not have peer tags (except _dd.base_service)
@@ -240,12 +246,13 @@ class Test_Transport_Headers:
         logger.debug(f"Stats request headers: {headers}")
 
         assert "Content-Type" in headers, "Stats request should have Content-Type header"
-        assert headers["Content-Type"] == "application/msgpack", \
-                f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
+        assert (
+            headers["Content-Type"] == "application/msgpack"
+        ), f"Content-Type should be application/msgpack, found: {headers['Content-Type']}"
 
         content_length = headers.get("Content-Length")
-        assert content_length and int(content_length) > 0, \
-                f"Content-Length should be positive, found: {content_length}"
+        assert content_length, f"Content-Length should not be empty, found: {content_length}"
+        assert int(content_length) > 0, f"Content-Length should be positive, found: {content_length}"
 
         assert "Datadog-Meta-Lang" in headers, "Datadog-Meta-Lang header not found"
         assert headers["Datadog-Meta-Lang"], "Datadog-Meta-Lang header should not be empty"
@@ -263,11 +270,115 @@ class Test_Transport_Headers:
         if "Datadog-Obfuscation-Version" in headers:
             obfuscation_version = headers["Datadog-Obfuscation-Version"]
             # Validate it's a positive integer string
-            assert obfuscation_version.isdigit() and int(obfuscation_version) > 0, \
-                f"Obfuscation version should be positive integer, found: {obfuscation_version}"
-            logger.debug(f"Found Obfuscation-Version header: {obfuscation_version}")
+            assert (
+                obfuscation_version.isdigit()
+            ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+            assert (
+                int(obfuscation_version) > 0
+            ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
 
-        # Validate that the request has proper MessagePack content
-        content_length = headers.get("Content-Length")
-        assert content_length and int(content_length) > 0, \
-                f"Content-Length should be positive, found: {content_length}"
+
+@features.client_side_stats_supported
+@scenarios.trace_stats_computation
+class Test_Time_Bucketing:
+    """Test time bucketing validation for Client-Side Stats"""
+
+    def setup_client_side_stats(self):
+        """Setup for time bucketing test - generates spans across time"""
+        for _ in range(3):
+            weblog.get("/")
+
+    def test_client_side_stats(self):
+        """Test that client-side stats are properly bucketed in 10-second intervals"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        # Get the payload content
+        stats_payload = stats_requests[-1]["request"]["content"]
+        stats_buckets = stats_payload.get("Stats", [])
+
+        assert len(stats_buckets) > 0, "Should have at least one stats bucket"
+
+        for bucket in stats_buckets:
+            start = bucket.get("Start")
+            duration = bucket.get("Duration")
+            stats = bucket.get("Stats", [])
+
+            logger.debug(f"Checking CSS bucket - Start: {start}, Duration: {duration}, Stats count: {len(stats)}")
+
+            # Validate bucket structure
+            assert start is not None, "Bucket should have Start time"
+            assert duration is not None, "Bucket should have Duration"
+            assert isinstance(start, int), f"Start should be integer (nanoseconds), found: {type(start)}"
+            assert isinstance(duration, int), f"Duration should be integer (nanoseconds), found: {type(duration)}"
+
+            # Validate 10-second bucket duration for tracer stats
+            expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
+            assert (
+                duration == expected_duration
+            ), f"CSS bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+
+            # Validate bucket alignment (start should be aligned to 10-second boundaries)
+            assert (
+                start % expected_duration == 0
+            ), f"CSS bucket start should be aligned to 10-second boundaries, found: {start}"
+
+            # Validate stats array is not empty and properly structured
+            assert len(stats) > 0, "Bucket should contain stats, found empty bucket"
+
+            for stat in stats:
+                # Each stat should have required fields
+                required_fields = ["Service", "Name", "Resource", "Type", "Hits", "Errors", "Duration"]
+                for field in required_fields:
+                    assert field in stat, f"Stat should have {field} field, found: {list(stat.keys())}"
+
+                # Validate numeric fields are non-negative
+                assert stat["Hits"] >= 0, f"Hits should be non-negative, found: {stat['Hits']}"
+                assert stat["Errors"] >= 0, f"Errors should be non-negative, found: {stat['Errors']}"
+                assert stat["Duration"] >= 0, f"Duration should be non-negative, found: {stat['Duration']}"
+
+    def setup_agent_aggregated_stats(self):
+        """Setup for agent stats test - generates spans for agent aggregation"""
+        for _ in range(3):
+            weblog.get("/")
+
+    def test_agent_aggregated_stats(self):
+        """Test that agent-aggregated stats use 2-second buckets with 1-second offset"""
+
+        for data in interfaces.agent.get_data(path_filters="/api/v0.2/stats"):
+            payload = data["request"]["content"]
+            if not payload["ClientComputed"] or not payload["Stats"]:
+                continue
+
+            count = 0
+            for ss in payload["Stats"]:
+                for s in ss["Stats"]:
+                    count += 1
+
+                    start = s["Start"]
+                    duration = s["Duration"]
+                    stats = s["Stats"]
+
+                    assert start is not None, "Bucket should have Start time"
+                    assert duration is not None, "Bucket should have Duration"
+                    assert isinstance(start, int), f"Start should be integer (nanoseconds), found: {type(start)}"
+                    assert isinstance(
+                        duration, int
+                    ), f"Duration should be integer (nanoseconds), found: {type(duration)}"
+
+                    # Validate 10-second bucket duration for aggregated stats
+                    expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
+                    assert (
+                        duration == expected_duration
+                    ), f"agent-aggregated bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
+
+                    # Validate bucket alignment (start should be aligned to 2s boundary, with 1s offset)
+                    offset = 1_000_000_000
+                    assert (
+                        (start + offset) % 2_000_000_000 == 0
+                    ), f"agent-aggregated bucket start should be aligned to 2-second boundaries, found: {start}"
+
+                    # Validate stats array is not empty and properly structured
+                    assert len(stats) > 0, "Bucket should contain stats, found empty bucket"
+
+            assert count > 0, "agent-aggregated stats should not be empty"
