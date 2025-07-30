@@ -3,6 +3,7 @@
 from urllib.parse import urlparse
 
 import pytest
+import yaml
 from utils import scenarios, features, context, missing_feature, irrelevant, flaky, bug, rfc, incomplete_test_app
 from .conftest import StableConfigWriter
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
@@ -385,14 +386,35 @@ class Test_Config_Dogstatsd:
 
 SDK_DEFAULT_STABLE_CONFIG = {
     "dd_runtime_metrics_enabled": "false" if context.library != "java" else "true",
-    "dd_profiling_enabled": "false"
-    if context.library != "php"
-    else "1",  # Profiling is enabled as "1" by default in PHP if loaded
+    "dd_profiling_enabled": "1"
+    if context.library == "php"
+    else "true"
+    if context.library == "golang"
+    else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
     "dd_data_streams_enabled": "false",
-    "dd_logs_injection": {"ruby": "true", "python": "structured", "nodejs": "structured"}.get(
-        context.library.name, "false"
-    ),  # Enabled by default in ruby, set to None in python
+    "dd_logs_injection": {
+        "ruby": "true",
+        "java": "true",
+        "golang": None,
+        "python": "true",
+        "nodejs": "true",
+    }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
+
+
+class QuotedStr(str):
+    __slots__ = ()
+
+
+def quoted_presenter(dumper, data):
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+
+
+class CustomDumper(yaml.Dumper):
+    pass
+
+
+CustomDumper.add_representer(QuotedStr, quoted_presenter)
 
 
 @scenarios.parametric
@@ -444,7 +466,11 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": "true" if context.library != "ruby" else "false",
+                    "dd_logs_injection": None
+                    if context.library == "golang"
+                    else "false"
+                    if context.library == "ruby"
+                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             ),
         ],
@@ -457,7 +483,9 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_default_config(self, test_library, path, library_env, name, apm_configuration_default, expected):
+    def test_default_config(
+        self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
+    ):
         with test_library:
             self.write_stable_config(
                 {
@@ -470,18 +498,22 @@ class Test_Stable_Config_Default(StableConfigWriter):
             config = test_library.config()
             assert expected.items() <= config.items()
 
-    @pytest.mark.parametrize("library_env", [{}])
+    # @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
         "test",
         [
             {
                 "apm_configuration_default": {
-                    "DD_LOGS_INJECTION": True,
+                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
                     "DD_FOOBAR_ENABLED": "baz",
                 },
                 "expected": {
                     **SDK_DEFAULT_STABLE_CONFIG,
-                    "dd_logs_injection": "true",
+                    "dd_logs_injection": None
+                    if context.library == "golang"
+                    else "false"
+                    if context.library == "ruby"
+                    else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             },
         ],
@@ -493,7 +525,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_unknown_key_skipped(self, test_library, path, library_env, test):
+    def test_unknown_key_skipped(self, test_agent, test_library, path, library_env, test):
         with test_library:
             self.write_stable_config(
                 {
@@ -514,7 +546,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
-    def test_invalid_files(self, test_library, path, library_env):
+    def test_invalid_files(self, test_agent, test_library, path, library_env):
         with test_library:
             self.write_stable_config_content(
                 "🤖 👾; 🤖\t\n\n --- `💣",
@@ -590,7 +622,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
 
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
     @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "java", "nodejs", "php", "python"],
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
         reason="UST stable config is phase 2",
     )
     def test_config_stable(self, library_env, test_agent, test_library):
@@ -598,13 +630,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
         with test_library:
             self.write_stable_config(
                 {
-                    "rules": [
+                    "apm_configuration_rules": [
                         {
                             "selectors": [
                                 {
                                     "origin": "environment_variables",
-                                    "matches": ["STABLE_CONFIG_SELECTOR=true"],
+                                    "key": "STABLE_CONFIG_SELECTOR",
                                     "operator": "equals",
+                                    "matches": ["true"],
                                 }
                             ],
                             "configuration": {"DD_SERVICE": "my-service"},
@@ -619,3 +652,38 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert (
                 config["dd_service"] == "my-service"
             ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        reason="UST stable config is phase 2",
+    )
+    @pytest.mark.parametrize(
+        "library_extra_command_arguments",
+        [
+            ["-Darg1=value"]
+        ],  # Note: This test was written for Java, so if this arg is not compatible for other libs, we may need to dynamically set library_extra_command_arguments based on context.library.name
+    )
+    def test_process_arguments(self, library_env, test_agent, test_library):
+        path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
+        with test_library:
+            config = {
+                "apm_configuration_rules": [
+                    {
+                        "selectors": [
+                            {
+                                "origin": "process_arguments",
+                                "key": "-Darg1",
+                                "operator": "equals",
+                                "matches": ["value"],
+                            }
+                        ],
+                        "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},
+                    }
+                ]
+            }
+            # Use custom dumper for this specific test
+            stable_config_content = yaml.dump(config, Dumper=CustomDumper)
+            self.write_stable_config_content(stable_config_content, path, test_library)
+            test_library.container_restart()
+            config = test_library.config()
+            assert config["dd_service"] == "value", f"Service name is '{config["dd_service"]}' instead of 'value'"

@@ -23,6 +23,7 @@ class _BaseSQS:
             # we iterate the trace backwards to deal with the case of JS "aws.response" callback spans, which are similar for this test and test_sns_to_sqs.
             # Instead, we look for the custom span created after the "aws.response" span
             for span in reversed(trace):
+                assert isinstance(span, dict), f"Span is not a dict: {data['log_filename']}"
                 if not span.get("meta"):
                     continue
 

@@ -1,6 +1,6 @@
 ARG BASE_IMAGE
 
-FROM maven:3.8.3-jdk-11-slim as build
+FROM 235494822917.dkr.ecr.us-east-1.amazonaws.com/third-party/maven:3.8.3-jdk-11-slim as build
 WORKDIR /app
 COPY lib-injection/build/docker/java/enterprise/ ./
 RUN mvn clean package

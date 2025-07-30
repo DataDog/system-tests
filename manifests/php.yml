@@ -11,13 +11,22 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: v1.6.2
         Test_API_Security_RC_ASM_DD_scanners: v1.6.2
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints: v1.8.0
-        Test_API_Security_Sampling_Different_Paths: v1.8.0
-        Test_API_Security_Sampling_Different_Status: v1.8.0
+        Test_API_Security_Sampling_Different_Endpoints: v1.11.0
+        Test_API_Security_Sampling_Different_Paths: v1.11.0
+        Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
-        Test_API_Security_Sampling_With_Delay: v1.8.0
+        Test_API_Security_Sampling_With_Delay: v1.11.0
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners:
+          '*': v1.11.0-dev
+          apache-mod-7.0: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.0-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.1: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.1-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.2: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.2-zts: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.3: missing_feature (Needs configuring apache to use auth_digest)
+          apache-mod-7.3-zts: missing_feature (Needs configuring apache to use auth_digest)
         Test_Schema_Request_Cookies: v0.94.0
         Test_Schema_Request_FormUrlEncoded_Body: v0.94.0
         Test_Schema_Request_Headers: v0.94.0
@@ -27,7 +36,7 @@ tests/:
         Test_Schema_Response_Body: v0.99.1
         Test_Schema_Response_Body_env_var: v1.6.2
         Test_Schema_Response_Headers: v0.94.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block: v1.11.0-dev
     iast/:
       sink/:
         test_code_injection.py:
@@ -312,7 +321,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v1.11.0
       Test_AppSecStandalone_NotEnabled: v1.6.2
       Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
@@ -357,14 +366,20 @@ tests/:
       Test_UserLoginFailureEvent_Metrics: missing_feature
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics: missing_feature
-      Test_UserLoginFailureEventV2_Tags: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics: missing_feature
-      Test_UserLoginSuccessEventV2_Tags: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v1.11.0
+      Test_UserLoginFailureEventV2_Libddwaf: v1.11.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v1.11.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: v1.11.0
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v1.11.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v1.11.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v1.11.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -389,9 +404,13 @@ tests/:
       Test_SecurityEvents_Appsec_Metastruct_Enabled: missing_feature
       Test_SecurityEvents_Iast_Metastruct_Disabled: irrelevant (no fallback will be implemented)
       Test_SecurityEvents_Iast_Metastruct_Enabled: missing_feature
+    test_rate_limiter.py:
+      Test_Main: v1.11.0
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v1.6.2
+      Test_Multiple_Actions: v1.6.2
+      Test_Unknown_Action: v1.6.2
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
@@ -608,7 +627,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v1.4.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
-    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint is missing structured parameter)
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
@@ -642,6 +662,8 @@ tests/:
     Test_HeaderTags_Whitespace_Tag: v1.5.0
     Test_HeaderTags_Whitespace_Val_Long: v1.5.0
     Test_HeaderTags_Whitespace_Val_Short: v0.74.0
+    Test_HeaderTags_Wildcard_Request_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_protobuf.py: missing_feature

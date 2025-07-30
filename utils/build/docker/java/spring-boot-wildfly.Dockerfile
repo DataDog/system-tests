@@ -29,6 +29,5 @@ ENV DD_APP_CUSTOMLOGMANAGER=true
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 ENV APP_EXTRA_ARGS="-Djboss.http.port=7777 -b=0.0.0.0"
-ENV DD_IAST_VULNERABILITIES_PER_REQUEST=10
 
 CMD [ "/app/app.sh" ]

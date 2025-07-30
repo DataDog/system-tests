@@ -567,7 +567,14 @@ class Test_Telemetry:
 @features.telemetry_app_started_event
 @scenarios.telemetry_app_started_config_chaining
 class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order"""
+    """Test that configuration sources are sent with app-started event in correct precedence order.
+
+    IMPORTANT: The order of configuration entries in the telemetry payload does NOT matter.
+    What matters is that the `seq_id` values reported for each configuration reflect the correct
+    precedence order as defined in `_ORIGIN_PRECEDENCE_ORDER`. This test verifies that for each
+    configuration, the `seq_id` increases as the origin precedence increases, regardless of the
+    order in which the entries appear in the payload.
+    """
 
     # Official configuration origin precedence order (from lowest to highest precedence)
     # Based on Node.js tracer implementation
@@ -660,10 +667,14 @@ class Test_TelemetryConfigurationChaining:
             validator(data)
 
     def _validate_precedence_order(self, chain: list) -> None:
-        """Validate that a configuration chain follows the official precedence order
+        """Validate that a configuration chain follows the official precedence order.
 
         Args:
-            chain: List of configuration items with 'origin' keys
+            chain: List of configuration items with 'origin' keys.
+
+        NOTE: This method is used to check that the origins in a configuration chain are in the correct
+        precedence order. In the context of this test, the actual order in the payload is not important;
+        only the relationship between origin precedence and seq_id is validated in the main test logic.
 
         """
         precedence_map = {origin: i for i, origin in enumerate(self._ORIGIN_PRECEDENCE_ORDER)}
@@ -1123,21 +1134,24 @@ class Test_Metric_Generation_Enabled:
 class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_propagated(self):
         target_service_name = "weblog"
-        target_request_type = "app-started"
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        target_request_type = ["app-started", "app-client-configuration-change"]
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         events = []
 
         for t in telemetry_data:
-            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+            if get_request_type(t) in target_request_type and get_service_name(t) == target_service_name:
                 events.append(t)
 
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
-        configurations = get_configurations(events[0])
         found = False
-        for c in configurations:
-            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
-                found = True
+        for e in events:
+            configurations = get_configurations(e)
+            for c in configurations:
+                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                    found = True
+                    break
+            if found:
                 break
 
         assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"
