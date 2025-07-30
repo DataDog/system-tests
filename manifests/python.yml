@@ -169,17 +169,17 @@ tests/:
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedHeader_ExtendedLocation:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedHeader_StackTrace:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect_ExtendedLocation:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect_StackTrace:
-            '*': v3.9.0.dev
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
