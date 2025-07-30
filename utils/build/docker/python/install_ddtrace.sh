@@ -4,7 +4,7 @@ set -eu
 
 cd /binaries
 
-export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
+export CMAKE_BUILD_PARALLEL_LEVEL=1
 
 if [ -e "dd-trace-py" ]; then
     echo "Install from local folder /binaries/dd-trace-py"

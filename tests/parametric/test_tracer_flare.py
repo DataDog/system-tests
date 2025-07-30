@@ -103,10 +103,8 @@ def _clear_task(test_agent, task_id) -> None:
     )
 
 
-def trigger_tracer_flare_and_wait(test_agent, task_overrides: dict[str, Any], log_level: str = "INFO") -> dict:
+def trigger_tracer_flare_and_wait(test_agent, task_overrides: dict[str, Any]) -> dict:
     """Creates a "trace_flare" agent task and waits for the tracer flare to be uploaded."""
-    # Set a default log level if none is already set (needed for Python tracer)
-    log_cfg_id = _set_log_level(test_agent, log_level)
     task_config = _tracer_flare_task_config()
     task_args = task_config["args"]
     for k, v in task_overrides.items():
@@ -115,7 +113,6 @@ def trigger_tracer_flare_and_wait(test_agent, task_overrides: dict[str, Any], lo
     task_id = _add_task(test_agent, task_config)
     tracer_flare = test_agent.wait_for_tracer_flare(task_args["case_id"], clear=True)
     _clear_task(test_agent, task_id)
-    _clear_log_level(test_agent, log_cfg_id)
 
     return tracer_flare
 
