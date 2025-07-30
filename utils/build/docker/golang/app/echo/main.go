@@ -358,6 +358,9 @@ func main() {
 	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
 
+	r.Any("/debugger/log", echoHandleFunc(logProbe))
+	r.Any("/debugger/mix", echoHandleFunc(mixProbe))
+
 	common.InitDatadog()
 	go grpc.ListenAndServe()
 	go func() {
@@ -401,4 +404,12 @@ func waf(c echo.Context) error {
 		appsec.MonitorParsedHTTPBody(req.Context(), body)
 	}
 	return c.String(http.StatusOK, "Hello, WAF!\n")
+}
+
+func logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }
