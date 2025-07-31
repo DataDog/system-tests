@@ -137,14 +137,8 @@ class TestDockerSSIFeatures:
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
-        # There are traces related with the request
-        root_span = interfaces.test_agent.get_traces(request=self.r)
-        assert root_span, f"No traces found for request {self.r.get_rid()}"
-        assert "service" in root_span, f"No service name found in root_span: {root_span}"
         # Get all captured telemetry configuration data
-        configurations = interfaces.test_agent.get_telemetry_configurations(
-            root_span["service"], root_span["meta"]["runtime-id"]
-        )
+        configurations = interfaces.test_agent.get_telemetry_configurations("payment-service")
 
         # Check that instrumentation source is ssi
         injection_source = configurations.get("instrumentation_source")

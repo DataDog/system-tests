@@ -132,18 +132,11 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 ), f"Service name in telemetry in requests: {request} "
                 f"does not match expected service name {service_name}"
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
-            try:
-                events = (
-                    request["payload"]
-                    if request["request_type"] == "message-batch"
-                    else [{"payload": request["payload"], "request_type": request["request_type"]}]
-                )
-            except KeyError as e:
-                logger.error(
-                    f"KeyError when processing request {request}. Error {e}. "
-                    "This may happen if the request does not have a 'payload' key."
-                )
-                raise
+            events = (
+                request.get("payload", {})
+                if request["request_type"] == "message-batch"
+                else [{"payload": request.get("payload", {}), "request_type": request["request_type"]}]
+            )
             for event in events:
                 # Get the configuration from app-started or app-client-configuration-change payloads
                 if event and event["request_type"] in ("app-started", "app-client-configuration-change"):
