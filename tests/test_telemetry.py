@@ -1129,6 +1129,48 @@ class Test_Metric_Generation_Enabled:
         assert count >= expect_at_least
 
 
+@features.telemetry_metrics_collected
+@scenarios.telemetry_metric_generation_enabled
+class Test_Baggage_Header_Metrics:
+    """Test that baggage header extraction and injection telemetry metrics are collected"""
+
+    METRIC_FLUSH_INTERVAL = 10
+
+    def setup_baggage_header_metrics(self):
+        # Trigger baggage header extraction and injection by making distant calls with baggage headers
+        weblog.get("/make_distant_call", params={"url": "http://weblog:7777"}, headers={"baggage": "foo=bar"})
+        # Make another call to ensure metrics are generated
+        weblog.get(
+            "/make_distant_call", params={"url": "http://weblog:7777"}, headers={"baggage": "another-key=another-value"}
+        )
+        # Wait for metric collection
+        time.sleep(self.METRIC_FLUSH_INTERVAL * 2)
+
+    def test_metric_tracers_context_header_style_extracted(self):
+        """Test that baggage header extraction telemetry metric is counted"""
+        self.assert_count_metric("tracers", "context_header_style.extracted", expect_at_least=1)
+
+    def test_metric_tracers_context_header_style_injected(self):
+        """Test that baggage header injection telemetry metric is counted"""
+        self.assert_count_metric("tracers", "context_header_style.injected", expect_at_least=1)
+
+    def assert_count_metric(self, namespace, metric, expect_at_least):
+        series = list(interfaces.library.get_telemetry_metric_series(namespace, metric))
+        assert len(series) != 0 or expect_at_least == 0, f"No telemetry data received for metric {namespace}.{metric}"
+
+        count = 0
+        for s in series:
+            # assert correct type (count)
+            # assert points total
+            assert s["common"] is True
+            assert s["type"] == "count"
+            assert len(s["points"]) >= 1
+            for p in s["points"]:
+                count = count + p[1]
+
+        assert count >= expect_at_least
+
+
 @rfc("https://docs.google.com/document/d/1xTLC3UEGNooZS0YOYp3swMlAhtvVn1aa639TGxHHYvg/edit")
 @features.telemetry_app_started_event
 class Test_TelemetrySCAEnvVar:
