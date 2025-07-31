@@ -265,7 +265,7 @@ class BaseUserLoginSuccessEventV2Metrics:
 
         assert self.r.status_code == 200
 
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_success", "v2", s) for s in series), [
@@ -524,7 +524,7 @@ class BaseUserLoginFailureEventV2Metrics:
 
         assert self.r.status_code == 200
 
-        series = find_series("generate-metrics", "appsec", ["sdk.event"])
+        series = find_series("appsec", ["sdk.event"])
 
         assert series
         assert any(validate_metric_type_and_version("login_failure", "v2", s) for s in series), [

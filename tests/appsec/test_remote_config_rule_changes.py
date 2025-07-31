@@ -222,7 +222,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED
 
         # Check for rule version in telemetry
-        series = find_series("generate-metrics", "appsec", ["waf.requests", "waf.init", "waf.updates"])
+        series = find_series("appsec", ["waf.requests", "waf.init", "waf.updates"])
         rule_versions = set()
         for s in series:
             for t in s.get("tags", ()):
