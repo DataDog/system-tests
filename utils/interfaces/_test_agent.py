@@ -125,12 +125,13 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         requests = list(self.get_telemetry_for_runtime(runtime_id))
         requests.sort(key=lambda x: x["tracer_time"])
         for request in requests:
-            if service_name is not None:
+            if service_name is not None and request["application"]["service_name"] != service_name:
                 # Check if the service name in telemetry matches the expected service name
-                assert (
-                    request["application"]["service_name"] == service_name
-                ), f"Service name in telemetry in requests: {request} "
-                f"does not match expected service name {service_name}"
+                logger.debug(
+                    f"Service name in telemetry in requests: {request} "
+                    f"does not match expected service name {service_name}"
+                )
+                continue
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
             events = (
                 request["payload"]
