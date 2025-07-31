@@ -21,6 +21,9 @@ compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
   stage: configure
+  concurrency:
+    group: $CI_COMMIT_REF_SLUG
+    cancel_outdated_jobs: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
