@@ -26,7 +26,7 @@ readonly DEFAULT_SAVE_TO_BINARIES=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
-readonly DEFAULT_ruby=rails70
+readonly DEFAULT_ruby=rails72
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-native

@@ -39,6 +39,14 @@ elif [ $(ls /binaries/ruby-load-from-bundle-add | wc -l) = 0 ]; then
   # Support multiple versions of the gem
   echo "gem 'datadog', '~> 2.0', require: 'datadog/auto_instrument'" >>Gemfile
 
+  # NOTE: We are re-locking here to satisfy custom parametric tests, they are using
+  #       their own Gemfile and Dockerfile. Because of that at this moment datadog
+  #       gem will not be installed, thus can't be updated.
+  #
+  #       And then we update `datadog` gem to the latest released version.
+  bundle lock --conservative
+  bundle update datadog
+
   export GEM_NAME=datadog
 else
   #

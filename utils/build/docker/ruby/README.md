@@ -19,6 +19,7 @@ other weblogs. For instance, Rails 7.2 has `/otel_drop_in_default_propagator_ext
 and `/kafka/` endpoints.
 
 Rails 7.2
+
 * `/otel_drop_in_default_propagator_extract` with `opentelemetry-{sdk,api}` gem
 * `/otel_drop_in_default_propagator_inject` with `opentelemetry-{sdk,api}` gem
 * `/read_file`
@@ -27,6 +28,7 @@ Rails 7.2
 * `/debugger/*`
 
 Rails 8.0
+
 * `/kafka/*` with `rdkafka` gem
 * `/debugger/*`
 
