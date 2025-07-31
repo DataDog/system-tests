@@ -1,6 +1,17 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, features, context, irrelevant, bug, interfaces, weblog, logger, missing_feature
+from utils import (
+    scenarios,
+    features,
+    context,
+    irrelevant,
+    bug,
+    interfaces,
+    weblog,
+    logger,
+    missing_feature,
+    incomplete_test_app,
+)
 
 
 @scenarios.docker_ssi
@@ -134,7 +145,8 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_service_tracking
-    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
+    # Nodejs app does not report telemetry configurations for payment-service
+    @incomplete_test_app(context.library == "nodejs", reason="APMAPI-12345")
     def test_instrumentation_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # Get all captured telemetry configuration data
