@@ -4,7 +4,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-set -e
+set -eu
 
 # set .env if exists. Allow users to keep their conf via env vars
 if [[ -f "./.env" ]]; then
