@@ -190,7 +190,14 @@ def deserialize_http_message(
             try:
                 return MessageToDict(MetricPayload.FromString(content))
             except Exception as e:
-                return {"content-length": len(content), "error": str(e), "raw_content": repr(content), "message": message, "key": key, "interface": interface}
+                return {
+                    "content-length": len(content),
+                    "error": str(e),
+                    "raw_content": repr(content),
+                    "message": message,
+                    "key": key,
+                    "interface": interface,
+                }
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
 
