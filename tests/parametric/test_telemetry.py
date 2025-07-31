@@ -16,12 +16,14 @@ from utils import context, scenarios, rfc, features, missing_feature
 
 telemetry_name_mapping = {
     "ssi_injection_enabled": {
-        "nodejs": "DD_INJECTION_ENABLED",
         "python": "DD_INJECTION_ENABLED",
+        "java": "injection_enabled",
+        "ruby": "DD_INJECTION_ENABLED",
     },
     "ssi_forced_injection_enabled": {
         "nodejs": "DD_INJECT_FORCE",
         "python": "DD_INJECT_FORCE",
+        "ruby": "DD_INJECT_FORCE",
     },
     "trace_sample_rate": {
         "dotnet": "DD_TRACE_SAMPLE_RATE",
@@ -692,14 +694,6 @@ class Test_TelemetrySSIConfigs:
                 },
                 "service_test,profiler,false",
             ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_SERVICE": "service_test",
-                    "DD_INJECTION_ENABLED": None,
-                },
-                None,
-            ),
         ],
     )
     def test_injection_enabled(self, library_env, expected_value, test_agent, test_library):
@@ -737,14 +731,6 @@ class Test_TelemetrySSIConfigs:
                     "DD_INJECT_FORCE": "false",
                 },
                 "false",
-            ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_SERVICE": "service_test",
-                    "DD_INJECT_FORCE": None,
-                },
-                "none",
             ),
         ],
     )

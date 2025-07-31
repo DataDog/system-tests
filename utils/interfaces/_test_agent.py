@@ -138,6 +138,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 if request["request_type"] == "message-batch"
                 else [{"payload": request.get("payload", {}), "request_type": request["request_type"]}]
             )
+            logger.debug("Found teleemtry events: %s", events)
             for event in events:
                 # Get the configuration from app-started or app-client-configuration-change payloads
                 if event and event["request_type"] in ("app-started", "app-client-configuration-change"):
