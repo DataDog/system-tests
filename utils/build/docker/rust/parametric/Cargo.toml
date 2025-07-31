@@ -18,6 +18,8 @@ anyhow                  = { version = "1.0", features = [ "backtrace" ] }
 axum                    = { version = "0.8.4", features = [ "http2", "json" ] }
 configured              = { version = "0.7" }
 humantime-serde         = { version = "1.1" }
+hyper                   = { version = "1.0" }
+hyper-util              = { version = "0.1", features = ["tokio", "server-auto", "http1"] }
 serde                   = { version = "1.0", features = [ "derive" ] }
 serde_json              = { version = "1.0" }
 time                    = { version = "0.3", features = [ "formatting" ] }

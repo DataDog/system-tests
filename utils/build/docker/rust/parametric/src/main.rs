@@ -1,9 +1,11 @@
 use ::opentelemetry::global::{self, BoxedTracer};
 use anyhow::{Context, Result};
 use axum::{
-    body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, routing::get,
-    BoxError, Router,
+    body::Body, error_handling::HandleErrorLayer, extract::Request, http::StatusCode, BoxError,
+    Router,
 };
+use hyper::body::Incoming;
+use hyper_util::rt::{TokioExecutor, TokioIo};
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use serde::Deserialize;
 use serde_json::json;
@@ -22,7 +24,7 @@ use tokio::{
     signal::unix::{signal, SignalKind},
     time::sleep,
 };
-use tower::ServiceBuilder;
+use tower::{Service, ServiceBuilder};
 use tower_http::trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer};
 use tracing::{debug, error, field, info, info_span, Level, Span};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
@@ -72,7 +74,7 @@ fn init_tracing() -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
-                "{}=debug", // ,hyper=debug,tower_http=debug
+                "{}=debug,hyper=trace,tower_http=trace", // ,hyper=debug,tower_http=debug
                 env!("CARGO_CRATE_NAME")
             )
             .into()
@@ -157,6 +159,49 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
 
     info!("Axus Server listening on port {port}");
 
+    serve_plain(listener, app, shutdown_timeout).await
+}
+
+/// It seems axum server returns a "connection": "keep-alive" header by default causing the tests fail randomly with a
+/// requests.exceptions.ConnectionError: ('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))
+///
+/// Some tests end with making POST request to /trace/span/flush, /trace/stats/flush and /trace/otel/flush
+/// and seems that the keep-alive is not handled correctly by the python client:
+/// https://github.com/python/cpython/issues/85517
+///
+/// This funtion is just to set keep_alive = false (because axum doesn't allow to configure it)
+/// and it is inspired by this example https://github.com/tokio-rs/axum/blob/v0.7.x/examples/serve-with-hyper/src/main.rs
+async fn serve_plain(
+    listener: TcpListener,
+    app: Router,
+    _shutdown_timeout: Option<Duration>,
+) -> Result<()> {
+    loop {
+        let (socket, _remote_addr) = listener.accept().await.unwrap();
+
+        let tower_service = app.clone();
+
+        tokio::spawn(async move {
+            let socket = TokioIo::new(socket);
+            let hyper_service = hyper::service::service_fn(move |request: Request<Incoming>| {
+                tower_service.clone().call(request)
+            });
+
+            let mut server = hyper::server::conn::http1::Builder::new();
+            server.keep_alive(false);
+
+            if let Err(err) = server.serve_connection(socket, hyper_service).await {
+                error!("failed to serve connection: {err:#}");
+            }
+        });
+    }
+}
+
+async fn serve_axum(
+    listener: TcpListener,
+    app: Router,
+    shutdown_timeout: Option<Duration>,
+) -> Result<()> {
     axum::serve(listener, app.into_make_service())
         .with_graceful_shutdown(shutdown_signal(shutdown_timeout))
         .await
@@ -164,11 +209,12 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
 }
 
 async fn shutdown_signal(shutdown_timeout: Option<Duration>) {
-    signal(SignalKind::terminate())
+    let res = signal(SignalKind::terminate())
         .expect("install SIGTERM handler")
         .recv()
         .await;
-    debug!("Shutdown signal received, preparing to close server.");
+    debug!("Shutdown signal received, preparing to close server. {res:?}");
+
     if let Some(shutdown_timeout) = shutdown_timeout {
         sleep(shutdown_timeout).await;
         debug!("Shutdown signal received, closing!!");
@@ -179,7 +225,7 @@ fn make_span(request: &Request<Body>) -> Span {
     let headers = request.headers();
     let path = request.uri().path();
 
-    debug!("creating span for {path}");
+    println!("creating span for {path}");
 
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }

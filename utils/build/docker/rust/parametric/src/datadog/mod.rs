@@ -12,8 +12,7 @@ use opentelemetry::{
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
-use opentelemetry_sdk::error::OTelSdkError;
-use std::{collections::HashMap, time::Duration, vec};
+use std::{collections::HashMap, vec};
 use tracing::debug;
 
 use crate::{get_tracer, AppState};
@@ -179,12 +178,13 @@ async fn finish_span(State(state): State<AppState>, Json(args): Json<SpanFinishA
         false
     };
 
+    // FIXME: This is not correct
     if clear {
         state
             .current_context
             .lock()
             .unwrap()
-            .clone_from(&Context::current());
+            .clone_from(&Context::default());
     }
 }
 
@@ -346,14 +346,11 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
         .current_context
         .lock()
         .unwrap()
-        .clone_from(&Context::current());
+        .clone_from(&Context::default());
     debug!(
         "flush_spans: all spans and contexts cleared ok: {:?}",
         result
     );
-
-    // TODO: review. This is weird. Without this sleep /trace/stats/flush sometimes is closed by the server producing flaky test results
-    tokio::time::sleep(Duration::from_millis(500)).await;
 
     if result.is_ok() {
         StatusCode::OK

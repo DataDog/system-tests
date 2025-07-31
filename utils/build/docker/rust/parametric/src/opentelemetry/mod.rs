@@ -10,7 +10,6 @@ use opentelemetry::{
     Context, KeyValue,
 };
 
-use opentelemetry_sdk::error::OTelSdkError;
 use tracing::debug;
 
 use crate::{get_tracer, opentelemetry::dto::*, AppState};
@@ -281,12 +280,13 @@ async fn end_span(State(state): State<AppState>, Json(args): Json<EndSpanArgs>) 
         false
     };
 
+    // FIXME: this is not correct
     if clear {
         state
             .current_context
             .lock()
             .unwrap()
-            .clone_from(&Context::current());
+            .clone_from(&Context::default());
     }
 }
 
@@ -299,7 +299,7 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
         .current_context
         .lock()
         .unwrap()
-        .clone_from(&Context::current());
+        .clone_from(&Context::default());
 
     debug!(
         "otel_flush: all spans and contexts cleared ok: {:?}",
