@@ -187,7 +187,17 @@ def deserialize_http_message(
             _deserialized_nested_json_from_trace_payloads(result, interface)
             return result
         if path == "/api/v2/series":
-            return MessageToDict(MetricPayload.FromString(content))
+            try:
+                return MessageToDict(MetricPayload.FromString(content))
+            except Exception as e:
+                return {
+                    "content-length": len(content),
+                    "error": str(e),
+                    "raw_content": repr(content),
+                    "message": message,
+                    "key": key,
+                    "interface": interface,
+                }
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
 
