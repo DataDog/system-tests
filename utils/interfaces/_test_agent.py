@@ -133,7 +133,7 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
                 f"does not match expected service name {service_name}"
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
             events = (
-                request.get("payload", {})
+                request["payload"]
                 if request["request_type"] == "message-batch"
                 else [{"payload": request.get("payload", {}), "request_type": request["request_type"]}]
             )
