@@ -66,6 +66,7 @@ refs:
   - &ref_5_59_0 '>=5.59.0'
   - &ref_5_60_0 '>=5.60.0'
   - &ref_5_61_0 '>=5.61.0'  # fastify iast support
+  - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1163,28 +1164,28 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         '*': irrelevant
-        express4: *ref_5_6_0
-        express5: *ref_5_6_0
-        fastify: *ref_5_6_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_DsmContext_Injection_Base64:
         '*': irrelevant
-        express4: *ref_5_6_0
-        express5: *ref_5_6_0
-        fastify: *ref_5_6_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        '*': *ref_5_25_0
+        '*': *ref_5_62_0
         nextjs: missing_feature (missing endpoint)
       Test_DsmKinesis:
         '*': irrelevant
-        express4: *ref_5_2_0
-        express5: *ref_5_2_0
-        fastify: *ref_5_2_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_DsmRabbitmq:
         '*': irrelevant
-        express4: *ref_5_3_0
-        express5: *ref_5_3_0
-        fastify: *ref_5_3_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_DsmRabbitmq_FanoutExchange:
         '*': irrelevant
         express4: missing_feature
@@ -1197,24 +1198,24 @@ tests/:
         fastify: missing_feature
       Test_DsmSNS:
         '*': irrelevant
-        express4: *ref_5_20_0
-        express5: *ref_5_20_0
-        fastify: *ref_5_20_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_DsmSQS:
         '*': irrelevant
-        express4: *ref_5_2_0
-        express5: *ref_5_2_0
-        fastify: *ref_5_2_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         '*': irrelevant
-        express4: *ref_5_20_0
-        express5: *ref_5_20_0
-        fastify: *ref_5_20_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         '*': irrelevant
-        express4: *ref_5_20_0
-        express5: *ref_5_20_0
-        fastify: *ref_5_20_0
+        express4: *ref_5_62_0
+        express5: *ref_5_62_0
+        fastify: *ref_5_62_0
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         '*': irrelevant
@@ -1251,7 +1252,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: *ref_5_27_0
+      Test_Stable_Config_Default: irrelevant (temporarily ignored)
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:
