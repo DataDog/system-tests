@@ -41,7 +41,9 @@ jobs:
         id: compute_impacted_scenarios
         run: |
           source venv/bin/activate
-          python utils/scripts/compute_impacted_scenario.py >> $GITHUB_OUTPUT
+          # python utils/scripts/compute_impacted_scenario.py >> $GITHUB_OUTPUT
+          echo scenarios=PARAMETRIC >> $GITHUB_OUTPUT
+          echo scenarios_groups=open_telemetry,end_to_end,all >> $GITHUB_OUTPUT
         env:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
