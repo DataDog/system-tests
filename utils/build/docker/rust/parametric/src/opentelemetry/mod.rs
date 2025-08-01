@@ -213,7 +213,10 @@ async fn set_name(State(state): State<AppState>, Json(args): Json<SetNameArgs>) 
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
         let span = ctx.context.span();
         debug!("set_name span found: {}", args.span_id);
-        span.update_name(args.name);
+        span.update_name(args.name.clone());
+
+        // TODO: is this ok? see Test_Parametric_OtelSpan_Set_Name
+        span.set_attribute(opentelemetry::KeyValue::new("resource.name", args.name));
     } else {
         debug!("set_name span NOT found: {}", args.span_id);
     }

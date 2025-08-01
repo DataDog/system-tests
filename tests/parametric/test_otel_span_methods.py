@@ -765,9 +765,9 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"] or "span_events" in root_span
 
-        otel_events = "span_events" in root_span
+        v04_v07_events = "span_events" in root_span
 
-        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
+        events = root_span.get("span_events") if v04_v07_events else json.loads(root_span.get("meta", {}).get("events"))
         assert len(events) == 3
 
         event1 = events[0]
@@ -778,7 +778,7 @@ class Test_Otel_Span_Methods:
         assert event2.get("name") == "second_event"
         assert abs(event2.get("time_unix_nano") - event2_timestamp_ns) < 100000  # reduce the precision tested
 
-        if otel_events:
+        if v04_v07_events:
             assert event2["attributes"].get("string_val").get("string_value") == "value"
         else:
             assert event2["attributes"].get("string_val") == "value"
@@ -787,7 +787,7 @@ class Test_Otel_Span_Methods:
         assert event3.get("name") == "third_event"
         assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
 
-        if otel_events:
+        if v04_v07_events:
             assert event3["attributes"].get("int_val").get("int_value") == 1
             assert event3["attributes"].get("string_val").get("string_value") == "2"
             assert event3["attributes"].get("int_array.0").get("int_value") == 3

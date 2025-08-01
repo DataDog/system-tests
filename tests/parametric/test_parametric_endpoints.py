@@ -625,12 +625,19 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
+        assert "events" in span["meta"] or "span_events" in span
+
+        v04_v07_events = "span_events" in span
+
+        events = span.get("span_events") if v04_v07_events else json.loads(span["meta"]["events"])
         assert len(events) == 1
         assert events[0]["name"] == "some_event"
         assert events[0]["time_unix_nano"] == 1730393556000000000
-        assert events[0]["attributes"]["key"] == "value"
+
+        if v04_v07_events:
+            assert events[0]["attributes"]["key"].get("string_value") == "value"
+        else:
+            assert events[0]["attributes"]["key"] == "value"
 
     @irrelevant(context.library == "golang", reason="OTEL does not expose an API for recording exceptions")
     @bug(library="nodejs", reason="APMAPI-778")  # doees not set attributes on the exception event
