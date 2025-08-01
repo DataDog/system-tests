@@ -128,4 +128,3 @@ class Test_Endpoint_Discovery:
                 is_first_count += 1
 
         assert is_first_count == 1, f"Expected one is_first=true payload, found {is_first_count}"
-
