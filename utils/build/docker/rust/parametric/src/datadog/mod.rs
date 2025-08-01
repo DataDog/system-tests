@@ -15,7 +15,7 @@ use opentelemetry_http::HeaderExtractor;
 use std::{collections::HashMap, vec};
 use tracing::debug;
 
-use crate::{get_tracer, AppState};
+use crate::{get_tracer, AppState, ContextWithParent};
 
 pub fn app() -> Router<AppState> {
     Router::new()
@@ -80,7 +80,7 @@ async fn start_span(
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let contexts = state.contexts.lock().unwrap();
         if let Some(parent_ctx) = contexts.get(&parent_id) {
-            let parent_span = parent_ctx.span();
+            let parent_span = parent_ctx.context.span();
             debug!("build with span {parent_id:?} found");
 
             let parent =
@@ -121,20 +121,13 @@ async fn start_span(
         None
     };
 
-    let span = if let Some(parent_ctx) = parent_ctx {
-        state
-            .current_context
-            .lock()
-            .unwrap()
-            .clone_from(&parent_ctx);
-        builder.start_with_context(get_tracer(), &parent_ctx)
+    let (span, parent_ctx) = if let Some(parent_ctx) = parent_ctx {
+        (
+            builder.start_with_context(get_tracer(), &parent_ctx),
+            Some(parent_ctx),
+        )
     } else {
-        state
-            .current_context
-            .lock()
-            .unwrap()
-            .clone_from(&Context::current());
-        builder.start(get_tracer())
+        (builder.start(get_tracer()), None)
     };
 
     let id = span.span_context().span_id();
@@ -143,7 +136,13 @@ async fn start_span(
 
     let ctx = Context::current_with_span(span);
 
-    state.contexts.lock().unwrap().insert(span_id, ctx);
+    let ctx_with_parent = ContextWithParent::new(ctx, parent_ctx);
+    *state.current_context.lock().unwrap() = ctx_with_parent.clone();
+    state
+        .contexts
+        .lock()
+        .unwrap()
+        .insert(span_id, ctx_with_parent);
 
     debug!("created span {span_id} ");
 
@@ -157,7 +156,7 @@ async fn current_span(State(state): State<AppState>) -> Json<StartSpanResult> {
         .for_each(|(span_id, _)| debug!("current_span AppState span_id: {span_id}"));
 
     let ctx = state.current_context.lock().unwrap();
-    let span = ctx.span();
+    let span = ctx.context.span();
     let span_id = u64::from_be_bytes(span.span_context().span_id().to_bytes());
     let trace_id = u128::from_be_bytes(span.span_context().trace_id().to_bytes());
 
@@ -168,30 +167,34 @@ async fn current_span(State(state): State<AppState>) -> Json<StartSpanResult> {
 
 async fn finish_span(State(state): State<AppState>, Json(args): Json<SpanFinishArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
-    let clear = if let Some(ctx) = contexts.get_mut(&args.span_id) {
-        let span = ctx.span();
+    let parent = if let Some(ctx) = contexts.get_mut(&args.span_id) {
+        let span = ctx.context.span();
         span.end();
         debug!("finish_span: span {} found", args.span_id);
-        true
+        ctx.parent.clone()
     } else {
         debug!("finish_span: span {} NOT found", args.span_id);
-        false
+        None
     };
 
-    // FIXME: This is not correct
-    if clear {
-        state
-            .current_context
-            .lock()
-            .unwrap()
-            .clone_from(&Context::default());
-    }
+    let current = if let Some(parent) = parent {
+        if let Some(ctx) = contexts.get(&u64::from_be_bytes(
+            parent.span().span_context().span_id().to_bytes(),
+        )) {
+            ctx.clone()
+        } else {
+            ContextWithParent::default()
+        }
+    } else {
+        ContextWithParent::default()
+    };
+    *state.current_context.lock().unwrap() = current;
 }
 
 async fn set_resource(State(state): State<AppState>, Json(args): Json<SpanSetResourceArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_resource: span {} found", args.span_id);
         span.set_attribute(opentelemetry::KeyValue::new(
             "resource".to_string(),
@@ -205,7 +208,7 @@ async fn set_resource(State(state): State<AppState>, Json(args): Json<SpanSetRes
 async fn set_meta(State(state): State<AppState>, Json(args): Json<SpanSetMetaArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_meta: span {} found", args.span_id);
         span.set_attribute(opentelemetry::KeyValue::new(
             args.key.clone(),
@@ -219,7 +222,7 @@ async fn set_meta(State(state): State<AppState>, Json(args): Json<SpanSetMetaArg
 async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetricArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_metric: span {} found", args.span_id);
         span.set_attribute(opentelemetry::KeyValue::new(
             args.key.clone(),
@@ -233,7 +236,7 @@ async fn set_metric(State(state): State<AppState>, Json(args): Json<SpanSetMetri
 async fn set_error(State(state): State<AppState>, Json(args): Json<SpanErrorArgs>) {
     let mut contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_error: span {} found", args.span_id);
         span.set_attribute(opentelemetry::KeyValue::new(
             "error".to_string(),
@@ -262,7 +265,7 @@ async fn inject_headers(
 ) -> Json<SpanInjectHeadersResult> {
     let contexts = state.contexts.lock().unwrap();
     if let Some(ctx) = contexts.get(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         opentelemetry::global::get_text_map_propagator(|propagator| {
             let mut injector = HashMap::new();
 
@@ -342,11 +345,7 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
     let result = state.tracer_provider.force_flush();
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
-    state
-        .current_context
-        .lock()
-        .unwrap()
-        .clone_from(&Context::default());
+    *state.current_context.lock().unwrap() = ContextWithParent::default();
     debug!(
         "flush_spans: all spans and contexts cleared ok: {:?}",
         result

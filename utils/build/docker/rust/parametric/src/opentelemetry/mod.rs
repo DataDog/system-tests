@@ -12,7 +12,7 @@ use opentelemetry::{
 
 use tracing::debug;
 
-use crate::{get_tracer, opentelemetry::dto::*, AppState};
+use crate::{get_tracer, opentelemetry::dto::*, AppState, ContextWithParent};
 
 pub fn app() -> Router<AppState> {
     Router::new()
@@ -55,7 +55,7 @@ async fn start_span(
         let mut valid_links = vec![];
         for link in links {
             if let Some(ctx) = state.contexts.lock().unwrap().get(&link.parent_id) {
-                let span = ctx.span();
+                let span = ctx.context.span();
                 if span.span_context().is_valid() {
                     let attributes = parse_attributes(link.attributes.as_ref());
                     valid_links.push(Link::new(span.span_context().clone(), attributes, 0));
@@ -82,7 +82,7 @@ async fn start_span(
     let parent_ctx = if let Some(parent_id) = args.parent_id {
         let spans = state.contexts.lock().unwrap();
         if let Some(ctx) = spans.get(&parent_id) {
-            let parent_span = ctx.span();
+            let parent_span = ctx.context.span();
             debug!("build with otel span {parent_id:?} found");
 
             let parent =
@@ -104,10 +104,13 @@ async fn start_span(
         None
     };
 
-    let span = if let Some(parent_ctx) = parent_ctx {
-        builder.start_with_context(get_tracer(), &parent_ctx)
+    let (span, parent_ctx) = if let Some(parent_ctx) = parent_ctx {
+        (
+            builder.start_with_context(get_tracer(), &parent_ctx),
+            Some(parent_ctx),
+        )
     } else {
-        builder.start(get_tracer())
+        (builder.start(get_tracer()), None)
     };
 
     let id = span.span_context().span_id();
@@ -119,8 +122,13 @@ async fn start_span(
     );
 
     let ctx = Context::current_with_span(span);
-    state.current_context.lock().unwrap().clone_from(&ctx);
-    state.contexts.lock().unwrap().insert(span_id, ctx);
+    let ctx_with_parent = ContextWithParent::new(ctx, parent_ctx);
+    *state.current_context.lock().unwrap() = ctx_with_parent.clone();
+    state
+        .contexts
+        .lock()
+        .unwrap()
+        .insert(span_id, ctx_with_parent);
 
     debug!("created otel span {span_id}");
 
@@ -134,7 +142,7 @@ async fn current_span(State(state): State<AppState>) -> Json<StartSpanResult> {
         .for_each(|(span_id, _)| debug!("otel current_span AppState span_id: {span_id}"));
 
     let ctx = state.current_context.lock().unwrap();
-    let span = ctx.span();
+    let span = ctx.context.span();
     let span_id = u64::from_be_bytes(span.span_context().span_id().to_bytes());
     let trace_id = u64::from_be_bytes(
         span.span_context().trace_id().to_bytes()[8..16]
@@ -152,7 +160,7 @@ async fn get_span_context(
     Json(args): Json<SpanContextArgs>,
 ) -> Json<SpanContextResult> {
     let result = if let Some(ctx) = state.contexts.lock().unwrap().get(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         let span_context = span.span_context();
         debug!(
             "get_span_context span found: {}, hex: {}",
@@ -190,7 +198,7 @@ async fn is_recording(
     Json(args): Json<IsRecordingArgs>,
 ) -> Json<IsRecordingResult> {
     let recording = if let Some(ctx) = state.contexts.lock().unwrap().get(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("is_recording span found: {}", args.span_id);
         span.is_recording()
     } else {
@@ -204,7 +212,7 @@ async fn is_recording(
 
 async fn set_name(State(state): State<AppState>, Json(args): Json<SetNameArgs>) {
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_name span found: {}", args.span_id);
         span.update_name(args.name);
     } else {
@@ -215,7 +223,7 @@ async fn set_name(State(state): State<AppState>, Json(args): Json<SetNameArgs>) 
 async fn set_status(State(state): State<AppState>, Json(args): Json<SetStatusArgs>) {
     let span_id = args.span_id;
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         debug!("set_status span found: {span_id}");
         span.set_status(parse_status(args.code, args.description));
     } else {
@@ -226,7 +234,7 @@ async fn set_status(State(state): State<AppState>, Json(args): Json<SetStatusArg
 async fn set_attributes(State(state): State<AppState>, Json(args): Json<SetAttributesArgs>) {
     let span_id = args.span_id;
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         let attributes = parse_attributes(args.attributes.as_ref());
         debug!("set_attributes span found: {span_id} {attributes:#?}");
         span.set_attributes(attributes);
@@ -237,7 +245,7 @@ async fn set_attributes(State(state): State<AppState>, Json(args): Json<SetAttri
 
 async fn add_event(State(state): State<AppState>, Json(args): Json<AddEventArgs>) {
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         if let Some(timestamp) = args.timestamp {
             span.add_event_with_timestamp(
                 args.name,
@@ -252,7 +260,7 @@ async fn add_event(State(state): State<AppState>, Json(args): Json<AddEventArgs>
 
 async fn record_exception(State(state): State<AppState>, Json(args): Json<RecordExceptionArgs>) {
     if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&args.span_id) {
-        let span = ctx.span();
+        let span = ctx.context.span();
         if span.is_recording() {
             let mut attributes = vec![
                 KeyValue::new("exception.message", args.message),
@@ -266,28 +274,33 @@ async fn record_exception(State(state): State<AppState>, Json(args): Json<Record
 
 async fn end_span(State(state): State<AppState>, Json(args): Json<EndSpanArgs>) {
     let span_id = args.id;
-    let clear = if let Some(ctx) = state.contexts.lock().unwrap().get_mut(&span_id) {
-        let span = ctx.span();
+    let mut contexts = state.contexts.lock().unwrap();
+    let parent = if let Some(ctx) = contexts.get_mut(&span_id) {
+        let span = ctx.context.span();
         debug!("end_span: span {span_id:?} found");
         if let Some(timestamp) = args.timestamp {
             span.end_with_timestamp(system_time_from_micros(timestamp));
         } else {
             span.end();
         }
-        true
+        ctx.parent.clone()
     } else {
         debug!("end_span: span {span_id:?} NOT found");
-        false
+        None
     };
 
-    // FIXME: this is not correct
-    if clear {
-        state
-            .current_context
-            .lock()
-            .unwrap()
-            .clone_from(&Context::default());
-    }
+    let current = if let Some(parent) = parent {
+        if let Some(ctx) = contexts.get(&u64::from_be_bytes(
+            parent.span().span_context().span_id().to_bytes(),
+        )) {
+            ctx.clone()
+        } else {
+            ContextWithParent::default()
+        }
+    } else {
+        ContextWithParent::default()
+    };
+    *state.current_context.lock().unwrap() = current;
 }
 
 async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> Json<FlushResult> {
@@ -295,11 +308,7 @@ async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> J
 
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
-    state
-        .current_context
-        .lock()
-        .unwrap()
-        .clone_from(&Context::default());
+    *state.current_context.lock().unwrap() = ContextWithParent::default();
 
     debug!(
         "otel_flush: all spans and contexts cleared ok: {:?}",

@@ -39,10 +39,22 @@ pub(crate) fn get_tracer() -> &'static BoxedTracer {
 
 #[derive(Clone)]
 struct AppState {
-    contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
+    contexts: Arc<Mutex<HashMap<u64, ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
     tracer_provider: Arc<SdkTracerProvider>,
-    current_context: Arc<Mutex<::opentelemetry::Context>>,
+    current_context: Arc<Mutex<ContextWithParent>>,
+}
+
+#[derive(Default, Clone)]
+struct ContextWithParent {
+    context: ::opentelemetry::Context,
+    parent: Option<::opentelemetry::Context>,
+}
+
+impl ContextWithParent {
+    fn new(context: ::opentelemetry::Context, parent: Option<::opentelemetry::Context>) -> Self {
+        ContextWithParent { context, parent }
+    }
 }
 
 #[tokio::main]
@@ -121,7 +133,7 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
         shutdown_timeout,
     } = config;
 
-    let current_context = Arc::new(Mutex::new(::opentelemetry::Context::current()));
+    let current_context = Arc::new(Mutex::new(ContextWithParent::default()));
 
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),

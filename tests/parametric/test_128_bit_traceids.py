@@ -374,7 +374,6 @@ class Test_128_Bit_Traceids:
         check_128_bit_trace_id(fields[1], trace_id, dd_p_tid)
 
     @missing_feature(context.library < "nodejs@5.7.0", reason="implemented in 5.7.0 & 4.31.0")
-    @missing_feature(context.library == "rust", reason="APMSP-2059")
     @pytest.mark.parametrize(
         "library_env",
         [{"DD_TRACE_PROPAGATION_STYLE": "tracecontext", "DD_TRACE_128_BIT_TRACEID_GENERATION_ENABLED": "false"}],
