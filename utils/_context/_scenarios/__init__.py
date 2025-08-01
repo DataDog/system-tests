@@ -305,6 +305,7 @@ class _Scenarios:
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
             "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if

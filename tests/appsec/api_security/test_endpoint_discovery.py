@@ -13,22 +13,29 @@ class Test_Endpoint_Discovery:
             weblog.get("/")
 
     def _get_discovered(self):
-        """Return the payload sent through the app-endpoints telemetry event."""
+        """Return all payloads sent through app-endpoints telemetry events."""
         validate_app_endpoints_schema()
 
-        discovered = None
+        discovered: list[dict] = []
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") != "app-endpoints":
                 continue
-            discovered = content["payload"]
-        assert discovered is not None, "No endpoint discovery data found"
+            discovered.append(content["payload"])
+
+        assert discovered, "No endpoint discovery data found"
         return discovered
 
     def _get_endpoints(self):
-        discovered = self._get_discovered()
-        assert discovered["endpoints"], "No endpoints discovered"
-        return discovered["endpoints"]
+        discovered_list = self._get_discovered()
+        assert any(d.get("is_first") for d in discovered_list), "Endpoint discovery should be the first request"
+
+        endpoints: list[dict] = []
+        for payload in discovered_list:
+            endpoints.extend(payload.get("endpoints", []))
+
+        assert endpoints, "No endpoints discovered"
+        return endpoints
 
     def test_endpoint_discovery(self):
         """Test for endpoint discovery in API security."""
