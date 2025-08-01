@@ -8,6 +8,9 @@ readonly BINARIES_DIR="$ROOT_DIR/binaries"
 export GOPATH="$BINARIES_DIR/go"
 export GO111MODULE=off
 
+# Ensure GOPATH structure exists
+mkdir -p "$GOPATH/src" "$GOPATH/bin" "$GOPATH/pkg"
+
 function git_clone_or_update() {
     local -r repo="$1" path="$2"
     echo "Updating $repo"
@@ -22,10 +25,9 @@ function git_clone_or_update() {
     fi
 }
 
-echo "go get github.com/gogo/protobuf/gogoproto"
-go get github.com/gogo/protobuf/gogoproto
-
 mkdir -p "$GOPATH/src/github.com/DataDog"
+mkdir -p "$GOPATH/src/github.com/gogo"
+git_clone_or_update https://github.com/gogo/protobuf.git "$GOPATH/src/github.com/gogo/protobuf"
 git_clone_or_update https://github.com/DataDog/datadog-agent.git "$GOPATH/src/github.com/DataDog/datadog-agent"
 git_clone_or_update https://git@github.com/DataDog/agent-payload.git "$GOPATH/src/github.com/DataDog/agent-payload"
 
