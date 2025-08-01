@@ -9,6 +9,7 @@ from utils import context, interfaces, missing_feature, features, scenarios
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_Events:
     """AppSec events uses events in span"""
 
