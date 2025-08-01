@@ -36,13 +36,13 @@ class Test_CorruptedRules_Telemetry:
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
     def test_waf_init_and_config_errors_tags(self):
-        waf_init_series = find_series("generate-metrics", "appsec", ["waf.init"])
+        waf_init_series = find_series("appsec", ["waf.init"])
         waf_init_metric = [
             d for d in waf_init_series if "event_rules_version:unknown" in d["tags"] and "success:false" in d["tags"]
         ]
         assert waf_init_metric, "waf.init missing 'success:false' or 'event_rules_version:unknown' tag"
 
-        waf_config_errors_series = find_series("generate-metrics", "appsec", ["waf.config_errors"])
+        waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
         waf_config_errors_metric = [d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]]
         assert waf_config_errors_metric, "waf.config_errors missing 'event_rules_version:unknown' tag"
 
