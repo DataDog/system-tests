@@ -74,7 +74,7 @@ fn init_tracing() -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
-                "{}=debug,hyper=trace,tower_http=trace", // ,hyper=debug,tower_http=debug
+                "{}=debug", // ,hyper=debug,tower_http=debug
                 env!("CARGO_CRATE_NAME")
             )
             .into()
