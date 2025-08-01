@@ -12,7 +12,7 @@ use opentelemetry::{
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
-use std::{collections::HashMap, vec};
+use std::{collections::HashMap, sync::Arc, vec};
 use tracing::debug;
 
 use crate::{get_tracer, AppState, ContextWithParent};
@@ -121,13 +121,10 @@ async fn start_span(
         None
     };
 
-    let (span, parent_ctx) = if let Some(parent_ctx) = parent_ctx {
-        (
-            builder.start_with_context(get_tracer(), &parent_ctx),
-            Some(parent_ctx),
-        )
+    let span = if let Some(ref parent_ctx) = parent_ctx {
+        builder.start_with_context(get_tracer(), parent_ctx)
     } else {
-        (builder.start(get_tracer()), None)
+        builder.start(get_tracer())
     };
 
     let id = span.span_context().span_id();
@@ -136,13 +133,13 @@ async fn start_span(
 
     let ctx = Context::current_with_span(span);
 
-    let ctx_with_parent = ContextWithParent::new(ctx, parent_ctx);
+    let ctx_with_parent = Arc::new(ContextWithParent::new(ctx, parent_ctx));
     *state.current_context.lock().unwrap() = ctx_with_parent.clone();
     state
         .contexts
         .lock()
         .unwrap()
-        .insert(span_id, ctx_with_parent);
+        .insert(span_id, ctx_with_parent.clone());
 
     debug!("created span {span_id} ");
 
@@ -177,17 +174,16 @@ async fn finish_span(State(state): State<AppState>, Json(args): Json<SpanFinishA
         None
     };
 
-    let current = if let Some(parent) = parent {
-        if let Some(ctx) = contexts.get(&u64::from_be_bytes(
-            parent.span().span_context().span_id().to_bytes(),
-        )) {
-            ctx.clone()
-        } else {
-            ContextWithParent::default()
-        }
-    } else {
-        ContextWithParent::default()
-    };
+    let current = parent
+        .map(|parent| {
+            contexts
+                .get(&u64::from_be_bytes(
+                    parent.span().span_context().span_id().to_bytes(),
+                ))
+                .cloned()
+                .unwrap_or_default()
+        })
+        .unwrap_or_default();
     *state.current_context.lock().unwrap() = current;
 }
 
@@ -345,7 +341,7 @@ async fn flush_spans(State(state): State<AppState>) -> StatusCode {
     let result = state.tracer_provider.force_flush();
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
-    *state.current_context.lock().unwrap() = ContextWithParent::default();
+    *state.current_context.lock().unwrap() = Arc::new(ContextWithParent::default());
     debug!(
         "flush_spans: all spans and contexts cleared ok: {:?}",
         result

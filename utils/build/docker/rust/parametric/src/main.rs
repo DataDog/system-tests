@@ -5,7 +5,7 @@ use axum::{
     Router,
 };
 use hyper::body::Incoming;
-use hyper_util::rt::{TokioExecutor, TokioIo};
+use hyper_util::rt::TokioIo;
 use opentelemetry_sdk::trace::SdkTracerProvider;
 use serde::Deserialize;
 use serde_json::json;
@@ -39,10 +39,10 @@ pub(crate) fn get_tracer() -> &'static BoxedTracer {
 
 #[derive(Clone)]
 struct AppState {
-    contexts: Arc<Mutex<HashMap<u64, ContextWithParent>>>,
+    contexts: Arc<Mutex<HashMap<u64, Arc<ContextWithParent>>>>,
+    current_context: Arc<Mutex<Arc<ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
     tracer_provider: Arc<SdkTracerProvider>,
-    current_context: Arc<Mutex<ContextWithParent>>,
 }
 
 #[derive(Default, Clone)]
@@ -133,7 +133,7 @@ pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> R
         shutdown_timeout,
     } = config;
 
-    let current_context = Arc::new(Mutex::new(ContextWithParent::default()));
+    let current_context = Arc::new(Mutex::new(Arc::new(ContextWithParent::default())));
 
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),
