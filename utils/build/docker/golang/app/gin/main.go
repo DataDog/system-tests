@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -114,18 +113,34 @@ func main() {
 				ctx.Writer.Header().Add(key, value)
 			}
 		}
-		ctx.Writer.WriteHeader(status)
-		ctx.Writer.Write([]byte("Value tagged"))
+		var bodyMap map[string]any
 		switch {
 		case ctx.Request.Header.Get("Content-Type") == "application/json":
-			body, _ := io.ReadAll(ctx.Request.Body)
-			var bodyMap map[string]any
-			if err := json.Unmarshal(body, &bodyMap); err == nil {
-				appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+			dec := json.NewDecoder(ctx.Request.Body)
+			dec.UseNumber()
+			if err := dec.Decode(&bodyMap); err != nil {
+				logrus.Errorf("Error decoding request JSON body: %v", err)
+				ctx.Error(err)
+				return
 			}
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
 		case ctx.Request.ParseForm() == nil:
-			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), ctx.Request.PostForm)
+			bodyMap = make(map[string]any, len(ctx.Request.PostForm))
+			for key, value := range ctx.Request.PostForm {
+				bodyMap[key] = value
+			}
+			appsec.MonitorParsedHTTPBody(ctx.Request.Context(), bodyMap)
+		default:
+			logrus.Warnf("Unsupported request content-type: %q", ctx.Request.Header.Get("Content-Type"))
 		}
+
+		if ctx.Request.Method == http.MethodPost && strings.HasPrefix(tag, "payload_in_response_body") {
+			gintrace.JSON(ctx, status, map[string]any{"payload": bodyMap})
+			return
+		}
+
+		ctx.Writer.WriteHeader(status)
+		ctx.Writer.Write([]byte("Value tagged"))
 	})
 
 	r.Any("/status", func(ctx *gin.Context) {
