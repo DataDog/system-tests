@@ -156,7 +156,7 @@ class _VirtualMachineScenario(Scenario):
             # Extract logs from the VM before destroy
             download_vm_logs(
                 vm=self.virtual_machine,
-                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog"],
+                remote_folder_paths=["/var/log/datadog", "/var/log/datadog_weblog", "/tmp/datadog/"],
                 local_base_logs_folder=self.host_log_folder,
             )
             logger.info("Destroying virtual machines")
