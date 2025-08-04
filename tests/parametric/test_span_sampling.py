@@ -756,7 +756,6 @@ class Test_Span_Sampling:
 
     @bug(context.library == "cpp", reason="APMAPI-1545")
     @bug(context.library == "golang", reason="APMAPI-1545")
-    @bug(context.library == "nodejs", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library == "ruby", reason="APMAPI-1545")
     @bug(context.library == "python", reason="APMAPI-1545")
@@ -770,8 +769,8 @@ class Test_Span_Sampling:
             }
         ],
     )
-    def test_single_rule_with_head_and_rule_trace_sampling_019(self, test_agent, test_library):
-        """Test that head sampling, single span rules and trace rules work well together.
+    def test_single_rule_with_head_and_rule_trace_sampling_keep_019(self, test_agent, test_library):
+        """Test that head sampling, single span rules and trace rules work well together when the rules are to keep.
 
         Test that:
         1. Single span should not apply when the trace is kept by the head sampling.
@@ -827,3 +826,76 @@ class Test_Span_Sampling:
         # Assert single span sampling applied
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1
+
+    @bug(context.library == "cpp", reason="APMAPI-1545")
+    @bug(context.library == "golang", reason="APMAPI-1545")
+    @bug(context.library == "php", reason="APMAPI-1545")
+    @bug(context.library == "python", reason="APMAPI-1545")
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE": "datadog",
+                "DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
+            }
+        ],
+    )
+    def test_single_rule_with_head_and_rule_trace_sampling_drop_020(self, test_agent, test_library):
+        """Test that head sampling, single span rules and trace rules work well together when the rules are to drop.
+
+        Test that:
+        1. Single span should not drop spans kept by head sampling.
+        2. Trace sampling rule is not applied when there is a head sampling decision.
+        3. Spans are flagged with the correct tags and sampling mechanism.
+        """
+
+        with test_library.dd_extract_headers_and_make_child_span(
+            "web.request",
+            [
+                ["x-datadog-trace-id", "12345678901"],
+                ["x-datadog-parent-id", "98765432101"],
+                ["x-datadog-sampling-priority", "1"],
+                ["x-datadog-origin", "rum"],
+            ],
+        ) as s1:
+            pass
+
+        with test_library.dd_extract_headers_and_make_child_span(
+            "web.request",
+            [
+                ["x-datadog-trace-id", "12345678902"],
+                ["x-datadog-parent-id", "98765432102"],
+                ["x-datadog-sampling-priority", "0"],
+                ["x-datadog-origin", "rum"],
+            ],
+        ) as s2:
+            pass
+
+        traces = test_agent.wait_for_num_traces(2)
+
+        case1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
+        # Assert the RUM origin is set
+        assert case1["meta"]["_dd.origin"] == "rum"
+        # Assert the propagated sampling priority is unaffected
+        assert case1["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
+        # Assert that there is no trace sampling happening
+        assert "_dd.p.dm" not in case1["meta"]
+        assert "_dd.rule_psr" not in case1["meta"]
+        # Assert that there is no single span sampling happening
+        assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
+
+        case2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
+        # Assert the RUM origin is set
+        assert case2["meta"]["_dd.origin"] == "rum"
+        # Assert the propagated sampling priority is unaffected
+        assert case2["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
+        # Assert that there is no trace sampling happening
+        assert "_dd.p.dm" not in case2["meta"]
+        assert "_dd.rule_psr" not in case2["meta"]
+        # Assert that there is no single span sampling happening
+        assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
+        assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
