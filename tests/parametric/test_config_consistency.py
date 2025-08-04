@@ -399,7 +399,8 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "python": "true",
         "nodejs": "true",
         "dotnet": "true",
-    }.get(context.library.name, "false"),  # Enabled by default in ruby
+        "cpp": None,
+    },
 }
 
 
