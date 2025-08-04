@@ -655,11 +655,15 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
+        assert "events" in span["meta"] or "span_events" in span
+        v04_v07_events = "span_events" in span
+        events = span.get("span_events") if v04_v07_events else json.loads(span["meta"]["events"])
         assert len(events) == 1
         assert events[0]["name"].lower() in ["exception", "error"]
-        assert events[0]["attributes"]["error.key"] == "value"
+        if v04_v07_events:
+            assert events[0]["attributes"]["error.key"]["string_value"] == "value"
+        else:
+            assert events[0]["attributes"]["error.key"] == "value"
 
 
 @scenarios.parametric
