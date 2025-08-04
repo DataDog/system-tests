@@ -169,6 +169,34 @@ get '/custom_event' do
   'Ok'
 end
 
+post '/user_login_success_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+    params['login'],
+    params['user_id'],
+    **params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
+post '/user_login_failure_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+    params['login'],
+    params.fetch('exists', 'false') == 'true',
+    params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
 %i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
     if request_method == :post && params['tag_value'].include?('payload_in_response_body')
@@ -244,3 +272,22 @@ ssrf_handler = lambda do
 end
 get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
+
+get '/flush' do
+  # NOTE: If anything needs to be flushed here before the test suite ends,
+  #       this is the place to do it.
+  #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+  if (telemetry = Datadog.send(:components)&.telemetry)
+    telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+
+    # HACK: In the current implementation there is no way to force the flushing.
+    #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+    #       and just wait till all penging messages are flushed.
+    #
+    # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+    #       value carefully.
+    sleep 0.2
+  end
+
+  'OK'
+end
