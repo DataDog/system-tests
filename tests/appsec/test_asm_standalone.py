@@ -739,7 +739,7 @@ class BaseSCAStandaloneTelemetry:
         configuration_by_name: dict[str, dict] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
-            if content.get("request_type") != "app-started":
+            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 continue
             configuration = content["payload"]["configuration"]
 
