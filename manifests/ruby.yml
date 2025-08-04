@@ -437,20 +437,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Libddwaf: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.19.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -507,8 +507,10 @@ tests/:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
