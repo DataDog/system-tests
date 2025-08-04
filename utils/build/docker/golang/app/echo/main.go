@@ -352,6 +352,7 @@ func main() {
 	})
 
 	r.Any("/rasp/lfi", echoHandleFunc(rasp.LFI))
+	r.Any("/rasp/multiple", echoHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", echoHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", echoHandleFunc(rasp.SQLi))
 
