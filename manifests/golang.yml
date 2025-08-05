@@ -588,10 +588,10 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Snaphots: v1.73.0
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Method_Probe_Statuses: v1.73.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implented)
     test_debugger_telemetry.py:

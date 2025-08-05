@@ -713,3 +713,11 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 		}
 	}
 }
+
+func logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
+}

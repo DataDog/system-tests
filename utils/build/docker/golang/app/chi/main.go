@@ -397,6 +397,9 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	mux.HandleFunc("/debugger/log", logProbe)
+	mux.HandleFunc("/debugger/mix", mixProbe)
+
 	srv := &http.Server{
 		Addr:    ":7777",
 		Handler: mux,
@@ -427,4 +430,12 @@ func headers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", "42")
 	w.Header().Set("Content-Language", "en-US")
 	w.Write([]byte("Hello, headers!"))
+}
+
+func logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }
