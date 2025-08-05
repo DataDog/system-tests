@@ -1,4 +1,4 @@
-from utils import interfaces, rfc, scenarios, weblog, features
+from utils import interfaces, rfc, scenarios, weblog, features, irrelevant, missing_feature, context
 
 from utils.telemetry import validate_app_endpoints_schema
 
@@ -69,6 +69,10 @@ class Test_Endpoint_Discovery:
                 assert isinstance(endpoint["path"], str)
         assert found, "No endpoint contained the optional 'path' attribute"
 
+    @missing_feature(
+        context.library == "java" and context.weblog_variant in ["spring-boot"],
+        reason="Missing endpoint discovery feature in weblog variant",
+    )
     def test_optional_request_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -89,6 +93,10 @@ class Test_Endpoint_Discovery:
                 assert all(isinstance(t, str) for t in endpoint["response_body_type"])
         assert found, "No endpoint contained the optional 'response_body_type' attribute"
 
+    @irrelevant(
+        context.library == "java" and context.weblog_variant in ["spring-boot"],
+        reason="Not applicable to weblog variant",
+    )
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -100,6 +108,10 @@ class Test_Endpoint_Discovery:
                 assert all(isinstance(code, int) for code in endpoint["response_code"])
         assert found, "No endpoint contained the optional 'response_code' attribute"
 
+    @irrelevant(
+        context.library == "java" and context.weblog_variant in ["spring-boot"],
+        reason="Not applicable to weblog variant",
+    )
     def test_optional_authentication(self):
         endpoints = self._get_endpoints()
         allowed = {"JWT", "basic", "oauth", "OIDC", "api_key", "session", "mTLS", "SAML", "LDAP", "Form", "other"}
