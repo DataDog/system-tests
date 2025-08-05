@@ -187,11 +187,11 @@ if [ "$TARGET" = "java" ]; then
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
-    
+
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-master}"
     # Normalize branch name for image tag: replace '/' with '_'
     NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
-    
+
     rm -rf *.tar.gz
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
