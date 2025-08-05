@@ -8,14 +8,22 @@ from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
 from utils.parametric.spec.trace import SINGLE_SPAN_SAMPLING_RATE
 from utils.parametric.spec.trace import MANUAL_DROP_KEY
 from utils.parametric.spec.trace import USER_KEEP
-from utils.parametric.spec.trace import find_span_in_traces, find_trace, find_span, find_first_span_in_trace_payload
+from utils.parametric.spec.trace import (
+    find_span_in_traces,
+    find_trace,
+    find_span,
+    find_first_span_in_trace_payload,
+)
 from utils import missing_feature, context, scenarios, features, flaky, bug
 
 
 @features.single_span_sampling
 @scenarios.parametric
 class Test_Span_Sampling:
-    @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
+    @missing_feature(
+        context.library == "ruby",
+        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -39,7 +47,10 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
+    @missing_feature(
+        context.library == "ruby",
+        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -84,7 +95,10 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
+    @missing_feature(
+        context.library == "ruby",
+        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -130,7 +144,10 @@ class Test_Span_Sampling:
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) is None
         assert span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) is None
 
-    @missing_feature(context.library == "ruby", reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby")
+    @missing_feature(
+        context.library == "ruby",
+        reason="Issue: _dd.span_sampling.max_per_second is always set in Ruby",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -138,7 +155,11 @@ class Test_Span_Sampling:
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
                         {"service": "webserver", "name": "web.request"},
-                        {"service": "webserver", "name": "web.request", "sample_rate": 0},
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "sample_rate": 0,
+                        },
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
@@ -169,7 +190,11 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
-                        {"service": "webserver", "name": "web.request", "sample_rate": 0},
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "sample_rate": 0,
+                        },
                         {"service": "webserver", "name": "web.request"},
                     ]
                 ),
@@ -205,7 +230,13 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request", "max_per_second": 2}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "max_per_second": 2,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -260,7 +291,13 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request", "sample_rate": 0.5}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "sample_rate": 0.5,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -351,15 +388,25 @@ class Test_Span_Sampling:
 
     @missing_feature(context.library == "cpp", reason="manual.drop span tag is not applied")
     @missing_feature(
-        context.library == "golang", reason="The Go tracer does not have a way to modulate trace sampling once started"
+        context.library == "golang",
+        reason="The Go tracer does not have a way to modulate trace sampling once started",
     )
-    @missing_feature(context.library == "ruby", reason="Issue: does not respect manual.drop or manual.keep span tags")
+    @missing_feature(
+        context.library == "ruby",
+        reason="Issue: does not respect manual.drop or manual.keep span tags",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "web.request", "sample_rate": 1.0}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "sample_rate": 1.0,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 1.0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
@@ -430,8 +477,16 @@ class Test_Span_Sampling:
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
                     [
-                        {"service": "webserver", "name": "web.request", "max_per_second": 1},
-                        {"service": "webserver2", "name": "web.request2", "max_per_second": 2},
+                        {
+                            "service": "webserver",
+                            "name": "web.request",
+                            "max_per_second": 1,
+                        },
+                        {
+                            "service": "webserver2",
+                            "name": "web.request2",
+                            "max_per_second": 2,
+                        },
                     ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
@@ -498,7 +553,14 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "parent",
+                            "sample_rate": 1.0,
+                            "max_per_second": 50,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -544,7 +606,14 @@ class Test_Span_Sampling:
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "child",
+                            "sample_rate": 1.0,
+                            "max_per_second": 50,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -582,19 +651,33 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
-    @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
+    @missing_feature(
+        context.library == "dotnet",
+        reason="The .NET tracer sends the full trace to the agent anyways.",
+    )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
+    @missing_feature(
+        context.library == "php",
+        reason="The PHP tracer always sends the full trace to the agent.",
+    )
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
+        context.library == "ruby",
+        reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "parent", "sample_rate": 1.0, "max_per_second": 50}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "parent",
+                            "sample_rate": 1.0,
+                            "max_per_second": 50,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -641,19 +724,33 @@ class Test_Span_Sampling:
         assert chunk_root["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
-    @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
+    @missing_feature(
+        context.library == "dotnet",
+        reason="The .NET tracer sends the full trace to the agent anyways.",
+    )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
+    @missing_feature(
+        context.library == "php",
+        reason="The PHP tracer always sends the full trace to the agent.",
+    )
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
+        context.library == "ruby",
+        reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_SPAN_SAMPLING_RULES": json.dumps(
-                    [{"service": "webserver", "name": "child", "sample_rate": 1.0, "max_per_second": 50}]
+                    [
+                        {
+                            "service": "webserver",
+                            "name": "child",
+                            "sample_rate": 1.0,
+                            "max_per_second": 50,
+                        }
+                    ]
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
@@ -704,12 +801,19 @@ class Test_Span_Sampling:
         assert child_span["metrics"].get(SINGLE_SPAN_SAMPLING_MAX_PER_SEC) == 50
 
     @missing_feature(context.library == "cpp", reason="span dropping policy not implemented")
-    @missing_feature(context.library == "dotnet", reason="The .NET tracer sends the full trace to the agent anyways.")
+    @missing_feature(
+        context.library == "dotnet",
+        reason="The .NET tracer sends the full trace to the agent anyways.",
+    )
     @missing_feature(context.library == "nodejs", reason="Not implemented")
-    @missing_feature(context.library == "php", reason="The PHP tracer always sends the full trace to the agent.")
+    @missing_feature(
+        context.library == "php",
+        reason="The PHP tracer always sends the full trace to the agent.",
+    )
     @missing_feature(context.library == "python", reason="RPC issue causing test to hang")
     @missing_feature(
-        context.library == "ruby", reason="Issue: sending the complete trace when only the root span is expected"
+        context.library == "ruby",
+        reason="Issue: sending the complete trace when only the root span is expected",
     )
     @pytest.mark.parametrize(
         "library_env",
@@ -754,7 +858,6 @@ class Test_Span_Sampling:
 
         assert len(traces) == 0
 
-    @bug(context.library == "cpp", reason="APMAPI-1545")
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library == "ruby", reason="APMAPI-1545")
@@ -800,6 +903,8 @@ class Test_Span_Sampling:
         ) as s2:
             pass
 
+        test_library.dd_flush()
+
         traces = test_agent.wait_for_num_traces(2)
 
         case1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
@@ -827,7 +932,6 @@ class Test_Span_Sampling:
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_MECHANISM) == 8
         assert case2["metrics"].get(SINGLE_SPAN_SAMPLING_RATE) == 1
 
-    @bug(context.library == "cpp", reason="APMAPI-1545")
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library == "python", reason="APMAPI-1545")
@@ -871,6 +975,8 @@ class Test_Span_Sampling:
             ],
         ) as s2:
             pass
+
+        test_library.dd_flush()
 
         traces = test_agent.wait_for_num_traces(2)
 
