@@ -138,9 +138,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
-    @missing_feature(
-        context.library == "java" and context.weblog_variant in ["spring-boot"]
-    )
+    @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
     def test_optional_request_body_type(self):
         endpoints = self._get_endpoints()
         found = False
