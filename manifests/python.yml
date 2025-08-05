@@ -17,7 +17,11 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v2.6.0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          'django-poc': v3.12.0.dev
+          'django-py3.13': v3.12.0.dev
+          'python3.12': v3.12.0.dev
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
