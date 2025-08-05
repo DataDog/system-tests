@@ -1089,7 +1089,7 @@ tests/:
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
     test_tracer_flare.py:
-      TestTracerFlareV1: v3.12.0
+      TestTracerFlareV1: v3.12.0.dev
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.1.0
