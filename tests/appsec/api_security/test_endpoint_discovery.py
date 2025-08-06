@@ -13,8 +13,7 @@ class Test_Endpoint_Discovery:
         """Setup (once) for endpoint discovery tests."""
         if Test_Endpoint_Discovery._main_setup_done:
             return
-        for _ in range(10):
-            weblog.get("/")
+        weblog.get("/")
         Test_Endpoint_Discovery._main_setup_done = True
 
     def _get_discovered(self):
