@@ -149,7 +149,7 @@ def pytest_configure(config: pytest.Config) -> None:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
 
     # clean input
-    config.option.force_execute = [item.strip() for item in config.option.force_execute]
+    config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
 
     # First of all, we must get the current scenario
 
@@ -171,6 +171,7 @@ def pytest_configure(config: pytest.Config) -> None:
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
+    logger.info(f"Force execute: {config.option.force_execute}")
 
 
 # Called at the very begening
