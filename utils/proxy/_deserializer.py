@@ -347,7 +347,11 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
         )
     except:
         status_code: int = data[key]["status_code"]
-        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

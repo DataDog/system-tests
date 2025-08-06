@@ -397,7 +397,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "java": "true",
         "golang": None,
         "python": "true",
-        "nodejs": "structured",
+        "nodejs": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 

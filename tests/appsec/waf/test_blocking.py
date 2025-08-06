@@ -193,7 +193,6 @@ class Test_Blocking:
     @missing_feature(context.library < "nodejs@4.1.0")
     @missing_feature(context.library < "golang@1.52.0")
     @missing_feature(library="dotnet")
-    @missing_feature(library="php")
     @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_html_template_v2(self):

@@ -335,6 +335,7 @@ func main() {
 	})
 
 	r.Any("/rasp/lfi", ginHandleFunc(rasp.LFI))
+	r.Any("/rasp/multiple", ginHandleFunc(rasp.LFIMultiple))
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 

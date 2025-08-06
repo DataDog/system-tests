@@ -168,6 +168,7 @@ fi
 TARGET=$1
 VERSION=${2:-'dev'}
 
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"  # legacy
 GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
 GITHUB_AUTH_HEADER=()
 if [ -n "$GH_TOKEN" ]; then

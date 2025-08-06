@@ -29,6 +29,7 @@ class _Scenarios:
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
+    mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
 
@@ -304,6 +305,8 @@ class _Scenarios:
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
             "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
         },
         doc="""
         Scenario for API Security feature, testing schema types sent into span tags if

@@ -6,6 +6,7 @@ from utils import scenarios
 from utils import features
 from utils import remote_config as rc
 from tests.appsec.utils import find_series
+from tests.appsec.utils import find_configuration
 
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
@@ -26,7 +27,7 @@ class BaseServiceActivationMetric:
     origin = ""
 
     def test_service_activation_metric(self):
-        series = find_series("generate-metrics", "appsec", ["enabled"])
+        series = find_series("appsec", ["enabled"])
 
         assert series
         assert any(validate_metric_tag(self.origin, s) for s in series), [s.get("tags") for s in series]
@@ -44,6 +45,35 @@ class TestServiceActivationRemoteConfigMetric(BaseServiceActivationMetric):
 
 @features.appsec_service_activation_origin_metric
 class TestServiceActivationEnvVarMetric(BaseServiceActivationMetric):
+    """Test that the service activation env var metric is sent"""
+
+    def setup_service_activation_metric(self):
+        self.origin = "env_var"
+
+
+class BaseServiceActivationConfigurationMetric:
+    origin = ""
+
+    def test_service_activation_metric(self):
+        assert any(
+            c["origin"] == self.origin and c["name"] == "DD_APPSEC_ENABLED" and c["value"] in ["1", 1, True]
+            for payload_configuration in find_configuration()
+            for c in payload_configuration
+        )
+
+
+@scenarios.appsec_runtime_activation
+@features.appsec_service_activation_origin_metric
+class TestServiceActivationRemoteConfigurationConfigMetric(BaseServiceActivationConfigurationMetric):
+    """Test that the service activation remote config metric is sent"""
+
+    def setup_service_activation_metric(self):
+        self.origin = "remote_config"
+        self.config_state = _send_config(CONFIG_ENABLED)
+
+
+@features.appsec_service_activation_origin_metric
+class TestServiceActivationEnvVarConfigurationMetric(BaseServiceActivationConfigurationMetric):
     """Test that the service activation env var metric is sent"""
 
     def setup_service_activation_metric(self):

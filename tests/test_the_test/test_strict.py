@@ -8,7 +8,7 @@ FILENAME = "tests/test_the_test/test_strict.py"
 @scenarios.test_the_test
 class Test_StrictMode:
     def test_strict_missing_features(self):
-        tests = run_system_tests(test_path=FILENAME, xfail_strict=True)
+        tests = run_system_tests(test_path=FILENAME, xfail_strict=True, expected_return_code=1)
 
         assert tests[f"{FILENAME}::test_strict_bug"]["outcome"] == "failed"
         assert tests[f"{FILENAME}::test_strict_missing_feature"]["outcome"] == "failed"

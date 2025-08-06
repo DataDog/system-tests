@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
         Test_API_Security_Sampling_With_Delay: v2.50.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -410,6 +412,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
+      Test_Empty_Config: missing_feature
       Test_Multiple_Actions: v3.4.0
       Test_Unknown_Action: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
@@ -424,8 +427,10 @@ tests/:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:

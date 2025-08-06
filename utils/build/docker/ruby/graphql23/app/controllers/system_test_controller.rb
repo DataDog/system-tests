@@ -7,19 +7,6 @@ class SystemTestController < ApplicationController
     render plain: 'Hello, world!'
   end
 
-  def healthcheck
-    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
-    version = gemspec.version.to_s
-    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: { 
-      status: 'ok',
-      library: {
-        name: 'ruby',
-        version: version
-      }
-    }
-  end
-
   def waf
     render plain: 'Hello, world!'
   end
@@ -95,28 +82,6 @@ class SystemTestController < ApplicationController
     }
 
     render json: result
-  end
-
-  def user_login_success_event
-    Datadog::Kit::AppSec::Events.track_login_success(
-      Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
-    )
-
-    render plain: 'Hello, world!'
-  end
-
-  def user_login_failure_event
-    Datadog::Kit::AppSec::Events.track_login_failure(
-      Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
-    )
-
-    render plain: 'Hello, world!'
-  end
-
-  def custom_event
-    Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
-
-    render plain: 'Hello, world!'
   end
 
   def tag_value
