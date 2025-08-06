@@ -398,7 +398,7 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq
+RUN (apt-get update && apt-get -y install bash curl git jq) || (sleep 60 && apt-get update && apt-get -y install bash curl git jq)
 WORKDIR /usr/app
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
