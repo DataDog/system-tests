@@ -145,6 +145,12 @@ def pytest_configure(config: pytest.Config) -> None:
     ):
         config.option.skip_empty_scenario = True
 
+    if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
+        config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    # clean input
+    config.option.force_execute = [item.strip() for item in config.option.force_execute]
+
     # First of all, we must get the current scenario
 
     current_scenario: Scenario | None = None

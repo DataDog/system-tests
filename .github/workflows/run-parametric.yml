@@ -11,6 +11,11 @@ on:
         default: ''
         required: false
         type: string
+      force_execute:
+        description: "List of nodeid to force execute, separated by comma"
+        required: false
+        type: string
+        default: ''
       ci_environment:
         description: "Which CI environment is running the tests, used for FPD"
         default: 'custom'
@@ -70,6 +75,7 @@ jobs:
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
     steps:
       - name: Compute ref
         id: compute_ref
