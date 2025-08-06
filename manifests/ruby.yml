@@ -580,7 +580,7 @@ tests/:
         uds-rails: v2.12.0
       Test_Debugger_Line_Probe_Snaphots_With_SCM:
         "*": irrelevant
-        rails70: v2.17.1
+        rails72: v2.17.1
         rails80: v2.17.1
         uds-rails: v2.17.1
       Test_Debugger_Method_Probe_Snaphots:
@@ -590,7 +590,7 @@ tests/:
         uds-rails: v2.12.0
       Test_Debugger_Method_Probe_Snaphots_With_SCM:
         "*": irrelevant
-        rails70: v2.17.1
+        rails72: v2.17.1
         rails80: v2.17.1
         uds-rails: v2.17.1
     test_debugger_probe_status.py:
