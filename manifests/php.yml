@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v1.11.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': v1.11.0-dev

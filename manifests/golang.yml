@@ -23,6 +23,8 @@ tests/:
           net-http: irrelevant (net-http doesn't handle path params)
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: v2.0.0
         Test_Schema_Request_Cookies: v1.60.0
