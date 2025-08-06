@@ -29,6 +29,7 @@ class _Scenarios:
     todo = Scenario("TODO", doc="scenario that skips tests not yet executed", github_workflow=None)
     test_the_test = TestTheTestScenario("TEST_THE_TEST", doc="Small scenario that check system-tests internals")
     mock_the_test = TestTheTestScenario("MOCK_THE_TEST", doc="Mock scenario that check system-tests internals")
+    mock_the_test_2 = TestTheTestScenario("MOCK_THE_TEST_2", doc="Mock scenario that check system-tests internals")
 
     default = DefaultScenario("DEFAULT")
 

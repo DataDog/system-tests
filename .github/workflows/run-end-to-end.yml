@@ -24,6 +24,11 @@ on:
         required: false
         type: string
         default: ''
+      force_execute:
+        description: "List of nodeid to force execute, separated by comma"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -85,6 +90,7 @@ jobs:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       SYSTEM_TESTS_SKIP_EMPTY_SCENARIO: ${{ inputs.skip_empty_scenarios }}
+      SYSTEM_TESTS_FORCE_EXECUTE: ${{ inputs.force_execute }}
     steps:
     - name: Compute ref
       id: compute_ref
