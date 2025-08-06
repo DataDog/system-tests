@@ -1,0 +1,13 @@
+span_attributes:
+  mandatory:
+    - meta.db.system
+  best_effort:
+    - meta.db.name
+    - meta.db.user
+    - meta.out.host
+    - meta.out.port
+    - metrics.db.row_count
+
+deprecated_aliases:
+  meta.db.system:
+    - meta.db.type
