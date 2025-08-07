@@ -2744,5 +2744,14 @@ class _Features:
         pytest.mark.features(feature_id=481)(test_object)
         return test_object
 
+    @staticmethod
+    def api_security_endpoint_discovery(test_object):
+        """API Security supports endpoint discovery
+
+        https://feature-parity.us1.prod.dog/#/?feature=483
+        """
+        pytest.mark.features(feature_id=483)(test_object)
+        return test_object
+
 
 features = _Features()

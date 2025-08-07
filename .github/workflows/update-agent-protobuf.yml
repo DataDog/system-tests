@@ -3,24 +3,22 @@ name: Update agent protobuf deserializer
 on:
   workflow_dispatch: {}
   schedule:
-    - cron:  '00 02 * * 2-6'
+    - cron: "00 02 * * 2-6"
 
 jobs:
   main:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      id-token: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version: '1.24.0'
-      - run: sudo apt-get update
-      - run: sudo apt-get -y install protobuf-compiler
-      - run: protoc --version && go version
       - name: Generate descriptor
-        run: utils/scripts/update_protobuf.sh
+        run: docker run --rm -v "$(pwd):/work" -w /work golang:1.24.5 /work/utils/scripts/update_protobuf.sh
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.update-agent-protobuf.create-pr
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v7
         with:
@@ -28,3 +26,4 @@ jobs:
           branch: actions/update-protobuf-descriptors
           title: Update protobuf descriptors
           body: Please check locally that everything is ok before merging
+          token: ${{ steps.octo-sts.outputs.token }}

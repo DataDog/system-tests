@@ -39,8 +39,8 @@ def main(
     branch: str = "main",
 ) -> None:
     environ = get_environ()
-    gh_token = environ["GH_TOKEN"]
-    headers = {"Authorization": f"token {gh_token}"}
+    github_token = environ["GITHUB_TOKEN"]
+    headers = {"Authorization": f"token {github_token}"}
 
     url = f"https://api.github.com/repos/{repo_slug}/actions/workflows/{workflow_file}/runs?"
 
