@@ -29,7 +29,8 @@ junit_suite_name = "system_tests_suite"
 
 markers =[
     "scenario: run a test only for a specified scenario",
-    "features: declare the feature id"
+    "features: declare the feature id",
+    "owners: declare the owner of the test",
 ]
 
 python_files = "test_*.py *utils.py"
