@@ -4,7 +4,7 @@ import pytest
 import random
 
 from utils.parametric.spec.trace import find_only_span, find_span_in_traces
-from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE
+from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY, SAMPLING_RULE_PRIORITY_RATE, ORIGIN
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY
 from utils import rfc, scenarios, missing_feature, flaky, features, bug, context
 
@@ -612,3 +612,31 @@ class Test_Trace_Sampling_With_W3C:
         assert headers["x-datadog-sampling-priority"] == "2"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLING_RULES": json.dumps([{"sample_rate": 0}]),
+            },
+        ],
+    )
+    def test_distributed_headers_synthics_sampled(self, test_agent, test_library):
+        """Ensure that trace sampling rules does not override sampling priority from distributed headers
+        even when sampling priority is set via synthetics.
+        """
+        with test_library:
+            test_library.dd_make_child_span_and_get_headers(
+                [
+                    ["x-datadog-trace-id", "123456789"],
+                    ["x-datadog-parent-id", "0"],
+                    ["x-datadog-sampling-priority", "1"],
+                    ["x-datadog-origin", "synthetics;=web,z"],
+                ],
+            )
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span.get("trace_id") == 123456789
+        assert span.get("parent_id") == 987654321
+        assert "synthetics" in span["meta"].get(ORIGIN)
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
