@@ -4,9 +4,6 @@ on:
   workflow_dispatch: {}
   schedule:
     - cron: "00 02 * * 2-6"
-  push:
-    branches:
-      - juanjux/fix-go-run-command-for-github-action
 
 jobs:
   main:
