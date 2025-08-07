@@ -23,7 +23,7 @@ tests/:
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.19.0
         Test_Schema_Request_Cookies: v1.15.0
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: v1.15.0
@@ -32,10 +32,16 @@ tests/:
           "*": v1.15.0
           rack: irrelevant (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
-        Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Body:
+          "*": v2.20.0-dev
+          graphql23: missing_feature (no way to separate request paths)
+          rack: missing_feature (performance impact of JSON parsing)
+        Test_Schema_Response_Body_env_var: missing_feature (performance impact of JSON parsing)
         Test_Schema_Response_Headers: v1.15.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block:
+          "*": v2.20.0-dev
+          graphql23: missing_feature (no way to separate request paths)
+          rack: missing_feature (performance impact of JSON parsing)
     iast/:
       sink/:
         test_code_injection.py:
