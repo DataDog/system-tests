@@ -1,3 +1,5 @@
+import pytest
+from collections.abc import Callable
 from utils import scenarios, features, logger
 
 from .utils import run_system_tests
@@ -47,3 +49,33 @@ def test_all_class_has_feature_decorator(session, deselected_items):
             "Some test classes misses @features decorator. "
             "More info on https://github.com/DataDog/system-tests/blob/main/docs/edit/add-new-test.md"
         )
+
+
+@scenarios.test_the_test
+def test_feature_are_correctly_declared():
+    def get_markers(feature: Callable) -> list[pytest.Mark]:
+        class TestObject: ...
+
+        result = feature(TestObject)
+        assert result is TestObject, f"Feature {feature.__name__} must return the test object"
+        return TestObject.pytestmark  # type: ignore[attr-defined]
+
+    for name in dir(features):
+        if name.startswith("_"):
+            continue
+
+        feature = getattr(features, name)
+
+        markers: list[pytest.Mark] = get_markers(feature)
+        kwargs: dict = {}
+        for marker in markers:
+            kwargs |= marker.kwargs
+
+        assert "feature_id" in kwargs, f"Feature `{name}` must declare a feature_id in its marker"
+        assert "owner" in kwargs, f"Feature `{name}` must declare an owner in its marker"
+        feature_id = kwargs["feature_id"]
+
+        if feature is not features.not_reported:
+            assert (
+                f"https://feature-parity.us1.prod.dog/#/?feature={feature_id}" in feature.__doc__
+            ), f"Feature `{name}` must have a link to the feature parity in its docstring"

@@ -227,6 +227,7 @@ def _collect_item_metadata(item: pytest.Item):
         "details": details,
         "testDeclaration": test_declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+        "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
 
 
