@@ -70,6 +70,11 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          spring-boot: v1.52.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0
@@ -1674,6 +1679,9 @@ tests/:
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_Empty_Config:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Multiple_Actions:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1722,8 +1730,10 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0

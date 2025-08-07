@@ -20,6 +20,8 @@ tests/:
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v1.15.0
@@ -437,20 +439,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Libddwaf: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.19.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -495,6 +497,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
+      Test_Empty_Config: missing_feature (the test relies on remote AppSec activation)
       Test_Multiple_Actions: missing_feature (the test relies on remote AppSec activation)
       Test_Unknown_Action: missing_feature (the test relies on remote AppSec activation)
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
@@ -506,8 +509,10 @@ tests/:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:

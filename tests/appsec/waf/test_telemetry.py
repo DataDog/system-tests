@@ -228,6 +228,8 @@ def _validate_headers(headers, request_type):
     expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
+    elif expected_language == "golang":
+        expected_language = "go"
 
     # empty value means we don't care about the content, but we want to check the key exists
     # a set means "any of"
@@ -244,7 +246,7 @@ def _validate_headers(headers, request_type):
     elif context.library > "nodejs@4.20.0":
         # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
-    elif context.library >= "java@1.23.0":
+    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"
