@@ -17,6 +17,7 @@ def find_dd_memfds(test_library) -> list[str]:
     # running find on the entire /proc directory errors out without returning
     # any results.
     rc, out = test_library.container_exec_run("ls /proc")
+    print(f"ls /proc: {rc}, {out}")
     if not rc:
         return []
 
@@ -27,6 +28,9 @@ def find_dd_memfds(test_library) -> list[str]:
         rc, out = test_library.container_exec_run(
             f"find /proc/{pid} -lname '/memfd:datadog-tracer-info*' -not -path '*task*'"
         )
+        _, ls = test_library.container_exec_run(f"ls -l /proc/{pid}/fd")
+        print(f"find /proc/{pid}: {rc}, {out}")
+        print(f"ls /proc/{pid}/fd: {ls}")
         if not rc or not out:
             continue
 
