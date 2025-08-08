@@ -400,7 +400,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "nodejs": "true",
         "dotnet": "true",
         "cpp": None,
-    },
+    }.get(context.library.name),
 }
 
 
