@@ -48,7 +48,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=1
         """
         return _mark_test_object(
-            test_object, feature_id=1, owner=_Owner.tracer
+            test_object, feature_id=1, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/data-decoration, tracing/configuration/consistency
 
     @staticmethod
@@ -77,7 +77,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=4
         """
-        return _mark_test_object(test_object, feature_id=4, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=4, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def log_injection(test_object):
@@ -126,7 +126,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=10
         """
-        return _mark_test_object(test_object, feature_id=10, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=10, owner=_Owner.language_platform)
 
     @staticmethod
     def fargate_14_tagging_support(test_object):
@@ -226,7 +226,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=21
         """
-        return _mark_test_object(test_object, feature_id=21, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=21, owner=_Owner.apm_serverless)
 
     @staticmethod
     def runtime_id_in_span_metadata_for_service_entry_spans(test_object):
@@ -316,7 +316,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=33
         """
-        return _mark_test_object(test_object, feature_id=33, owner=_Owner.tracer)  # library/logging
+        return _mark_test_object(test_object, feature_id=33, owner=_Owner.language_platform)
 
     @staticmethod
     def post_processing_traces(test_object):
@@ -332,7 +332,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=36
         """
-        return _mark_test_object(test_object, feature_id=36, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=36, owner=_Owner.language_platform)
 
     @staticmethod
     def kafka_tracing(test_object):
@@ -340,7 +340,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=37
         """
-        return _mark_test_object(test_object, feature_id=37, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=37, owner=_Owner.idm)
 
     @staticmethod
     def numeric_tags_for_trace_search_analytics_step_1(test_object):
@@ -356,7 +356,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=39
         """
-        return _mark_test_object(test_object, feature_id=39, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=39, owner=_Owner.idm)
 
     @staticmethod
     def dd_trace_config_file(test_object):
@@ -396,7 +396,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=44
         """
-        return _mark_test_object(test_object, feature_id=44, owner=_Owner.tracer)  # tracing/data-decoration
+        return _mark_test_object(test_object, feature_id=44, owner=_Owner.idm)
 
     @staticmethod
     def windows_named_pipe_support_for_traces(test_object):
@@ -436,7 +436,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=49
         """
-        return _mark_test_object(test_object, feature_id=49, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=49, owner=_Owner.language_platform)
 
     @staticmethod
     def option_to_remap_apm_error_response_severity_eg_404_to_error(test_object):
@@ -444,7 +444,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=50
         """
-        return _mark_test_object(test_object, feature_id=50, owner=_Owner.tracer)  # tracing/data-decoration
+        return _mark_test_object(test_object, feature_id=50, owner=_Owner.idm)  # tracing/data-decoration
 
     @staticmethod
     def trace_query_string_obfuscation(test_object):
@@ -453,7 +453,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=51
         """
         return _mark_test_object(
-            test_object, feature_id=51, owner=_Owner.tracer
+            test_object, feature_id=51, owner=_Owner.idm
         )  # tracing/configuration, tracing/data-decoration, tracing/configuration/consistency
 
     @staticmethod
@@ -480,9 +480,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=55
         """
-        return _mark_test_object(
-            test_object, feature_id=55, owner=_Owner.tracer
-        )  # tracing/integrations, tracing/data-collection
+        return _mark_test_object(test_object, feature_id=55, owner=_Owner.idm)  # tracing/data-collection
 
     @staticmethod
     def dont_set_username_tag_because_its_pii(test_object):
@@ -538,7 +536,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=62
         """
-        return _mark_test_object(test_object, feature_id=62, owner=_Owner.tracer)  # tracing/apm-stats/stats-computation
+        return _mark_test_object(test_object, feature_id=62, owner=_Owner.data_pipeline)
 
     @staticmethod
     def client_side_stats_on_by_default(test_object):
@@ -618,7 +616,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=72
         """
-        return _mark_test_object(test_object, feature_id=72, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=72, owner=_Owner.language_platform)
 
     @staticmethod
     def telemetry_metrics_collected(test_object):
@@ -690,7 +688,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=81
         """
-        return _mark_test_object(test_object, feature_id=81, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=81, owner=_Owner.idm)
 
     @staticmethod
     def remote_config_object_supported(test_object):
@@ -739,7 +737,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=87
         """
         return _mark_test_object(
-            test_object, feature_id=87, owner=_Owner.tracer
+            test_object, feature_id=87, owner=_Owner.sdk_capabilities
         )  # tracing/otel/api, apm/dbm, tracing/data-decoration
 
     @staticmethod
@@ -790,7 +788,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=98
         """
-        return _mark_test_object(test_object, feature_id=98, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=98, owner=_Owner.idm)
 
     @staticmethod
     def weak_cipher_detection(test_object):
@@ -1094,8 +1092,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=192
         """
         return _mark_test_object(
-            test_object, feature_id=192, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations, idm-sugar
+            test_object, feature_id=192, owner=_Owner.idm
+        )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
     def open_tracing_api(test_object):
@@ -1199,7 +1197,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=206
         """
-        return _mark_test_object(test_object, feature_id=206, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=206, owner=_Owner.idm)
 
     @staticmethod
     def mysql_support(test_object):
@@ -1207,7 +1205,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=207
         """
-        return _mark_test_object(test_object, feature_id=207, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=207, owner=_Owner.idm)
 
     @staticmethod
     def mssql_support(test_object):
@@ -1215,7 +1213,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=225
         """
-        return _mark_test_object(test_object, feature_id=225, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=225, owner=_Owner.idm)
 
     @staticmethod
     def postgres_support(test_object):
@@ -1223,7 +1221,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=208
         """
-        return _mark_test_object(test_object, feature_id=208, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=208, owner=_Owner.idm)
 
     @staticmethod
     def database_monitoring_correlation(test_object):
@@ -1239,9 +1237,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=210
         """
-        return _mark_test_object(
-            test_object, feature_id=210, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=210, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def debugger(test_object):
@@ -1257,9 +1253,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=212
         """
-        return _mark_test_object(
-            test_object, feature_id=212, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=212, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq(test_object):
@@ -1267,9 +1261,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=213
         """
-        return _mark_test_object(
-            test_object, feature_id=213, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=213, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
@@ -1277,9 +1269,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=214
         """
-        return _mark_test_object(
-            test_object, feature_id=214, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=214, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
@@ -1287,9 +1277,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=215
         """
-        return _mark_test_object(
-            test_object, feature_id=215, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=215, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def mongo_support(test_object):
@@ -1297,7 +1285,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=216
         """
-        return _mark_test_object(test_object, feature_id=216, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=216, owner=_Owner.idm)
 
     @staticmethod
     def otel_mysql_support(test_object):
@@ -1305,9 +1293,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=217
         """
-        return _mark_test_object(
-            test_object, feature_id=217, owner=_Owner.tracer
-        )  # tracing/integrations/db, otel/integrations
+        return _mark_test_object(test_object, feature_id=217, owner=_Owner.idm)  # otel/integrations
 
     @staticmethod
     def otel_mssql_support(test_object):
@@ -1315,9 +1301,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=226
         """
-        return _mark_test_object(
-            test_object, feature_id=226, owner=_Owner.tracer
-        )  # tracing/integrations/db, otel/integrations
+        return _mark_test_object(test_object, feature_id=226, owner=_Owner.idm)  # otel/integrations
 
     @staticmethod
     def otel_postgres_support(test_object):
@@ -1325,9 +1309,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=218
         """
-        return _mark_test_object(
-            test_object, feature_id=218, owner=_Owner.tracer
-        )  # tracing/integrations/db, otel/integrations
+        return _mark_test_object(test_object, feature_id=218, owner=_Owner.idm)  # otel/integrations
 
     @staticmethod
     def sql_support(test_object):
@@ -1335,7 +1317,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=219
         """
-        return _mark_test_object(test_object, feature_id=219, owner=_Owner.tracer)  # tracing/integrations/db
+        return _mark_test_object(test_object, feature_id=219, owner=_Owner.idm)
 
     @staticmethod
     def dynamic_configuration(test_object):
@@ -1369,7 +1351,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=223
         """
-        return _mark_test_object(test_object, feature_id=223, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=223, owner=_Owner.language_platform)
 
     @staticmethod
     def profiling(test_object):
@@ -1600,7 +1582,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=262
         """
-        return _mark_test_object(test_object, feature_id=262, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=262, owner=_Owner.idm)
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(
@@ -1611,8 +1593,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=263
         """
         return _mark_test_object(
-            test_object, feature_id=263, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations, idm-sugar
+            test_object, feature_id=263, owner=_Owner.idm
+        )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1623,8 +1605,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=264
         """
         return _mark_test_object(
-            test_object, feature_id=264, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations, idm-sugar
+            test_object, feature_id=264, owner=_Owner.idm
+        )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
     def data_integrity(test_object):
@@ -1648,9 +1630,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=268
         """
-        return _mark_test_object(
-            test_object, feature_id=268, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=268, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def api_security_configuration(test_object):
@@ -1667,8 +1647,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=270
         """
         return _mark_test_object(
-            test_object, feature_id=270, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations, idm-sugar
+            test_object, feature_id=270, owner=_Owner.idm
+        )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
     def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1688,9 +1668,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=273
         """
-        return _mark_test_object(
-            test_object, feature_id=273, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=273, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def iast_sink_insecure_auth_protocol(test_object):
@@ -1733,8 +1711,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=280
         """
         return _mark_test_object(
-            test_object, feature_id=280, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations, idm-sugar
+            test_object, feature_id=280, owner=_Owner.idm
+        )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_for_base64_encoding(test_object):
@@ -1743,8 +1721,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=284
         """
         return _mark_test_object(
-            test_object, feature_id=284, owner=_Owner.tracer
-        )  # tracing/context-propagation, apm/dsm, tracing/integrations/dsm, idm-sugar
+            test_object, feature_id=284, owner=_Owner.idm
+        )  # tracing/context-propagation, apm/dsm, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_context_injection_base64(test_object):
@@ -1753,8 +1731,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=287
         """
         return _mark_test_object(
-            test_object, feature_id=287, owner=_Owner.tracer
-        )  # tracing/context-propagation, apm/dsm, tracing/integrations/dsm, idm-sugar
+            test_object, feature_id=287, owner=_Owner.idm
+        )  # tracing/context-propagation, apm/dsm, idm-sugar
 
     @staticmethod
     def datastreams_monitoring_support_for_kinesis(test_object):
@@ -1762,9 +1740,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=282
         """
-        return _mark_test_object(
-            test_object, feature_id=282, owner=_Owner.tracer
-        )  # apm/dsm, tracing/integrations/dsm, idm-sugar
+        return _mark_test_object(test_object, feature_id=282, owner=_Owner.idm)  # apm/dsm, idm-sugar
 
     @staticmethod
     def iast_sink_reflection_injection(test_object):
@@ -1845,8 +1821,8 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=296
         """
         return _mark_test_object(
-            test_object, feature_id=296, owner=_Owner.tracer
-        )  # tracing/context-propagation, tracing/integrations/db, apm/dbm, idm-sugar
+            test_object, feature_id=296, owner=_Owner.idm
+        )  # tracing/context-propagation, apm/dbm, idm-sugar
 
     @staticmethod
     def rasp_stack_trace(test_object):
@@ -2016,7 +1992,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=317
         """
-        return _mark_test_object(test_object, feature_id=317, owner=_Owner.tracer)  # library/supportability
+        return _mark_test_object(test_object, feature_id=317, owner=_Owner.language_platform)
 
     @staticmethod
     def rasp_shell_injection(test_object):
@@ -2106,7 +2082,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=341
         """
-        return _mark_test_object(test_object, feature_id=341, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=341, owner=_Owner.idm)
 
     @staticmethod
     def parametric_endpoint_parity(test_object):
@@ -2180,7 +2156,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=354
         """
-        return _mark_test_object(test_object, feature_id=354, owner=_Owner.tracer)  # tracing/integrations
+        return _mark_test_object(test_object, feature_id=354, owner=_Owner.idm)
 
     @staticmethod
     def envoy_external_processing(test_object):
