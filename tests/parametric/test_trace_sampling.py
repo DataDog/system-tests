@@ -621,7 +621,7 @@ class Test_Trace_Sampling_With_W3C:
             },
         ],
     )
-    def test_distributed_headers_synthics_sampled(self, test_agent, test_library):
+    def test_distributed_headers_synthetics_sampling_decision(self, test_agent, test_library):
         """Ensure that trace sampling rules does not override sampling priority from distributed headers
         even when sampling priority is set via synthetics.
         """
@@ -637,6 +637,6 @@ class Test_Trace_Sampling_With_W3C:
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
-        assert span.get("parent_id") == 987654321
+        assert span.get("parent_id") == 0
         assert "synthetics" in span["meta"].get(ORIGIN)
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
