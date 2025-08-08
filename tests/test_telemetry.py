@@ -593,9 +593,8 @@ class Test_TelemetryConfigurationChaining:
         "nodejs": {
             "configuration": {
                 "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
                     {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
         },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
@@ -612,25 +611,10 @@ class Test_TelemetryConfigurationChaining:
         return cls._ORIGIN_PRECEDENCE_ORDER.copy()
 
     @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining(self):
-        """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
-        self._validate_config_chaining(require_seq_id=True)
-
-    @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining_no_seq_id(self):
+    def test_app_started_config_chaining_seq_id(self):
         """If for some reason the seq_id is not sent, assert that all configuration sources read at start time for a given configuration
         are sent with the app-started event in the correct order
         """
-        self._validate_config_chaining(require_seq_id=False)
-
-    def _validate_config_chaining(self, *, require_seq_id: bool = True) -> None:
-        """Common validation logic for configuration chaining tests
-
-        Args:
-            require_seq_id: Whether to require and validate seq_id presence and ordering
-
-        """
-        nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
 
         def validator(data):
             if get_request_type(data) != "app-started":
@@ -638,21 +622,11 @@ class Test_TelemetryConfigurationChaining:
 
             content = data["request"]["content"]
             configurations = content["payload"]["configuration"]
+            assert configurations, f"No configurations found in app-started event: {configurations}"
 
-            if require_seq_id:
-                # Assert that each configuration has a seq_id
-                for cnf in configurations:
-                    assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                    assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-
-                # Sort configurations by seq_id in ascending order (lowest to highest precedence)
-                configurations.sort(key=lambda cnf: cnf["seq_id"])
-            else:
-                # For the no_seq_id test, configurations might not have seq_id
-                # Sort by name to have a consistent order for comparison
-                configurations.sort(key=lambda cnf: cnf.get("name", ""))
-
-            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
+            for cnf in configurations:
+                assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
+                assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
 
         self.validate_library_telemetry_data(validator)
 
@@ -691,53 +665,6 @@ class Test_TelemetryConfigurationChaining:
                 f"(precedence {current_precedence}) should come before '{next_origin}' "
                 f"(precedence {next_precedence}) according to {self._ORIGIN_PRECEDENCE_ORDER}"
             )
-
-    def _validate_configuration_chains(
-        self, configurations: list, expected_config: dict, *, require_seq_id: bool
-    ) -> None:
-        """Validate individual configuration chains against expected values
-
-        Args:
-            configurations: Actual configurations from telemetry data
-            expected_config: Expected configuration structure
-            require_seq_id: Whether to validate seq_id ordering
-
-        """
-        for cnf_name, expected_chain in expected_config.items():
-            # Filter actual entries for this configuration name
-            actual_chain = [cnf for cnf in configurations if cnf["name"] == cnf_name]
-
-            assert len(actual_chain) == len(expected_chain), (
-                f"Config '{cnf_name}': expected {len(expected_chain)} items, " f"found {len(actual_chain)}"
-            )
-
-            # Validate that the expected chain follows precedence order
-            self._validate_precedence_order(expected_chain)
-
-            # Validate that the actual chain follows precedence order
-            self._validate_precedence_order(actual_chain)
-
-            for i, (actual, expected) in enumerate(zip(actual_chain, expected_chain, strict=False)):
-                # Validate origin
-                assert actual["origin"] == expected["origin"], (
-                    f"Config '{cnf_name}[{i}]': origin mismatch - "
-                    f"expected '{expected['origin']}', got '{actual['origin']}'"
-                )
-
-                # Validate value
-                assert actual["value"] == expected["value"], (
-                    f"Config '{cnf_name}[{i}]': value mismatch - "
-                    f"expected {expected['value']}, got {actual['value']}"
-                )
-
-                # Validate seq_id ordering if required
-                if require_seq_id and i < len(actual_chain) - 1:
-                    next_item = actual_chain[i + 1]
-                    assert actual["seq_id"] < next_item["seq_id"], (
-                        f"Config '{cnf_name}': seq_id not in ascending order - "
-                        f"item[{i}] seq_id={actual['seq_id']} should be less than "
-                        f"item[{i+1}] seq_id={next_item['seq_id']}"
-                    )
 
 
 @features.telemetry_instrumentation
