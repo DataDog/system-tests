@@ -4,6 +4,10 @@
     "error": 1,
     "meta": {
       "_dd.appsec.event_rules.version": "<scrubbed>",
+      "_dd.appsec.fp.http.endpoint": "<scrubbed>",
+      "_dd.appsec.fp.http.header": "<scrubbed>",
+      "_dd.appsec.fp.http.network": "<scrubbed>",
+      "_dd.appsec.fp.session": "<scrubbed>",
       "_dd.debug.error.0.frame_data.name": "ExceptionReplayInner",
       "_dd.debug.error.0.no_capture_reason": "The method ExceptionReplayInner could not be found.",
       "_dd.debug.error.1.frame_data.class_name": "ExceptionReplayController",
