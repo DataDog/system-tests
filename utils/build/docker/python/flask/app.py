@@ -112,6 +112,11 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    ddtrace.config._logs_injection = True
+
 # Configure loguru logger
 log.remove()
 # Sink for unstructured logs
