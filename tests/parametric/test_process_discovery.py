@@ -8,12 +8,35 @@ from utils import features, scenarios, context
 from utils._context.component_version import Version
 
 
-def find_dd_memfds(test_library, pid: int) -> list[str]:
-    rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info*'")
+def find_dd_memfds(test_library) -> list[str]:
+    # We don't know the pid of the process we're instrumenting, so we need to
+    # search for the memfd file in all running processes. We're in a container
+    # so we only have processes involved in the test so this should be safe.
+    #
+    # Get a list of running pids first and then run find on each of them, since
+    # running find on the entire /proc directory errors out without returning
+    # any results.
+    rc, out = test_library.container_exec_run("ls /proc")
+    print(f"ls /proc: {rc}, {out}")
     if not rc:
         return []
 
-    return out.split()
+    for pid in out.split():
+        if not pid.isdigit():
+            continue
+
+        rc, out = test_library.container_exec_run(
+            f"find /proc/{pid} -lname '/memfd:datadog-tracer-info*' -not -path '*task*'"
+        )
+        _, ls = test_library.container_exec_run(f"ls -l /proc/{pid}/fd")
+        print(f"find /proc/{pid}: {rc}, {out}")
+        print(f"ls /proc/{pid}/fd: {ls}")
+        if not rc or not out:
+            continue
+
+        return out.split()
+
+    return []
 
 
 def validate_schema(payload: str) -> bool:
@@ -65,10 +88,7 @@ class Test_ProcessDiscovery:
     def test_metadata_content(self, test_library, library_env):
         """Verify the content of the memfd file matches the expected metadata format and structure"""
         with test_library:
-            # NOTE(@dmehala): the server is started on container is always pid 1.
-            # That's a strong assumption :hehe:
-            # Maybe we should use `pidof pidof parametric-http-server` instead.
-            memfds = find_dd_memfds(test_library, 1)
+            memfds = find_dd_memfds(test_library)
             assert len(memfds) == 1
 
             rc, tracer_metadata = read_memfd(test_library, memfds[0])
