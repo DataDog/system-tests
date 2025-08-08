@@ -3,11 +3,16 @@ import pytest
 
 
 class _Owner(StrEnum):
+    # the value of each member must be a valid github team
     unknown = "unknown"
-    asm = "ASM"  # application security monitoring
-    rp = "RP"  # reliability & performance
-    debugger = "debugger"
 
+    asm = "@DataDog/asm-libraries"  # application security monitoring
+    auto_instrumentation = "DataDog/teams/unified-instrumentation-setup"
+    debugger = "@DataDog/debugger"
+    profiler = "@DataDog/profiling"  # it does not exists
+    rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
+    sdk_capabilities = "DataDog/apm-sdk-api"
+    tracer = "?"  # legacy client libraries from feature parity dashboard
 
 def _mark_test_object(test_object, feature_id: int, owner: _Owner):
     """Mark the test object with a feature ID"""
@@ -38,7 +43,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=1
         """
-        return _mark_test_object(test_object, feature_id=1, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=1, owner=_Owner.tracer)
 
     @staticmethod
     def trace_agent_connection(test_object):
@@ -46,7 +51,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=2
         """
-        return _mark_test_object(test_object, feature_id=2, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=2, owner=_Owner.tracer)
 
     @staticmethod
     def add_metadata_to_spans_via_tags_dd_trace_analytics_enabled(test_object):
@@ -54,7 +59,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=3
         """
-        return _mark_test_object(test_object, feature_id=3, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=3, owner=_Owner.tracer)
 
     @staticmethod
     def trace_search_automatic_config(test_object):
@@ -62,7 +67,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=4
         """
-        return _mark_test_object(test_object, feature_id=4, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=4, owner=_Owner.tracer)
 
     @staticmethod
     def log_injection(test_object):
@@ -70,7 +75,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=5
         """
-        return _mark_test_object(test_object, feature_id=5, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=5, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def unix_domain_sockets_support_for_traces(test_object):
@@ -79,7 +84,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=6
         """
 
-        return _mark_test_object(test_object, feature_id=6, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=6, owner=_Owner.tracer)
 
     @staticmethod
     def unix_domain_sockets_automatic_detection(test_object):
@@ -87,7 +92,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=7
         """
-        return _mark_test_object(test_object, feature_id=7, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=7, owner=_Owner.tracer)
 
     @staticmethod
     def twl_customer_controls_ingestion_dd_trace_sampling_rules(test_object):
@@ -95,7 +100,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=8
         """
-        return _mark_test_object(test_object, feature_id=8, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=8, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def synthetic_apm_http_header_span_tag_x_datadog_origin(test_object):
@@ -103,7 +108,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=9
         """
-        return _mark_test_object(test_object, feature_id=9, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=9, owner=_Owner.tracer)
 
     @staticmethod
     def log_tracer_status_at_startup(test_object):
@@ -111,7 +116,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=10
         """
-        return _mark_test_object(test_object, feature_id=10, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=10, owner=_Owner.tracer)
 
     @staticmethod
     def fargate_14_tagging_support(test_object):
@@ -119,7 +124,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=11
         """
-        return _mark_test_object(test_object, feature_id=11, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=11, owner=_Owner.tracer)
 
     @staticmethod
     def container_tagging(test_object):
@@ -127,7 +132,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=12
         """
-        return _mark_test_object(test_object, feature_id=12, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=12, owner=_Owner.tracer)
 
     @staticmethod
     def b3_headers_propagation(test_object):
@@ -135,7 +140,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=13
         """
-        return _mark_test_object(test_object, feature_id=13, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=13, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def unix_domain_sockets_support_for_metrics(test_object):
@@ -143,7 +148,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=14
         """
-        return _mark_test_object(test_object, feature_id=14, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=14, owner=_Owner.tracer)
 
     @staticmethod
     def support_ddmeasured(test_object):
@@ -151,7 +156,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=15
         """
-        return _mark_test_object(test_object, feature_id=15, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=15, owner=_Owner.tracer)
 
     @staticmethod
     def dd_service_mapping(test_object):
@@ -159,7 +164,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=16
         """
-        return _mark_test_object(test_object, feature_id=16, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=16, owner=_Owner.tracer)
 
     @staticmethod
     def dogstatsd_agent_connection(test_object):
@@ -167,7 +172,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=17
         """
-        return _mark_test_object(test_object, feature_id=17, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=17, owner=_Owner.tracer)
 
     @staticmethod
     def http_headers_as_tags_dd_trace_header_tags(test_object):
@@ -175,7 +180,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=18
         """
-        return _mark_test_object(test_object, feature_id=18, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=18, owner=_Owner.tracer)
 
     @staticmethod
     def dd_profiling_enabled(test_object):
@@ -183,7 +188,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=19
         """
-        return _mark_test_object(test_object, feature_id=19, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=19, owner=_Owner.profiler)
 
     @staticmethod
     def dogstatsd_unified_service_tagging(test_object):
@@ -191,7 +196,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=20
         """
-        return _mark_test_object(test_object, feature_id=20, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=20, owner=_Owner.tracer)
 
     @staticmethod
     def trace_log_exporting_for_aws_lambda(test_object):
@@ -199,7 +204,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=21
         """
-        return _mark_test_object(test_object, feature_id=21, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=21, owner=_Owner.tracer)
 
     @staticmethod
     def runtime_id_in_span_metadata_for_service_entry_spans(test_object):
@@ -207,7 +212,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=22
         """
-        return _mark_test_object(test_object, feature_id=22, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=22, owner=_Owner.tracer)
 
     @staticmethod
     def partial_flush(test_object):
@@ -215,7 +220,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=23
         """
-        return _mark_test_object(test_object, feature_id=23, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=23, owner=_Owner.tracer)
 
     @staticmethod
     def partial_flush_on_by_default(test_object):
@@ -223,7 +228,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=24
         """
-        return _mark_test_object(test_object, feature_id=24, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=24, owner=_Owner.tracer)
 
     @staticmethod
     def automatic_trace_id_injection_into_logs(test_object):
@@ -231,7 +236,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=25
         """
-        return _mark_test_object(test_object, feature_id=25, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=25, owner=_Owner.tracer)
 
     @staticmethod
     def mapping_http_status_codes_to_errors(test_object):
@@ -239,7 +244,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=26
         """
-        return _mark_test_object(test_object, feature_id=26, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=26, owner=_Owner.tracer)
 
     @staticmethod
     def log_pipelines_updated_for_log_injection(test_object):
@@ -247,7 +252,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=27
         """
-        return _mark_test_object(test_object, feature_id=27, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=27, owner=_Owner.tracer)
 
     @staticmethod
     def inject_service_env_version_into_logs(test_object):
@@ -262,7 +267,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=29
         """
-        return _mark_test_object(test_object, feature_id=29, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=29, owner=_Owner.tracer)
 
     @staticmethod
     def use_sampling_priorities_2_1_in_rules_based_sampler(test_object):
@@ -270,7 +275,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=30
         """
-        return _mark_test_object(test_object, feature_id=30, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=30, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def trace_annotation(test_object):
@@ -278,7 +283,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=31
         """
-        return _mark_test_object(test_object, feature_id=31, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=31, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def runtime_metrics(test_object):
@@ -286,7 +291,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=32
         """
-        return _mark_test_object(test_object, feature_id=32, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=32, owner=_Owner.tracer)
 
     @staticmethod
     def logs_throttling(test_object):
@@ -294,7 +299,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=33
         """
-        return _mark_test_object(test_object, feature_id=33, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=33, owner=_Owner.tracer)
 
     @staticmethod
     def post_processing_traces(test_object):
@@ -302,7 +307,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=34
         """
-        return _mark_test_object(test_object, feature_id=34, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=34, owner=_Owner.tracer)
 
     @staticmethod
     def span_baggage_item(test_object):
@@ -318,7 +323,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=36
         """
-        return _mark_test_object(test_object, feature_id=36, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=36, owner=_Owner.tracer)
 
     @staticmethod
     def kafka_tracing(test_object):
@@ -326,7 +331,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=37
         """
-        return _mark_test_object(test_object, feature_id=37, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=37, owner=_Owner.tracer)
 
     @staticmethod
     def numeric_tags_for_trace_search_analytics_step_1(test_object):
@@ -334,7 +339,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=38
         """
-        return _mark_test_object(test_object, feature_id=38, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=38, owner=_Owner.tracer)
 
     @staticmethod
     def grpc_integration_tags(test_object):
@@ -342,7 +347,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=39
         """
-        return _mark_test_object(test_object, feature_id=39, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=39, owner=_Owner.tracer)
 
     @staticmethod
     def dd_trace_config_file(test_object):
@@ -350,7 +355,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=40
         """
-        return _mark_test_object(test_object, feature_id=40, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=40, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def dd_trace_methods(test_object):
@@ -358,7 +363,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=41
         """
-        return _mark_test_object(test_object, feature_id=41, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=41, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def structured_log_injection(test_object):
@@ -366,7 +371,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=42
         """
-        return _mark_test_object(test_object, feature_id=42, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=42, owner=_Owner.tracer)
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
@@ -374,7 +379,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=43
         """
-        return _mark_test_object(test_object, feature_id=43, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=43, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def obfuscation_of_pii_from_web_span_resource_names(test_object):
@@ -382,7 +387,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=44
         """
-        return _mark_test_object(test_object, feature_id=44, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=44, owner=_Owner.tracer)
 
     @staticmethod
     def windows_named_pipe_support_for_traces(test_object):
@@ -390,7 +395,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=45
         """
-        return _mark_test_object(test_object, feature_id=45, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=45, owner=_Owner.tracer)
 
     @staticmethod
     def setting_to_rename_service_by_tag_split_by_tag(test_object):
@@ -398,7 +403,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=46
         """
-        return _mark_test_object(test_object, feature_id=46, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=46, owner=_Owner.tracer)
 
     @staticmethod
     def collect_application_version_information(test_object):
@@ -406,7 +411,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=47
         """
-        return _mark_test_object(test_object, feature_id=47, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=47, owner=_Owner.tracer)
 
     @staticmethod
     def ensure_that_sampling_is_consistent_across_languages(test_object):
@@ -414,7 +419,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=48
         """
-        return _mark_test_object(test_object, feature_id=48, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=48, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def user_troubleshooting_tool(test_object):
@@ -422,7 +427,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=49
         """
-        return _mark_test_object(test_object, feature_id=49, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=49, owner=_Owner.tracer)
 
     @staticmethod
     def option_to_remap_apm_error_response_severity_eg_404_to_error(test_object):
@@ -430,7 +435,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=50
         """
-        return _mark_test_object(test_object, feature_id=50, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=50, owner=_Owner.tracer)
 
     @staticmethod
     def trace_query_string_obfuscation(test_object):
@@ -438,7 +443,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=51
         """
-        return _mark_test_object(test_object, feature_id=51, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=51, owner=_Owner.tracer)
 
     @staticmethod
     def dd_trace_report_hostname(test_object):
@@ -446,7 +451,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=52
         """
-        return _mark_test_object(test_object, feature_id=52, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=52, owner=_Owner.tracer)
 
     @staticmethod
     def windows_named_pipe_support_for_metrics(test_object):
@@ -454,7 +459,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=53
         """
-        return _mark_test_object(test_object, feature_id=53, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=53, owner=_Owner.tracer)
 
     @staticmethod
     def ensure_consistent_http_client_integration_tags(test_object):
@@ -470,7 +475,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=55
         """
-        return _mark_test_object(test_object, feature_id=55, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=55, owner=_Owner.tracer)
 
     @staticmethod
     def dont_set_username_tag_because_its_pii(test_object):
@@ -478,7 +483,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=56
         """
-        return _mark_test_object(test_object, feature_id=56, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=56, owner=_Owner.tracer)
 
     @staticmethod
     def trace_client_app_tagging(test_object):
@@ -486,7 +491,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=57
         """
-        return _mark_test_object(test_object, feature_id=57, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=57, owner=_Owner.tracer)
 
     @staticmethod
     def client_split_by_domain_service_host(test_object):
@@ -494,7 +499,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=58
         """
-        return _mark_test_object(test_object, feature_id=58, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=58, owner=_Owner.tracer)
 
     @staticmethod
     def horizontal_propagation_of_x_datadog_tags_between_services(test_object):
@@ -502,7 +507,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=59
         """
-        return _mark_test_object(test_object, feature_id=59, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=59, owner=_Owner.tracer)
 
     @staticmethod
     def vertical_propagation_of_x_datadog_tags_onto_each_chunk_root_span(test_object):
@@ -510,7 +515,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=60
         """
-        return _mark_test_object(test_object, feature_id=60, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=60, owner=_Owner.tracer)
 
     @staticmethod
     def creation_and_propagation_of_ddpdm(test_object):
@@ -518,7 +523,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=61
         """
-        return _mark_test_object(test_object, feature_id=61, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=61, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def client_side_stats_supported(test_object):
@@ -526,7 +531,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=62
         """
-        return _mark_test_object(test_object, feature_id=62, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=62, owner=_Owner.tracer)
 
     @staticmethod
     def client_side_stats_on_by_default(test_object):
@@ -534,7 +539,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=63
         """
-        return _mark_test_object(test_object, feature_id=63, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=63, owner=_Owner.tracer)
 
     @staticmethod
     def instrumentation_telemetry_enabled_by_default(test_object):
@@ -542,7 +547,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=64
         """
-        return _mark_test_object(test_object, feature_id=64, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=64, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def dd_instrumentation_telemetry_enabled_supported(test_object):
@@ -550,7 +555,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=65
         """
-        return _mark_test_object(test_object, feature_id=65, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=65, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def app_environment_collected(test_object):
@@ -558,7 +563,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=66
         """
-        return _mark_test_object(test_object, feature_id=66, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=66, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def dependencies_collected(test_object):
@@ -566,7 +571,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=67
         """
-        return _mark_test_object(test_object, feature_id=67, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=67, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def integrations_enabled_collected(test_object):
@@ -574,7 +579,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=68
         """
-        return _mark_test_object(test_object, feature_id=68, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=68, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def telemetry_configurations_collected(test_object):
@@ -582,7 +587,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=69
         """
-        return _mark_test_object(test_object, feature_id=69, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=69, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def telemetry_heart_beat_collected(test_object):
@@ -590,7 +595,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=70
         """
-        return _mark_test_object(test_object, feature_id=70, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=70, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def app_close_collected(test_object):
@@ -598,7 +603,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=71
         """
-        return _mark_test_object(test_object, feature_id=71, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=71, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def redacted_error_logs_collected(test_object):
@@ -606,7 +611,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=72
         """
-        return _mark_test_object(test_object, feature_id=72, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=72, owner=_Owner.tracer)
 
     @staticmethod
     def telemetry_metrics_collected(test_object):
@@ -614,7 +619,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=73
         """
-        return _mark_test_object(test_object, feature_id=73, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=73, owner=_Owner.tracer)
 
     @staticmethod
     def telemetry_api_v2_implemented(test_object):
@@ -622,7 +627,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=74
         """
-        return _mark_test_object(test_object, feature_id=74, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=74, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def app_client_configuration_change_event(test_object):
@@ -630,7 +635,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=75
         """
-        return _mark_test_object(test_object, feature_id=75, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=75, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def app_product_change_event(test_object):
@@ -638,7 +643,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=76
         """
-        return _mark_test_object(test_object, feature_id=76, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=76, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def app_extended_heartbeat_event(test_object):
@@ -646,7 +651,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=77
         """
-        return _mark_test_object(test_object, feature_id=77, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=77, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def telemetry_message_batch(test_object):
@@ -654,7 +659,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=78
         """
-        return _mark_test_object(test_object, feature_id=78, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=78, owner=_Owner.tracer)
 
     @staticmethod
     def telemetry_app_started_event(test_object):
@@ -662,7 +667,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=79
         """
-        return _mark_test_object(test_object, feature_id=79, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=79, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def dd_telemetry_dependency_collection_enabled_supported(test_object):
@@ -670,7 +675,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=80
         """
-        return _mark_test_object(test_object, feature_id=80, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=80, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def additional_http_headers_supported(test_object):
@@ -678,7 +683,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=81
         """
-        return _mark_test_object(test_object, feature_id=81, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=81, owner=_Owner.tracer)
 
     @staticmethod
     def remote_config_object_supported(test_object):
@@ -686,7 +691,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=82
         """
-        return _mark_test_object(test_object, feature_id=82, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=82, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def w3c_headers_injection_and_extraction(test_object):
@@ -694,7 +699,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=83
         """
-        return _mark_test_object(test_object, feature_id=83, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=83, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def otel_api(test_object):
@@ -702,7 +707,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=84
         """
-        return _mark_test_object(test_object, feature_id=84, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=84, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def trace_id_128_bit_generation_propagation(test_object):
@@ -710,7 +715,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=85
         """
-        return _mark_test_object(test_object, feature_id=85, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=85, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def span_events(test_object):
@@ -718,7 +723,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=86
         """
-        return _mark_test_object(test_object, feature_id=86, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=86, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def span_links(test_object):
@@ -726,7 +731,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=87
         """
-        return _mark_test_object(test_object, feature_id=87, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=87, owner=_Owner.tracer)
 
     @staticmethod
     def trace_client_ip_header(test_object):
@@ -734,7 +739,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=88
         """
-        return _mark_test_object(test_object, feature_id=88, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=88, owner=_Owner.tracer)
 
     @staticmethod
     def host_auto_instrumentation(test_object):
@@ -742,7 +747,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=89
         """
-        return _mark_test_object(test_object, feature_id=89, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=89, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def container_auto_instrumentation(test_object):
@@ -750,7 +755,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=90
         """
-        return _mark_test_object(test_object, feature_id=90, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=90, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def collect_http_post_data_and_headers(test_object):
@@ -758,7 +763,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=94
         """
-        return _mark_test_object(test_object, feature_id=94, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=94, owner=_Owner.tracer)
 
     @staticmethod
     def weak_hash_vulnerability_detection(test_object):
@@ -766,7 +771,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=96
         """
-        return _mark_test_object(test_object, feature_id=96, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=96, owner=_Owner.asm)
 
     @staticmethod
     def db_integrations(test_object):
@@ -774,7 +779,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=98
         """
-        return _mark_test_object(test_object, feature_id=98, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=98, owner=_Owner.tracer)
 
     @staticmethod
     def weak_cipher_detection(test_object):
@@ -782,7 +787,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=100
         """
-        return _mark_test_object(test_object, feature_id=100, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=100, owner=_Owner.asm)
 
     @staticmethod
     def threats_alpha_preview(test_object):
@@ -790,7 +795,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=110
         """
-        return _mark_test_object(test_object, feature_id=110, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=110, owner=_Owner.asm)
 
     @staticmethod
     def procedure_to_debug_install(test_object):
@@ -798,7 +803,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=113
         """
-        return _mark_test_object(test_object, feature_id=113, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=113, owner=_Owner.asm)
 
     @staticmethod
     def security_events_metadata(test_object):
@@ -806,7 +811,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=124
         """
-        return _mark_test_object(test_object, feature_id=124, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=124, owner=_Owner.asm)
 
     @staticmethod
     def appsec_rate_limiter(test_object):
@@ -814,7 +819,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=134
         """
-        return _mark_test_object(test_object, feature_id=134, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=134, owner=_Owner.asm)
 
     @staticmethod
     def support_in_app_waf_metrics_report(test_object):
@@ -822,7 +827,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=140
         """
-        return _mark_test_object(test_object, feature_id=140, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=140, owner=_Owner.asm)
 
     @staticmethod
     def user_monitoring(test_object):
@@ -830,7 +835,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=141
         """
-        return _mark_test_object(test_object, feature_id=141, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=141, owner=_Owner.asm)
 
     @staticmethod
     def event_tracking_sdk_v2(test_object):
@@ -838,7 +843,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=372
         """
-        return _mark_test_object(test_object, feature_id=372, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=372, owner=_Owner.asm)
 
     @staticmethod
     def appsec_service_activation_origin_metric(test_object):
@@ -846,7 +851,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=471
         """
-        return _mark_test_object(test_object, feature_id=471, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=471, owner=_Owner.asm)
 
     @staticmethod
     def serialize_waf_rules_without_limiting_their_sizes(test_object):
@@ -854,7 +859,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=142
         """
-        return _mark_test_object(test_object, feature_id=142, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=142, owner=_Owner.asm)
 
     @staticmethod
     def threats_configuration(test_object):
@@ -862,7 +867,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=143
         """
-        return _mark_test_object(test_object, feature_id=143, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=143, owner=_Owner.asm)
 
     @staticmethod
     def sensitive_data_obfuscation(test_object):
@@ -870,7 +875,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=144
         """
-        return _mark_test_object(test_object, feature_id=144, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=144, owner=_Owner.asm)
 
     @staticmethod
     def propagation_of_user_id_rfc(test_object):
@@ -878,7 +883,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=146
         """
-        return _mark_test_object(test_object, feature_id=146, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=146, owner=_Owner.asm)
 
     @staticmethod
     def appsec_onboarding(test_object):
@@ -886,7 +891,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=154
         """
-        return _mark_test_object(test_object, feature_id=154, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=154, owner=_Owner.asm)
 
     @staticmethod
     def changing_rules_using_rc(test_object):
@@ -894,7 +899,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=157
         """
-        return _mark_test_object(test_object, feature_id=157, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=157, owner=_Owner.asm)
 
     @staticmethod
     def appsec_shell_execution_tracing(test_object):
@@ -902,7 +907,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=158
         """
-        return _mark_test_object(test_object, feature_id=158, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=158, owner=_Owner.asm)
 
     @staticmethod
     def custom_business_logic_events(test_object):
@@ -910,7 +915,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=161
         """
-        return _mark_test_object(test_object, feature_id=161, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=161, owner=_Owner.asm)
 
     @staticmethod
     def graphql_threats_detection(test_object):
@@ -918,7 +923,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=162
         """
-        return _mark_test_object(test_object, feature_id=162, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=162, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_sql_injection(test_object):
@@ -926,7 +931,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=165
         """
-        return _mark_test_object(test_object, feature_id=165, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=165, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_code_injection(test_object):
@@ -934,7 +939,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=315
         """
-        return _mark_test_object(test_object, feature_id=315, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=315, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_command_injection(test_object):
@@ -942,7 +947,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=166
         """
-        return _mark_test_object(test_object, feature_id=166, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=166, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_path_traversal(test_object):
@@ -950,7 +955,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=167
         """
-        return _mark_test_object(test_object, feature_id=167, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=167, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_ldap_injection(test_object):
@@ -958,7 +963,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=168
         """
-        return _mark_test_object(test_object, feature_id=168, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=168, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_header_injection(test_object):
@@ -966,7 +971,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=203
         """
-        return _mark_test_object(test_object, feature_id=203, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=203, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_template_injection(test_object):
@@ -974,7 +979,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=330
         """
-        return _mark_test_object(test_object, feature_id=330, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=330, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_request_parameter_value(test_object):
@@ -982,7 +987,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=169
         """
-        return _mark_test_object(test_object, feature_id=169, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=169, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_request_parameter_name(test_object):
@@ -990,7 +995,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=170
         """
-        return _mark_test_object(test_object, feature_id=170, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=170, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_header_value(test_object):
@@ -998,7 +1003,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=171
         """
-        return _mark_test_object(test_object, feature_id=171, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=171, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_header_name(test_object):
@@ -1006,7 +1011,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=172
         """
-        return _mark_test_object(test_object, feature_id=172, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=172, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_cookie_value(test_object):
@@ -1014,7 +1019,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=173
         """
-        return _mark_test_object(test_object, feature_id=173, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=173, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_cookie_name(test_object):
@@ -1022,7 +1027,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=174
         """
-        return _mark_test_object(test_object, feature_id=174, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=174, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_body(test_object):
@@ -1030,7 +1035,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=175
         """
-        return _mark_test_object(test_object, feature_id=175, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=175, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_kafka_key(test_object):
@@ -1038,7 +1043,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=277
         """
-        return _mark_test_object(test_object, feature_id=277, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=277, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_kafka_value(test_object):
@@ -1046,7 +1051,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=278
         """
-        return _mark_test_object(test_object, feature_id=278, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=278, owner=_Owner.asm)
 
     @staticmethod
     def iast_graphql_resolver_argument(test_object):
@@ -1054,7 +1059,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=281
         """
-        return _mark_test_object(test_object, feature_id=281, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=281, owner=_Owner.asm)
 
     @staticmethod
     def grpc_threats_management(test_object):
@@ -1062,7 +1067,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=176
         """
-        return _mark_test_object(test_object, feature_id=176, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=176, owner=_Owner.asm)
 
     @staticmethod
     def waf_telemetry(test_object):
@@ -1070,14 +1075,14 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=178
         """
-        return _mark_test_object(test_object, feature_id=178, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=178, owner=_Owner.asm)
 
     @staticmethod
     def kafkaspan_creationcontext_propagation_with_dd_trace(test_object):
         """[Kafka][Span Creation][Context Propagation] with dd-trace
         https://feature-parity.us1.prod.dog/#/?feature=192
         """
-        return _mark_test_object(test_object, feature_id=192, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=192, owner=_Owner.tracer)
 
     @staticmethod
     def open_tracing_api(test_object):
@@ -1085,7 +1090,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=196
         """
-        return _mark_test_object(test_object, feature_id=196, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=196, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def custom_tracing_api(test_object):
@@ -1093,7 +1098,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=197
         """
-        return _mark_test_object(test_object, feature_id=197, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=197, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def iast_sink_hardcoded_passwords(test_object):
@@ -1101,7 +1106,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=290
         """
-        return _mark_test_object(test_object, feature_id=290, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=290, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_hardcoded_secrets(test_object):
@@ -1109,7 +1114,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=198
         """
-        return _mark_test_object(test_object, feature_id=198, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=198, owner=_Owner.asm)
 
     @staticmethod
     def appsec_request_blocking(test_object):
@@ -1117,7 +1122,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=199
         """
-        return _mark_test_object(test_object, feature_id=199, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=199, owner=_Owner.asm)
 
     @staticmethod
     def appsec_response_blocking(test_object):
@@ -1125,7 +1130,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=200
         """
-        return _mark_test_object(test_object, feature_id=200, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=200, owner=_Owner.asm)
 
     @staticmethod
     def appsec_blocking_action(test_object):
@@ -1133,7 +1138,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=201
         """
-        return _mark_test_object(test_object, feature_id=201, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=201, owner=_Owner.asm)
 
     @staticmethod
     def appsec_truncation_action(test_object):
@@ -1141,7 +1146,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=373
         """
-        return _mark_test_object(test_object, feature_id=373, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=373, owner=_Owner.asm)
 
     @staticmethod
     def appsec_client_ip_blocking(test_object):
@@ -1149,7 +1154,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=202
         """
-        return _mark_test_object(test_object, feature_id=202, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=202, owner=_Owner.asm)
 
     @staticmethod
     def appsec_header_injection(test_object):
@@ -1157,7 +1162,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=203
         """
-        return _mark_test_object(test_object, feature_id=203, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=203, owner=_Owner.asm)
 
     @staticmethod
     def api_security_schemas(test_object):
@@ -1165,7 +1170,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=204
         """
-        return _mark_test_object(test_object, feature_id=204, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=204, owner=_Owner.asm)
 
     @staticmethod
     def span_links_through_datadog_api(test_object):
@@ -1173,7 +1178,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=205
         """
-        return _mark_test_object(test_object, feature_id=205, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=205, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def cassandra_support(test_object):
@@ -1181,7 +1186,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=206
         """
-        return _mark_test_object(test_object, feature_id=206, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=206, owner=_Owner.tracer)
 
     @staticmethod
     def mysql_support(test_object):
@@ -1189,7 +1194,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=207
         """
-        return _mark_test_object(test_object, feature_id=207, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=207, owner=_Owner.tracer)
 
     @staticmethod
     def mssql_support(test_object):
@@ -1197,7 +1202,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=225
         """
-        return _mark_test_object(test_object, feature_id=225, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=225, owner=_Owner.tracer)
 
     @staticmethod
     def postgres_support(test_object):
@@ -1205,7 +1210,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=208
         """
-        return _mark_test_object(test_object, feature_id=208, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=208, owner=_Owner.tracer)
 
     @staticmethod
     def database_monitoring_correlation(test_object):
@@ -1213,7 +1218,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=209
         """
-        return _mark_test_object(test_object, feature_id=209, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=209, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_http(test_object):
@@ -1221,7 +1226,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=210
         """
-        return _mark_test_object(test_object, feature_id=210, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=210, owner=_Owner.tracer)
 
     @staticmethod
     def debugger(test_object):
@@ -1229,7 +1234,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=211
         """
-        return _mark_test_object(test_object, feature_id=211, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=211, owner=_Owner.debugger)
 
     @staticmethod
     def datastreams_monitoring_support_for_kafka(test_object):
@@ -1237,7 +1242,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=212
         """
-        return _mark_test_object(test_object, feature_id=212, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=212, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq(test_object):
@@ -1245,7 +1250,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=213
         """
-        return _mark_test_object(test_object, feature_id=213, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=213, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_fanout(test_object):
@@ -1253,7 +1258,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=214
         """
-        return _mark_test_object(test_object, feature_id=214, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=214, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_rabbitmq_topicexchange(test_object):
@@ -1261,7 +1266,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=215
         """
-        return _mark_test_object(test_object, feature_id=215, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=215, owner=_Owner.tracer)
 
     @staticmethod
     def mongo_support(test_object):
@@ -1269,7 +1274,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=216
         """
-        return _mark_test_object(test_object, feature_id=216, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=216, owner=_Owner.tracer)
 
     @staticmethod
     def otel_mysql_support(test_object):
@@ -1277,7 +1282,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=217
         """
-        return _mark_test_object(test_object, feature_id=217, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=217, owner=_Owner.tracer)
 
     @staticmethod
     def otel_mssql_support(test_object):
@@ -1285,7 +1290,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=226
         """
-        return _mark_test_object(test_object, feature_id=226, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=226, owner=_Owner.tracer)
 
     @staticmethod
     def otel_postgres_support(test_object):
@@ -1293,7 +1298,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=218
         """
-        return _mark_test_object(test_object, feature_id=218, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=218, owner=_Owner.tracer)
 
     @staticmethod
     def sql_support(test_object):
@@ -1301,7 +1306,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=219
         """
-        return _mark_test_object(test_object, feature_id=219, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=219, owner=_Owner.tracer)
 
     @staticmethod
     def dynamic_configuration(test_object):
@@ -1309,7 +1314,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=220
         """
-        return _mark_test_object(test_object, feature_id=220, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=220, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def datadog_headers_propagation(test_object):
@@ -1317,7 +1322,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=221
         """
-        return _mark_test_object(test_object, feature_id=221, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=221, owner=_Owner.tracer)
 
     @staticmethod
     def single_span_sampling(test_object):
@@ -1325,7 +1330,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=222
         """
-        return _mark_test_object(test_object, feature_id=222, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=222, owner=_Owner.tracer)
 
     @staticmethod
     def tracer_flare(test_object):
@@ -1333,7 +1338,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=223
         """
-        return _mark_test_object(test_object, feature_id=223, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=223, owner=_Owner.tracer)
 
     @staticmethod
     def profiling(test_object):
@@ -1341,7 +1346,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=224
         """
-        return _mark_test_object(test_object, feature_id=224, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=224, owner=_Owner.profiler)
 
     @staticmethod
     def trace_sampling(test_object):
@@ -1349,7 +1354,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=227
         """
-        return _mark_test_object(test_object, feature_id=227, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=227, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def telemetry_instrumentation(test_object):
@@ -1357,7 +1362,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=229
         """
-        return _mark_test_object(test_object, feature_id=229, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=229, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def appsec_logs(test_object):
@@ -1365,7 +1370,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=230
         """
-        return _mark_test_object(test_object, feature_id=230, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=230, owner=_Owner.asm)
 
     @staticmethod
     def appsec_miscs_internals(test_object):
@@ -1373,7 +1378,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=231
         """
-        return _mark_test_object(test_object, feature_id=231, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=231, owner=_Owner.asm)
 
     @staticmethod
     def appsec_scrubbing(test_object):
@@ -1381,7 +1386,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=232
         """
-        return _mark_test_object(test_object, feature_id=232, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=232, owner=_Owner.asm)
 
     @staticmethod
     def appsec_standard_tags_client_ip(test_object):
@@ -1413,7 +1418,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=236
         """
-        return _mark_test_object(test_object, feature_id=236, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=236, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_http_only_cookie(test_object):
@@ -1421,7 +1426,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=237
         """
-        return _mark_test_object(test_object, feature_id=237, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=237, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_insecure_cookie(test_object):
@@ -1429,7 +1434,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=238
         """
-        return _mark_test_object(test_object, feature_id=238, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=238, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_samesite_cookie(test_object):
@@ -1437,7 +1442,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=240
         """
-        return _mark_test_object(test_object, feature_id=240, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=240, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_ssrf(test_object):
@@ -1445,7 +1450,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=241
         """
-        return _mark_test_object(test_object, feature_id=241, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=241, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_trustboundaryviolation(test_object):
@@ -1453,7 +1458,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=242
         """
-        return _mark_test_object(test_object, feature_id=242, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=242, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_unvalidatedforward(test_object):
@@ -1461,7 +1466,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=243
         """
-        return _mark_test_object(test_object, feature_id=243, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=243, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_unvalidatedheader(test_object):
@@ -1469,7 +1474,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=244
         """
-        return _mark_test_object(test_object, feature_id=244, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=244, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_unvalidatedredirect(test_object):
@@ -1477,7 +1482,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=245
         """
-        return _mark_test_object(test_object, feature_id=245, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=245, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_weakrandomness(test_object):
@@ -1485,7 +1490,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=246
         """
-        return _mark_test_object(test_object, feature_id=246, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=246, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_xcontentsniffing(test_object):
@@ -1493,7 +1498,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=247
         """
-        return _mark_test_object(test_object, feature_id=247, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=247, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_xpathinjection(test_object):
@@ -1501,7 +1506,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=248
         """
-        return _mark_test_object(test_object, feature_id=248, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=248, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_xss(test_object):
@@ -1509,7 +1514,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=249
         """
-        return _mark_test_object(test_object, feature_id=249, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=249, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_multipart(test_object):
@@ -1517,7 +1522,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=250
         """
-        return _mark_test_object(test_object, feature_id=250, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=250, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_path(test_object):
@@ -1525,7 +1530,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=251
         """
-        return _mark_test_object(test_object, feature_id=251, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=251, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_uri(test_object):
@@ -1533,7 +1538,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=252
         """
-        return _mark_test_object(test_object, feature_id=252, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=252, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_mongodb_injection(test_object):
@@ -1541,7 +1546,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=253
         """
-        return _mark_test_object(test_object, feature_id=253, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=253, owner=_Owner.asm)
 
     @staticmethod
     def appsec_user_blocking(test_object):
@@ -1549,14 +1554,14 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=254
         """
-        return _mark_test_object(test_object, feature_id=254, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=254, owner=_Owner.asm)
 
     @staticmethod
     def decisionless_extraction(test_object):
         """Sampling behavior when extracted trace context does not convey a sampling decision
         https://feature-parity.us1.prod.dog/#/?feature=261
         """
-        return _mark_test_object(test_object, feature_id=261, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=261, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def semantic_core_validations(test_object):
@@ -1564,7 +1569,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=262
         """
-        return _mark_test_object(test_object, feature_id=262, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=262, owner=_Owner.tracer)
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_xray_header_with_dd_trace(
@@ -1574,7 +1579,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=263
         """
-        return _mark_test_object(test_object, feature_id=263, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=263, owner=_Owner.tracer)
 
     @staticmethod
     def aws_sqs_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1584,7 +1589,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=264
         """
-        return _mark_test_object(test_object, feature_id=264, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=264, owner=_Owner.tracer)
 
     @staticmethod
     def agent_remote_configuration(test_object):
@@ -1600,7 +1605,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=266
         """
-        return _mark_test_object(test_object, feature_id=266, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=266, owner=_Owner.tracer)
 
     @staticmethod
     def library_scrubbing(test_object):
@@ -1608,7 +1613,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=267
         """
-        return _mark_test_object(test_object, feature_id=267, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=267, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_sqs(test_object):
@@ -1616,7 +1621,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=268
         """
-        return _mark_test_object(test_object, feature_id=268, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=268, owner=_Owner.tracer)
 
     @staticmethod
     def api_security_configuration(test_object):
@@ -1624,7 +1629,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=269
         """
-        return _mark_test_object(test_object, feature_id=269, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=269, owner=_Owner.asm)
 
     @staticmethod
     def rabbitmq_span_creationcontext_propagation_with_dd_trace(test_object):
@@ -1632,7 +1637,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=270
         """
-        return _mark_test_object(test_object, feature_id=270, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=270, owner=_Owner.tracer)
 
     @staticmethod
     def aws_sns_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1642,7 +1647,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=271
         """
-        return _mark_test_object(test_object, feature_id=271, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=271, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_sns(test_object):
@@ -1650,7 +1655,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=273
         """
-        return _mark_test_object(test_object, feature_id=273, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=273, owner=_Owner.tracer)
 
     @staticmethod
     def iast_sink_insecure_auth_protocol(test_object):
@@ -1658,7 +1663,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=272
         """
-        return _mark_test_object(test_object, feature_id=272, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=272, owner=_Owner.asm)
 
     @staticmethod
     def container_auto_installation_script(test_object):
@@ -1666,7 +1671,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=274
         """
-        return _mark_test_object(test_object, feature_id=274, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=274, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def host_auto_installation_script(test_object):
@@ -1674,7 +1679,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=275
         """
-        return _mark_test_object(test_object, feature_id=275, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=275, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def host_block_list(test_object):
@@ -1682,7 +1687,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=276
         """
-        return _mark_test_object(test_object, feature_id=276, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=276, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def aws_kinesis_span_creationcontext_propagation_via_message_attributes_with_dd_trace(
@@ -1692,7 +1697,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=280
         """
-        return _mark_test_object(test_object, feature_id=280, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=280, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_base64_encoding(test_object):
@@ -1700,7 +1705,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=284
         """
-        return _mark_test_object(test_object, feature_id=284, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=284, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_context_injection_base64(test_object):
@@ -1708,7 +1713,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=287
         """
-        return _mark_test_object(test_object, feature_id=287, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=287, owner=_Owner.tracer)
 
     @staticmethod
     def datastreams_monitoring_support_for_kinesis(test_object):
@@ -1716,7 +1721,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=282
         """
-        return _mark_test_object(test_object, feature_id=282, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=282, owner=_Owner.tracer)
 
     @staticmethod
     def iast_sink_reflection_injection(test_object):
@@ -1724,7 +1729,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=279
         """
-        return _mark_test_object(test_object, feature_id=279, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=279, owner=_Owner.asm)
 
     @staticmethod
     def embeded_git_reference(test_object):
@@ -1732,7 +1737,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=286
         """
-        return _mark_test_object(test_object, feature_id=286, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=286, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def k8s_admission_controller(test_object):
@@ -1740,7 +1745,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=288
         """
-        return _mark_test_object(test_object, feature_id=288, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=288, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def f_otel_interoperability(test_object):
@@ -1748,7 +1753,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=289
         """
-        return _mark_test_object(test_object, feature_id=289, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=289, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def debugger_pii_redaction(test_object):
@@ -1756,7 +1761,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=291
         """
-        return _mark_test_object(test_object, feature_id=291, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=291, owner=_Owner.debugger)
 
     @staticmethod
     def installer_auto_instrumentation(test_object):
@@ -1764,7 +1769,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=292
         """
-        return _mark_test_object(test_object, feature_id=292, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=292, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def rasp_local_file_inclusion(test_object):
@@ -1772,7 +1777,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=293
         """
-        return _mark_test_object(test_object, feature_id=293, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=293, owner=_Owner.asm)
 
     @staticmethod
     def rasp_server_side_request_forgery(test_object):
@@ -1780,7 +1785,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=294
         """
-        return _mark_test_object(test_object, feature_id=294, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=294, owner=_Owner.asm)
 
     @staticmethod
     def rasp_sql_injection(test_object):
@@ -1788,7 +1793,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=295
         """
-        return _mark_test_object(test_object, feature_id=295, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=295, owner=_Owner.asm)
 
     @staticmethod
     def database_monitoring_support(test_object):
@@ -1796,7 +1801,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=296
         """
-        return _mark_test_object(test_object, feature_id=296, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=296, owner=_Owner.tracer)
 
     @staticmethod
     def rasp_stack_trace(test_object):
@@ -1804,7 +1809,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=297
         """
-        return _mark_test_object(test_object, feature_id=297, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=297, owner=_Owner.asm)
 
     @staticmethod
     def rasp_span_tags(test_object):
@@ -1812,7 +1817,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=298
         """
-        return _mark_test_object(test_object, feature_id=298, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=298, owner=_Owner.asm)
 
     @staticmethod
     def debugger_expression_language(test_object):
@@ -1820,7 +1825,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=303
         """
-        return _mark_test_object(test_object, feature_id=303, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=303, owner=_Owner.debugger)
 
     @staticmethod
     def auto_instrumentation_profiling(test_object):
@@ -1828,7 +1833,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=302
         """
-        return _mark_test_object(test_object, feature_id=302, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=302, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def appsec_standalone_experimental(test_object):
@@ -1836,7 +1841,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=305
         """
-        return _mark_test_object(test_object, feature_id=305, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=305, owner=_Owner.asm)
 
     @staticmethod
     def appsec_standalone(test_object):
@@ -1844,7 +1849,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=355
         """
-        return _mark_test_object(test_object, feature_id=355, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=355, owner=_Owner.asm)
 
     @staticmethod
     def iast_standalone_experimental(test_object):
@@ -1852,7 +1857,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=319
         """
-        return _mark_test_object(test_object, feature_id=319, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=319, owner=_Owner.asm)
 
     @staticmethod
     def iast_standalone(test_object):
@@ -1860,7 +1865,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=356
         """
-        return _mark_test_object(test_object, feature_id=356, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=356, owner=_Owner.asm)
 
     @staticmethod
     def sca_standalone_experimental(test_object):
@@ -1868,7 +1873,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=320
         """
-        return _mark_test_object(test_object, feature_id=320, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=320, owner=_Owner.asm)
 
     @staticmethod
     def sca_standalone(test_object):
@@ -1876,7 +1881,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=357
         """
-        return _mark_test_object(test_object, feature_id=357, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=357, owner=_Owner.asm)
 
     @staticmethod
     def security_events_metastruct(test_object):
@@ -1884,7 +1889,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=314
         """
-        return _mark_test_object(test_object, feature_id=314, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=314, owner=_Owner.asm)
 
     @staticmethod
     def host_auto_installation_script_profiling(test_object):
@@ -1892,7 +1897,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=306
         """
-        return _mark_test_object(test_object, feature_id=306, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def container_auto_installation_script_profiling(test_object):
@@ -1900,7 +1905,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=307
         """
-        return _mark_test_object(test_object, feature_id=307, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=307, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def container_auto_instrumentation_profiling(test_object):
@@ -1916,7 +1921,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=308
         """
-        return _mark_test_object(test_object, feature_id=308, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=308, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def container_guardrail(test_object):
@@ -1924,7 +1929,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=309
         """
-        return _mark_test_object(test_object, feature_id=309, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=309, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def datastreams_monitoring_support_for_manual_checkpoints(test_object):
@@ -1932,7 +1937,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=327
         """
-        return _mark_test_object(test_object, feature_id=327, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=327, owner=_Owner.tracer)
 
     @staticmethod
     def suspicious_attacker_blocking(test_object):
@@ -1940,7 +1945,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=311
         """
-        return _mark_test_object(test_object, feature_id=311, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=311, owner=_Owner.asm)
 
     @staticmethod
     def user_id_collection_modes(test_object):
@@ -1948,7 +1953,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=312
         """
-        return _mark_test_object(test_object, feature_id=312, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=312, owner=_Owner.asm)
 
     @staticmethod
     def fingerprinting(test_object):
@@ -1956,7 +1961,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=313
         """
-        return _mark_test_object(test_object, feature_id=313, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=313, owner=_Owner.asm)
 
     @staticmethod
     def iast_sink_untrusted_deserialization(test_object):
@@ -1964,7 +1969,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=316
         """
-        return _mark_test_object(test_object, feature_id=316, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=316, owner=_Owner.asm)
 
     @staticmethod
     def crashtracking(test_object):
@@ -1972,7 +1977,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=317
         """
-        return _mark_test_object(test_object, feature_id=317, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=317, owner=_Owner.tracer)
 
     @staticmethod
     def rasp_shell_injection(test_object):
@@ -1980,7 +1985,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=318
         """
-        return _mark_test_object(test_object, feature_id=318, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=318, owner=_Owner.asm)
 
     @staticmethod
     def rasp_command_injection(test_object):
@@ -1988,7 +1993,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=345
         """
-        return _mark_test_object(test_object, feature_id=345, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=345, owner=_Owner.asm)
 
     @staticmethod
     def debugger_exception_replay(test_object):
@@ -1996,7 +2001,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=321
         """
-        return _mark_test_object(test_object, feature_id=321, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=321, owner=_Owner.debugger)
 
     @staticmethod
     def iast_source_path_parameter(test_object):
@@ -2004,7 +2009,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=324
         """
-        return _mark_test_object(test_object, feature_id=324, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=324, owner=_Owner.asm)
 
     @staticmethod
     def iast_source_sql(test_object):
@@ -2012,7 +2017,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=344
         """
-        return _mark_test_object(test_object, feature_id=344, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=344, owner=_Owner.asm)
 
     @staticmethod
     def ssi_guardrails(test_object):
@@ -2020,7 +2025,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=322
         """
-        return _mark_test_object(test_object, feature_id=322, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=322, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def ssi_crashtracking(test_object):
@@ -2028,7 +2033,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=340
         """
-        return _mark_test_object(test_object, feature_id=340, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=340, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def ssi_service_naming(test_object):
@@ -2036,7 +2041,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=326
         """
-        return _mark_test_object(test_object, feature_id=326, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=326, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def ssi_service_tracking(test_object):
@@ -2044,7 +2049,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=327
         """
-        return _mark_test_object(test_object, feature_id=327, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=327, owner=_Owner.tracer)
 
     @staticmethod
     def serverless_span_pointers(test_object):
@@ -2052,7 +2057,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
-        return _mark_test_object(test_object, feature_id=328, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=328, owner=_Owner.tracer)
 
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
@@ -2060,7 +2065,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=341
         """
-        return _mark_test_object(test_object, feature_id=341, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=341, owner=_Owner.tracer)
 
     @staticmethod
     def parametric_endpoint_parity(test_object):
@@ -2068,7 +2073,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
-        return _mark_test_object(test_object, feature_id=339, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=339, owner=_Owner.tracer)
 
     @staticmethod
     def iast_stack_trace(test_object):
@@ -2076,7 +2081,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=329
         """
-        return _mark_test_object(test_object, feature_id=329, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=329, owner=_Owner.asm)
 
     @staticmethod
     def iast_extended_location(test_object):
@@ -2084,7 +2089,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=364
         """
-        return _mark_test_object(test_object, feature_id=364, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=364, owner=_Owner.asm)
 
     @staticmethod
     def djm_ssi_k8s(test_object):
@@ -2092,7 +2097,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=342
         """
-        return _mark_test_object(test_object, feature_id=342, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=342, owner=_Owner.tracer)
 
     @staticmethod
     def adaptive_sampling(test_object):
@@ -2100,7 +2105,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=346
         """
-        return _mark_test_object(test_object, feature_id=346, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=346, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def agent_host_ipv6(test_object):
@@ -2108,7 +2113,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=347
         """
-        return _mark_test_object(test_object, feature_id=347, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=347, owner=_Owner.tracer)
 
     @staticmethod
     def datadog_baggage_headers(test_object):
@@ -2116,7 +2121,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=389
         """
-        return _mark_test_object(test_object, feature_id=389, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=389, owner=_Owner.tracer)
 
     @staticmethod
     def iast_security_controls(test_object):
@@ -2124,7 +2129,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=343
         """
-        return _mark_test_object(test_object, feature_id=343, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=343, owner=_Owner.asm)
 
     @staticmethod
     def graphql_query_error_reporting(test_object):
@@ -2132,7 +2137,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=354
         """
-        return _mark_test_object(test_object, feature_id=354, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=354, owner=_Owner.tracer)
 
     @staticmethod
     def envoy_external_processing(test_object):
@@ -2140,7 +2145,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        return _mark_test_object(test_object, feature_id=350, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
 
     @staticmethod
     def context_propagation_extract_behavior(test_object):
@@ -2148,7 +2153,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=353
         """
-        return _mark_test_object(test_object, feature_id=353, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=353, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def iast_sink_email_html_injection(test_object):
@@ -2156,7 +2161,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=358
         """
-        return _mark_test_object(test_object, feature_id=358, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=358, owner=_Owner.asm)
 
     @staticmethod
     def language_specifics(test_object):
@@ -2164,7 +2169,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=359
         """
-        return _mark_test_object(test_object, feature_id=359, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=359, owner=_Owner.asm)
 
     @staticmethod
     def debugger_code_origins(test_object):
@@ -2172,7 +2177,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=360
         """
-        return _mark_test_object(test_object, feature_id=360, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=360, owner=_Owner.debugger)
 
     @staticmethod
     def debugger_probe_budgets(test_object):
@@ -2180,7 +2185,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=368
         """
-        return _mark_test_object(test_object, feature_id=368, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=368, owner=_Owner.debugger)
 
     @staticmethod
     def debugger_method_probe(test_object):
@@ -2188,7 +2193,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=392
         """
-        return _mark_test_object(test_object, feature_id=392, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=392, owner=_Owner.debugger)
 
     @staticmethod
     def debugger_line_probe(test_object):
@@ -2196,7 +2201,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=393
         """
-        return _mark_test_object(test_object, feature_id=393, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=393, owner=_Owner.debugger)
 
     @staticmethod
     def debugger_symdb(test_object):
@@ -2204,7 +2209,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=370
         """
-        return _mark_test_object(test_object, feature_id=370, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=370, owner=_Owner.debugger)
 
     @staticmethod
     def otel_propagators_api(test_object):
@@ -2212,7 +2217,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=361
         """
-        return _mark_test_object(test_object, feature_id=361, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=361, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def stable_configuration_support(test_object):
@@ -2220,7 +2225,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=365
         """
-        return _mark_test_object(test_object, feature_id=365, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=365, owner=_Owner.tracer)
 
     @staticmethod
     def single_span_ingestion_control(test_object):
@@ -2228,7 +2233,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=366
         """
-        return _mark_test_object(test_object, feature_id=366, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=366, owner=_Owner.tracer)
 
     @staticmethod
     def process_discovery(test_object):
@@ -2236,7 +2241,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=367
         """
-        return _mark_test_object(test_object, feature_id=367, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=367, owner=_Owner.tracer)
 
     @staticmethod
     def debugger_inproduct_enablement(test_object):
@@ -2244,7 +2249,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=369
         """
-        return _mark_test_object(test_object, feature_id=369, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=369, owner=_Owner.debugger)
 
     @staticmethod
     def datastreams_monitoring_protobuf_schema_tracking(test_object):
@@ -2252,7 +2257,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=371
         """
-        return _mark_test_object(test_object, feature_id=371, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=371, owner=_Owner.tracer)
 
     @staticmethod
     def trace_enablement(test_object):
@@ -2260,7 +2265,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=374
         """
-        return _mark_test_object(test_object, feature_id=374, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=374, owner=_Owner.tracer)
 
     @staticmethod
     def trace_log_directory(test_object):
@@ -2268,7 +2273,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=375
         """
-        return _mark_test_object(test_object, feature_id=375, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=375, owner=_Owner.tracer)
 
     @staticmethod
     def trace_experimental_features(test_object):
@@ -2276,7 +2281,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=376
         """
-        return _mark_test_object(test_object, feature_id=376, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=376, owner=_Owner.tracer)
 
     @staticmethod
     def trace_rate_limiting(test_object):
@@ -2284,7 +2289,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=377
         """
-        return _mark_test_object(test_object, feature_id=377, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=377, owner=_Owner.tracer)
 
     @staticmethod
     def trace_http_server_error_statuses(test_object):
@@ -2292,7 +2297,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=379
         """
-        return _mark_test_object(test_object, feature_id=379, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=379, owner=_Owner.tracer)
 
     @staticmethod
     def trace_http_client_error_statuses(test_object):
@@ -2300,7 +2305,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=381
         """
-        return _mark_test_object(test_object, feature_id=381, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=381, owner=_Owner.tracer)
 
     @staticmethod
     def trace_http_client_tag_query_string(test_object):
@@ -2308,7 +2313,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=382
         """
-        return _mark_test_object(test_object, feature_id=382, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=382, owner=_Owner.tracer)
 
     @staticmethod
     def unified_service_tagging(test_object):
@@ -2316,7 +2321,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=384
         """
-        return _mark_test_object(test_object, feature_id=384, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=384, owner=_Owner.tracer)
 
     @staticmethod
     def integration_enablement(test_object):
@@ -2324,7 +2329,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=385
         """
-        return _mark_test_object(test_object, feature_id=385, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=385, owner=_Owner.tracer)
 
     @staticmethod
     def log_injection_128bit_traceid(test_object):
@@ -2332,7 +2337,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=387
         """
-        return _mark_test_object(test_object, feature_id=387, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=387, owner=_Owner.tracer)
 
     @staticmethod
     def iast_schema(test_object):
@@ -2340,7 +2345,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=394
         """
-        return _mark_test_object(test_object, feature_id=394, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=394, owner=_Owner.asm)
 
     @staticmethod
     def iast_vuln_sampling_route_method_count_algorithm(test_object):
@@ -2348,7 +2353,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=395
         """
-        return _mark_test_object(test_object, feature_id=395, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=395, owner=_Owner.tracer)
 
     @staticmethod
     def appsec_collect_all_headers(test_object):
@@ -2356,7 +2361,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=390
         """
-        return _mark_test_object(test_object, feature_id=390, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=390, owner=_Owner.tracer)
 
     @staticmethod
     def appsec_collect_request_body(test_object):
@@ -2364,7 +2369,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=391
         """
-        return _mark_test_object(test_object, feature_id=391, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=391, owner=_Owner.tracer)
 
     @staticmethod
     def referrer_hostname(test_object):
@@ -2372,7 +2377,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=396
         """
-        return _mark_test_object(test_object, feature_id=396, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=396, owner=_Owner.tracer)
 
     @staticmethod
     def baggage_span_tags(test_object):
@@ -2380,7 +2385,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=470
         """
-        return _mark_test_object(test_object, feature_id=470, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=470, owner=_Owner.tracer)
 
     @staticmethod
     def remote_config_semantic_versioning(test_object):
@@ -2388,7 +2393,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=472
         """
-        return _mark_test_object(test_object, feature_id=472, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=472, owner=_Owner.tracer)
 
     @staticmethod
     def process_tags(test_object):
@@ -2396,7 +2401,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=475
         """
-        return _mark_test_object(test_object, feature_id=475, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=475, owner=_Owner.tracer)
 
     @staticmethod
     def appsec_rc_asm_dd_multiconfig(test_object):
@@ -2404,7 +2409,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=473
         """
-        return _mark_test_object(test_object, feature_id=473, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=473, owner=_Owner.asm)
 
     @staticmethod
     def appsec_trace_tagging_rules(test_object):
@@ -2412,7 +2417,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=474
         """
-        return _mark_test_object(test_object, feature_id=474, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=474, owner=_Owner.asm)
 
     @staticmethod
     def unstructured_log_injection(test_object):
@@ -2420,7 +2425,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=477
         """
-        return _mark_test_object(test_object, feature_id=477, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=477, owner=_Owner.tracer)
 
     @staticmethod
     def auto_instrumentation_appsec(test_object):
@@ -2428,7 +2433,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=478
         """
-        return _mark_test_object(test_object, feature_id=478, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=478, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def host_auto_installation_script_appsec(test_object):
@@ -2436,7 +2441,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=479
         """
-        return _mark_test_object(test_object, feature_id=479, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=479, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def container_auto_installation_script_appsec(test_object):
@@ -2444,7 +2449,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=480
         """
-        return _mark_test_object(test_object, feature_id=480, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=480, owner=_Owner.auto_instrumentation)
 
     @staticmethod
     def ssi_injection_metadata(test_object):
@@ -2452,7 +2457,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=481
         """
-        return _mark_test_object(test_object, feature_id=481, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=481, owner=_Owner.tracer)
 
     @staticmethod
     def api_security_endpoint_discovery(test_object):
@@ -2460,7 +2465,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=483
         """
-        return _mark_test_object(test_object, feature_id=483, owner=_Owner.unknown)
+        return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
 
 features = _Features()
