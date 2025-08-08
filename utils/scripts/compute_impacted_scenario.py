@@ -172,6 +172,7 @@ def main() -> None:
                     r"utils/build/ssi/.*": scenario_groups.docker_ssi,
                     r"utils/build/virtual_machine/.*": scenario_groups.onboarding,
                     r"utils/docker_ssi/.*": scenario_groups.docker_ssi,
+                    r"utils/_features\.py": scenarios.default,
                     r"utils/interfaces/schemas.*": scenario_groups.end_to_end,
                     r"utils/k8s_lib_injection.*": scenario_groups.lib_injection,
                     r"utils/onboarding.*": scenario_groups.onboarding,
