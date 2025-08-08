@@ -277,6 +277,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                             "thread.name",
                             "network.client.ip",
                             "http.client_ip",
+                            "_dd.appsec.fp.http.endpoint",
+                            "_dd.appsec.fp.http.header",
+                            "_dd.appsec.fp.http.network",
                         }:
                             value[meta_key] = "<scrubbed>"
                         elif meta_key == "error.stack":
