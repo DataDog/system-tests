@@ -637,6 +637,6 @@ class Test_Trace_Sampling_With_W3C:
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
-        assert span.get("parent_id") == 0
+        assert (0, None) in span.get("parent_id")
         assert "synthetics" in span["meta"].get(ORIGIN)
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 1
