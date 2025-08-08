@@ -10,7 +10,7 @@ import time
 import datetime
 import hashlib
 from pathlib import Path
-from typing import TextIO, TypedDict, Any
+from typing import TextIO, TypedDict, Any, Union
 import urllib.parse
 
 import requests
@@ -408,7 +408,7 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
+    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False, effective: bool = True) -> dict:
         """Waits for and returns the latest configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
@@ -436,7 +436,15 @@ class _TestAgentAPI:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
                         # Store only the latest configuration for each name. This is the configuration
                         # that should be used by the application.
-                        configurations[config["name"]] = config
+                        if effective:
+                            configurations[config["name"]] = config
+                        else:
+                            if config["name"] in configurations:
+                                # If the configuration already exists, we merge the values
+                                configurations[config["name"]].append(config)
+                                continue
+                            configurations[config["name"]] = [config]
+
         if clear:
             self.clear()
         return configurations
