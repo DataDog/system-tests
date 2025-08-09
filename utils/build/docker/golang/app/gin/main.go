@@ -342,6 +342,9 @@ func main() {
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
 
+	r.Any("/debugger/log", ginHandleFunc(logProbe))
+	r.Any("/debugger/mix", ginHandleFunc(mixProbe))
+
 	srv := &http.Server{
 		Addr:    ":7777",
 		Handler: r,
@@ -378,4 +381,12 @@ func headers(ctx *gin.Context) {
 	ctx.Writer.Header().Set("content-length", "42")
 	ctx.Writer.Header().Set("content-language", "en-US")
 	ctx.Writer.Write([]byte("Hello, headers!"))
+}
+
+func logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }
