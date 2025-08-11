@@ -4,10 +4,6 @@
     "error": 1,
     "meta": {
       "_dd.appsec.event_rules.version": "<scrubbed>",
-      "_dd.appsec.fp.http.endpoint": "<scrubbed>",
-      "_dd.appsec.fp.http.header": "<scrubbed>",
-      "_dd.appsec.fp.http.network": "<scrubbed>",
-      "_dd.appsec.fp.session": "<scrubbed>",
       "_dd.debug.error.0.frame_data.class_name": "ExceptionReplayController",
       "_dd.debug.error.0.frame_data.function": "DeepFunctionC",
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
@@ -64,10 +60,6 @@
     "error": 1,
     "meta": {
       "_dd.appsec.event_rules.version": "<scrubbed>",
-      "_dd.appsec.fp.http.endpoint": "<scrubbed>",
-      "_dd.appsec.fp.http.header": "<scrubbed>",
-      "_dd.appsec.fp.http.network": "<scrubbed>",
-      "_dd.appsec.fp.session": "<scrubbed>",
       "_dd.debug.error.0.frame_data.class_name": "ExceptionReplayController",
       "_dd.debug.error.0.frame_data.function": "DeepFunctionC",
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
@@ -124,10 +116,6 @@
     "error": 1,
     "meta": {
       "_dd.appsec.event_rules.version": "<scrubbed>",
-      "_dd.appsec.fp.http.endpoint": "<scrubbed>",
-      "_dd.appsec.fp.http.header": "<scrubbed>",
-      "_dd.appsec.fp.http.network": "<scrubbed>",
-      "_dd.appsec.fp.session": "<scrubbed>",
       "_dd.debug.error.0.frame_data.class_name": "ExceptionReplayController",
       "_dd.debug.error.0.frame_data.function": "DeepFunctionC",
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
@@ -184,10 +172,6 @@
     "error": 1,
     "meta": {
       "_dd.appsec.event_rules.version": "<scrubbed>",
-      "_dd.appsec.fp.http.endpoint": "<scrubbed>",
-      "_dd.appsec.fp.http.header": "<scrubbed>",
-      "_dd.appsec.fp.http.network": "<scrubbed>",
-      "_dd.appsec.fp.session": "<scrubbed>",
       "_dd.debug.error.0.frame_data.class_name": "ExceptionReplayController",
       "_dd.debug.error.0.frame_data.function": "DeepFunctionC",
       "_dd.debug.error.0.snapshot_id": "<scrubbed>",
