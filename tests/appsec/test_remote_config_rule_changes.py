@@ -526,10 +526,8 @@ EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 @scenarios.appsec_runtime_activation
 @features.changing_rules_using_rc
-@bug(
-    context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0",
-    reason="Empty RC updates were incorrectly sent to waf (APMRP-360)",
-)
+# Empty RC updates were incorrectly sent to waf
+@bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")
 class Test_Empty_Config:
     def setup_empty_config(self):
         self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
