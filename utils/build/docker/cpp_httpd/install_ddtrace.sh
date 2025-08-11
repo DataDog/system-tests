@@ -1,9 +1,7 @@
 #!/bin/bash
 set -eu
 
-get_latest_release() {
-    curl "https://api.github.com/repos/$1/releases/latest" | jq -r '.tag_name'
-}
+source "$(dirname "$0")/github.sh"
 
 FILENAME=mod_datadog.so
 DEST_FOLDER=/usr/lib/apache2/modules
