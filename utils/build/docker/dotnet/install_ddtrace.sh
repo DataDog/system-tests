@@ -3,6 +3,8 @@ set -eu
 
 cd /binaries
 
+echo "MTOFF: install_ddtrace.sh"
+
 # Secret will be available here at build time only
 GITHUB_TOKEN_FILE="/run/secrets/github_token"
 GITHUB_AUTH_HEADER=()
