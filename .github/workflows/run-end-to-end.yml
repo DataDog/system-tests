@@ -440,6 +440,12 @@ jobs:
         path: artifact.tar.gz
         retention-days: ${{ inputs.artifact_retention_days }}
 
+    - name: Upload light report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: temporary_lightweight_reports_${{ inputs.logs_artifact_name }}
+        path: logs_*/report.json
+        retention-days: 1
     - name: Push results to Feature Parity Dashboard
       if: ${{ inputs.push_to_feature_parity_dashbaord && false }} # disabled for now
       run: |
