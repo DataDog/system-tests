@@ -367,7 +367,53 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies = test_loaded_dependencies[context.library.name]
+
+        test_loaded_dependencies: dict[str, dict[str, bool]] = {
+            "dotnet": {"NodaTime": False},
+            "nodejs": {"glob": False},
+            "java": {"httpclient": False},
+            "ruby": {"bundler": False},
+        }
+
+        test_defined_dependencies: dict[str, dict[str, bool]] = {
+            "dotnet": {},
+            "nodejs": {
+                "body-parser": False,
+                "cookie-parser": False,
+                "express": False,
+                "express-xml-bodyparser": False,
+                "pg": False,
+                "glob": False,
+            },
+            "java": {
+                "spring-boot-starter-json": False,
+                "spring-boot-starter-jdbc": False,
+                "jackson-dataformat-xml": False,
+                "dd-trace-api": False,
+                "opentracing-api": False,
+                "opentracing-util": False,
+                "postgresql": False,
+                "java-driver-core": False,
+                "metrics-core": False,
+                "mongo-java-driver": False,
+                "ognl": False,
+                "protobuf-java": False,
+                "grpc-netty-shaded": False,
+                "grpc-protobuf": False,
+                "grpc-stub": False,
+                "jaxb-api": False,
+                "bcprov-jdk15on": False,
+                "hsqldb": False,
+                "spring-boot-starter-security": False,
+                "spring-ldap-core": False,
+                "spring-security-ldap": False,
+                "unboundid-ldapsdk": False,
+                "httpclient": False,
+            },
+            "ruby": {},
+        }
+
+        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
         seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
         for data in interfaces.library.get_telemetry_data():
