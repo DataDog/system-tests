@@ -115,6 +115,13 @@ jobs:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
+
+      - name: Upload light report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: temporary_lightweight_reports_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
+          path: logs_*/report.json
+          retention-days: 1
       # - name: Upload results CI Visibility
       #   if: ${{ always() }}
       #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
