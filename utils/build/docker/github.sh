@@ -9,7 +9,6 @@ set -euo pipefail
 get_authentication_header() {
 
     local github_token_file="/run/secrets/github_token"
-    local github_auth_header=()
 
     if [[ -f "$github_token_file" ]]; then
         echo "🔒 Using GitHub token for authentication" >&2
