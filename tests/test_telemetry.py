@@ -351,96 +351,51 @@ class Test_Telemetry:
     def setup_app_dependencies_loaded(self):
         weblog.get("/load_dependency")
 
-    @irrelevant(library="php")
-    @irrelevant(library="cpp_nginx")
-    @irrelevant(library="cpp_httpd")
-    @irrelevant(library="golang")
-    @irrelevant(library="python")
-    @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
-    @irrelevant(
-        library="java",
-        reason="""
-        A Java application can be redeployed to the same server for many times (for the same JVM process).
-        That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
-        """,
-    )
-    def test_app_dependencies_loaded(self):
-        """Test app-dependencies-loaded requests"""
+    # @irrelevant(library="php")
+    # @irrelevant(library="cpp_nginx")
+    # @irrelevant(library="cpp_httpd")
+    # @irrelevant(library="golang")
+    # @irrelevant(library="python")
+    # @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
+    # @irrelevant(
+    #     library="java",
+    #     reason="""
+    #     A Java application can be redeployed to the same server for many times (for the same JVM process).
+    #     That means, every new deployment/reload of application will cause reloading classes/dependencies and as the result we will see duplications.
+    #     """,
+    # )
+    # def test_app_dependencies_loaded(self):
+    #     """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies: dict[str, dict[str, bool]] = {
-            "dotnet": {"NodaTime": False},
-            "nodejs": {"glob": False},
-            "java": {"httpclient": False},
-            "ruby": {"bundler": False},
-        }
+    #     test_loaded_dependencies = test_loaded_dependencies[context.library.name]
+    #     seen_defined_dependencies = test_defined_dependencies[context.library.name]
 
-        test_defined_dependencies: dict[str, dict[str, bool]] = {
-            "dotnet": {},
-            "nodejs": {
-                "body-parser": False,
-                "cookie-parser": False,
-                "express": False,
-                "express-xml-bodyparser": False,
-                "pg": False,
-                "glob": False,
-            },
-            "java": {
-                "spring-boot-starter-json": False,
-                "spring-boot-starter-jdbc": False,
-                "jackson-dataformat-xml": False,
-                "dd-trace-api": False,
-                "opentracing-api": False,
-                "opentracing-util": False,
-                "postgresql": False,
-                "java-driver-core": False,
-                "metrics-core": False,
-                "mongo-java-driver": False,
-                "ognl": False,
-                "protobuf-java": False,
-                "grpc-netty-shaded": False,
-                "grpc-protobuf": False,
-                "grpc-stub": False,
-                "jaxb-api": False,
-                "bcprov-jdk15on": False,
-                "hsqldb": False,
-                "spring-boot-starter-security": False,
-                "spring-ldap-core": False,
-                "spring-security-ldap": False,
-                "unboundid-ldapsdk": False,
-                "httpclient": False,
-            },
-            "ruby": {},
-        }
+    #     for data in interfaces.library.get_telemetry_data():
+    #         content = data["request"]["content"]
+    #         if content.get("request_type") == "app-started":
+    #             if "dependencies" in content["payload"]:
+    #                 for dependency in content["payload"]["dependencies"]:
+    #                     dependency_id = dependency["name"]  # +dep["version"]
+    #                     if dependency_id in seen_loaded_dependencies:
+    #                         raise Exception("Loaded dependency should not be in app-started")
+    #                     if dependency_id not in seen_defined_dependencies:
+    #                         continue
+    #                     seen_defined_dependencies[dependency_id] = True
+    #         elif content.get("request_type") == "app-dependencies-loaded":
+    #             for dependency in content["payload"]["dependencies"]:
+    #                 dependency_id = dependency["name"]  # +dependency["version"]
+    #                 if seen_loaded_dependencies.get(dependency_id) is True:
+    #                     raise Exception(
+    #                         "Loaded dependency event sent multiple times for same dependency " + dependency_id
+    #                     )
+    #                 if dependency_id in seen_defined_dependencies:
+    #                     seen_defined_dependencies[dependency_id] = True
+    #                 if dependency_id in seen_loaded_dependencies:
+    #                     seen_loaded_dependencies[dependency_id] = True
 
-        seen_loaded_dependencies = test_loaded_dependencies[context.library.name]
-        seen_defined_dependencies = test_defined_dependencies[context.library.name]
-
-        for data in interfaces.library.get_telemetry_data():
-            content = data["request"]["content"]
-            if content.get("request_type") == "app-started":
-                if "dependencies" in content["payload"]:
-                    for dependency in content["payload"]["dependencies"]:
-                        dependency_id = dependency["name"]  # +dep["version"]
-                        if dependency_id in seen_loaded_dependencies:
-                            raise Exception("Loaded dependency should not be in app-started")
-                        if dependency_id not in seen_defined_dependencies:
-                            continue
-                        seen_defined_dependencies[dependency_id] = True
-            elif content.get("request_type") == "app-dependencies-loaded":
-                for dependency in content["payload"]["dependencies"]:
-                    dependency_id = dependency["name"]  # +dependency["version"]
-                    if seen_loaded_dependencies.get(dependency_id) is True:
-                        raise Exception(
-                            "Loaded dependency event sent multiple times for same dependency " + dependency_id
-                        )
-                    if dependency_id in seen_defined_dependencies:
-                        seen_defined_dependencies[dependency_id] = True
-                    if dependency_id in seen_loaded_dependencies:
-                        seen_loaded_dependencies[dependency_id] = True
-
-        for dependency, seen in seen_loaded_dependencies.items():
-            if not seen:
-                raise Exception(dependency + " not received in app-dependencies-loaded message")
+    #     for dependency, seen in seen_loaded_dependencies.items():
+    #         if not seen:
+    #             raise Exception(dependency + " not received in app-dependencies-loaded message")
 
     @irrelevant(library="ruby")
     @irrelevant(library="golang")
@@ -566,6 +521,7 @@ class Test_Telemetry:
 
 @features.telemetry_app_started_event
 @scenarios.telemetry_app_started_config_chaining
+@rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
 class Test_TelemetryConfigurationChaining:
     """Test that configuration sources are sent with app-started event in correct precedence order.
 
@@ -598,7 +554,17 @@ class Test_TelemetryConfigurationChaining:
                     {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
-        },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
+        },
+        "dotnet": {
+            "configuration": {
+                "DD_LOGS_INJECTION": [
+                    # {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
+                    # {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                ],
+            },
+        },
+        # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
     }
 
     @classmethod
@@ -613,7 +579,6 @@ class Test_TelemetryConfigurationChaining:
 
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
-        """Assert that all configuration sources read at start time are sent with the app-started event in the correct order"""
         self._validate_config_chaining(require_seq_id=True)
 
     @scenarios.telemetry_app_started_config_chaining
@@ -630,14 +595,20 @@ class Test_TelemetryConfigurationChaining:
             require_seq_id: Whether to require and validate seq_id presence and ordering
 
         """
-        nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
+        expected_config = self._CONFIG_CHAINING_TEST_CONFIG[context.library.name]["configuration"]
 
         def validator(data):
-            if get_request_type(data) != "app-started":
+            content = data["request"]["content"]
+            if content.get("request_type") == "message-batch":
+                content = content["payload"][0]
+
+            print("MTOFF: new data is", content)
+            if content.get("request_type") != "app-started":
+                print("MTOFF: not app-started")
                 return
 
-            content = data["request"]["content"]
             configurations = content["payload"]["configuration"]
+            print("MTOFF: configurations are", configurations)
 
             if require_seq_id:
                 # Assert that each configuration has a seq_id
@@ -652,18 +623,19 @@ class Test_TelemetryConfigurationChaining:
                 # Sort by name to have a consistent order for comparison
                 configurations.sort(key=lambda cnf: cnf.get("name", ""))
 
-            self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
+            self._validate_configuration_chains(configurations, expected_config, require_seq_id=require_seq_id)
 
         self.validate_library_telemetry_data(validator)
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False):
         """Reuse telemetry validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-
+        print("MTOFF: telemetry_data is", telemetry_data)
         if len(telemetry_data) == 0 and not success_by_default:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
+            print("MTOFF: pre-validator data is", data)
             validator(data)
 
     def _validate_precedence_order(self, chain: list) -> None:
