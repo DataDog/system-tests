@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eu
 
+# shellcheck source=/dev/null
 source "$(dirname "$0")/github.sh"
 
 FILENAME=mod_datadog.so
