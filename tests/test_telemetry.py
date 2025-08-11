@@ -567,8 +567,7 @@ class Test_Telemetry:
 @features.telemetry_app_started_event
 @scenarios.telemetry_app_started_config_chaining
 class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order.
-    """
+    """Test that configuration sources are sent with app-started event in correct precedence order."""
 
     # tests that seq_id is correctly set for each configuration entry for a given configuration name based on the that SDKs
     # precedence order as defined below
@@ -627,14 +626,16 @@ class Test_TelemetryConfigurationChaining:
             config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
 
             # Create array of configs that match the config name
-            matching_configs = [] 
+            matching_configs = []
             for cnf in configurations:
                 if cnf["name"] == config_name:
                     assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
                     assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
                     matching_configs.append(cnf)
 
-            assert len(matching_configs) == len(config_precedence_order), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
+            assert (
+                len(matching_configs) == len(config_precedence_order)
+            ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
             # order by seq_id
             matching_configs.sort(key=lambda x: x["seq_id"])
 
@@ -642,7 +643,6 @@ class Test_TelemetryConfigurationChaining:
                 assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
                 assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
                 assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
-
 
         self.validate_library_telemetry_data(validator)
 
