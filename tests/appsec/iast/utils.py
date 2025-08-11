@@ -617,3 +617,13 @@ class BaseTestCookieNameFilter:
         meta, meta_struct = _get_span_meta(self.req3)
         assert "_dd.iast.json" not in meta, "No IAST info expected in span"
         assert "iast" not in meta_struct, "No IAST info expected in span"
+
+
+def get_nodejs_iast_file_paths() -> dict[str, str]:
+    return {
+        "express4": "iast/index.js",
+        "express4-typescript": "iast.ts",
+        "express5": "iast/index.js",
+        "fastify": "iast/index.js",
+        "uds-express4": "iast/index.js",
+    }

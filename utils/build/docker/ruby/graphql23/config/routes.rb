@@ -7,7 +7,8 @@ Rails.application.routes.draw do
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 
-  get  '/healthcheck' => 'system_test#healthcheck'
+  get  '/healthcheck' => 'internal#healthcheck'
+  get  '/flush' => 'internal#flush'
 
   get  '/waf' => 'system_test#waf'
   post '/waf' => 'system_test#waf'
@@ -23,9 +24,11 @@ Rails.application.routes.draw do
   get '/headers' => 'system_test#test_headers'
   get  '/identify' => 'system_test#identify'
 
-  get 'user_login_success_event' => 'system_test#user_login_success_event'
-  get 'user_login_failure_event' => 'system_test#user_login_failure_event'
+  get 'user_login_success_event' => 'business_logic_events#user_login_success_event'
+  get 'user_login_failure_event' => 'business_logic_events#user_login_failure_event'
   get 'custom_event' => 'system_test#custom_event'
+  post 'user_login_success_event_v2' => 'business_logic_events#user_login_success_event_v2'
+  post 'user_login_failure_event_v2' => 'business_logic_events#user_login_failure_event_v2'
 
   %i(get post).each do |request_method|
     send(request_method, '/tag_value/:tag_value/:status_code' => 'system_test#tag_value')

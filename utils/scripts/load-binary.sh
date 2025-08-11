@@ -168,6 +168,13 @@ fi
 TARGET=$1
 VERSION=${2:-'dev'}
 
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"  # legacy
+GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+GITHUB_AUTH_HEADER=()
+if [ -n "$GH_TOKEN" ]; then
+  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GH_TOKEN")
+fi
+
 echo "Load $VERSION binary for $TARGET"
 
 cd binaries/
@@ -238,7 +245,7 @@ elif [ "$TARGET" = "golang" ]; then
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
     echo "load last commit on $LIBRARY_TARGET_BRANCH for DataDog/dd-trace-go"
-    COMMIT_ID=$(curl -sS --fail "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
+    COMMIT_ID=$(curl -sS --fail "${GITHUB_AUTH_HEADER[@]}" "https://api.github.com/repos/DataDog/dd-trace-go/branches/$LIBRARY_TARGET_BRANCH" | jq -r .commit.sha)
 
     echo "Using github.com/DataDog/dd-trace-go/v2@$COMMIT_ID"
     echo "github.com/DataDog/dd-trace-go/v2@$COMMIT_ID" > golang-load-from-go-get

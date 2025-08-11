@@ -396,8 +396,8 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "ruby": "true",
         "java": "true",
         "golang": None,
-        "python": "structured",
-        "nodejs": "structured",
+        "python": "true",
+        "nodejs": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
@@ -673,7 +673,8 @@ class Test_Stable_Config_Default(StableConfigWriter):
                             {
                                 "origin": "process_arguments",
                                 "key": "-Darg1",
-                                "operator": "exists",
+                                "operator": "equals",
+                                "matches": ["value"],
                             }
                         ],
                         "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},

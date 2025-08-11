@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v1.11.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': v1.11.0-dev
@@ -358,7 +360,7 @@ tests/:
       Test_StandardTagsClientIp: v0.81.0
     test_conf.py:
       Test_ConfigurationVariables: missing_feature (unknown version)
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables_New_Obfuscation: v1.12.0
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
     test_event_tracking.py:
@@ -386,15 +388,15 @@ tests/:
       Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v1.12.0
       Test_Fingerprinting_Endpoint_Preprocessor: v1.6.2
       Test_Fingerprinting_Header_And_Network: v1.6.2
       Test_Fingerprinting_Header_And_Network_Preprocessor: v1.6.2
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
-      Test_Fingerprinting_Session_Preprocessor: missing_feature
+      Test_Fingerprinting_Header_Capability: v1.12.0
+      Test_Fingerprinting_Network_Capability: v1.12.0
+      Test_Fingerprinting_Session: v1.12.0
+      Test_Fingerprinting_Session_Capability: v1.12.0
+      Test_Fingerprinting_Session_Preprocessor: v1.12.0
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:
@@ -407,8 +409,11 @@ tests/:
     test_rate_limiter.py:
       Test_Main: v1.11.0
     test_remote_config_rule_changes.py:
-      Test_AsmDdMultiConfiguration: missing_feature
+      Test_AsmDdMultiConfiguration: v1.12.0
       Test_BlockingActionChangesWithRemoteConfig: v1.6.2
+      Test_Empty_Config: missing_feature
+      Test_Multiple_Actions: v1.6.2
+      Test_Unknown_Action: v1.6.2
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
@@ -419,15 +424,17 @@ tests/:
       Test_RuntimeActivation: v1.6.2
       Test_RuntimeDeactivation: v1.6.2
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: v0.95.0
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
-      Test_TraceTaggingRules: missing_feature
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRules: v1.12.0
+      Test_TraceTaggingRulesRcCapability: v1.12.0
     test_traces.py:
       Test_CollectDefaultRequestHeader: v1.0.0
       Test_ExternalWafRequestsIdentification: v1.0.0
@@ -625,7 +632,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v1.4.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v1.8.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v1.8.0
-    Test_Config_LogInjection_Default: v1.8.0
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (weblog endpoint is missing structured parameter)
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled: v1.8.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v1.5.0
     Test_Config_ObfuscationQueryStringRegexp_Empty: v1.5.0
