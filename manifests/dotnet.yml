@@ -450,6 +450,8 @@ tests/:
   debugger/:
     test_debugger_code_origins.py:
       Test_Debugger_Code_Origins: missing_feature
+    test_debugger_exception_replay.py:
+      Test_Debugger_Exception_Replay: missing_feature
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: v2.50.0
     test_debugger_inproduct_enablement.py:
