@@ -122,7 +122,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "21",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -276,7 +278,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -514,7 +518,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "1",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -748,7 +754,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "10",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -946,7 +954,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "11",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -1140,7 +1150,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "12",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -1330,7 +1342,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "13",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -1516,7 +1530,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "14",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -1698,7 +1714,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "15",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -1876,7 +1894,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "16",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2050,7 +2070,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "17",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2220,7 +2242,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "18",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2386,7 +2410,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "19",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2548,7 +2574,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "2",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2778,7 +2806,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "20",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -2936,7 +2966,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "3",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -3162,7 +3194,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "4",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -3384,7 +3418,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "5",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -3602,7 +3638,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "6",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -3816,7 +3854,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "7",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -4026,7 +4066,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "8",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -4232,7 +4274,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "b0ffb760-153a-432d-a22e-54d1c2119699",
+    "exceptionHash": "d92af5a2c66c8f4159cc5fffd164be3692ecfb7da6050305472a62911d69d30",
+    "frameIndex": "9",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {

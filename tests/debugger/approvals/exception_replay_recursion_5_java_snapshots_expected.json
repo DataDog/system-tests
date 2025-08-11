@@ -62,7 +62,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "6",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -156,7 +158,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "0",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -274,7 +278,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "1",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -388,7 +394,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "2",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -498,7 +506,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "3",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -604,7 +614,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "4",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
@@ -706,7 +718,9 @@
         }
       }
     },
-    "exceptionId": "<scrubbed>",
+    "exceptionCaptureId": "59119bf8-e117-4dea-b31f-8ac0576a61a6",
+    "exceptionHash": "1836ffcb96739879ec9ad618fdca6d5cec81091da9892b5ed37653d8379bdc",
+    "frameIndex": "5",
     "id": "<scrubbed>",
     "language": "java",
     "probe": {
