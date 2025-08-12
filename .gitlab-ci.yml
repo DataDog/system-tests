@@ -1,3 +1,7 @@
+workflow:
+  auto_cancel:
+    on_new_commit: interruptible
+
 include:
   - remote: https://gitlab-templates.ddbuild.io/libdatadog/one-pipeline/ca/2fc0ca684c4322af76c172905af32c6c583303dcecb07dba05bac5f85b7606ae/single-step-instrumentation-tests.yml
 
@@ -12,6 +16,9 @@ stages:
   - pipeline-status
   - system-tests-utils
 
+default:
+  interruptible: true
+
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
     KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
@@ -21,9 +28,6 @@ compute_pipeline:
   image: registry.ddbuild.io/ci/libdatadog-build/system-tests:57161036
   tags: ["arch:amd64"]
   stage: configure
-  concurrency:
-    group: $CI_COMMIT_REF_SLUG
-    cancel_outdated_jobs: true
   variables:
     CI_ENVIRONMENT: "prod"
   script:
