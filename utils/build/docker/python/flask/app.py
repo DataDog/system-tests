@@ -5,6 +5,7 @@ import os
 if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
     import ddtrace
     from ddtrace import config
+
     config._logs_injection = True
 
 
@@ -107,7 +108,7 @@ from exception_replay_controller import exception_replay_blueprint
 try:
     from ddtrace.trace import Pin
     from ddtrace.trace import tracer
-    
+
 except ImportError:
     from ddtrace import Pin
     from ddtrace import tracer
@@ -119,7 +120,6 @@ try:
     from ddtrace.contrib.trace_utils import set_user
 except ImportError:
     set_user = lambda *args, **kwargs: None
-
 
 
 # Configure loguru logger

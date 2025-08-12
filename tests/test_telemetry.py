@@ -597,7 +597,7 @@ class Test_TelemetryConfigurationChaining:
         """Assert that the seq_id is sent for each configuration entry in the app-started event"""
 
         def validator(data):
-            if get_request_type(data) not in["app-started", "app-client-configuration-change"]:
+            if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
                 return
 
             content = data["request"]["content"]
@@ -643,11 +643,7 @@ class Test_TelemetryConfigurationChaining:
                 assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
                 assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
 
-        self.validate_library_telemetry_data(
-            validator,
-            success_by_default=False,
-            get_all_data_at_once=True
-        )
+        self.validate_library_telemetry_data(validator, success_by_default=False, get_all_data_at_once=True)
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
         """Reuse telemetry validation method from Test_Telemetry"""
@@ -661,6 +657,7 @@ class Test_TelemetryConfigurationChaining:
         else:
             for data in telemetry_data:
                 validator(data)
+
 
 @features.telemetry_instrumentation
 class Test_APMOnboardingInstallID:
