@@ -20,9 +20,9 @@ if [ -e /binaries/dd-trace-rs ]; then
     echo "install from /binaries/dd-trace-rs"
 else
     # TODO: add lastest release from crates.io
-    cargo add --git "$REPO_URL" datadog-opentelemetry
-    cargo add --git "$REPO_URL" dd-trace
+    cargo add --git "$REPO_URL" --tag system-tests-prod datadog-opentelemetry
+    cargo add --git "$REPO_URL" --tag system-tests-prod dd-trace
 
-    echo "install from $REPO_URL"
+    echo "install from --git $REPO_URL --tag system-tests-prod"
 fi
 
