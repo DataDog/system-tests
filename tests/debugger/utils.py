@@ -208,6 +208,7 @@ class BaseDebuggerTest:
         self,
         dynamic_instrumentation_enabled: bool | None = None,
         exception_replay_enabled: bool | None = None,
+        exception_replay_default_enabled: bool | None = None,
         live_debugging_enabled: bool | None = None,
         code_origin_enabled: bool | None = None,
         dynamic_sampling_enabled: bool | None = None,
@@ -223,6 +224,7 @@ class BaseDebuggerTest:
             remote_config.send_apm_tracing_command(
                 dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
                 exception_replay_enabled=exception_replay_enabled,
+                exception_replay_default_enabled=exception_replay_default_enabled,
                 live_debugging_enabled=live_debugging_enabled,
                 code_origin_enabled=code_origin_enabled,
                 dynamic_sampling_enabled=dynamic_sampling_enabled,

@@ -117,6 +117,43 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
         assert self.er_empty_config, "Expected snapshots to continue emitting with empty config"
         assert self.er_explicit_disabled, "Expected snapshots to stop emitting after explicit disable"
 
+    def setup_inproduct_enablement_exception_default_replay(self):
+        def _send_config(exception_replay_enabled=None, exception_replay_default_enabled=None):
+            self.send_rc_apm_tracing(
+                exception_replay_enabled=exception_replay_enabled,
+                exception_replay_default_enabled=exception_replay_default_enabled,
+            )
+
+        def _wait_for_exception_snapshot_received(request_path, exception_message):
+            self.weblog_responses = []
+
+            retries = 0
+            snapshot_found = False
+
+            while not snapshot_found and retries < self._max_retries:
+                logger.debug(f"Waiting for snapshot, retry #{retries}")
+
+                self.send_weblog_request(request_path, reset=False)
+                snapshot_found = self.wait_for_exception_snapshot_received(exception_message, TIMEOUT)
+
+                retries += 1
+
+            return snapshot_found
+
+        self.initialize_weblog_remote_config()
+        self.weblog_responses = []
+
+        # First enable exception replay
+        _send_config(exception_replay_enabled=True)
+        _send_config(exception_replay_default_enabled=False)
+        self.er_explicit_enabled = _wait_for_exception_snapshot_received("/exceptionreplay/simple", "simple exception")
+
+    def test_inproduct_enablement_exception_default_replay(self):
+        self.assert_rc_state_not_error()
+        self.assert_all_weblog_responses_ok(expected_code=500)
+
+        assert self.er_explicit_enabled, "Expected snapshots to be emitting after enabling exception replay"
+
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement

@@ -262,6 +262,7 @@ def build_apm_tracing_command(
     version: int,
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
+    exception_replay_default_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
@@ -276,6 +277,8 @@ def build_apm_tracing_command(
         lib_config["dynamic_instrumentation_enabled"] = dynamic_instrumentation_enabled
     if exception_replay_enabled is not None:
         lib_config["exception_replay_enabled"] = exception_replay_enabled
+    if exception_replay_default_enabled is not None:
+        lib_config["exception_replay_default_enabled"] = exception_replay_default_enabled
     if live_debugging_enabled is not None:
         lib_config["live_debugging_enabled"] = live_debugging_enabled
     if code_origin_enabled is not None:
@@ -296,6 +299,7 @@ def build_apm_tracing_command(
 def send_apm_tracing_command(
     dynamic_instrumentation_enabled: bool | None = None,
     exception_replay_enabled: bool | None = None,
+    exception_replay_default_enabled: bool | None = None,
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
@@ -305,6 +309,7 @@ def send_apm_tracing_command(
         version=version,
         dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
         exception_replay_enabled=exception_replay_enabled,
+        exception_replay_default_enabled=exception_replay_default_enabled,
         live_debugging_enabled=live_debugging_enabled,
         code_origin_enabled=code_origin_enabled,
         dynamic_sampling_enabled=dynamic_sampling_enabled,
