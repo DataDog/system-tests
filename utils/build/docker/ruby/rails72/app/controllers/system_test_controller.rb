@@ -98,7 +98,7 @@ class SystemTestController < ApplicationController
 
     headers = request.query_string.split('&').map {|e | e.split('=')} || []
     headers.each do |key, value|
-      response.set_header(key, value)
+      response.headers[key] = value
     end
 
     if request.method == "POST" && event_value.include?('payload_in_response_body')
