@@ -1,13 +1,5 @@
 import os
 
-# This mimics a scenario where a user has one config setting set in multiple sources
-# so that config chaining data is sent
-if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
-    import ddtrace
-    from ddtrace import config
-
-    config._logs_injection = True
-
 
 if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
@@ -95,7 +87,12 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_consume
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
-
+import ddtrace
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    from ddtrace import config
+    config._logs_injection = True
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
