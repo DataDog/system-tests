@@ -18,6 +18,7 @@ stages:
 
 default:
   interruptible: true
+  #dummy commit
 
 variables:
     # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
