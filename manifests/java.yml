@@ -70,6 +70,11 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          spring-boot: v1.52.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0

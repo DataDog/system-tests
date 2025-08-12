@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v1.11.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': v1.11.0-dev
@@ -386,15 +388,15 @@ tests/:
       Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v1.6.2
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v1.12.0
       Test_Fingerprinting_Endpoint_Preprocessor: v1.6.2
       Test_Fingerprinting_Header_And_Network: v1.6.2
       Test_Fingerprinting_Header_And_Network_Preprocessor: v1.6.2
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
-      Test_Fingerprinting_Session: missing_feature
-      Test_Fingerprinting_Session_Capability: missing_feature
-      Test_Fingerprinting_Session_Preprocessor: missing_feature
+      Test_Fingerprinting_Header_Capability: v1.12.0
+      Test_Fingerprinting_Network_Capability: v1.12.0
+      Test_Fingerprinting_Session: v1.12.0
+      Test_Fingerprinting_Session_Capability: v1.12.0
+      Test_Fingerprinting_Session_Preprocessor: v1.12.0
     test_identify.py:
       Test_Basic: v0.85.0
     test_logs.py:

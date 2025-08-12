@@ -88,6 +88,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: *ref_5_27_0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
@@ -1014,7 +1016,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
-      Test_Empty_Config: missing_feature
+      Test_Empty_Config: *ref_3_19_0
       Test_Multiple_Actions: *ref_4_1_0
       Test_Unknown_Action: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
@@ -1255,7 +1257,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: irrelevant (temporarily ignored)
+      Test_Stable_Config_Default: *ref_5_62_0
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:

@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.6.0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v2.6.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          'django-poc': v3.12.0.dev
+          'django-py3.13': v3.12.0.dev
+          'python3.12': v3.12.0.dev
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -723,7 +729,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
-      Test_Empty_Config: missing_feature
+      Test_Empty_Config: v3.10.0
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)

@@ -29,6 +29,11 @@ on:
         default: ''
         required: false
         type: string
+      force_execute:
+        description: "List of nodeid to force execute, separated by comma"
+        required: false
+        type: string
+        default: ''
       binaries_artifact:
         description: "Artifact name containing the binaries to test"
         default: ''
@@ -132,6 +137,7 @@ jobs:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+      force_execute: ${{ inputs.force_execute }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
@@ -232,6 +238,7 @@ jobs:
       weblog: ${{ matrix.job.weblog }}
       weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
+      force_execute: ${{ inputs.force_execute }}
       build_buddies_images: ${{ inputs.build_buddies_images }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
