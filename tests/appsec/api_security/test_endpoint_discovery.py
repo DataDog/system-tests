@@ -135,8 +135,9 @@ class Test_Endpoint_Discovery:
             ("python", "django-py3.13"),
             ("python", "python3.12"),
         ],
-        reason="Not applicable to weblog variant",
+        reason="Not applicable to weblog variant"
     )
+    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog variant")
     @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
     def test_optional_request_body_type(self):
         endpoints = self._get_endpoints()
@@ -161,6 +162,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
+    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -185,6 +187,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
+    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -210,6 +213,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
+    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
     def test_optional_authentication(self):
         endpoints = self._get_endpoints()
         allowed = {"JWT", "basic", "oauth", "OIDC", "api_key", "session", "mTLS", "SAML", "LDAP", "Form", "other"}
@@ -234,6 +238,7 @@ class Test_Endpoint_Discovery:
         ],
         reason="Not applicable to weblog variant",
     )
+    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
     def test_optional_metadata(self):
         endpoints = self._get_endpoints()
         found = False

@@ -17,7 +17,7 @@ tests/:
         Test_API_Security_Sampling_Rate: v2.46.0
         Test_API_Security_Sampling_With_Delay: v2.50.0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery: v3.24.0
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
