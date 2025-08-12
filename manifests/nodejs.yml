@@ -1091,6 +1091,9 @@ tests/:
       Test_Debugger_Line_Probe_Snaphots:
         '*': *ref_5_39_0
         nextjs: irrelevant
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
+        '*': *ref_5_39_0
+        nextjs: irrelevant
       Test_Debugger_Method_Probe_Snaphots: missing_feature
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
