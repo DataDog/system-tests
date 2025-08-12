@@ -1,6 +1,5 @@
 import os
 
-
 if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
     import ddtrace.auto  # noqa: E402
@@ -107,7 +106,6 @@ from exception_replay_controller import exception_replay_blueprint
 try:
     from ddtrace.trace import Pin
     from ddtrace.trace import tracer
-
 except ImportError:
     from ddtrace import Pin
     from ddtrace import tracer
