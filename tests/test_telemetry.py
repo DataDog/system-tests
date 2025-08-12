@@ -597,7 +597,7 @@ class Test_TelemetryConfigurationChaining:
         """Assert that the seq_id is sent for each configuration entry in the app-started event"""
 
         def validator(data):
-            if get_request_type(data) != "app-started":
+            if get_request_type(data) not in["app-started", "app-client-configuration-change"]:
                 return
 
             content = data["request"]["content"]
@@ -615,23 +615,22 @@ class Test_TelemetryConfigurationChaining:
         """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
 
         def validator(data):
-            if get_request_type(data) != "app-started":
-                return
-
-            content = data["request"]["content"]
-            configurations = content["payload"]["configuration"]
-            assert configurations, f"No configurations found in app-started event: {configurations}"
-
-            config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
-            config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
-
             # Create array of configs that match the config name
             matching_configs = []
-            for cnf in configurations:
-                if cnf["name"] == config_name:
-                    assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                    assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-                    matching_configs.append(cnf)
+            config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
+            config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
+            for telemetry_payload in data:
+                if get_request_type(telemetry_payload) not in ["app-started", "app-client-configuration-change"]:
+                    continue
+                else:
+                    content = telemetry_payload["request"]["content"]
+                    configurations = content["payload"]["configuration"]
+                    assert configurations, f"No configurations found in telemetry event: {configurations}"
+                    for cnf in configurations:
+                        if cnf["name"] == config_name:
+                            assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
+                            assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
+                            matching_configs.append(cnf)
 
             assert (
                 len(matching_configs) == len(config_precedence_order)
@@ -644,18 +643,24 @@ class Test_TelemetryConfigurationChaining:
                 assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
                 assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
 
-        self.validate_library_telemetry_data(validator)
+        self.validate_library_telemetry_data(
+            validator,
+            success_by_default=False,
+            get_all_data_at_once=True
+        )
 
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+    def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
         """Reuse telemetry validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
             raise ValueError("No telemetry data to validate on")
 
-        for data in telemetry_data:
-            validator(data)
-
+        if get_all_data_at_once:
+            validator(telemetry_data)
+        else:
+            for data in telemetry_data:
+                validator(data)
 
 @features.telemetry_instrumentation
 class Test_APMOnboardingInstallID:

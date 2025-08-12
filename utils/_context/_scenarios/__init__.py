@@ -133,6 +133,8 @@ class _Scenarios:
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
+            "DD_SERVICE": "config_chaining_test",
+            "UWSGI_ENABLED": "false",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
