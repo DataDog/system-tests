@@ -91,8 +91,13 @@ class OpenTelemetryScenario(DockerScenario):
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
             interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
+        # interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):
