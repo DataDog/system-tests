@@ -111,6 +111,16 @@ def deserialize_http_message(
     raw_content_type = get_header_value("content-type", message["headers"])
     content_type = None if raw_content_type is None else raw_content_type.lower()
 
+    # Determine if the content is from a Datadog tracer
+    source_is_datadog_tracer = interface in (
+        "library",
+        "python_buddy",
+        "nodejs_buddy",
+        "java_buddy",
+        "ruby_buddy",
+        "golang_buddy",
+    )
+
     if not content or len(content) == 0:
         return None
 
@@ -123,11 +133,11 @@ def deserialize_http_message(
 
         return json_load()
 
-    if path == "/dogstatsd/v2/proxy" and interface == "library":
+    if path == "/dogstatsd/v2/proxy" and source_is_datadog_tracer:
         # TODO : how to deserialize this ?
         return content.decode(encoding="utf-8")
 
-    if interface == "library" and path == "/info":
+    if source_is_datadog_tracer and path == "/info":
         if key == "response":
             return json_load()
 
@@ -137,7 +147,7 @@ def deserialize_http_message(
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
-        if interface == "library":
+        if source_is_datadog_tracer:
             if path == "/v0.4/traces":
                 _decode_unsigned_int_traces(result)
                 _deserialized_nested_json_from_trace_payloads(result, interface)
@@ -337,7 +347,11 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
         )
     except:
         status_code: int = data[key]["status_code"]
-        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

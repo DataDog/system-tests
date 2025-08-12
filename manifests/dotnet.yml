@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
         Test_API_Security_Sampling_With_Delay: v2.50.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -309,7 +311,7 @@ tests/:
     test_alpha.py:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
-      Test_APISecurityStandalone: missing_feature
+      Test_APISecurityStandalone: v3.17.0
       Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
       Test_IastStandalone_UpstreamPropagation: missing_feature
@@ -410,6 +412,9 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
+      Test_Empty_Config: missing_feature
+      Test_Multiple_Actions: v3.4.0
+      Test_Unknown_Action: v3.4.0
       Test_UpdateRuleFileWithRemoteConfig: v3.5.0
     test_reports.py:
       Test_ExtraTagsFromRule: v2.34.0
@@ -422,8 +427,10 @@ tests/:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -609,7 +616,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v3.13.0
-    Test_Config_LogInjection_Default: v3.5.0
+    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Unstructured: v3.5.0
     Test_Config_LogInjection_Enabled: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
     Test_Config_ObfuscationQueryStringRegexp_Default: v3.4.1

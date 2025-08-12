@@ -8,18 +8,20 @@ tests/:
   appsec/:
     api_security/:
       test_api_security_rc.py:
-        Test_API_Security_RC_ASM_DD_processors: v2.17.1-dev
-        Test_API_Security_RC_ASM_DD_scanners: v2.17.1-dev
+        Test_API_Security_RC_ASM_DD_processors: v2.18.0
+        Test_API_Security_RC_ASM_DD_scanners: v2.18.0
       test_apisec_sampling.py:
-        Test_API_Security_Sampling_Different_Endpoints: v2.17.1-dev
+        Test_API_Security_Sampling_Different_Endpoints: v2.18.0
         Test_API_Security_Sampling_Different_Paths:
-          "*": v2.17.1-dev
+          "*": v2.18.0
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Different_Status:
-          "*": v2.17.1-dev
+          "*": v2.18.0
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
-        Test_API_Security_Sampling_With_Delay: v2.17.1-dev
+        Test_API_Security_Sampling_With_Delay: v2.18.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: missing_feature
         Test_Schema_Request_Cookies: v1.15.0
@@ -207,107 +209,75 @@ tests/:
           "*": v2.12.3
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_BodyUrlEncoded:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_BodyXml: irrelevant (XML not natively supported)
         Test_Sqli_Capability:
-          "*": v2.14.1-dev
+          "*": v2.15.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Mandatory_SpanTags:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Optional_SpanTags:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Rules_Version: missing_feature (relies on Telemetry V2)
         Test_Sqli_StackTrace:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Telemetry:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Telemetry_V2: missing_feature
         Test_Sqli_UrlQuery:
           "*": v2.14.0
           rack: irrelevant
           sinatra14: irrelevant
-          sinatra20: irrelevant
-          sinatra21: irrelevant
           sinatra22: irrelevant
-          sinatra30: irrelevant
-          sinatra31: irrelevant
           sinatra32: irrelevant
-          sinatra40: irrelevant
+          sinatra41: irrelevant
           uds-sinatra: irrelevant
         Test_Sqli_Waf_Version: missing_feature (relies on Telemetry V2)
       test_ssrf.py:
         Test_Ssrf_BodyJson: v2.14.0
         Test_Ssrf_BodyUrlEncoded: v2.14.0
         Test_Ssrf_BodyXml: irrelevant  # xml body not natively supported
-        Test_Ssrf_Capability: v2.14.1-dev
+        Test_Ssrf_Capability: v2.15.0
         Test_Ssrf_Mandatory_SpanTags: v2.14.0
         Test_Ssrf_Optional_SpanTags: v2.14.0
         Test_Ssrf_Rules_Version: missing_feature  # requires Telemetry V2
@@ -328,13 +298,9 @@ tests/:
         Test_Headers:
           "*": v0.54.2  # assumed as the oldest supported version
           sinatra14: missing_feature (endpoint not implemented)
-          sinatra20: missing_feature (endpoint not implemented)
-          sinatra21: missing_feature (endpoint not implemented)
           sinatra22: missing_feature (endpoint not implemented)
-          sinatra30: missing_feature (endpoint not implemented)
-          sinatra31: missing_feature (endpoint not implemented)
           sinatra32: missing_feature (endpoint not implemented)
-          sinatra40: missing_feature (endpoint not implemented)
+          sinatra41: missing_feature (endpoint not implemented)
           uds-sinatra: missing_feature (endpoint not implemented)
         Test_PathParams:
           "*": v1.8.0
@@ -353,13 +319,9 @@ tests/:
         Test_Exclusions:
           "*": v1.11.0
           sinatra14: missing_feature (endpoint not implemented)
-          sinatra20: missing_feature (endpoint not implemented)
-          sinatra21: missing_feature (endpoint not implemented)
           sinatra22: missing_feature (endpoint not implemented)
-          sinatra30: missing_feature (endpoint not implemented)
-          sinatra31: missing_feature (endpoint not implemented)
           sinatra32: missing_feature (endpoint not implemented)
-          sinatra40: missing_feature (endpoint not implemented)
+          sinatra41: missing_feature (endpoint not implemented)
           uds-sinatra: missing_feature (endpoint not implemented)
       test_miscs.py:
         Test_MultipleAttacks: v0.54.2
@@ -373,7 +335,7 @@ tests/:
       test_truncation.py:
         Test_Truncation: missing_feature
     test_asm_standalone.py:
-      Test_APISecurityStandalone: v2.17.1-dev
+      Test_APISecurityStandalone: v2.18.0
       Test_AppSecStandalone_NotEnabled: v2.13.0
       Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
@@ -395,75 +357,51 @@ tests/:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_Anon:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_Blocking:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_V3_Login_Events_RC: irrelevant
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
-        "*": v2.15.1-dev
+        "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Blocking:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Automated_User_Tracking:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
@@ -501,20 +439,20 @@ tests/:
       Test_UserLoginSuccessEvent: v1.9.0
       Test_UserLoginSuccessEvent_Metrics: missing_feature
     test_event_tracking_v2.py:
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Libddwaf: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Libddwaf: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature
-      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: missing_feature
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Libddwaf: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginFailureEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginFailureEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginFailureEventV2_Tags_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Libddwaf: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.19.0
+      Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
+      Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.19.0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -522,35 +460,27 @@ tests/:
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.15.0
       Test_Fingerprinting_Endpoint_Capability: missing_feature
-      Test_Fingerprinting_Endpoint_Preprocessor: v2.15.1-dev
+      Test_Fingerprinting_Endpoint_Preprocessor: v2.16.0
       Test_Fingerprinting_Header_And_Network: v2.15.0
-      Test_Fingerprinting_Header_And_Network_Preprocessor: v2.15.1-dev
+      Test_Fingerprinting_Header_And_Network_Preprocessor: v2.16.0
       Test_Fingerprinting_Header_Capability: missing_feature
       Test_Fingerprinting_Network_Capability: missing_feature
       Test_Fingerprinting_Session:
-        "*": v2.15.1-dev
+        "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
       Test_Fingerprinting_Session_Capability: missing_feature
       Test_Fingerprinting_Session_Preprocessor:
-        "*": v2.15.1-dev
+        "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra20: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra21: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra30: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra31: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-        sinatra40: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrument of authentication frameworks that work with sinatra or rack)
     test_identify.py:
       Test_Basic: v1.0.0
@@ -567,6 +497,9 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
+      Test_Empty_Config: missing_feature (the test relies on remote AppSec activation)
+      Test_Multiple_Actions: missing_feature (the test relies on remote AppSec activation)
+      Test_Unknown_Action: missing_feature (the test relies on remote AppSec activation)
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
     test_reports.py:
       Test_ExtraTagsFromRule: v1.15.0
@@ -576,8 +509,10 @@ tests/:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -600,7 +535,7 @@ tests/:
     test_debugger_code_origins.py:
       Test_Debugger_Code_Origins:
         "*": irrelevant
-        rails70: missing_feature (feature not implemented)
+        rails72: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
     test_debugger_exception_replay.py:
@@ -614,75 +549,75 @@ tests/:
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction:
         "*": irrelevant
-        rails70: v2.8.0
+        rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
       Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets:
         "*": irrelevant
-        rails70: missing_feature (feature not implemented)
+        rails72: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
         "*": irrelevant
-        rails70: v2.8.0
+        rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
       Test_Debugger_Method_Probe_Snaphots:
         "*": irrelevant
-        rails70: v2.8.0
+        rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
         "*": irrelevant
-        rails70: v2.8.0
+        rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
       Test_Debugger_Method_Probe_Statuses:
         "*": irrelevant
-        rails70: v2.8.0
+        rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
     test_debugger_symdb.py:
       Test_Debugger_SymDb:
         "*": irrelevant
-        rails70: missing_feature (feature not implemented)
+        rails72: missing_feature (feature not implemented)
         rails80: missing_feature (feature not implemented)
         uds-rails: missing_feature (feature not implemented)
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry:
         "*": irrelevant
-        rails70: v2.15.1-dev
-        rails80: v2.15.1-dev
-        uds-rails: v2.15.1-dev
+        rails72: v2.16.0
+        rails80: v2.16.0
+        uds-rails: v2.16.0
   integrations/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
           "*": irrelevant
-          rails70: missing_feature (ruby-kafka does not set the kafka topic on spans)
+          rails72: missing_feature (ruby-kafka does not set the kafka topic on spans)
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          rails70: missing_feature
+          rails72: missing_feature
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
           "*": irrelevant
-          rails70: missing_feature (Endpoint not implemented)
+          rails72: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
           "*": irrelevant
-          rails70: missing_feature (Endpoint not implemented)
+          rails72: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
           "*": irrelevant
-          rails70: missing_feature (Endpoint not implemented)
+          rails72: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
           "*": irrelevant
-          rails70: missing_feature (Endpoint not implemented)
+          rails72: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -692,38 +627,38 @@ tests/:
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmContext_Injection_Base64:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmKinesis:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Inter_Process:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
-        rails70: missing_feature (Endpoint not implemented)
+        rails72: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py: missing_feature
     test_otel_drop_in.py:
       Test_Otel_Drop_In: missing_feature
@@ -736,14 +671,14 @@ tests/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
         "*": incomplete_test_app (endpoint not implemented)
-        rails70: v2.0.0
+        rails72: v2.0.0
   parametric/:
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: v2.0.0
-      Test_Config_Tags: v2.13.0-dev
+      Test_Config_Tags: v2.14.0
       Test_Config_TraceAgentURL: v2.5.0
       Test_Config_TraceEnabled: v2.0.0
       Test_Config_TraceLogDirectory: missing_feature
@@ -844,22 +779,23 @@ tests/:
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
     Test_Config_IntegrationEnabled_False:
       "*": irrelevant (endpoint not implemented)
-      rails70: v2.0.0
+      rails72: v2.0.0
     Test_Config_IntegrationEnabled_True:
       "*": irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails72: v2.14.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled:
       "*": irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails72: v2.14.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled:
       "*": irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
-    Test_Config_LogInjection_Default:
-      "*": irrelevant (endpoint not implemented)
-      rails70: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
+      rails72: v2.14.0
+    Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
+    Test_Config_LogInjection_Default_Unstructured:
+      '*': irrelevant (endpoint not implemented)
+      rails72: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
       "*": irrelevant (endpoint not implemented)
-      rails70: v2.13.0-dev
+      rails72: v2.14.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: bug (APMAPI-1013)
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature (environment variable is not supported)

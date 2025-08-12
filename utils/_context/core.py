@@ -119,6 +119,10 @@ class _Context:
     def vm_name(self) -> str:
         return self.virtual_machine.name
 
+    @property
+    def k8s_scenario_provision(self) -> str:
+        return self._get_scenario_property("current_scenario_provision", {})
+
     def serialize(self):
         result = {
             "weblog_variant": self.weblog_variant,

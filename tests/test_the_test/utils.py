@@ -1,10 +1,19 @@
 import json
-import os
+import subprocess
 
 from utils import logger
 
 
-def run_system_tests(scenario="MOCK_THE_TEST", test_path=None, *, verbose=False, forced_test=None, xfail_strict=False):
+def run_system_tests(
+    scenario="MOCK_THE_TEST",
+    test_path=None,
+    *,
+    verbose=False,
+    forced_test=None,
+    xfail_strict=False,
+    env: dict[str, str] | None = None,
+    expected_return_code: int = 0,
+):
     cmd_parts = ["./run.sh"]
 
     if scenario:
@@ -14,16 +23,15 @@ def run_system_tests(scenario="MOCK_THE_TEST", test_path=None, *, verbose=False,
     if verbose:
         cmd_parts.append("-v")
     if forced_test:
-        cmd_parts.append(f"-F {forced_test}")
+        cmd_parts.extend(["-F", forced_test])
     if xfail_strict:
-        cmd_parts.append("-o xfail_strict=True")
+        cmd_parts.extend(["-o", "xfail_strict=True"])
 
-    cmd = " ".join(cmd_parts)
-    logger.info(cmd)
-    stream = os.popen(cmd)
-    output = stream.read()
+    logger.info(" ".join(cmd_parts))
+    result = subprocess.run(cmd_parts, capture_output=True, text=True, check=False, env=env)
 
-    logger.info(output)
+    logger.info(result.stdout)
+    assert result.returncode == expected_return_code, f"Command failed with return code {result.returncode}"
 
     scenario = scenario if scenario else "DEFAULT"
     with open(f"logs_{scenario.lower()}/feature_parity.json", encoding="utf-8") as f:

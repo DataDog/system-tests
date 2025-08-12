@@ -249,8 +249,10 @@ class ParametricScenario(Scenario):
             env = os.environ.copy()
             env["DOCKER_SCAN_SUGGEST"] = "false"  # Docker outputs an annoying synk message on every build
 
-            # python tracer takes more than 5mn to build
-            timeout = default_subprocess_run_timeout if apm_test_server_definition.lang != "python" else 600
+            # python and golang tracer takes more than 5mn to build
+            timeout = (
+                default_subprocess_run_timeout if apm_test_server_definition.lang not in ("python", "golang") else 600
+            )
 
             p = subprocess.run(
                 cmd,
@@ -396,7 +398,8 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq
+RUN apt-get update && apt-get -y install bash curl git jq \\
+  || sleep 60 && apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
@@ -404,7 +407,7 @@ COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install || npm install
+RUN npm install || sleep 60 && npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh

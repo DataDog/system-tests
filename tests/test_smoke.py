@@ -5,7 +5,13 @@ import re
 from utils import context, weblog, interfaces, features, missing_feature, logger
 
 
-@features.unix_domain_sockets_support_for_traces
+# those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
+optional_uds_feature = (
+    features.unix_domain_sockets_support_for_traces if "uds" not in context.weblog_variant else features.not_reported
+)
+
+
+@optional_uds_feature
 class Test_Backend:
     """Misc test around agent/backend communication"""
 
@@ -40,7 +46,7 @@ class Test_Backend:
                 raise ValueError(f"Message {data['log_filename']} uses domain {domain} instead of {expected_domain}")
 
 
-@features.unix_domain_sockets_support_for_traces
+@optional_uds_feature
 class Test_Library:
     """Misc test around library/agent communication"""
 
