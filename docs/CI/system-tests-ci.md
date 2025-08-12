@@ -14,7 +14,7 @@ The System-tests repository contains **one main workflow**: `ci.yml`. It is trig
 By default, after some basic test/lint jobs, this pipeline build alls weblogs (67!) in their `prod` (last release of all Datadog components) and `dev` (last commit on main of all Datadog components) versions. Then it runs a set of scenarios, based on which files you've modified, on all weblogs. All of this in parallel (so lot of jobs), it can take few dozain of minutes to run.
 
 ### Target branch selection
-`dev` version uses `main/master` branch by default but, in the case of some libraries (cpp, agent, nodejs, python, ruby and dotnet), it is possible to configure the CI to use a target branch.
+`dev` version uses `main` / `master` branch by default but, in the case of some libraries (cpp, agent, nodejs, python, ruby, and dotnet), it is possible to configure the CI to use a target branch.
 
 If the PR's title includes `[target_library@branch_name_to_test]` the workflow will use `branch_name_to_test` instead of `main/master` branch.
 
