@@ -140,7 +140,10 @@ function initRaspEndpoints (fastify) {
   fastify.post('/rasp/cmdi', async (request, reply) => {
     let result
     try {
-      result = execFileSync(request.body.command)
+      // xml bs
+      const cmd = request.body.command.cmd ?? request.body.command
+
+      result = execFileSync(cmd)
     } catch (e) {
       result = e.toString()
 
@@ -155,15 +158,15 @@ function initRaspEndpoints (fastify) {
   fastify.get('/rasp/multiple', async (request, reply) => {
     try {
       statSync(request.query.file1)
-    } catch (e) { }
+    } catch (e) {}
 
     try {
       statSync(request.query.file2)
-    } catch (e) { }
+    } catch (e) {}
 
     try {
       statSync('../etc/passwd')
-    } catch (e) { }
+    } catch (e) {}
 
     return 'OK'
   })
