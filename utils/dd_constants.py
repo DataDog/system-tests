@@ -81,6 +81,7 @@ class Capabilities(IntEnum):
     APM_TRACING_ENABLE_LIVE_DEBUGGING = 41
     ASM_DD_MULTICONFIG = 42
     ASM_TRACE_TAGGING_RULES = 43
+    ASM_EXTENDED_DATA_COLLECTION = 44
 
 
 class SamplingPriority(IntEnum):
