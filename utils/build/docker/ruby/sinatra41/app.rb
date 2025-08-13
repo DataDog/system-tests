@@ -28,6 +28,10 @@ else
   Datadog.tracer.trace('init.service') {}
 end
 
+# Since Sinatra 4.1, Rack::Protection::HostAuthorization is enabled by default in non dev environments.
+# We need to disable it for the tests to work in the CI.
+set :host_authorization, { permitted_hosts: [] }
+
 get '/' do
   'Hello, world!'
 end
