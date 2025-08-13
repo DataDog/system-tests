@@ -604,9 +604,9 @@ class Test_TelemetryConfigurationChaining:
         "dotnet": {
             "configuration": {
                 "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
                     {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    # {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
         },
