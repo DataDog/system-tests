@@ -2220,7 +2220,10 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: v0.102.0
     Test_HeaderTags_Whitespace_Val_Short: v0.102.0
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
-    Test_HeaderTags_Wildcard_Response_Headers: v1.51.0
+    Test_HeaderTags_Wildcard_Response_Headers:
+      '*': v1.51.0
+      'akka-http': irrelevant (integration injects Date header after bytecode injection occurs)
+      'play': irrelevant (integration injects Date header after bytecode injection occurs)
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0
