@@ -565,9 +565,9 @@ class Test_Telemetry:
 
 
 @features.telemetry_app_started_event
-@scenarios.telemetry_app_started_config_chaining
-class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order."""
+@scenarios.telemetry_enhanced_config_reporting
+class Test_TelemetryEnhancedConfigReporting:
+    """Test that configuration sources are sent with telemetry events of interest in correct precedence order under the app-started event feature"""
 
     # tests that seq_id is correctly set for each configuration entry for a given configuration name based on the that SDKs
     # precedence order as defined below
@@ -592,17 +592,19 @@ class Test_TelemetryConfigurationChaining:
         },
     }
 
-    @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining_seq_id(self):
-        """Assert that the seq_id is sent for each configuration entry in the app-started event"""
+    @scenarios.telemetry_enhanced_config_reporting
+    def test_telemetry_events_seq_id(self):
+        """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
 
         def validator(data):
+            # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
+            # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
             if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
                 return
 
             content = data["request"]["content"]
             configurations = content["payload"]["configuration"]
-            assert configurations, f"No configurations found in app-started event: {configurations}"
+            assert configurations, f"No configurations found in telemetry event: {configurations}"
 
             for cnf in configurations:
                 assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
@@ -610,8 +612,8 @@ class Test_TelemetryConfigurationChaining:
 
         self.validate_library_telemetry_data(validator)
 
-    @scenarios.telemetry_app_started_config_chaining
-    def test_app_started_config_chaining_origin_precedence(self):
+    @scenarios.telemetry_enhanced_config_reporting
+    def test_telemetry_enhanced_config_reporting_precedence(self):
         """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
 
         def validator(data):
@@ -620,6 +622,8 @@ class Test_TelemetryConfigurationChaining:
             config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
             config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
             for telemetry_payload in data:
+                # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
+                # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
                 if get_request_type(telemetry_payload) not in ["app-started", "app-client-configuration-change"]:
                     continue
                 else:
