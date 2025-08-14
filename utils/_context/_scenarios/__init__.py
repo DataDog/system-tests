@@ -687,6 +687,7 @@ class _Scenarios:
         "DEBUGGER_PROBES_STATUS",
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Test scenario for checking if method probe statuses can be successfully 'RECEIVED' and 'INSTALLED'",
     )
@@ -697,6 +698,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
@@ -707,6 +709,7 @@ class _Scenarios:
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_TYPES": "weblog.Models.Debugger.CustomPii,com.datadoghq.system_tests.springboot.CustomPii,CustomPii",  # noqa: E501
             "DD_DYNAMIC_INSTRUMENTATION_REDACTED_IDENTIFIERS": "customidentifier1,customidentifier2",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Check pii redaction",
     )
@@ -715,6 +718,7 @@ class _Scenarios:
         "DEBUGGER_EXPRESSION_LANGUAGE",
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Check expression language",
     )
@@ -724,6 +728,7 @@ class _Scenarios:
         weblog_env={
             "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Check exception replay",
     )
@@ -733,6 +738,7 @@ class _Scenarios:
         weblog_env={
             "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
             "DD_SYMBOL_DATABASE_UPLOAD_ENABLED": "1",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         doc="Test scenario for checking symdb.",
     )
@@ -742,6 +748,7 @@ class _Scenarios:
         rc_api_enabled=True,
         weblog_env={
             "DD_APM_TRACING_ENABLED": "true",
+            "DD_TRACE_OTEL_ENABLED": "1",
         },
         library_interface_timeout=5,
         doc="Test scenario for checking dynamic enablement.",
