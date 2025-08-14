@@ -695,6 +695,11 @@ tests/:
         '*': v3.7.0.dev
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
+    test_extended_data_collection.py:
+      Test_ExtendedDataCollectionCapability: missing_feature
+      Test_ExtendedRequestBodyCollection: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: missing_feature
+      Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
