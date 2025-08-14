@@ -398,6 +398,7 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "golang": None,
         "python": "true",
         "nodejs": "true",
+        "php": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
@@ -462,14 +463,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
             (
                 "logs_injection",
                 {
-                    "DD_LOGS_INJECTION": context.library != "ruby",  # Ruby defaults logs injection to true
+                    "DD_LOGS_INJECTION": context.library not in ("ruby", "php"),  # Ruby defaults logs injection to true
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
                     "dd_logs_injection": None
                     if context.library == "golang"
                     else "false"
-                    if context.library == "ruby"
+                    if context.library in ("ruby", "php")
                     else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             ),
