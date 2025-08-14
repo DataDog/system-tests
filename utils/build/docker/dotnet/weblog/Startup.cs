@@ -65,12 +65,12 @@ namespace weblog
             });
 
             // Enable Datadog log injection only if CONFIG_CHAINING_TEST is set to "true"
-            if (Environment.GetEnvironmentVariable("CONFIG_CHAINING_TEST") == "true")
-            {
-                var settings = TracerSettings.FromDefaultSources();
-                settings.LogsInjectionEnabled = true;
-                Tracer.Configure(settings);
-            }
+            // if (Environment.GetEnvironmentVariable("CONFIG_CHAINING_TEST") == "true")
+            // {
+            var settings = TracerSettings.FromDefaultSources();
+            settings.LogsInjectionEnabled = true;
+            Tracer.Configure(settings);
+            // }
 
             using (var scope = Tracer.Instance.StartActive("test.manual"))
             {
