@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
 	"os"
@@ -127,16 +126,29 @@ func main() {
 			}
 		}
 
+		var bodyMap map[string]any
 		switch {
 		case c.Request().Header.Get("Content-Type") == "application/json":
-			body, _ := io.ReadAll(c.Request().Body)
-			var bodyMap map[string]any
-			if err := json.Unmarshal(body, &bodyMap); err == nil {
-				appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
+			dec := json.NewDecoder(c.Request().Body)
+			dec.UseNumber()
+			if err := dec.Decode(&bodyMap); err != nil {
+				return err
 			}
+			appsec.MonitorParsedHTTPBody(c.Request().Context(), bodyMap)
 		case c.Request().ParseForm() == nil:
+			bodyMap = make(map[string]any) // Bind assumes this is non-nil...
+			if err := c.Bind(&bodyMap); err != nil {
+				return err
+			}
 			appsec.MonitorParsedHTTPBody(c.Request().Context(), c.Request().PostForm)
+		default:
+			logrus.Warnf("Unsupported request content-type: %q", c.Request().Header.Get("Content-Type"))
 		}
+
+		if c.Request().Method == http.MethodPost && strings.HasPrefix(tag, "payload_in_response_body") {
+			return c.JSON(status, map[string]any{"payload": bodyMap})
+		}
+
 		return c.String(status, "Value tagged")
 	})
 
