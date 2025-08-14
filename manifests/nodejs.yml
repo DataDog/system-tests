@@ -91,7 +91,8 @@ tests/:
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
-          '*': *ref_5_63_0
+          '*': missing_feature
+          fastify: *ref_5_63_0
           nextjs: missing_feature
       test_schemas.py:
         Test_Scanners:
