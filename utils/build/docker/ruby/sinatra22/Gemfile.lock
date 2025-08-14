@@ -34,7 +34,9 @@ GEM
     libdatadog (18.1.0.1.0-x86_64-linux)
     libddwaf (1.24.1.0.0)
       ffi (~> 1.0)
-    libddwaf (1.24.1.0.0-aarch64-linux)
+    libddwaf (1.24.1.0.0-aarch64-linux-gnu)
+      ffi (~> 1.0)
+    libddwaf (1.24.1.0.0-aarch64-linux-musl)
       ffi (~> 1.0)
     libddwaf (1.24.1.0.0-arm64-darwin)
       ffi (~> 1.0)
@@ -42,9 +44,14 @@ GEM
       ffi (~> 1.0)
     libddwaf (1.24.1.0.0-x86_64-linux)
       ffi (~> 1.0)
+    libddwaf (1.24.1.0.0-x86_64-linux-gnu)
+      ffi (~> 1.0)
+    libddwaf (1.24.1.0.0-x86_64-linux-musl)
+      ffi (~> 1.0)
     logger (1.7.0)
     method_source (1.1.0)
     msgpack (1.8.0)
+    multi_json (1.17.0)
     mustermann (2.0.2)
       ruby2_keywords (~> 0.0.1)
     net-http (0.6.0)
@@ -68,6 +75,12 @@ GEM
       mustermann (~> 2.0)
       rack (~> 2.2)
       rack-protection (= 2.2.4)
+      tilt (~> 2.0)
+    sinatra-contrib (2.2.4)
+      multi_json
+      mustermann (~> 2.0)
+      rack-protection (= 2.2.4)
+      sinatra (= 2.2.4)
       tilt (~> 2.0)
     tilt (2.6.1)
     uri (1.0.3)
@@ -94,6 +107,7 @@ DEPENDENCIES
   puma (~> 6.0)
   rack-contrib
   sinatra (~> 2.2.0)
+  sinatra-contrib (~> 2.2.0)
 
 BUNDLED WITH
    2.5.21
