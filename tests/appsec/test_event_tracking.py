@@ -56,6 +56,9 @@ class Test_UserLoginSuccessEvent:
                 "appsec.events.users.login.success.metadata0": "value0",
                 "appsec.events.users.login.success.metadata1": "value1",
             }
+            # Older Golang releases did not set the tag at all.
+            if context.library != "golang" or context.library >= "golang@1.73.0-dev":
+                expected_tags["_dd.appsec.events.users.login.success.sdk"] = "true"
 
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
@@ -129,6 +132,9 @@ class Test_UserLoginFailureEvent:
                 "appsec.events.users.login.failure.metadata0": "value0",
                 "appsec.events.users.login.failure.metadata1": "value1",
             }
+            # Older Golang releases did not set the tag at all.
+            if context.library != "golang" or context.library >= "golang@1.73.0-dev":
+                expected_tags["_dd.appsec.events.users.login.failure.sdk"] = "true"
 
             for tag, expected_value in expected_tags.items():
                 assert tag in span["meta"], f"Can't find {tag} in span's meta"
@@ -205,6 +211,11 @@ class Test_CustomEvent:
                 value = span["meta"][tag]
                 if value != expected_value:
                     raise Exception(f"{tag} value is '{value}', should be '{expected_value}'")
+
+            # For <custom> events, the _dd.appsec.events.<custom>.sdk tag is not required, but if
+            # present, must be set to "true" (these events always come from the SDK, so there is no
+            # ambiguity to resolve with automatically generated ones).
+            assert span["meta"].get("_dd.appsec.events.system_tests_event.sdk", "true") == "true"
 
             return True
 
