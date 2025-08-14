@@ -34,7 +34,7 @@ EXTENDED_DATA_COLLECTION_ACTION_WITH_REDACTION = (
 )
 
 EXTENDED_DATA_COLLECTION_RULE = (
-    "datadog/2/ASM/rules/config",
+    "datadog/2/ASM_DD/rules/config",
     {
         "rules": [
             {
