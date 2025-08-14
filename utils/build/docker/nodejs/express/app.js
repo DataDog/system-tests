@@ -484,7 +484,7 @@ app.get('/load_dependency', (req, res) => {
 })
 
 app.all('/tag_value/:tag_value/:status_code', (req, res) => {
-  require('dd-trace/packages/dd-trace/src/plugins/util/web')
+  require('dd-trace/packages/datadog-plugin-web/src/utils')
     .root(req).setTag('appsec.events.system_tests_appsec_event.value', req.params.tag_value)
 
   for (const [k, v] of Object.entries(req.query)) {
