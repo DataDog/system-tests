@@ -122,7 +122,8 @@ compute_pipeline:
 
 python_ssi_pipeline:
   stage: python
-  needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  #needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
+  needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
   trigger:
