@@ -3,11 +3,11 @@ include:
 
 stages:
   - configure
-  - nodejs
-  - java
-  - dotnet
+ # - nodejs
+ # - java
+ # - dotnet
   - python
-  - php
+ # - php
   - ruby
   - pipeline-status
   - system-tests-utils
@@ -75,8 +75,8 @@ compute_pipeline:
       - php_ssi_gitlab_pipeline.yml
       - ruby_ssi_gitlab_pipeline.yml
 
-nodejs_ssi_pipeline:
-  stage: nodejs
+.nodejs_ssi_pipeline:
+  #stage: nodejs
   needs: ["compute_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -90,8 +90,8 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-java_ssi_pipeline:
-  stage: java
+.java_ssi_pipeline:
+  #stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -105,8 +105,8 @@ java_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-dotnet_ssi_pipeline:
-  stage: dotnet
+.dotnet_ssi_pipeline:
+  #stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -135,8 +135,8 @@ python_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-php_ssi_pipeline:
-  stage: php
+.php_ssi_pipeline:
+  #stage: php
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
@@ -150,8 +150,8 @@ php_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-ruby_ssi_pipeline:
-  stage: ruby
+.ruby_ssi_pipeline:
+  #stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
     PARENT_PIPELINE_SOURCE: $CI_PIPELINE_SOURCE
