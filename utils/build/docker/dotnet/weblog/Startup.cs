@@ -1,8 +1,10 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Datadog.Trace;
+using Datadog.Trace.Configuration;
 using Microsoft.AspNetCore.Identity;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -61,6 +63,14 @@ namespace weblog
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+
+            // Enable Datadog log injection only if CONFIG_CHAINING_TEST is set to "true"
+            if (Environment.GetEnvironmentVariable("CONFIG_CHAINING_TEST") == "true")
+            {
+                var settings = TracerSettings.FromDefaultSources();
+                settings.LogsInjectionEnabled = true;
+                Tracer.Configure(settings);
+            }
 
             using (var scope = Tracer.Instance.StartActive("test.manual"))
             {
