@@ -44,7 +44,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 55
+              "lineNumber": 51
             },
             {
               "<runtime>": "<scrubbed>"
@@ -73,7 +73,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 55
+        "lineNumber": 51
       },
       {
         "<runtime>": "<scrubbed>"
@@ -130,7 +130,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 55
+              "lineNumber": 51
             },
             {
               "<runtime>": "<scrubbed>"
@@ -175,7 +175,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 55
+        "lineNumber": 51
       },
       {
         "<runtime>": "<scrubbed>"
@@ -232,7 +232,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 55
+              "lineNumber": 51
             },
             {
               "<runtime>": "<scrubbed>"
@@ -273,7 +273,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 55
+        "lineNumber": 51
       },
       {
         "<runtime>": "<scrubbed>"
@@ -330,7 +330,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 55
+              "lineNumber": 51
             },
             {
               "<runtime>": "<scrubbed>"
@@ -367,7 +367,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 55
+        "lineNumber": 51
       },
       {
         "<runtime>": "<scrubbed>"
@@ -424,7 +424,7 @@
             },
             {
               "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-              "lineNumber": 55
+              "lineNumber": 51
             },
             {
               "<runtime>": "<scrubbed>"
@@ -457,7 +457,7 @@
       },
       {
         "function": "datadog.trace.instrumentation.springweb.HandlerMappingResourceNameFilter.doFilterInternal",
-        "lineNumber": 55
+        "lineNumber": 51
       },
       {
         "<runtime>": "<scrubbed>"
