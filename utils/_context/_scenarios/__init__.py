@@ -128,8 +128,8 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_enhanced_config_reporting = EndToEndScenario(
-        "TELEMETRY_ENHANCED_CONFIG_REPORTING",
+    telemetry_app_started_config_chaining = EndToEndScenario(
+        "TELEMETRY_APP_STARTED_CONFIG_CHAINING",
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
