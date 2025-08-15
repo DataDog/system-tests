@@ -861,7 +861,6 @@ class Test_Span_Sampling:
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
     @bug(context.library == "ruby", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
     @bug(context.library == "cpp", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
@@ -935,7 +934,6 @@ class Test_Span_Sampling:
 
     @bug(context.library == "golang", reason="APMAPI-1545")
     @bug(context.library == "php", reason="APMAPI-1545")
-    @bug(context.library == "python", reason="APMAPI-1545")
     @bug(context.library == "cpp", reason="APMAPI-1545")
     @pytest.mark.parametrize(
         "library_env",
