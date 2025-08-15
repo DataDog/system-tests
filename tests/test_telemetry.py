@@ -650,7 +650,7 @@ class Test_TelemetryEnhancedConfigReporting:
         self.validate_library_telemetry_data(validator, success_by_default=False, get_all_data_at_once=True)
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
-        """Reuse telemetry validation method from Test_Telemetry"""
+        """Reuse telemetryx validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
