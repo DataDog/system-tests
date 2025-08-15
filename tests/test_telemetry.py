@@ -597,7 +597,6 @@ class Test_TelemetryEnhancedConfigReporting:
         """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
 
         def validator(data):
-            
             if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
                 return
 
