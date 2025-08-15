@@ -199,6 +199,19 @@ class _Scenarios:
         github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
+    graphql_appsec_exception = EndToEndScenario(
+        "GRAPHQL_APPSEC_EXCEPTION",
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+            "DD_TRACE_GRAPHQL_ERROR_TRACKING": "true",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="AppSec tests for GraphQL integrations with error tracking span events",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.appsec],
+    )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
