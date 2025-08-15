@@ -597,14 +597,13 @@ class Test_TelemetryEnhancedConfigReporting:
         """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
 
         def validator(data):
-            # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
-            # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
+            
             if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
                 return
 
             content = data["request"]["content"]
             configurations = content["payload"]["configuration"]
-            assert configurations, f"No configurations found in telemetry event: {configurations}"
+            assert configurations, f"No configurations found in app-started event: {configurations}"
 
             for cnf in configurations:
                 assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
@@ -614,7 +613,7 @@ class Test_TelemetryEnhancedConfigReporting:
 
     @scenarios.telemetry_enhanced_config_reporting
     def test_telemetry_enhanced_config_reporting_precedence(self):
-        """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
+        """Assert that the seq_id for each configuration entry for a given configuration name matche quick the origin precedence"""
 
         def validator(data):
             # Create array of configs that match the config name
@@ -650,7 +649,7 @@ class Test_TelemetryEnhancedConfigReporting:
         self.validate_library_telemetry_data(validator, success_by_default=False, get_all_data_at_once=True)
 
     def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
-        """Reuse telemetryx validation method from Test_Telemetry"""
+        """Reuse telemetry validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
         if len(telemetry_data) == 0 and not success_by_default:
