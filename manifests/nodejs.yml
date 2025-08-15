@@ -1391,9 +1391,12 @@ tests/:
       '*': *ref_5_25_0
       nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting:
+    Test_GraphQLOperationErrorReporting:
       '*': irrelevant
       express4: *ref_5_37_0
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
+      express4: missing_feature
   test_identify.py:
     Test_Basic: v2.4.0
     Test_Propagate: *ref_3_2_0
