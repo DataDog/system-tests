@@ -566,6 +566,7 @@ class Test_Telemetry:
 
 @features.telemetry_app_started_event
 @scenarios.telemetry_enhanced_config_reporting
+@rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
 class Test_TelemetryEnhancedConfigReporting:
     """Test that configuration sources are sent with telemetry events of interest in correct precedence order under the app-started event feature"""
 
@@ -590,6 +591,15 @@ class Test_TelemetryEnhancedConfigReporting:
                 ],
             },
         },
+        "dotnet": {
+            "configuration": {
+                "DD_LOGS_INJECTION": [
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
+                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                ],
+            },
+        },
     }
 
     @scenarios.telemetry_enhanced_config_reporting
@@ -599,10 +609,14 @@ class Test_TelemetryEnhancedConfigReporting:
         def validator(data):
             # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
             # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
-            if get_request_type(data) not in ["app-started", "app-client-configuration-change"]:
+            content = data["request"]["content"]
+            print("TEST: content is", content)
+            # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+            if content.get("request_type") == "message-batch":
+                content = content["payload"][0]
+            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 return
 
-            content = data["request"]["content"]
             configurations = content["payload"]["configuration"]
             assert configurations, f"No configurations found in telemetry event: {configurations}"
 
@@ -621,13 +635,17 @@ class Test_TelemetryEnhancedConfigReporting:
             matching_configs = []
             config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
             config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
+
             for telemetry_payload in data:
+                content = telemetry_payload["request"]["content"]
+                # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+                if content.get("request_type") == "message-batch":
+                    content = content["payload"][0]
                 # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
                 # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
-                if get_request_type(telemetry_payload) not in ["app-started", "app-client-configuration-change"]:
+                if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                     continue
                 else:
-                    content = telemetry_payload["request"]["content"]
                     configurations = content["payload"]["configuration"]
                     assert configurations, f"No configurations found in telemetry event: {configurations}"
                     for cnf in configurations:
@@ -652,6 +670,7 @@ class Test_TelemetryEnhancedConfigReporting:
     def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
         """Reuse telemetry validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        print("TEST: telemetry_data is", telemetry_data)
 
         if len(telemetry_data) == 0 and not success_by_default:
             raise ValueError("No telemetry data to validate on")
