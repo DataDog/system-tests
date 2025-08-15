@@ -157,7 +157,7 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(context.library in ("ruby"), reason="Not implemented yet")
+    @missing_feature(context.library == "ruby", reason="Not implemented yet")
     @irrelevant(
         context.library == "python" and context.installed_language_runtime < "3.11.0",
         reason="We don't support this runtime",
