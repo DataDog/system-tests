@@ -5,6 +5,7 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
+from collections import defaultdict
 from collections.abc import Sequence
 import json
 import os
@@ -17,7 +18,9 @@ from pytest_jsonreport.plugin import JSONReport
 
 from manifests.parser.core import load as load_manifests
 from utils import context
-from utils._context._scenarios import scenarios, Scenario
+from itertools import product
+
+from utils._context._scenarios import scenarios, Scenario, EndToEndScenario
 from utils._logger import logger
 from utils.scripts.junit_report import junit_modifyreport
 from utils._context.component_version import ComponentVersion
@@ -31,6 +34,62 @@ JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG00
 _deselected_items: list[pytest.Item] = []
 setup_properties = SetupProperties()
 
+
+def _generate_dynamic_scenarios(items: list[pytest.Item]) -> None:
+    """Create minimal dynamic scenarios based on mandatory environment requirements."""
+
+    test_mandatory: dict[pytest.Item, dict[str, str | None]] = {}
+    values_per_var: defaultdict[str, set[str | None]] = defaultdict(set)
+
+    # Gather mandatory environment variables from all tests
+    for item in items:
+        cls = getattr(item, "cls", None)
+        mandatory: dict[str, str] | None = getattr(cls, "_weblog_env_mandatory", None)
+        if mandatory:
+            converted = {k: (None if v == "None" else v) for k, v in mandatory.items()}
+            test_mandatory[item] = converted
+            for key, value in converted.items():
+                values_per_var[key].add(value)
+
+    if not test_mandatory:
+        return
+
+    variables = sorted(values_per_var.keys())
+
+    # Build cartesian product of all variable values
+    combinations = []
+    for values in product(*(values_per_var[var] for var in variables)):
+        combo = dict(zip(variables, values))
+
+        covered = [
+            item
+            for item, mandatory in test_mandatory.items()
+            if all(combo.get(k) == v for k, v in mandatory.items())
+        ]
+
+        if covered:
+            combinations.append((combo, covered))
+
+    for combo, covered in combinations:
+        parts = []
+        for key in variables:
+            value = combo[key]
+            value_part = "NONE" if value is None else str(value)
+            parts.append(f"{key}_{value_part}")
+        scenario_name = "DYN_" + "__".join(parts)
+
+        if not hasattr(scenarios, scenario_name):
+            env = {k: v for k, v in combo.items() if v is not None}
+            try:
+                scenario = EndToEndScenario(name=scenario_name, weblog_env=env, doc="Dynamic scenario")
+            except BaseException:  # pragma: no cover - environment may lack docker
+                logger.exception("Failed to create dynamic scenario %s", scenario_name)
+                scenario = None
+            if scenario is not None:
+                setattr(scenarios, scenario_name, scenario)
+
+        for item in covered:
+            pytest.mark.scenario(scenario_name)(item)
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
@@ -310,6 +369,9 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     """Unselect items that are not included in the current scenario"""
 
     logger.debug("pytest_collection_modifyitems")
+
+    # Build dynamic scenarios from test requirements
+    _generate_dynamic_scenarios(items)
 
     selected = []
     deselected = []

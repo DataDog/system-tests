@@ -187,18 +187,18 @@ class _Scenarios:
     #     doc="Misc tests for appsec blocking",
     #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     # )
-    # # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    # graphql_appsec = EndToEndScenario(
-    #     "GRAPHQL_APPSEC",
-    #     weblog_env={
-    #         "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
-    #         "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
-    #     },
-    #     weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    #     doc="AppSec tests for GraphQL integrations",
-    #     github_workflow="endtoend",
-    #     scenario_groups=[scenario_groups.appsec],
-    # )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
+    graphql_appsec = EndToEndScenario(
+        "GRAPHQL_APPSEC",
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="AppSec tests for GraphQL integrations",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.appsec],
+    )
     # appsec_rules_monitoring_with_errors = EndToEndScenario(
     #     "APPSEC_RULES_MONITORING_WITH_ERRORS",
     #     weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
@@ -211,16 +211,16 @@ class _Scenarios:
     #     doc="Appsec rule file with some errors",
     #     scenario_groups=[scenario_groups.appsec],
     # )
-    # everything_disabled = EndToEndScenario(
-    #     "EVERYTHING_DISABLED",
-    #     weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
-    #     appsec_enabled=False,
-    #     include_postgres_db=True,
-    #     doc="Disable appsec and test DBM setting integration outcome when disabled",
-    #     scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
-    # )
+    everything_disabled = EndToEndScenario(
+        "EVERYTHING_DISABLED",
+        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
+        appsec_enabled=False,
+        include_postgres_db=True,
+        doc="Disable appsec and test DBM setting integration outcome when disabled",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
+    )
 
-    # appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
 
     # appsec_custom_obfuscation = EndToEndScenario(
     #     "APPSEC_CUSTOM_OBFUSCATION",
@@ -271,20 +271,20 @@ class _Scenarios:
     #     scenario_groups=[scenario_groups.appsec],
     # )
 
-    # appsec_and_rc_enabled = EndToEndScenario(
-    #     "APPSEC_AND_RC_ENABLED",
-    #     rc_api_enabled=True,
-    #     appsec_enabled=True,
-    #     iast_enabled=False,
-    #     weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-    #     doc="""
-    #         A scenario with AppSec and Remote Config enabled. In addition WAF and
-    #         tracer are configured to have bigger threshold.
-    #         This scenario should be used in most of the cases if you need
-    #         Remote Config and AppSec working for all libraries.
-    #     """,
-    #     scenario_groups=[scenario_groups.appsec],
-    # )
+    appsec_and_rc_enabled = EndToEndScenario(
+        "APPSEC_AND_RC_ENABLED",
+        rc_api_enabled=True,
+        appsec_enabled=True,
+        iast_enabled=False,
+        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+        doc="""
+            A scenario with AppSec and Remote Config enabled. In addition WAF and
+            tracer are configured to have bigger threshold.
+            This scenario should be used in most of the cases if you need
+            Remote Config and AppSec working for all libraries.
+        """,
+        scenario_groups=[scenario_groups.appsec],
+    )
 
     # appsec_runtime_activation = EndToEndScenario(
     #     "APPSEC_RUNTIME_ACTIVATION",
@@ -399,21 +399,21 @@ class _Scenarios:
     #     scenario_groups=[scenario_groups.appsec],
     # )
 
-    # # Combined scenario for API Security in standalone mode
-    # appsec_standalone_api_security = EndToEndScenario(
-    #     "APPSEC_STANDALONE_API_SECURITY",
-    #     appsec_enabled=True,
-    #     weblog_env={
-    #         "DD_APPSEC_ENABLED": "true",
-    #         "DD_APM_TRACING_ENABLED": "false",
-    #         "DD_IAST_ENABLED": "false",
-    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-    #         "DD_API_SECURITY_ENABLED": "true",
-    #         "DD_API_SECURITY_SAMPLE_DELAY": "3",
-    #     },
-    #     doc="Scenario to test API Security in AppSec standalone mode",
-    #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    # )
+    # Combined scenario for API Security in standalone mode
+    appsec_standalone_api_security = EndToEndScenario(
+        "APPSEC_STANDALONE_API_SECURITY",
+        appsec_enabled=True,
+        weblog_env={
+            "DD_APPSEC_ENABLED": "true",
+            "DD_APM_TRACING_ENABLED": "false",
+            "DD_IAST_ENABLED": "false",
+            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_SAMPLE_DELAY": "3",
+        },
+        doc="Scenario to test API Security in AppSec standalone mode",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    )
 
     # appsec_standalone_experimental = EndToEndScenario(
     #     "APPSEC_STANDALONE_EXPERIMENTAL",
@@ -528,25 +528,25 @@ class _Scenarios:
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
     )
 
-    # remote_config_mocked_backend_asm_dd = EndToEndScenario(
-    #     "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-    #     rc_api_enabled=True,
-    #     weblog_env={"DD_APPSEC_RULES": None},
-    #     doc="""
-    #         The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-    #         In this scenario, we use remote config. By the spec, whem remote config is available, rules file
-    #         embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
-    #         data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
-    #         remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
-    #         are always coming from remote config.
-    #     """,
-    #     scenario_groups=[
-    #         scenario_groups.appsec,
-    #         scenario_groups.appsec_rasp,
-    #         scenario_groups.remote_config,
-    #         scenario_groups.essentials,
-    #     ],
-    # )
+    remote_config_mocked_backend_asm_dd = EndToEndScenario(
+        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
+        rc_api_enabled=True,
+        weblog_env={"DD_APPSEC_RULES": None},
+        doc="""
+            The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
+            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+            are always coming from remote config.
+        """,
+        scenario_groups=[
+            scenario_groups.appsec,
+            scenario_groups.appsec_rasp,
+            scenario_groups.remote_config,
+            scenario_groups.essentials,
+        ],
+    )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
