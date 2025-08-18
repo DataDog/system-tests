@@ -122,7 +122,7 @@ jobs:
       unique_id: ${{ steps.unique_id.outputs.value }}
       ref: ${{ steps.compute_ref.outputs.ref }}
     steps:
-    - uses: ChristopherHX/oidc@45e798774435c73c1bbf62e2df0ba60f95cdb457
+    - uses: ChristopherHX/oidc@73eee1ff03fdfce10eda179f617131532209edbd
       id: oidc
     - name: Compute ref
       id: compute_ref
