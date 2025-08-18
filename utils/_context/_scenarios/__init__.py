@@ -158,353 +158,353 @@ class _Scenarios:
     )
 
     # ASM scenarios
-    appsec_missing_rules = EndToEndScenario(
-        "APPSEC_MISSING_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/donotexists"},
-        doc="Test missing appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_corrupted_rules = EndToEndScenario(
-        "APPSEC_CORRUPTED_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
-        weblog_volumes={
-            "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
-        },
-        doc="Test corrupted appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_custom_rules = EndToEndScenario(
-        "APPSEC_CUSTOM_RULES",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
-        weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
-        doc="Test custom appsec rules file",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_blocking = EndToEndScenario(
-        "APPSEC_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="Misc tests for appsec blocking",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
-    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
-    graphql_appsec = EndToEndScenario(
-        "GRAPHQL_APPSEC",
-        weblog_env={
-            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
-            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
-        },
-        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="AppSec tests for GraphQL integrations",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_rules_monitoring_with_errors = EndToEndScenario(
-        "APPSEC_RULES_MONITORING_WITH_ERRORS",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
-        weblog_volumes={
-            "./tests/appsec/custom_rules_with_errors.json": {
-                "bind": "/appsec_custom_rules_with_errors.json",
-                "mode": "ro",
-            }
-        },
-        doc="Appsec rule file with some errors",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    everything_disabled = EndToEndScenario(
-        "EVERYTHING_DISABLED",
-        weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
-        appsec_enabled=False,
-        include_postgres_db=True,
-        doc="Disable appsec and test DBM setting integration outcome when disabled",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
-    )
+    # appsec_missing_rules = EndToEndScenario(
+    #     "APPSEC_MISSING_RULES",
+    #     weblog_env={"DD_APPSEC_RULES": "/donotexists"},
+    #     doc="Test missing appsec rules file",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_corrupted_rules = EndToEndScenario(
+    #     "APPSEC_CORRUPTED_RULES",
+    #     weblog_env={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"},
+    #     weblog_volumes={
+    #         "./tests/appsec/appsec_corrupted_rules.json": {"bind": "/appsec_corrupted_rules.json", "mode": "ro"}
+    #     },
+    #     doc="Test corrupted appsec rules file",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_custom_rules = EndToEndScenario(
+    #     "APPSEC_CUSTOM_RULES",
+    #     weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules.json"},
+    #     weblog_volumes={"./tests/appsec/custom_rules.json": {"bind": "/appsec_custom_rules.json", "mode": "ro"}},
+    #     doc="Test custom appsec rules file",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_blocking = EndToEndScenario(
+    #     "APPSEC_BLOCKING",
+    #     weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+    #     weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    #     doc="Misc tests for appsec blocking",
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    # )
+    # # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
+    # graphql_appsec = EndToEndScenario(
+    #     "GRAPHQL_APPSEC",
+    #     weblog_env={
+    #         "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+    #         "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+    #     },
+    #     weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    #     doc="AppSec tests for GraphQL integrations",
+    #     github_workflow="endtoend",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_rules_monitoring_with_errors = EndToEndScenario(
+    #     "APPSEC_RULES_MONITORING_WITH_ERRORS",
+    #     weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
+    #     weblog_volumes={
+    #         "./tests/appsec/custom_rules_with_errors.json": {
+    #             "bind": "/appsec_custom_rules_with_errors.json",
+    #             "mode": "ro",
+    #         }
+    #     },
+    #     doc="Appsec rule file with some errors",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # everything_disabled = EndToEndScenario(
+    #     "EVERYTHING_DISABLED",
+    #     weblog_env={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"},
+    #     appsec_enabled=False,
+    #     include_postgres_db=True,
+    #     doc="Disable appsec and test DBM setting integration outcome when disabled",
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end, scenario_groups.tracer_release],
+    # )
 
-    appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
+    # appsec_low_waf_timeout = AppsecLowWafTimeout("APPSEC_LOW_WAF_TIMEOUT")
 
-    appsec_custom_obfuscation = EndToEndScenario(
-        "APPSEC_CUSTOM_OBFUSCATION",
-        weblog_env={
-            "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
-            "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
-        },
-        doc="Test custom appsec obfuscation parameters",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_rate_limiter = EndToEndScenario(
-        "APPSEC_RATE_LIMITER",
-        weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
-        doc="Tests with a low rate trace limit for Appsec",
-        scenario_groups=[scenario_groups.appsec],
-    )
-    appsec_waf_telemetry = EndToEndScenario(
-        "APPSEC_WAF_TELEMETRY",
-        weblog_env={
-            "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_ENABLED": "true",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
-        },
-        doc="Enable Telemetry feature for WAF",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_custom_obfuscation = EndToEndScenario(
+    #     "APPSEC_CUSTOM_OBFUSCATION",
+    #     weblog_env={
+    #         "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
+    #         "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
+    #     },
+    #     doc="Test custom appsec obfuscation parameters",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_rate_limiter = EndToEndScenario(
+    #     "APPSEC_RATE_LIMITER",
+    #     weblog_env={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"},
+    #     doc="Tests with a low rate trace limit for Appsec",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
+    # appsec_waf_telemetry = EndToEndScenario(
+    #     "APPSEC_WAF_TELEMETRY",
+    #     weblog_env={
+    #         "DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true",
+    #         "DD_TELEMETRY_METRICS_ENABLED": "true",
+    #         "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0",
+    #     },
+    #     doc="Enable Telemetry feature for WAF",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_blocking_full_denylist = EndToEndScenario(
-        "APPSEC_BLOCKING_FULL_DENYLIST",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="""
-            The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
-            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
-            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
-            are always coming from remote config.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_blocking_full_denylist = EndToEndScenario(
+    #     "APPSEC_BLOCKING_FULL_DENYLIST",
+    #     rc_api_enabled=True,
+    #     weblog_env={"DD_APPSEC_RULES": None},
+    #     doc="""
+    #         The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+    #         In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+    #         embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
+    #         data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+    #         remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+    #         are always coming from remote config.
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_request_blocking = EndToEndScenario(
-        "APPSEC_REQUEST_BLOCKING",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_request_blocking = EndToEndScenario(
+    #     "APPSEC_REQUEST_BLOCKING",
+    #     rc_api_enabled=True,
+    #     weblog_env={"DD_APPSEC_RULES": None},
+    #     doc="",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_and_rc_enabled = EndToEndScenario(
-        "APPSEC_AND_RC_ENABLED",
-        rc_api_enabled=True,
-        appsec_enabled=True,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="""
-            A scenario with AppSec and Remote Config enabled. In addition WAF and
-            tracer are configured to have bigger threshold.
-            This scenario should be used in most of the cases if you need
-            Remote Config and AppSec working for all libraries.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_and_rc_enabled = EndToEndScenario(
+    #     "APPSEC_AND_RC_ENABLED",
+    #     rc_api_enabled=True,
+    #     appsec_enabled=True,
+    #     iast_enabled=False,
+    #     weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+    #     doc="""
+    #         A scenario with AppSec and Remote Config enabled. In addition WAF and
+    #         tracer are configured to have bigger threshold.
+    #         This scenario should be used in most of the cases if you need
+    #         Remote Config and AppSec working for all libraries.
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_runtime_activation = EndToEndScenario(
-        "APPSEC_RUNTIME_ACTIVATION",
-        rc_api_enabled=True,
-        appsec_enabled=False,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
-    )
+    # appsec_runtime_activation = EndToEndScenario(
+    #     "APPSEC_RUNTIME_ACTIVATION",
+    #     rc_api_enabled=True,
+    #     appsec_enabled=False,
+    #     iast_enabled=False,
+    #     weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
+    #     doc="",
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
+    # )
 
-    appsec_api_security = EndToEndScenario(
-        "APPSEC_API_SECURITY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
-            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
-        },
-        doc="""
-        Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_api_security = EndToEndScenario(
+    #     "APPSEC_API_SECURITY",
+    #     appsec_enabled=True,
+    #     weblog_env={
+    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+    #         "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+    #         "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+    #         "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+    #         "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+    #     },
+    #     doc="""
+    #     Scenario for API Security feature, testing schema types sent into span tags if
+    #     DD_API_SECURITY_ENABLED is set to true.
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_api_security_rc = EndToEndScenario(
-        "APPSEC_API_SECURITY_RC",
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
-        },
-        rc_api_enabled=True,
-        doc="""
-            Scenario to test API Security Remote config
-        """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
+    # appsec_api_security_rc = EndToEndScenario(
+    #     "APPSEC_API_SECURITY_RC",
+    #     weblog_env={
+    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+    #         "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+    #     },
+    #     rc_api_enabled=True,
+    #     doc="""
+    #         Scenario to test API Security Remote config
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    # )
 
-    appsec_api_security_no_response_body = EndToEndScenario(
-        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
-        },
-        doc="""
-        Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_api_security_no_response_body = EndToEndScenario(
+    #     "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
+    #     appsec_enabled=True,
+    #     weblog_env={
+    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+    #         "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+    #         "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
+    #     },
+    #     doc="""
+    #     Scenario for API Security feature, testing schema types sent into span tags if
+    #     DD_API_SECURITY_ENABLED is set to true.
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_api_security_with_sampling = EndToEndScenario(
-        "APPSEC_API_SECURITY_WITH_SAMPLING",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "3",
-        },
-        doc="""
-        Scenario for API Security feature, testing api security sampling rate.
-        """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
+    # appsec_api_security_with_sampling = EndToEndScenario(
+    #     "APPSEC_API_SECURITY_WITH_SAMPLING",
+    #     appsec_enabled=True,
+    #     weblog_env={
+    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_SAMPLE_DELAY": "3",
+    #     },
+    #     doc="""
+    #     Scenario for API Security feature, testing api security sampling rate.
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    # )
 
-    appsec_auto_events_extended = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_EXTENDED",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
-            "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
-        },
-        appsec_enabled=True,
-        doc="Scenario for checking extended mode in automatic user events",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_auto_events_extended = EndToEndScenario(
+    #     "APPSEC_AUTO_EVENTS_EXTENDED",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "true",
+    #         "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+    #         "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+    #     },
+    #     appsec_enabled=True,
+    #     doc="Scenario for checking extended mode in automatic user events",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_auto_events_rc = EndToEndScenario(
-        "APPSEC_AUTO_EVENTS_RC",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
-        rc_api_enabled=True,
-        doc="""
-            Scenario to test User ID collection config change via Remote config
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_auto_events_rc = EndToEndScenario(
+    #     "APPSEC_AUTO_EVENTS_RC",
+    #     weblog_env={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"},
+    #     rc_api_enabled=True,
+    #     doc="""
+    #         Scenario to test User ID collection config change via Remote config
+    #     """,
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_standalone = EndToEndScenario(
-        "APPSEC_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_API_SECURITY_ENABLED": "false",
-            # added to test Test_ExtendedHeaderCollection
-            "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
-            "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_standalone = EndToEndScenario(
+    #     "APPSEC_STANDALONE",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "true",
+    #         "DD_APM_TRACING_ENABLED": "false",
+    #         "DD_IAST_ENABLED": "false",
+    #         "DD_API_SECURITY_ENABLED": "false",
+    #         # added to test Test_ExtendedHeaderCollection
+    #         "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
+    #         "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+    #         "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+    #     },
+    #     doc="Appsec standalone mode (APM opt out)",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    # Combined scenario for API Security in standalone mode
-    appsec_standalone_api_security = EndToEndScenario(
-        "APPSEC_STANDALONE_API_SECURITY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_SAMPLE_DELAY": "3",
-        },
-        doc="Scenario to test API Security in AppSec standalone mode",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
-    )
+    # # Combined scenario for API Security in standalone mode
+    # appsec_standalone_api_security = EndToEndScenario(
+    #     "APPSEC_STANDALONE_API_SECURITY",
+    #     appsec_enabled=True,
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "true",
+    #         "DD_APM_TRACING_ENABLED": "false",
+    #         "DD_IAST_ENABLED": "false",
+    #         "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_ENABLED": "true",
+    #         "DD_API_SECURITY_SAMPLE_DELAY": "3",
+    #     },
+    #     doc="Scenario to test API Security in AppSec standalone mode",
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+    # )
 
-    appsec_standalone_experimental = EndToEndScenario(
-        "APPSEC_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out) V2",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_standalone_experimental = EndToEndScenario(
+    #     "APPSEC_STANDALONE_EXPERIMENTAL",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "true",
+    #         "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+    #         "DD_IAST_ENABLED": "false",
+    #     },
+    #     doc="Appsec standalone mode (APM opt out) V2",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    iast_standalone = EndToEndScenario(
-        "IAST_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # iast_standalone = EndToEndScenario(
+    #     "IAST_STANDALONE",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "false",
+    #         "DD_APM_TRACING_ENABLED": "false",
+    #         "DD_IAST_ENABLED": "true",
+    #         "DD_IAST_DETECTION_MODE": "FULL",
+    #         "DD_IAST_DEDUPLICATION_ENABLED": "false",
+    #         "DD_IAST_REQUEST_SAMPLING": "100",
+    #         "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+    #         "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+    #     },
+    #     doc="Source code vulnerability standalone mode (APM opt out)",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    iast_standalone_experimental = EndToEndScenario(
-        "IAST_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # iast_standalone_experimental = EndToEndScenario(
+    #     "IAST_STANDALONE_EXPERIMENTAL",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "false",
+    #         "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+    #         "DD_IAST_ENABLED": "true",
+    #         "DD_IAST_DETECTION_MODE": "FULL",
+    #         "DD_IAST_DEDUPLICATION_ENABLED": "false",
+    #         "DD_IAST_REQUEST_SAMPLING": "100",
+    #         "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+    #         "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+    #     },
+    #     doc="Source code vulnerability standalone mode (APM opt out)",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    sca_standalone = EndToEndScenario(
-        "SCA_STANDALONE",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # sca_standalone = EndToEndScenario(
+    #     "SCA_STANDALONE",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "false",
+    #         "DD_APPSEC_SCA_ENABLED": "true",
+    #         "DD_APM_TRACING_ENABLED": "false",
+    #         "DD_IAST_ENABLED": "false",
+    #         "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+    #         "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+    #     },
+    #     doc="SCA standalone mode (APM opt out)",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    sca_standalone_experimental = EndToEndScenario(
-        "SCA_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # sca_standalone_experimental = EndToEndScenario(
+    #     "SCA_STANDALONE_EXPERIMENTAL",
+    #     weblog_env={
+    #         "DD_APPSEC_ENABLED": "false",
+    #         "DD_APPSEC_SCA_ENABLED": "true",
+    #         "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
+    #         "DD_IAST_ENABLED": "false",
+    #         "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
+    #     },
+    #     doc="SCA standalone mode (APM opt out)",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    iast_deduplication = EndToEndScenario(
-        "IAST_DEDUPLICATION",
-        weblog_env={
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DEDUPLICATION_ENABLED": "true",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Iast scenario with deduplication enabled",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # iast_deduplication = EndToEndScenario(
+    #     "IAST_DEDUPLICATION",
+    #     weblog_env={
+    #         "DD_IAST_ENABLED": "true",
+    #         "DD_IAST_DEDUPLICATION_ENABLED": "true",
+    #         "DD_IAST_REQUEST_SAMPLING": "100",
+    #         "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+    #         "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+    #     },
+    #     doc="Iast scenario with deduplication enabled",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_meta_struct_disabled = EndToEndScenario(
-        "APPSEC_META_STRUCT_DISABLED",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
-        meta_structs_disabled=True,
-        doc="Appsec tests with support for meta struct disabled in the agent configuration",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_meta_struct_disabled = EndToEndScenario(
+    #     "APPSEC_META_STRUCT_DISABLED",
+    #     weblog_env={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"},
+    #     meta_structs_disabled=True,
+    #     doc="Appsec tests with support for meta struct disabled in the agent configuration",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
     remote_config_mocked_backend_asm_features = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
@@ -528,25 +528,25 @@ class _Scenarios:
         scenario_groups=[scenario_groups.remote_config, scenario_groups.essentials],
     )
 
-    remote_config_mocked_backend_asm_dd = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="""
-            The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
-            embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
-            data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
-            remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
-            are always coming from remote config.
-        """,
-        scenario_groups=[
-            scenario_groups.appsec,
-            scenario_groups.appsec_rasp,
-            scenario_groups.remote_config,
-            scenario_groups.essentials,
-        ],
-    )
+    # remote_config_mocked_backend_asm_dd = EndToEndScenario(
+    #     "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
+    #     rc_api_enabled=True,
+    #     weblog_env={"DD_APPSEC_RULES": None},
+    #     doc="""
+    #         The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
+    #         In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+    #         embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
+    #         data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
+    #         remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
+    #         are always coming from remote config.
+    #     """,
+    #     scenario_groups=[
+    #         scenario_groups.appsec,
+    #         scenario_groups.appsec_rasp,
+    #         scenario_groups.remote_config,
+    #         scenario_groups.essentials,
+    #     ],
+    # )
 
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
@@ -990,47 +990,47 @@ class _Scenarios:
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = EndToEndScenario(
-        "APPSEC_RASP",
-        weblog_env={
-            "DD_APPSEC_RASP_ENABLED": "true",
-            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
-            # added to test Test_ExtendedRequestBodyCollection
-            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
-        },
-        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
-    )
+    # appsec_rasp = EndToEndScenario(
+    #     "APPSEC_RASP",
+    #     weblog_env={
+    #         "DD_APPSEC_RASP_ENABLED": "true",
+    #         "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
+    #         # added to test Test_ExtendedRequestBodyCollection
+    #         "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+    #     },
+    #     weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
+    #     doc="Enable APPSEC RASP",
+    #     github_workflow="endtoend",
+    #     scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
+    # )
 
-    appsec_rasp_non_blocking = EndToEndScenario(
-        "APPSEC_RASP_NON_BLOCKING",
-        weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
-        weblog_volumes={
-            "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
-                "bind": "/appsec_rasp_non_blocking_ruleset.json",
-                "mode": "ro",
-            }
-        },
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_rasp_non_blocking = EndToEndScenario(
+    #     "APPSEC_RASP_NON_BLOCKING",
+    #     weblog_env={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_non_blocking_ruleset.json"},
+    #     weblog_volumes={
+    #         "./tests/appsec/rasp/rasp_non_blocking_ruleset.json": {
+    #             "bind": "/appsec_rasp_non_blocking_ruleset.json",
+    #             "mode": "ro",
+    #         }
+    #     },
+    #     doc="Enable APPSEC RASP",
+    #     github_workflow="endtoend",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
-    appsec_ato_sdk = EndToEndScenario(
-        "APPSEC_ATO_SDK",
-        weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
-        weblog_volumes={
-            "./tests/appsec/appsec_ato_sdk.json": {
-                "bind": "/appsec_ato_sdk.json",
-                "mode": "ro",
-            }
-        },
-        doc="Rules file with unsafe login and user id",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
-    )
+    # appsec_ato_sdk = EndToEndScenario(
+    #     "APPSEC_ATO_SDK",
+    #     weblog_env={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"},
+    #     weblog_volumes={
+    #         "./tests/appsec/appsec_ato_sdk.json": {
+    #             "bind": "/appsec_ato_sdk.json",
+    #             "mode": "ro",
+    #         }
+    #     },
+    #     doc="Rules file with unsafe login and user id",
+    #     github_workflow="endtoend",
+    #     scenario_groups=[scenario_groups.appsec],
+    # )
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
@@ -1048,18 +1048,18 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    external_processing = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING",
-        doc="Envoy + external processing",
-        rc_api_enabled=True,
-    )
+    # external_processing = ExternalProcessingScenario(
+    #     name="EXTERNAL_PROCESSING",
+    #     doc="Envoy + external processing",
+    #     rc_api_enabled=True,
+    # )
 
-    external_processing_blocking = ExternalProcessingScenario(
-        name="EXTERNAL_PROCESSING_BLOCKING",
-        doc="Envoy + external processing + blocking rule file",
-        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    )
+    # external_processing_blocking = ExternalProcessingScenario(
+    #     name="EXTERNAL_PROCESSING_BLOCKING",
+    #     doc="Envoy + external processing + blocking rule file",
+    #     extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+    #     extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    # )
 
     ipv6 = IPV6Scenario("IPV6")
 
