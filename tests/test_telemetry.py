@@ -565,31 +565,14 @@ class Test_Telemetry:
 
 
 @features.telemetry_app_started_event
-@scenarios.telemetry_app_started_config_chaining
-class Test_TelemetryConfigurationChaining:
-    """Test that configuration sources are sent with app-started event in correct precedence order.
+@scenarios.telemetry_enhanced_config_reporting
+@rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
+class Test_TelemetryEnhancedConfigReporting:
+    """Test that configuration sources are sent with telemetry events of interest in correct precedence order under the app-started event feature"""
 
-    IMPORTANT: The order of configuration entries in the telemetry payload does NOT matter.
-    What matters is that the `seq_id` values reported for each configuration reflect the correct
-    precedence order as defined in `_ORIGIN_PRECEDENCE_ORDER`. This test verifies that for each
-    configuration, the `seq_id` increases as the origin precedence increases, regardless of the
-    order in which the entries appear in the payload.
-    """
-
-    # Official configuration origin precedence order (from lowest to highest precedence)
-    # Based on Node.js tracer implementation
-    _ORIGIN_PRECEDENCE_ORDER = [
-        "default",
-        "calculated",
-        "local_stable_config",
-        "env_var",
-        "fleet_stable_config",
-        "code",
-        "remote_config",
-    ]
-
-    # Test configuration constant for config chaining tests
-    _CONFIG_CHAINING_TEST_CONFIG = {
+    # tests that seq_id is correctly set for each configuration entry for a given configuration name based on the that SDKs
+    # precedence order as defined below
+    CONFIG_PRECEDENCE_ORDER = {
         "nodejs": {
             "configuration": {
                 "DD_LOGS_INJECTION": [
@@ -598,18 +581,48 @@ class Test_TelemetryConfigurationChaining:
                     {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
-        },  # configurations should be ordered according to _ORIGIN_PRECEDENCE_ORDER
+        },
+        "python": {
+            "configuration": {
+                "DD_LOGS_INJECTION": [
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
+                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                ],
+            },
+        },
+        "dotnet": {
+            "configuration": {
+                "DD_LOGS_INJECTION": [
+                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
+                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                ],
+            },
+        },
     }
 
     @classmethod
     def get_origin_precedence_order(cls) -> list[str]:
         """Get the official configuration origin precedence order (lowest to highest)
-
         Returns:
-            List of origin names in precedence order from lowest to highest
+        List of origin names in precedence order from lowest to highest
 
         """
         return cls._ORIGIN_PRECEDENCE_ORDER.copy()
+
+        def validator(data):
+            # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
+            # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
+            content = data["request"]["content"]
+            # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+            if content.get("request_type") == "message-batch":
+                content = content["payload"][0]
+            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
+                return
+
+            configurations = content["payload"]["configuration"]
+            assert configurations, f"No configurations found in telemetry event: {configurations}"
 
     @scenarios.telemetry_app_started_config_chaining
     def test_app_started_config_chaining(self):
@@ -633,24 +646,47 @@ class Test_TelemetryConfigurationChaining:
         nodejs_expected_config = self._CONFIG_CHAINING_TEST_CONFIG["nodejs"]["configuration"]
 
         def validator(data):
-            if get_request_type(data) != "app-started":
-                return
+            config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
+            config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
 
-            content = data["request"]["content"]
-            configurations = content["payload"]["configuration"]
+            # Map config name to the latest list of config entries (dicts)
+            latest_configs: dict[str, list[dict]] = {}
 
-            if require_seq_id:
-                # Assert that each configuration has a seq_id
+            for telemetry_payload in data:
+                content = telemetry_payload["request"]["content"]
+                # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+                if content.get("request_type") == "message-batch":
+                    content = content["payload"][0]
+                # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
+                # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
+                if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
+                    continue
+
+                configurations = content["payload"]["configuration"]
+                assert configurations, f"No configurations found in telemetry event: {configurations}"
+
+                # Group configs by name for this payload
+                configs_by_name: dict[str, list[dict]] = {}
                 for cnf in configurations:
-                    assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                    assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
+                    name = cnf["name"]
+                    configs_by_name.setdefault(name, []).append(cnf)
 
-                # Sort configurations by seq_id in ascending order (lowest to highest precedence)
-                configurations.sort(key=lambda cnf: cnf["seq_id"])
-            else:
-                # For the no_seq_id test, configurations might not have seq_id
-                # Sort by name to have a consistent order for comparison
-                configurations.sort(key=lambda cnf: cnf.get("name", ""))
+                # Update latest_configs: replace only if present in this payload
+                latest_configs.update(configs_by_name)
+
+            # Use only the latest set of configs for the config name of interest
+            matching_configs = latest_configs.get(config_name, [])
+
+            assert (
+                len(matching_configs) >= len(config_precedence_order)
+            ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
+            # order by seq_id
+            matching_configs.sort(key=lambda x: x["seq_id"])
+
+            for i in range(len(config_precedence_order)):
+                assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
+                assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
+                assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
 
             self._validate_configuration_chains(configurations, nodejs_expected_config, require_seq_id=require_seq_id)
 
