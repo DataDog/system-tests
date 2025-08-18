@@ -594,7 +594,7 @@ class Test_TelemetryEnhancedConfigReporting:
                 "DD_LOGS_INJECTION": [
                     {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
                     {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    # {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
                 ],
             },
         },
@@ -603,8 +603,8 @@ class Test_TelemetryEnhancedConfigReporting:
     @scenarios.telemetry_enhanced_config_reporting
     def test_telemetry_events_seq_id(self):
         """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
-        
-        def validator(self, data):
+
+        def validator(data):
             # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
             # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
             content = data["request"]["content"]
@@ -618,9 +618,8 @@ class Test_TelemetryEnhancedConfigReporting:
             for cnf in configurations:
                 assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
                 assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-            
-        self.validate_library_telemetry_data(validator)
 
+        self.validate_library_telemetry_data(validator)
 
     @scenarios.telemetry_enhanced_config_reporting
     def test_telemetry_enhanced_config_reporting_precedence(self):
@@ -658,7 +657,7 @@ class Test_TelemetryEnhancedConfigReporting:
             # Use only the latest set of configs for the config name of interest
             matching_configs = latest_configs.get(config_name, [])
 
-            assert (                
+            assert (
                 len(matching_configs) >= len(config_precedence_order)
             ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
             # order by seq_id
