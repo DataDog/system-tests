@@ -5,6 +5,8 @@
 from utils import interfaces, rfc, scenarios, weblog, features, logger
 
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 def get_schema(request, address):
@@ -22,7 +24,7 @@ def get_schema(request, address):
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@scenarios.appsec_api_security_rc
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0"})
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - processors"""
@@ -42,7 +44,7 @@ class Test_API_Security_RC_ASM_DD_processors(BaseAppsecApiSecurityRcTest):
 
 
 @rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit#heading=h.88xvn2cvs9dt")
-@scenarios.appsec_api_security_rc
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0"})
 @features.api_security_configuration
 class Test_API_Security_RC_ASM_DD_scanners(BaseAppsecApiSecurityRcTest):
     """Test API Security - Remote config ASM_DD - scanners"""

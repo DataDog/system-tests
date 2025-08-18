@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, rfc, scenarios, features
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @rfc("https://docs.google.com/document/d/1iWQsOfT6Lg_IFyvQeqry9wVmXOE2Yav0X4MgOTk7mks")
@@ -53,7 +55,7 @@ class Test_SecurityEvents_Iast_Metastruct_Enabled:
 
 
 @features.security_events_metastruct
-@scenarios.appsec_meta_struct_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"})
 class Test_SecurityEvents_Appsec_Metastruct_Disabled:
     """Fallback: Test to verify that Appsec events are set in the json tag when meta struct is not supported by the agent."""
 
@@ -76,7 +78,7 @@ class Test_SecurityEvents_Appsec_Metastruct_Disabled:
 
 
 @features.security_events_metastruct
-@scenarios.appsec_meta_struct_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_IAST_ENABLED": "true"})
 class Test_SecurityEvents_Iast_Metastruct_Disabled:
     """Fallback: Test to verify that IAST events are set in the json tag when meta struct is not supported by the agent."""
 

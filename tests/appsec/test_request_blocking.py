@@ -7,12 +7,14 @@ from utils import interfaces
 from utils import remote_config
 from utils import scenarios
 from utils import weblog
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.appsec_request_blocking
 @features.envoy_external_processing
-@scenarios.appsec_request_blocking
-@scenarios.external_processing
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
+@dynamic_scenario(mandatory={})
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 

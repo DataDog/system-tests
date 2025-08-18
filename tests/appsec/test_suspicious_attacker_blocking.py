@@ -8,6 +8,8 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
 from utils import weblog
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 CONFIG_ENABLED = (
@@ -64,7 +66,7 @@ HEADERS_ATTACKER_NON_BLOCKING = {
 HEADERS_REGULAR_NON_BLOCKING = {"User-Agent": "Arachni/v1"}
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.suspicious_attacker_blocking
 class Test_Suspicious_Attacker_Blocking:
     """A library should block requests after AppSec is activated via remote config,

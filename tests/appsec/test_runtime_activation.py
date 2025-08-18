@@ -9,6 +9,8 @@ from utils import interfaces
 from utils import remote_config as rc
 from utils import scenarios
 from utils import weblog
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 CONFIG_EMPTY = None  # Empty config to reset the state at test setup
@@ -23,7 +25,7 @@ def _send_config(config):
     return rc.rc_state.apply().state
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @bug(context.library < "java@1.8.0" and context.appsec_rules_file is not None, reason="APMRP-360")
 @bug(context.library == "java@1.6.0", reason="APMRP-360")
 @features.changing_rules_using_rc
@@ -45,7 +47,7 @@ class Test_RuntimeActivation:
         interfaces.library.assert_waf_attack(self.response_with_activated_waf)
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 class Test_RuntimeDeactivation:
     """A library should stop blocking after Appsec is deactivated."""

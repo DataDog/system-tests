@@ -2,6 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 from utils import weblog, context, interfaces, bug, scenarios, rfc, features
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -66,8 +68,8 @@ class Test_Info:
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -105,8 +107,8 @@ class Test_RequestHeaders:
 
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_TagsFromRule:
     """Tags tags from the rule"""
 
@@ -133,8 +135,8 @@ class Test_TagsFromRule:
 
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -162,8 +164,8 @@ def _get_appsec_triggers(request):
 
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_AttackTimestamp:
     """Attack timestamp"""
 

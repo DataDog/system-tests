@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import weblog, interfaces, scenarios, rfc, features, bug, context
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 def assert_body_property(body, prop, expected_value) -> None:
@@ -14,7 +16,7 @@ def assert_body_property(body, prop, expected_value) -> None:
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_request_body
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_ExtendedRequestBodyCollection:
     @staticmethod
     def assert_feature_is_enabled(response) -> None:

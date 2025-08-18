@@ -7,6 +7,8 @@ from utils import features
 from utils import remote_config as rc
 from tests.appsec.utils import find_series
 from tests.appsec.utils import find_configuration
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
@@ -33,7 +35,7 @@ class BaseServiceActivationMetric:
         assert any(validate_metric_tag(self.origin, s) for s in series), [s.get("tags") for s in series]
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.appsec_service_activation_origin_metric
 class TestServiceActivationRemoteConfigMetric(BaseServiceActivationMetric):
     """Test that the service activation remote config metric is sent"""
@@ -62,7 +64,7 @@ class BaseServiceActivationConfigurationMetric:
         )
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.appsec_service_activation_origin_metric
 class TestServiceActivationRemoteConfigurationConfigMetric(BaseServiceActivationConfigurationMetric):
     """Test that the service activation remote config metric is sent"""

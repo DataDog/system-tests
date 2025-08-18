@@ -5,6 +5,8 @@
 from utils import weblog, interfaces, features, scenarios, irrelevant
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 IP_HEADERS = {
     "X-Forwarded-For": "42.42.42.42, 43.43.43.43",
@@ -187,13 +189,13 @@ class BaseUserLoginSuccessEventV2Tags:
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginSuccessEventV2_Tags_AppsecEnabled(BaseUserLoginSuccessEventV2Tags):
     """Test tags created in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginSuccessEventV2_Tags_AppsecDisabled(BaseUserLoginSuccessEventV2Tags):
     """Test tags created in AppSec User Login Success Event SDK v2 when appsec is disabled"""
 
@@ -212,7 +214,7 @@ class BaseUserLoginSuccessEventV2HeaderCollection(ABC):
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginSuccessEventV2HeaderCollection):
     """Test headers are collected in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
@@ -234,7 +236,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginSuccessEventV2HeaderCollection):
     """Test headers are not collected in User Login Success Event SDK v2 when appsec is disabled"""
 
@@ -277,19 +279,19 @@ class BaseUserLoginSuccessEventV2Metrics:
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled(BaseUserLoginSuccessEventV2Metrics):
     """Test metrics in AppSec User Login Success Event SDK v2 when appsec is enabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginSuccessEventV2_Metrics_AppsecDisabled(BaseUserLoginSuccessEventV2Metrics):
     """Test metrics in AppSec User Login Success Event SDK v2 when appsec is disabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginSuccessEventV2_Libddwaf:
     """Test libddwaf calls in AppSec User Login Success Event SDK v2"""
 
@@ -449,13 +451,13 @@ class BaseUserLoginFailureEventV2Tags:
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginFailureEventV2_Tags_AppsecEnabled(BaseUserLoginFailureEventV2Tags):
     """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginFailureEventV2_Tags_AppsecDisabled(BaseUserLoginFailureEventV2Tags):
     """Test tags created in AppSec User Login Failure Event SDK v2 when appsec is disabled"""
 
@@ -474,7 +476,7 @@ class BaseUserLoginFailureEventV2HeaderCollection(ABC):
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginFailureEventV2HeaderCollection):
     """Test headers are collected in AppSec User Login Failure Event SDK v2 when appsec is enabled"""
 
@@ -494,7 +496,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLoginFailureEventV2HeaderCollection):
     """Test headers are not collected in User Login Failure Event SDK v2 when AppSec is disabled"""
 
@@ -537,19 +539,19 @@ class BaseUserLoginFailureEventV2Metrics:
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginFailureEventV2_Metrics_AppsecEnabled(BaseUserLoginFailureEventV2Metrics):
     """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is enabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 class Test_UserLoginFailureEventV2_Metrics_AppsecDisabled(BaseUserLoginFailureEventV2Metrics):
     """Test metrics in AppSec User Login Failure Event SDK v2 when AppSec is disabled"""
 
 
 @features.event_tracking_sdk_v2
-@scenarios.appsec_ato_sdk
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_ato_sdk.json"})
 class Test_UserLoginFailureEventV2_Libddwaf:
     """Test libddwaf calls in AppSec User Login Failure Event SDK v2"""
 

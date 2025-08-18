@@ -13,6 +13,8 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils import missing_feature
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 # User entries in the internal DB:
 # users = [
@@ -138,7 +140,7 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.rc_state.reset().apply()
@@ -228,7 +230,7 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.rc_state.reset().apply()

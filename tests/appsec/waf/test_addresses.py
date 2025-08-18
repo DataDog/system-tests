@@ -4,6 +4,8 @@
 import json
 import pytest
 from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.appsec_request_blocking
@@ -150,7 +152,7 @@ class Test_Cookies:
     def setup_cookies_custom_rules(self):
         self.r_ccr = weblog.get("/waf/", cookies={"attack": ".htaccess"})
 
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_cookies_custom_rules(self):
         """Appsec WAF detects attackes in cookies"""
         interfaces.library.assert_waf_attack(self.r_ccr, pattern=".htaccess", address="server.request.cookies")
@@ -165,7 +167,7 @@ class Test_Cookies:
     )
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="python", reason="Not handled by the Python standard cookie parser")
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_cookies_with_semicolon_custom_rules(self):
         """Cookie with pattern containing a semicolon"""
         interfaces.library.assert_waf_attack(self.r_cwsccr, pattern=";shutdown--", address="server.request.cookies")
@@ -174,7 +176,7 @@ class Test_Cookies:
         self.r_cwscr_2 = weblog.get("/waf/", cookies={"x-attack": "var_dump ()"})
 
     @irrelevant(library="dotnet", reason="One space in the whole value cause kestrel to erase the whole value")
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_cookies_with_spaces_custom_rules(self):
         """Cookie with pattern containing a space"""
         interfaces.library.assert_waf_attack(self.r_cwscr_2, pattern="var_dump ()", address="server.request.cookies")
@@ -186,7 +188,7 @@ class Test_Cookies:
     @irrelevant(library="golang", reason="Not handled by the Go standard cookie parser")
     @irrelevant(library="dotnet", reason="Quotation marks cause kestrel to erase the whole value")
     @bug(context.library < "java@0.96.0", reason="APMRP-360")
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_cookies_with_special_chars2_custom_rules(self):
         """Other cookies patterns"""
         interfaces.library.assert_waf_attack(self.r_cwsc2cc, pattern='o:4:"x":5:{d}', address="server.request.cookies")
@@ -357,7 +359,7 @@ class Test_FullGrpc:
         pytest.fail("Need to write a test")
 
 
-@scenarios.graphql_appsec
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json", "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other"})
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""
@@ -455,7 +457,7 @@ class Test_GraphQL:
 
 
 @features.grpc_threats_management
-@scenarios.appsec_custom_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
 class Test_GrpcServerMethod:
     """Test as a custom rule until we have official rules for the address"""
 

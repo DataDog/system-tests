@@ -4,6 +4,7 @@
 
 from utils import features, weblog, interfaces, scenarios, rfc, context
 from utils.dd_constants import Capabilities
+from utils._context._scenarios.dynamic import dynamic_scenario
 from tests.appsec.rasp.utils import (
     validate_span_tags,
     validate_stack_traces,
@@ -17,7 +18,7 @@ from tests.appsec.rasp.utils import (
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_UrlQuery:
     """Server-side request forgery through query parameters"""
 
@@ -43,7 +44,7 @@ class Test_Ssrf_UrlQuery:
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_BodyUrlEncoded:
     """Server-side request forgery through a url-encoded body parameter"""
 
@@ -75,7 +76,7 @@ class Test_Ssrf_BodyUrlEncoded:
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_BodyXml:
     """Server-side request forgery through an xml body parameter"""
 
@@ -104,7 +105,7 @@ class Test_Ssrf_BodyXml:
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.3r1lwuv4y2g3")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_BodyJson:
     """Server-side request forgery through a json body parameter"""
 
@@ -138,7 +139,7 @@ class Test_Ssrf_BodyJson:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -152,7 +153,7 @@ class Test_Ssrf_Mandatory_SpanTags:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_span_tags
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
 
@@ -172,7 +173,7 @@ class Test_Ssrf_Optional_SpanTags:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.enmf90juqidf")
 @features.rasp_stack_trace
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_StackTrace:
     """Validate stack trace generation on exploit attempts"""
 
@@ -185,7 +186,7 @@ class Test_Ssrf_StackTrace:
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_Telemetry:
     """Validate Telemetry data on exploit attempts"""
 
@@ -208,7 +209,7 @@ class Test_Ssrf_Telemetry:
 
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_server_side_request_forgery
-@scenarios.appsec_rasp
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
 class Test_Ssrf_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
 
@@ -232,7 +233,7 @@ class Test_Ssrf_Telemetry_V2:
 
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.mshauo3jp6wh")
 @features.rasp_server_side_request_forgery
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_Ssrf_Capability:
     """Validate that ASM_RASP_SSRF (23) capability is sent"""
 

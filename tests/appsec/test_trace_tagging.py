@@ -9,10 +9,12 @@ from utils import (
     features,
 )
 from utils.dd_constants import Capabilities, SamplingPriority
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.appsec_trace_tagging_rules
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 class Test_TraceTaggingRules:
     """Test different variants of trace-tagging rules"""
 
@@ -107,7 +109,7 @@ class Test_TraceTaggingRules:
         interfaces.library.validate_spans(self.r_tt4, validator=validate)
 
 
-@scenarios.appsec_and_rc_enabled
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.appsec_trace_tagging_rules
 class Test_TraceTaggingRulesRcCapability:
     """A library with support for trace-tagging rules must provide the

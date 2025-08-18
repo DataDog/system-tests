@@ -1,4 +1,6 @@
 from utils import bug, context, interfaces, features, rfc, scenarios, weblog, logger
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
 TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
@@ -6,7 +8,7 @@ TELEMETRY_REQUEST_TYPE_DISTRIBUTIONS = "distributions"
 
 @rfc("https://docs.google.com/document/d/1qBDsS_ZKeov226CPx2DneolxaARd66hUJJ5Lh9wjhlE")
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
-@scenarios.appsec_waf_telemetry
+@dynamic_scenario(mandatory={"DD_INSTRUMENTATION_TELEMETRY_ENABLED": "true", "DD_TELEMETRY_METRICS_ENABLED": "true", "DD_TELEMETRY_METRICS_INTERVAL_SECONDS": "2.0"})
 @features.waf_telemetry
 class Test_TelemetryMetrics:
     """Test instrumentation telemetry metrics, type of metrics generate-metrics"""

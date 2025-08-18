@@ -1,10 +1,12 @@
 from utils import interfaces, rfc, scenarios, weblog, features, irrelevant, missing_feature, context
 
 from utils.telemetry import validate_app_endpoints_schema
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @rfc("https://docs.google.com/document/d/1txwuurIiSUWjYX7Xa0let7e49XKW2uhm1djgqjl_gL0/edit?tab=t.0")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_endpoint_discovery
 class Test_Endpoint_Discovery:
     _main_setup_done: bool = False

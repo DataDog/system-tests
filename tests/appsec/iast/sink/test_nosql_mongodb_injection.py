@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, scenarios, features, rfc, weblog
+from utils._context._scenarios.dynamic import dynamic_scenario
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     validate_extended_location_data,
@@ -11,7 +12,7 @@ from tests.appsec.iast.utils import (
 )
 
 
-@scenarios.integrations
+@dynamic_scenario(mandatory={})
 @features.iast_sink_mongodb_injection
 class TestNoSqlMongodbInjection(BaseSinkTest):
     """Verify NoSQL injection detection in mongodb database."""
@@ -49,7 +50,7 @@ class TestNoSqlMongodbInjection(BaseSinkTest):
 @rfc(
     "https://docs.google.com/document/d/1ga7yCKq2htgcwgQsInYZKktV0hNlv4drY9XzSxT-o5U/edit?tab=t.0#heading=h.d0f5wzmlfhat"
 )
-@scenarios.integrations
+@dynamic_scenario(mandatory={})
 @features.iast_stack_trace
 class TestNoSqlMongodbInjection_StackTrace:
     """Validate stack trace generation"""
@@ -62,7 +63,7 @@ class TestNoSqlMongodbInjection_StackTrace:
 
 
 @rfc("https://docs.google.com/document/d/1R8AIuQ9_rMHBPdChCb5jRwPrg1WvIz96c_WQ3y8DWk4")
-@scenarios.integrations
+@dynamic_scenario(mandatory={})
 @features.iast_extended_location
 class TestNoSqlMongodbInjection_ExtendedLocation:
     """Test extended location data"""

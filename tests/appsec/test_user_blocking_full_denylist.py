@@ -1,10 +1,12 @@
 from utils import context, interfaces, scenarios, weblog, bug, features
 
 from .utils import BaseFullDenyListTest
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.appsec_user_blocking
-@scenarios.appsec_blocking_full_denylist
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
     NOT_BLOCKED_USER = "regularUser"
     NUM_OF_BLOCKED_USERS = 2500

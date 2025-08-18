@@ -5,6 +5,8 @@
 from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -32,7 +34,7 @@ class Test_ConfigurationVariables:
 
     @irrelevant(library="ruby", weblog_variant="rack", reason="it's not possible to auto instrument with rack")
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
-    @scenarios.everything_disabled
+    @dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
     def test_disabled(self):
         """Test DD_APPSEC_ENABLED = false"""
         assert self.r_disabled.status_code == 200
@@ -41,7 +43,7 @@ class Test_ConfigurationVariables:
     def setup_appsec_rules(self):
         self.r_appsec_rules = weblog.get("/waf", headers={"attack": "dedicated-value-for-testing-purpose"})
 
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_appsec_rules(self):
         """Test DD_APPSEC_RULES = custom rules file"""
         interfaces.library.assert_waf_attack(self.r_appsec_rules, pattern="dedicated-value-for-testing-purpose")
@@ -57,7 +59,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library < "java@0.113.0")
     @missing_feature("sinatra" in context.weblog_variant, reason="Sinatra endpoint not implemented")
-    @scenarios.appsec_low_waf_timeout
+    @dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "1"})
     def test_waf_timeout(self):
         """Test DD_APPSEC_WAF_TIMEOUT = low value"""
         assert self.r_waf_timeout.status_code == 200
@@ -68,7 +70,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @scenarios.appsec_custom_obfuscation
+    @dynamic_scenario(mandatory={"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key", "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value"})
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
@@ -86,7 +88,7 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @scenarios.appsec_custom_obfuscation
+    @dynamic_scenario(mandatory={"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key", "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value"})
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 
@@ -101,7 +103,7 @@ class Test_ConfigurationVariables:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 class Test_ConfigurationVariables_New_Obfuscation:
     """Check for new obfuscation features in libddwaf 1.25.0 and later
     Requires libddwaf 1.25.0 or later and updated obfuscation regex for values

@@ -13,6 +13,8 @@ from utils import rfc
 from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 def login_data(context, username, password):
@@ -301,7 +303,7 @@ class Test_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@scenarios.appsec_auto_events_extended
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
 @features.user_monitoring
 class Test_Login_Events_Extended:
     """Test login success/failure use cases"""
@@ -860,7 +862,7 @@ class Test_V2_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
-@scenarios.appsec_auto_events_extended
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events_Anon:
@@ -1130,7 +1132,7 @@ def assert_priority(span, trace):
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
 @features.user_monitoring
-@scenarios.appsec_auto_events_rc
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"})
 class Test_V2_Login_Events_RC:
     # ["disabled", "identification", "anonymization"]
     PAYLOADS = [
@@ -1574,7 +1576,7 @@ class Test_V3_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
-@scenarios.appsec_auto_events_extended
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events_Anon:
@@ -1859,7 +1861,7 @@ ANONYMIZATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_auto_events_rc
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.5"})
 class Test_V3_Login_Events_RC:
     def _send_rc_and_execute_request(self, config):
         config_state = rc.rc_state.set_config(*config).apply()
@@ -1968,7 +1970,7 @@ BLOCK_USER_LOGIN = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_id(self):
         rc.rc_state.reset().apply()
@@ -2046,7 +2048,7 @@ class Test_V3_Login_Events_Blocking:
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_V3_Auto_User_Instrum_Mode_Capability:
     """Validate that ASM_AUTO_USER_INSTRUM_MODE (31) capability is sent"""
 

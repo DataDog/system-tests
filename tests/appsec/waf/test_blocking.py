@@ -2,6 +2,8 @@ from pathlib import Path
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"
@@ -51,7 +53,7 @@ JSON_CONTENT_TYPES = {
 }
 
 
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 @features.appsec_blocking_action
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
@@ -203,7 +205,7 @@ class Test_Blocking:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
@@ -220,7 +222,7 @@ class Test_Blocking_strip_response_headers:
 
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 @features.appsec_blocking_action
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""

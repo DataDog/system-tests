@@ -3,13 +3,15 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, features, interfaces, irrelevant, scenarios, flaky
+from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-@scenarios.appsec_blocking
-@scenarios.appsec_rasp
-@scenarios.appsec_runtime_activation
-@scenarios.appsec_standalone
-@scenarios.default
+
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
+@dynamic_scenario(mandatory={"DD_APPSEC_RASP_ENABLED": "true", "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json", "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true"})
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
+@dynamic_scenario(mandatory={})
 @features.language_specifics
 @irrelevant(context.library != "python", reason="specific tests for python tracer")
 class Test_ImportError:

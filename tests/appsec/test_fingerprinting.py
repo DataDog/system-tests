@@ -7,6 +7,8 @@ from utils import scenarios
 from utils import weblog
 from utils import missing_feature
 from utils import context
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 ARACHNI_HEADERS = {"User-Agent": "Arachni/v1.5.1"}
 DD_BLOCK_HEADERS = {"User-Agent": "dd-test-scanner-log-block"}
@@ -101,7 +103,7 @@ class Test_Fingerprinting_Session:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 class Test_Fingerprinting_Endpoint_Preprocessor:
     endpoint_fingerprint_regex = r"http-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -131,7 +133,7 @@ class Test_Fingerprinting_Endpoint_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 class Test_Fingerprinting_Header_And_Network_Preprocessor:
     network_fingerprint_regex = r"net-[^-]*-[^-]*"
     header_fingerprint_regex = r"hdr-[^-]*-[^-]*-[^-]*-[^-]*"
@@ -185,7 +187,7 @@ class Test_Fingerprinting_Header_And_Network_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.88xvn2cvs9dt")
 @features.fingerprinting
-@scenarios.appsec_blocking
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"})
 class Test_Fingerprinting_Session_Preprocessor:
     session_fingerprint_regex = r"ssn-[^-]*-[^-]*-[^-]*-[^-]*"
 
@@ -223,7 +225,7 @@ class Test_Fingerprinting_Session_Preprocessor:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_Fingerprinting_Endpoint_Capability:
     """Validate that ASM_ENDPOINT_FINGERPRINT (32) capability is sent"""
 
@@ -233,7 +235,7 @@ class Test_Fingerprinting_Endpoint_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_Fingerprinting_Session_Capability:
     """Validate that ASM_SESSION_FINGERPRINT (33) capability is sent"""
 
@@ -243,7 +245,7 @@ class Test_Fingerprinting_Session_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_Fingerprinting_Network_Capability:
     """Validate that ASM_NETWORK_FINGERPRINT (34) capability is sent"""
 
@@ -253,7 +255,7 @@ class Test_Fingerprinting_Network_Capability:
 
 @rfc("https://docs.google.com/document/d/1DivOa9XsCggmZVzMI57vyxH2_EBJ0-qqIkRHm_sEvSs/edit#heading=h.32nt1jz5tm2n")
 @features.fingerprinting
-@scenarios.remote_config_mocked_backend_asm_dd
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 class Test_Fingerprinting_Header_Capability:
     """Validate that ASM_HEADER_FINGERPRINT (35) capability is sent"""
 

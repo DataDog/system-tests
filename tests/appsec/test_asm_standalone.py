@@ -7,6 +7,8 @@ from requests.structures import CaseInsensitiveDict
 from utils.dd_constants import SAMPLING_PRIORITY_KEY, SamplingPriority
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, weblog, interfaces, scenarios, features, rfc, bug, missing_feature, irrelevant, logger, flaky
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 USER = "test"
 NEW_USER = "testnew"
@@ -818,7 +820,7 @@ class Test_AppSecStandalone_NotEnabled:
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone_experimental
-@scenarios.appsec_standalone_experimental
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true", "DD_IAST_ENABLED": "false"})
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
@@ -832,7 +834,7 @@ class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamProp
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
     """APPSEC correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -845,7 +847,7 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone_experimental
-@scenarios.iast_standalone_experimental
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true", "DD_IAST_ENABLED": "true", "DD_IAST_DETECTION_MODE": "FULL", "DD_IAST_DEDUPLICATION_ENABLED": "false", "DD_IAST_REQUEST_SAMPLING": "100", "DD_IAST_VULNERABILITIES_PER_REQUEST": "10", "DD_IAST_MAX_CONTEXT_OPERATIONS": "10"})
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
@@ -859,7 +861,7 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
-@scenarios.iast_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "true", "DD_IAST_DETECTION_MODE": "FULL", "DD_IAST_DEDUPLICATION_ENABLED": "false", "DD_IAST_REQUEST_SAMPLING": "100", "DD_IAST_VULNERABILITIES_PER_REQUEST": "10", "DD_IAST_MAX_CONTEXT_OPERATIONS": "10"})
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -872,7 +874,7 @@ class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropa
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone_experimental
-@scenarios.sca_standalone_experimental
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true", "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true", "DD_IAST_ENABLED": "false", "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1"})
 @irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
 class Test_SCAStandalone_Telemetry(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
@@ -886,7 +888,7 @@ class Test_SCAStandalone_Telemetry(BaseSCAStandaloneTelemetry):
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.sca_standalone
-@scenarios.sca_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_APPSEC_SCA_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
 class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
     """Tracer correctly propagates SCA telemetry in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -899,7 +901,7 @@ class Test_SCAStandalone_Telemetry_V2(BaseSCAStandaloneTelemetry):
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.api_security_configuration
-@scenarios.appsec_standalone_api_security
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @flaky(context.library > "java@1.49.0", reason="APPSEC-57815")
 class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
     """Test API Security schemas are retained in ASM Standalone mode regardless of sampling"""
@@ -1060,7 +1062,7 @@ class Test_APISecurityStandalone(BaseAppSecStandaloneUpstreamPropagation):
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
 class Test_UserEventsStandalone_Automated:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1146,7 +1148,7 @@ class Test_UserEventsStandalone_Automated:
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
 class Test_UserEventsStandalone_SDK_V1:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 
@@ -1210,7 +1212,7 @@ class Test_UserEventsStandalone_SDK_V1:
 
 @rfc("https://docs.google.com/document/d/18JZdOS5fmnYomRn6OGer0ViS1I6zzT6xl5HMtjDtFn4/edit")
 @features.appsec_standalone
-@scenarios.appsec_standalone
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
 class Test_UserEventsStandalone_SDK_V2:
     """IAST correctly propagates user events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 

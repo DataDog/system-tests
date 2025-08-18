@@ -7,11 +7,13 @@ import time
 
 from utils import weblog, context, interfaces, rfc, bug, scenarios, features, logger
 from utils.dd_constants import SamplingPriority
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")
 @bug(context.library in ("nodejs@3.2.0", "nodejs@2.15.0"), weblog_variant="express4", reason="APPSEC-5427")
-@scenarios.appsec_rate_limiter
+@dynamic_scenario(mandatory={"DD_APPSEC_TRACE_RATE_LIMIT": "1", "RAILS_MAX_THREADS": "1"})
 @features.appsec_rate_limiter
 class Test_Main:
     """Basic tests for rate limiter"""

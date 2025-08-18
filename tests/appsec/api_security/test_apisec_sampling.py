@@ -12,6 +12,8 @@ from utils import (
 import random
 import string
 import time
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 def get_schema(request, address):
@@ -25,7 +27,7 @@ def get_schema(request, address):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security_with_sampling
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @features.api_security_configuration
 class Test_API_Security_Sampling_Rate:
     """Test API Security - Default 0.1 Sampling on Request Headers Schema"""
@@ -60,7 +62,7 @@ class Test_API_Security_Sampling_Rate:
 
 
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
-@scenarios.appsec_api_security_with_sampling
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @features.api_security_configuration
 class Test_API_Security_Sampling_Different_Endpoints:
     """Test API Security - with different endpoints"""
@@ -85,7 +87,7 @@ class Test_API_Security_Sampling_Different_Endpoints:
 
 
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
-@scenarios.appsec_api_security_with_sampling
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @features.api_security_configuration
 class Test_API_Security_Sampling_Different_Paths:
     """Test API Security - same endpoints but different paths"""
@@ -107,7 +109,7 @@ class Test_API_Security_Sampling_Different_Paths:
 
 
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
-@scenarios.appsec_api_security_with_sampling
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @features.api_security_configuration
 class Test_API_Security_Sampling_Different_Status:
     """Test API Security - Same endpoint and different status"""
@@ -134,7 +136,7 @@ class Test_API_Security_Sampling_Different_Status:
 
 
 @rfc("https://docs.google.com/document/d/1PYoHms9PPXR8V_5_T5-KXAhoFDKQYA8mTnmS12xkGOE")
-@scenarios.appsec_api_security_with_sampling
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_SAMPLE_DELAY": "3"})
 @features.api_security_configuration
 class Test_API_Security_Sampling_With_Delay:
     """Test API Security - Same endpoint with delay"""

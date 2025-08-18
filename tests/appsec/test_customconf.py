@@ -4,13 +4,15 @@
 
 from tests.appsec.utils import find_series
 from utils import weblog, context, interfaces, scenarios, features
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 # get the default log output
 stdout = interfaces.library_stdout if context.library != "dotnet" else interfaces.library_dotnet_managed
 
 
-@scenarios.appsec_corrupted_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"})
 @features.threats_configuration
 class Test_CorruptedRules:
     """AppSec do not report anything if rule file is invalid"""
@@ -26,7 +28,7 @@ class Test_CorruptedRules:
             interfaces.library.assert_no_appsec_event(r)
 
 
-@scenarios.appsec_corrupted_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_corrupted_rules.json"})
 @features.threats_configuration
 class Test_CorruptedRules_Telemetry:
     """Report telemetry when rules file is corrupted"""
@@ -47,7 +49,7 @@ class Test_CorruptedRules_Telemetry:
         assert waf_config_errors_metric, "waf.config_errors missing 'event_rules_version:unknown' tag"
 
 
-@scenarios.appsec_missing_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/donotexists"})
 @features.threats_configuration
 class Test_MissingRules:
     """AppSec do not report anything if rule file is missing"""
@@ -64,7 +66,7 @@ class Test_MissingRules:
 
 
 # Basically the same test as Test_MissingRules, and will be called by the same scenario (save CI time)
-@scenarios.appsec_custom_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
 @features.threats_configuration
 class Test_ConfRuleSet:
     """AppSec support env var DD_APPSEC_RULES"""
@@ -88,7 +90,7 @@ class Test_ConfRuleSet:
         stdout.assert_absence("WAF initialization failed")
 
 
-@scenarios.appsec_custom_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
 @features.threats_configuration
 @features.serialize_waf_rules_without_limiting_their_sizes
 class Test_NoLimitOnWafRules:

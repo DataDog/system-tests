@@ -1,8 +1,10 @@
 from utils import interfaces, scenarios, weblog, features
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.waf_features
-@scenarios.appsec_custom_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
 class Test_CustomRules:
     """Includes a version of the WAF supporting custom rules"""
 

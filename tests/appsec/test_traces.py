@@ -6,6 +6,8 @@ from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils import weblog, bug, context, interfaces, irrelevant, rfc, missing_feature, scenarios, features
 from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
@@ -14,8 +16,8 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -57,8 +59,8 @@ class Test_RetainTraces:
 
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
@@ -132,8 +134,8 @@ class Test_AppSecEventSpanTags:
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
 
@@ -233,7 +235,7 @@ class Test_AppSecObfuscator:
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -256,7 +258,7 @@ class Test_AppSecObfuscator:
         }
         self.r_cookies_custom = weblog.get("/waf/", cookies=cookies)
 
-    @scenarios.appsec_custom_rules
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
@@ -283,8 +285,8 @@ class Test_AppSecObfuscator:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
 
@@ -311,8 +313,8 @@ class Test_CollectRespondHeaders:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
         "User-Agent": "MyBrowser",
@@ -344,8 +346,8 @@ class Test_CollectDefaultRequestHeader:
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
 @features.security_events_metadata
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
         self.r = weblog.get(

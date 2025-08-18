@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
+from utils._context._scenarios.dynamic import dynamic_scenario
 from tests.appsec.iast.utils import (
     BaseSinkTest,
     BaseTestCookieNameFilter,
@@ -46,7 +47,7 @@ class TestNoSamesiteCookie(BaseSinkTest):
 
 
 @features.iast_sink_samesite_cookie
-@scenarios.iast_deduplication
+@dynamic_scenario(mandatory={"DD_IAST_ENABLED": "true", "DD_IAST_DEDUPLICATION_ENABLED": "true", "DD_IAST_REQUEST_SAMPLING": "100", "DD_IAST_VULNERABILITIES_PER_REQUEST": "10", "DD_IAST_MAX_CONTEXT_OPERATIONS": "10"})
 class TestNoSamesiteCookieNameFilter(BaseTestCookieNameFilter):
     """Test no SameSite cookie name filter."""
 

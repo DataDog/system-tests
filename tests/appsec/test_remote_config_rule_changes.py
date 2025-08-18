@@ -14,6 +14,8 @@ from utils import remote_config as rc
 from utils import rfc
 from utils import scenarios
 from utils import weblog
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 CONFIG_ENABLED = (
     "datadog/2/ASM_FEATURES/asm_features_activation/config",
@@ -43,7 +45,7 @@ BLOCK_REDIRECT = (
 )
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 class Test_BlockingActionChangesWithRemoteConfig:
     """A library should block requests after AppSec is activated via remote config,
@@ -132,7 +134,7 @@ RULE_FILE: tuple[str, dict] = (
 )
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 class Test_UpdateRuleFileWithRemoteConfig:
     """A library should use the default rules when AppSec is activated via remote config,
@@ -319,7 +321,7 @@ RULES_COMPAT_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_and_rc_enabled
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.appsec_rc_asm_dd_multiconfig
 @features.appsec_trace_tagging_rules
 class Test_AsmDdMultiConfiguration:
@@ -455,7 +457,7 @@ FOO_ACTION = (
 )
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 class Test_Unknown_Action:
     def setup_unknown_action(self):
@@ -494,7 +496,7 @@ BLOCK_FOO_ACTION = (
 )
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 class Test_Multiple_Actions:
     def setup_multiple_actions(self):
@@ -524,7 +526,7 @@ class Test_Multiple_Actions:
 EMPTY_CONFIG: tuple[str, dict] = ("datadog/2/ASM/actions/config", {})
 
 
-@scenarios.appsec_runtime_activation
+@dynamic_scenario(mandatory={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"})
 @features.changing_rules_using_rc
 # Empty RC updates were incorrectly sent to waf
 @bug(context.library >= "nodejs@5.58.0" and context.library < "nodejs@5.63.0", reason="APMRP-360")

@@ -5,6 +5,8 @@ import re
 import json
 
 from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.support_in_app_waf_metrics_report
@@ -189,7 +191,7 @@ class Test_Monitoring:
     def setup_waf_monitoring_errors(self):
         self.r_errors = weblog.get("/waf/", params={"v": ".htaccess"})
 
-    @scenarios.appsec_rules_monitoring_with_errors
+    @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"})
     @bug(library="golang", reason="LANGPLAT-584")
     @irrelevant(context.library >= "nodejs@5.58.0", reason="expected tags were deprecated by rfc1025")
     @irrelevant(library="ruby", reason="replaced by test_waf_monitoring_once_rfc1025")

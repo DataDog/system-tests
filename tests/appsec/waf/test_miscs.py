@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, weblog, interfaces, bug, scenarios, features, waf_rules, missing_feature
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -27,7 +29,7 @@ class Test_404:
         )
 
 
-@scenarios.appsec_custom_rules
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
 @features.appsec_blocking_action
 class Test_MultipleHighlight:
     """Appsec reports multiple attacks on same request"""

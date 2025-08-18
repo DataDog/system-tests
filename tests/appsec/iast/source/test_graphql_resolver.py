@@ -4,9 +4,11 @@
 
 from utils import features, scenarios
 from tests.appsec.iast.utils import BaseSourceTest
+from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-@scenarios.graphql_appsec
+
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json", "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other"})
 @features.iast_graphql_resolver_argument
 class TestGraphqlResolverArgument(BaseSourceTest):
     """Verify that graphql resolver argument is tainted in a request"""

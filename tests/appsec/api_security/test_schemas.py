@@ -3,6 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, interfaces, missing_feature, rfc, scenarios, weblog, features, logger, flaky
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 def get_schema(request, address):
@@ -42,7 +44,7 @@ def equal_value(t1, t2):
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_Headers:
     """Test API Security - Request Headers Schema"""
@@ -62,7 +64,7 @@ class Test_Schema_Request_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_Cookies:
     """Test API Security - Request Cookies Schema"""
@@ -86,7 +88,7 @@ class Test_Schema_Request_Cookies:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_Query_Parameters:
     """Test API Security - Request Query Parameters Schema"""
@@ -106,7 +108,7 @@ class Test_Schema_Request_Query_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_Path_Parameters:
     """Test API Security - Request Path Parameters Schema"""
@@ -127,7 +129,7 @@ class Test_Schema_Request_Path_Parameters:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_Json_Body:
     """Test API Security - Request Body and list length"""
@@ -147,7 +149,7 @@ class Test_Schema_Request_Json_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Request_FormUrlEncoded_Body:
     """Test API Security - Request Body and list length"""
@@ -187,7 +189,7 @@ class Test_Schema_Request_FormUrlEncoded_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Response_Headers:
     """Test API Security - Response Header Schema"""
@@ -206,7 +208,7 @@ class Test_Schema_Response_Headers:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Response_Body:
     """Test API Security - Response Body Schema with urlencoded body"""
@@ -232,7 +234,7 @@ class Test_Schema_Response_Body:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Schema_Response_on_Block:
     """Test API Security - Response Schemas with urlencoded body
@@ -264,7 +266,7 @@ class Test_Schema_Response_on_Block:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security_no_response_body
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false"})
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
     """Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing
@@ -292,7 +294,7 @@ class Test_Schema_Response_Body_env_var:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_api_security
+@dynamic_scenario(mandatory={"DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_ENABLED": "true", "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0", "DD_API_SECURITY_SAMPLE_DELAY": "0.0", "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50", "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true", "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30"})
 @features.api_security_schemas
 class Test_Scanners:
     """Test API Security - Scanners"""

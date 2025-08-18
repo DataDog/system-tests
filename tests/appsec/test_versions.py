@@ -3,12 +3,14 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, interfaces, missing_feature, features, scenarios
+from utils._context._scenarios.dynamic import dynamic_scenario
+
 
 
 @features.appsec_miscs_internals
 @features.envoy_external_processing
-@scenarios.external_processing
-@scenarios.default
+@dynamic_scenario(mandatory={})
+@dynamic_scenario(mandatory={})
 class Test_Events:
     """AppSec events uses events in span"""
 
