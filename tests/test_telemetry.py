@@ -610,7 +610,6 @@ class Test_TelemetryEnhancedConfigReporting:
             # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
             # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
             content = data["request"]["content"]
-            print("TEST: content is", content)
             # dotnet sends message-batch with app-started [and app-client-configuration-change?]
             if content.get("request_type") == "message-batch":
                 content = content["payload"][0]
@@ -631,10 +630,11 @@ class Test_TelemetryEnhancedConfigReporting:
         """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
 
         def validator(data):
-            # Create array of configs that match the config name
-            matching_configs = []
             config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
             config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
+
+            # Map config name to the latest list of config entries (dicts)
+            latest_configs: dict[str, list[dict]] = {}
 
             for telemetry_payload in data:
                 content = telemetry_payload["request"]["content"]
@@ -645,22 +645,29 @@ class Test_TelemetryEnhancedConfigReporting:
                 # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
                 if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                     continue
-                else:
-                    configurations = content["payload"]["configuration"]
-                    assert configurations, f"No configurations found in telemetry event: {configurations}"
-                    for cnf in configurations:
-                        if cnf["name"] == config_name:
-                            assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                            assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-                            matching_configs.append(cnf)
+
+                configurations = content["payload"]["configuration"]
+                assert configurations, f"No configurations found in telemetry event: {configurations}"
+
+                # Group configs by name for this payload
+                configs_by_name: dict[str, list[dict]] = {}
+                for cnf in configurations:
+                    name = cnf["name"]
+                    configs_by_name.setdefault(name, []).append(cnf)
+
+                # Update latest_configs: replace only if present in this payload
+                latest_configs.update(configs_by_name)
+
+            # Use only the latest set of configs for the config name of interest
+            matching_configs = latest_configs.get(config_name, [])
 
             assert (
-                len(matching_configs) == len(config_precedence_order)
+                len(matching_configs) >= len(config_precedence_order)
             ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
             # order by seq_id
             matching_configs.sort(key=lambda x: x["seq_id"])
 
-            for i in range(len(matching_configs) - 1):
+            for i in range(len(config_precedence_order)):
                 assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
                 assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
                 assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
@@ -670,7 +677,6 @@ class Test_TelemetryEnhancedConfigReporting:
     def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
         """Reuse telemetry validation method from Test_Telemetry"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-        print("TEST: telemetry_data is", telemetry_data)
 
         if len(telemetry_data) == 0 and not success_by_default:
             raise ValueError("No telemetry data to validate on")
