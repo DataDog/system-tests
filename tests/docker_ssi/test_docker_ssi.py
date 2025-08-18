@@ -171,7 +171,7 @@ class TestDockerSSIFeatures:
         reason="We don't support this runtime",
     )
     @irrelevant(
-        context.library == "nodejs" and context.installed_language_runtime < "5.63.0",
+        context.library == "nodejs" and context.library < "nodejs@5.63.0",
         reason="We don't support this runtime",
     )
     @irrelevant(
