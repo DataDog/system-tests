@@ -88,7 +88,7 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: DataDog/system-tests
           ref: ${{ steps.compute_ref.outputs.ref }}
@@ -96,7 +96,7 @@ jobs:
         uses: ./.github/actions/install_runner
       - name: Get binaries artifact
         if : ${{ inputs.binaries_artifact != '' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
@@ -110,7 +110,7 @@ jobs:
         run: tar -czvf artifact.tar.gz $(ls | grep logs)
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
           path: artifact.tar.gz
