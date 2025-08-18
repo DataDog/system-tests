@@ -123,7 +123,7 @@ jobs:
         elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
           echo "ref=" >> $GITHUB_OUTPUT
         else
-          echo "ref=${{ github.workflow_sha }}" >> $GITHUB_OUTPUT
+          echo "ref=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
       uses: actions/checkout@v4
