@@ -100,7 +100,7 @@ jobs:
         elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
           echo "ref=" >> $GITHUB_OUTPUT
         else
-          echo "ref=${{ github.action_ref }}" >> $GITHUB_OUTPUT
+          echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
       uses: actions/checkout@v4
