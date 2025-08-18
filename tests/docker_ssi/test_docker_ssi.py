@@ -159,24 +159,24 @@ class TestDockerSSIFeatures:
     @features.ssi_injection_metadata
     @missing_feature(context.library == "ruby", reason="Not implemented yet")
     @irrelevant(
-        context.library == "python" and context.library < "python@3.11.0",
-        reason="We don't support this tracer version",
+        context.library == "python" and context.installed_language_runtime < "3.11.0",
+        reason="We don't support this runtime",
     )
     @irrelevant(
-        context.library == "java" and context.library < "java@1.52.0",
-        reason="We don't support this tracer version",
+        context.library == "java" and context.installed_language_runtime < "1.52.0",
+        reason="We don't support this runtime",
     )
     @irrelevant(
-        context.library == "dotnet" and context.library < "dotnet@3.22.0",
-        reason="We don't support this tracer version",
+        context.library == "dotnet" and context.installed_language_runtime < "3.22.0",
+        reason="We don't support this runtime",
     )
     @irrelevant(
-        context.library == "nodejs" and context.library < "nodejs@5.63.0",
-        reason="We don't support this tracer version",
+        context.library == "nodejs" and context.installed_language_runtime < "5.63.0",
+        reason="We don't support this runtime",
     )
     @irrelevant(
-        context.library == "php" and context.library < "php@1.12.0",
-        reason="We don't support this tracer version",
+        context.library == "php" and context.installed_language_runtime < "1.12.0",
+        reason="We don't support this runtime",
     )
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
@@ -191,7 +191,7 @@ class TestDockerSSIFeatures:
         assert injector_event["result_reason"] != ""
 
         tracer_event = events[1]
-        #assert tracer_event["component"] == context.library.name
+        assert tracer_event["component"] == context.library.name
         assert tracer_event["result"] == "success"
         assert tracer_event["result_class"] == "success"
         assert tracer_event["result_reason"] != ""
