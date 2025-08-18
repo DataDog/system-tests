@@ -14,7 +14,7 @@ from utils._context._scenarios.dynamic import dynamic_scenario
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
-@dynamic_scenario(mandatory={})
+@scenarios.external_processing
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 

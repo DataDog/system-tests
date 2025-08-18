@@ -1048,18 +1048,18 @@ class _Scenarios:
         scenario_groups=[scenario_groups.integrations],
     )
 
-    # external_processing = ExternalProcessingScenario(
-    #     name="EXTERNAL_PROCESSING",
-    #     doc="Envoy + external processing",
-    #     rc_api_enabled=True,
-    # )
+    external_processing = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING",
+        doc="Envoy + external processing",
+        rc_api_enabled=True,
+    )
 
-    # external_processing_blocking = ExternalProcessingScenario(
-    #     name="EXTERNAL_PROCESSING_BLOCKING",
-    #     doc="Envoy + external processing + blocking rule file",
-    #     extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-    #     extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-    # )
+    external_processing_blocking = ExternalProcessingScenario(
+        name="EXTERNAL_PROCESSING_BLOCKING",
+        doc="Envoy + external processing + blocking rule file",
+        extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
 
     ipv6 = IPV6Scenario("IPV6")
 

@@ -4,12 +4,10 @@
 
 from utils import features, scenarios
 from tests.appsec.iast.utils import BaseSourceTest, get_all_iast_events, get_iast_sources
-from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.iast_source_kafka_key
-@dynamic_scenario(mandatory={})
+@scenarios.integrations
 class TestKafkaKey(BaseSourceTest):
     """Verify that kafka message key is tainted"""
 

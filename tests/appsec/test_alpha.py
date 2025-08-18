@@ -3,14 +3,12 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import context, weblog, interfaces, scenarios, bug, features
-from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.threats_alpha_preview
 @features.envoy_external_processing
-@dynamic_scenario(mandatory={})
-@dynamic_scenario(mandatory={})
+@scenarios.external_processing
+@scenarios.default
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

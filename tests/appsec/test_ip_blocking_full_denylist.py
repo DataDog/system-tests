@@ -14,7 +14,7 @@ from utils._context._scenarios.dynamic import dynamic_scenario
 @features.appsec_client_ip_blocking
 @features.envoy_external_processing
 @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
-@dynamic_scenario(mandatory={})
+@scenarios.external_processing
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""
 
