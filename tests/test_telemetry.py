@@ -573,10 +573,10 @@ class Test_TelemetryEnhancedConfigReporting:
     CONFIG_PRECEDENCE_ORDER = {
         "nodejs": {
             "configuration": {
-                "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
+                "DD_LOG_INJECTION": [
+                    {"name": "DD_LOG_INJECTION", "origin": "default", "value": True},
+                    {"name": "DD_LOG_INJECTION", "origin": "env_var", "value": False},
+                    {"name": "DD_LOG_INJECTION", "origin": "code", "value": True},
                 ],
             },
         },
@@ -654,7 +654,6 @@ class Test_TelemetryEnhancedConfigReporting:
                 # Update latest_configs: replace only if present in this payload
                 latest_configs.update(configs_by_name)
 
-            # Use only the latest set of configs for the config name of interest
             matching_configs = latest_configs.get(config_name, [])
 
             assert (
