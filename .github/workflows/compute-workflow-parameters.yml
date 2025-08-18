@@ -99,6 +99,9 @@ jobs:
   main:
     name: Get parameters
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # required to get an oidc token
+      contents: read
     outputs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
@@ -115,6 +118,8 @@ jobs:
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
       unique_id: ${{ steps.unique_id.outputs.value }}
     steps:
+    - uses: ChristopherHX/oidc@45e798774435c73c1bbf62e2df0ba60f95cdb457
+      id: oidc
     - name: Compute ref
       id: compute_ref
       run: |
@@ -123,7 +128,7 @@ jobs:
         elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
           echo "ref=" >> $GITHUB_OUTPUT
         else
-          echo "ref=${{ github.workflow_ref }}" >> $GITHUB_OUTPUT
+          echo "ref=${{ steps.oidc.outputs.job_workflow_repo_ref }}" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
       uses: actions/checkout@v4
