@@ -456,7 +456,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
                     "dd_data_streams_enabled": "true"
-                    if context.library not in ("ruby", "php")
+                    if context.library not in ("php", "ruby")
                     else "false",  # PHP and Ruby do not support data streams
                 },
             ),
@@ -464,7 +464,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 "logs_injection",
                 {
                     "DD_LOGS_INJECTION": context.library != "ruby"  # Ruby defaults logs injection to true
-                    and (context.library <= "php@1.10" if context.library == "php" else False),
+                    and (context.library <= "php@1.11" if context.library == "php" else True),
                 },
                 {
                     **SDK_DEFAULT_STABLE_CONFIG,
@@ -472,7 +472,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                     if context.library == "golang"
                     else "false"
                     if context.library == "ruby"
-                    or (context.library > "php@1.10" if context.library == "php" else False)
+                    or (context.library > "php@1.11" if context.library == "php" else False)
                     else "true",  # Logs injection is not supported in dd-trace-go and enabled by default in ruby
                 },
             ),
