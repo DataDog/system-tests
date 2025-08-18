@@ -1,5 +1,5 @@
 import pytest
-from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
+from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger, flaky
 
 """
 Test scenarios we want:
@@ -33,6 +33,9 @@ class Test_Client_Stats:
         context.weblog_variant in ("play", "ratpack", "spring-boot-3-native"),
         library="java",
         reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
+    )
+    @flaky(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"), reason="APMSP-2202"
     )
     def test_client_stats(self):
         stats_count = 0
