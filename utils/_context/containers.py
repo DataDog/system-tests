@@ -218,8 +218,6 @@ class TestedContainer:
             user=self.user,
             cap_add=self.cap_add,
             security_opt=self.security_opt,
-            # the whole thing is reimplemented in python...
-            healthcheck={"test": ["NONE"]} if self.healthcheck is not None else None,
             privileged=self.privileged,
             ulimits=self.ulimits,
         )
