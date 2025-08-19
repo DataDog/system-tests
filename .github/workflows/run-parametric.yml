@@ -41,6 +41,11 @@ on:
         default: ''
         required: false
         type: string
+      unique_id:
+        description: "Unique ID to append to the artifact name, useful for parallel runs"
+        default: "1"
+        required: false
+        type: string
       _experimental_job_count:
         description: "DEPRECATED"
         default: 1
@@ -119,7 +124,7 @@ jobs:
       - name: Upload light report artifact
         uses: actions/upload-artifact@v4
         with:
-          name: temporary_lightweight_reports_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
+          name: temporary_lightweight_reports_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: logs_*/report.json
           retention-days: 1
       # - name: Upload results CI Visibility
