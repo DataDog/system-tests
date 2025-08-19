@@ -263,14 +263,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_request_blocking = EndToEndScenario(
-        "APPSEC_REQUEST_BLOCKING",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     appsec_and_rc_enabled = EndToEndScenario(
         "APPSEC_AND_RC_ENABLED",
         rc_api_enabled=True,
