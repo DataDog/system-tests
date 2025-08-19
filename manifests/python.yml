@@ -1267,6 +1267,6 @@ tests/:
     Test_Telemetry: v1.16.0
     Test_TelemetryEnhancedConfigReporting:
       '*': irrelevant
-      flask-poc: v3.13.0
+      flask-poc: v3.13.0rc1
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3
