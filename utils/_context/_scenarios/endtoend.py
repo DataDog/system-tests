@@ -272,6 +272,8 @@ class EndToEndScenario(DockerScenario):
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
+        skip_merge: bool = False,
+        skip_merge_reason: str | None = None,
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -304,6 +306,8 @@ class EndToEndScenario(DockerScenario):
         self._use_proxy_for_weblog = use_proxy_for_weblog
 
         self._require_api_key = require_api_key
+        self.skip_merge = skip_merge
+        self.skip_merge_reason = skip_merge_reason
 
         self.agent_container = AgentContainer(
             host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env

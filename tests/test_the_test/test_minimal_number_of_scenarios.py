@@ -1,4 +1,5 @@
 import re
+import warnings
 from utils import scenarios
 from utils._context._scenarios import get_all_scenarios
 from utils._context._scenarios.endtoend import EndToEndScenario
@@ -41,6 +42,23 @@ def test_minimal_number_of_scenarios():
     for i, scenario_a in enumerate(endtoend_scenarios):
         for j, scenario_b in enumerate(endtoend_scenarios):
             if i >= j:  # Skip self-comparison and duplicate pairs
+                continue
+                
+            # Check if either scenario is marked to skip merge
+            if getattr(scenario_a, 'skip_merge', False):
+                reason = getattr(scenario_a, 'skip_merge_reason', 'No reason provided')
+                warnings.warn(
+                    f"Scenario '{scenario_a.name}' is marked to skip merge. Reason: {reason}",
+                    UserWarning
+                )
+                continue
+                
+            if getattr(scenario_b, 'skip_merge', False):
+                reason = getattr(scenario_b, 'skip_merge_reason', 'No reason provided')
+                warnings.warn(
+                    f"Scenario '{scenario_b.name}' is marked to skip merge. Reason: {reason}",
+                    UserWarning
+                )
                 continue
                 
             # Get and normalize environment variables for both scenarios

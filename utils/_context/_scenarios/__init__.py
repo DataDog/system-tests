@@ -260,6 +260,8 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
+        skip_merge=True,
+        skip_merge_reason= "If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario, tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail",
         scenario_groups=[scenario_groups.appsec],
     )
 
