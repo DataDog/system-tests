@@ -1469,7 +1469,7 @@ tests/:
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
     Test_TelemetryEnhancedConfigReporting:
-      '*': irrelevant 
+      '*': irrelevant
       express4: *ref_5_56_0
       express5: *ref_5_56_0
     Test_TelemetrySCAEnvVar: missing_feature

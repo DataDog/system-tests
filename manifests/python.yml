@@ -1265,8 +1265,8 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
-    Test_TelemetryEnhancedConfigReporting: missing_feature
-      # '*': irrelevant
-      # flask-poc: v3.13.0
+    Test_TelemetryEnhancedConfigReporting:
+      '*': irrelevant
+      flask-poc: v3.13.0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3
