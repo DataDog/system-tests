@@ -5,13 +5,14 @@
 from utils import weblog, context, interfaces, rfc, bug, scenarios, missing_feature, features
 
 from .utils import BaseFullDenyListTest
+from utils._context._scenarios.dynamic import dynamic_scenario
 
 
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @features.appsec_client_ip_blocking
 @features.envoy_external_processing
-@scenarios.appsec_blocking_full_denylist
+@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})
 @scenarios.external_processing
 class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
     """A library should block requests from up to 2500 different blocked IP addresses."""

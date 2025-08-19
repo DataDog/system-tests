@@ -2,10 +2,11 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, features
+from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-@scenarios.everything_disabled
+@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})
 @features.appsec_standard_tags_client_ip
 class Test_StandardTagsClientIp:
     """Tests to verify that libraries annotate spans with correct http.client_ip tags"""
