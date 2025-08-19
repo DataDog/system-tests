@@ -188,9 +188,13 @@ if [ "$TARGET" = "java" ]; then
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-latest_snapshot}"
+    # Normalize branch name for image tag: replace '/' with '_'
+    NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+
     rm -rf *.tar.gz
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
