@@ -8,7 +8,7 @@ from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
 
 
-RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
+RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
