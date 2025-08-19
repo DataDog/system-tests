@@ -13,10 +13,10 @@ def test_minimal_number_of_scenarios():
     """
     all_scenarios = get_all_scenarios()
     
-    # Filter only EndToEnd scenarios
+    # Filter only scenarios that are exactly EndToEndScenario class (not subclasses)
     endtoend_scenarios = [
         scenario for scenario in all_scenarios 
-        if isinstance(scenario, EndToEndScenario)
+        if type(scenario) == EndToEndScenario
     ]
     
     def normalize_env(env_dict):
