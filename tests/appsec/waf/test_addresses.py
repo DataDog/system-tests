@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 import json
 import pytest
-from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, scenarios, features, logger
+from utils import weblog, bug, context, interfaces, irrelevant, missing_feature, rfc, features, logger
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.appsec_request_blocking
@@ -359,7 +358,12 @@ class Test_FullGrpc:
         pytest.fail("Need to write a test")
 
 
-@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json", "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+        "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+    }
+)
 @features.graphql_threats_detection
 class Test_GraphQL:
     """GraphQL support"""

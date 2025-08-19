@@ -10,11 +10,9 @@ from utils import irrelevant
 from utils import missing_feature
 from utils import remote_config as rc
 from utils import rfc
-from utils import scenarios
 from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 def login_data(context, username, password):
@@ -303,7 +301,13 @@ class Test_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1-trUpphvyZY7k5ldjhW-MgqWl0xOm7AMEQDJEAZ63_Q/edit#heading=h.8d3o7vtyu1y1")
-@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_ENABLED": "true",
+        "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+        "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+    }
+)
 @features.user_monitoring
 class Test_Login_Events_Extended:
     """Test login success/failure use cases"""
@@ -862,7 +866,13 @@ class Test_V2_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
-@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_ENABLED": "true",
+        "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+        "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+    }
+)
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V2_Login_Events_Anon:
@@ -1576,7 +1586,13 @@ class Test_V3_Login_Events:
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
-@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended", "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_ENABLED": "true",
+        "DD_APPSEC_AUTOMATED_USER_EVENTS_TRACKING": "extended",
+        "DD_APPSEC_AUTO_USER_INSTRUMENTATION_MODE": "anonymization",
+    }
+)
 @features.user_monitoring
 @features.user_id_collection_modes
 class Test_V3_Login_Events_Anon:

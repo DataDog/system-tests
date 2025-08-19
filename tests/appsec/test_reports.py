@@ -4,7 +4,6 @@
 from utils import weblog, context, interfaces, bug, scenarios, rfc, features
 
 
-
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
 @features.security_events_metadata
 class Test_StatusCode:

@@ -9,7 +9,6 @@ from utils.dd_constants import SamplingPriority
 from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-
 RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 
 

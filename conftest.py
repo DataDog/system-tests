@@ -16,6 +16,8 @@ import types
 import pytest
 from pytest_jsonreport.plugin import JSONReport
 
+from typing import cast
+
 from manifests.parser.core import load as load_manifests
 from utils import context
 from itertools import product
@@ -59,12 +61,10 @@ def _generate_dynamic_scenarios(items: list[pytest.Item]) -> None:
     # Build cartesian product of all variable values
     combinations = []
     for values in product(*(values_per_var[var] for var in variables)):
-        combo = dict(zip(variables, values))
+        combo = dict(zip(variables, values, strict=False))
 
         covered = [
-            item
-            for item, mandatory in test_mandatory.items()
-            if all(combo.get(k) == v for k, v in mandatory.items())
+            item for item, mandatory in test_mandatory.items() if all(combo.get(k) == v for k, v in mandatory.items())
         ]
 
         if covered:
@@ -81,7 +81,11 @@ def _generate_dynamic_scenarios(items: list[pytest.Item]) -> None:
         if not hasattr(scenarios, scenario_name):
             env = {k: v for k, v in combo.items() if v is not None}
             try:
-                scenario = EndToEndScenario(name=scenario_name, weblog_env=env, doc="Dynamic scenario")
+                scenario = EndToEndScenario(
+                    name=scenario_name,
+                    weblog_env=cast(dict[str, str | None], env),
+                    doc="Dynamic scenario",
+                )
             except BaseException:  # pragma: no cover - environment may lack docker
                 logger.exception("Failed to create dynamic scenario %s", scenario_name)
                 scenario = None
@@ -90,6 +94,7 @@ def _generate_dynamic_scenarios(items: list[pytest.Item]) -> None:
 
         for item in covered:
             pytest.mark.scenario(scenario_name)(item)
+
 
 def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(

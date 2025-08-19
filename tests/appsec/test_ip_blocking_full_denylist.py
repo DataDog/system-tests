@@ -8,7 +8,6 @@ from .utils import BaseFullDenyListTest
 from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-
 @rfc("https://docs.google.com/document/d/1GUd8p7HBp9gP0a6PZmDY26dpGrS1Ztef9OYdbK3Vq3M/edit")
 @bug("nodejs@3.16.0" < context.library < "nodejs@3.18.0", reason="APMRP-360")
 @features.appsec_client_ip_blocking

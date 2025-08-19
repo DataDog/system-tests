@@ -10,7 +10,6 @@ from utils import interfaces
 from utils import irrelevant
 from utils import remote_config as rc
 from utils import rfc
-from utils import scenarios
 from utils import weblog
 from utils import missing_feature
 from utils._context._scenarios.dynamic import dynamic_scenario

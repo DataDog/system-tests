@@ -2,7 +2,6 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import scenarios
 from utils import features
 from utils import remote_config as rc
 from tests.appsec.utils import find_series

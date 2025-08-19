@@ -4,13 +4,11 @@
 
 from utils import (
     interfaces,
-    scenarios,
     weblog,
     features,
 )
 from utils.dd_constants import Capabilities, SamplingPriority
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.appsec_trace_tagging_rules

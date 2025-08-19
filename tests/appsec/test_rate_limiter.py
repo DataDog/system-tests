@@ -5,10 +5,9 @@
 import datetime
 import time
 
-from utils import weblog, context, interfaces, rfc, bug, scenarios, features, logger
+from utils import weblog, context, interfaces, rfc, bug, features, logger
 from utils.dd_constants import SamplingPriority
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @rfc("https://docs.google.com/document/d/1X64XQOk3N-aS_F0bJuZLkUiJqlYneDxo_b8WnkfFy_0")

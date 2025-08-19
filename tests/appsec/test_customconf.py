@@ -3,9 +3,8 @@
 # Copyright 2021 Datadog, Inc.
 
 from tests.appsec.utils import find_series
-from utils import weblog, context, interfaces, scenarios, features
+from utils import weblog, context, interfaces, features
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 # get the default log output

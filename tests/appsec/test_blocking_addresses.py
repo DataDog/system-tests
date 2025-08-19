@@ -731,7 +731,12 @@ class Test_Suspicious_Request_Blocking:
         interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
-@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json", "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+        "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+    }
+)
 @features.appsec_request_blocking
 class Test_BlockingGraphqlResolvers:
     """Test if blocking is supported on graphql.server.all_resolvers address"""

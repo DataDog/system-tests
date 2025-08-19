@@ -3,7 +3,6 @@ from utils.dd_constants import Capabilities
 from utils import features
 from utils import interfaces
 from utils import rfc
-from utils import scenarios
 from utils import weblog
 from utils import missing_feature
 from utils import context

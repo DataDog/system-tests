@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, features, scenarios, irrelevant
+from utils import weblog, interfaces, features, irrelevant
 from tests.appsec.utils import find_series
 from abc import ABC, abstractmethod
 from utils._context._scenarios.dynamic import dynamic_scenario

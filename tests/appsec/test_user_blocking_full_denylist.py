@@ -1,8 +1,7 @@
-from utils import context, interfaces, scenarios, weblog, bug, features
+from utils import context, interfaces, weblog, bug, features
 
 from .utils import BaseFullDenyListTest
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.appsec_user_blocking

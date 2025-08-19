@@ -2,14 +2,23 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, rfc, features, missing_feature, context
+from utils import weblog, interfaces, rfc, features, missing_feature, context
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_all_headers
-@dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "true", "DD_APM_TRACING_ENABLED": "false", "DD_IAST_ENABLED": "false", "DD_API_SECURITY_ENABLED": "false", "DD_APPSEC_COLLECT_ALL_HEADERS": "true", "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false", "DD_TRACE_STATS_COMPUTATION_ENABLED": "false"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_ENABLED": "true",
+        "DD_APM_TRACING_ENABLED": "false",
+        "DD_IAST_ENABLED": "false",
+        "DD_API_SECURITY_ENABLED": "false",
+        "DD_APPSEC_COLLECT_ALL_HEADERS": "true",
+        "DD_APPSEC_HEADER_COLLECTION_REDACTION_ENABLED": "false",
+        "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
+    }
+)
 class Test_ExtendedHeaderCollection:
     @staticmethod
     def assert_feature_is_enabled(response) -> None:

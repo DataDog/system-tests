@@ -10,7 +10,6 @@ from utils import weblog
 from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "None"})

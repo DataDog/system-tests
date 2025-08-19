@@ -2,13 +2,17 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, scenarios
+from utils import features
 from tests.appsec.iast.utils import BaseSourceTest
 from utils._context._scenarios.dynamic import dynamic_scenario
 
 
-
-@dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_blocking_rule.json", "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other"})
+@dynamic_scenario(
+    mandatory={
+        "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+        "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+    }
+)
 @features.iast_graphql_resolver_argument
 class TestGraphqlResolverArgument(BaseSourceTest):
     """Verify that graphql resolver argument is tainted in a request"""

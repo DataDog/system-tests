@@ -1,6 +1,5 @@
-from utils import interfaces, scenarios, weblog, features
+from utils import interfaces, weblog, features
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.waf_features

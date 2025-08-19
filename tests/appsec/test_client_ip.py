@@ -2,9 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
-from utils import weblog, interfaces, scenarios, features
+from utils import weblog, interfaces, features
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @dynamic_scenario(mandatory={"DD_APPSEC_ENABLED": "false", "DD_DBM_PROPAGATION_MODE": "disabled"})

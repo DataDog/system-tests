@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, missing_feature, features, rfc, scenarios
+from utils import weblog, context, missing_feature, features, rfc
 from utils._context._scenarios.dynamic import dynamic_scenario
 from tests.appsec.iast.utils import (
     BaseSinkTest,
@@ -77,7 +77,15 @@ class TestWeakHash_StackTrace:
         validate_stack_traces(self.r)
 
 
-@dynamic_scenario(mandatory={"DD_IAST_ENABLED": "true", "DD_IAST_DEDUPLICATION_ENABLED": "true", "DD_IAST_REQUEST_SAMPLING": "100", "DD_IAST_VULNERABILITIES_PER_REQUEST": "10", "DD_IAST_MAX_CONTEXT_OPERATIONS": "10"})
+@dynamic_scenario(
+    mandatory={
+        "DD_IAST_ENABLED": "true",
+        "DD_IAST_DEDUPLICATION_ENABLED": "true",
+        "DD_IAST_REQUEST_SAMPLING": "100",
+        "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+        "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+    }
+)
 @features.weak_hash_vulnerability_detection
 class TestDeduplication:
     """Verify vulnerability deduplication."""

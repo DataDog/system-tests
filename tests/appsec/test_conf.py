@@ -2,11 +2,10 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, scenarios, features
+from utils import weblog, context, interfaces, missing_feature, irrelevant, rfc, features
 from utils.tools import nested_lookup
 from utils.dd_constants import PYTHON_RELEASE_GA_1_1
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 TELEMETRY_REQUEST_TYPE_GENERATE_METRICS = "generate-metrics"
@@ -70,7 +69,12 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @dynamic_scenario(mandatory={"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key", "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value"})
+    @dynamic_scenario(
+        mandatory={
+            "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
+            "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
+        }
+    )
     def test_obfuscation_parameter_key(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP"""
 
@@ -88,7 +92,12 @@ class Test_ConfigurationVariables:
 
     @missing_feature(context.library <= "ruby@1.0.0")
     @missing_feature(context.library < f"python@{PYTHON_RELEASE_GA_1_1}")
-    @dynamic_scenario(mandatory={"DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key", "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value"})
+    @dynamic_scenario(
+        mandatory={
+            "DD_APPSEC_OBFUSCATION_PARAMETER_KEY_REGEXP": "hide-key",
+            "DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP": ".*hide_value",
+        }
+    )
     def test_obfuscation_parameter_value(self):
         """Test DD_APPSEC_OBFUSCATION_PARAMETER_VALUE_REGEXP"""
 

@@ -2,9 +2,8 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import weblog, interfaces, rfc, scenarios, features
+from utils import weblog, interfaces, rfc, features
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @rfc("https://docs.google.com/document/d/1iWQsOfT6Lg_IFyvQeqry9wVmXOE2Yav0X4MgOTk7mks")

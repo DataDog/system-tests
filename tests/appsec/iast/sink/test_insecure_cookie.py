@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import context, missing_feature, bug, weblog, features, rfc, scenarios, flaky
+from utils import context, missing_feature, bug, weblog, features, rfc, flaky
 from utils._context._scenarios.dynamic import dynamic_scenario
 from tests.appsec.iast.utils import (
     BaseSinkTest,
@@ -49,7 +49,15 @@ class TestInsecureCookie(BaseSinkTest):
 
 
 @features.iast_sink_insecure_cookie
-@dynamic_scenario(mandatory={"DD_IAST_ENABLED": "true", "DD_IAST_DEDUPLICATION_ENABLED": "true", "DD_IAST_REQUEST_SAMPLING": "100", "DD_IAST_VULNERABILITIES_PER_REQUEST": "10", "DD_IAST_MAX_CONTEXT_OPERATIONS": "10"})
+@dynamic_scenario(
+    mandatory={
+        "DD_IAST_ENABLED": "true",
+        "DD_IAST_DEDUPLICATION_ENABLED": "true",
+        "DD_IAST_REQUEST_SAMPLING": "100",
+        "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
+        "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
+    }
+)
 class TestInsecureCookieNameFilter(BaseTestCookieNameFilter):
     """Test no SameSite cookie name filter."""
 

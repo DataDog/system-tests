@@ -4,9 +4,8 @@
 import re
 import json
 
-from utils import weblog, context, interfaces, irrelevant, scenarios, features, bug
+from utils import weblog, context, interfaces, irrelevant, features, bug
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @features.support_in_app_waf_metrics_report

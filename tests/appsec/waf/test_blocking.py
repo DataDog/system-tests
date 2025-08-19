@@ -1,9 +1,8 @@
 from pathlib import Path
 
-from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
+from utils import interfaces, bug, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"

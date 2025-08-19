@@ -1,6 +1,5 @@
-from utils import context, interfaces, scenarios, weblog, bug, features, missing_feature
+from utils import context, interfaces, weblog, bug, features, missing_feature
 from utils._context._scenarios.dynamic import dynamic_scenario
-
 
 
 @dynamic_scenario(mandatory={"DD_APPSEC_RULES": "/appsec_custom_rules.json"})
