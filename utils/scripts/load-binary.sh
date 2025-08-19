@@ -264,8 +264,8 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
-    echo "Using github.com/DataDog/orchestrion@main"
-    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
+    echo "Using github.com/DataDog/orchestrion@latest"
+    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
