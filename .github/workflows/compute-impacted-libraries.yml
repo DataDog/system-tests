@@ -30,11 +30,13 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
           git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
           cat modified_files.txt
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
       - name: Compute impacted libraries
         id: compute
-        run: |
-          source venv/bin/activate
-          python utils/scripts/compute-impacted-libraries.py
+        run: python utils/scripts/compute-impacted-libraries.py
         env:
           GITHUB_CONTEXT: ${{ toJSON(github) }}
       - name: Get target branch
