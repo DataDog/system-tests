@@ -415,6 +415,7 @@ class Test_Trace_Sampling_Tags:
             },
         ],
     )
+    @bug(context.library in ("cpp", "golang", "ruby"), reason="APMAPI-1563")
     def test_trace_dropped_by_trace_sampling_rule_tags(self, test_agent, test_library):
         """Test that a trace is dropped by the matching trace sampling rule"""
         with test_library, test_library.dd_start_span(name="web.request", service="webserver", resource="/bar") as span:
