@@ -100,6 +100,14 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
+    trace_propagation_style_default = EndToEndScenario(
+        "TRACE_PROPAGATION_STYLE_DEFAULT",
+        weblog_env={
+            # This scenario is empty since it's testing the default propagation styles
+        },
+        doc="Test Default propagation",
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -252,12 +260,14 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        skip_merge=True,
-        skip_merge_reason="""
-            If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
-            test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence
-            will fail
-        """,
+        scenario_groups=[scenario_groups.appsec],
+    )
+
+    appsec_request_blocking = EndToEndScenario(
+        "APPSEC_REQUEST_BLOCKING",
+        rc_api_enabled=True,
+        weblog_env={"DD_APPSEC_RULES": None},
+        doc="",
         scenario_groups=[scenario_groups.appsec],
     )
 
