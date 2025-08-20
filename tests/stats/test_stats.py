@@ -19,6 +19,15 @@ Config:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
@@ -106,6 +115,15 @@ class Test_Client_Stats:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
@@ -172,6 +190,15 @@ class Test_Agent_Info_Endpoint:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Peer_Tags:
     """Test peer tags aggregation for Client-Side Stats"""
 
@@ -226,6 +253,15 @@ class Test_Peer_Tags:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Transport_Headers:
     """Test transport headers validation for Client-Side Stats"""
 
@@ -280,6 +316,15 @@ class Test_Transport_Headers:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
+@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
+@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Time_Bucketing:
     """Test time bucketing validation for Client-Side Stats"""
 
