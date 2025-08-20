@@ -272,8 +272,6 @@ class EndToEndScenario(DockerScenario):
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
-        skip_merge: bool = False,
-        skip_merge_reason: str | None = None,
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -306,9 +304,25 @@ class EndToEndScenario(DockerScenario):
         self._use_proxy_for_weblog = use_proxy_for_weblog
 
         self._require_api_key = require_api_key
-        self.skip_merge = skip_merge
-        self.skip_merge_reason = skip_merge_reason
         self.additional_trace_header_tags = additional_trace_header_tags
+        self._constructor_appsec_enabled = appsec_enabled
+        self._constructor_iast_enabled = iast_enabled
+        self.weblog_volumes = weblog_volumes
+        self.weblog_env = weblog_env
+        self.agent_env = agent_env
+        self._constructor_tracer_sampling_rate = tracer_sampling_rate
+        self.runtime_metrics_enabled = runtime_metrics_enabled
+        self.include_postgres_db = include_postgres_db
+        self.include_cassandra_db = include_cassandra_db
+        self.include_mongo_db = include_mongo_db
+        self.include_kafka = include_kafka
+        self.include_rabbitmq = include_rabbitmq
+        self.include_mysql_db = include_mysql_db
+        self.include_sqlserver = include_sqlserver
+        self.include_localstack = include_localstack
+        self.include_elasticmq = include_elasticmq
+        self.include_otel_drop_in = include_otel_drop_in
+        self.include_buddies = include_buddies
 
         self.agent_container = AgentContainer(
             host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
@@ -795,7 +809,7 @@ class EndToEndScenario(DockerScenario):
         return result
 
     def __eq__(self, other: object) -> bool:
-        """Compare EndToEndScenario instances excluding name, doc, skip_merge, skip_merge_reason and weblog_env"""
+        """Compare EndToEndScenario instances excluding name, doc and weblog_env"""
         if not isinstance(other, EndToEndScenario):
             return False
 
@@ -806,9 +820,11 @@ class EndToEndScenario(DockerScenario):
             and getattr(self, "weblog_volumes", None) == getattr(other, "weblog_volumes", None)
             and getattr(self, "agent_env", None) == getattr(other, "agent_env", None)
             and self.enable_ipv6 == other.enable_ipv6
-            and getattr(self, "tracer_sampling_rate", None) == getattr(other, "tracer_sampling_rate", None)
-            and getattr(self, "appsec_enabled", True) == getattr(other, "appsec_enabled", True)
-            and getattr(self, "iast_enabled", True) == getattr(other, "iast_enabled", True)
+            and getattr(self, "_constructor_tracer_sampling_rate", None)
+            == getattr(other, "_constructor_tracer_sampling_rate", None)
+            and getattr(self, "_constructor_appsec_enabled", True)
+            == getattr(other, "_constructor_appsec_enabled", True)
+            and getattr(self, "_constructor_iast_enabled", True) == getattr(other, "_constructor_iast_enabled", True)
             and getattr(self, "additional_trace_header_tags", ()) == getattr(other, "additional_trace_header_tags", ())
             and getattr(self, "_library_interface_timeout", None) == getattr(other, "_library_interface_timeout", None)
             and self.agent_interface_timeout == other.agent_interface_timeout
@@ -834,7 +850,7 @@ class EndToEndScenario(DockerScenario):
         )
 
     def __hash__(self) -> int:
-        """Generate hash for EndToEndScenario excluding name, doc, skip_merge, skip_merge_reason and weblog_env"""
+        """Generate hash for EndToEndScenario excluding name, doc and weblog_env"""
         # Convert mutable types to immutable for hashing
         scenario_groups_tuple = tuple(self.scenario_groups) if self.scenario_groups else ()
         weblog_volumes_tuple = (
@@ -851,9 +867,9 @@ class EndToEndScenario(DockerScenario):
                 weblog_volumes_tuple,
                 agent_env_tuple,
                 self.enable_ipv6,
-                getattr(self, "tracer_sampling_rate", None),
-                getattr(self, "appsec_enabled", True),
-                getattr(self, "iast_enabled", True),
+                getattr(self, "_constructor_tracer_sampling_rate", None),
+                getattr(self, "_constructor_appsec_enabled", True),
+                getattr(self, "_constructor_iast_enabled", True),
                 getattr(self, "additional_trace_header_tags", ()),
                 getattr(self, "_library_interface_timeout", None),
                 self.agent_interface_timeout,
