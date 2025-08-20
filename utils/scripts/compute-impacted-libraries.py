@@ -1,10 +1,23 @@
+import argparse
 import json
 import os
 import re
 import sys
+from typing import TextIO
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="",
+        help="Output file. If not provided, output to stdout",
+    )
+
+    args = parser.parse_args()
+
     libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"  # noqa: E501
     result = set()
 
@@ -45,7 +58,7 @@ def main() -> None:
             modified_files: list[str] = [line.strip() for line in f]
 
         for file in modified_files:
-            match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})(\./)", file)
+            match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})[\./]", file)
 
             if user_choice is None:
                 # user let the script pick impacted libraries
@@ -87,15 +100,19 @@ def main() -> None:
         if "otel" not in library and library not in ("cpp_nginx",)
     ]
 
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as f:
+            print_result(populated_result, result, f)
+    else:
+        print_result(populated_result, result, sys.stdout)
+
+
+def print_result(populated_result: list, result: set[str], f: TextIO) -> None:
     libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
 
-    with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-        print(f"library_matrix={json.dumps(populated_result)}", file=fh)
-        print(
-            f"libraries_with_dev={json.dumps(libraries_with_dev)}",
-            file=fh,
-        )
-        print(f"desired_execution_time={600 if len(result) == 1 else 3600}", file=fh)
+    print(f"library_matrix={json.dumps(populated_result)}", file=f)
+    print(f"libraries_with_dev={json.dumps(libraries_with_dev)}", file=f)
+    print(f"desired_execution_time={600 if len(result) == 1 else 3600}", file=f)
 
 
 if __name__ == "__main__":

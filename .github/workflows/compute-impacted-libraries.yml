@@ -39,7 +39,7 @@ jobs:
           python-version: '3.12'
       - name: Compute impacted libraries
         id: compute
-        run: python utils/scripts/compute-impacted-libraries.py
+        run: python utils/scripts/compute-impacted-libraries.py -o $GITHUB_OUTPUT
         env:
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
