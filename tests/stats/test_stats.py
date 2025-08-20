@@ -19,15 +19,6 @@ Config:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
-@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Client_Stats:
     """Test client-side stats are compatible with Agent implementation"""
 
@@ -43,8 +34,9 @@ class Test_Client_Stats:
         library="java",
         reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
     )
-    @flaky(
-        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"), reason="APMSP-2202"
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
     )
     def test_client_stats(self):
         stats_count = 0
@@ -80,6 +72,10 @@ class Test_Client_Stats:
         for user_id in test_user_ids:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
@@ -118,18 +114,13 @@ class Test_Client_Stats:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
-@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_info_endpoint_supports_client_side_stats(self):
         """Test that agent /info endpoint contains required fields for Client-Side Stats feature detection"""
         info_requests = list(interfaces.library.get_data("/info"))
@@ -193,15 +184,6 @@ class Test_Agent_Info_Endpoint:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
-@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Peer_Tags:
     """Test peer tags aggregation for Client-Side Stats"""
 
@@ -215,6 +197,10 @@ class Test_Peer_Tags:
         for _ in range(2):
             weblog.get("/healthcheck")
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_peer_tags(self):
         """Test that client spans include peer tags while server spans don't"""
         client_stats_found = False
@@ -256,15 +242,6 @@ class Test_Peer_Tags:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
-@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Transport_Headers:
     """Test transport headers validation for Client-Side Stats"""
 
@@ -273,6 +250,10 @@ class Test_Transport_Headers:
         for _ in range(2):
             weblog.get("/")
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_transport_headers(self):
         """Test that stats transport includes required and optional headers"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -319,15 +300,6 @@ class Test_Transport_Headers:
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
-@missing_feature(library="cpp_httpd", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="cpp_nginx", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="dotnet", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="java", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="nodejs", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="php", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="python", reason="TRACE_STATS_COMPUTATION not implemented yet")
-@missing_feature(library="ruby", reason="TRACE_STATS_COMPUTATION not implemented yet")
 class Test_Time_Bucketing:
     """Test time bucketing validation for Client-Side Stats"""
 
@@ -336,6 +308,10 @@ class Test_Time_Bucketing:
         for _ in range(3):
             weblog.get("/")
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_client_side_stats(self):
         """Test that client-side stats are properly bucketed in 10-second intervals"""
         stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
@@ -390,6 +366,10 @@ class Test_Time_Bucketing:
         for _ in range(3):
             weblog.get("/")
 
+    @missing_feature(
+        context.library in ("cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
     def test_agent_aggregated_stats(self):
         """Test that agent-aggregated stats use 2-second buckets with 1-second offset"""
 
