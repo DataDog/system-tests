@@ -26,10 +26,13 @@ jobs:
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-      - run:  |
-          git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
-          git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
+      - name: Get modified files
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.sha }}
+          git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} >> modified_files.txt
           cat modified_files.txt
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -38,7 +41,9 @@ jobs:
         id: compute
         run: python utils/scripts/compute-impacted-libraries.py
         env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_PR_TITLE: ${{ github.event.pull_request.title }}
       - name: Get target branch
         uses: ./.github/actions/get_target_branch
         id: get-target-branch

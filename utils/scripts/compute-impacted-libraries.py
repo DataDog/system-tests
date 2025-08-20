@@ -5,11 +5,6 @@ import sys
 
 
 def main() -> None:
-    github_context = json.loads(os.environ["GITHUB_CONTEXT"])
-
-    # temporary print to see what's hapenning on differents events
-    print(json.dumps(github_context, indent=2))
-
     libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel"
     result = set()
 
@@ -19,16 +14,16 @@ def main() -> None:
     # }
     all_libraries = {"cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
 
-    if github_context["ref"] == "refs/heads/main":
+    if os.environ.get("GITHUB_REF") == "refs/heads/main":
         print("Merge commit to main => run all libraries")
         result |= all_libraries
 
-    elif github_context["event_name"] == "schedule":
+    elif os.environ.get("GITHUB_EVENT_NAME") in ("schedule", "push"):
         print("Scheduled job => run all libraries")
         result |= all_libraries
 
     else:
-        pr_title = github_context["event"]["pull_request"]["title"].lower()
+        pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", pr_title)
         user_choice = None
         if match:
@@ -39,7 +34,7 @@ def main() -> None:
         print("Inspect modified files to determine impacted libraries...")
 
         with open("modified_files.txt", "r", encoding="utf-8") as f:
-            modified_files = f.readlines()
+            modified_files: list[str] = f.readlines()
 
         for file in modified_files:
             match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})(\./)", file)
@@ -49,10 +44,15 @@ def main() -> None:
                 if user_choice is not None and library != user_choice:
                     print(f"You've selected {user_choice}, but the modified file {file} impacts {library}.")
                     sys.exit(1)
+
+                result.add(library)
+            elif file.startswith("tests/"):
+                if user_choice is None:
+                    result |= all_libraries
+
             elif user_choice is not None:
-                result.add(user_choice)
-            else:
-                result |= all_libraries
+                print(f"File {file} is modified, and it may impact all libraries.")
+                sys.exit(1)
 
     populated_result = [
         {
