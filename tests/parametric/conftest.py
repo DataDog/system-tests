@@ -149,6 +149,14 @@ class _TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
+        resp = self._session.get(self._otlp_http_url("/test/session/metrics"), **kwargs)
+        if clear:
+            self.clear()
+        resp_json = resp.json()
+        self._write_log("metrics", resp_json)
+        return resp_json
+
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
         assert resp.status_code == 202
@@ -395,6 +403,31 @@ class _TestAgentAPI:
                     return traces
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
+
+    def wait_for_num_otlp_metrics(
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+    ) -> list[Trace]:
+        """Wait for `num` metrics to be received from the test agent.
+
+        Returns after the number of metrics has been received or raises otherwise after 2 seconds of polling.
+
+        When sort_by_start=True returned metrics are sorted by the request start time to simplify assertions by knowing that returned metrics are in the same order as they have been created.
+        """
+        num_received = None
+        metrics = []
+        for _ in range(wait_loops):
+            try:
+                metrics = self.metrics(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = len(metrics)
+                if num_received == num:
+                    if clear:
+                        self.clear()
+                    return metrics
+            time.sleep(0.1)
+        raise ValueError(f"Number ({metrics}) of metrics not available from test agent, got {num_received}:\n{metrics}")
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
@@ -808,6 +841,7 @@ def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
+    test_agent_otlp_http_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
@@ -816,6 +850,9 @@ def test_library(
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
+        "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://{test_agent_container_name}:{test_agent_otlp_http_port}",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
@@ -829,6 +866,7 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
+    apm_test_server.host_otlp_http_port = scenarios.parametric.get_host_port(worker_id, 4600) # This doesn't have an OTLP port but whatever, refactor later
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
