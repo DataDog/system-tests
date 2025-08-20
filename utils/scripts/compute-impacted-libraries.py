@@ -42,12 +42,12 @@ def main() -> None:
         print("Inspect modified files to determine impacted libraries...")
 
         with open("modified_files.txt", "r", encoding="utf-8") as f:
-            modified_files: list[str] = f.readlines()
+            modified_files: list[str] = [line.strip() for line in f]
 
         for file in modified_files:
             match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})(\./)", file)
 
-            if user_choice is not None:
+            if user_choice is None:
                 # user let the script pick impacted libraries
                 if match:
                     result.add(match[2])
@@ -57,13 +57,19 @@ def main() -> None:
                 # user specified a library in the PR title
                 if match:
                     if match[2] != user_choice:
-                        print(f"File {file} is modified, and it may impact {match[2]}.")
+                        print(
+                            f"""File {file} is modified, and it may impact {match[2]}.
+                            Please remove the PR title prefix [{user_choice}]"""
+                        )
                         sys.exit(1)
                 elif file.startswith("tests/"):
                     # modification in tests files are complex, trust user
                     ...
                 else:
-                    print(f"File {file} is modified, but it may impact all libraries")
+                    print(
+                        f"""File {file} is modified, it may impact all libraries.
+                        Please remove the PR title prefix [{user_choice}]"""
+                    )
                     sys.exit(1)
 
     populated_result = [
