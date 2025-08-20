@@ -27,7 +27,7 @@ runs:
   using: composite
   steps:
     - name: Free some place for scenarios known to require lot of images
-      if: ${{ (inputs.cleanup == 'true') && (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
+      if: ${{ (inputs.cleanup == 'true') || (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
       shell: bash
       run: |
         df -h
