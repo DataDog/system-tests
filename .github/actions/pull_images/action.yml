@@ -59,7 +59,7 @@ runs:
         }
 
         df -h
-a
+
         echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
         clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
