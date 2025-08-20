@@ -14,12 +14,8 @@ def main() -> None:
     # }
     all_libraries = {"cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
 
-    if os.environ.get("GITHUB_REF") == "refs/heads/main":
-        print("Merge commit to main => run all libraries")
-        result |= all_libraries
-
-    elif os.environ.get("GITHUB_EVENT_NAME") in ("schedule", "push"):
-        print("Scheduled job => run all libraries")
+    if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
+        print("Not in PR => run all libraries")
         result |= all_libraries
 
     else:
@@ -39,20 +35,24 @@ def main() -> None:
         for file in modified_files:
             match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})(\./)", file)
 
-            if match:
-                library = match[2]
-                if user_choice is not None and library != user_choice:
-                    print(f"You've selected {user_choice}, but the modified file {file} impacts {library}.")
-                    sys.exit(1)
-
-                result.add(library)
-            elif file.startswith("tests/"):
-                if user_choice is None:
+            if user_choice is not None:
+                # user let the script pick impacted libraries
+                if match:
+                    result.add(match[2])
+                else:
                     result |= all_libraries
-
-            elif user_choice is not None:
-                print(f"File {file} is modified, and it may impact all libraries.")
-                sys.exit(1)
+            else:  # noqa: PLR5501
+                # user specified a library in the PR title
+                if match:
+                    if match[2] != user_choice:
+                        print(f"File {file} is modified, and it may impact {match[2]}.")
+                        sys.exit(1)
+                elif file.startswith("tests/"):
+                    # modification in tests files are complex, trust user
+                    ...
+                else:
+                    print(f"File {file} is modified, but it may impact all libraries")
+                    sys.exit(1)
 
     populated_result = [
         {
