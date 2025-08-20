@@ -261,7 +261,11 @@ class _Scenarios:
             are always coming from remote config.
         """,
         skip_merge=True,
-        skip_merge_reason= "If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario, tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail",
+        skip_merge_reason="""
+            If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
+            test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence
+            will fail
+        """,
         scenario_groups=[scenario_groups.appsec],
     )
 
