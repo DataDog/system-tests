@@ -10,7 +10,7 @@ import time
 import datetime
 import hashlib
 from pathlib import Path
-from typing import TextIO, TypedDict, Any
+from typing import TextIO, TypedDict, Any, cast
 import urllib.parse
 
 import requests
@@ -122,15 +122,20 @@ def test_server_log_file(
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
-        self._base_url = base_url
+    def __init__(self, host: str, agent_port: int, otlp_port: int, pytest_request: pytest.FixtureRequest):
+        self.host = host
+        self.agent_port = agent_port
+        self.otlp_port = otlp_port
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
-        return urllib.parse.urljoin(self._base_url, path)
+        return urllib.parse.urljoin(f"http://{self.host}:{self.agent_port}", path)
+
+    def _otlp_url(self, path: str) -> str:
+        return urllib.parse.urljoin(f"http://{self.host}:{self.otlp_port}", path)
 
     def _write_log(self, log_type: str, json_trace: Any):  # noqa: ANN401
         with open(self.log_path, "a") as log:
@@ -297,6 +302,7 @@ class _TestAgentAPI:
 
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
+        self._session.get(self._otlp_url("/test/session/clear"))
 
     def info(self):
         resp = self._session.get(self._url("/info"))
@@ -566,6 +572,41 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No tracer-flare received")
 
+    def logs(self, clear: bool = False, **kwargs: Any) -> list[Any]:
+        url = self._otlp_url("/test/session/logs")
+        resp = self._session.get(url, **kwargs)
+        if clear:
+            self.clear()
+        return cast(list[Any], resp.json())
+
+    def wait_for_num_logs(self, num: int, clear: bool = False, wait_loops: int = 30) -> list[Any]:
+        """Wait for `num` logs to be received from the test agent."""
+        for _ in range(wait_loops):
+            logs = self.logs(clear=False)
+            if len(logs) == num:
+                if clear:
+                    self.clear()
+                return logs
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of logs not available from test agent, got %r" % (num, len(logs)))
+
+    def metrics(self, clear: bool = False, **kwargs: Any) -> list[Any]:
+        resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
+        if clear:
+            self.clear()
+        return cast(list[Any], resp.json())
+
+    def wait_for_num_metrics(self, num: int, clear: bool = False, wait_loops: int = 30) -> list[Any]:
+        """Wait for `num` metrics to be received from the test agent."""
+        for _ in range(wait_loops):
+            metrics = self.metrics(clear=False)
+            if len(metrics) == num:
+                if clear:
+                    self.clear()
+                return metrics
+            time.sleep(0.1)
+        raise ValueError("Number (%r) of metrics not available from test agent, got %r" % (num, len(metrics)))
+
 
 @pytest.fixture(scope="session")
 def docker() -> str | None:
@@ -670,7 +711,8 @@ def test_agent(
         log_file=test_agent_log_file,
         network=docker_network,
     ):
-        client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
+        # TODO: Avoid hardcoding the OTLP port, mark this configurable via fixtures/env vars
+        client = _TestAgentAPI("localhost", host_port, 4318, pytest_request=request)
         time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:

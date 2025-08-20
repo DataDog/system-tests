@@ -279,6 +279,30 @@ class APMLibraryClient:
 
         return HTTPStatus(r.status_code).is_success
 
+    def log_generate(self, message: str, level: str, logger_name: str, logger_type: int) -> bool:
+        """Generate a log message with the specified parameters.
+
+        Args:
+            message: The log message to generate
+            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            logger_name: The name of the logger to use
+            logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
+
+        Returns:
+            bool: True if the log was generated successfully, False otherwise
+
+        """
+        resp = self._session.post(
+            self._url("/log/generate"),
+            json={
+                "message": message,
+                "level": level,
+                "logger_name": logger_name,
+                "logger_type": logger_type,
+            },
+        )
+        return HTTPStatus(resp.status_code).is_success
+
     def otel_trace_start_span(
         self,
         name: str,
@@ -613,3 +637,6 @@ class APMLibrary:
             return self._client.is_alive()
         except Exception:
             return False
+
+    def log_generate(self, message: str, level: str, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
+        return self._client.log_generate(message, level, logger_name, logger_type)

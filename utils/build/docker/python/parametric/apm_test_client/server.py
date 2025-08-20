@@ -7,6 +7,7 @@ from typing import Tuple
 from typing import Any
 import logging
 import os
+import enum
 from fastapi import FastAPI
 import opentelemetry.trace
 from pydantic import BaseModel
@@ -702,6 +703,58 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+class LoggerType(enum.IntEnum):
+    default = 0  # Default logger for the language
+    logging = 1
+    loguru = 2
+    struct_log = 3
+
+
+class LogGenerateArgs(BaseModel):
+    message: str
+    level: str
+    logger_name: str
+    logger_type: LoggerType = LoggerType.default
+
+
+class LogGenerateReturn(BaseModel):
+    success: bool
+
+
+@app.post("/log/generate")
+def log_generate(args: LogGenerateArgs):
+    # Create a logger with the specified name
+    logger = logging.getLogger(args.logger_name)
+
+    # Set the log level based on the provided level
+    level_mapping = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL,
+    }
+
+    log_level = level_mapping.get(args.level.upper(), logging.INFO)
+    logger.setLevel(log_level)
+
+    # Log the message with the specified level
+    if args.level.upper() == "DEBUG":
+        logger.debug(args.message)
+    elif args.level.upper() == "INFO":
+        logger.info(args.message)
+    elif args.level.upper() == "WARNING":
+        logger.warning(args.message)
+    elif args.level.upper() == "ERROR":
+        logger.error(args.message)
+    elif args.level.upper() == "CRITICAL":
+        logger.critical(args.message)
+    else:
+        logger.info(args.message)
+
+    return LogGenerateReturn(success=True)
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:

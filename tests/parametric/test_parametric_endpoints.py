@@ -733,3 +733,41 @@ class Test_Parametric_Otel_Trace_Flush:
             pass
 
         assert test_library.otel_flush(timeout_sec=5)
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_Log_Generate:
+    def test_log_generate(self, test_agent, test_library):
+        """Validates that /log/generate creates a log message with the specified parameters.
+
+        Supported Parameters:
+        - message: str
+        - level: str
+        - logger_name: str
+        - logger_type: int (0=default, 1=logging, 2=loguru, 3=struct_log)
+
+        Supported Return Values:
+        - success: bool
+        """
+        # Test with default logger type (0)
+        result = test_library.log_generate("Test log message", "INFO", "test_logger")
+        assert result is True
+
+        # Test with explicit logging type (1)
+        result = test_library.log_generate("Debug message", "DEBUG", "debug_logger", logger_type=1)
+        assert result is True
+
+        # Test with different log levels
+        result = test_library.log_generate("Warning message", "WARNING", "warning_logger")
+        assert result is True
+
+        result = test_library.log_generate("Error message", "ERROR", "error_logger")
+        assert result is True
+
+        result = test_library.log_generate("Critical message", "CRITICAL", "critical_logger")
+        assert result is True
+
+        # Test with custom logger name
+        result = test_library.log_generate("Custom logger message", "INFO", "custom_app_logger")
+        assert result is True

@@ -81,7 +81,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -326,7 +326,7 @@ class ParametricScenario(Scenario):
                 environment=env,
                 volumes=self.compute_volumes(volumes),
                 network=network,
-                ports={f"{container_port}/tcp": host_port},
+                ports={f"{container_port}/tcp": host_port, "4320/tcp": 4318},
                 command=command,
                 detach=True,
             )
