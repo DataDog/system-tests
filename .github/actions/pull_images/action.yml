@@ -43,7 +43,7 @@ runs:
 
           # -a for efficient traversal; --delete to remove extra files in target
           # --force to delete even if dirs are not empty; --omit-dir-times avoids dir mtime changes
-          if rsync -a --delete --force --omit-dir-times "$empty/" "$dir/"; then
+          if sudo rsync -a --delete --force --omit-dir-times "$empty/" "$dir/"; then
             rmdir "$empty" 2>/dev/null || true
             return 0
           else
