@@ -398,7 +398,8 @@ def node_library_factory() -> APMLibraryTestServer:
         container_tag="node-test-client",
         container_img=f"""
 FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq
+RUN apt-get update && apt-get -y install bash curl git jq \\
+  || sleep 60 && apt-get update && apt-get -y install bash curl git jq
 WORKDIR /usr/app
 COPY {nodejs_reldir}/package.json /usr/app/
 COPY {nodejs_reldir}/package-lock.json /usr/app/
@@ -406,7 +407,7 @@ COPY {nodejs_reldir}/*.js /usr/app/
 COPY {nodejs_reldir}/*.sh /usr/app/
 COPY {nodejs_reldir}/npm/* /usr/app/
 
-RUN npm install || npm install
+RUN npm install || sleep 60 && npm install
 
 COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -427,9 +428,9 @@ def golang_library_factory():
     return APMLibraryTestServer(
         lang="golang",
         container_name="go-test-library",
-        container_tag="go122-test-library",
+        container_tag="go-oldstable-test-library",
         container_img=f"""
-FROM golang:1.23
+FROM golang:1.24
 
 # install jq
 RUN apt-get update && apt-get -y install jq

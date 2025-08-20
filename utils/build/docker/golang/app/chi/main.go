@@ -358,6 +358,7 @@ func main() {
 	})
 
 	mux.HandleFunc("/rasp/lfi", rasp.LFI)
+	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 

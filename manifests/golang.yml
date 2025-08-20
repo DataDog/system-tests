@@ -23,6 +23,8 @@ tests/:
           net-http: irrelevant (net-http doesn't handle path params)
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: v2.0.0
         Test_Schema_Request_Cookies: v1.60.0
@@ -205,7 +207,49 @@ tests/:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
       test_cmdi.py: missing_feature
-      test_lfi.py: missing_feature
+      test_lfi.py:
+        Test_Lfi_BodyJson:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_BodyUrlEncoded:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_BodyXml:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Capability:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Mandatory_SpanTags:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Optional_SpanTags:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_RC_CustomAction:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Rules_Version:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_StackTrace:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Telemetry:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Telemetry_Multiple_Exploits:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Telemetry_V2:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_UrlQuery:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
+        Test_Lfi_Waf_Version:
+          '*': irrelevant
+          net-http-orchestrion: v2.0.0
       test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
         Test_Sqli_BodyJson: v1.66.0
@@ -213,26 +257,26 @@ tests/:
         Test_Sqli_BodyXml: v1.66.0
         Test_Sqli_Capability: v1.69.0
         Test_Sqli_Mandatory_SpanTags: v1.69.0
-        Test_Sqli_Optional_SpanTags: missing_feature
-        Test_Sqli_Rules_Version: missing_feature
+        Test_Sqli_Optional_SpanTags: v2.0.0
+        Test_Sqli_Rules_Version: v2.0.0
         Test_Sqli_StackTrace: v1.66.0
-        Test_Sqli_Telemetry: missing_feature
-        Test_Sqli_Telemetry_V2: missing_feature
+        Test_Sqli_Telemetry: v2.0.0
+        Test_Sqli_Telemetry_V2: v2.0.0
         Test_Sqli_UrlQuery: v1.66.0
-        Test_Sqli_Waf_Version: missing_feature
+        Test_Sqli_Waf_Version: v2.0.0
       test_ssrf.py:
         Test_Ssrf_BodyJson: v1.65.1
         Test_Ssrf_BodyUrlEncoded: v1.65.1
         Test_Ssrf_BodyXml: v1.65.1
         Test_Ssrf_Capability: v1.69.0
         Test_Ssrf_Mandatory_SpanTags: v1.69.0
-        Test_Ssrf_Optional_SpanTags: missing_feature
-        Test_Ssrf_Rules_Version: missing_feature
+        Test_Ssrf_Optional_SpanTags: v2.0.0
+        Test_Ssrf_Rules_Version: v2.0.0
         Test_Ssrf_StackTrace: v1.65.1
-        Test_Ssrf_Telemetry: missing_feature
-        Test_Ssrf_Telemetry_V2: missing_feature
+        Test_Ssrf_Telemetry: v2.0.0
+        Test_Ssrf_Telemetry_V2: v2.0.0
         Test_Ssrf_UrlQuery: v1.65.1
-        Test_Ssrf_Waf_Version: missing_feature
+        Test_Ssrf_Waf_Version: v2.0.0
     waf/:
       test_addresses.py:
         Test_BodyJson: v1.37.0
@@ -341,9 +385,9 @@ tests/:
           echo: v1.36.0
           gin: v1.37.0
       test_telemetry.py:
-        Test_TelemetryMetrics: missing_feature
+        Test_TelemetryMetrics: v2.0.0
       test_truncation.py:
-        Test_Truncation: missing_feature
+        Test_Truncation: v2.0.0
     test_alpha.py:
       Test_Basic:
         '*': v1.34.0
@@ -356,7 +400,7 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
       Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: missing_feature
+      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v2.0.0
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
@@ -412,7 +456,7 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
-      Test_ConfigurationVariables: missing_feature (unknown version)
+      Test_ConfigurationVariables: v2.0.0
       Test_ConfigurationVariables_New_Obfuscation: v2.1.0-dev
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
@@ -470,6 +514,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
+      Test_Empty_Config: missing_feature
       Test_Multiple_Actions: v1.69.0
       Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
@@ -495,8 +540,10 @@ tests/:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -726,7 +773,7 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.44.1
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: missing_feature
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: v1.73.0
   serverless/:
     span_pointers/:
       aws/:
