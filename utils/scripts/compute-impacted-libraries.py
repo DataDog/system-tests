@@ -5,14 +5,26 @@ import sys
 
 
 def main() -> None:
-    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel"
+    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"  # noqa: E501
     result = set()
 
     # do not include otel in system-tests CI by default, as the staging backend is not stable enough
     # all_libraries = {
     #   "cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "java_otel", "python_otel", "nodejs_otel"
     # }
-    all_libraries = {"cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
+    all_libraries = {
+        "cpp",
+        "cpp_httpd",
+        "cpp_nginx",
+        "dotnet",
+        "golang",
+        "java",
+        "nodejs",
+        "php",
+        "python",
+        "ruby",
+        "python_lambda",
+    }
 
     if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
         print("Not in PR => run all libraries")

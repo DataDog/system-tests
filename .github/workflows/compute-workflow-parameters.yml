@@ -175,7 +175,7 @@ jobs:
       with:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
-        include-hidden-files: ${{ inputs.library == 'python' }}
+        include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
     - name: Set unique ID
       id: unique_id
       run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT
