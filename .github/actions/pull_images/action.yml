@@ -46,7 +46,7 @@ runs:
             return 0
           else
             echo "rsync failed, trying alternative method..."
-            
+
             # Fallback to find + delete if rsync fails
             if sudo find "$dir" -mindepth 1 -delete 2>/dev/null; then
               echo "Successfully cleaned $dir using fallback method"
@@ -59,7 +59,7 @@ runs:
         }
 
         df -h
-
+a
         echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
         clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
