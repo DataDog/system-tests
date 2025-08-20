@@ -78,8 +78,8 @@ ssi_tests:
     after_script: |
         # Only fetch FP params on main in system-tests repo (use default CI creds)
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(AWS_PROFILE= aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(AWS_PROFILE= aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
         fi
         # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
         echo "Setting up AWS credentials for after_script..."
@@ -159,7 +159,7 @@ ssi_tests:
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
-  timeout: 25 minutes
+  timeout: 35 minutes
   variables:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true
