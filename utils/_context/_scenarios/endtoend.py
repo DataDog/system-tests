@@ -308,6 +308,7 @@ class EndToEndScenario(DockerScenario):
         self._require_api_key = require_api_key
         self.skip_merge = skip_merge
         self.skip_merge_reason = skip_merge_reason
+        self.additional_trace_header_tags = additional_trace_header_tags
 
         self.agent_container = AgentContainer(
             host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
@@ -792,3 +793,88 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
 
         return result
+
+    def __eq__(self, other: object) -> bool:
+        """Compare EndToEndScenario instances excluding name, doc, skip_merge, skip_merge_reason and weblog_env"""
+        if not isinstance(other, EndToEndScenario):
+            return False
+
+        # Compare all configuration parameters except excluded ones
+        return (
+            self.github_workflow == other.github_workflow
+            and self.scenario_groups == other.scenario_groups
+            and getattr(self, "weblog_volumes", None) == getattr(other, "weblog_volumes", None)
+            and getattr(self, "agent_env", None) == getattr(other, "agent_env", None)
+            and self.enable_ipv6 == other.enable_ipv6
+            and getattr(self, "tracer_sampling_rate", None) == getattr(other, "tracer_sampling_rate", None)
+            and getattr(self, "appsec_enabled", True) == getattr(other, "appsec_enabled", True)
+            and getattr(self, "iast_enabled", True) == getattr(other, "iast_enabled", True)
+            and getattr(self, "additional_trace_header_tags", ()) == getattr(other, "additional_trace_header_tags", ())
+            and getattr(self, "_library_interface_timeout", None) == getattr(other, "_library_interface_timeout", None)
+            and self.agent_interface_timeout == other.agent_interface_timeout
+            and self._use_proxy_for_weblog == other._use_proxy_for_weblog
+            and self._use_proxy_for_agent == other._use_proxy_for_agent
+            and self.rc_api_enabled == other.rc_api_enabled
+            and self.meta_structs_disabled == other.meta_structs_disabled
+            and self.span_events == other.span_events
+            and getattr(self, "runtime_metrics_enabled", False) == getattr(other, "runtime_metrics_enabled", False)
+            and self.backend_interface_timeout == other.backend_interface_timeout
+            and getattr(self, "include_postgres_db", False) == getattr(other, "include_postgres_db", False)
+            and getattr(self, "include_cassandra_db", False) == getattr(other, "include_cassandra_db", False)
+            and getattr(self, "include_mongo_db", False) == getattr(other, "include_mongo_db", False)
+            and getattr(self, "include_kafka", False) == getattr(other, "include_kafka", False)
+            and getattr(self, "include_rabbitmq", False) == getattr(other, "include_rabbitmq", False)
+            and getattr(self, "include_mysql_db", False) == getattr(other, "include_mysql_db", False)
+            and getattr(self, "include_sqlserver", False) == getattr(other, "include_sqlserver", False)
+            and getattr(self, "include_localstack", False) == getattr(other, "include_localstack", False)
+            and getattr(self, "include_elasticmq", False) == getattr(other, "include_elasticmq", False)
+            and getattr(self, "include_otel_drop_in", False) == getattr(other, "include_otel_drop_in", False)
+            and getattr(self, "include_buddies", False) == getattr(other, "include_buddies", False)
+            and self._require_api_key == other._require_api_key
+        )
+
+    def __hash__(self) -> int:
+        """Generate hash for EndToEndScenario excluding name, doc, skip_merge, skip_merge_reason and weblog_env"""
+        # Convert mutable types to immutable for hashing
+        scenario_groups_tuple = tuple(self.scenario_groups) if self.scenario_groups else ()
+        weblog_volumes_tuple = (
+            tuple(sorted(getattr(self, "weblog_volumes", {}).items())) if getattr(self, "weblog_volumes", None) else ()
+        )
+        agent_env_tuple = (
+            tuple(sorted(getattr(self, "agent_env", {}).items())) if getattr(self, "agent_env", None) else ()
+        )
+
+        return hash(
+            (
+                self.github_workflow,
+                scenario_groups_tuple,
+                weblog_volumes_tuple,
+                agent_env_tuple,
+                self.enable_ipv6,
+                getattr(self, "tracer_sampling_rate", None),
+                getattr(self, "appsec_enabled", True),
+                getattr(self, "iast_enabled", True),
+                getattr(self, "additional_trace_header_tags", ()),
+                getattr(self, "_library_interface_timeout", None),
+                self.agent_interface_timeout,
+                self._use_proxy_for_weblog,
+                self._use_proxy_for_agent,
+                self.rc_api_enabled,
+                self.meta_structs_disabled,
+                self.span_events,
+                getattr(self, "runtime_metrics_enabled", False),
+                self.backend_interface_timeout,
+                getattr(self, "include_postgres_db", False),
+                getattr(self, "include_cassandra_db", False),
+                getattr(self, "include_mongo_db", False),
+                getattr(self, "include_kafka", False),
+                getattr(self, "include_rabbitmq", False),
+                getattr(self, "include_mysql_db", False),
+                getattr(self, "include_sqlserver", False),
+                getattr(self, "include_localstack", False),
+                getattr(self, "include_elasticmq", False),
+                getattr(self, "include_otel_drop_in", False),
+                getattr(self, "include_buddies", False),
+                self._require_api_key,
+            )
+        )
