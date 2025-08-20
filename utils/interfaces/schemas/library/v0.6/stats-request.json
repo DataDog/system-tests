@@ -1,7 +1,7 @@
 {
   "$id": "/library/v0.6/stats-request.json",
   "type": "object",
-  "required": ["Hostname", "Env", "Version", "Stats", "Lang", "TracerVersion", "RuntimeID", "Sequence", "Service", "ProcessTags", "GitCommitSha"],
+  "required": ["Hostname", "Env", "Version", "Stats", "TracerVersion", "RuntimeID", "Sequence", "Service"],
   "properties": {
     "Hostname": { "type": "string", "description": "Tracer hostname from configuration" },
     "Env": { "type": "string", "minLength": 1, "description": "Environment tag (never empty, defaults to 'unknown-env')" },
@@ -20,7 +20,7 @@
             "description": "Array of ClientGroupedStats containing aggregated statistics",
             "items": {
               "type": "object",
-              "required": ["Service", "Name", "Resource", "Type", "Hits", "Errors", "Duration", "OkSummary", "ErrorSummary", "Synthetics", "TopLevelHits", "IsTraceRoot"],
+              "required": ["Service", "Name", "Resource", "Type", "Hits", "Errors", "Duration", "OkSummary", "ErrorSummary", "Synthetics", "TopLevelHits"],
               "properties": {
                 "Service": { "type": "string", "description": "Service name from span" },
                 "Name": { "type": "string", "description": "Span operation name" },
