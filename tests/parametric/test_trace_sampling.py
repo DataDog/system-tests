@@ -613,7 +613,6 @@ class Test_Trace_Sampling_With_W3C:
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
         assert span["metrics"].get(SAMPLING_RULE_PRIORITY_RATE) == 1
 
-
     @pytest.mark.parametrize(
         "library_env",
         [
