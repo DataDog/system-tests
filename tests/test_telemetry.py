@@ -645,14 +645,22 @@ class Test_TelemetryEnhancedConfigReporting:
                 configurations = content["payload"]["configuration"]
                 assert configurations, f"No configurations found in telemetry event: {configurations}"
 
-                # Group configs by name for this payload
-                configs_by_name: dict[str, list[dict]] = {}
+                # Group configs by name and origin for this payload, keeping only the last occurrence for each (name, origin)
+                configs_by_name: dict[str, dict[str, dict]] = {}
                 for cnf in configurations:
                     name = cnf["name"]
-                    configs_by_name.setdefault(name, []).append(cnf)
+                    origin = cnf["origin"]
+                    if name not in configs_by_name:
+                        configs_by_name[name] = {}
+                    configs_by_name[name][origin] = cnf  # overwrite, so only the last for this origin
+
+                # For each name, get the list of latest configs (one per origin)
+                configs_by_name_final: dict[str, list[dict]] = {
+                    name: list(origin_map.values()) for name, origin_map in configs_by_name.items()
+                }
 
                 # Update latest_configs: replace only if present in this payload
-                latest_configs.update(configs_by_name)
+                latest_configs.update(configs_by_name_final)
 
             matching_configs = latest_configs.get(config_name, [])
 
