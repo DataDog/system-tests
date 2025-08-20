@@ -13,6 +13,9 @@ from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from opentelemetry.metrics import Meter
+from opentelemetry.metrics import Instrument
+from opentelemetry.metrics import get_meter_provider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -50,6 +53,8 @@ log = logging.getLogger(__name__)
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
+otel_meters: Dict[str, Meter] = {}
+otel_meter_instruments: Dict[str, Instrument] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
 active_ddspan = [None]
@@ -702,6 +707,77 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+class OtelGetMeterArgs(BaseModel):
+    name: str
+
+
+class OtelGetMeterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/get_meter")
+def otel_get_meter(args: OtelGetMeterArgs):
+    if args.name not in otel_meters:
+        otel_meters[args.name] = get_meter_provider().get_meter(args.name)
+    return OtelGetMeterReturn()
+
+
+class OtelCreateCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateCounterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_counter")
+def otel_create_counter(args: OtelCreateCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    counter = meter.create_counter(args.name, args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "counter", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = counter
+    return OtelCreateCounterReturn()
+
+
+class OtelCounterAddArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: float
+    attributes: dict
+
+
+class OtelCounterAddReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/counter_add")
+def otel_counter_add(args: OtelCounterAddArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "counter", args.unit, args.description]
+    )
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+
+    counter = otel_meter_instruments[instrument_key]
+    counter.add(args.value, args.attributes)
+    return OtelCounterAddReturn()
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:

@@ -402,6 +402,24 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def otel_get_meter(self, name: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/get_meter"),
+            json={"name": name},
+        )
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_counter"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None) -> None:
+        self._session.post(
+            self._url("/metrics/otel/counter_add"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
+        )
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -607,6 +625,15 @@ class APMLibrary:
         if resp is None:
             return None
         return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
+
+    def otel_get_meter(self, name: str) -> None:
+        self._client.otel_get_meter(name)
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_counter(meter_name, name, unit, description)
+
+    def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
+        self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
 
     def is_alive(self) -> bool:
         try:

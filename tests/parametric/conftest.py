@@ -122,8 +122,9 @@ def test_server_log_file(
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
+    def __init__(self, base_url: str, base_otlp_http_url: str, pytest_request: pytest.FixtureRequest):
         self._base_url = base_url
+        self._base_otlp_http_url = base_otlp_http_url
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
@@ -131,6 +132,9 @@ class _TestAgentAPI:
 
     def _url(self, path: str) -> str:
         return urllib.parse.urljoin(self._base_url, path)
+
+    def _otlp_http_url(self, path: str) -> str:
+        return urllib.parse.urljoin(self._base_otlp_http_url, path)
 
     def _write_log(self, log_type: str, json_trace: Any):  # noqa: ANN401
         with open(self.log_path, "a") as log:
@@ -143,6 +147,14 @@ class _TestAgentAPI:
             self.clear()
         resp_json = resp.json()
         self._write_log("traces", resp_json)
+        return resp_json
+
+    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
+        resp = self._session.get(self._otlp_http_url("/test/session/metrics"), **kwargs)
+        if clear:
+            self.clear()
+        resp_json = resp.json()
+        self._write_log("metrics", resp_json)
         return resp_json
 
     def set_remote_config(self, path: str, payload: dict):
@@ -391,6 +403,31 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
+    def wait_for_num_otlp_metrics(
+        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+    ) -> list[Trace]:
+        """Wait for `num` metrics to be received from the test agent.
+
+        Returns after the number of metrics has been received or raises otherwise after 2 seconds of polling.
+
+        When sort_by_start=True returned metrics are sorted by the request start time to simplify assertions by knowing that returned metrics are in the same order as they have been created.
+        """
+        num_received = None
+        metrics = []
+        for _ in range(wait_loops):
+            try:
+                metrics = self.metrics(clear=False)
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                num_received = len(metrics)
+                if num_received == num:
+                    if clear:
+                        self.clear()
+                    return metrics
+            time.sleep(0.1)
+        raise ValueError(f"Number ({metrics}) of metrics not available from test agent, got {num_received}:\n{metrics}")
+
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for _ in range(wait_loops):
@@ -609,6 +646,13 @@ def test_agent_port() -> int:
 
 
 @pytest.fixture
+def test_agent_otlp_http_port() -> int:
+    """Returns the port exposed inside the agent container for OTLP metrics.
+    Default to the HTTP default port: 4318.
+    """
+    return 4318
+
+@pytest.fixture
 def test_agent_log_file(request: pytest.FixtureRequest) -> Generator[TextIO, None, None]:
     log_path = f"{context.scenario.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
@@ -647,6 +691,7 @@ def test_agent(
     request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
+    test_agent_otlp_http_port: int,
     test_agent_log_file: TextIO,
 ) -> Generator[_TestAgentAPI, None, None]:
     env = {}
@@ -657,7 +702,8 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
+    host_port = scenarios.parametric.get_host_port(worker_id, 4700)
+    host_otlp_http_port = scenarios.parametric.get_host_port(worker_id, 4800)
 
     with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
@@ -666,11 +712,13 @@ def test_agent(
         env=env,
         volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
         host_port=host_port,
+        host_otlp_http_port=host_otlp_http_port,
         container_port=test_agent_port,
+        container_otlp_http_port=test_agent_otlp_http_port,
         log_file=test_agent_log_file,
         network=docker_network,
     ):
-        client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
+        client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", base_otlp_http_url=f"http://localhost:{host_otlp_http_port}", pytest_request=request)
         time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
@@ -711,6 +759,7 @@ def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
+    test_agent_otlp_http_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
@@ -719,6 +768,9 @@ def test_library(
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
+        "OTEL_EXPORTER_OTLP_ENDPOINT": f"http://{test_agent_container_name}:{test_agent_otlp_http_port}",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
@@ -731,6 +783,7 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
+    apm_test_server.host_otlp_http_port = scenarios.parametric.get_host_port(worker_id, 4600) # This doesn't have an OTLP port but whatever, refactor later
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
@@ -738,7 +791,9 @@ def test_library(
         command=apm_test_server.container_cmd,
         env=env,
         host_port=apm_test_server.host_port,
+        host_otlp_http_port=apm_test_server.host_otlp_http_port,
         container_port=apm_test_server.container_port,
+        container_otlp_http_port=apm_test_server.container_otlp_http_port,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network=docker_network,

@@ -1344,7 +1344,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 class APMTestAgentContainer(TestedContainer):
     def __init__(self, host_log_folder: str, agent_port: int = 8126) -> None:
         super().__init__(
-            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
+            image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest",
             name="ddapm-test-agent",
             host_log_folder=host_log_folder,
             environment={
