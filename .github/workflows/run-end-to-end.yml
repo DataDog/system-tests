@@ -426,6 +426,12 @@ jobs:
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
+    - name: Run APPSEC_LAMBDA_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      run: ./run.sh APPSEC_LAMBDA_BLOCKING
+    - name: Run APPSEC_LAMBDA_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      run: ./run.sh APPSEC_LAMBDA_API_SECURITY
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
