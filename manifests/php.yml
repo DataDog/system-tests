@@ -692,7 +692,6 @@ tests/:
     Test_StandardTagsUserAgent: v0.75.0
   test_telemetry.py:
     Test_DependencyEnable: missing_feature
-    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_Log_Generation: missing_feature
     Test_MessageBatch: v0.90
     Test_Metric_Generation_Disabled: missing_feature
