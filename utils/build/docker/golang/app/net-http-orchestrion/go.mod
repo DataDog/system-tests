@@ -1,6 +1,6 @@
 module systemtests.weblog.orchestrion
 
-go 1.23.0
+go 1.24.0
 
 replace systemtests.weblog => ..
 

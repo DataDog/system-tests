@@ -420,6 +420,7 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+@bug(context.library > "php@1.11.0", reason="APMAPI-1568")
 class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
 

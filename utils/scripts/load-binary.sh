@@ -188,9 +188,13 @@ if [ "$TARGET" = "java" ]; then
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-latest_snapshot}"
+    # Normalize branch name for image tag: replace '/' with '_'
+    NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+
     rm -rf *.tar.gz
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
@@ -264,8 +268,8 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
-    echo "Using github.com/DataDog/orchestrion@main"
-    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
+    echo "Using github.com/DataDog/orchestrion@latest"
+    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev

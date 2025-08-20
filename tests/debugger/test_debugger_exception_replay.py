@@ -270,8 +270,18 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     return "<scrubbed>"
 
                 if key == "meta" and isinstance(value, dict):
+                    keys_to_remove = []
                     for meta_key, meta_value in value.items():
-                        if meta_key.endswith(("id", "hash", "version")) or meta_key in {
+                        # These keys are present in some library versions but not others,
+                        # but are unrelated to the functionality under test
+                        if meta_key in {
+                            "_dd.appsec.fp.http.endpoint",
+                            "_dd.appsec.fp.http.header",
+                            "_dd.appsec.fp.http.network",
+                            "_dd.appsec.fp.session",
+                        }:
+                            keys_to_remove.append(meta_key)
+                        elif meta_key.endswith(("id", "hash", "version")) or meta_key in {
                             "http.request.headers.user-agent",
                             "http.useragent",
                             "thread.name",
@@ -281,6 +291,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                             value[meta_key] = "<scrubbed>"
                         elif meta_key == "error.stack":
                             value[meta_key] = meta_value[:128] + "<scrubbed>"
+
+                    for k in keys_to_remove:
+                        value.pop(k, None)
+
                     return dict(sorted(value.items()))
 
                 return value

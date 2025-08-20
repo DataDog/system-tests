@@ -149,17 +149,17 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
 
       - name: Log in to the Container registry
         uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # 3.0.0
@@ -193,7 +193,7 @@ jobs:
 
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: logs_lib-injection_validation_${{ inputs.library}}_${{matrix.weblog.name}}_${{ endsWith(matrix.lib_init_image, 'latest_snapshot') == true && 'latest_snapshot' || 'latest'}}
           path: artifact.tar.gz
@@ -234,17 +234,17 @@ jobs:
             echo "ref=main" >> $GITHUB_OUTPUT
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
           ref: ${{ steps.compute_ref.outputs.ref }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # v3.6.0
 
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
         with:
           version: v0.12.1 # 0.13.0 is causing the builds to fail
           install: true

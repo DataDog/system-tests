@@ -26,7 +26,7 @@ RUN ln -sf /usr/share/zoneinfo/Etc/UTC /etc/localtime
 
 # Upgrade RubyGems and Bundler
 RUN gem update --system 3.4.1
-RUN gem install bundler -v '~> 2.3.26'
+
 RUN mkdir -p "$GEM_HOME" && chmod -R 777 "$GEM_HOME"
 ENV BUNDLE_SILENCE_ROOT_WARNING 1
 
@@ -36,6 +36,11 @@ WORKDIR /app
 
 # Add files
 COPY lib_injection_rails_app /app
+
+# Replace the incompatible bigdecimal version constraint
+RUN sed -i "s|gem 'bigdecimal', '~> 1.2', '>= 1.2.7'|gem 'bigdecimal', '>= 3.1.0'|" Gemfile
+# Add/replace nio4r constraint
+RUN grep -q "gem 'nio4r'" Gemfile || echo "gem 'nio4r', '>= 2.5.9'" >> Gemfile
 
 # Install gems
 RUN bundle install
