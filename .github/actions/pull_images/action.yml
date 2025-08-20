@@ -41,7 +41,9 @@ runs:
 
           # Use --delete-missing-args instead of creating temp dir
           # This is faster than the current approach but safer than rm -rf
-          if sudo rsync -a --delete-missing-args --force --omit-dir-times /dev/null/ "$dir/" 2>/dev/null; then
+          # Use rsync --delete with an empty source directory to remove all contents
+          # This is safer and more efficient than rm -rf
+          if sudo rsync -a --delete /dev/null/ "$dir/" 2>/dev/null; then
             echo "Successfully cleaned $dir"
             return 0
           else
