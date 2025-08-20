@@ -30,44 +30,55 @@ runs:
       if: ${{ (inputs.cleanup == 'true') || (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
       shell: bash
       run: |
-        # Usage: clear_dir_with_rsync "/path/to/folder"
-        clear_dir_with_rsync() {
-          local dir="$1"
+        # Check disk usage before cleanup
+        DISK_USAGE=$(df / | awk 'NR==2 {print $5}' | sed 's/%//')
+        echo "Current disk usage: ${DISK_USAGE}%"
+        
+        # Only clean if disk usage > 85% (more aggressive threshold)
+        if [ "$DISK_USAGE" -gt 85 ]; then
+          echo "Disk usage critical (${DISK_USAGE}%), performing cleanup..."
+          
+          # Usage: clear_dir_fast "/path/to/folder" - optimized version
+          clear_dir_fast() {
+            local dir="$1"
 
-          # If no arg or path doesn't exist as a directory: do nothing
-          [[ -z "$dir" || ! -d "$dir" ]] && return 0
+            # If no arg or path doesn't exist as a directory: do nothing
+            [[ -z "$dir" || ! -d "$dir" ]] && return 0
 
-          # Create an empty temp dir and sync it over the target with --delete
-          local empty
-          empty="$(mktemp -d)" || { echo "mktemp failed." >&2; return 1; }
+            echo "Cleaning $dir using fast deletion..."
+            
+            # Use rm -rf for maximum speed (much faster than rsync)
+            if sudo rm -rf "$dir"/* 2>/dev/null; then
+              echo "Successfully cleaned $dir"
+              return 0
+            else
+              echo "Failed to clean $dir, trying alternative method..."
+              
+              # Fallback to find + delete if rm -rf fails
+              if sudo find "$dir" -mindepth 1 -delete 2>/dev/null; then
+                echo "Successfully cleaned $dir using fallback method"
+                return 0
+              else
+                echo "Failed to clean $dir with all methods"
+                return 1
+              fi
+            fi
+          }
 
-          # -a for efficient traversal; --delete to remove extra files in target
-          # --force to delete even if dirs are not empty; --omit-dir-times avoids dir mtime changes
-          if sudo rsync -a --delete --force --omit-dir-times "$empty/" "$dir/"; then
-            rmdir "$empty" 2>/dev/null || true
-            return 0
-          else
-            # If it fails,
-            # capture the exit code ($? → stored in st),
-            # clean up the temporary empty dir,
-            # and return the same exit code so the caller can see what went wrong.
-            local st=$?
-            rmdir "$empty" 2>/dev/null || true
-            return $st
-          fi
-        }
+          df -h
 
-        df -h
+          echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
-        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
+          clear_dir_fast /usr/local/lib/android  # 9Gb!
+          clear_dir_fast /opt/hostedtoolcache/CodeQL  # 5Gb !
+          clear_dir_fast /usr/share/dotnet # 1Gb
 
-        clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
-        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL  # 5Gb !
-        clear_dir_with_rsync /usr/share/dotnet # 1Gb
+          # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
 
-        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
-
-        df -h
+          df -h
+        else
+          echo "Disk usage acceptable (${DISK_USAGE}%), skipping expensive cleanup"
+        fi
 
     - name: Get image list
       shell: bash
