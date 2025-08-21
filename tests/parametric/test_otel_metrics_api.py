@@ -30,13 +30,12 @@ DEFAULT_ENVVARS = {
 }
 
 @scenarios.parametric
-@features.open_tracing_api # TODO: Update with its own feature
-class Test_Otel_Span_Methods:
+@features.otel_metrics_api
+class Test_Otel_Metrics_Api:
     @pytest.mark.parametrize(
         "library_env",
         [
             {
-
                 **DEFAULT_ENVVARS,
                 "DD_ENV": "test1",
                 "DD_SERVICE": "test2",
