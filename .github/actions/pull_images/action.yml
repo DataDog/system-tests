@@ -37,31 +37,23 @@ runs:
           # If no arg or path doesn't exist as a directory: do nothing
           [[ -z "$dir" || ! -d "$dir" ]] && return 0
 
-          echo "Cleaning $dir using optimized rsync..."
+          # Create an empty temp dir and sync it over the target with --delete
+          local empty
+          empty="$(mktemp -d)" || { echo "mktemp failed." >&2; return 1; }
 
-          # Create a temporary empty directory for rsync source
-          local empty_dir
-          empty_dir=$(mktemp -d) || { echo "mktemp failed." >&2; return 1; }
-
-          # Use rsync --delete with empty directory to remove all contents
-          if sudo rsync -a --delete --force --omit-dir-times "$empty_dir/" "$dir/" 2>/dev/null; then
-            echo "Successfully cleaned $dir"
-            rm -rf "$empty_dir" 2>/dev/null || true
+          # -a for efficient traversal; --delete to remove extra files in target
+          # --force to delete even if dirs are not empty; --omit-dir-times avoids dir mtime changes
+          if sudo rsync -a --delete --force --omit-dir-times "$empty/" "$dir/"; then
+            rmdir "$empty" 2>/dev/null || true
             return 0
           else
-            echo "rsync failed, trying alternative method..."
-
-            # Clean up temp dir before fallback
-            rm -rf "$empty_dir" 2>/dev/null || true
-
-            # Fallback to find + delete if rsync fails
-            if sudo find "$dir" -mindepth 1 -delete 2>/dev/null; then
-              echo "Successfully cleaned $dir using fallback method"
-              return 0
-            else
-              echo "Failed to clean $dir with all methods"
-              return 1
-            fi
+            # If it fails,
+            # capture the exit code ($? → stored in st),
+            # clean up the temporary empty dir,
+            # and return the same exit code so the caller can see what went wrong.
+            local st=$?
+            rmdir "$empty" 2>/dev/null || true
+            return $st
           fi
         }
 
@@ -69,9 +61,11 @@ runs:
 
         echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
-        clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
-        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL  # 5Gb !
-        clear_dir_with_rsync /usr/share/dotnet # 1Gb
+        clear_dir_with_rsync /usr/local/lib/android &  # 9Gb!
+        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL &  # 5Gb !
+        clear_dir_with_rsync /usr/share/dotnet &  # 1Gb
+
+        wait
 
         # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
 
