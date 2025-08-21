@@ -27,8 +27,6 @@ SKIP_MERGE_SCENARIOS = {
     },
     "TRACE_PROPAGATION_STYLE_DEFAULT": {
         "TRACING_CONFIG_EMPTY": """TODO: check if this scenario can be merged into APPSEC_BLOCKING_FULL_DENYLIST""".strip(),
-        # Future example: if this scenario had multiple conflicting scenarios:
-        # "ANOTHER_SCENARIO": "Different reason for another specific conflict",
     },
     # Future example: Another scenario with its own restrictions:
     # "SOME_OTHER_SCENARIO": {
@@ -113,51 +111,11 @@ def test_minimal_number_of_scenarios():
         Returns True if the scenario with fewer weblog_env variables can be included
         in the other without conflicts (no variables with same name but different values).
 
-        This uses the raw weblog container environment before system-wide variables are added.
+        This uses the original weblog_env from constructor, not the final processed environment.
         """
-        # Get weblog environment dictionaries from containers
-        # We need to filter out system-added variables to get only the original weblog_env
-        weblog_env_a = scenario_a.weblog_container.environment.copy()
-        weblog_env_b = scenario_b.weblog_container.environment.copy()
-
-        # Remove system-added variables to get original weblog_env
-        system_vars = {
-            "SYSTEMTESTS_SCENARIO",
-            "DD_SERVICE",
-            "DD_VERSION",
-            "DD_TAGS",
-            "DD_ENV",
-            "DD_TRACE_LOG_DIRECTORY",
-            "DD_RC_TUF_ROOT",
-            "DD_TELEMETRY_METRICS_ENABLED",
-            "DD_TELEMETRY_HEARTBEAT_INTERVAL",
-            "_DD_TELEMETRY_METRICS_ENABLED",
-            "DD_TELEMETRY_METRICS_INTERVAL_SECONDS",
-            "DD_APPSEC_ENABLED",
-            "DD_APPSEC_WAF_TIMEOUT",
-            "DD_APPSEC_TRACE_RATE_LIMIT",
-            "DD_IAST_ENABLED",
-            "_DD_IAST_DEBUG",
-            "DD_IAST_REQUEST_SAMPLING",
-            "DD_IAST_MAX_CONCURRENT_REQUESTS",
-            "DD_IAST_DEDUPLICATION_ENABLED",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS",
-            "DD_AGENT_HOST",
-            "DD_TRACE_AGENT_PORT",
-            "INCLUDE_POSTGRES",
-            "INCLUDE_CASSANDRA",
-            "INCLUDE_MONGO",
-            "INCLUDE_KAFKA",
-            "INCLUDE_RABBITMQ",
-            "INCLUDE_MYSQL",
-            "INCLUDE_SQLSERVER",
-            "INCLUDE_OTEL_DROP_IN",
-        }
-
-        # Filter out system variables
-        original_env_a = {k: v for k, v in weblog_env_a.items() if k not in system_vars}
-        original_env_b = {k: v for k, v in weblog_env_b.items() if k not in system_vars}
+        # Get original weblog_env from constructor
+        original_env_a = getattr(scenario_a, "weblog_env", None) or {}
+        original_env_b = getattr(scenario_b, "weblog_env", None) or {}
 
         # Determine which has fewer variables
         if len(original_env_a) <= len(original_env_b):
@@ -255,13 +213,21 @@ def test_minimal_number_of_scenarios():
                     else getattr(scenario_b, "weblog_env", None)
                 )
 
+                # Calculate what new variables would be inserted
+                smaller_env = smaller_original_env or {}
+                larger_env = larger_original_env or {}
+
+                # Variables that would be added to the larger scenario
+                new_variables_to_insert = {key: value for key, value in smaller_env.items() if key not in larger_env}
+
                 potential_merges.append(
                     {
                         "smaller_scenario": smaller_scenario,
                         "larger_scenario": larger_scenario,
                         "reason": "equivalent configurations with compatible weblog_env (subset relationship)",
-                        "smaller_weblog_env": smaller_original_env or {},
-                        "larger_weblog_env": larger_original_env or {},
+                        "new_variables_to_insert": new_variables_to_insert,
+                        "smaller_weblog_env": smaller_env,
+                        "larger_weblog_env": larger_env,
                     }
                 )
 
