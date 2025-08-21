@@ -39,22 +39,20 @@ runs:
 
           echo "Cleaning $dir using optimized rsync..."
 
-          # Use --delete-missing-args instead of creating temp dir
-          # This is faster than the current approach but safer than rm -rf
-          # Use rsync --delete with an empty source directory to remove all contents
-          # This is safer and more efficient than rm -rf
-          if sudo rsync -a --delete /dev/null/ "$dir/" 2>/dev/null; then
+          # Create a temporary empty directory for rsync source
+          local empty_dir
+          empty_dir=$(mktemp -d) || { echo "mktemp failed." >&2; return 1; }
+
+          # Use rsync --delete with empty directory to remove all contents
+          if sudo rsync -a --delete --force --omit-dir-times "$empty_dir/" "$dir/" 2>/dev/null; then
             echo "Successfully cleaned $dir"
-            return 0
-          local empty_dir="/tmp/empty_rsync_dir_$$"
-          mkdir -p "$empty_dir"
-          if sudo rsync -a --delete "$empty_dir/" "$dir/" 2>/dev/null; then
-            echo "Successfully cleaned $dir"
-            rmdir "$empty_dir"
+            rm -rf "$empty_dir" 2>/dev/null || true
             return 0
           else
-            rmdir "$empty_dir"
             echo "rsync failed, trying alternative method..."
+
+            # Clean up temp dir before fallback
+            rm -rf "$empty_dir" 2>/dev/null || true
 
             # Fallback to find + delete if rsync fails
             if sudo find "$dir" -mindepth 1 -delete 2>/dev/null; then
@@ -89,7 +87,7 @@ runs:
 
     - name: Login to Docker Hub
       if: inputs.dockerhub_username != '' && inputs.dockerhub_token != ''
-      uses: docker/login-action@v3
+      uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3.5.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
