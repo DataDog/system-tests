@@ -512,7 +512,10 @@ class BaseDebuggerTest:
 
     def _collect_snapshots(self):
         def _get_snapshot_hash():
+            # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
+            # snapshots to the debugger endpoint.
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
+            agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
             snapshot_hash: dict = {}
 
             for request in agent_logs_endpoint_requests:

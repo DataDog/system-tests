@@ -28,7 +28,7 @@ jobs:
       contents: read # need to read releases
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
