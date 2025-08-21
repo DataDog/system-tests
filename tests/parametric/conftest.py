@@ -577,11 +577,11 @@ class _TestAgentAPI:
         resp = self._session.get(url)
         return cast(list[Any], resp.json())
 
-    def wait_for_num_logs(self, num: int, wait_loops: int = 30) -> list[Any]:
+    def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` logs to be received from the test agent."""
         for _ in range(wait_loops):
             logs = self.logs()
-            if len(logs) == num:
+            if len(logs) >= num:
                 return logs
             time.sleep(0.1)
         raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
@@ -589,15 +589,6 @@ class _TestAgentAPI:
     def metrics(self) -> list[Any]:
         resp = self._session.get(self._otlp_url("/test/session/metrics"))
         return cast(list[Any], resp.json())
-
-    def wait_for_num_metrics(self, num: int, wait_loops: int = 30) -> list[Any]:
-        """Wait for `num` metrics to be received from the test agent."""
-        for _ in range(wait_loops):
-            metrics = self.metrics()
-            if len(metrics) == num:
-                return metrics
-            time.sleep(0.1)
-        raise ValueError(f"Number {num} of metrics not available from test agent, got {len(metrics)}")
 
 
 @pytest.fixture(scope="session")
@@ -703,8 +694,8 @@ def test_agent(
     env["ENABLED_CHECKS"] = "trace_count_header"
 
     core_host_port = scenarios.parametric.get_host_port(worker_id, 4600)
-    otlp_http_host_port = scenarios.parametric.get_host_port(worker_id, 4601)
-    otlp_grpc_host_port = scenarios.parametric.get_host_port(worker_id, 4602)
+    otlp_http_host_port = scenarios.parametric.get_host_port(worker_id, 4701)
+    otlp_grpc_host_port = scenarios.parametric.get_host_port(worker_id, 4802)
     ports = {
         f"{test_agent_port}/tcp": core_host_port,
         f"{test_agent_otlp_http_port}/tcp": otlp_http_host_port,
@@ -763,6 +754,8 @@ def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
@@ -775,12 +768,23 @@ def test_library(
         "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
     }
+
     for k, v in apm_test_server.env.items():
         # Don't set env vars with a value of None
         if v is not None:
             env[k] = v
         elif k in env:
             del env[k]
+
+    if env.get("OTEL_EXPORTER_OTLP_ENDPOINT") is None:
+        if env.get("OTEL_EXPORTER_OTLP_PROTOCOL", "").lower() in ["http/protobuf", "http/json"]:
+            env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent_container_name}:{test_agent_otlp_http_port}"
+        elif env.get("OTEL_EXPORTER_OTLP_PROTOCOL", "").lower() == "grpc":
+            env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent_container_name}:{test_agent_otlp_grpc_port}"
+        else:
+            raise ValueError(
+                f"Unknown OTEL_EXPORTER_OTLP_PROTOCOL: {env.get('OTEL_EXPORTER_OTLP_PROTOCOL', 'unknown')}"
+            )
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
     ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}

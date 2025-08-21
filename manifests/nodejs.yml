@@ -1273,6 +1273,8 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
+    test_otel_logs.py:
+      Test_Otel_Logs: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: *ref_5_32_0
     test_parametric_endpoints.py:
