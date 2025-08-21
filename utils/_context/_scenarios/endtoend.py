@@ -653,7 +653,9 @@ class EndToEndScenario(DockerScenario):
             _SchemaBug(
                 endpoint="/v0.6/stats",
                 data_path=None,
-                condition=self.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby") and self.name == "TRACE_STATS_COMPUTATION",
+                condition=self.library
+                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and self.name == "TRACE_STATS_COMPUTATION",
                 ticket="APMSP-2158",
             ),
         ]
