@@ -21,7 +21,6 @@ SKIP_MERGE_SCENARIOS = {
             test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence
             will fail
         """.strip(),
-        "APPSEC_REQUEST_BLOCKING": """TODO: check if this scenario can be merged into APPSEC_BLOCKING_FULL_DENYLIST""".strip(),
         # Future example: if this scenario had multiple conflicting scenarios:
         # "ANOTHER_SCENARIO": "Different reason for another specific conflict",
     },
