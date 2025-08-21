@@ -7,6 +7,7 @@ from typing import TypedDict, NotRequired
 from types import TracebackType
 from collections.abc import Generator, Iterable
 from http import HTTPStatus
+from enum import Enum
 
 from docker.models.containers import Container
 import pytest
@@ -17,6 +18,13 @@ from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils._logger import logger
+
+
+class LogLevel(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 def _fail(message: str):
@@ -279,7 +287,7 @@ class APMLibraryClient:
 
         return HTTPStatus(r.status_code).is_success
 
-    def log_generate(self, message: str, level: str, logger_name: str, logger_type: int) -> bool:
+    def write_log(self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
         """Generate a log message with the specified parameters.
 
         Args:
@@ -293,15 +301,34 @@ class APMLibraryClient:
 
         """
         resp = self._session.post(
-            self._url("/log/generate"),
+            self._url("/log/write"),
             json={
                 "message": message,
-                "level": level,
+                "level": level.value,
                 "logger_name": logger_name,
                 "logger_type": logger_type,
             },
         )
         return HTTPStatus(resp.status_code).is_success
+
+    def flush_logs(self) -> tuple[bool, str]:
+        """Flush all OpenTelemetry logs and get provider information.
+
+        Returns:
+            tuple[bool, str]: (success, provider_info) - success status and provider information
+
+        """
+        try:
+            resp = self._session.post(
+                self._url("/log/flush"),
+                json={},
+            )
+            if HTTPStatus(resp.status_code).is_success:
+                data = resp.json()
+                return data["success"], data["provider_info"]
+            return False, f"HTTP error: {resp.status_code}"
+        except Exception as e:
+            return False, f"Error: {e!s}"
 
     def otel_trace_start_span(
         self,
@@ -600,7 +627,7 @@ class APMLibrary:
             span.end_span()
 
     def dd_flush(self) -> bool:
-        return self._client.trace_flush()
+        return self._client.trace_flush() and self._client.flush_logs()[0]
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
@@ -638,5 +665,5 @@ class APMLibrary:
         except Exception:
             return False
 
-    def log_generate(self, message: str, level: str, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
-        return self._client.log_generate(message, level, logger_name, logger_type)
+    def write_log(self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
+        return self._client.write_log(message, level, logger_name, logger_type)

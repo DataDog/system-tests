@@ -312,12 +312,11 @@ class ParametricScenario(Scenario):
         env: dict[str, str],
         volumes: dict[str, str],
         network: str,
-        host_port: int,
-        container_port: int,
+        ports: dict[str, int],
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-        logger.info(f"Run container {name} from image {image} with host port {host_port}")
+        logger.info(f"Run container {name} from image {image} with ports {ports}")
 
         try:
             container: Container = _get_client().containers.run(
@@ -326,7 +325,7 @@ class ParametricScenario(Scenario):
                 environment=env,
                 volumes=self.compute_volumes(volumes),
                 network=network,
-                ports={f"{container_port}/tcp": host_port, "4320/tcp": 4318},
+                ports=ports,
                 command=command,
                 detach=True,
             )

@@ -46,6 +46,8 @@ except ImportError:
     from ddtrace.context import Context
     from ddtrace.sampling_rule import SamplingRule
 
+from opentelemetry._logs import get_logger_provider
+
 log = logging.getLogger(__name__)
 
 spans: Dict[int, Span] = {}
@@ -723,8 +725,8 @@ class LogGenerateReturn(BaseModel):
     success: bool
 
 
-@app.post("/log/generate")
-def log_generate(args: LogGenerateArgs):
+@app.post("/log/write")
+def write_log(args: LogGenerateArgs):
     # Create a logger with the specified name
     logger = logging.getLogger(args.logger_name)
 
@@ -734,7 +736,6 @@ def log_generate(args: LogGenerateArgs):
         "INFO": logging.INFO,
         "WARNING": logging.WARNING,
         "ERROR": logging.ERROR,
-        "CRITICAL": logging.CRITICAL,
     }
 
     log_level = level_mapping.get(args.level.upper(), logging.INFO)
@@ -749,12 +750,38 @@ def log_generate(args: LogGenerateArgs):
         logger.warning(args.message)
     elif args.level.upper() == "ERROR":
         logger.error(args.message)
-    elif args.level.upper() == "CRITICAL":
-        logger.critical(args.message)
     else:
         logger.info(args.message)
 
     return LogGenerateReturn(success=True)
+
+
+class LogFlushArgs(BaseModel):
+    pass
+
+
+class LogFlushReturn(BaseModel):
+    success: bool
+    provider_info: str
+
+
+@app.post("/log/flush")
+def flush_logs(args: LogFlushArgs):
+    """Get the current OpenTelemetry logs provider and flush all logs."""
+    try:
+        # Get the current logs provider
+        logs_provider = get_logger_provider()
+        provider_info = str(type(logs_provider).__name__)
+
+        # Force flush all logs
+        if hasattr(logs_provider, "force_flush"):
+            logs_provider.force_flush()
+        elif hasattr(logs_provider, "flush"):
+            logs_provider.flush()
+
+        return LogFlushReturn(success=True, provider_info=provider_info)
+    except Exception as e:
+        return LogFlushReturn(success=False, provider_info=f"Error: {str(e)}")
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:
