@@ -46,7 +46,14 @@ runs:
           if sudo rsync -a --delete /dev/null/ "$dir/" 2>/dev/null; then
             echo "Successfully cleaned $dir"
             return 0
+          local empty_dir="/tmp/empty_rsync_dir_$$"
+          mkdir -p "$empty_dir"
+          if sudo rsync -a --delete "$empty_dir/" "$dir/" 2>/dev/null; then
+            echo "Successfully cleaned $dir"
+            rmdir "$empty_dir"
+            return 0
           else
+            rmdir "$empty_dir"
             echo "rsync failed, trying alternative method..."
 
             # Fallback to find + delete if rsync fails
