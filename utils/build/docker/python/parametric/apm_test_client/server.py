@@ -737,6 +737,9 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
 
 class OtelGetMeterArgs(BaseModel):
     name: str
+    version: Optional[str]
+    schema_url: Optional[str]
+    attributes: Optional[dict] = None
 
 
 class OtelGetMeterReturn(BaseModel):
@@ -746,7 +749,7 @@ class OtelGetMeterReturn(BaseModel):
 @app.post("/metrics/otel/get_meter")
 def otel_get_meter(args: OtelGetMeterArgs):
     if args.name not in otel_meters:
-        otel_meters[args.name] = get_meter_provider().get_meter(args.name)
+        otel_meters[args.name] = get_meter_provider().get_meter(name=args.name, version=args.version, schema_url=args.schema_url, attributes=args.attributes)
     return OtelGetMeterReturn()
 
 

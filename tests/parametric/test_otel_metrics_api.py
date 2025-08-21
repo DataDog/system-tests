@@ -32,6 +32,125 @@ DEFAULT_ENVVARS = {
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api:
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_counter_add_positive_value(self, test_agent, test_library):
+        meter_name = "parametric-api"
+        counter_name = "counter1"
+        counter_unit = "triggers"
+        counter_description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
+            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes=expected_add_attributes)
+            time.sleep(5)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        pprint.pprint(metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        assert len(metrics_data) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        resource_metrics = metrics_data[0]["resource_metrics"]
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert scope_metrics[0]["scope"]["name"] == "parametric-api"
+        assert scope_metrics[0]["scope"]["version"] == "1.0.0"
+        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+
+        assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
+
+        counter = scope_metrics[0]["metrics"][0]
+        assert counter["name"] == "counter1"
+        assert counter["unit"] == "triggers"
+        assert counter["description"] == "test_description"
+
+        assert counter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_DELTA".casefold()
+        assert counter["sum"]["is_monotonic"] == True
+
+        sum_data_point = counter["sum"]["data_points"][0]
+        assert sum_data_point["as_double"] == 2.0
+        assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+        assert "time_unix_nano" in sum_data_point
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_counter_add_zero_value(self, test_agent, test_library):
+        meter_name = "parametric-api"
+        counter_name = "counter1"
+        counter_unit = "triggers"
+        counter_description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
+            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=0, attributes=expected_add_attributes)
+            time.sleep(5)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        pprint.pprint(metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        assert len(metrics_data) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        resource_metrics = metrics_data[0]["resource_metrics"]
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert scope_metrics[0]["scope"]["name"] == "parametric-api"
+        assert scope_metrics[0]["scope"]["version"] == "1.0.0"
+        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+
+        assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
+
+        counter = scope_metrics[0]["metrics"][0]
+        assert counter["name"] == "counter1"
+        assert counter["unit"] == "triggers"
+        assert counter["description"] == "test_description"
+
+        assert counter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_DELTA".casefold()
+        assert counter["sum"]["is_monotonic"] == True
+
+        sum_data_point = counter["sum"]["data_points"][0]
+        assert sum_data_point["as_double"] == 0
+        assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+        assert "time_unix_nano" in sum_data_point
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_counter_add_negative_value(self, test_agent, test_library):
+        meter_name = "parametric-api"
+        counter_name = "counter1"
+        counter_unit = "triggers"
+        counter_description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
+            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=-1, attributes=expected_add_attributes)
+            time.sleep(5)
+
+        try:
+            metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        except ValueError as e:
+            if "Number (1) of metrics not available from test agent" not in str(e):
+                raise e
+            
+            # In this scenario, it is expected that no metrics will be reported to the test agent
+            return
+
     @pytest.mark.parametrize(
         "library_env",
         [

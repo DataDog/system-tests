@@ -457,10 +457,10 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
-    def otel_get_meter(self, name: str) -> None:
+    def otel_get_meter(self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None) -> None:
         self._session.post(
             self._url("/metrics/otel/get_meter"),
-            json={"name": name},
+            json={"name": name, "version": version, "schema_url": schema_url, "attributes": attributes},
         )
 
     def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
@@ -691,8 +691,8 @@ class APMLibrary:
             return None
         return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
 
-    def otel_get_meter(self, name: str) -> None:
-        self._client.otel_get_meter(name)
+    def otel_get_meter(self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None) -> None:
+        self._client.otel_get_meter(name, version, schema_url, attributes)
 
     def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
         self._client.otel_create_counter(meter_name, name, unit, description)

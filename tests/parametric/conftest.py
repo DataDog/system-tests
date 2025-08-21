@@ -427,7 +427,7 @@ class _TestAgentAPI:
                         self.clear()
                     return metrics
             time.sleep(0.1)
-        raise ValueError(f"Number ({metrics}) of metrics not available from test agent, got {num_received}:\n{metrics}")
+        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}:\n{metrics}")
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
