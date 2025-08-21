@@ -25,90 +25,25 @@ jobs:
       desired_execution_time:  ${{ steps.compute.outputs.desired_execution_time }}
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
-      - uses: actions/checkout@v4
-      - run:  |
-          git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
-          git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
+      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - name: Get modified files
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.sha }}
+          git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} >> modified_files.txt
           cat modified_files.txt
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
       - name: Compute impacted libraries
         id: compute
-        shell: python
-        run: |
-          import json
-          import os
-          import re
-
-          github_context = json.loads(os.environ["GITHUB_CONTEXT"])
-
-          # temporary print to see what's hapenning on differents events
-          print(json.dumps(github_context, indent=2))
-
-          libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel"
-          result = set()
-
-          # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-          # all_libraries = {"cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "java_otel", "python_otel", "nodejs_otel"}
-          all_libraries = {"cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby"}
-
-          if github_context["ref"] == "refs/heads/main":
-              print("Merge commit to main => run all libraries")
-              result |= all_libraries
-
-          elif github_context["event_name"] == "schedule":
-              print("Scheduled job => run all libraries")
-              result |= all_libraries
-
-          else:
-              pr_title = github_context["event"]["pull_request"]["title"].lower()
-              match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", pr_title)
-              if match:
-                  print(f"PR title matchs => run {match[1]}")
-                  result.add(match[1])
-              else:
-                  print(f"Inspect modified files to determine impacted libraries...")
-                  with open("modified_files.txt", "r", encoding="utf-8") as f:
-                      files = f.readlines()
-
-                  for file in files:
-                      manifest_match = re.search(rf"^manifests/({libraries}).yml", file)
-                      weblog_match = re.search(rf"^utils/build/docker/({libraries})/", file)
-                      injection_match = re.search(rf"^lib-injection/build/docker/({libraries})/", file)
-
-                      if manifest_match:
-                          result.add(manifest_match[1])
-                      elif weblog_match:
-                          result.add(weblog_match[1])
-                      elif injection_match:
-                          result.add(injection_match[1])
-
-                      if not manifest_match and not weblog_match and not injection_match:
-                          print(f"{file} may impact any library => run all of them")
-                          result |= all_libraries
-                          break
-
-          populated_result = [
-            {
-              "library": library,
-              "version": "prod",
-            }
-            for library in sorted(result)
-          ] + [
-            {
-              "library": library,
-              "version": "dev",
-            }
-            for library in sorted(result)
-            if "otel" not in library and library not in ("cpp_nginx", )
-          ]
-
-          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
-              print(f"library_matrix={json.dumps(populated_result)}", file=fh)
-              print(f"libraries_with_dev={json.dumps([item['library'] for item in populated_result if item['version'] == 'dev'])}", file=fh)
-              print(f"desired_execution_time={600 if len(result) == 1 else 3600}", file=fh)
-
+        run: python utils/scripts/compute-impacted-libraries.py -o $GITHUB_OUTPUT
         env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_PR_TITLE: ${{ github.event.pull_request.title }}
       - name: Get target branch
         uses: ./.github/actions/get_target_branch
         id: get-target-branch

@@ -10,17 +10,18 @@
 #
 # Binaries sources:
 #
-# * Agent:      Docker hub datadog/agent-dev:master-py3
-# * cpp_httpd:  Github action artifact
-# * Golang:     github.com/DataDog/dd-trace-go/v2@main
-# * .NET:       ghcr.io/datadog/dd-trace-dotnet
-# * Java:       S3
-# * PHP:        ghcr.io/datadog/dd-trace-php
-# * Node.js:    Direct from github source
-# * C++:        Direct from github source
-# * Python:     Clone  locally the githu repo
-# * Ruby:       Direct from github source
-# * WAF:        Direct from github source, but not working, as this repo is now private
+# * Agent:         Docker hub datadog/agent-dev:master-py3
+# * cpp_httpd:     Github action artifact
+# * Golang:        github.com/DataDog/dd-trace-go/v2@main
+# * .NET:          ghcr.io/datadog/dd-trace-dotnet
+# * Java:          S3
+# * PHP:           ghcr.io/datadog/dd-trace-php
+# * Node.js:       Direct from github source
+# * C++:           Direct from github source
+# * Python:        Clone locally the github repo
+# * Ruby:          Direct from github source
+# * WAF:           Direct from github source, but not working, as this repo is now private
+# * Python Lambda: Fetch from GitHub Actions artifact
 ##########################################################################################
 
 set -eu
@@ -123,7 +124,8 @@ get_github_action_artifact() {
     SLUG=$1
     WORKFLOW=$2
     BRANCH=$3
-    PATTERN=$4
+    ARTIFACT_NAME=$4
+    PATTERN=$5
 
     # query filter seems not to be working ??
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
@@ -133,8 +135,7 @@ get_github_action_artifact() {
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
     echo "Load artifact $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
-
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))).[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
     curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
@@ -188,9 +189,13 @@ if [ "$TARGET" = "java" ]; then
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-latest_snapshot}"
+    # Normalize branch name for image tag: replace '/' with '_'
+    NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+
     rm -rf *.tar.gz
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
@@ -278,7 +283,7 @@ elif [ "$TARGET" = "cpp" ]; then
 
 elif [ "$TARGET" = "cpp_httpd" ]; then
     assert_version_is_dev
-    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog.so"
+    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
@@ -318,7 +323,11 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         -H "Authorization: token $GH_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+elif [ "$TARGET" = "python_lambda" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
 
+    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
 else
     echo "Unknown target: $1"
     exit 1
