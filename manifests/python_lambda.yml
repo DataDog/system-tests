@@ -1,8 +1,43 @@
 ---
 tests/:
   appsec/:
+    api_security/:
+      test_schemas.py:
+        Test_Scanners: 8.113.0
+        Test_Schema_Request_Cookies: 8.113.0
+        Test_Schema_Request_FormUrlEncoded_Body: 8.113.0
+        Test_Schema_Request_Headers: 8.113.0
+        Test_Schema_Request_Json_Body: 8.113.0
+        Test_Schema_Request_Path_Parameters: 8.113.0
+        Test_Schema_Request_Query_Parameters: 8.113.0
+        Test_Schema_Response_Body: 8.113.0
+        Test_Schema_Response_Headers: 8.113.0
+        Test_Schema_Response_on_Block: 8.113.0
+    waf/:
+      test_blocking.py:
+        Test_Blocking: 8.113.0
     test_alpha.py:
       Test_Basic: 7.112.0
+    test_blocking_addresses.py:
+      Test_Blocking_client_ip: 8.113.0
+      Test_Blocking_request_body: 8.113.0
+      Test_Blocking_request_body_multipart: 8.113.0
+      Test_Blocking_request_cookies: 8.113.0
+      Test_Blocking_request_headers: 8.113.0
+      Test_Blocking_request_method: 8.113.0
+      Test_Blocking_request_path_params: 8.113.0
+      Test_Blocking_request_query: 8.113.0
+      Test_Blocking_request_uri: 8.113.0
+      Test_Blocking_response_headers: 8.113.0
+      Test_Blocking_response_status: 8.113.0
+      Test_Blocking_user_id: 8.113.0
+      Test_Suspicious_Request_Blocking: 8.113.0
+    test_conf.py:
+      Test_ConfigurationVariables_New_Obfuscation: 8.113.0
+    test_fingerprinting.py:
+      Test_Fingerprinting_Endpoint_Preprocessor: 8.113.0
+      Test_Fingerprinting_Header_And_Network_Preprocessor: 8.113.0
+      Test_Fingerprinting_Session_Preprocessor: 8.113.0
     test_only_python.py:
       Test_ImportError: 7.112.0
     test_reports.py:
@@ -10,6 +45,8 @@ tests/:
       Test_Info: 7.112.0
       Test_RequestHeaders: 7.112.0
       Test_StatusCode: 7.112.0
+    test_trace_tagging.py:
+      Test_TraceTaggingRules: 8.113.0
     test_traces.py:
       Test_AppSecEventSpanTags: 7.112.0
       Test_AppSecObfuscator: 7.112.0
