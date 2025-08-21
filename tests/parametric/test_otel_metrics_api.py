@@ -85,6 +85,7 @@ class Test_Otel_Metrics_Api:
         }
 
         with test_library as t:
+            t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
             t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
             t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
@@ -131,6 +132,7 @@ class Test_Otel_Metrics_Api:
         }
 
         with test_library as t:
+            t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
             t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
             t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
@@ -174,6 +176,7 @@ class Test_Otel_Metrics_Api:
         }
 
         with test_library as t:
+            t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
             t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
             t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
@@ -220,6 +223,7 @@ class Test_Otel_Metrics_Api:
         }
 
         with test_library as t:
+            t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
             t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
             t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
