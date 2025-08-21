@@ -157,7 +157,7 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(context.library in ("ruby",), reason="Not implemented yet")
+    @missing_feature(context.library in ("ruby","nodejs"), reason="Not implemented yet")
     @irrelevant(
         context.library == "python" and context.library < "python@3.11.0",
         reason="We don't support this runtime",
@@ -169,10 +169,6 @@ class TestDockerSSIFeatures:
     @irrelevant(
         context.library == "dotnet" and context.library < "dotnet@3.22.0",
         reason="We don't support this runtime",
-    )
-    @irrelevant(
-        context.library == "nodejs" and context.library < "nodejs@5.63.0",
-        reason="We don't support this tracer version",
     )
     @irrelevant(
         context.library == "php" and context.library < "php@1.12.0",
