@@ -3,6 +3,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'sinatra/json'
 
 begin
   require 'datadog/auto_instrument'
@@ -199,17 +200,22 @@ end
 
 %i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
-    if request_method == :post && params['tag_value'].include?('payload_in_response_body')
-      content_type :json
-      return { "payload": request.POST }.to_json
+    event_value = params['tag_value']
+    status_code = params['status_code']
+
+    headers_from_query = request.query_string.split('&').map { |e| e.split('=') } || []
+    headers_from_query.each do |key, value|
+      response.headers[key] = value
+    end
+
+    if request.request_method == 'POST' && event_value.include?('payload_in_response_body')
+      return json(payload: request.POST)
     end
 
     trace = Datadog::Tracing.active_trace
-    trace.set_tag('appsec.events.system_tests_appsec_event.value', params['tag_value'])
+    trace.set_tag('appsec.events.system_tests_appsec_event.value', event_value)
 
-    status params['status_code']
-    headers request.params || {}
-
+    status status_code
     'Value tagged'
   end
 end
