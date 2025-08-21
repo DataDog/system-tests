@@ -572,40 +572,32 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No tracer-flare received")
 
-    def logs(self, clear: bool = False, **kwargs: Any) -> list[Any]:
+    def logs(self) -> list[Any]:
         url = self._otlp_url("/test/session/logs")
-        resp = self._session.get(url, **kwargs)
-        if clear:
-            self.clear()
+        resp = self._session.get(url)
         return cast(list[Any], resp.json())
 
-    def wait_for_num_logs(self, num: int, clear: bool = False, wait_loops: int = 30) -> list[Any]:
+    def wait_for_num_logs(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` logs to be received from the test agent."""
         for _ in range(wait_loops):
-            logs = self.logs(clear=False)
+            logs = self.logs()
             if len(logs) == num:
-                if clear:
-                    self.clear()
                 return logs
             time.sleep(0.1)
-        raise ValueError("Number (%r) of logs not available from test agent, got %r" % (num, len(logs)))
+        raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
 
-    def metrics(self, clear: bool = False, **kwargs: Any) -> list[Any]:
-        resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
-        if clear:
-            self.clear()
+    def metrics(self) -> list[Any]:
+        resp = self._session.get(self._otlp_url("/test/session/metrics"))
         return cast(list[Any], resp.json())
 
-    def wait_for_num_metrics(self, num: int, clear: bool = False, wait_loops: int = 30) -> list[Any]:
+    def wait_for_num_metrics(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` metrics to be received from the test agent."""
         for _ in range(wait_loops):
-            metrics = self.metrics(clear=False)
+            metrics = self.metrics()
             if len(metrics) == num:
-                if clear:
-                    self.clear()
                 return metrics
             time.sleep(0.1)
-        raise ValueError("Number (%r) of metrics not available from test agent, got %r" % (num, len(metrics)))
+        raise ValueError(f"Number {num} of metrics not available from test agent, got {len(metrics)}")
 
 
 @pytest.fixture(scope="session")
@@ -682,12 +674,24 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 
 
 @pytest.fixture
+def test_agent_otlp_http_port() -> int:
+    return 4318
+
+
+@pytest.fixture
+def test_agent_otlp_grpc_port() -> int:
+    return 4317
+
+
+@pytest.fixture
 def test_agent(
     worker_id: str,
     docker_network: str,
     request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
     test_agent_log_file: TextIO,
 ) -> Generator[_TestAgentAPI, None, None]:
     env = {}
@@ -698,7 +702,14 @@ def test_agent(
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
+    core_host_port = scenarios.parametric.get_host_port(worker_id, 4600)
+    otlp_http_host_port = scenarios.parametric.get_host_port(worker_id, 4601)
+    otlp_grpc_host_port = scenarios.parametric.get_host_port(worker_id, 4602)
+    ports = {
+        f"{test_agent_port}/tcp": core_host_port,
+        f"{test_agent_otlp_http_port}/tcp": otlp_http_host_port,
+        f"{test_agent_otlp_grpc_port}/tcp": otlp_grpc_host_port,
+    }
 
     with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
@@ -706,13 +717,12 @@ def test_agent(
         command=[],
         env=env,
         volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
-        host_port=host_port,
-        container_port=test_agent_port,
+        ports=ports,
         log_file=test_agent_log_file,
         network=docker_network,
     ):
         # TODO: Avoid hardcoding the OTLP port, mark this configurable via fixtures/env vars
-        client = _TestAgentAPI("localhost", host_port, 4318, pytest_request=request)
+        client = _TestAgentAPI("localhost", core_host_port, otlp_http_host_port, pytest_request=request)
         time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
@@ -773,14 +783,14 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
+    ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
         command=apm_test_server.container_cmd,
         env=env,
-        host_port=apm_test_server.host_port,
-        container_port=apm_test_server.container_port,
+        ports=ports,
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network=docker_network,
