@@ -650,6 +650,14 @@ class EndToEndScenario(DockerScenario):
                 condition=self.library >= "php@1.8.3",
                 ticket="DEBUG-3709",
             ),
+            _SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path=None,
+                condition=self.library
+                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and self.name == "TRACE_STATS_COMPUTATION",
+                ticket="APMSP-2158",
+            ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
 

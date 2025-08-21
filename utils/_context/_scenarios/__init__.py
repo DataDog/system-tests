@@ -72,7 +72,7 @@ class _Scenarios:
         name="TRACE_STATS_COMPUTATION",
         # feature consistency is poorly respected here ...
         weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
