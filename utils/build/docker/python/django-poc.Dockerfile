@@ -1,6 +1,7 @@
 FROM datadog/system-tests:django-poc.base-v5
 
 WORKDIR /app
+WORKDIR /app
 
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/

@@ -63,7 +63,7 @@ def main() -> None:
             if user_choice is None:
                 # user let the script pick impacted libraries
                 if match:
-                    if not file.endswith(('.md', '.rdoc', '.txt')):
+                    if not file.endswith((".md", ".rdoc", ".txt")):
                         result.add(match[2])
                     # else: documentation file in library directory - don't add anything
                 else:
@@ -71,7 +71,7 @@ def main() -> None:
             else:  # noqa: PLR5501
                 # user specified a library in the PR title
                 if match:
-                    if not file.endswith(('.md', '.rdoc', '.txt')):
+                    if not file.endswith((".md", ".rdoc", ".txt")):
                         if match[2] != user_choice:
                             print(
                                 f"""File {file} is modified, and it may impact {match[2]}.
