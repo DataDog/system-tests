@@ -38,11 +38,13 @@ def _assert_custom_event_tag_absence():
     return wrapper
 
 
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
 
@@ -83,11 +85,13 @@ class Test_Blocking_user_id:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
 
@@ -121,7 +125,7 @@ class Test_Blocking_request_method:
 
     @flaky(context.library < "java@1.16.0", reason="APMRP-360")
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -139,11 +143,13 @@ class Test_Blocking_request_method:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
 
@@ -188,7 +194,7 @@ class Test_Blocking_request_uri:
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512.git/200")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -206,11 +212,13 @@ class Test_Blocking_request_uri:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
 
@@ -227,7 +235,7 @@ class Test_Blocking_request_path_params:
         self.rm_req_block2 = Test_Blocking_request_path_params.rm_req_block2
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
     def test_blocking(self):
@@ -242,7 +250,7 @@ class Test_Blocking_request_path_params:
         self.rm_req_nonblock = weblog.get("/waf/noharm?value=AiKfOeRcvG45")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /param is not implemented in the weblog (from the test_blocking test)",
     )
     def test_non_blocking(self):
@@ -255,7 +263,7 @@ class Test_Blocking_request_path_params:
         self.block_req2 = weblog.get("/tag_value/tainted_value_AiKfOeRcvG45/200")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -273,11 +281,13 @@ class Test_Blocking_request_path_params:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
 
@@ -314,7 +324,7 @@ class Test_Blocking_request_query:
         self.block_req2 = weblog.get("/tag_value/tainted_value_a1b2c3/200?foo=xtrace")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -332,11 +342,13 @@ class Test_Blocking_request_query:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
 
@@ -373,7 +385,7 @@ class Test_Blocking_request_headers:
         self.block_req2 = weblog.get("/tag_value/tainted_value_xyz/200", headers={"foo": "asldhkuqwgervf"})
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -391,11 +403,13 @@ class Test_Blocking_request_headers:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_request_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
 
@@ -432,7 +446,7 @@ class Test_Blocking_request_cookies:
         self.block_req2 = weblog.get("/tag_value/tainted_value_cookies/200", cookies={"foo": "jdfoSDGFkivRG_234"})
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking  ,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking_before(self):
@@ -536,13 +550,15 @@ class Test_Blocking_request_body_multipart:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
+@features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_response_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
-@features.appsec_response_blocking
-@features.envoy_external_processing
 @missing_feature(
-    context.scenario is scenarios.external_processing_blocking,
+    context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
     reason="The endpoint /tag_value is not implemented in the weblog",
 )
 class Test_Blocking_response_status:
@@ -559,7 +575,7 @@ class Test_Blocking_response_status:
         self.rm_req_block = Test_Blocking_response_status.rm_req_block
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking(self):
@@ -575,7 +591,7 @@ class Test_Blocking_response_status:
         }
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_non_blocking(self):
@@ -593,7 +609,7 @@ class Test_Blocking_response_status:
     )
     @missing_feature(context.library == "golang", reason="No blocking on server.response.*")
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /finger_print is not implemented in the weblog",
     )
     def test_not_found(self):
@@ -604,11 +620,13 @@ class Test_Blocking_response_status:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
-@features.appsec_response_blocking
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.appsec_response_blocking
+@scenarios.external_processing_blocking
+@scenarios.stream_processing_offload_blocking
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
-@scenarios.external_processing_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
 
@@ -622,7 +640,7 @@ class Test_Blocking_response_headers:
             self.rm_req_block2 = weblog.get("/tag_value/anything/200?content-language=krypton")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_blocking(self):
@@ -637,7 +655,7 @@ class Test_Blocking_response_headers:
         self.rm_req_nonblock2 = weblog.get("/tag_value/anything/200?content-language=fr")
 
     @missing_feature(
-        context.scenario is scenarios.external_processing_blocking,
+        context.scenario is scenarios.external_processing_blocking or context.scenario is scenarios.stream_processing_offload_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
     def test_non_blocking(self):

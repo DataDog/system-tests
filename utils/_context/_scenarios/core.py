@@ -47,6 +47,7 @@ class _ScenarioGroups:
     docker_ssi = ScenarioGroup()
     essentials = ScenarioGroup()
     external_processing = ScenarioGroup()
+    stream_processing_offload = ScenarioGroup()
     remote_config = ScenarioGroup()
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
@@ -83,6 +84,7 @@ VALID_CI_WORKFLOWS = {
     "testthetest",
     "dockerssi",
     "externalprocessing",
+    "streamprocessingoffload"
 }
 
 
