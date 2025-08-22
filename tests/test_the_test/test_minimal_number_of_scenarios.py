@@ -1,3 +1,4 @@
+import itertools
 import json
 import logging
 from datetime import datetime, UTC
@@ -99,8 +100,9 @@ def test_minimal_number_of_scenarios():
         normalized = {}
         for key, value in env_dict.items():
             if key not in excluded_vars:
-                # Convert None values to empty string for consistent comparison
-                normalized[key] = str(value) if value is not None else ""
+                # Skip None values as they indicate the variable should not be set
+                if value is not None:
+                    normalized[key] = str(value)
 
         return normalized
 
@@ -159,76 +161,72 @@ def test_minimal_number_of_scenarios():
     potential_merges = []
 
     # Compare each scenario with every other scenario
-    for i, scenario_a in enumerate(endtoend_scenarios):
-        for j, scenario_b in enumerate(endtoend_scenarios):
-            if i >= j:  # Skip self-comparison and duplicate pairs
-                continue
+    for scenario_a, scenario_b in itertools.combinations(endtoend_scenarios, 2):
+        # Skip scenario pairs marked to skip merge
+        merge_blocked, block_reason = is_merge_blocked(scenario_a.name, scenario_b.name)
+        if merge_blocked:
+            continue
 
-            # Skip scenario pairs marked to skip merge
-            merge_blocked, block_reason = is_merge_blocked(scenario_a.name, scenario_b.name)
-            if merge_blocked:
-                continue
+        # LEVEL 1: Check if scenarios are completely equivalent using comprehensive comparison
+        scenarios_equivalent = scenarios_are_equivalent(scenario_a, scenario_b)
 
-            # LEVEL 1: Check if scenarios are completely equivalent using comprehensive comparison
-            scenarios_equivalent = scenarios_are_equivalent(scenario_a, scenario_b)
+        # LEVEL 2: Check if they have identical environment variables
+        # Get and normalize environment variables for both scenarios
+        weblog_env_a = normalize_env(scenario_a.weblog_container.environment)
+        agent_env_a = normalize_env(scenario_a.agent_container.environment)
 
-            # LEVEL 2: Check if they have identical environment variables
-            # Get and normalize environment variables for both scenarios
-            weblog_env_a = normalize_env(scenario_a.weblog_container.environment)
-            agent_env_a = normalize_env(scenario_a.agent_container.environment)
+        weblog_env_b = normalize_env(scenario_b.weblog_container.environment)
+        agent_env_b = normalize_env(scenario_b.agent_container.environment)
 
-            weblog_env_b = normalize_env(scenario_b.weblog_container.environment)
-            agent_env_b = normalize_env(scenario_b.agent_container.environment)
+        # Check if both weblog and agent environments are identical
+        weblog_envs_match = weblog_env_a == weblog_env_b
+        agent_envs_match = agent_env_a == agent_env_b
+        envs_identical = weblog_envs_match and agent_envs_match
 
-            # Check if both weblog and agent environments are identical
-            weblog_envs_match = weblog_env_a == weblog_env_b
-            agent_envs_match = agent_env_a == agent_env_b
-            envs_identical = weblog_envs_match and agent_envs_match
+        # LEVEL 3: Check if one scenario's weblog_env can be included in another's
+        can_be_included, smaller_scenario, larger_scenario = can_scenario_be_included(scenario_a, scenario_b)
 
-            # LEVEL 3: Check if one scenario's weblog_env can be included in another's
-            can_be_included, smaller_scenario, larger_scenario = can_scenario_be_included(scenario_a, scenario_b)
+        # FAIL CONDITIONS:
+        # 1. LEVEL 1 + LEVEL 2: equivalent configs AND identical environment variables (MUST FAIL)
+        if scenarios_equivalent and envs_identical:
+            pytest.fail(
+                f"Scenario '{scenario_a.name}' can be merged into scenario '{scenario_b.name}' "
+                f"because they have equivalent configurations AND identical environment variables:\n"
+                f"Weblog env: {weblog_env_a}\n"
+                f"Agent env: {agent_env_a}"
+            )
 
-            # FAIL CONDITIONS:
-            # 1. LEVEL 1 + LEVEL 2: equivalent configs AND identical environment variables (MUST FAIL)
-            if scenarios_equivalent and envs_identical:
-                pytest.fail(
-                    f"Scenario '{scenario_a.name}' can be merged into scenario '{scenario_b.name}' "
-                    f"because they have equivalent configurations AND identical environment variables:\n"
-                    f"Weblog env: {weblog_env_a}\n"
-                    f"Agent env: {agent_env_a}"
-                )
+        # 2. LEVEL 1 + LEVEL 3: equivalent configs AND one can be included in the other (REPORT ONLY)
+        if scenarios_equivalent and can_be_included:
+            # Get original weblog_env from constructor (not final processed environment)
+            smaller_original_env = (
+                getattr(scenario_a, "weblog_env", None)
+                if scenario_a.name == smaller_scenario
+                else getattr(scenario_b, "weblog_env", None)
+            )
+            larger_original_env = (
+                getattr(scenario_a, "weblog_env", None)
+                if scenario_a.name == larger_scenario
+                else getattr(scenario_b, "weblog_env", None)
+            )
 
-            # 2. LEVEL 1 + LEVEL 3: equivalent configs AND one can be included in the other (REPORT ONLY)
-            if scenarios_equivalent and can_be_included:
-                # Get original weblog_env from constructor (not final processed environment)
-                smaller_original_env = (
-                    getattr(scenario_a, "weblog_env", None)
-                    if scenario_a.name == smaller_scenario
-                    else getattr(scenario_b, "weblog_env", None)
-                )
-                larger_original_env = (
-                    getattr(scenario_a, "weblog_env", None)
-                    if scenario_a.name == larger_scenario
-                    else getattr(scenario_b, "weblog_env", None)
-                )
+            # Calculate what new variables would be inserted
+            smaller_env = smaller_original_env or {}
+            larger_env = larger_original_env or {}
 
-                # Calculate what new variables would be inserted
-                smaller_env = smaller_original_env or {}
-                larger_env = larger_original_env or {}
+            # Variables that would be added to the larger scenario
+            new_variables_to_insert = {key: value for key, value in smaller_env.items() if key not in larger_env}
 
-                # Variables that would be added to the larger scenario
-                new_variables_to_insert = {key: value for key, value in smaller_env.items() if key not in larger_env}
-
-                potential_merges.append(
-                    {
-                        "smaller_scenario": smaller_scenario,
-                        "larger_scenario": larger_scenario,
-                        "reason": "equivalent configurations with compatible weblog_env (subset relationship)",
-                        "new_variables_to_insert": new_variables_to_insert,
-                        "smaller_weblog_env": smaller_env,
-                        "larger_weblog_env": larger_env,
-                    }
-                )
+            potential_merges.append(
+                {
+                    "smaller_scenario": smaller_scenario,
+                    "larger_scenario": larger_scenario,
+                    "reason": "equivalent configurations with compatible weblog_env (subset relationship)",
+                    "new_variables_to_insert": new_variables_to_insert,
+                    "smaller_weblog_env": smaller_env,
+                    "larger_weblog_env": larger_env,
+                }
+            )
 
     # Generate report file with potential merges
     if potential_merges:
