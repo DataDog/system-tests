@@ -32,6 +32,8 @@ jobs:
       secrets: inherit
       permissions:
         contents: read
+        id-token: write
+        packages: write
       with:
         library: java
         binaries_artifact: binaries
