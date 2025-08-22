@@ -12,9 +12,11 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "c
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RetainTraces:
@@ -56,9 +58,11 @@ class Test_RetainTraces:
         interfaces.library.validate_spans(self.r, validator=validate_appsec_event_span_tags)
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
@@ -101,7 +105,7 @@ class Test_AppSecEventSpanTags:
         reason="APPSEC-57432",  # Response headers collection not supported yet
     )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
-    @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
+    @irrelevant(context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.
@@ -138,10 +142,12 @@ class Test_AppSecEventSpanTags:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2365948382/Sensitive+Data+Obfuscation")
+@features.envoy_external_processing
+@features.haproxy_stream_processing_offload
 @features.sensitive_data_obfuscation
 @features.security_events_metadata
-@features.envoy_external_processing
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
@@ -293,9 +299,11 @@ class Test_AppSecObfuscator:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
@@ -305,7 +313,7 @@ class Test_CollectRespondHeaders:
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
     @missing_feature(
-        context.scenario is scenarios.external_processing,
+        context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload,
         reason="The endpoint /headers is not implemented in the weblog",
     )
     @bug(library="python_lambda", reason="APPSEC-58202")
@@ -323,9 +331,11 @@ class Test_CollectRespondHeaders:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
@@ -357,9 +367,11 @@ class Test_CollectDefaultRequestHeader:
 
 
 @rfc("https://docs.google.com/document/d/1xf-s6PtSr6heZxmO_QLUtcFzY_X_rT94lRXNq6-Ghws/edit?pli=1")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:

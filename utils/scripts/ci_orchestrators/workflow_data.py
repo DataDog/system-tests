@@ -561,6 +561,7 @@ if __name__ == "__main__":
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
         "externalprocessing": [],
+        "streamprocessingoffload": [],
         "graphql": ["GRAPHQL_APPSEC"],
         "libinjection": [
             "K8S_LIB_INJECTION",
