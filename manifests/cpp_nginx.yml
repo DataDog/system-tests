@@ -187,4 +187,5 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
