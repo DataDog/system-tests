@@ -31,15 +31,27 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
             "sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true",
             "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true",
             "sudo journalctl -xeu docker > /var/log/datadog_weblog/journalctl_docker.log 2>&1 || true",
-            # Additional logs requested
-            "sudo cat /var/log/cloud-init.log > /var/log/datadog_weblog/cloud-init.log 2>&1 || true",
-            "sudo cat /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>&1 || true",
+            # Additional logs requested - using different strategies for active vs static log files
+            "sudo cp /var/log/cloud-init.log /var/log/datadog_weblog/cloud-init.log 2>/dev/null || true",
+            # For highly active log files, use tail to get a snapshot without race conditions
+            "sudo tail -n +1 /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>/dev/null || true",
             "sudo dmesg > /var/log/datadog_weblog/dmesg.log 2>&1 || true",
             "sudo systemctl list-dependencies docker.service > /var/log/datadog_weblog/docker_list_dependencies.log 2>&1 || true",
             "sudo systemctl list-timers --all > /var/log/datadog_weblog/system.timers.log 2>&1 || true",
             "sudo crontab -l > /var/log/datadog_weblog/crontab.log 2>&1 || true",
-            "sudo cat /var/log/apt/history.log  > /var/log/datadog_weblog/apt.log 2>&1 || true",
-            "sudo cat /var/log/yum.log  > /var/log/datadog_weblog/yum.log 2>&1 || true",
+            "sudo cp /var/log/apt/history.log /var/log/datadog_weblog/apt.log 2>/dev/null || true",
+            "sudo cp /var/log/yum.log /var/log/datadog_weblog/yum.log 2>/dev/null || true",
+            # Use journalctl for auth events instead of direct auth.log to avoid race conditions
+            "sudo journalctl --unit=ssh --no-pager > /var/log/datadog_weblog/auth_ssh.log 2>/dev/null || true",
+            "sudo journalctl _COMM=sudo --no-pager > /var/log/datadog_weblog/auth_sudo.log 2>/dev/null || true",
+            "sudo journalctl --grep='authentication' --no-pager > /var/log/datadog_weblog/auth_events.log 2>/dev/null || true",
+            # Ensure all data is written to disk
+            "sudo sync",
+            # Change ownership of all files in datadog_weblog to current user for SFTP access
+            "sudo chown -R $USER:$USER /var/log/datadog_weblog/ || true",
+            "sudo chmod -R 644 /var/log/datadog_weblog/* || true",
+            # Final sync and brief pause to ensure filesystem stability
+            "sudo sync && sleep 1 || true",
         ]
 
         for cmd in commands_to_run:
@@ -92,7 +104,11 @@ def _download_folder_recursive(sftp, remote_dir, local_dir):
             else:
                 # Download file
                 logger.info(f"Downloading file: {remote_path} -> {local_path}")
-                sftp.get(remote_path, str(local_path))
+                try:
+                    sftp.get(remote_path, str(local_path))
+                except Exception as file_err:
+                    logger.error(f"Failed to download file {remote_path}: {file_err}")
+                    logger.info("Continuing with next file...")
 
     except Exception as e:
         logger.error(f"Error downloading from {remote_dir}")

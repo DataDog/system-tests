@@ -15,6 +15,7 @@ provision_steps:
   - prepare-docker # Install docker
   - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
   - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
+  - snoopy-debug # Install snoopy to debug the VM commands
   - pre-install-installer # we install only the installer and we cached it. The goal is to force download the required deps for the installer and cache them
   - install-installer # Install the installer
 
@@ -34,7 +35,11 @@ amazon-ecr-credential-helper:
 patch-docker-daemon:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
-  
+
+snoopy-debug:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject/snoopy-debug.yml
+
 pre-install-installer:
   cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_pre_installer_manual.yml
