@@ -1194,9 +1194,12 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting:
+    Test_GraphQLOperationErrorReporting:
       '*': missing_feature
       flask-poc: v3.1.0
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
+      flask-poc: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0

@@ -822,11 +822,16 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting:
+    Test_GraphQLOperationErrorReporting:
       '*': irrelevant
       gqlgen: v1.73.0
       graph-gophers: v1.73.0
       graphql-go: v1.73.0
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
+      gqlgen: missing_feature
+      graph-gophers: missing_feature
+      graphql-go: missing_feature
   test_identify.py:
     Test_Basic: v1.37.0
     Test_Propagate: v1.48.0-rc.1
