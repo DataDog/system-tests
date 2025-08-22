@@ -6,6 +6,7 @@ from typing import Any
 
 from aws_lambda_powertools.event_handler import APIGatewayRestResolver
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
+from aws_lambda_powertools.shared.cookies import Cookie
 from aws_lambda_powertools.event_handler import Response
 
 import datadog_lambda
@@ -69,6 +70,19 @@ def waf_params(path: str = ""):
     )
 
 
+MAGIC_SESSION_KEY = "random_session_id"
+
+
+@app.get("/session/new")
+def session_new():
+    return Response(
+        status_code=200,
+        content_type="text/plain",
+        body=MAGIC_SESSION_KEY,
+        cookies=[Cookie(name="session_id", value=MAGIC_SESSION_KEY)],
+    )
+
+
 @app.get("/tag_value/<tag_value>/<status_code>")
 @app.route("/tag_value/<tag_value>/<status_code>", method="OPTIONS")
 def tag_value(tag_value: str, status_code: int):
@@ -80,6 +94,27 @@ def tag_value(tag_value: str, status_code: int):
         content_type="text/plain",
         body="Value tagged",
         headers=app.current_event.query_string_parameters,
+    )
+
+
+_TRACK_METADATA = {
+    "metadata0": "value0",
+    "metadata1": "value1",
+}
+
+
+_TRACK_USER = "system_tests_user"
+
+
+@app.get("/user_login_success_event")
+def track_user_login_success_event():
+    appsec_trace_utils.track_user_login_success_event(
+        tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
+    )
+    return Response(
+        status_code=200,
+        content_type="text/plain",
+        body="OK",
     )
 
 
