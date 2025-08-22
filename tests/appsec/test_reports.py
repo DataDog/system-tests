@@ -64,9 +64,11 @@ class Test_Info:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_RequestHeaders:
@@ -104,9 +106,11 @@ class Test_RequestHeaders:
         interfaces.library.add_appsec_reported_header(self.r, "true-client-ip")
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_TagsFromRule:
@@ -133,9 +137,11 @@ class Test_TagsFromRule:
             assert "category" in trigger["rule"]["tags"]
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
@@ -163,9 +169,11 @@ def _get_appsec_triggers(request):
     return triggers
 
 
-@features.security_events_metadata
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.security_events_metadata
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 @scenarios.appsec_lambda_default
 class Test_AttackTimestamp:

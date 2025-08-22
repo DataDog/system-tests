@@ -27,9 +27,11 @@ def validate_no_leak(needle, whitelist_pattern=None):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2490990623/QueryString+-+Sensitive+Data+Obfuscation")
-@features.library_scrubbing
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.library_scrubbing
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_UrlQuery:
     """PII values in query parameter are all removed"""
@@ -103,9 +105,11 @@ class Test_UrlField:
 
 
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
 @features.library_scrubbing
-@scenarios.default
 @scenarios.external_processing
+@scenarios.stream_processing_offload
+@scenarios.default
 class Test_EnvVar:
     """Environnement variables are not leaked"""
 
