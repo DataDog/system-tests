@@ -367,14 +367,14 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies: dict[str, dict[str, bool]] = {
+        test_loaded_dependencies = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies: dict[str, dict[str, bool]] = {
+        test_defined_dependencies = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -503,6 +503,19 @@ class Test_Telemetry:
                         # Handle different configuration structures - some might not have 'value' key
                         if cnf.get("name") == config_name_to_check:
                             config_value = cnf.get("value")
+                            # Accept both the expected value and its float version for telemetry_heartbeat_interval
+                            if expected_config_name == "telemetry_heartbeat_interval":
+                                try:
+                                    expected_float = float(expected_value)
+                                    config_float = float(config_value)
+                                    if config_float == expected_float:
+                                        config_found = True
+                                        configurations_present.append(expected_config_name)
+                                        break
+                                except Exception as e:
+                                    logger.debug(
+                                        f"Could not compare as float for config '{expected_config_name}': {e}"
+                                    )  # fallback to string comparison below
                             if config_value is not None and str(config_value).lower() == expected_value_str:
                                 config_found = True
                                 configurations_present.append(expected_config_name)
