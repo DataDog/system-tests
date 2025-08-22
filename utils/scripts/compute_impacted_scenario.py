@@ -190,6 +190,7 @@ def main() -> None:
                         scenario_groups.end_to_end,
                         scenario_groups.open_telemetry,
                         scenario_groups.external_processing,
+                        scenario_groups.stream_processing_offload
                     ],
                     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,
                     r"utils/scripts/ai/.*": None,
