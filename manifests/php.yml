@@ -552,6 +552,8 @@ tests/:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
+    test_otel_metrics_api.py:
+      Test_Otel_Metrics_Api: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:

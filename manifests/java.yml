@@ -2052,6 +2052,8 @@ tests/:
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.35.2
+    test_otel_metrics_api.py:
+      Test_Otel_Metrics_Api: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:

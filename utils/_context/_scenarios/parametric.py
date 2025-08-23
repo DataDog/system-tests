@@ -72,7 +72,9 @@ class APMLibraryTestServer:
     container_build_context: str = "."
 
     container_port: int = 8080
+    container_otlp_http_port: int = 8081 # This doesn't have an OTLP port but whatever, refactor later
     host_port: int | None = None  # Will be assigned by get_host_port()
+    host_otlp_http_port: int | None = None  # Will be assigned by get_host_port() # This doesn't have an OTLP port but whatever, refactor later
 
     env: dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: dict[str, str] = dataclasses.field(default_factory=dict)
@@ -81,7 +83,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -313,7 +315,9 @@ class ParametricScenario(Scenario):
         volumes: dict[str, str],
         network: str,
         host_port: int,
+        host_otlp_http_port: int,
         container_port: int,
+        container_otlp_http_port: int,
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
@@ -326,7 +330,7 @@ class ParametricScenario(Scenario):
                 environment=env,
                 volumes=self.compute_volumes(volumes),
                 network=network,
-                ports={f"{container_port}/tcp": host_port},
+                ports={f"{container_port}/tcp": host_port, f"{container_otlp_http_port}/tcp": host_otlp_http_port},
                 command=command,
                 detach=True,
             )
@@ -364,7 +368,7 @@ def python_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
-RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-api==1.34.1 opentelemetry-exporter-otlp==1.34.1
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
