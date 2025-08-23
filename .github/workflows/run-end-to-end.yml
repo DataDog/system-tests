@@ -177,6 +177,14 @@ jobs:
     - name: Run GRAPHQL_APPSEC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
+    - name: Run GRAPHQL_OPERATION_VARIABLES scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_OPERATION_VARIABLES"')
+      run: ./run.sh GRAPHQL_OPERATION_VARIABLES
+    - name: Run GRAPHQL_OPERATION_VARIABLES_DENYLIST scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_OPERATION_VARIABLES_DENYLIST"')
+      run: ./run.sh GRAPHQL_OPERATION_VARIABLES_DENYLIST
+
+
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6

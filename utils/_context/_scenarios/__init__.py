@@ -197,10 +197,40 @@ class _Scenarios:
             "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
         },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
-        doc="AppSec tests for GraphQL integrations",
+        doc="AppSec and GraphQL tests for GraphQL integrations",
         github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.end_to_end],
     )
+
+    # GraphQL operation variables testing scenarios with different configurations
+    graphql_operation_variables = EndToEndScenario(
+        "GRAPHQL_OPERATION_VARIABLES",
+        weblog_env={
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+            "DD_TRACE_GRAPHQL_CAPTURE_VARIABLES": (
+                "GetUser:intParam,invalid:format,GetUser:booleanParam,malformed, "
+                "SearchUsers:stringParam ,GetUserStats:idParam,TestCustomType:customParam"
+            ),
+            "DD_TRACE_GRAPHQL_CAPTURE_VARIABLES_EXCEPT": "GetUser:stringParam,invalid:format:extra",
+        },
+        doc="GraphQL operation variables capture testing",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.end_to_end],
+    )
+
+    graphql_operation_variables_denylist = EndToEndScenario(
+        "GRAPHQL_OPERATION_VARIABLES_DENYLIST",
+        weblog_env={
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+            "DD_TRACE_GRAPHQL_CAPTURE_VARIABLES_EXCEPT": (
+                "excludeStringParam:stringParam,invalid:format, " "excludeIntParam:intParam ,malformed:value"
+            ),
+        },
+        doc="GraphQL operation variables capture testing with inverted matching",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.end_to_end],
+    )
+
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},

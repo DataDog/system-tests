@@ -2506,5 +2506,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
+    @staticmethod
+    def graphql_operation_variables(test_object):
+        """Capture GraphQL Operation Variables
+
+        https://feature-parity.us1.prod.dog/#/?feature=486
+        """
+        return _mark_test_object(test_object, feature_id=486, owner=_Owner.idm)
+
 
 features = _Features()

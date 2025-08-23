@@ -561,7 +561,7 @@ if __name__ == "__main__":
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
         "externalprocessing": [],
-        "graphql": ["GRAPHQL_APPSEC"],
+        "graphql": ["GRAPHQL_APPSEC", "GRAPHQL_OPERATION_VARIABLES", "GRAPHQL_OPERATION_VARIABLES_DENYLIST"],
         "libinjection": [
             "K8S_LIB_INJECTION",
             "K8S_LIB_INJECTION_NO_AC",
