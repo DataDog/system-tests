@@ -540,7 +540,8 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
-    @missing_feature(context.library in ("java", "nodejs"), reason="Not implemented")
+    @missing_feature(context.library == "nodejs", reason="Not implemented")
+    @missing_feature(context.library <= "java@v1.53.0-SNAPSHOT", reason="Not implemented")
     @pytest.mark.parametrize(
         ("local_cfg", "library_env", "fleet_cfg", "fleet_config_id"),
         [
@@ -577,6 +578,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
+        print("MTOFF: configurations" + str(configurations))
         # Configuration set via fleet config should have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
         telemetry_item = configurations[apm_telemetry_name]
