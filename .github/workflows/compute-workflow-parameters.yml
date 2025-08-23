@@ -168,6 +168,7 @@ jobs:
       env:
         LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
