@@ -783,6 +783,62 @@ def otel_counter_add(args: OtelCounterAddArgs):
     return OtelCounterAddReturn()
 
 
+class OtelCreateGaugeArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateGaugeReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_gauge")
+def otel_create_gauge(args: OtelCreateGaugeArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    gauge = meter.create_gauge(args.name, args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "gauge", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = gauge
+    return OtelCreateGaugeReturn()
+
+
+class OtelGaugeRecordArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: float
+    attributes: dict
+
+
+class OtelGaugeRecordReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/gauge_record")
+def otel_gauge_record(args: OtelGaugeRecordArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "gauge", args.unit, args.description]
+    )
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+
+    gauge = otel_meter_instruments[instrument_key]
+    gauge.set(args.value, args.attributes)
+    return OtelGaugeRecordReturn()
+
+
 def get_ddtrace_version() -> Tuple[int, int, int]:
     return parse_version(getattr(ddtrace, "__version__", ""))
 
