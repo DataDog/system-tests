@@ -31,6 +31,13 @@ DEFAULT_ENVVARS = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
+def find_metric_by_name(scope_metrics: list[dict], name: str):
+    for scope_metric in scope_metrics:
+        for metric in scope_metric["metrics"]:
+            if metric["name"] == name:
+                return metric
+    raise ValueError(f"Metric with name {name} not found")
+
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api:
@@ -192,6 +199,107 @@ class Test_Otel_Metrics_Api:
 
         sum_data_point = counter["sum"]["data_points"][0]
         assert sum_data_point["as_double"] == non_negative_value + second_non_negative_value
+        assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+        assert "time_unix_nano" in sum_data_point
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_updowncounter_add_value(self, test_agent, test_library, n):
+        meter_name = "parametric-api"
+        name = f"updowncounter1-{n}"
+        unit = "triggers"
+        description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_updowncounter(meter_name, name, unit, description)
+            t.otel_updowncounter_add(meter_name, name, unit, description, n, expected_add_attributes)
+            time.sleep(0.5)
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert scope_metrics[0]["scope"]["name"] == "parametric-api"
+        assert scope_metrics[0]["scope"]["version"] == "1.0.0"
+        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+
+        assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
+
+        updowncounter = find_metric_by_name(scope_metrics, name)
+        assert updowncounter["name"] == name
+        assert updowncounter["unit"] == unit
+        assert updowncounter["description"] == description
+
+        assert updowncounter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_CUMULATIVE".casefold()
+        assert not updowncounter["sum"].get("is_monotonic")
+
+        sum_data_point = updowncounter["sum"]["data_points"][0]
+        assert sum_data_point["as_double"] == n
+        assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+        assert "time_unix_nano" in sum_data_point
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=-2**32, max_value=2**32), st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_updowncounter_add_multiple_values(self, test_agent, test_library, first_value, second_value):
+        meter_name = "parametric-api"
+        name = f"updowncounter1-{first_value}-{second_value}"
+        unit = "triggers"
+        description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_updowncounter(meter_name, name, unit, description)
+            t.otel_updowncounter_add(meter_name, name, unit, description, first_value, expected_add_attributes)
+            t.otel_updowncounter_add(meter_name, name, unit, description, second_value, expected_add_attributes)
+            time.sleep(0.5)
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert scope_metrics[0]["scope"]["name"] == "parametric-api"
+        assert scope_metrics[0]["scope"]["version"] == "1.0.0"
+        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+
+        assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
+
+        updowncounter = find_metric_by_name(scope_metrics, name)
+        assert updowncounter["name"] == name
+        assert updowncounter["unit"] == unit
+        assert updowncounter["description"] == description
+
+        assert updowncounter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_CUMULATIVE".casefold()
+        assert not updowncounter["sum"].get("is_monotonic")
+
+        sum_data_point = updowncounter["sum"]["data_points"][0]
+        assert sum_data_point["as_double"] == first_value + second_value
         assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
         assert "time_unix_nano" in sum_data_point
 

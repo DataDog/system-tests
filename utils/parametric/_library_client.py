@@ -420,6 +420,18 @@ class APMLibraryClient:
             json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
         )
 
+    def otel_create_updowncounter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_updowncounter"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_updowncounter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None) -> None:
+        self._session.post(
+            self._url("/metrics/otel/updowncounter_add"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
+        )
+
     def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
         self._session.post(
             self._url("/metrics/otel/create_gauge"),
@@ -650,6 +662,12 @@ class APMLibrary:
 
     def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
         self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_updowncounter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_updowncounter(meter_name, name, unit, description)
+
+    def otel_updowncounter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
+        self._client.otel_updowncounter_add(meter_name, name, unit, description, value, attributes)
 
     def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
         self._client.otel_create_gauge(meter_name, name, unit, description)
