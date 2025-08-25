@@ -142,6 +142,7 @@ jobs:
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
 
   lib_injection:
     needs:
@@ -260,3 +261,24 @@ jobs:
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+
+  consolidate_artifacts:
+    name: Consolidate artifacts
+    needs:
+      - run_end_to_end
+      - parametric
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download end-to-end logs artifact
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: false
+          pattern: temporary_lightweight_reports_*_${{ needs.compute_parameters.outputs.unique_id }}
+      - run: ls -la
+      - name: Upload light report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lightweight_reports_${{ inputs.library }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ needs.compute_parameters.outputs.unique_id }}
+          path: temporary_lightweight_reports_*
+          retention-days: ${{ inputs.artifact_retention_days }}
