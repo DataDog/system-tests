@@ -2511,7 +2511,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=483
         """
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
-    
+
     @staticmethod
     def haproxy_stream_processing_offload(test_object):
         """Support for HAProxy Stream Processing Offload

@@ -1099,7 +1099,9 @@ class _Scenarios:
         name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
         doc="HAProxy + stream processing offload agent + blocking rule file",
         stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
-        stream_processing_offload_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        stream_processing_offload_volumes={
+            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
+        },
     )
 
     ipv6 = IPV6Scenario("IPV6")

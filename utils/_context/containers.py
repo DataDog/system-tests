@@ -1541,6 +1541,7 @@ class ExternalProcessingContainer(TestedContainer):
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
 
+
 class HAProxyContainer(TestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         from utils import weblog
@@ -1550,9 +1551,15 @@ class HAProxyContainer(TestedContainer):
             name="haproxy",
             host_log_folder=host_log_folder,
             volumes={
-                "./tests/stream_processing_offload/haproxy.cfg": {"bind": "/usr/local/etc/haproxy/haproxy.cfg", "mode": "ro"},
+                "./tests/stream_processing_offload/haproxy.cfg": {
+                    "bind": "/usr/local/etc/haproxy/haproxy.cfg",
+                    "mode": "ro",
+                },
                 "./tests/stream_processing_offload/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
-                "./tests/stream_processing_offload/datadog_aap_blocking_response.lua": {"bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua", "mode": "ro"},
+                "./tests/stream_processing_offload/datadog_aap_blocking_response.lua": {
+                    "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
+                    "mode": "ro",
+                },
             },
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
@@ -1563,6 +1570,7 @@ class HAProxyContainer(TestedContainer):
                 "retries": 10,
             },
         )
+
 
 class StreamProcessingOffloadContainer(TestedContainer):
     library: ComponentVersion
