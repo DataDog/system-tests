@@ -5,6 +5,7 @@ from functools import partial
 import enum
 from types import FunctionType, MethodType
 from typing import Any
+from fnmatch import fnmatchcase
 
 import pytest
 import semantic_version as semver
@@ -341,9 +342,10 @@ def _resolve_declaration(released_declaration: str | dict[str, str]) -> str | No
         if context.weblog_variant in released_declaration:
             return released_declaration[context.weblog_variant]
 
-        if "*" in released_declaration:
-            return released_declaration["*"]
+        for variant, declaration in released_declaration.items():
+            if fnmatchcase(context.weblog_variant, variant):
+                return declaration
 
-        return None
+        return None # _DecoratorType.MISSING_FEATURE
 
     raise TypeError(f"Unsuported release info: {released_declaration}")
