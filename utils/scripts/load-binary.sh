@@ -128,17 +128,17 @@ get_github_action_artifact() {
     PATTERN=$5
 
     # query filter seems not to be working ??
-    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
+    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
     echo "Load artifact $HTML_URL"
-    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
     ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))).[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
+    curl -H "Authorization: token $GITHUB_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
@@ -152,14 +152,14 @@ get_github_release_asset() {
     SLUG=$1
     PATTERN=$2
 
-    release=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
+    release=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
 
     name=$(echo $release | jq -r ".assets[].name | select(test(\"$PATTERN\"))")
     url=$(echo $release | jq -r ".assets[].browser_download_url | select(test(\"$PATTERN\"))")
 
     echo "Load $url"
 
-    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url
+    curl -H "Authorization: token $GITHUB_TOKEN" --output $name -L $url
 }
 
 if test -f ".env"; then
@@ -169,11 +169,10 @@ fi
 TARGET=$1
 VERSION=${2:-'dev'}
 
-GITHUB_TOKEN="${GITHUB_TOKEN:-}"  # legacy
-GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GITHUB_AUTH_HEADER=()
-if [ -n "$GH_TOKEN" ]; then
-  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GH_TOKEN")
+if [ -n "$GITHUB_TOKEN" ]; then
+  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GITHUB_TOKEN")
 fi
 
 echo "Load $VERSION binary for $TARGET"
@@ -195,6 +194,11 @@ elif [ "$TARGET" = "dotnet" ]; then
     NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
 
     rm -rf *.tar.gz
+    if [ -n "$GITHUB_TOKEN" ]; then
+        echo "Log to GHCR with token"
+        echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
+    fi
+
     ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
@@ -311,7 +315,7 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
     curl --silent \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
@@ -320,7 +324,7 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
     curl --fail --output "waf_rule_set.json" \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
 elif [ "$TARGET" = "python_lambda" ]; then
