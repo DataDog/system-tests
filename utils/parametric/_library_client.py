@@ -475,6 +475,18 @@ class APMLibraryClient:
             json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
         )
 
+    def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_gauge"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_gauge_record(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None) -> None:
+        self._session.post(
+            self._url("/metrics/otel/gauge_record"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
+        )
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -699,6 +711,12 @@ class APMLibrary:
 
     def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
         self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
+
+    def otel_create_gauge(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_gauge(meter_name, name, unit, description)
+
+    def otel_gauge_record(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
+        self._client.otel_gauge_record(meter_name, name, unit, description, value, attributes)
 
     def is_alive(self) -> bool:
         try:
