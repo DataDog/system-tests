@@ -254,3 +254,5 @@ All notable changes to this project will be documented in this file.
 ### February 2023 (74 PR merged)
 
 * ...
+
+Test for #5121
