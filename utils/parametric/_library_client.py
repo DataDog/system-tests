@@ -315,7 +315,7 @@ class APMLibraryClient:
         )
         return HTTPStatus(resp.status_code).is_success
 
-    def flush_logs(self) -> tuple[bool, str]:
+    def otel_logs_flush(self, timeout_sec: int) -> tuple[bool, str]:
         """Flush all OpenTelemetry logs and get provider information.
 
         Returns:
@@ -324,8 +324,8 @@ class APMLibraryClient:
         """
         try:
             resp = self._session.post(
-                self._url("/log/flush"),
-                json={},
+                self._url("/log/otel/flush"),
+                json={"seconds": timeout_sec},
             )
             if HTTPStatus(resp.status_code).is_success:
                 data = resp.json()
@@ -557,6 +557,9 @@ class APMLibrary:
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
+                # Logs flush endpoint is not implemented in all parametric apps
+                # TODO: otel_flush should return False if the logs flush fails
+                self.otel_logs_flush()
 
         return None
 
@@ -631,10 +634,13 @@ class APMLibrary:
             span.end_span()
 
     def dd_flush(self) -> bool:
-        return self._client.trace_flush() and self._client.flush_logs()[0]
+        return self._client.trace_flush()
 
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
+
+    def otel_logs_flush(self, timeout_sec: int = 3) -> bool:
+        return self._client.otel_logs_flush(timeout_sec)[0]
 
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)

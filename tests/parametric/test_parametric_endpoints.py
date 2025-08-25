@@ -15,7 +15,7 @@ from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_only_span
-from utils import irrelevant, bug, scenarios, features, context
+from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
 from utils.parametric._library_client import Link, LogLevel
@@ -738,6 +738,7 @@ class Test_Parametric_Otel_Trace_Flush:
 @scenarios.parametric
 @features.parametric_endpoint_parity
 class Test_Parametric_Write_Log:
+    @incomplete_test_app(context.library != "python", reason="Logs endpoint is only implemented in python app")
     def test_write_log(self, test_agent, test_library):
         """Validates that /log/write creates a log message with the specified parameters.
 

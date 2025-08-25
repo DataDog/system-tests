@@ -612,6 +612,29 @@ def otel_flush_spans(args: OtelFlushSpansArgs):
     return OtelFlushSpansReturn(success=True)
 
 
+class LogFlushArgs(BaseModel):
+    seconds: int
+
+
+class LogFlushReturn(BaseModel):
+    success: bool
+    message: str
+
+
+@app.post("/log/otel/flush")
+def otel_flush_logs(args: LogFlushArgs):
+    """Get the current OpenTelemetry logs provider and flush all logs."""
+    try:
+        # Get the current logs provider
+        logs_provider = get_logger_provider()
+        message = str(type(logs_provider).__name__)
+        # Force flush all logs
+        logs_provider.force_flush(timeout_millis=args.seconds * 1000)
+        return LogFlushReturn(success=True, message=message)
+    except Exception as e:
+        return LogFlushReturn(success=False, message=f"Error: {str(e)}")
+
+
 class OtelIsRecordingArgs(BaseModel):
     span_id: int
 
@@ -758,36 +781,6 @@ def write_log(args: LogGenerateArgs):
         logger.log(log_level, args.message)
 
     return LogGenerateReturn(success=True)
-
-
-class LogFlushArgs(BaseModel):
-    pass
-
-
-class LogFlushReturn(BaseModel):
-    success: bool
-    message: str
-
-
-@app.post("/log/flush")
-def flush_logs(args: LogFlushArgs):
-    """Get the current OpenTelemetry logs provider and flush all logs."""
-    try:
-        # Get the current logs provider
-        logs_provider = get_logger_provider()
-        message = str(type(logs_provider).__name__)
-
-        # Force flush all logs
-        if hasattr(logs_provider, "force_flush"):
-            logs_provider.force_flush()
-        elif hasattr(logs_provider, "flush"):
-            logs_provider.flush()
-        else:
-            raise ValueError("Logs provider does not have a public flush method")
-
-        return LogFlushReturn(success=True, message=message)
-    except Exception as e:
-        return LogFlushReturn(success=False, message=f"Error: {str(e)}")
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:
