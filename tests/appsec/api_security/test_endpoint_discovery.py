@@ -80,12 +80,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        context.library in ["python"],
         reason="Not applicable to weblog variant",
     )
     def test_optional_type(self):
@@ -129,11 +124,9 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
+        context.library
         in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
+            "python",
         ],
         reason="Not applicable to weblog variant",
     )
@@ -154,12 +147,7 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
     @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
@@ -184,6 +172,9 @@ class Test_Endpoint_Discovery:
             ("python", "django-poc"),
             ("python", "django-py3.13"),
             ("python", "python3.12"),
+            ("python", "flask-poc"),
+            ("python", "uwsgi-poc"),
+            ("python", "uds-flask"),
         ],
         reason="Not applicable to weblog variant",
     )
@@ -207,10 +198,8 @@ class Test_Endpoint_Discovery:
         (context.library, context.weblog_variant)
         in [
             ("java", "spring-boot"),
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        ]
+        or context.library == "python",
         reason="Not applicable to weblog variant",
     )
     @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
@@ -230,15 +219,9 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        context.library in ["python", "dotnet"],
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
     def test_optional_metadata(self):
         endpoints = self._get_endpoints()
         found = False
