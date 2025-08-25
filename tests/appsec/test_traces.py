@@ -105,7 +105,10 @@ class Test_AppSecEventSpanTags:
         reason="APPSEC-57432",  # Response headers collection not supported yet
     )
     @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
-    @irrelevant(context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload, reason="Irrelevant tag set for golang")
+    @irrelevant(
+        context.scenario is scenarios.external_processing or context.scenario is scenarios.stream_processing_offload,
+        reason="Irrelevant tag set for golang",
+    )
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
         Note that this test checks for collection, not data.

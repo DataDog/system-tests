@@ -84,7 +84,7 @@ VALID_CI_WORKFLOWS = {
     "testthetest",
     "dockerssi",
     "externalprocessing",
-    "streamprocessingoffload"
+    "streamprocessingoffload",
 }
 
 
