@@ -69,7 +69,6 @@ class Test_Blocking_client_ip:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
-@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
