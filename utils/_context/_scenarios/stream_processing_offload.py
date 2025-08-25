@@ -1,6 +1,11 @@
 import pytest
 
-from utils._context.containers import DummyServerContainer, StreamProcessingOffloadContainer, HAProxyContainer, AgentContainer
+from utils._context.containers import (
+    DummyServerContainer,
+    StreamProcessingOffloadContainer,
+    HAProxyContainer,
+    AgentContainer,
+)
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
@@ -24,7 +29,11 @@ class StreamProcessingOffloadScenario(DockerScenario):
             name,
             doc=doc,
             github_workflow="streamprocessingoffload",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.stream_processing_offload, scenario_groups.all],
+            scenario_groups=[
+                scenario_groups.end_to_end,
+                scenario_groups.stream_processing_offload,
+                scenario_groups.all,
+            ],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
