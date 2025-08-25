@@ -87,6 +87,47 @@ If you prefer to set up manually or need to troubleshoot, here are the manual st
 2. The GitHub MCP server will be available as `github_datadog_mcp`
 3. You can now use GitHub-related AI tools in your Cursor IDE
 
+## Example Use Cases
+
+Once the GitHub MCP server is set up, you can use natural language to perform various GitHub operations. Here are some practical examples:
+
+### Repository Analysis Examples
+
+**Track file changes across commits:**
+```
+Show the latest changes to tests/otel/test_context_propagation.py on main in DataDog/system-tests. For each change include: short SHA, author, date, commit title, related PR # and PR title (if any).
+```
+
+**Monitor recent pull requests:**
+```
+List the 10 most recent PRs merged into main for DataDog/system-tests (number, title, author, merged_at, link).
+```
+
+### Cross-Repository Analysis
+
+**Release and PR tracking for related repositories:**
+```
+In DataDog/dd-trace-java:
+1) List the 5 most recent releases with columns: tag, release_name, published_at (ISO 8601), url.
+2) List the 5 most recent merged PRs. I would like to know this data for each PR: Pr number, Pr title or short description, Pr author and merged date.
+Afterwards, provide a brief summary (3–5 bullets) of notable changes across those releases/PRs.
+```
+
+### Other Common Operations
+
+- **Code search**: Find specific functions, classes, or patterns across repositories
+- **Issue tracking**: List open issues, search by labels, or track issue progress
+- **Branch analysis**: Compare branches, find differences, or track branch status
+- **Workflow monitoring**: Check CI/CD status, view workflow runs, or analyze build failures
+- **Release management**: Track releases, compare versions, or analyze release notes
+
+### Tips for Best Results
+
+- Be specific about repository names (e.g., `DataDog/system-tests`)
+- Include the data you want to see (SHA, author, date, etc.)
+- Use natural language - the AI understands context and intent
+- Combine multiple requests for comprehensive analysis
+
 ### Configuration Files
 
 - **MCP Script**: `/usr/local/bin/start-github-mcp.sh` - The script that starts the GitHub MCP server
