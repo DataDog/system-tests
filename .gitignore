@@ -77,3 +77,6 @@ tmp/
 
 # Go
 go.work*
+
+# Hypothesis Python package
+.hypothesis/
