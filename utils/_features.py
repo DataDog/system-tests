@@ -258,7 +258,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=25
         """
-        return _mark_test_object(test_object, feature_id=25, owner=_Owner.language_platform)
+        return _mark_test_object(test_object, feature_id=25, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def mapping_http_status_codes_to_errors(test_object):
@@ -306,7 +306,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=32
         """
-        return _mark_test_object(test_object, feature_id=32, owner=_Owner.language_platform)
+        return _mark_test_object(test_object, feature_id=32, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def logs_throttling(test_object):
