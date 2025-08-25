@@ -430,7 +430,7 @@ class _TestAgentAPI:
         raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}:\n{metrics}")
 
     def wait_for_first_otlp_metric(
-        self, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, *, metric_name: str | None = None, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
         """Wait for `num` metrics to be received from the test agent.
 
@@ -448,9 +448,19 @@ class _TestAgentAPI:
             else:
                 num_received = len(metrics)
                 if num_received >= 1:
+                    ret_value = None
+                    if metric_name:
+                        for metrics_data in metrics:
+                            for resource_metric in metrics_data["resource_metrics"]:
+                                for scope_metric in resource_metric["scope_metrics"]:
+                                    for metric in scope_metric["metrics"]:
+                                        if metric["name"] == metric_name:
+                                            ret_value = metrics_data
+                    else:
+                        ret_value = metrics[0]
                     if clear:
                         self.clear()
-                    return metrics[0]
+                    return ret_value
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}:\n{metrics}")
 

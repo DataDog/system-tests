@@ -809,6 +809,62 @@ def otel_counter_add(args: OtelCounterAddArgs):
     return OtelCounterAddReturn()
 
 
+class OtelCreateUpDownCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateUpDownCounterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_updowncounter")
+def otel_create_updowncounter(args: OtelCreateUpDownCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    counter = meter.create_up_down_counter(args.name, args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "updowncounter", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = counter
+    return OtelCreateUpDownCounterReturn()
+
+
+class OtelUpDownCounterAddArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: float
+    attributes: dict
+
+
+class OtelUpDownCounterAddReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/updowncounter_add")
+def otel_updowncounter_add(args: OtelUpDownCounterAddArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "updowncounter", args.unit, args.description]
+    )
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+
+    counter = otel_meter_instruments[instrument_key]
+    counter.add(args.value, args.attributes)
+    return OtelUpDownCounterAddReturn()
+
+
 class OtelCreateGaugeArgs(BaseModel):
     meter_name: str
     name: str
