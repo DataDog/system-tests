@@ -18,7 +18,7 @@ from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, scenarios, features, context
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
-from utils.parametric._library_client import Link
+from utils.parametric._library_client import Link, LogLevel
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -733,3 +733,38 @@ class Test_Parametric_Otel_Trace_Flush:
             pass
 
         assert test_library.otel_flush(timeout_sec=5)
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_Write_Log:
+    def test_write_log(self, test_agent, test_library):
+        """Validates that /log/write creates a log message with the specified parameters.
+
+        Supported Parameters:
+        - message: str
+        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        - logger_name: str
+        - logger_type: int (ex: 0=default, 1=third_party_logger, 2=another_third_party_logger)
+
+        Supported Return Values:
+        - success: bool
+        """
+        # Test with default logger type (0)
+        result = test_library.write_log("Test log message", LogLevel.INFO, "test_logger")
+        assert result is True
+
+        # Test with explicit logging type (1)
+        result = test_library.write_log("Debug message", LogLevel.DEBUG, "debug_logger", logger_type=1)
+        assert result is True
+
+        # Test with different log levels
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
+        assert result is True
+
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger")
+        assert result is True
+
+        # Test with custom logger name
+        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
+        assert result is True
