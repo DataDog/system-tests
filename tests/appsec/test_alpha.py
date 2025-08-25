@@ -5,11 +5,13 @@
 from utils import context, weblog, interfaces, scenarios, bug, features
 
 
-@features.threats_alpha_preview
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.threats_alpha_preview
 @scenarios.external_processing
-@scenarios.default
+@scenarios.stream_processing_offload
 @scenarios.appsec_lambda_default
+@scenarios.default
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

@@ -260,3 +260,16 @@ jobs:
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+
+  stream_processing_offload:
+    needs:
+      - compute_parameters
+    if: ${{ needs.compute_parameters.outputs.streamprocessingoffload_scenarios != '[]' && inputs.library == 'golang'}}
+    uses: ./.github/workflows/run-stream-processing-offload.yml
+    secrets: inherit
+    with:
+      ref: ${{ inputs.ref }}
+      build_proxy_image: ${{ inputs.build_proxy_image }}
+      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
+      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
+      artifact_retention_days: ${{ inputs.artifact_retention_days }}
