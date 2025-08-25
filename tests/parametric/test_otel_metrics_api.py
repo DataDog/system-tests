@@ -40,27 +40,30 @@ class Test_Otel_Metrics_Api:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_counter_add_non_negative_value(self, test_agent, test_library, n):
         meter_name = "parametric-api"
-        counter_name = f"counter1-{n}"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = f"counter1-{n}"
+        unit = "triggers"
+        description = "test_description"
         expected_scope_attributes = {"scope.attr": "scope.value"}
         expected_add_attributes = {"test_attr": "test_value"}
 
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=n, attributes=expected_add_attributes)
+            t.otel_create_counter(meter_name, name, unit, description)
+            t.otel_counter_add(meter_name, name, unit, description, n, expected_add_attributes)
             time.sleep(0.5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1, clear=True)
         pprint.pprint(metrics_data)
 
-        # Assert that there is only one item in ResourceMetrics
+        # Assert that there is only one request
         assert len(metrics_data) == 1
 
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        # Assert that there is only one item in ResourceMetrics
         resource_metrics = metrics_data[0]["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 1
 
@@ -72,9 +75,9 @@ class Test_Otel_Metrics_Api:
         assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
 
         counter = scope_metrics[0]["metrics"][0]
-        assert counter["name"] == counter_name
-        assert counter["unit"] == "triggers"
-        assert counter["description"] == "test_description"
+        assert counter["name"] == name
+        assert counter["unit"] == unit
+        assert counter["description"] == description
 
         assert counter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_DELTA".casefold()
         assert counter["sum"]["is_monotonic"] == True
@@ -90,17 +93,17 @@ class Test_Otel_Metrics_Api:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_counter_add_negative_value(self, test_agent, test_library, n):
         meter_name = "parametric-api"
-        counter_name = f"counter1-{n}"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = f"counter1-{n}"
+        unit = "triggers"
+        description = "test_description"
         expected_scope_attributes = {"scope.attr": "scope.value"}
         expected_add_attributes = {"test_attr": "test_value"}
 
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=n, attributes=expected_add_attributes)
+            t.otel_create_counter(meter_name, name, unit, description)
+            t.otel_counter_add(meter_name, name, unit, description, n, expected_add_attributes)
             time.sleep(0.5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=0, clear=True)
@@ -113,28 +116,31 @@ class Test_Otel_Metrics_Api:
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library, non_negative_value, negative_value):
         meter_name = "parametric-api"
-        counter_name = f"counter1-{non_negative_value}-{negative_value}"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = f"counter1-{non_negative_value}-{negative_value}"
+        unit = "triggers"
+        description = "test_description"
         expected_scope_attributes = {"scope.attr": "scope.value"}
         expected_add_attributes = {"test_attr": "test_value"}
 
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=non_negative_value, attributes=expected_add_attributes)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=negative_value, attributes=expected_add_attributes)
+            t.otel_create_counter(meter_name=meter_name, name=name, unit=unit, description=description)
+            t.otel_counter_add(meter_name, name, unit, description, non_negative_value, expected_add_attributes)
+            t.otel_counter_add(meter_name, name, unit, description, negative_value, expected_add_attributes)
             time.sleep(0.5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1, clear=True)
         pprint.pprint(metrics_data)
 
-        # Assert that there is only one item in ResourceMetrics
+        # Assert that there is only one request
         assert len(metrics_data) == 1
 
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        # Assert that there is only one item in ResourceMetrics
         resource_metrics = metrics_data[0]["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 1
 
@@ -146,7 +152,7 @@ class Test_Otel_Metrics_Api:
         assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
 
         counter = scope_metrics[0]["metrics"][0]
-        assert counter["name"] == counter_name
+        assert counter["name"] == name
         assert counter["unit"] == "triggers"
         assert counter["description"] == "test_description"
 
@@ -200,9 +206,9 @@ class Test_Otel_Metrics_Api:
     )
     def test_otel_resource_attributes_mapping(self, test_agent, test_library):
         meter_name = "parametric-api"
-        counter_name = "counter1"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = "counter1"
+        unit = "triggers"
+        description = "test_description"
         expected_attributes = {
             "service.name": "test2",
             "service.version": "5",
@@ -213,8 +219,8 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
+            t.otel_create_counter(meter_name=meter_name, name=name, unit=unit, description=description)
+            t.otel_counter_add(meter_name, name, unit, description, 2, {"test_attr": "test_value"})
             time.sleep(5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -246,9 +252,9 @@ class Test_Otel_Metrics_Api:
     )
     def test_otel_resource_attributes_mapping_sem_conv_1_27_0(self, test_agent, test_library):
         meter_name = "parametric-api"
-        counter_name = "counter1"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = "counter1"
+        unit = "triggers"
+        description = "test_description"
         expected_attributes = {
             "deployment.environment.name": "test1",
             "service.name": "test2",
@@ -260,8 +266,8 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
+            t.otel_create_counter(meter_name, name, unit, description)
+            t.otel_counter_add(meter_name, name, unit, description, 2, {"test_attr": "test_value"})
             time.sleep(5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -291,9 +297,9 @@ class Test_Otel_Metrics_Api:
     )
     def test_otel_resource_attributes_mapping_dd_preference(self, test_agent, test_library):
         meter_name = "parametric-api"
-        counter_name = "counter1"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = "counter1"
+        unit = "triggers"
+        description = "test_description"
         expected_attributes = {
             "service.name": "test2",
             "service.version": "5",
@@ -304,8 +310,8 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
+            t.otel_create_counter(meter_name, name, unit, description)
+            t.otel_counter_add(meter_name, name, unit, description, 2, {"test_attr": "test_value"})
             time.sleep(5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -338,9 +344,9 @@ class Test_Otel_Metrics_Api:
     )
     def test_otel_resource_attributes_mapping_otel_preference(self, test_agent, test_library):
         meter_name = "parametric-api"
-        counter_name = "counter1"
-        counter_unit = "triggers"
-        counter_description = "test_description"
+        name = "counter1"
+        unit = "triggers"
+        description = "test_description"
         expected_attributes = {
             "service.name": "test2",
             "service.version": "5",
@@ -351,8 +357,8 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(name=meter_name)
-            t.otel_create_counter(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description)
-            t.otel_counter_add(meter_name=meter_name, name=counter_name, unit=counter_unit, description=counter_description, value=2, attributes={"test_attr": "test_value"})
+            t.otel_create_counter(meter_name, name, unit, description)
+            t.otel_counter_add(meter_name, name, unit, description, 2, {"test_attr": "test_value"})
             time.sleep(5)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
