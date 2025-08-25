@@ -287,7 +287,9 @@ class APMLibraryClient:
 
         return HTTPStatus(r.status_code).is_success
 
-    def write_log(self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
         """Generate a log message with the specified parameters.
 
         Args:
@@ -295,6 +297,7 @@ class APMLibraryClient:
             level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
             logger_name: The name of the logger to use
             logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
+            span_id: The ID of the span that should be active when the log is generated
 
         Returns:
             bool: True if the log was generated successfully, False otherwise
@@ -307,6 +310,7 @@ class APMLibraryClient:
                 "level": level.value,
                 "logger_name": logger_name,
                 "logger_type": logger_type,
+                "span_id": span_id,
             },
         )
         return HTTPStatus(resp.status_code).is_success
@@ -315,7 +319,7 @@ class APMLibraryClient:
         """Flush all OpenTelemetry logs and get provider information.
 
         Returns:
-            tuple[bool, str]: (success, provider_info) - success status and provider information
+            tuple[bool, str]: (success, message) - success status and provider information
 
         """
         try:
@@ -325,7 +329,7 @@ class APMLibraryClient:
             )
             if HTTPStatus(resp.status_code).is_success:
                 data = resp.json()
-                return data["success"], data["provider_info"]
+                return data["success"], data["message"]
             return False, f"HTTP error: {resp.status_code}"
         except Exception as e:
             return False, f"Error: {e!s}"
@@ -665,5 +669,7 @@ class APMLibrary:
         except Exception:
             return False
 
-    def write_log(self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0) -> bool:
-        return self._client.write_log(message, level, logger_name, logger_type)
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
+        return self._client.write_log(message, level, logger_name, logger_type, span_id)

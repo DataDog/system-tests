@@ -1051,7 +1051,8 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
     test_otel_logs.py:
-      Test_Otel_Logs: missing_feature
+      'Test_.*': v3.13.0.dev
+      Test_FR12_Log_Injection: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:

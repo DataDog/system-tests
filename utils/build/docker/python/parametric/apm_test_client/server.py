@@ -719,6 +719,7 @@ class LogGenerateArgs(BaseModel):
     level: str
     logger_name: str
     logger_type: LoggerType = LoggerType.default
+    span_id: Optional[int] = None
 
 
 class LogGenerateReturn(BaseModel):
@@ -737,21 +738,24 @@ def write_log(args: LogGenerateArgs):
         "WARNING": logging.WARNING,
         "ERROR": logging.ERROR,
     }
-
     log_level = level_mapping.get(args.level.upper(), logging.INFO)
     logger.setLevel(log_level)
 
-    # Log the message with the specified level
-    if args.level.upper() == "DEBUG":
-        logger.debug(args.message)
-    elif args.level.upper() == "INFO":
-        logger.info(args.message)
-    elif args.level.upper() == "WARNING":
-        logger.warning(args.message)
-    elif args.level.upper() == "ERROR":
-        logger.error(args.message)
+    if args.span_id:
+        span = spans.get(args.span_id, otel_spans.get(args.span_id))
+
+        if not span:
+            raise ValueError(f"Span not found for span_id: {args.span_id}")
+
+        if isinstance(span, OtelSpan):
+            with opentelemetry.trace.use_span(span):
+                logger.log(log_level, args.message)
+        else:
+            with ddtrace.tracer._activate_context(span.context):
+                logger.log(log_level, args.message)
+
     else:
-        logger.info(args.message)
+        logger.log(log_level, args.message)
 
     return LogGenerateReturn(success=True)
 
@@ -762,7 +766,7 @@ class LogFlushArgs(BaseModel):
 
 class LogFlushReturn(BaseModel):
     success: bool
-    provider_info: str
+    message: str
 
 
 @app.post("/log/flush")
@@ -771,17 +775,19 @@ def flush_logs(args: LogFlushArgs):
     try:
         # Get the current logs provider
         logs_provider = get_logger_provider()
-        provider_info = str(type(logs_provider).__name__)
+        message = str(type(logs_provider).__name__)
 
         # Force flush all logs
         if hasattr(logs_provider, "force_flush"):
             logs_provider.force_flush()
         elif hasattr(logs_provider, "flush"):
             logs_provider.flush()
+        else:
+            raise ValueError("Logs provider does not have a public flush method")
 
-        return LogFlushReturn(success=True, provider_info=provider_info)
+        return LogFlushReturn(success=True, message=message)
     except Exception as e:
-        return LogFlushReturn(success=False, provider_info=f"Error: {str(e)}")
+        return LogFlushReturn(success=False, message=f"Error: {str(e)}")
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:

@@ -692,6 +692,8 @@ def test_agent(
     # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
+    env["OTLP_HTTP_PORT"] = str(test_agent_otlp_http_port)
+    env["OTLP_GRPC_PORT"] = str(test_agent_otlp_grpc_port)
 
     core_host_port = scenarios.parametric.get_host_port(worker_id, 4600)
     otlp_http_host_port = scenarios.parametric.get_host_port(worker_id, 4701)
@@ -754,8 +756,6 @@ def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
-    test_agent_otlp_http_port: int,
-    test_agent_otlp_grpc_port: int,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
@@ -775,16 +775,6 @@ def test_library(
             env[k] = v
         elif k in env:
             del env[k]
-
-    if env.get("OTEL_EXPORTER_OTLP_ENDPOINT") is None:
-        if env.get("OTEL_EXPORTER_OTLP_PROTOCOL", "").lower() in ["http/protobuf", "http/json"]:
-            env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent_container_name}:{test_agent_otlp_http_port}"
-        elif env.get("OTEL_EXPORTER_OTLP_PROTOCOL", "").lower() == "grpc":
-            env["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"http://{test_agent_container_name}:{test_agent_otlp_grpc_port}"
-        else:
-            raise ValueError(
-                f"Unknown OTEL_EXPORTER_OTLP_PROTOCOL: {env.get('OTEL_EXPORTER_OTLP_PROTOCOL', 'unknown')}"
-            )
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
     ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}
