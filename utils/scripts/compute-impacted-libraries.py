@@ -58,6 +58,10 @@ def main() -> None:
             modified_files: list[str] = [line.strip() for line in f]
 
         for file in modified_files:
+            if file.endswith((".md", ".rdoc", ".txt")):
+                # modification in documentation file
+                continue
+
             match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})[\./]", file)
 
             if user_choice is None:

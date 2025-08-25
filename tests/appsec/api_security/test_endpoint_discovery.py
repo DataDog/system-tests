@@ -80,13 +80,8 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
-        reason="Not applicable to weblog variant",
+        context.library in ["python"],
+        reason="Not supported",
     )
     def test_optional_type(self):
         endpoints = self._get_endpoints()
@@ -129,17 +124,10 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
-        reason="Not applicable to weblog variant",
+        context.library in ["dotnet", "nodejs", "python"],
+        reason="Not supported",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog variant")
     @missing_feature(context.library == "java" and context.weblog_variant in ["spring-boot"])
-    @irrelevant(context.library == "nodejs", reason="Not supported")
     def test_optional_request_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -155,16 +143,10 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
-    @irrelevant(context.library == "nodejs", reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs"], reason="Not supported")
     def test_optional_response_body_type(self):
         endpoints = self._get_endpoints()
         found = False
@@ -180,17 +162,10 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("java", "spring-boot"),
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
-    @irrelevant(context.library == "nodejs", reason="Not supported")
+    @irrelevant(context.library in ["dotnet", "nodejs"], reason="Not supported")
     def test_optional_response_code(self):
         endpoints = self._get_endpoints()
         found = False
@@ -207,17 +182,13 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("java", "spring-boot"),
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
+        (context.library, context.weblog_variant) in [("java", "spring-boot")],
         reason="Not applicable to weblog variant",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
-    @irrelevant(context.library == "nodejs", reason="Not supported")
+    @irrelevant(
+        context.library in ["dotnet", "nodejs", "python"],
+        reason="Not supported",
+    )
     def test_optional_authentication(self):
         endpoints = self._get_endpoints()
         allowed = {"JWT", "basic", "oauth", "OIDC", "api_key", "session", "mTLS", "SAML", "LDAP", "Form", "other"}
@@ -234,16 +205,9 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
-        (context.library, context.weblog_variant)
-        in [
-            ("python", "django-poc"),
-            ("python", "django-py3.13"),
-            ("python", "python3.12"),
-        ],
-        reason="Not applicable to weblog variant",
+        context.library in ["python", "dotnet", "nodejs"],
+        reason="Not supported",
     )
-    @irrelevant(context.library == "dotnet", reason="Not applicable to weblog")
-    @irrelevant(context.library == "nodejs", reason="Not supported")
     def test_optional_metadata(self):
         endpoints = self._get_endpoints()
         found = False
