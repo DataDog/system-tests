@@ -41,6 +41,7 @@ def _assert_custom_event_tag_absence():
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
@@ -66,6 +67,7 @@ class Test_Blocking_client_ip:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_user_id:
     """Test if blocking is supported on usr.id address"""
@@ -84,6 +86,7 @@ class Test_Blocking_user_id:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -139,6 +142,7 @@ class Test_Blocking_request_method:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -205,6 +209,7 @@ class Test_Blocking_request_uri:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -271,6 +276,7 @@ class Test_Blocking_request_path_params:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -329,6 +335,7 @@ class Test_Blocking_request_query:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -387,6 +394,7 @@ class Test_Blocking_request_headers:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -443,6 +451,7 @@ class Test_Blocking_request_cookies:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -511,6 +520,7 @@ class Test_Blocking_request_body:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body_multipart:
     """Test if blocking is supported on server.request.body address for multipart body"""
@@ -527,6 +537,7 @@ class Test_Blocking_request_body_multipart:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 @features.appsec_response_blocking
 @features.envoy_external_processing
@@ -596,6 +607,7 @@ class Test_Blocking_response_status:
 @features.appsec_response_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
@@ -637,6 +649,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""
