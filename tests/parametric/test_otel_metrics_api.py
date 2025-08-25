@@ -89,29 +89,6 @@ class Test_Otel_Metrics_Api:
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(st.integers(min_value=-2**32, max_value=-1)) # Limit the range of integers to avoid int/float equality issues
-    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
-    def test_otel_counter_add_negative_value(self, test_agent, test_library, n):
-        meter_name = "parametric-api"
-        name = f"counter1-{n}"
-        unit = "triggers"
-        description = "test_description"
-        expected_scope_attributes = {"scope.attr": "scope.value"}
-        expected_add_attributes = {"test_attr": "test_value"}
-
-        with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
-            t.otel_create_counter(meter_name, name, unit, description)
-            t.otel_counter_add(meter_name, name, unit, description, n, expected_add_attributes)
-            time.sleep(0.5)
-
-        metrics_data = test_agent.wait_for_num_otlp_metrics(num=0, clear=True)
-        pprint.pprint(metrics_data)
-        assert len(metrics_data) == 0
-
-    # This test takes upwards of 25 seconds to run
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=-2**32, max_value=-1)) # Limit the range of integers to avoid int/float equality issues
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library, non_negative_value, negative_value):
@@ -161,6 +138,60 @@ class Test_Otel_Metrics_Api:
 
         sum_data_point = counter["sum"]["data_points"][0]
         assert sum_data_point["as_double"] == non_negative_value
+        assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+        assert "time_unix_nano" in sum_data_point
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_counter_add_non_negative_values(self, test_agent, test_library, non_negative_value, second_non_negative_value):
+        meter_name = "parametric-api"
+        name = f"counter1-{non_negative_value}-{second_non_negative_value}"
+        unit = "triggers"
+        description = "test_description"
+        expected_scope_attributes = {"scope.attr": "scope.value"}
+        expected_add_attributes = {"test_attr": "test_value"}
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(name=meter_name, version="1.0.0", schema_url="https://opentelemetry.io/schemas/1.27.0", attributes=expected_scope_attributes)
+            t.otel_create_counter(meter_name=meter_name, name=name, unit=unit, description=description)
+            t.otel_counter_add(meter_name, name, unit, description, non_negative_value, expected_add_attributes)
+            t.otel_counter_add(meter_name, name, unit, description, second_non_negative_value, expected_add_attributes)
+            time.sleep(0.5)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1, clear=True)
+        pprint.pprint(metrics_data)
+
+        # Assert that there is only one request
+        assert len(metrics_data) == 1
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = metrics_data[0]["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert scope_metrics[0]["scope"]["name"] == "parametric-api"
+        assert scope_metrics[0]["scope"]["version"] == "1.0.0"
+        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+
+        assert scope_metrics[0]["schema_url"] == "https://opentelemetry.io/schemas/1.27.0"
+
+        counter = scope_metrics[0]["metrics"][0]
+        assert counter["name"] == name
+        assert counter["unit"] == "triggers"
+        assert counter["description"] == "test_description"
+
+        assert counter["sum"]["aggregation_temporality"].casefold() == "AGGREGATION_TEMPORALITY_DELTA".casefold()
+        assert counter["sum"]["is_monotonic"] == True
+
+        sum_data_point = counter["sum"]["data_points"][0]
+        assert sum_data_point["as_double"] == non_negative_value + second_non_negative_value
         assert set(expected_add_attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
         assert "time_unix_nano" in sum_data_point
 
