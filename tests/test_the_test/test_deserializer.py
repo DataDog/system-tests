@@ -1,5 +1,5 @@
 from utils import scenarios
-from utils.proxy._deserializer import deserialize_http_message
+from utils.proxy.traces.trace_v1 import deserialize_v1_trace
 import msgpack
 
 
@@ -40,17 +40,8 @@ def test_deserialize_http_message():
         }
     )
 
-    result = deserialize_http_message(
-        path="/v1.0/traces",
-        message={
-            "status_code": 200,
-            "headers": [("content-type", "application/msgpack")],
-        },
-        content=content,
-        interface="library",
-        key="response",
-        export_content_files_to="",
-    )
+    result = deserialize_v1_trace(content=content)
+
     assert result == {
         "container_id": "hello",
         "chunks": [
