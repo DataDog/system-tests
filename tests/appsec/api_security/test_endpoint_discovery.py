@@ -162,6 +162,13 @@ class Test_Endpoint_Discovery:
         self.main_setup()
 
     @irrelevant(
+        (context.library, context.weblog_variant)
+        in [
+            ("java", "spring-boot"),
+        ],
+        reason="Not applicable to weblog variant",
+    )
+    @irrelevant(
         (context.library == "python" and context.weblog_variant != "fastapi"),
         reason="Not applicable to weblog variant",
     )
