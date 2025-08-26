@@ -1083,7 +1083,14 @@ class _Scenarios:
     appsec_lambda_default = LambdaScenario(
         "APPSEC_LAMBDA_DEFAULT",
         doc="Default Lambda scenario",
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+    )
+    appsec_lambda_blocking = LambdaScenario(
+        "APPSEC_LAMBDA_BLOCKING",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="Misc tests for appsec blocking in Lambda",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
     appsec_lambda_api_security = LambdaScenario(
         "APPSEC_LAMBDA_API_SECURITY",
@@ -1099,7 +1106,7 @@ class _Scenarios:
         Scenario for API Security feature in lambda, testing schema types sent into span tags if
         DD_API_SECURITY_ENABLED is set to true.
         """,
-        scenario_groups=[scenario_groups.appsec],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
 
 
