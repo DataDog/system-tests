@@ -63,7 +63,6 @@ class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDe
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerTest):
     ############ exception replay ############
     _max_retries = 2
