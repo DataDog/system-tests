@@ -1,6 +1,14 @@
 #Extract machine logs (only datadog stuff)
 - os_type: linux
+  os_distro: deb
   remote-command: |
+    wget -O install-snoopy.sh https://github.com/a2o/snoopy/raw/install/install/install-snoopy.sh
+    chmod 755 install-snoopy.sh
+    sudo ./install-snoopy.sh stable
+- os_type: linux
+  os_distro: rpm
+  remote-command: |
+    sudo dnf -y install gcc make gzip procps-ng socat tar wget git || sudo yum -y install gcc make gzip procps-ng socat tar wget git
     wget -O install-snoopy.sh https://github.com/a2o/snoopy/raw/install/install/install-snoopy.sh
     chmod 755 install-snoopy.sh
     sudo ./install-snoopy.sh stable
