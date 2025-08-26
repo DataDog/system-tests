@@ -2,6 +2,7 @@ source 'https://rubygems.org'
 
 gem 'faraday'
 gem 'sinatra', '~> 1.4.0'
+gem 'sinatra-contrib', '~> 1.4.0'
 gem 'rack-contrib'
 gem 'puma', '~> 6.0'
 

@@ -2,26 +2,11 @@ require 'json'
 require 'kafka'
 require 'opentelemetry'
 
-require 'datadog/kit/appsec/events'
-
 class SystemTestController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def root
     render plain: 'Hello, world!'
-  end
-
-  def healthcheck
-    gemspec = Gem.loaded_specs['datadog'] || Gem.loaded_specs['ddtrace']
-    version = gemspec.version.to_s
-    version = "#{version}-dev" unless gemspec.source.is_a?(Bundler::Source::Rubygems)
-    render json: {
-      status: 'ok',
-      library: {
-        name: 'ruby',
-        version: version
-      }
-    }
   end
 
   def waf
@@ -107,45 +92,22 @@ class SystemTestController < ApplicationController
     render plain: 'OK'
   end
 
-  def user_login_success_event
-    Datadog::Kit::AppSec::Events.track_login_success(
-      Datadog::Tracing.active_trace, user: {id: 'system_tests_user'}, metadata0: "value0", metadata1: "value1"
-    )
-
-    render plain: 'Hello, world!'
-  end
-
-  def user_login_failure_event
-    Datadog::Kit::AppSec::Events.track_login_failure(
-      Datadog::Tracing.active_trace, user_id: 'system_tests_user', user_exists: true, metadata0: "value0", metadata1: "value1"
-    )
-
-    render plain: 'Hello, world!'
-  end
-
-  def custom_event
-    Datadog::Kit::AppSec::Events.track('system_tests_event', Datadog::Tracing.active_trace,  metadata0: "value0", metadata1: "value1")
-
-    render plain: 'Hello, world!'
-  end
-
   def tag_value
     event_value = params[:tag_value]
     status_code = params[:status_code]
+
+    headers = request.query_string.split('&').map {|e | e.split('=')} || []
+    headers.each do |key, value|
+      response.headers[key] = value
+    end
 
     if request.method == "POST" && event_value.include?('payload_in_response_body')
       render json: { payload: request.POST }
       return
     end
 
-    headers = request.query_string.split('&').map {|e | e.split('=')} || []
-
     trace = Datadog::Tracing.active_trace
     trace.set_tag("appsec.events.system_tests_appsec_event.value", event_value)
-
-    headers.each do |key, value|
-      response.set_header(key, value)
-    end
 
     render plain: 'Value tagged', status: status_code
   end
@@ -254,17 +216,5 @@ class SystemTestController < ApplicationController
 
   def handle_path_params
     render plain: 'OK'
-  end
-
-  def sample_rate_route
-    render plain: 'OK'
-  end
-
-  def api_security_sampling
-    render plain: 'Hello!'
-  end
-
-  def api_security_with_sampling
-    render plain: 'OK', status: params.fetch(:status, 200).to_i
   end
 end

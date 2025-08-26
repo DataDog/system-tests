@@ -21,7 +21,6 @@ class ProfilingScenario(EndToEndScenario):
             },
             doc="Test profiling feature. Not included in default scenario because is quite slow",
             scenario_groups=[scenario_groups.profiling],
-            require_api_key=True,  # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
         )
 
     def configure(self, config: pytest.Config):
@@ -38,3 +37,7 @@ class ProfilingScenario(EndToEndScenario):
             # profiling is known to be unstable on python3.11, and this value is here to fix that
             # it's not yet the default behaviour, but it will be in the future
             self.weblog_container.environment["DD_PROFILING_STACK_V2_ENABLED"] = "true"
+
+        elif library == "nodejs":
+            # for an unknown reason, /flush on nodejs takes days with a fake key on this scenario
+            self._require_api_key = True

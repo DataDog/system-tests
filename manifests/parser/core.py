@@ -68,6 +68,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
         "rust",
         "dd_apm_inject",
         "k8s_cluster_agent",
+        "python_lambda",
     ):
         data = _load_file(f"{base_dir}{component}.yml")
 

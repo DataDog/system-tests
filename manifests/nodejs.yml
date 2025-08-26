@@ -67,6 +67,7 @@ refs:
   - &ref_5_60_0 '>=5.60.0'
   - &ref_5_61_0 '>=5.61.0'  # fastify iast support
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
+  - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -88,6 +89,10 @@ tests/:
         Test_API_Security_Sampling_Different_Status: *ref_5_27_0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          fastify: *ref_5_64_0
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
@@ -858,6 +863,7 @@ tests/:
         express5: missing_feature  # graphql not yet compatible with express5
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
@@ -1014,6 +1020,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
+      Test_Empty_Config: *ref_3_19_0
       Test_Multiple_Actions: *ref_4_1_0
       Test_Unknown_Action: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
@@ -1032,8 +1039,10 @@ tests/:
       Test_RuntimeActivation: *ref_3_9_0
       Test_RuntimeDeactivation: *ref_3_9_0
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: *ref_5_55_0
       TestServiceActivationRemoteConfigMetric: *ref_5_55_0
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution: *ref_5_3_0
     test_suspicious_attacker_blocking.py:
@@ -1252,7 +1261,7 @@ tests/:
       Test_Config_TraceEnabled: *ref_4_3_0
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
-      Test_Stable_Config_Default: irrelevant (temporarily ignored)
+      Test_Stable_Config_Default: *ref_5_62_0
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:

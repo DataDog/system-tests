@@ -26,7 +26,7 @@ readonly DEFAULT_SAVE_TO_BINARIES=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
-readonly DEFAULT_ruby=rails70
+readonly DEFAULT_ruby=rails72
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-native
@@ -37,6 +37,7 @@ readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
+readonly DEFAULT_python_lambda=apigw-rest
 readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
@@ -218,7 +219,7 @@ build() {
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
-                GITHUB_TOKEN_SECRET_ARG=()
+                GITHUB_TOKEN_SECRET_ARG=""
 
                 if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
                     if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
@@ -227,7 +228,7 @@ build() {
                     fi
 
                     echo "Using GitHub token from $GITHUB_TOKEN_FILE"
-                    GITHUB_TOKEN_SECRET_ARG=(--secret id=github_token,src="$GITHUB_TOKEN_FILE")
+                    GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
                 fi
 
                 docker buildx build \
@@ -235,7 +236,7 @@ build() {
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
-                    "${GITHUB_TOKEN_SECRET_ARG[@]}" \
+                    ${GITHUB_TOKEN_SECRET_ARG} \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
@@ -263,6 +264,15 @@ build() {
                     docker save system_tests/weblog | gzip > $BINARIES_FILENAME
                 fi
             fi
+        elif [[ $IMAGE_NAME == lambda-proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/lambda-proxy.Dockerfile \
+                -t system_tests/lambda-proxy \
+                $EXTRA_DOCKER_ARGS \
+                .
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
@@ -275,7 +285,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby|rust) TEST_LIBRARY="$1";;
+        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;

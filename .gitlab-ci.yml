@@ -13,8 +13,6 @@ stages:
   - system-tests-utils
 
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
 compute_pipeline:
