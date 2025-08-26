@@ -75,7 +75,7 @@ class Test_Blocking_client_ip_with_forwarded:
 
     def setup_blocking_ipv4(self):
         self.rm_req_block = weblog.get(
-            headers={"Forwarded": 'for=127.0.0.1;host="example.host";by=2.2.2.2;proto=http;for="1.1.1.1:6543"'}
+            headers={"Forwarded": 'for=127.0.0.1;host="example.host";by=2.2.2.2;proto=http,for="1.1.1.1:6543"'}
         )
 
     def test_blocking_ipv4(self):
@@ -86,7 +86,7 @@ class Test_Blocking_client_ip_with_forwarded:
 
     def setup_blocking_ipv6(self):
         self.rm_req_block = weblog.get(
-            headers={"Forwarded": 'for="[::1]";for="[9f7b:5e67:5472:4464:90b0:6b0a:9aa6:f9dc]:4485"'},
+            headers={"Forwarded": 'for="[::1]",for="[9f7b:5e67:5472:4464:90b0:6b0a:9aa6:f9dc]:4485"'},
         )
 
     def test_blocking_ipv6(self):
