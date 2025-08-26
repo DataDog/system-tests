@@ -283,6 +283,13 @@ jobs:
         with:
           merge-multiple: false
           pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}
+      - name: Uncompress logs
+        run: |
+          for d in logs_*; do
+            if [ -f "$d/artifact.tar.gz" ]; then
+              tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json'
+            fi
+          done
       - run: ls -la
       - run: ls -la logs*
       - name: Get summary
