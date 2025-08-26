@@ -1,29 +1,6 @@
 use serde::{ser::SerializeSeq, Deserialize, Deserializer, Serialize, Serializer};
 use std::collections::HashMap;
 
-#[derive(Debug, Serialize, Clone)]
-pub struct Config {
-    pub dd_service: String,
-    pub dd_log_level: String,
-    pub dd_trace_sample_rate: u64,
-    pub dd_trace_enabled: bool,
-    pub dd_runtime_metrics_enabled: bool,
-    pub dd_tags: String,
-    pub dd_trace_propagation_style: String,
-    pub dd_trace_debug: bool,
-    pub dd_trace_otel_enabled: bool,
-    pub dd_trace_sample_ignore_parent: bool,
-    pub dd_env: Option<String>,
-    pub dd_version: Option<String>,
-    pub dd_trace_agent_url: String,
-    pub dd_trace_rate_limit: String,
-    pub dd_dogstatsd_host: String,
-    pub dd_dogstatsd_port: String,
-    pub dd_logs_injection: String,
-    pub dd_profiling_enabled: bool,
-    pub dd_data_streams_enabled: bool,
-}
-
 // --- KeyValue ---
 #[derive(Debug, Clone)]
 pub struct KeyValue {

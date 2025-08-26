@@ -42,7 +42,7 @@ struct AppState {
     contexts: Arc<Mutex<HashMap<u64, Arc<ContextWithParent>>>>,
     current_context: Arc<Mutex<Arc<ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
-    tracer_and_config: Arc<(SdkTracerProvider, dd_trace::Config)>,
+    tracer_provider: Arc<SdkTracerProvider>,
 }
 
 #[derive(Default, Clone)]
@@ -82,7 +82,7 @@ async fn main() {
     }
 }
 
-fn init_tracing() -> Result<(SdkTracerProvider, dd_trace::Config)> {
+fn init_tracing() -> Result<SdkTracerProvider> {
     let _ = tracing_subscriber::registry()
         .with(EnvFilter::try_from_default_env().unwrap_or_else(|_| {
             format!(
@@ -97,12 +97,10 @@ fn init_tracing() -> Result<(SdkTracerProvider, dd_trace::Config)> {
 
     let mut builder = dd_trace::Config::builder();
     builder.set_log_level_filter(dd_trace::log::LevelFilter::Debug);
-    let config = builder.build();
-    Ok((
-        datadog_opentelemetry::tracing()
-            .with_config(config.clone())
-            .init(),
-        config,
+    Ok(datadog_opentelemetry::init_datadog(
+        builder.build(),
+        SdkTracerProvider::builder(),
+        None,
     ))
 }
 
@@ -128,10 +126,7 @@ pub struct Config {
     shutdown_timeout: Option<Duration>,
 }
 
-pub async fn serve(
-    config: Config,
-    tracer_and_config: Arc<(SdkTracerProvider, dd_trace::Config)>,
-) -> Result<()> {
+pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> Result<()> {
     let Config {
         addr,
         port,
@@ -143,7 +138,7 @@ pub async fn serve(
     let state = AppState {
         contexts: Arc::new(Mutex::new(HashMap::new())),
         extracted_span_contexts: Arc::new(Mutex::new(HashMap::new())),
-        tracer_and_config,
+        tracer_provider,
         current_context,
     };
 
@@ -247,7 +242,7 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer_and_config: Arc<(SdkTracerProvider, dd_trace::Config)>) -> Result<()> {
+async fn run(tracer: Arc<SdkTracerProvider>) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
@@ -261,5 +256,5 @@ async fn run(tracer_and_config: Arc<(SdkTracerProvider, dd_trace::Config)>) -> R
 
     info!(?config, "starting");
 
-    serve(config, tracer_and_config).await
+    serve(config, tracer).await
 }

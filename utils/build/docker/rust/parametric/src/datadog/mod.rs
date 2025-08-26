@@ -12,7 +12,6 @@ use opentelemetry::{
     Context,
 };
 use opentelemetry_http::HeaderExtractor;
-use serde_json::{json, Value};
 use std::{collections::HashMap, sync::Arc, vec};
 use tracing::debug;
 
@@ -20,7 +19,6 @@ use crate::{get_tracer, AppState, ContextWithParent};
 
 pub fn app() -> Router<AppState> {
     Router::new()
-        .route("/config", get(config))
         .route("/span/start", post(start_span))
         .route("/span/current", get(current_span))
         .route("/span/finish", post(finish_span))
@@ -40,45 +38,6 @@ pub fn app() -> Router<AppState> {
 }
 
 // Handler implementations
-async fn config(State(state): State<AppState>) -> Json<Value> {
-    let config = state.tracer_and_config.1.clone();
-
-    // Probably some conversions are wrong
-    Json(json!({ "config": Config {
-        dd_service: config.service().to_string(),
-        dd_log_level: config.log_level_filter().to_string(),
-        dd_trace_sample_rate: 0,
-        dd_trace_enabled: config.enabled(),
-        dd_runtime_metrics_enabled: true,
-        dd_tags: config
-            .global_tags()
-            .map(|(key, value)| format!("{key}:{value}"))
-            .collect::<Vec<_>>()
-            .join(","),
-        dd_trace_propagation_style: config
-            .trace_propagation_style()
-            .map(|styles| {
-                styles
-                    .iter()
-                    .map(|style| style.to_string())
-                    .collect::<Vec<_>>()
-                    .join(",")
-            })
-            .unwrap_or_default(),
-        dd_trace_debug: false,
-        dd_trace_otel_enabled: true,
-        dd_trace_sample_ignore_parent: true,
-        dd_env: config.env().map(str::to_string),
-        dd_version: config.version().map(str::to_string),
-        dd_trace_agent_url: config.trace_agent_url().to_string(),
-        dd_trace_rate_limit: config.trace_rate_limit().to_string(),
-        dd_dogstatsd_host: config.dogstatsd_agent_host().to_string(),
-        dd_dogstatsd_port: config.dogstatsd_agent_port().to_string(),
-        dd_logs_injection: "".to_string(),
-        dd_profiling_enabled: false,
-        dd_data_streams_enabled: false,
-    }}))
-}
 
 async fn start_span(
     State(state): State<AppState>,
@@ -379,7 +338,7 @@ async fn extract_headers(
 }
 
 async fn flush_spans(State(state): State<AppState>) -> StatusCode {
-    let result = state.tracer_and_config.0.force_flush();
+    let result = state.tracer_provider.force_flush();
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
     *state.current_context.lock().unwrap() = Arc::new(ContextWithParent::default());
