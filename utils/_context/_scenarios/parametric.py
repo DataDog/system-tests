@@ -81,7 +81,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -428,9 +428,9 @@ def golang_library_factory():
     return APMLibraryTestServer(
         lang="golang",
         container_name="go-test-library",
-        container_tag="go122-test-library",
+        container_tag="go-oldstable-test-library",
         container_img=f"""
-FROM golang:1.23
+FROM golang:1.24
 
 # install jq
 RUN apt-get update && apt-get -y install jq

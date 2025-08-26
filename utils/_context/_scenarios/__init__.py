@@ -4,6 +4,7 @@ from utils._context.header_tag_vars import VALID_CONFIGS, INVALID_CONFIGS, CONFI
 from utils.proxy.ports import ProxyPorts
 from utils.tools import update_environ_with_local_env
 
+from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
@@ -71,7 +72,7 @@ class _Scenarios:
         name="TRACE_STATS_COMPUTATION",
         # feature consistency is poorly respected here ...
         weblog_env={
-            "DD_TRACE_STATS_COMPUTATION_ENABLED": "1",
+            "DD_TRACE_STATS_COMPUTATION_ENABLED": "true",  # default env var for CSS
             "DD_TRACE_COMPUTE_STATS": "true",
             "DD_TRACE_FEATURES": "discovery",
             "DD_TRACE_TRACER_METRICS_ENABLED": "true",  # java
@@ -187,6 +188,7 @@ class _Scenarios:
         doc="Misc tests for appsec blocking",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
+
     # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
     graphql_appsec = EndToEndScenario(
         "GRAPHQL_APPSEC",
@@ -701,6 +703,17 @@ class _Scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
 
+    debugger_probes_snapshot_with_scm = DebuggerScenario(
+        "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
+            "DD_GIT_COMMIT_SHA": "1234hash",
+        },
+        doc="Test scenario for checking if debugger successfully generates SCM metadata in snapshots for probes",
+    )
+
     debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
         weblog_env={
@@ -1075,6 +1088,36 @@ class _Scenarios:
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
         doc="Test runtime metrics",
+    )
+
+    # Appsec Lambda Scenarios
+    appsec_lambda_default = LambdaScenario(
+        "APPSEC_LAMBDA_DEFAULT",
+        doc="Default Lambda scenario",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+    )
+    appsec_lambda_blocking = LambdaScenario(
+        "APPSEC_LAMBDA_BLOCKING",
+        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="Misc tests for appsec blocking in Lambda",
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
+    )
+    appsec_lambda_api_security = LambdaScenario(
+        "APPSEC_LAMBDA_API_SECURITY",
+        weblog_env={
+            "DD_API_SECURITY_ENABLED": "true",
+            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
+            "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_ENABLED": "true",
+            "DD_API_SECURITY_ENDPOINT_COLLECTION_MESSAGE_LIMIT": "30",
+        },
+        doc="""
+        Scenario for API Security feature in lambda, testing schema types sent into span tags if
+        DD_API_SECURITY_ENABLED is set to true.
+        """,
+        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
 
 
