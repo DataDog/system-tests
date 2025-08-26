@@ -132,7 +132,7 @@ def _deserialize_trace_id(chunk: dict):
     if isinstance(trace_id, bytes):
         chunk["trace_id"] = "0x" + trace_id.hex().upper()
     else:
-        raise ValueError(f"Trace ID is not a bytes: {trace_id}")
+        raise TypeError(f"Trace ID is not a bytes: {trace_id}")
 
 
 def deserialize_v1_trace(content: bytes) -> dict:
