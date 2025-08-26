@@ -103,9 +103,9 @@ async def custom_404_handler(request: Request, _):
     return JSONResponse({"error": 404}, status_code=404)
 
 
-@app.get("/", response_class=PlainTextResponse)
-@app.post("/", response_class=PlainTextResponse)
-@app.options("/", response_class=PlainTextResponse)
+@app.get("/", response_class=PlainTextResponse, status_code=200)
+@app.post("/", response_class=PlainTextResponse, status_code=200)
+@app.options("/", response_class=PlainTextResponse, status_code=200)
 async def root():
     return "Hello, World!"
 

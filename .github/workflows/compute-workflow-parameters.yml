@@ -167,7 +167,7 @@ jobs:
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
         LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
