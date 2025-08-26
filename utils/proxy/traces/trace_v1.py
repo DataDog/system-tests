@@ -127,8 +127,19 @@ def _unstream_strings(content: None | str | dict | list, strings: list[str] | No
     return strings
 
 
+def _deserialize_trace_id(chunk: dict):
+    trace_id = chunk.get("trace_id")
+    if isinstance(trace_id, bytes):
+        chunk["trace_id"] = "0x" + trace_id.hex().upper()
+    else:
+        raise ValueError(f"Trace ID is not a bytes: {trace_id}")
+
+
 def deserialize_v1_trace(content: bytes) -> dict:
     data: dict = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
     _unstream_strings(data)
-    return _uncompress_keys(data)
+    data = _uncompress_keys(data)
+    for chunk in data.get("chunks", []):
+        _deserialize_trace_id(chunk)
+    return data

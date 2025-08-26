@@ -67,9 +67,7 @@ def test_deserialize_http_message():
                 "priority": 1,
                 "origin": "rum",
                 "attributes": ["some-global", 1, "cool-value"],
-                "trace_id": bytes(
-                    [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x21, 0xE3]
-                ),
+                "trace_id": "0x000000000000005500000000000021E3",
                 "sampling_mechanism": 4,
             }
         ],
