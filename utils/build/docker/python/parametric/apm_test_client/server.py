@@ -13,7 +13,9 @@ from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from opentelemetry.metrics import CallbackOptions
 from opentelemetry.metrics import Meter
+from opentelemetry.metrics import Observation
 from opentelemetry.metrics import Instrument
 from opentelemetry.metrics import get_meter_provider
 from opentelemetry.trace import set_tracer_provider
@@ -949,6 +951,39 @@ def otel_histogram_record(args: OtelHistogramRecordArgs):
     histogram = otel_meter_instruments[instrument_key]
     histogram.record(args.value, args.attributes)
     return OtelHistogramRecordReturn()
+
+
+class OtelCreateAsynchronousCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: float
+    attributes: dict
+
+
+class OtelCreateAsynchronousCounterReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_counter_func(value: float, attributes: dict):
+    def observable_counter_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+    return observable_counter_func
+
+@app.post("/metrics/otel/create_asynchronous_counter")
+def otel_create_asynchronous_counter(args: OtelCreateAsynchronousCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_counter = meter.create_observable_counter(args.name, [create_constant_observable_counter_func(args.value, args.attributes)], args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "observable_counter", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = observable_counter
+    return OtelCreateAsynchronousCounterReturn()
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:

@@ -431,9 +431,9 @@ class _TestAgentAPI:
     def wait_for_first_otlp_metric(
         self, *, metric_name: str | None = None, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
     ) -> list[Trace]:
-        """Wait for `num` metrics to be received from the test agent.
+        """Wait for the metrics with the given name to be received from the test agent.
 
-        Returns after the number of metrics has been received or raises otherwise after 2 seconds of polling.
+        Returns after the metric has been received or raises otherwise after 2 seconds of polling.
 
         When sort_by_start=True returned metrics are sorted by the request start time to simplify assertions by knowing that returned metrics are in the same order as they have been created.
         """
@@ -461,7 +461,7 @@ class _TestAgentAPI:
                         self.clear()
                     return ret_value
             time.sleep(0.1)
-        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}:\n{metrics}")
+        raise ValueError(f"Metric with name (\"{metric_name}\") of metrics not available from test agent, got metrics:\n{metrics}")
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
