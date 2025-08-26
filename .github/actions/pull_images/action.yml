@@ -58,8 +58,6 @@ runs:
         }
 
         df -h
-        ls /usr/local/lib/android
-        du -h /usr/local/lib/android | grep -E '^[0-9]+G' | sort --numeric-sort
 
         echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
