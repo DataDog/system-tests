@@ -5,18 +5,6 @@ lang_variant:
     install:
       - os_type: linux
         os_distro: deb
-        os_branch: debian
-        copy_files:
-          - name: copy-auto-install-script
-            local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
-        remote-command: |
-          echo "deb http://archive.debian.org/debian bullseye-backports main contrib non-free" | sudo tee /etc/apt/sources.list.d/bullseye-backports.list >/dev/null || true
-          sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' /etc/apt/sources.list || true
-          sudo find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' {} + || true
-          sudo apt-get -y update && sudo apt-get -y install patch && sudo sh python_install.sh deb 2.7.18
-
-      - os_type: linux
-        os_distro: deb
         copy_files:
           - name: copy-auto-install-script
             local_path: utils/build/virtual_machine/weblogs/python/test-app-python-27/python_install.sh
