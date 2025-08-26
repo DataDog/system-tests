@@ -365,6 +365,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
+    - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION

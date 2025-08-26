@@ -62,7 +62,9 @@ tests/:
       Test_Debugger_Probe_Budgets: irrelevant
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: irrelevant
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: irrelevant
       Test_Debugger_Method_Probe_Snaphots: irrelevant
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: irrelevant
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses: irrelevant
       Test_Debugger_Method_Probe_Statuses: irrelevant
