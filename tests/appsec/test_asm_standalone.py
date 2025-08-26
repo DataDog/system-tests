@@ -743,7 +743,12 @@ class BaseSCAStandaloneTelemetry:
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
+            for item in configuration:
+                if (
+                    item["name"] not in configuration_by_name
+                    or configuration_by_name[item["name"]]["seq_id"] < item["seq_id"]
+                ):
+                    configuration_by_name[item["name"]] = item
 
         assert configuration_by_name
 
