@@ -305,7 +305,7 @@ async fn end_span(State(state): State<AppState>, Json(args): Json<EndSpanArgs>) 
 }
 
 async fn flush(State(state): State<AppState>, Json(_args): Json<FlushArgs>) -> Json<FlushResult> {
-    let result = state.tracer_provider.force_flush();
+    let result = state.tracer_and_config.0.force_flush();
 
     state.contexts.lock().unwrap().clear();
     state.extracted_span_contexts.lock().unwrap().clear();
