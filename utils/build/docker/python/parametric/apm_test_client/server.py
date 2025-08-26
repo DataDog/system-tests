@@ -1078,6 +1078,20 @@ def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
     return OtelCreateAsynchronousGaugeReturn()
 
 
+class OtelMetricsForceFlushArgs(BaseModel):
+    pass
+
+
+class OtelMetricsForceFlushReturn(BaseModel):
+    success: bool = 1
+
+
+@app.post("/metrics/otel/force_flush")
+def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
+    get_meter_provider().force_flush()
+    return OtelMetricsForceFlushReturn(success=True)
+
+
 class LogGenerateArgs(BaseModel):
     message: str
     level: str
