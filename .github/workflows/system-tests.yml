@@ -271,9 +271,19 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: 'DataDog/system-tests'
+          ref: ${{ inputs.ref }}
+      - name: Install runner
+        uses: ./.github/actions/install_runner
       - name: Download end-to-end logs artifact
         uses: actions/download-artifact@v4
         with:
           merge-multiple: false
           pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}
-      - run: ls -la
+      - name: Get summary
+        run: |
+          source venv/bin/activate
+          python utils/scripts/get-summary.py
