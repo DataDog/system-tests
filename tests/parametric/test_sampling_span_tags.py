@@ -9,7 +9,7 @@ from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
 from utils.parametric.spec.trace import SAMPLING_LIMIT_PRIORITY_RATE
 from utils.parametric.spec.trace import SAMPLING_PRIORITY_KEY
 from utils.parametric.spec.trace import SAMPLING_RULE_PRIORITY_RATE
-from utils.parametric.spec.trace import find_span_in_traces
+from utils.parametric.spec.trace import find_span_in_traces, find_only_span
 
 UNSET = -420
 
@@ -336,3 +336,110 @@ class Test_Sampling_Span_Tags:
             "decisionmaker should be -5, priority should be 2, "
             "and the agent sample rate tag should be set to the default rate, which is 1",
         )
+
+
+@scenarios.parametric
+@features.trace_sampling
+class Test_Knuth_Sample_Rate:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+            },
+            {
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":1, "name":"span"}]',
+            },
+        ],
+    )
+    def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env):
+        """When a trace is sampled via a sampling rule, the sampling decision and knuth sample rate
+        are sent to the agent on the chunk root span.
+        """
+
+        with test_library:
+            with test_library.dd_start_span("span") as span1:
+                pass
+            test_library.dd_flush()
+
+            with test_library.dd_start_span("span", parent_id=span1.span_id) as span2:
+                pass
+            test_library.dd_flush()
+
+            with test_library.dd_start_span("span", parent_id=span2.span_id):
+                pass
+            test_library.dd_flush()
+
+        traces = test_agent.wait_for_num_traces(3)
+        assert len(traces) == 3, f"Expected 3 traces: {traces}"
+        for trace in traces:
+            assert len(trace) == 1, f"Expected 1 span in the trace: {trace}"
+            span = trace[0]
+            assert span["metrics"].get("_dd.p.ksr") == 1.0, f"Expected 1.0 for span {span}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE": "Datadog",
+                # Ensure sampling configurationations are not set.
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
+            }
+        ],
+    )
+    def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(self, test_agent, test_library):
+        """When a trace is extracted from a distributed tracing context, the sampling
+        decision is conveyed by the X-Datadog-Sampling-Priority and X-Datadog-Tags
+        headers.
+        """
+        with test_library:
+            incoming_headers = [
+                ["x-datadog-trace-id", "123456789"],
+                ["x-datadog-parent-id", "987654321"],
+                ["x-datadog-sampling-priority", "2"],
+                ["x-datadog-origin", "synthetics"],
+                ["x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1"],
+            ]
+            outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
+            assert "_dd.p.ksr=1" in outgoing_headers["x-datadog-tags"]
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span.get("trace_id") == 123456789
+        assert span.get("parent_id") == 987654321
+        assert span["meta"].get("_dd.p.dm") == "-8"
+        assert span["meta"].get("_dd.p.ksr") == "1"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+                # Ensure sampling configurationations are not set.
+                "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
+            }
+        ],
+    )
+    def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(self, test_agent, test_library):
+        """When a trace is extracted from a distributed tracing context, the sampling
+        decision is conveyed by the traceparent and tracestate headers.
+        """
+        with test_library:
+            incoming_headers = [
+                ["traceparent", "00-00000000000000000000000000000007-0000000000000006-01"],
+                ["tracestate", "dd=s:2;o:synthetics;t.dm:-8;t.ksr:1"],
+            ]
+            outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
+            assert "t.ksr:1" in outgoing_headers["tracestate"]
+
+        span = find_only_span(test_agent.wait_for_num_traces(1))
+        assert span.get("trace_id") == 7
+        assert span.get("parent_id") == 6
+        assert span["meta"].get("_dd.p.dm") == "-8"
+        assert span["meta"].get("_dd.p.ksr") == "1"
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
