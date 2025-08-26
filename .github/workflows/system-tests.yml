@@ -283,6 +283,8 @@ jobs:
         with:
           merge-multiple: false
           pattern: logs_*_${{ needs.compute_parameters.outputs.unique_id }}
+      - run: ls -la
+      - run: ls -la logs*
       - name: Get summary
         run: |
           source venv/bin/activate
