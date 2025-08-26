@@ -572,7 +572,6 @@ class Test_Otel_Metrics_Api:
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_asynchronous_updowncounter_constant_callback_value(self, test_agent, test_library, n):
-        n = 42
         meter_name = "parametric-api"
         name = f"observableupdowncounter1-{n}"
         unit = "triggers"
