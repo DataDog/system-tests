@@ -858,7 +858,7 @@ def otel_updowncounter_add(args: OtelUpDownCounterAddArgs):
     )
 
     if instrument_key not in otel_meter_instruments:
-        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=UpDownCounter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
 
     counter = otel_meter_instruments[instrument_key]
     counter.add(args.value, args.attributes)
@@ -914,11 +914,67 @@ def otel_gauge_record(args: OtelGaugeRecordArgs):
     )
 
     if instrument_key not in otel_meter_instruments:
-        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Gauge,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
 
     gauge = otel_meter_instruments[instrument_key]
     gauge.set(args.value, args.attributes)
     return OtelGaugeRecordReturn()
+
+
+class OtelCreateHistogramArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateHistogramReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_histogram")
+def otel_create_histogram(args: OtelCreateHistogramArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    histogram = meter.create_histogram(args.name, args.unit, args.description, explicit_bucket_boundaries_advisory=None)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "histogram", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = histogram
+    return OtelCreateHistogramReturn()
+
+
+class OtelHistogramRecordArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: float
+    attributes: dict
+
+
+class OtelHistogramRecordReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/histogram_record")
+def otel_histogram_record(args: OtelHistogramRecordArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "histogram", args.unit, args.description]
+    )
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(f"Instrument with identifying fields Name={args.name},Kind=Histogram,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}")
+
+    histogram = otel_meter_instruments[instrument_key]
+    histogram.record(args.value, args.attributes)
+    return OtelHistogramRecordReturn()
 
 
 class LogGenerateArgs(BaseModel):
