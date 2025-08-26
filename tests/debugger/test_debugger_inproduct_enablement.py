@@ -121,7 +121,6 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
 @missing_feature(context.library == "java", force_skip=True)
-@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Code_Origin(debugger.BaseDebuggerTest):
     ########### code origin ############
     def setup_inproduct_enablement_code_origin(self):
