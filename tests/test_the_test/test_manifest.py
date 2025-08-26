@@ -103,6 +103,7 @@ def test_content():
             if isinstance(declaration, str):
                 assert_valid_declaration(declaration)
                 continue
+            # isn't this going to fail ? 
 
             for variant in declaration:
                 assert variant in variants_map[component], f"Variant {variant} does not exists for {component}"
