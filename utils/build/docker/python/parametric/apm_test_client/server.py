@@ -1012,6 +1012,39 @@ def otel_create_asynchronous_counter(args: OtelCreateAsynchronousCounterArgs):
     return OtelCreateAsynchronousCounterReturn()
 
 
+class OtelCreateAsynchronousUpDownCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: float
+    attributes: dict
+
+
+class OtelCreateAsynchronousUpDownCounterReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_updowncounter_func(value: float, attributes: dict):
+    def observable_updowncounter_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+    return observable_updowncounter_func
+
+@app.post("/metrics/otel/create_asynchronous_updowncounter")
+def otel_create_asynchronous_updowncounter(args: OtelCreateAsynchronousUpDownCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_updowncounter = meter.create_observable_up_down_counter(args.name, [create_constant_observable_updowncounter_func(args.value, args.attributes)], args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "observable_updowncounter", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = observable_updowncounter
+    return OtelCreateAsynchronousUpDownCounterReturn()
+
+
 class LogGenerateArgs(BaseModel):
     message: str
     level: str
