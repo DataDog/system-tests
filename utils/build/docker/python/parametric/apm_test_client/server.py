@@ -1019,6 +1019,39 @@ def otel_create_asynchronous_updowncounter(args: OtelCreateAsynchronousUpDownCou
     return OtelCreateAsynchronousUpDownCounterReturn()
 
 
+class OtelCreateAsynchronousGaugeArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: float
+    attributes: dict
+
+
+class OtelCreateAsynchronousGaugeReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_gauge_func(value: float, attributes: dict):
+    def observable_gauge_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+    return observable_gauge_func
+
+@app.post("/metrics/otel/create_asynchronous_gauge")
+def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_gauge = meter.create_observable_gauge(args.name, [create_constant_observable_gauge_func(args.value, args.attributes)], args.unit, args.description)
+
+    instrument_key = ",".join(
+        [args.meter_name, args.name.strip().lower(), "observable_gauge", args.unit, args.description]
+    )
+    otel_meter_instruments[instrument_key] = observable_gauge
+    return OtelCreateAsynchronousGaugeReturn()
+
+
 def get_ddtrace_version() -> Tuple[int, int, int]:
     return parse_version(getattr(ddtrace, "__version__", ""))
 
