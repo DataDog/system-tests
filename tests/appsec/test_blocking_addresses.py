@@ -74,7 +74,9 @@ class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
     def setup_blocking(self):
-        self.rm_req_block = weblog.get(headers={"Forwarded": "host=\"example.host\";by=2.2.2.2;proto=http;for=1.1.1.1:6543"})
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'host="example.host";by=2.2.2.2;proto=http;for=1.1.1.1:6543'}
+        )
 
     def test_blocking(self):
         """Can block the request forwarded for the ip"""
@@ -83,7 +85,10 @@ class Test_Blocking_client_ip_with_forwarded:
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
 
     def setup_blocking_before(self):
-        self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"Forwarded": "host=\"example.host\";by=2.2.2.2;proto=https;for=1.1.1.1"})
+        self.block_req2 = weblog.get(
+            "/tag_value/tainted_value_6512/200",
+            headers={"Forwarded": 'host="example.host";by=2.2.2.2;proto=https;for=1.1.1.1'},
+        )
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
