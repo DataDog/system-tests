@@ -38,7 +38,7 @@ DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
 DEFAULT_ENVVARS = {
     "DD_TRACE_OTEL_ENABLED": "true",
     "DD_METRICS_OTEL_ENABLED": "true",
-    "OTEL_METRIC_EXPORT_INTERVAL": "200", # Reduce the interval to speed up the tests
+    "OTEL_METRIC_EXPORT_INTERVAL": "60000", # Mitigate test flake by increasing the interval so that the only time new metrics are exported are when we manually flush them
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
@@ -113,9 +113,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -145,10 +146,11 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -178,10 +180,11 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -211,9 +214,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -243,10 +247,11 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -276,9 +281,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
         pprint.pprint(first_metrics_data)
@@ -308,10 +314,11 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
         pprint.pprint(first_metrics_data)
@@ -341,9 +348,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -373,11 +381,12 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value1, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value2, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, negative_value1, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -407,8 +416,9 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -437,8 +447,9 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -467,8 +478,9 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            time.sleep(0.5)
+            t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
@@ -541,9 +553,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            time.sleep(5)
+            t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         pprint.pprint(metrics_data)
@@ -586,9 +599,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            time.sleep(5)
+            t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         pprint.pprint(metrics_data)
@@ -628,9 +642,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            time.sleep(5)
+            t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         pprint.pprint(metrics_data)
@@ -673,9 +688,10 @@ class Test_Otel_Metrics_Api:
         with test_library as t:
             t.disable_traces_flush()
             t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            time.sleep(5)
+            t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         pprint.pprint(metrics_data)
