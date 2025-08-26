@@ -488,6 +488,7 @@ class Test_Otel_Metrics_Api:
         self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         self.assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
+    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -559,6 +560,7 @@ class Test_Otel_Metrics_Api:
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "test1" or actual_attributes.get("deployment.environment.name") == "test1"
 
+    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -600,6 +602,7 @@ class Test_Otel_Metrics_Api:
         actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
         assert set(expected_attributes) <= set(actual_attributes)
 
+    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -644,6 +647,7 @@ class Test_Otel_Metrics_Api:
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "test1" or actual_attributes.get("deployment.environment.name") == "test1"
 
+    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
     @pytest.mark.parametrize(
         "library_env",
         [
