@@ -1135,13 +1135,13 @@ tests/:
             python3.12: v2.14.0
   stats/:
     test_stats.py:
+      Test_Agent_Info_Endpoint: missing_feature
       Test_Client_Stats:
         '*': missing_feature
         django-py3.13: bug (APMLP-364)
-      Test_Agent_Info_Endpoint: missing_feature
       Test_Peer_Tags: missing_feature
-      Test_Transport_Headers: missing_feature
       Test_Time_Bucketing: missing_feature
+      Test_Transport_Headers: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic:
       '*': irrelevant

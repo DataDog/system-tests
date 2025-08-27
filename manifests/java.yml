@@ -2131,11 +2131,11 @@ tests/:
           Test_PutObject: missing_feature
   stats/:
     test_stats.py:
-      Test_Client_Stats: missing_feature
       Test_Agent_Info_Endpoint: missing_feature
+      Test_Client_Stats: missing_feature
       Test_Peer_Tags: missing_feature
-      Test_Transport_Headers: missing_feature
       Test_Time_Bucketing: missing_feature
+      Test_Transport_Headers: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.2.1
