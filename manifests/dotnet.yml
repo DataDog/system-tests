@@ -466,7 +466,9 @@ tests/:
       Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.53.0
       Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Method_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
