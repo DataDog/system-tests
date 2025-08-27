@@ -52,6 +52,7 @@ JSON_CONTENT_TYPES = {
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking:
     """Blocking response is obtained when triggering a blocking rule, test the default blocking response"""
@@ -82,7 +83,7 @@ class Test_Blocking:
         )
 
         def validate_appsec_blocked(span):
-            if span.get("type") != "web":
+            if span.get("type") not in ("web", "serverless"):
                 return None
 
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
@@ -204,6 +205,7 @@ class Test_Blocking:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_Blocking_strip_response_headers:
     def setup_strip_response_headers(self):
@@ -221,6 +223,7 @@ class Test_Blocking_strip_response_headers:
 
 @rfc("https://docs.google.com/document/d/1a_-isT9v_LiiGshzQZtzPzCK_CxMtMIil_2fOq9Z1RE/edit")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_blocking_action
 class Test_CustomBlockingResponse:
     """Custom Blocking response"""

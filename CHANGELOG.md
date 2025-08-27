@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-07 (112 PR merged)
+
+* 2025-07-29 [[ruby] Remove excessive Rails versions](https://github.com/DataDog/system-tests/pull/4954) by @Strech
+* 2025-07-02 [Allow to use a subset of weblog in official workflow](https://github.com/DataDog/system-tests/pull/4885) by @cbeauchesne
+* 2025-07-18 [K8s injector dev first scenario](https://github.com/DataDog/system-tests/pull/4692) by @robertomonteromiguel
+
+
 ### 2025-06 (128 PR merged)
 
 * 2025-06-26 [Check that all declared production version exists for java](https://github.com/DataDog/system-tests/pull/4840) by @cbeauchesne

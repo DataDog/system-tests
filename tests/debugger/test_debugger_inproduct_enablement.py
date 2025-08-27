@@ -11,7 +11,6 @@ TIMEOUT = 5
 
 @features.debugger_inproduct_enablement
 @scenarios.debugger_inproduct_enablement
-@missing_feature(context.library == "python", force_skip=True)
 class Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation(debugger.BaseDebuggerTest):
     ############ dynamic instrumentation ############
     _probe_template = """

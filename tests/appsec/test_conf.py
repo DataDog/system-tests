@@ -102,6 +102,7 @@ class Test_ConfigurationVariables:
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2355333252/Environment+Variables")
 @features.threats_configuration
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 class Test_ConfigurationVariables_New_Obfuscation:
     """Check for new obfuscation features in libddwaf 1.25.0 and later
     Requires libddwaf 1.25.0 or later and updated obfuscation regex for values

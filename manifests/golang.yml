@@ -423,6 +423,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v1.51.0
+      Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
       Test_Blocking_request_cookies:
@@ -574,28 +575,30 @@ tests/:
         gin: v1.37.0
   debugger/:
     test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins: missing_feature (feature not implented)
+      Test_Debugger_Code_Origins: missing_feature (feature not implemented)
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: missing_feature (feature not implented)
+      Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+      Test_Debugger_Expression_Language: missing_feature (feature not implemented)
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
-      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implented)
+      Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
     test_debugger_probe_budgets.py:
-      Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
+      Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
     test_debugger_probe_status.py:
-      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implemented)
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: missing_feature (feature not implented)
+      Test_Debugger_SymDb: missing_feature (feature not implemented)
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: missing_feature
   integrations/:

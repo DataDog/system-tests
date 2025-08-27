@@ -351,6 +351,8 @@ tests/:
       Test_Automated_User_Tracking: v1.8.0
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
+      Test_Blocking_client_ip: missing_feature (unknown version)
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
       Test_Blocking_request_body_multipart: v1.6.2
       Test_Blocking_response_headers: irrelevant (On php it is not possible change the status code once its header is sent)
@@ -463,7 +465,9 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature
       Test_Debugger_Method_Probe_Snaphots: missing_feature
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
         '*': missing_feature
