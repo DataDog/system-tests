@@ -1,10 +1,10 @@
-from utils import interfaces, bug, features, scenarios
+from utils import interfaces, bug, features, scenarios, context
 
 
 @features.client_side_stats_supported
 @scenarios.trace_stats_computation
 class Test_Miscs:
-    @bug(library="golang", reason="APMAPI-919")
+    @bug(context.library >= "golang@2.2.2", reason="APMAPI-919")
     def test_request_headers(self):
         interfaces.library.assert_request_header(
             "/v0.6/stats", r"content-type", r"application/msgpack(, application/msgpack)?"
