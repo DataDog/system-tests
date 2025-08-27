@@ -80,6 +80,8 @@ class BaseDebuggerTest:
     all_spans: list = []
     symbols: list = []
 
+    start_time: int | None = None
+
     rc_states: list[remote_config.RemoteConfigStateResults] = []
     weblog_responses: list = []
 
@@ -212,6 +214,8 @@ class BaseDebuggerTest:
         live_debugging_enabled: bool | None = None,
         code_origin_enabled: bool | None = None,
         dynamic_sampling_enabled: bool | None = None,
+        service_name: str | None = "weblog",
+        env: str | None = "system-tests",
         *,
         reset: bool = True,
     ) -> None:
@@ -228,6 +232,8 @@ class BaseDebuggerTest:
                 code_origin_enabled=code_origin_enabled,
                 dynamic_sampling_enabled=dynamic_sampling_enabled,
                 version=BaseDebuggerTest._rc_version,
+                service_name=service_name,
+                env=env,
             )
         )
 
@@ -315,14 +321,17 @@ class BaseDebuggerTest:
             contents = data["request"].get("content", []) or []
 
             for content in contents:
+                # Filter out snapshots from before the test start time for multiple tests using the same file.
+                if "timestamp" in content and self.start_time is not None:
+                    if content["timestamp"] < self.start_time:
+                        continue
+
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
                 if not snapshot or "probe" not in snapshot:
-                    logger.debug("Snapshot doesn't have pobe")
                     continue
 
                 if "exceptionId" not in snapshot:
-                    logger.debug("Snapshot doesnt't have exception")
                     continue
 
                 exception_message = self.get_exception_message(snapshot)
