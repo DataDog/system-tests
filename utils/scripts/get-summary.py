@@ -56,16 +56,23 @@ class Summary:
 
         items = [
             f"{self.get_count(outcome)} {outcome.name}"
-            for outcome in (Outcome.passed, Outcome.xpassed, Outcome.skipped, Outcome.failed)
+            for outcome in (
+                Outcome.passed,
+                Outcome.xfailed,
+                Outcome.xpassed,
+                Outcome.skipped,
+                Outcome.failed,
+                Outcome.error,
+            )
             if self.get_count(outcome) > 0
         ]
-        result.append("== 📊 Test Report ==\n")
+        result.append("### 📊 Test Report\n")
         result.append(f"{len(self.tests)} tests - {', '.join(items)}")
 
         result.append("")
 
         if self.get_count(Outcome.failed) != 0:
-            result.append("== ❌ Failures by owner ==\n")
+            result.append("### ❌ Failures by owner\n")
             for owner, tests in self.failures.items():
                 result.append(f"* {owner}: {len(tests)} failures")
                 for test in tests:
