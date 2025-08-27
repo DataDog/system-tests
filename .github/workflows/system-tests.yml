@@ -278,7 +278,7 @@ jobs:
           ref: ${{ inputs.ref }}
       - name: Install runner
         uses: ./.github/actions/install_runner
-      - name: Download end-to-end logs artifact
+      - name: Download logs artifact
         uses: actions/download-artifact@v4
         with:
           merge-multiple: false
@@ -290,9 +290,7 @@ jobs:
               tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json'
             fi
           done
-      - run: ls -la
-      - run: ls -la logs*
       - name: Get summary
         run: |
           source venv/bin/activate
-          python utils/scripts/get-summary.py
+          python utils/scripts/get-summary.py -o ${GITHUB_STEP_SUMMARY}

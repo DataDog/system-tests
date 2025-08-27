@@ -1,3 +1,4 @@
+import argparse
 from collections import defaultdict
 from enum import StrEnum
 import json
@@ -55,19 +56,22 @@ class Summary:
 
         items = [
             f"{self.get_count(outcome)} {outcome.name}"
-            for outcome in (Outcome.xpassed, Outcome.skipped, Outcome.failed)
+            for outcome in (Outcome.passed, Outcome.xpassed, Outcome.skipped, Outcome.failed)
             if self.get_count(outcome) > 0
         ]
         result.append("== 📊 Test Report ==\n")
         result.append(f"{len(self.tests)} tests - {', '.join(items)}")
 
+        result.append("")
+
         if self.get_count(Outcome.failed) != 0:
-            result.append("")
             result.append("== ❌ Failures by owner ==\n")
             for owner, tests in self.failures.items():
                 result.append(f"* {owner}: {len(tests)} failures")
                 for test in tests:
                     result.append(f"    * {test.nodeid} ({test.weblog}/{test.scenario})")
+
+            result.append("")
 
         return "\n".join(result)
 
@@ -92,15 +96,36 @@ def compute_file(file_path: Path, summary: Summary) -> None:
             summary.add_test(test)
 
 
-def main(base_dir: str) -> None:
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate a summary of test results.")
+    parser.add_argument(
+        "--base-dir",
+        type=str,
+        default=".",
+        help="Base directory to start crawling for report.json files.",
+    )
+    parser.add_argument(
+        "--output-file",
+        "-o",
+        type=str,
+        default="",
+        help="Path to the output file for the summary. Default to stdout",
+    )
+
+    args = parser.parse_args()
+
     summary = Summary()
 
-    crawl_folder(Path(base_dir), summary)
+    crawl_folder(Path(args.base_dir), summary)
 
     result = summary.get_markdown()
 
-    print(result)
+    if args.output_file:
+        with open(args.output_file, "w") as f:
+            f.write(result)
+    else:
+        print(result)
 
 
 if __name__ == "__main__":
-    main(".")
+    main()
