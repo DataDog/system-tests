@@ -270,7 +270,7 @@ build() {
                 --load \
                 --progress=plain \
                 -f utils/build/docker/lambda-proxy.Dockerfile \
-                -t system_tests/lambda-proxy \
+                -t datadog/system-tests:lambda-proxy \
                 $EXTRA_DOCKER_ARGS \
                 .
         else
