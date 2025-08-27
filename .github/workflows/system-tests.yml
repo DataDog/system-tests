@@ -152,6 +152,7 @@ jobs:
       job_count: ${{ inputs.parametric_job_count }}
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
 
   lib_injection:
     needs:
@@ -271,6 +272,7 @@ jobs:
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
 
   display_summary:
     name: Report failures
