@@ -76,7 +76,9 @@ create_mcp_script() {
     fi
 
     # Create the script content
-    local script_content='#!/bin/bash
+    local script_content
+    script_content=$(cat << 'EOF'
+#!/bin/bash
 
 generate_github_token() {
   ddtool auth github token
@@ -88,7 +90,9 @@ GITHUB_TOKEN=$(generate_github_token)
 # Start the MCP server with the token
 docker run -i --rm \
   -e GITHUB_PERSONAL_ACCESS_TOKEN="$GITHUB_TOKEN" \
-  ghcr.io/github/github-mcp-server'
+  ghcr.io/github/github-mcp-server
+EOF
+)
 
     # Write the script
     if [[ -w "/usr/local/bin" ]]; then
