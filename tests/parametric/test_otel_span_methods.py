@@ -6,7 +6,7 @@ import pytest
 from utils.parametric._library_client import Link
 from opentelemetry.trace import StatusCode
 from opentelemetry.trace import SpanKind
-from utils.parametric.spec.trace import find_span
+from utils.parametric.spec.trace import find_span, retrieve_span_events
 from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_first_span_in_trace_payload
@@ -763,11 +763,8 @@ class Test_Otel_Span_Methods:
         traces = test_agent.wait_for_num_traces(1)
         trace = find_trace(traces, span.trace_id)
         root_span = find_span(trace, span.span_id)
-        assert "events" in root_span["meta"] or "span_events" in root_span
 
-        v04_v07_events = "span_events" in root_span
-
-        events = root_span.get("span_events") if v04_v07_events else json.loads(root_span.get("meta", {}).get("events"))
+        events = retrieve_span_events(root_span)
         assert len(events) == 3
 
         event1 = events[0]
@@ -777,26 +774,22 @@ class Test_Otel_Span_Methods:
         event2 = events[1]
         assert event2.get("name") == "second_event"
         assert abs(event2.get("time_unix_nano") - event2_timestamp_ns) < 100000  # reduce the precision tested
-
-        if v04_v07_events:
-            assert event2["attributes"].get("string_val").get("string_value") == "value"
-        else:
-            assert event2["attributes"].get("string_val") == "value"
+        assert event2["attributes"].get("string_val") == "value"
 
         event3 = events[2]
         assert event3.get("name") == "third_event"
         assert 999 <= event3.get("time_unix_nano") <= 1001  # reduce the precision tested
+        assert event3["attributes"].get("int_val") == 1
+        assert event3["attributes"].get("string_val") == "2"
+
+        v04_v07_events = "span_events" in root_span
 
         if v04_v07_events:
-            assert event3["attributes"].get("int_val").get("int_value") == 1
-            assert event3["attributes"].get("string_val").get("string_value") == "2"
-            assert event3["attributes"].get("int_array.0").get("int_value") == 3
-            assert event3["attributes"].get("int_array.1").get("int_value") == 4
-            assert event3["attributes"].get("string_array.0").get("string_value") == "5"
-            assert event3["attributes"].get("string_array.1").get("string_value") == "6"
-        else:
-            assert event3["attributes"].get("int_val") == 1
-            assert event3["attributes"].get("string_val") == "2"
+            assert event3["attributes"].get("int_array.0") == 3
+            assert event3["attributes"].get("int_array.1") == 4
+            assert event3["attributes"].get("string_array.0") == "5"
+            assert event3["attributes"].get("string_array.1") == "6"
+        else:    
             assert event3["attributes"].get("int_array")[0] == 3
             assert event3["attributes"].get("int_array")[1] == 4
             assert event3["attributes"].get("string_array")[0] == "5"
@@ -845,9 +838,7 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"] or "span_events" in root_span
 
-        otel_events = "span_events" in root_span
-
-        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
+        events = retrieve_span_events(root_span)
         assert len(events) == 3
         event1 = events[0]
         assert (
@@ -895,32 +886,19 @@ class Test_Otel_Span_Methods:
         root_span = find_span(trace, span.span_id)
         assert "events" in root_span["meta"] or "span_events" in root_span
 
-        otel_events = "span_events" in root_span
-
-        events = root_span.get("span_events") if otel_events else json.loads(root_span.get("meta", {}).get("events"))
+        events = retrieve_span_events(root_span)
         assert len(events) == 3
         event1 = events[0]
-        if otel_events:
-            assert event1["attributes"].get("string_val").get("string_value") == "value"
-            assert event1["attributes"].get("exception.message").get("string_value") == "woof1"
-            assert event1["attributes"].get("exception.stacktrace").get("string_value") == "stacktrace1"
-        else:
-            assert event1["attributes"].get("string_val") == "value"
-            assert event1["attributes"].get("exception.message") == "woof1"
-            assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
+        assert event1["attributes"].get("string_val") == "value"
+        assert event1["attributes"].get("exception.message") == "woof1"
+        assert event1["attributes"].get("exception.stacktrace") == "stacktrace1"
 
         event2 = events[1]
-        if otel_events:
-            assert event2["attributes"].get("exception.stacktrace").get("string_value") == "non-error"
-        else:
-            assert event2["attributes"].get("exception.stacktrace") == "non-error"
-
+        assert event2["attributes"].get("exception.stacktrace") == "non-error"
+        
         event3 = events[2]
-        if otel_events:
-            assert event3["attributes"].get("exception.message").get("string_value") == "message override"
-        else:
-            assert event3["attributes"].get("exception.message") == "message override"
-
+        assert event3["attributes"].get("exception.message") == "message override"
+        
         # For PHP we set only the error.stack tag on the meta to not interfere with the defined semantics of the PHP tracer
         # https://github.com/DataDog/dd-trace-php/pull/2754#discussion_r1704232289
         if context.library != "php":
