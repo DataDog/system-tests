@@ -1249,7 +1249,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta:
       '*': v1.80.0
-      django-py3.13: bug (APMLP-364)
+      django-py3.13: v3.0.0
     Test_MetaDatadogTags: v3.2.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:
