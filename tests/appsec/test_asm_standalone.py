@@ -736,7 +736,7 @@ class BaseSCAStandaloneTelemetry:
     def test_telemetry_sca_enabled_propagated(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
-        configuration_by_name: dict[str, dict] = {}
+        configuration_by_name: dict[str, list[dict]] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
@@ -744,11 +744,17 @@ class BaseSCAStandaloneTelemetry:
             configuration = content["payload"]["configuration"]
 
             for item in configuration:
-                if (
-                    item["name"] not in configuration_by_name
-                    or configuration_by_name[item["name"]]["seq_id"] < item["seq_id"]
-                ):
-                    configuration_by_name[item["name"]] = item
+                if item["name"] not in configuration_by_name:
+                    configuration_by_name[item["name"]] = []
+                configuration_by_name[item["name"]].append(item)
+
+        if len(configuration_by_name):
+            # Checking if we need to sort due to multiple sources being sent for the same config
+            sample_key = next(iter(configuration_by_name))
+            if "seq_id" in configuration_by_name[sample_key]:
+                # Sort seq_id for each config from highest to lowest
+                for payload in configuration_by_name.values():
+                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
 
         assert configuration_by_name
 
@@ -760,7 +766,7 @@ class BaseSCAStandaloneTelemetry:
         outcome_value: bool | str = True
         if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
-        assert cfg_appsec_enabled.get("value") == outcome_value
+        assert cfg_appsec_enabled[0].get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
         # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case

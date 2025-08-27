@@ -1223,7 +1223,7 @@ tests/:
         '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_SCAStandalone_Telemetry_V2:
-        '*': missing_feature (temporarily disabling while updating Java telemetry)
+        '*': v1.47.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_UserEventsStandalone_Automated:
         '*': v1.45.0
