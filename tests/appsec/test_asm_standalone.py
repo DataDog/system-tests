@@ -754,7 +754,6 @@ class BaseSCAStandaloneTelemetry:
                 # Sort seq_id for each config from highest to lowest
                 for payload in configuration_by_name.values():
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
-        # print(configuration_by_name)
         assert configuration_by_name
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
