@@ -747,15 +747,14 @@ class BaseSCAStandaloneTelemetry:
                 if item["name"] not in configuration_by_name:
                     configuration_by_name[item["name"]] = []
                 configuration_by_name[item["name"]].append(item)
-
         if len(configuration_by_name):
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configuration_by_name))
-            if "seq_id" in configuration_by_name[sample_key]:
+            if "seq_id" in configuration_by_name[sample_key][0]:
                 # Sort seq_id for each config from highest to lowest
                 for payload in configuration_by_name.values():
                     payload.sort(key=lambda item: item["seq_id"], reverse=True)
-
+        # print(configuration_by_name)
         assert configuration_by_name
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
