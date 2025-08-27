@@ -651,6 +651,7 @@ class Test_Parametric_OtelSpan_Events:
         events = retrieve_span_events(span)
         assert events is not None
         assert len(events) == 1, f"events: {events}"
+        assert events[0]["name"].lower() in ["exception", "error"]
         assert events[0]["attributes"]["error.key"] == "value"
 
 
