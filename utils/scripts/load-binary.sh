@@ -205,12 +205,7 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    rm -rf dd-trace-py/
-    # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone --branch $LIBRARY_TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
-    cd dd-trace-py
-    echo "Checking out the ref"
-    git log -1 --format=%H
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "wheels-cp311-manylinux_x86_64.zip"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
