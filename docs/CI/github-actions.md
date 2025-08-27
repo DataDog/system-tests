@@ -59,7 +59,7 @@ jobs:
 | `scenarios_groups`                    | Comma-separated list of scenarios groups to run                                                 | string  | false    |            |
 | `skip_empty_scenarios`                | Skip scenarios that contain only xfail or irrelevant tests                                      | boolean | false    | false      |
 | `force_execute`                       | Comma-separated list of tests to run even if they are skipped by manifest or decorators         | string  | false    |            |
-
+| `display_summary`                     | Display a workflow summary containing owners of failed tests                                    | boolean | false    | false      |
 
 ## Private parameters
 
