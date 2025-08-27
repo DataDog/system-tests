@@ -41,6 +41,7 @@ def _assert_custom_event_tag_absence():
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_client_ip:
     """Test if blocking is supported on http.client_ip address"""
@@ -65,7 +66,51 @@ class Test_Blocking_client_ip:
         interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
+@features.appsec_request_blocking
+@features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.external_processing_blocking
+class Test_Blocking_client_ip_with_forwarded:
+    """Test if blocking is supported on http.client_ip address"""
+
+    def setup_blocking_ipv4(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for=127.0.0.1;host="example.host";by=2.2.2.2;proto=http,for="1.1.1.1:6543"'}
+        )
+
+    def test_blocking_ipv4(self):
+        """Can block the request forwarded for the ip (in IPv4 format)"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_ipv6(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for="[::1]",for="[9f7b:5e67:5472:4464:90b0:6b0a:9aa6:f9dc]:4485"'},
+        )
+
+    def test_blocking_ipv6(self):
+        """Can block the request forwarded for the ip (in IPv6 format)"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_before(self):
+        self.block_req2 = weblog.get(
+            "/tag_value/tainted_value_6512/200",
+            headers={"Forwarded": 'host="example.host";by=2.2.2.2;proto=https;for=1.1.1.1'},
+        )
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # second request should block and must not set the tag in span
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
+        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+
+
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_user_id:
     """Test if blocking is supported on usr.id address"""
@@ -84,6 +129,7 @@ class Test_Blocking_user_id:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_method:
     """Test if blocking is supported on server.request.method address"""
@@ -139,6 +185,7 @@ class Test_Blocking_request_method:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_uri:
     """Test if blocking is supported on server.request.uri.raw address"""
@@ -205,6 +252,7 @@ class Test_Blocking_request_uri:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_path_params:
     """Test if blocking is supported on server.request.path_params address"""
@@ -271,6 +319,7 @@ class Test_Blocking_request_path_params:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_query:
     """Test if blocking is supported on server.request.query address"""
@@ -329,6 +378,7 @@ class Test_Blocking_request_query:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_headers:
     """Test if blocking is supported on server.request.headers.no_cookies address"""
@@ -387,6 +437,7 @@ class Test_Blocking_request_headers:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_request_cookies:
     """Test if blocking is supported on server.request.cookies address"""
@@ -443,6 +494,7 @@ class Test_Blocking_request_cookies:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body:
     """Test if blocking is supported on server.request.body address for urlencoded body"""
@@ -511,6 +563,7 @@ class Test_Blocking_request_body:
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Blocking_request_body_multipart:
     """Test if blocking is supported on server.request.body address for multipart body"""
@@ -527,6 +580,7 @@ class Test_Blocking_request_body_multipart:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 @features.appsec_response_blocking
 @features.envoy_external_processing
@@ -596,6 +650,7 @@ class Test_Blocking_response_status:
 @features.appsec_response_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_response_headers:
     """Test if blocking is supported on server.response.headers.no_cookies address"""
@@ -637,6 +692,7 @@ class Test_Blocking_response_headers:
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking
 class Test_Suspicious_Request_Blocking:
     """Test if blocking on multiple addresses with multiple rules is supported"""

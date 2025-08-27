@@ -339,6 +339,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies: v2.29.0
@@ -465,7 +466,9 @@ tests/:
       Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.53.0
       Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Method_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
@@ -695,6 +698,6 @@ tests/:
     Test_Metric_Generation_Enabled: v2.35.0
     Test_ProductsDisabled: v2.12.0
     Test_Telemetry: v2.12.0
-    Test_TelemetryEnhancedConfigReporting: missing_feature
+    Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v2.35.0
