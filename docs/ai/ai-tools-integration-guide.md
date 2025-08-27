@@ -44,3 +44,16 @@ Visit [Cursor specialized tasks](cursor-specialized-prompts.md) to explore the s
 
 If you introduce new instructions, enhance existing documentation, or improve the predefined rules, you're strongly encouraged to add corresponding tests. These tests play a vital role in validating your enhancements and ensuring the AI assistant performs optimally. For further guidance, see section [Prompt validation](ai-tools-prompt-validation.md).
 
+#### MCP Servers Integration
+
+Cursor supports Model Context Protocol (MCP) servers that extend AI capabilities with specialized tools and integrations. The system-tests repository provides several MCP server configurations to enhance your development workflow:
+
+**Available MCP Servers:**
+
+- **GitHub MCP Server**: Provides comprehensive GitHub integration including repository management, pull requests, issues, and CI/CD operations. See [GitHub MCP Server Setup](ai-github-mcp-server.md) for detailed installation and configuration instructions.
+
+**Future MCP Servers:**
+Additional MCP servers are planned to further enhance the development experience. These may include integrations for cloud services, testing frameworks, and other development tools commonly used with system-tests.
+
+To set up MCP servers, follow the specific setup guides for each server. All MCP servers integrate seamlessly with Cursor's AI assistant, providing enhanced context and capabilities for working with the system-tests repository.
+
