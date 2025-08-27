@@ -780,10 +780,12 @@ tests/:
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
   stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
     test_stats.py:
       Test_Client_Stats: missing_feature
+      Test_Agent_Info_Endpoint: missing_feature
+      Test_Peer_Tags: missing_feature
+      Test_Transport_Headers: missing_feature
+      Test_Time_Bucketing: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v2.13.0
     Test_Baggage_Headers_Malformed: v2.13.0
