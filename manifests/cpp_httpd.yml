@@ -29,13 +29,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_stats.py:
-      Test_Agent_Info_Endpoint: missing_feature
-      Test_Client_Stats: missing_feature
-      Test_Peer_Tags: missing_feature
-      Test_Time_Bucketing: missing_feature
-      Test_Transport_Headers: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
     Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
