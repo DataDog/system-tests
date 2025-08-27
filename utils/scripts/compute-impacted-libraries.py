@@ -74,7 +74,7 @@ def main() -> None:
                             f"""File {file} is modified, and it may impact {match[2]}.
                             Please remove the PR title prefix [{user_choice}]"""
                         )
-                        # sys.exit(1)  DO NOT MERGE
+                        sys.exit(1)
                 elif file.startswith("tests/"):
                     # modification in tests files are complex, trust user
                     ...
@@ -83,7 +83,7 @@ def main() -> None:
                         f"""File {file} is modified, it may impact all libraries.
                         Please remove the PR title prefix [{user_choice}]"""
                     )
-                    # sys.exit(1) DO NOT MERGE
+                    sys.exit(1)
 
     populated_result = [
         {
