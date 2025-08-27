@@ -835,7 +835,17 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
       Test_Debugger_Method_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
