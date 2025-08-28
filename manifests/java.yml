@@ -1353,7 +1353,9 @@ tests/:
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
         vertx4: v1.7.0
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+      Test_Blocking_client_ip_with_forwarded:
+        '*': v1.53.0-SNAPSHOT
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_request_body:
         '*': v1.15.0
         akka-http: v1.22.0
@@ -2129,9 +2131,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.2.1
