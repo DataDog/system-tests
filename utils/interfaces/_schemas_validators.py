@@ -153,8 +153,14 @@ class SchemaValidator:
             result = []
             for part in data["request"].get("content", []):
                 if isinstance(part, dict) and "content" in part:
-                    # Add the debugger data from nested content
-                    result.extend(part["content"])
+                    # Handle both array and single object content
+                    content = part["content"]
+                    if isinstance(content, list):
+                        # Diagnostics/snapshots: content is an array
+                        result.extend(content)
+                    else:
+                        # Symdb: content is a single object
+                        result.append(content)
                 else:
                     # Fallback: return content as-is
                     result.append(part)
