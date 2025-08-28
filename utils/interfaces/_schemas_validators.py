@@ -85,7 +85,9 @@ class SchemaError:
     def data_path(self):
         return re.sub(r"\[\d+\]", "[]", self.error.json_path)
 
+
 HEADER_PAIR_LENGTH = 2
+
 
 class SchemaValidator:
     def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
