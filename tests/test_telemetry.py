@@ -367,14 +367,14 @@ class Test_Telemetry:
     def test_app_dependencies_loaded(self):
         """Test app-dependencies-loaded requests"""
 
-        test_loaded_dependencies: dict[str, dict[str, bool]] = {
+        test_loaded_dependencies = {
             "dotnet": {"NodaTime": False},
             "nodejs": {"glob": False},
             "java": {"httpclient": False},
             "ruby": {"bundler": False},
         }
 
-        test_defined_dependencies: dict[str, dict[str, bool]] = {
+        test_defined_dependencies = {
             "dotnet": {},
             "nodejs": {
                 "body-parser": False,
@@ -503,6 +503,19 @@ class Test_Telemetry:
                         # Handle different configuration structures - some might not have 'value' key
                         if cnf.get("name") == config_name_to_check:
                             config_value = cnf.get("value")
+                            # Accept both the expected value and its float version for telemetry_heartbeat_interval
+                            if expected_config_name == "telemetry_heartbeat_interval":
+                                try:
+                                    expected_float = float(expected_value)
+                                    config_float = float(config_value)
+                                    if config_float == expected_float:
+                                        config_found = True
+                                        configurations_present.append(expected_config_name)
+                                        break
+                                except Exception as e:
+                                    logger.debug(
+                                        f"Could not compare as float for config '{expected_config_name}': {e}"
+                                    )  # fallback to string comparison below
                             if config_value is not None and str(config_value).lower() == expected_value_str:
                                 config_found = True
                                 configurations_present.append(expected_config_name)
@@ -808,7 +821,8 @@ class Test_TelemetryV2:
         reason="Re-enable when this automatically updates the dd-go files.",
     )
     @irrelevant(
-        condition=True, reason="This test causes to many friction. It has been replaced by alerts on slack channels"
+        condition=context.library not in ("python",),
+        reason="This test causes to many friction. It has been replaced by alerts on slack channels",
     )
     def test_config_telemetry_completeness(self):
         """Assert that config telemetry is handled properly by telemetry intake
@@ -1134,21 +1148,24 @@ class Test_Metric_Generation_Enabled:
 class Test_TelemetrySCAEnvVar:
     def test_telemetry_sca_propagated(self):
         target_service_name = "weblog"
-        target_request_type = "app-started"
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
+        target_request_type = ["app-started", "app-client-configuration-change"]
+        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=True))
         events = []
 
         for t in telemetry_data:
-            if get_request_type(t) == target_request_type and get_service_name(t) == target_service_name:
+            if get_request_type(t) in target_request_type and get_service_name(t) == target_service_name:
                 events.append(t)
 
         assert len(events) > 0, f"No telemetry found for {target_service_name} on {target_request_type}"
 
-        configurations = get_configurations(events[0])
         found = False
-        for c in configurations:
-            if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
-                found = True
+        for e in events:
+            configurations = get_configurations(e)
+            for c in configurations:
+                if c["name"] in ("appsec.sca_enabled", "DD_APPSEC_SCA_ENABLED"):
+                    found = True
+                    break
+            if found:
                 break
 
         assert found, f"No telemetry found for {target_service_name} on {target_request_type} with configuration appsec.sca_enabled"

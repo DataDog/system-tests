@@ -8,6 +8,7 @@ import os
 import os.path
 from pathlib import Path
 import uuid
+from urllib.parse import parse_qs
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -309,7 +310,7 @@ class BaseDebuggerTest:
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data: dict):
-        if data["path"] == _LOGS_PATH:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
             logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
             contents = data["request"].get("content", []) or []
 
@@ -481,7 +482,7 @@ class BaseDebuggerTest:
             }
             return transitions.get(current_status, False)
 
-        def _process_debugger(debugger: dict):
+        def _process_debugger(debugger: dict, query: str):
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
                 probe_id = diagnostics["probeId"]
@@ -495,6 +496,8 @@ class BaseDebuggerTest:
                 else:
                     probe_diagnostics[probe_id] = diagnostics
 
+                probe_diagnostics[probe_id]["query"] = parse_qs(query)
+
         for data in datas:
             logger.debug(f"Processing data: {data['log_filename']}")
             contents = data["request"].get("content", []) or []  # Ensures contents is a list
@@ -504,15 +507,18 @@ class BaseDebuggerTest:
                     # content["content"] may be a dict, and not a list ?
                     for d_content in content["content"]:
                         assert isinstance(d_content, dict), f"Unexpected content: {json.dumps(content, indent=2)}"
-                        _process_debugger(d_content["debugger"])
+                        _process_debugger(d_content["debugger"], data["query"])
                 elif "debugger" in content:
-                    _process_debugger(content["debugger"])
+                    _process_debugger(content["debugger"], data["query"])
 
         return probe_diagnostics
 
     def _collect_snapshots(self):
         def _get_snapshot_hash():
+            # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
+            # snapshots to the debugger endpoint.
             agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
+            agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
             snapshot_hash: dict = {}
 
             for request in agent_logs_endpoint_requests:
@@ -520,6 +526,7 @@ class BaseDebuggerTest:
                 if content:
                     for item in content:
                         snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                        item["query"] = parse_qs(request["query"])
                         if snapshot:
                             probe_id = snapshot["probe"]["id"]
                             if probe_id in snapshot_hash:

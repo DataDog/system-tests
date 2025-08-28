@@ -28,7 +28,7 @@ jobs:
       contents: read # need to read releases
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Install runner
         uses: ./.github/actions/install_runner
       # force /bin/bash in order to test against bash 3.2 on macOS
@@ -85,6 +85,7 @@ jobs:
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
+      build_lambda_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-lambda-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
@@ -93,6 +94,7 @@ jobs:
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
       artifact_retention_days: 3
+      display_summary: true
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
@@ -125,7 +127,7 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
+    - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e
       with:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'
@@ -135,18 +137,3 @@ jobs:
 
         ignored-name-patterns: |
           dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
-
-  update-CI-visibility:
-    name: Update CI Visibility Dashboard
-    runs-on: ubuntu-latest
-    needs:
-    - system_tests
-    if: always() && github.ref == 'refs/heads/main'
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Update CI Dashboard
-      run: ./utils/scripts/update_dashboard_CI_visibility.sh system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      env:
-        DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
-        DD_APP_KEY: ${{ secrets.DD_CI_APP_KEY }}

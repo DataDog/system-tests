@@ -13,8 +13,6 @@ stages:
   - system-tests-utils
 
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
 compute_pipeline:
@@ -267,6 +265,8 @@ generate_system_tests_end_to_end_images:
       - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
+      - ./build.sh -i lambda-proxy
+      - docker push datadog/system-tests:lambda-proxy
   when: manual
 
 generate_system_tests_lib_injection_images:

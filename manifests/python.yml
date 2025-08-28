@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.6.0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v2.6.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': v3.13.0.dev
+          'django-poc': v3.12.0.dev
+          'django-py3.13': v3.12.0.dev
+          'python3.12': v3.12.0.dev
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -169,35 +175,17 @@ tests/:
           TestUntrustedDeserialization_StackTrace: missing_feature
         test_unvalidated_redirect.py:
           TestUnvalidatedHeader:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedHeader_ExtendedLocation:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedHeader_StackTrace:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect_ExtendedLocation:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
           TestUnvalidatedRedirect_StackTrace:
-            '*': v3.9.0.dev
-            flask-poc: bug (APPSEC-57817)
-            uds-flask: bug (APPSEC-57817)
-            uwsgi-poc: bug (APPSEC-57817)
+            '*': v3.12.0.dev (implemented in v3.9.0.dev, but there was the APPSEC-57817 bug)
         test_unvalidated_redirect_forward.py:
           TestUnvalidatedForward: missing_feature
           TestUnvalidatedForward_ExtendedLocation: missing_feature
@@ -519,8 +507,8 @@ tests/:
       Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: v3.9.0
-        uds-flask: v3.9.0
+        flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
       Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
@@ -572,6 +560,8 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+      Test_Blocking_client_ip_with_K8_private_ip: v2.4.0
+      Test_Blocking_client_ip_with_forwarded: v3.13.0.dev
       Test_Blocking_request_body:
         '*': v1.16.1
         django-poc: v3.7.0.dev (is v1.10 but weblog use new SDK now)
@@ -741,6 +731,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
       Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_Empty_Config: v3.10.0
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
@@ -757,8 +748,10 @@ tests/:
       Test_RuntimeActivation: v2.10.1
       Test_RuntimeDeactivation: v2.10.1
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarMetric: v3.11.0.dev
-      TestServiceActivationRemoteConfigMetric: v3.11.0.dev
+      TestServiceActivationEnvVarConfigurationMetric: v3.12.0.dev
+      TestServiceActivationEnvVarMetric: irrelevant (drop support in v3.12.0.dev)
+      TestServiceActivationRemoteConfigMetric: irrelevant (drop support in v3.12.0.dev)
+      TestServiceActivationRemoteConfigurationConfigMetric: v3.12.0.dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -843,7 +836,17 @@ tests/:
         flask-poc: v2.11.0
         uds-flask: v2.11.0
         uwsgi-poc: v2.11.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
       Test_Debugger_Method_Probe_Snaphots:
+        '*': missing_feature
+        flask-poc: v2.11.0
+        uds-flask: v2.11.0
+        uwsgi-poc: v2.11.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM:
         '*': missing_feature
         flask-poc: v2.11.0
         uds-flask: v2.11.0
@@ -1102,7 +1105,7 @@ tests/:
       Test_TracerSCITagging: v1.12.0
       Test_TracerUniversalServiceTagging: v0.36.0
     test_tracer_flare.py:
-      TestTracerFlareV1: missing_feature (failure 2.8.0)
+      TestTracerFlareV1: v3.12.0.dev
   remote_config/:
     test_remote_configuration.py:
       Test_RemoteConfigurationExtraServices: v2.1.0
@@ -1131,13 +1134,6 @@ tests/:
             django-poc: v2.14.0
             flask-poc: v2.14.0
             python3.12: v2.14.0
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats:
-        '*': v0.1 (real version unknown)
-        django-py3.13: bug (APMLP-364)
   test_baggage.py:
     Test_Baggage_Headers_Basic:
       '*': irrelevant
@@ -1247,7 +1243,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta:
       '*': v1.80.0
-      django-py3.13: bug (APMLP-364)
+      django-py3.13: v3.0.0
     Test_MetaDatadogTags: v3.2.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:

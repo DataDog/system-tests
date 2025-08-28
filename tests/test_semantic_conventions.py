@@ -31,6 +31,7 @@ VARIANT_COMPONENT_MAP = {
     "nextjs": "next",
     "uwsgi-poc": "flask",
     "django-poc": "django",
+    "django-py3.13": "django",
     "python3.12": "django",
     "gin": "gin-gonic/gin",
     "gqlgen": "99designs/gqlgen",
@@ -142,8 +143,14 @@ def get_component_name(weblog_variant, language, span_name):
     return expected_component
 
 
+# those tests are linked to unix_domain_sockets_support_for_traces only for UDS weblogs
+optional_uds_feature = (
+    features.unix_domain_sockets_support_for_traces if "uds" not in context.weblog_variant else features.not_reported
+)
+
+
 @features.runtime_id_in_span_metadata_for_service_entry_spans
-@features.unix_domain_sockets_support_for_traces
+@optional_uds_feature
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default

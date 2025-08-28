@@ -1,20 +1,32 @@
+from collections.abc import Generator
+
 from utils import interfaces
 from utils import remote_config
 from utils.dd_constants import RemoteConfigApplyState
 
 
-def find_series(request_type: str, namespace: str, metrics: list[str]) -> list:
-    series = []
+def _get_telemetry_payload(request_type: str) -> Generator:
     for data in interfaces.library.get_telemetry_data():
         content = data["request"]["content"]
         if content.get("request_type") != request_type:
             continue
-        fallback_namespace = content["payload"].get("namespace")
-        for serie in content["payload"]["series"]:
+        yield content["payload"]
+
+
+def find_series(namespace: str, metrics: list[str]) -> list:
+    series = []
+    for payload in _get_telemetry_payload("generate-metrics"):
+        fallback_namespace = payload.get("namespace")
+        for serie in payload["series"]:
             computed_namespace = serie.get("namespace", fallback_namespace)
             if computed_namespace == namespace and serie["metric"] in metrics:
                 series.append(serie)
     return series
+
+
+def find_configuration() -> Generator:
+    for payload in _get_telemetry_payload("app-client-configuration-change"):
+        yield payload.get("configuration")
 
 
 class BaseFullDenyListTest:

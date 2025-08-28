@@ -70,6 +70,11 @@ tests/:
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          spring-boot: v1.52.0
+          spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_schemas.py:
         Test_Scanners:
           '*': v1.31.0
@@ -1348,6 +1353,10 @@ tests/:
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
         vertx4: v1.7.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
+      Test_Blocking_client_ip_with_forwarded:
+        '*': v1.53.0-SNAPSHOT
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Blocking_request_body:
         '*': v1.15.0
         akka-http: v1.22.0
@@ -1674,6 +1683,9 @@ tests/:
       Test_BlockingActionChangesWithRemoteConfig:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_Empty_Config:
+        '*': missing_feature
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_Multiple_Actions:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
@@ -1722,8 +1734,10 @@ tests/:
         play: v1.22.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_service_activation_metric.py:
+      TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
@@ -1793,8 +1807,8 @@ tests/:
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay:
         '*': missing_feature
-        spring-boot: v1.50.0
-        uds-spring-boot: v1.50.0
+        spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
+        uds-spring-boot: missing_feature (Temporarily disabling until Java PR is updated)
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language:
         '*': missing_feature
@@ -1872,7 +1886,25 @@ tests/:
         spring-boot-undertow: v1.38.0
         spring-boot-wildfly: v1.38.0
         uds-spring-boot: v1.38.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
       Test_Debugger_Method_Probe_Snaphots:
+        '*': missing_feature
+        spring-boot: v1.38.0
+        spring-boot-jetty: v1.38.0
+        spring-boot-openliberty: v1.38.0
+        spring-boot-payara: v1.38.0
+        spring-boot-undertow: v1.38.0
+        spring-boot-wildfly: v1.38.0
+        uds-spring-boot: v1.38.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM:
         '*': missing_feature
         spring-boot: v1.38.0
         spring-boot-jetty: v1.38.0
@@ -2100,9 +2132,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
   test_the_test/:
     test_json_report.py:
       Test_Mock: v0.2.1
@@ -2230,7 +2259,10 @@ tests/:
     Test_HeaderTags_Whitespace_Val_Long: v0.102.0
     Test_HeaderTags_Whitespace_Val_Short: v0.102.0
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
-    Test_HeaderTags_Wildcard_Response_Headers: missing_feature
+    Test_HeaderTags_Wildcard_Response_Headers:
+      '*': v1.51.0
+      'akka-http': irrelevant (integration injects Date header after bytecode injection occurs)
+      'play': irrelevant (integration injects Date header after bytecode injection occurs)
   test_profiling.py:
     Test_Profile:
       akka-http: v1.22.0
