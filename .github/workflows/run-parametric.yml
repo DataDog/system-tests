@@ -61,6 +61,11 @@ on:
         default: 14
         required: false
         type: number
+      unique_id:
+        description: "Unique ID to append to the artifact name, useful for parallel runs"
+        default: "1"
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -112,7 +117,7 @@ jobs:
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}
+          name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
       # - name: Upload results CI Visibility
