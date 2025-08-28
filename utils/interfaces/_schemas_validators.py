@@ -135,8 +135,9 @@ class SchemaValidator:
                 else:
                     # Fallback: convert request headers from array of tuples to object
                     headers_obj = {}
+                    HEADER_PAIR_LENGTH = 2
                     for header_pair in data["request"].get("headers", []):
-                        if len(header_pair) >= 2:
+                        if len(header_pair) >= HEADER_PAIR_LENGTH:
                             headers_obj[header_pair[0]] = header_pair[1]
 
                     result.append({"headers": headers_obj, "content": data["request"]["content"]})
