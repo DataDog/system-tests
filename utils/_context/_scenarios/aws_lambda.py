@@ -144,3 +144,7 @@ class LambdaScenario(DockerScenario):
     @property
     def library(self):
         return self.lambda_weblog.library
+
+    @property
+    def weblog_variant(self):
+        return self.lambda_weblog.weblog_variant
