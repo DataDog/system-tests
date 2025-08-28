@@ -2,6 +2,12 @@
     "normalization_rules": {
         "DD_AIOHTTP_CLIENT_DISABLE_STREAM_TIMING_FOR_MEM_LEAK": "aiohttp_client_disable_stream_timing_for_mem_leak",
         "DD_LLMOBS_EVALUATOR_SAMPLING_RULES": "llmobs_evaluator_sampling_rules",
+        "_dd_native_logging_enabled": "native_logging_enabled",
+        "_dd_native_logging_log_level": "native_logging_log_level",
+        "_dd_native_logging_backend": "native_logging_backend",
+        "_dd_native_logging_file_size_bytes": "native_logging_file_size_bytes",
+        "_dd_native_logging_file_path": "native_logging_file_path",
+        "_dd_native_logging_file_rotation_len": "native_logging_file_rotation_len",
         "DD_PROFILING_PYTORCH_ENABLED": "profiling_pytorch_enabled",
         "DD_PROFILING_PYTORCH_EVENTS_LIMIT": "profiling_pytorch_events_limit",
         "DD_TRACE_LOG_FILE_LEVEL": "trace_log_file_level",
