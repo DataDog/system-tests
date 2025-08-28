@@ -418,7 +418,9 @@ tests/:
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
-      Test_Login_Events: irrelevant (Go only supports SDK events)
+      Test_Login_Events:
+        '*': irrelevant (Go only supports SDK events)
+        net-http-orchestrion: missing_feature
       Test_Login_Events_Extended: irrelevant (Go only supports SDK events)
       Test_V2_Login_Events: irrelevant (Go only supports SDK events)
       Test_V2_Login_Events_Anon: irrelevant (Go only supports SDK events)
