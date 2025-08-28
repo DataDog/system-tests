@@ -73,17 +73,33 @@ class Test_Blocking_client_ip:
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
 
-    def setup_blocking(self):
-        self.rm_req_block = weblog.get(headers={"Forwarded": "1.1.1.1"})
+    def setup_blocking_ipv4(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for=127.0.0.1;host="example.host";by=2.2.2.2;proto=http,for="1.1.1.1:6543"'}
+        )
 
-    def test_blocking(self):
-        """Can block the request forwarded for the ip"""
+    def test_blocking_ipv4(self):
+        """Can block the request forwarded for the ip (in IPv4 format)"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_ipv6(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for="[::1]",for="[9f7b:5e67:5472:4464:90b0:6b0a:9aa6:f9dc]:4485"'},
+        )
+
+    def test_blocking_ipv6(self):
+        """Can block the request forwarded for the ip (in IPv6 format)"""
 
         assert self.rm_req_block.status_code == 403
         interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
 
     def setup_blocking_before(self):
-        self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"Forwarded": "1.1.1.1"})
+        self.block_req2 = weblog.get(
+            "/tag_value/tainted_value_6512/200",
+            headers={"Forwarded": 'host="example.host";by=2.2.2.2;proto=https;for=1.1.1.1'},
+        )
 
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
