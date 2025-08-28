@@ -85,6 +85,7 @@ class SchemaError:
     def data_path(self):
         return re.sub(r"\[\d+\]", "[]", self.error.json_path)
 
+HEADER_PAIR_LENGTH = 2
 
 class SchemaValidator:
     def __init__(self, interface_name: str, allowed_errors: list[str] | tuple[str, ...] = ()):
@@ -118,7 +119,6 @@ class SchemaValidator:
             for error in validator.iter_errors(validation_data)
         ]
 
-    HEADER_PAIR_LENGTH = 2
     def _prepare_validation_data(self, data: dict, path: str):
         """Prepare data for validation based on the endpoint schema requirements"""
 
