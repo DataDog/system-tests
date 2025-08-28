@@ -135,7 +135,7 @@ get_github_action_artifact() {
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
     echo "Load artifact $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))).[0].archive_download_url')
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
     curl -H "Authorization: token $GITHUB_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
@@ -143,7 +143,7 @@ get_github_action_artifact() {
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
 
-    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+    find artifacts/ -type f -name "$PATTERN" -exec cp '{}' . ';'
 
     rm -rf artifacts artifacts.zip
 }
@@ -205,12 +205,9 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    rm -rf dd-trace-py/
-    # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone --branch $LIBRARY_TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
-    cd dd-trace-py
-    echo "Checking out the ref"
-    git log -1 --format=%H
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
