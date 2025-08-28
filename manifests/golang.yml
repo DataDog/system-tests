@@ -204,21 +204,21 @@ tests/:
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: v0.0.0 # Compliant because no IAST support
+        TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
     rasp/:
       test_cmdi.py:
-        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
         Test_Cmdi_BodyXml: missing_feature
-        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_Capability: missing_feature
         Test_Cmdi_Mandatory_SpanTags: missing_feature
         Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: v2.3.0-dev  # Possibly earlier
         Test_Cmdi_StackTrace: missing_feature
         Test_Cmdi_Telemetry: missing_feature
         Test_Cmdi_Telemetry_V2: missing_feature
         Test_Cmdi_Telemetry_Variant_Tag: missing_feature
-        Test_Cmdi_Capability: missing_feature
-        Test_Cmdi_Rules_Version: v2.3.0-dev  # Possibly earlier
+        Test_Cmdi_UrlQuery: missing_feature
         Test_Cmdi_Waf_Version: v2.3.0-dev  # Possibly earlier
       test_lfi.py:
         Test_Lfi_BodyJson:
