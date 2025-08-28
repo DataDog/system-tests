@@ -118,6 +118,7 @@ class SchemaValidator:
             for error in validator.iter_errors(validation_data)
         ]
 
+    HEADER_PAIR_LENGTH = 2
     def _prepare_validation_data(self, data: dict, path: str):
         """Prepare data for validation based on the endpoint schema requirements"""
 
@@ -135,7 +136,6 @@ class SchemaValidator:
                 else:
                     # Fallback: convert request headers from array of tuples to object
                     headers_obj = {}
-                    HEADER_PAIR_LENGTH = 2
                     for header_pair in data["request"].get("headers", []):
                         if len(header_pair) >= HEADER_PAIR_LENGTH:
                             headers_obj[header_pair[0]] = header_pair[1]
