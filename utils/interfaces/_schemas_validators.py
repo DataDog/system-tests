@@ -120,7 +120,7 @@ class SchemaValidator:
 
     def _prepare_validation_data(self, data: dict, path: str):
         """Prepare data for validation based on the endpoint schema requirements"""
-        
+
         # For library endpoints that expect headers+content structure (like diagnostics, symdb)
         if self.interface == "library" and path in ["/debugger/v1/diagnostics", "/symdb/v1/input"]:
             # Handle multipart structure where content contains nested parts with headers/content
@@ -129,27 +129,21 @@ class SchemaValidator:
                 if isinstance(part, dict) and "headers" in part and "content" in part:
                     # Convert headers from dict to object (already in correct format)
                     headers_obj = part["headers"]
-                    
+
                     # Add the multipart structure expected by schema
-                    result.append({
-                        "headers": headers_obj,
-                        "content": part["content"]
-                    })
+                    result.append({"headers": headers_obj, "content": part["content"]})
                 else:
                     # Fallback: convert request headers from array of tuples to object
                     headers_obj = {}
                     for header_pair in data["request"].get("headers", []):
                         if len(header_pair) >= 2:
                             headers_obj[header_pair[0]] = header_pair[1]
-                    
-                    result.append({
-                        "headers": headers_obj,
-                        "content": data["request"]["content"]
-                    })
+
+                    result.append({"headers": headers_obj, "content": data["request"]["content"]})
                     break
-            
+
             return result
-        
+
         # For agent debugger endpoint, handle multipart structure
         if self.interface == "agent" and path == "/api/v2/debugger":
             # Extract the actual debugger data from multipart structure
@@ -162,7 +156,7 @@ class SchemaValidator:
                     # Fallback: return content as-is
                     result.append(part)
             return result
-        
+
         # For other endpoints, return content as-is
         return data["request"]["content"]
 
