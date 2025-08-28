@@ -352,6 +352,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: missing_feature (unknown version)
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: irrelevant (Php does not accept url encoded entries without key)
       Test_Blocking_request_body_multipart: v1.6.2

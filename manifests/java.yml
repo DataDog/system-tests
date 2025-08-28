@@ -1353,6 +1353,7 @@ tests/:
         spring-boot-openliberty: v0.115.0
         vertx3: v1.7.0
         vertx4: v1.7.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded:
         '*': v1.53.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
