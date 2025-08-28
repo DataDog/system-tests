@@ -437,6 +437,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v1.51.0
+      Test_Blocking_client_ip_with_K8_private_ip: v2.2.0
       Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)

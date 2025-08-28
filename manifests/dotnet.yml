@@ -339,6 +339,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_body_multipart: missing_feature
