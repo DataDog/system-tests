@@ -310,7 +310,7 @@ class BaseDebuggerTest:
         return self._snapshot_found
 
     def _wait_for_snapshot_received(self, data: dict):
-        if data["path"] == _LOGS_PATH:
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
             logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
             contents = data["request"].get("content", []) or []
 
