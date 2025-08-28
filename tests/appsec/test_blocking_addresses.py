@@ -119,9 +119,9 @@ class Test_Blocking_client_ip_with_K8_private_ip:
     """Test if blocking is supported on http.client_ip address"""
 
     def setup_blocking(self):
-        self.rm_req_block = [weblog.get(
-            headers={"X-Forwarded-For": f"192.168.0.1, 100.65.0.{i}, 1.1.1.1"}
-        ) for i in range(11)]
+        self.rm_req_block = [
+            weblog.get(headers={"X-Forwarded-For": f"192.168.0.1, 100.65.0.{i}, 1.1.1.1"}) for i in range(11)
+        ]
 
     def test_blocking(self):
         """Can block the request forwarded for the ip (in IPv4 format)"""
@@ -129,8 +129,6 @@ class Test_Blocking_client_ip_with_K8_private_ip:
         for request in self.rm_req_block:
             assert request.status_code == 403
             interfaces.library.assert_waf_attack(request, rule="blk-001-001")
-
-
 
 
 @scenarios.appsec_blocking
