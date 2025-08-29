@@ -21,6 +21,7 @@ if [ "${DD_env}" == "dev" ]; then
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       echo "DD_LANG: ${DD_LANG}"
       if [ "${DD_LANG}" == "python" ]; then
+        # shellcheck disable=SC2155
         export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); git -C "$TMP" init -q && git -C "$TMP" fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git -C "$TMP" rev-parse FETCH_HEAD^ || git -C "$TMP" rev-parse FETCH_HEAD); rm -rf "$TMP")
       fi
 else 
@@ -28,6 +29,7 @@ else
       #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       if [ "${DD_LANG}" == "python" ]; then
+        # shellcheck disable=SC2155
         export DD_INSTALLER_LIBRARY_VERSION=$(REPO=https://github.com/Datadog/dd-trace-py.git; TAG=$(git ls-remote --tags --refs "$REPO" 'v3*' | cut -f2 | sed 's#refs/tags/##' | grep -Eiv '(-?rc[0-9]*$)' | sort -V | tail -1); [ -z "$TAG" ] && { echo "No stable v3* tags found" >&2; exit 1; }; SHA=$(git ls-remote --tags "$REPO" "refs/tags/$TAG^{}" | cut -f1); [ -n "$SHA" ] || SHA=$(git ls-remote --tags "$REPO" "refs/tags/$TAG" | cut -f1); echo "$SHA")
       fi
 fi
