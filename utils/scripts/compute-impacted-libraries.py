@@ -31,6 +31,13 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
         # modification in documentation file
         return []
 
+    files_with_no_impact = [
+        "utils/scripts/compute-impacted-libraries.py",
+        ".github/workflows/compute-impacted-libraries.yml",
+    ]
+    if modified_file in files_with_no_impact:
+        return []
+
     patterns = [
         rf"^manifests/({libraries})\.",
         rf"^utils/build/docker/({libraries})/",
