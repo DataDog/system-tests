@@ -126,10 +126,6 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         requests.sort(key=lambda x: x["tracer_time"])
         for request in requests:
             if service_name is not None:
-                # PHP specific: ignore background_sender-php-service, which is an internal service of the PHP tracer
-                if request["application"]["service_name"] == "background_sender-php-service":
-                    continue
-
                 # Check if the service name in telemetry matches the expected service name
                 assert (
                     request["application"]["service_name"] == service_name
