@@ -1057,8 +1057,8 @@ tests/:
       Test_FR05_Custom_Endpoints: v3.13.0.dev
       Test_FR06_OTLP_Protocols: v3.13.0.dev
       Test_FR07_Host_Name: v3.13.0.dev
-      Test_FR08_Custom_Headers: missing_feature
-      Test_FR09_Log_Injection: missing_feature
+      Test_FR08_Custom_Headers: v3.13.0.dev
+      Test_FR09_Log_Injection: v3.13.0.dev
       Test_FR10_Timeout_Configuration: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0

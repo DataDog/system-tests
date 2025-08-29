@@ -366,13 +366,59 @@ class Test_FR07_Host_Name:
 class Test_FR08_Custom_Headers:
     """FR08: Custom HTTP Headers Tests"""
 
-    def test_custom_http_headers_included_in_otlp_export(self, test_agent, test_library):
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_TRACE_DEBUG": None,
+                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
         """Custom headers from OTEL_EXPORTER_OTLP_HEADERS appear in requests."""
-        # This test requires setting OTEL_EXPORTER_OTLP_HEADERS and verifying headers in requests
+        with test_library as library:
+            library.write_log("Test log", LogLevel.INFO, "test_logger", 0)
 
-    def test_custom_logs_http_headers_included_in_otlp_export(self, test_agent, test_library):
+        log_payloads = test_agent.wait_for_num_log_payloads(1)
+        assert find_log_record(log_payloads, "test_logger", "Test log") is not None
+
+        requests = test_agent.requests()
+        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
+        assert logs_request, f"Expected logs request, got {requests}"
+        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
+        assert (
+            logs_request[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_TRACE_DEBUG": None,
+                "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_logs_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
         """Custom headers from OTEL_EXPORTER_OTLP_LOGS_HEADERS appear in requests."""
-        # This test requires setting OTEL_EXPORTER_OTLP_LOGS_HEADERS and verifying headers in requests
+        with test_library as library:
+            library.write_log("Test log", LogLevel.INFO, "test_logger", 0)
+
+        log_payloads = test_agent.wait_for_num_log_payloads(1)
+        assert find_log_record(log_payloads, "test_logger", "Test log") is not None
+
+        requests = test_agent.requests()
+        logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
+        assert logs_request, f"Expected logs request, got {requests}"
+        assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
+        assert (
+            logs_request[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
 
 
 @features.otel_logs_enabled
