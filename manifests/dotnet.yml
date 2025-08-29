@@ -451,6 +451,10 @@ tests/:
       Test_UserBlocking_FullDenylist: v2.30.0
   auto_inject/:
     test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
       TestSimpleInstallerAutoInjectManualAppsec: bug (PROF-12209)
       TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   debugger/:
