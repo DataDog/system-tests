@@ -356,8 +356,8 @@ class Test_Knuth_Sample_Rate:
         ],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env):
-        """When a trace is sampled via a sampling rule, the sampling decision and knuth sample rate
-        are sent to the agent on the chunk root span.
+        """When a trace is sampled via a sampling rule, the knuth sample rate
+        is sent to the agent on the chunk root span with the _dd.p.ksr key in the metrics field.
         """
 
         with test_library:
@@ -394,7 +394,7 @@ class Test_Knuth_Sample_Rate:
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(self, test_agent, test_library):
         """When a trace is extracted from a distributed tracing context, the sampling
         decision is conveyed by the X-Datadog-Sampling-Priority and X-Datadog-Tags
-        headers.
+        headers. These values are stored in the span's meta and metrics fields.
         """
         with test_library:
             incoming_headers = [
@@ -411,7 +411,7 @@ class Test_Knuth_Sample_Rate:
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["meta"].get("_dd.p.dm") == "-8"
-        assert span["meta"].get("_dd.p.ksr") == "1"
+        assert span["metrics"].get("_dd.p.ksr") == 1
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @pytest.mark.parametrize(
@@ -427,7 +427,7 @@ class Test_Knuth_Sample_Rate:
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(self, test_agent, test_library):
         """When a trace is extracted from a distributed tracing context, the sampling
-        decision is conveyed by the traceparent and tracestate headers.
+        decision is conveyed by the tracestate header under the t.ksr key.
         """
         with test_library:
             incoming_headers = [
@@ -441,5 +441,5 @@ class Test_Knuth_Sample_Rate:
         assert span.get("trace_id") == 7
         assert span.get("parent_id") == 6
         assert span["meta"].get("_dd.p.dm") == "-8"
-        assert span["meta"].get("_dd.p.ksr") == "1"
+        assert span["metrics"].get("_dd.p.ksr") == 1
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
