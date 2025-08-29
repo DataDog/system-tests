@@ -13,7 +13,7 @@ if [ -e "dd-trace-py" ]; then
 elif [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
     echo "Install ddtrace from ${path}"
-    pip install "ddtrace[appsec-beta] @ file://${path}"
+    pip install "ddtrace @ file://${path}"
 elif [ $(ls python-load-from-pip | wc -l) = 1 ]; then
     echo "Install ddtrace from $(cat python-load-from-pip)"
     pip install "$(cat python-load-from-pip)"
@@ -23,7 +23,7 @@ elif [ $(ls *.whl | wc -l) = 0 ]; then
 elif [ "$(ls *$PYTHON_VERSION*.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *$PYTHON_VERSION*.whl))
     echo "Install ddtrace from ${path} (selected automatically)"
-    pip install "ddtrace[appsec-beta] @ file://${path}"
+    pip install "ddtrace @ file://${path}"
 else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
