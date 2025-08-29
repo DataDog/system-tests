@@ -37,7 +37,23 @@
                         "type": "object",
                         "properties": {
                           "message": { "type": "string" },
-                          "stacktrace": { "type": "string" }
+                          "stacktrace": {
+                            "oneOf": [
+                              { "type": "string" },
+                              {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "fileName": { "type": "string" },
+                                    "function": { "type": "string" },
+                                    "lineNumber": { "type": "number" }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          "type": { "type": "string" }
                         }
                       }
                     ]
