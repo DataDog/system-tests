@@ -40,7 +40,7 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
 
     for pattern in patterns:
         if match := re.search(pattern, modified_file):
-            return [match[1]]
+            return [match[0]]
 
     return default_libraries
 
