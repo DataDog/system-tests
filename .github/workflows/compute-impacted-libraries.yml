@@ -26,11 +26,15 @@ jobs:
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-      - name: Get modified files
+      - name: Files changed in PR
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch origin ${{ github.event.pull_request.base.sha }}
-          git diff --name-only HEAD ${{ github.event.pull_request.base.sha }} >> modified_files.txt
+          gh api \
+            repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+            --paginate --jq '.[].filename' \
+            > modified_files.txt
           cat modified_files.txt
 
       - name: Set up Python
