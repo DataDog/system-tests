@@ -7,10 +7,7 @@ cd /binaries
 export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
 PYTHON_VERSION=$(python --version | sed -E 's/Python ([0-9]+)\.([0-9]+)\.[0-9]+/cp\1\2/')
 
-if [ -e "dd-trace-py" ]; then
-    echo "Install from local folder /binaries/dd-trace-py"
-    pip install /binaries/dd-trace-py
-elif [ "$(ls *.whl | wc -l)" = "1" ]; then
+if [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
     echo "Install ddtrace from ${path}"
     pip install "ddtrace @ file://${path}"
@@ -24,6 +21,9 @@ elif [ "$(ls *$PYTHON_VERSION*.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *$PYTHON_VERSION*.whl))
     echo "Install ddtrace from ${path} (selected automatically)"
     pip install "ddtrace @ file://${path}"
+elif [ -e "dd-trace-py" ]; then
+    echo "Install from local folder /binaries/dd-trace-py"
+    pip install /binaries/dd-trace-py
 else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
