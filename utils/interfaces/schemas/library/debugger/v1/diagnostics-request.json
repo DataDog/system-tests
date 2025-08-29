@@ -38,14 +38,21 @@
                         "probeId": { "type": "string" },
                         "probeVersion": { "type": "number" },
                         "runtimeId": { "type": "string" },
-                        "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] }
+                        "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] },
+                        "exception": {
+                          "type": "object",
+                          "properties": {
+                            "message": { "type": "string" },
+                            "stacktrace": { "type": "string" }
+                          }
+                        },
+                        "query": { "type": "object" }
                       },
-                      "required": [
-                        "probeId",
-                        "probeVersion",
-                        "runtimeId",
-                        "status"
-                      ]
+                                              "required": [
+                          "probeId",
+                          "runtimeId",
+                          "status"
+                        ]
                     }
                   },
                   "required": ["diagnostics"]

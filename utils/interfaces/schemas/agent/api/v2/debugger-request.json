@@ -25,18 +25,25 @@
                 "properties": {
                   "diagnostics": {
                     "type": "object",
+                                    "properties": {
+                  "probeId": { "type": "string" },
+                  "probeVersion": { "type": "number" },
+                  "runtimeId": { "type": "string" },
+                  "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] },
+                  "exception": {
+                    "type": "object",
                     "properties": {
-                      "probeId": { "type": "string" },
-                      "probeVersion": { "type": "number" },
-                      "runtimeId": { "type": "string" },
-                      "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] }
-                    },
-                    "required": [
-                      "probeId",
-                      "probeVersion", 
-                      "runtimeId",
-                      "status"
-                    ]
+                      "message": { "type": "string" },
+                      "stacktrace": { "type": "string" }
+                    }
+                  },
+                  "query": { "type": "object" }
+                },
+                                    "required": [
+                  "probeId",
+                  "runtimeId",
+                  "status"
+                ]
                   }
                 },
                 "required": ["diagnostics"]
