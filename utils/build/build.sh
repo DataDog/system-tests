@@ -219,7 +219,7 @@ build() {
                 # dd-trace-py compilation if required
                 if [[ $TEST_LIBRARY == python* ]] && [[ -d "binaries/dd-trace-py" ]]; then
                     echo "Compiling dd-trace-py"
-                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global 3.13.5; pip wheel --no-deps -w . /app/dd-trace-py"
+                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global 3.11; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
