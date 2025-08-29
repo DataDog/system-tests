@@ -469,8 +469,8 @@ tests/:
       Test_Blocking_response_status: missing_feature
       Test_Blocking_user_id: v1.51.0
       Test_Suspicious_Request_Blocking:
-        net-http-orchestrion: missing_feature (path params are not supported)
         '*': v2.3.0-dev
+        net-http-orchestrion: missing_feature (path params are not supported)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
