@@ -35,6 +35,7 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
         rf"^manifests/({libraries})\.",
         rf"^utils/build/docker/({libraries})/",
         rf"^lib-injection/build/docker/({libraries})/",
+        rf"^utils/build/build_{libraries}_base_images.sh",
     ]
 
     for pattern in patterns:
