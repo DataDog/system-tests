@@ -19,7 +19,7 @@ from ddtrace.trace import tracer
 logger = logging.getLogger(__name__)
 
 
-LAMBDA_EVENT_TYPE = os.environ.get("LAMBDA_EVENT_TYPE", "apigateway-rest")
+LAMBDA_EVENT_TYPE = os.environ.get("SYSTEM_TEST_WEBLOG_LAMBDA_EVENT_TYPE", "apigateway-rest")
 if LAMBDA_EVENT_TYPE == "apigateway-rest":
     app = APIGatewayRestResolver()
 elif LAMBDA_EVENT_TYPE == "apigateway-http":
