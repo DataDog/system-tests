@@ -26,22 +26,15 @@ jobs:
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
     steps:
       - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
-        with:
-          fetch-depth: 0  # we need history to compute merge-base
-
-      - name: Fetch PR endpoints
-        run: |
-          git fetch --no-tags --depth=1 origin \
-            ${{ github.event.pull_request.base.sha }} \
-            ${{ github.event.pull_request.head.sha }}
-
-      - name: Files changed *in this PR only*
+      - name: Files changed in PR
         if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          git diff --name-only \
-            ${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }} \
-            >> modified_files.txt
-          cat modified_files.txt
+          gh api \
+            repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+            --paginate --jq '.[].filename' \
+            > modified_files.txt
 
       - name: Set up Python
         uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4.9.1
