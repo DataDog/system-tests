@@ -29,14 +29,13 @@ class Test_Client_Stats:
             weblog.get("/stats-unique?code=204")
 
     @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
-    @missing_feature(context.weblog_variant == "uds-spring-boot", library="java", reason="Flaky test on this weblog")
     @missing_feature(
         context.weblog_variant in ("play", "ratpack", "spring-boot-3-native"),
         library="java",
         reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
     )
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_stats(self):
@@ -74,12 +73,7 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     @missing_feature(
-        context.weblog_variant in ("play", "ratpack", "spring-boot-3-native"),
-        library="java",
-        reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
-    )
-    @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_obfuscation(self):
@@ -123,7 +117,7 @@ class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_info_endpoint_supports_client_side_stats(self):
@@ -372,7 +366,7 @@ class Test_Time_Bucketing:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_agent_aggregated_stats(self):
