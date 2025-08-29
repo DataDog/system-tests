@@ -13,6 +13,7 @@ from utils.dd_constants import Capabilities, SamplingPriority
 
 @features.appsec_trace_tagging_rules
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 class Test_TraceTaggingRules:
     """Test different variants of trace-tagging rules"""
 

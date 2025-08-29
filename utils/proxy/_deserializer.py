@@ -28,6 +28,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
+from traces.trace_v1 import deserialize_v1_trace
 
 
 logger = logging.getLogger(__name__)
@@ -143,6 +144,9 @@ def deserialize_http_message(
 
         # replace zero length strings/bytes by None
         return content if content else None
+
+    if path == "/v1.0/traces" and source_is_datadog_tracer:
+        return deserialize_v1_trace(content)
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)

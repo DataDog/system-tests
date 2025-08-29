@@ -85,6 +85,7 @@ jobs:
       build_python_base_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-python-base-images') }}
       build_buddies_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-buddies-images') }}
       build_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-proxy-image') }}
+      build_lambda_proxy_image: ${{ contains(github.event.pull_request.labels.*.name, 'build-lambda-proxy-image') }}
       build_lib_injection_app_images: ${{ contains(github.event.pull_request.labels.*.name, 'build-lib-injection-app-images') }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
@@ -93,6 +94,7 @@ jobs:
       _system_tests_dev_mode: ${{ matrix.version == 'dev' }}
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
       artifact_retention_days: 3
+      display_summary: true
 
   system_tests_docker_mode:
     name: Ruby Docker Mode
@@ -125,7 +127,7 @@ jobs:
     - system_tests
     if: '!cancelled()'
     steps:
-    - uses: DataDog/ensure-ci-success@727e7fe39ae2e1ce7ea336ec85a7369ab0731754
+    - uses: DataDog/ensure-ci-success@b0d931ac77c810490e61964c321103040eef888e
       with:
         # initial-delay-seconds: '300' Don't need this, as the job is executed after system tests
         polling-interval-seconds: '60'

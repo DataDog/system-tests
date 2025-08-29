@@ -59,6 +59,8 @@ SAMPLING_AGENT_PRIORITY_RATE = "_dd.agent_psr"
 SAMPLING_RULE_PRIORITY_RATE = "_dd.rule_psr"
 SAMPLING_LIMIT_PRIORITY_RATE = "_dd.limit_psr"
 
+NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE = 2
+
 
 # Note that class attributes are golang style to match the payload.
 class V06StatsAggr(TypedDict):
@@ -256,6 +258,18 @@ def retrieve_span_links(span: Span) -> list:
 
 def retrieve_span_events(span: Span) -> list | None:
     if span.get("span_events") is not None:
+        for event in span["span_events"]:
+            for key, value in event.get("attributes", {}).items():
+                if isinstance(value, dict):
+                    # Flatten attributes dict into a single key-value pair
+                    # This is for native span events
+                    assert (
+                        len(value) == NUM_VALUES_IN_NATIVE_SPAN_ATTRIBUTE
+                    ), f"native span event has unexpected number of values: {event}"
+                    value.pop("type")
+                    event["attributes"][key] = next(iter(value.values()))
+                else:
+                    continue
         return span["span_events"]
 
     if span["meta"].get("events") is None:

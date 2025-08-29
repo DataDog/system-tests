@@ -265,6 +265,8 @@ def build_apm_tracing_command(
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
 ):
     lib_config: dict[str, str | bool] = {
         "library_language": "all",
@@ -287,6 +289,7 @@ def build_apm_tracing_command(
         "schema_version": "v1.0.0",
         "action": "enable",
         "lib_config": lib_config,
+        "service_target": {"service": service_name, "env": env},
     }
 
     path_payloads = {"datadog/2/APM_TRACING/config_overrides/config": config}
@@ -299,6 +302,8 @@ def send_apm_tracing_command(
     live_debugging_enabled: bool | None = None,
     code_origin_enabled: bool | None = None,
     dynamic_sampling_enabled: bool | None = None,
+    service_name: str | None = "weblog",
+    env: str | None = "system-tests",
     version: int = 1,
 ) -> RemoteConfigStateResults:
     raw_payload = build_apm_tracing_command(
@@ -308,6 +313,8 @@ def send_apm_tracing_command(
         live_debugging_enabled=live_debugging_enabled,
         code_origin_enabled=code_origin_enabled,
         dynamic_sampling_enabled=dynamic_sampling_enabled,
+        service_name=service_name,
+        env=env,
     )
 
     return send_state(raw_payload)

@@ -44,7 +44,15 @@
         echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
         sudo apt-get update
     fi
-
+    #Debian 11 repositories are not available anymore, so we need to update the repositories
+    if [ -e "/etc/debian_version" ]; then
+      if grep -q '11' "/etc/debian_version"; then
+        echo "Updating Debian 11 repositories"
+        echo "deb http://archive.debian.org/debian bullseye-backports main contrib non-free" | sudo tee /etc/apt/sources.list.d/bullseye-backports.list >/dev/null || true
+        sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' /etc/apt/sources.list || true
+        sudo find /etc/apt/sources.list.d -name '*.list' -exec sudo sed -i 's|cdn-aws.deb.debian.org|archive.debian.org|g' {} + || true
+      fi
+    fi
     sudo apt-get -y update
 
     #Install some basic tools (microvm doesn't have them by default)

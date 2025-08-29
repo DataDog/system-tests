@@ -6,6 +6,7 @@ from utils import context, features, interfaces, irrelevant, scenarios, flaky
 
 
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.appsec_rasp
 @scenarios.appsec_runtime_activation
 @scenarios.appsec_standalone

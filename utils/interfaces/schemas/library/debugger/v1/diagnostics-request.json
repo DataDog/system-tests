@@ -15,37 +15,121 @@
         "items": {
           "type": "object",
           "properties": {
+            "dd.span_id": { "type": "string" },
+            "dd.trace_id": { "type": "string" },
             "ddsource": { "type": "string" },
-            "debugger": { 
-              "type": "object",
-              "properties": {
-                "diagnostics" : {
-                  "type": "object",
-                  "properties": {
-                    "probeId": { "type": "string" },
-                    "probeVersion": { "type": "number" },
-                    "runtimeId": { "type": "string" },
-                    "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] }
-                  },
-                  "required": [
-                    "probeId",
-                    "probeVersion",
-                    "runtimeId",
-                    "status"
-                  ]
-                }
-              },
-              "required": [
-                "diagnostics"
-              ]
-            },
+            "duration": { "type": "number" },
+            "logger.method": { "type": "string" },
+            "logger.name": { "type": "string" },
+            "logger.thread_id": { "type": "number" },
+            "logger.thread_name": { "type": "string" },
+            "logger.version": { "type": "number" },
+            "message": { "type": "string" },
             "service": { "type": "string" },
-            "timestamp": { "type": "number" }
+            "timestamp": { "type": "number" },
+            "debugger": {
+              "type": "object",
+              "oneOf": [
+                {
+                  "properties": {
+                    "diagnostics": {
+                      "type": "object",
+                      "properties": {
+                        "probeId": { "type": "string" },
+                        "probeVersion": { "type": "number" },
+                        "runtimeId": { "type": "string" },
+                        "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] },
+                        "exception": {
+                          "oneOf": [
+                            { "type": "null" },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "message": { "type": "string" },
+                                "stacktrace": {
+                                  "oneOf": [
+                                    { "type": "string" },
+                                    {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "fileName": { "type": "string" },
+                                          "function": { "type": "string" },
+                                          "lineNumber": { "type": "number" }
+                                        }
+                                      }
+                                    }
+                                  ]
+                                },
+                                "type": { "type": "string" }
+                              }
+                            }
+                          ]
+                        },
+                        "query": { "type": "object" }
+                      },
+                                              "required": [
+                          "probeId",
+                          "runtimeId",
+                          "status"
+                        ]
+                    }
+                  },
+                  "required": ["diagnostics"]
+                },
+                {
+                  "properties": {
+                    "snapshot": {
+                      "type": "object",
+                      "properties": {
+                        "captures": { "type": "object" },
+                        "id": { "type": "string" },
+                        "language": { "type": "string" },
+                        "timestamp": { "type": "number" },
+                        "exceptionId": { "type": "string" },
+                        "exceptionHash": { "type": "string" },
+                        "frameIndex": { "type": "string" },
+                        "probe": {
+                          "type": "object",
+                          "properties": {
+                            "id": { "type": "string" },
+                            "version": { "type": "number" },
+                            "location": {
+                              "type": "object",
+                              "properties": {
+                                "file": { "type": "string" },
+                                "lines": {
+                                  "type": "array",
+                                  "items": { "type": "string" }
+                                },
+                                "method": { "type": "string" },
+                                "type": { "type": "string" }
+                              }
+                            }
+                          }
+                        },
+                        "stack": {
+                          "type": "array",
+                          "items": {
+                            "properties": {
+                              "fileName": { "type": "string" },
+                              "lineNumber": { "type": "number" },
+                              "function": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "required": ["snapshot"]
+                }
+              ]
+            }
           },
           "required": [
             "ddsource",
-            "debugger",
-            "service"
+            "debugger"
           ]
         }
       }

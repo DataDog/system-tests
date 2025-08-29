@@ -129,7 +129,7 @@ class _Context:
             "sampling_rate": self.tracer_sampling_rate,
             "appsec_rules_file": self.appsec_rules_file or "*default*",
             "uds_socket": self.uds_socket,
-            "scenario": self.scenario,
+            "scenario": self.scenario.name,
         }
         # TODO all components inside of components node
         result |= self.components
