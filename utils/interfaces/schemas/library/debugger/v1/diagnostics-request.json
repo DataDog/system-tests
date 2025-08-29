@@ -40,11 +40,16 @@
                         "runtimeId": { "type": "string" },
                         "status": { "enum": ["RECEIVED", "INSTALLED", "EMITTING", "ERROR", "BLOCKED"] },
                         "exception": {
-                          "type": "object",
-                          "properties": {
-                            "message": { "type": "string" },
-                            "stacktrace": { "type": "string" }
-                          }
+                          "oneOf": [
+                            { "type": "null" },
+                            {
+                              "type": "object",
+                              "properties": {
+                                "message": { "type": "string" },
+                                "stacktrace": { "type": "string" }
+                              }
+                            }
+                          ]
                         },
                         "query": { "type": "object" }
                       },
