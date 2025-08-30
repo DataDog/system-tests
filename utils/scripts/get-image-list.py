@@ -55,6 +55,7 @@ if __name__ == "__main__":
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "rust",
             "",
         ],
     )

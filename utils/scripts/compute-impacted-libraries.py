@@ -18,7 +18,7 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"  # noqa: E501
+    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
     result = set()
 
     # do not include otel in system-tests CI by default, as the staging backend is not stable enough
@@ -37,6 +37,7 @@ def main() -> None:
         "python",
         "ruby",
         "python_lambda",
+        "rust",
     }
 
     if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
