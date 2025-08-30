@@ -167,6 +167,7 @@ jobs:
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
         LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
+        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
