@@ -1,21 +1,21 @@
-FROM python:3.11-slim
+FROM python:3.11-slim AS builder
 
-# install bin dependancies
-RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
+# install build dependencies
+RUN apt-get update && apt-get install -y curl git gcc g++ make cmake \
+    apt-transport-https gnupg2 pkg-config default-libmysqlclient-dev
 
 # print versions
 RUN python --version && curl --version
 
+# Install Rust toolchain for building
+RUN curl https://sh.rustup.rs -sSf | sh -s -- --profile minimal --default-toolchain stable -y
+ENV PATH="/root/.cargo/bin:$PATH"
+
 #DRIVER MSSQL
-RUN apt-get update \
-    && apt-get install -y curl apt-transport-https gnupg2\
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg \
     && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
-
-# this is necessary for the mysqlclient install
-RUN apt update && apt install -y pkg-config default-libmysqlclient-dev pkg-config
 
 #pip install driver pymysql and pyodbc(mssql)
 RUN pip install --upgrade pip
@@ -27,9 +27,19 @@ RUN pip install 'flask[async]'==2.2.4 flask-login==0.6.3 gunicorn==21.2.0 gevent
 
 RUN pip install boto3==1.34.141 kombu==5.3.7 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19
 
-# Install Rust toolchain
-RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-ENV PATH="/root/.cargo/bin:$PATH"
+FROM python:3.11-slim AS runtime
+
+# install only runtime dependencies
+RUN apt-get update && apt-get install -y curl apt-transport-https gnupg2 \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/microsoft.gpg \
+    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update \
+    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc default-mysql-client \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# copy installed python packages from builder
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
 # docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v9 .
 # docker push datadog/system-tests:flask-poc.base-v9

@@ -1,6 +1,9 @@
-FROM datadog/system-tests:flask-poc.base-v10
+FROM datadog/system-tests:flask-poc.base-v10 AS builder
 
 WORKDIR /app
+
+# Make Rust available for ddtrace installation
+ENV PATH="/root/.cargo/bin:$PATH"
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -9,6 +12,15 @@ RUN pip install loguru==0.7.3
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
+
+FROM datadog/system-tests:flask-poc.base-v10 AS runtime
+
+WORKDIR /app
+
+# Copy built artifacts from builder stage
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+COPY --from=builder /app /app
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 ENV DD_REMOTECONFIG_POLL_SECONDS=1
