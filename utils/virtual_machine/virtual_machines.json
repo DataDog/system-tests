@@ -653,7 +653,7 @@
         {
             "name": "Fedora_40_amd64",
             "aws_config": {
-                "ami_id": "ami-0018cd1282422fe47",
+                "ami_id": "ami-004f552bba0e5f64f",
                 "ami_instance_type": "t3.medium",
                 "user": "fedora"
             },
@@ -665,9 +665,9 @@
             "disabled": false
         },
         {
-            "name": "Fedora_40_arm64",
+            "name": "Fedora_41_arm64",
             "aws_config": {
-                "ami_id": "ami-0006bbbe9e68c8cec",
+                "ami_id": "ami-00d948d4d0fdea8b8",
                 "ami_instance_type": "t4g.medium",
                 "user": "fedora"
             },

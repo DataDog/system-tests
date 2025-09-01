@@ -419,6 +419,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
@@ -779,11 +780,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v2.13.0
     Test_Baggage_Headers_Malformed: v2.13.0

@@ -197,6 +197,29 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_snapshots()
 
+    def setup_log_line_snapshot_debug_track(self):
+        self.use_debugger_endpoint = True
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
+
+    @missing_feature(reason="Not yet implemented")
+    def test_log_line_snapshot_debug_track(self):
+        """Test that the library sends snapshots to the debug track endpoint (fallback or not)"""
+        self._assert()
+        self._validate_snapshots()
+
+    def setup_log_line_snapshot_new_destination(self):
+        self.use_debugger_endpoint = True
+        self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
+
+    @missing_feature(reason="Not yet implemented")
+    def test_log_line_snapshot_new_destination(self):
+        """Test that the library sends snapshots to the debugger/v2/input endpoint"""
+        self._assert()
+        self._validate_snapshots()
+        assert (
+            self._debugger_v2_input_snapshots_received()
+        ), "Snapshots were not received at the debugger/v2/input endpoint"
+
     ### span decoration probe ###
     def setup_span_decoration_line_snapshot(self):
         self._setup(

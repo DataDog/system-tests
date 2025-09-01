@@ -635,6 +635,11 @@ class LambdaProxyContainer(TestedContainer):
             },
         )
 
+    def post_start(self):
+        super().post_start()
+
+        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
+
 
 class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127

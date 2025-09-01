@@ -48,10 +48,17 @@ def main() -> None:
         pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", pr_title)
         user_choice = None
+        branch_selector = None
+        prevent_library_selector_mismatch = True
         if match:
             print(f"PR title matchs => run {match[1]}")
             user_choice = match[1]
             result.add(user_choice)
+
+            # if users specified a branch, another job will prevent the merge
+            # so let user do what he/she wants :
+            branch_selector = match[2]
+            prevent_library_selector_mismatch = branch_selector is None
 
         print("Inspect modified files to determine impacted libraries...")
 
@@ -71,7 +78,7 @@ def main() -> None:
                     result.add(match[2])
                 else:
                     result |= all_libraries
-            else:  # noqa: PLR5501
+            elif prevent_library_selector_mismatch:
                 # user specified a library in the PR title
                 if match:
                     if match[2] != user_choice:

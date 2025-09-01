@@ -1,24 +1,33 @@
 import logging
+import os
 import urllib
 import urllib.parse
 
 from typing import Any
 
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver
+from aws_lambda_powertools.event_handler import APIGatewayRestResolver, APIGatewayHttpResolver
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
 from aws_lambda_powertools.shared.cookies import Cookie
 from aws_lambda_powertools.event_handler import Response
 
 import datadog_lambda
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.contrib.trace_utils import set_user
+from ddtrace.contrib.internal.trace_utils_base import set_user
 from ddtrace.trace import tracer
 
 
 logger = logging.getLogger(__name__)
 
 
-app = APIGatewayRestResolver()
+LAMBDA_EVENT_TYPE = os.environ.get("SYSTEM_TEST_WEBLOG_LAMBDA_EVENT_TYPE", "apigateway-rest")
+if LAMBDA_EVENT_TYPE == "apigateway-rest":
+    app = APIGatewayRestResolver()
+elif LAMBDA_EVENT_TYPE == "apigateway-http":
+    app = APIGatewayHttpResolver()
+else:
+    logger.error(
+        f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",
+    )
 
 _TRACK_CUSTOM_APPSEC_EVENT_NAME = "system_tests_appsec_event"
 
@@ -57,6 +66,8 @@ def healthcheck_route():
 @app.get("/params/<path>")
 @app.post("/params/<path>")
 @app.route("/params/<path>", method="OPTIONS")
+@app.get("/waf")
+@app.post("/waf")
 @app.get("/waf/")
 @app.post("/waf/")
 @app.get("/waf/<path>")
@@ -86,7 +97,7 @@ def session_new():
 @app.get("/tag_value/<tag_value>/<status_code>")
 @app.route("/tag_value/<tag_value>/<status_code>", method="OPTIONS")
 def tag_value(tag_value: str, status_code: int):
-    appsec_trace_utils.track_custom_event(
+    appsec_trace_utils.track_custom_event(  # pyright: ignore[reportPrivateImportUsage]
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     return Response(
@@ -108,7 +119,7 @@ _TRACK_USER = "system_tests_user"
 
 @app.get("/user_login_success_event")
 def track_user_login_success_event():
-    appsec_trace_utils.track_user_login_success_event(
+    appsec_trace_utils.track_user_login_success_event(  # pyright: ignore[reportPrivateImportUsage]
         tracer, user_id=_TRACK_USER, login=_TRACK_USER, metadata=_TRACK_METADATA
     )
     return Response(
@@ -120,7 +131,7 @@ def track_user_login_success_event():
 
 @app.post("/tag_value/<tag_value>/<status_code>")
 def tag_value_post(tag_value: str, status_code: int):
-    appsec_trace_utils.track_custom_event(
+    appsec_trace_utils.track_custom_event(  # pyright: ignore[reportPrivateImportUsage]
         tracer, event_name=_TRACK_CUSTOM_APPSEC_EVENT_NAME, metadata={"value": tag_value}
     )
     if tag_value.startswith("payload_in_response_body"):
@@ -149,7 +160,7 @@ def tag_value_post(tag_value: str, status_code: int):
 
 @app.get("/users")
 def users():
-    user = app.current_event.query_string_parameters.get("user")
+    user = app.current_event.query_string_parameters.get("user", "")
     set_user(
         tracer,
         user_id=user,

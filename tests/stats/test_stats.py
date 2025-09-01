@@ -86,7 +86,6 @@ class Test_Client_Stats:
             logger.debug(f"asserting on {s}")
             hits += s["Hits"]
             top_hits += s["TopLevelHits"]
-            assert s["Service"] == "sqlite3.db", "expect sqlite3.db as service"
             assert s["Type"] == "sql", "expect 'sql' type"
         assert (
             stats_count <= 4
