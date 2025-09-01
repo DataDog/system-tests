@@ -8,6 +8,7 @@ from typing import Any
 from aws_lambda_powertools.event_handler import (
     APIGatewayRestResolver,
     APIGatewayHttpResolver,
+    ALBResolver,
     LambdaFunctionUrlResolver,
 )
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
@@ -30,6 +31,8 @@ elif LAMBDA_EVENT_TYPE == "apigateway-http":
     app = APIGatewayHttpResolver()
 elif LAMBDA_EVENT_TYPE == "function-url":
     app = LambdaFunctionUrlResolver()
+elif LAMBDA_EVENT_TYPE == "application-load-balancer":
+    app = ALBResolver()
 else:
     logger.error(
         f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",

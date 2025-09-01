@@ -8,6 +8,8 @@ from samcli.local.apigw.event_constructor import construct_v1_event, construct_v
 from samcli.local.apigw.local_apigw_service import LocalApigwService
 from samcli.local.apigw.local_apigw_service import PathConverter
 
+from alb import build_alb_event, parse_alb_lambda_output
+
 logger = logging.getLogger()
 
 PORT = 7777
@@ -27,7 +29,7 @@ app.config["PROVIDE_AUTOMATIC_OPTIONS"] = False
 
 def invoke_lambda_function_api_gateway_rest():
     """
-    This function is used to invoke the Lambda function with the provided event.
+    This function is used to invoke the Lambda function with the provided request.
     It constructs a v1 event from the Flask request and sends it to the RIE URL.
     """
     converted_event = construct_v1_event(
@@ -55,7 +57,7 @@ def invoke_lambda_function_api_gateway_rest():
 
 def invoke_lambda_function_api_gateway_http():
     """
-    This function is used to invoke the Lambda function with the provided event.
+    This function is used to invoke the Lambda function with the provided request.
     It constructs a v2 event http from the Flask request and sends it to the RIE URL.
     """
 
@@ -78,7 +80,7 @@ def invoke_lambda_function_api_gateway_http():
 
 def invoke_lambda_function_function_url_service():
     """
-    This function is used to invoke the Lambda function with the provided event.
+    This function is used to invoke the Lambda function with the provided request.
     It constructs from the Flask request a v2 event http as if it was serialized
     by the lambda function url service and sends it to the RIE endpoint.
     """
@@ -111,6 +113,23 @@ def invoke_lambda_function_function_url_service():
     return app.response_class(response=body, status=status_code, headers=headers)
 
 
+def invoke_lambda_function_application_load_balancer():
+    """
+    This function is used to invoke the Lambda function with the provided request.
+    It constructs from the Flask request an ALB event payload and sends it to the RIE endpoint.
+    """
+    converted_event = build_alb_event(request, multi=False)
+
+    response = post(
+        RIE_URL,
+        json=converted_event,
+        headers={"Content-Type": "application/json"},
+    )
+
+    (status_code, headers, body) = parse_alb_lambda_output(response.content.decode(), multi=False)
+    return app.response_class(response=body, status=status_code, headers=headers)
+
+
 match LAMBDA_EVENT_TYPE:
     case "apigateway-rest":
         lambda_invoker = invoke_lambda_function_api_gateway_rest
@@ -118,6 +137,8 @@ match LAMBDA_EVENT_TYPE:
         lambda_invoker = invoke_lambda_function_api_gateway_http
     case "function-url":
         lambda_invoker = invoke_lambda_function_function_url_service
+    case "application-load-balancer":
+        lambda_invoker = invoke_lambda_function_application_load_balancer
     case _:
         logger.error(
             f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",
