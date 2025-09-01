@@ -225,7 +225,13 @@ class Test_Peer_Tags:
                 assert len(peer_tags) > 0, f"Client spans should have peer tags, found: {peer_tags}"
 
                 # Common peer tags we expect for HTTP client calls
-                expected_peer_tag_prefixes = ["out.host", "http.host", "network.destination", "server.address"]
+                expected_peer_tag_prefixes = [
+                    "out.host",
+                    "http.host",
+                    "network.destination",
+                    "server.address",
+                    "peer.hostname",
+                ]
                 found_expected_tags = any(
                     any(tag.startswith(prefix) for prefix in expected_peer_tag_prefixes) for tag in peer_tags
                 )
