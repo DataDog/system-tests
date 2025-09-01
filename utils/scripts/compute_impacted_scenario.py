@@ -157,6 +157,7 @@ def main() -> None:
                     r"utils/_context/_scenarios/aws_lambda\.py": scenario_groups.appsec_lambda,
                     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
+                    r"utils/_context/_scenarios/endtoend\.py": scenario_groups.end_to_end,
                     r"utils/_context/_scenarios/integrations\.py": scenario_groups.integrations,
                     r"utils/_context/_scenarios/ipv6\.py": scenario_groups.ipv6,
                     r"utils/_context/_scenarios/open_telemetry\.py": scenario_groups.open_telemetry,
