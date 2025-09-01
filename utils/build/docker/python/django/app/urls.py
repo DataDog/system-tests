@@ -53,7 +53,8 @@ except ImportError:
     track_user_sdk = TUS()
 
 try:
-    from ddtrace.trace import Pin, tracer
+    from ddtrace.trace import tracer
+    from ddtrace._trace.pin import Pin
 except ImportError:
     from ddtrace import tracer, Pin
 
