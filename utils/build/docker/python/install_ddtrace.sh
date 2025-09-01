@@ -21,9 +21,6 @@ elif [ "$(ls *$PYTHON_VERSION*.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *$PYTHON_VERSION*.whl))
     echo "Install ddtrace from ${path} (selected automatically)"
     pip install "ddtrace @ file://${path}"
-elif [ -e "dd-trace-py" ]; then
-    echo "Install from local folder /binaries/dd-trace-py"
-    pip install /binaries/dd-trace-py
 else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
     exit 1
