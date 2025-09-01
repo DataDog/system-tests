@@ -76,11 +76,48 @@ def invoke_lambda_function_api_gateway_http():
     return app.response_class(response=body, status=status_code, headers=headers)
 
 
+def invoke_lambda_function_function_url_service():
+    """
+    This function is used to invoke the Lambda function with the provided event.
+    It constructs from the Flask request a v2 event http as if it was serialized
+    by the lambda function url service and sends it to the RIE endpoint.
+    """
+    converted_event = construct_v2_event_http(
+        request,
+        PORT,
+        binary_types=BINARY_TYPES,
+        stage_name="$default",
+        route_key="$default",
+    )
+
+    rc: dict[str, str] = converted_event["requestContext"]
+    rc["domainName"] = "abcde"
+    rc["domainName"] = "abcde.lambda-url.us-east-1.on.aws"
+    rc["domainPrefix"] = "abcde"
+    converted_event["headers"]["host"] = "abcde.lambda-url.us-east-1.on.aws"
+
+    logger.critical(converted_event)
+
+    response = post(
+        RIE_URL,
+        json=converted_event,
+        headers={"Content-Type": "application/json"},
+    )
+
+    (status_code, headers, body) = LocalApigwService._parse_v2_payload_format_lambda_output(
+        response.content.decode("utf-8"), binary_types=BINARY_TYPES, flask_request=request
+    )
+
+    return app.response_class(response=body, status=status_code, headers=headers)
+
+
 match LAMBDA_EVENT_TYPE:
     case "apigateway-rest":
         lambda_invoker = invoke_lambda_function_api_gateway_rest
     case "apigateway-http":
         lambda_invoker = invoke_lambda_function_api_gateway_http
+    case "function-url":
+        lambda_invoker = invoke_lambda_function_function_url_service
     case _:
         logger.error(
             f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",

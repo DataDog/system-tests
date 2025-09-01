@@ -736,6 +736,11 @@ class Test_Suspicious_Request_Blocking:
         )
 
     @irrelevant(
+        library="python_lambda",
+        weblog_variant="function-url",
+        reason="function-url event type does not support path params",
+    )
+    @irrelevant(
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
@@ -758,6 +763,11 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        library="python_lambda",
+        weblog_variant="function-url",
+        reason="function-url event type does not support path params",
+    )
     @irrelevant(
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",

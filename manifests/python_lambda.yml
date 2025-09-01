@@ -3,16 +3,36 @@ tests/:
   appsec/:
     api_security/:
       test_schemas.py:
-        Test_Scanners: v8.113.0
-        Test_Schema_Request_Cookies: v8.113.0
-        Test_Schema_Request_FormUrlEncoded_Body: v8.113.0
-        Test_Schema_Request_Headers: v8.113.0
-        Test_Schema_Request_Json_Body: v8.113.0
-        Test_Schema_Request_Path_Parameters: v8.113.0
-        Test_Schema_Request_Query_Parameters: v8.113.0
-        Test_Schema_Response_Body: v8.113.0
-        Test_Schema_Response_Headers: v8.113.0
-        Test_Schema_Response_on_Block: v8.113.0
+        Test_Scanners:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_Cookies:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_FormUrlEncoded_Body:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_Headers:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_Json_Body:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_Path_Parameters:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Request_Query_Parameters:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Response_Body:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Response_Headers:
+          "*": v8.113.0
+          function-url: missing_feature
+        Test_Schema_Response_on_Block:
+          "*": v8.113.0
+          function-url: missing_feature
     waf/:
       test_blocking.py:
         Test_Blocking: v8.113.0
@@ -27,7 +47,9 @@ tests/:
       Test_Blocking_request_cookies: v8.113.0
       Test_Blocking_request_headers: v8.113.0
       Test_Blocking_request_method: v8.113.0
-      Test_Blocking_request_path_params: v8.113.0
+      Test_Blocking_request_path_params:
+        "*": v8.113.0
+        function-url: irrelevant (function-url event type does not support path params)
       Test_Blocking_request_query: v8.113.0
       Test_Blocking_request_uri: v8.113.0
       Test_Blocking_response_headers: v8.113.0

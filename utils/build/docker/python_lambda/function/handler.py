@@ -5,7 +5,11 @@ import urllib.parse
 
 from typing import Any
 
-from aws_lambda_powertools.event_handler import APIGatewayRestResolver, APIGatewayHttpResolver
+from aws_lambda_powertools.event_handler import (
+    APIGatewayRestResolver,
+    APIGatewayHttpResolver,
+    LambdaFunctionUrlResolver,
+)
 from aws_lambda_powertools.utilities.typing.lambda_context import LambdaContext
 from aws_lambda_powertools.shared.cookies import Cookie
 from aws_lambda_powertools.event_handler import Response
@@ -24,6 +28,8 @@ if LAMBDA_EVENT_TYPE == "apigateway-rest":
     app = APIGatewayRestResolver()
 elif LAMBDA_EVENT_TYPE == "apigateway-http":
     app = APIGatewayHttpResolver()
+elif LAMBDA_EVENT_TYPE == "function-url":
+    app = LambdaFunctionUrlResolver()
 else:
     logger.error(
         f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",
