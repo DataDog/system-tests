@@ -1,4 +1,4 @@
-FROM datadog/system-tests:django-poc.base-v5
+FROM datadog/system-tests:django-poc.base-v6
 
 WORKDIR /app
 
