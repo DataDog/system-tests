@@ -219,7 +219,7 @@ build() {
                 # dd-trace-py compilation if required
                 if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
                     echo "Compiling dd-trace-py"
-                    
+
                     # Choose Python version based on weblog variant
                     case "$WEBLOG_VARIANT" in
                         flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
@@ -235,7 +235,7 @@ build() {
                             PYTHON_VERSION="3.11"  # Default fallback
                             ;;
                     esac
-                    
+
                     echo "Using Python version: $PYTHON_VERSION"
                     docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
