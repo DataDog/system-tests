@@ -62,6 +62,16 @@ class LambdaScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
+        allowed_event_types = "apigateway-rest", "apigateway-http"
+        event_type = self.lambda_weblog.image.labels.get("system-tests.lambda-proxy.event-type")
+        if event_type not in allowed_event_types:
+            pytest.exit(
+                "In lambda scenarios, the weblog image must contain the variable `LAMBDA_EVENT_TYPE`"
+                f" with a value in {allowed_event_types}",
+            )
+
+        self.lambda_proxy_container.environment.update({"LAMBDA_EVENT_TYPE": event_type})
+
         interfaces.agent.configure(self.host_log_folder, replay=self.replay)
         interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
