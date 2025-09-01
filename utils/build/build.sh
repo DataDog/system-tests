@@ -232,7 +232,8 @@ build() {
                             PYTHON_VERSION="3.12"
                             ;;
                         *)
-                            PYTHON_VERSION="3.11"  # Default fallback
+                            echo "Error: Unknown weblog variant, python version could not be determined" >&2
+                            exit 1
                             ;;
                     esac
 
