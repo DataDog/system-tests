@@ -584,6 +584,12 @@ class EndToEndScenario(DockerScenario):
         library_bugs = [
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[]",
+                condition=self.library >= "php@1.12.0",
+                ticket="DEBUG-4431",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
                 data_path="$",
                 condition=self.library > "nodejs@5.36.0",
                 ticket="DEBUG-3487",
