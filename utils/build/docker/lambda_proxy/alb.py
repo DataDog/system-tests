@@ -67,12 +67,14 @@ def parse_alb_lambda_output(payload: str, multi: bool) -> tuple[int, dict[str, s
     resp = json.loads(payload)
 
     status = int(resp["statusCode"])
-    body_field = resp.get("body") or ""
+    body_field = resp.get("body")
 
     if resp.get("isBase64Encoded", False):
         body_bytes = base64.b64decode(body_field)
     else:
-        body_bytes = (body_field).encode()
+        if isinstance(body_field, dict):
+            body_field = json.dumps(body_field)
+        body_bytes = body_field.encode()
 
     if multi:
         headers = resp["multiValueHeaders"]

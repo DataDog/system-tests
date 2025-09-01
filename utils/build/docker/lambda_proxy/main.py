@@ -98,8 +98,6 @@ def invoke_lambda_function_function_url_service():
     rc["domainPrefix"] = "abcde"
     converted_event["headers"]["host"] = "abcde.lambda-url.us-east-1.on.aws"
 
-    logger.critical(converted_event)
-
     response = post(
         RIE_URL,
         json=converted_event,
@@ -130,6 +128,24 @@ def invoke_lambda_function_application_load_balancer():
     return app.response_class(response=body, status=status_code, headers=headers)
 
 
+def invoke_lambda_function_application_load_balancer_multi_value_headers():
+    """
+    This function is used to invoke the Lambda function with the provided request.
+    It constructs from the Flask request an ALB event payload with multi-value headers
+    and multi-value query parameters before sending it to the RIE endpoint.
+    """
+    converted_event = build_alb_event(request, multi=True)
+
+    response = post(
+        RIE_URL,
+        json=converted_event,
+        headers={"Content-Type": "application/json"},
+    )
+
+    (status_code, headers, body) = parse_alb_lambda_output(response.content.decode(), multi=True)
+    return app.response_class(response=body, status=status_code, headers=headers)
+
+
 match LAMBDA_EVENT_TYPE:
     case "apigateway-rest":
         lambda_invoker = invoke_lambda_function_api_gateway_rest
@@ -139,6 +155,8 @@ match LAMBDA_EVENT_TYPE:
         lambda_invoker = invoke_lambda_function_function_url_service
     case "application-load-balancer":
         lambda_invoker = invoke_lambda_function_application_load_balancer
+    case "application-load-balancer-multi":
+        lambda_invoker = invoke_lambda_function_application_load_balancer_multi_value_headers
     case _:
         logger.error(
             f"Unsupported Lambda event type: {LAMBDA_EVENT_TYPE}",

@@ -1,9 +1,10 @@
+from collections import defaultdict
 import logging
 import os
 import urllib
 import urllib.parse
 
-from typing import Any
+from typing import Any, override
 
 from aws_lambda_powertools.event_handler import (
     APIGatewayRestResolver,
@@ -31,7 +32,7 @@ elif LAMBDA_EVENT_TYPE == "apigateway-http":
     app = APIGatewayHttpResolver()
 elif LAMBDA_EVENT_TYPE == "function-url":
     app = LambdaFunctionUrlResolver()
-elif LAMBDA_EVENT_TYPE == "application-load-balancer":
+elif LAMBDA_EVENT_TYPE in ("application-load-balancer", "application-load-balancer-multi"):
     app = ALBResolver()
 else:
     logger.error(
@@ -51,6 +52,18 @@ def version_info():
     }
 
 
+def get_query_string_parameters() -> dict[str, str] | dict[str, list[str]]:
+    return app.current_event.query_string_parameters or app.current_event.multi_value_query_string_parameters
+
+
+def get_query_string_value(key) -> str:
+    if value := app.current_event.get_query_string_value(key):
+        return value
+    if value := app.current_event.get_multi_value_query_string_values(key):
+        return value[0]
+    return ""
+
+
 @app.get("/")
 @app.post("/")
 @app.route("/", method="OPTIONS")
@@ -60,7 +73,7 @@ def root():
 
 @app.get("/headers")
 def headers():
-    return Response(status_code=200, body="OK", headers={"Content-Language": "en-US", "Content-Type": "text/plain"})
+    return Response(status_code=200, body="OK", content_type="text/plain", headers={"Content-Language": "en-US"})
 
 
 @app.get("/healthcheck")
@@ -113,7 +126,7 @@ def tag_value(tag_value: str, status_code: int):
         status_code=status_code,
         content_type="text/plain",
         body="Value tagged",
-        headers=app.current_event.query_string_parameters,
+        headers=get_query_string_parameters(),
     )
 
 
@@ -169,7 +182,7 @@ def tag_value_post(tag_value: str, status_code: int):
 
 @app.get("/users")
 def users():
-    user = app.current_event.query_string_parameters.get("user", "")
+    user = get_query_string_value("user")
     set_user(
         tracer,
         user_id=user,

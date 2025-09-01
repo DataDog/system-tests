@@ -737,7 +737,7 @@ class Test_Suspicious_Request_Blocking:
 
     @irrelevant(
         library="python_lambda",
-        condition=context.weblog_variant in ("function-url", "alb"),
+        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
         reason="function-url event type does not support path params",
     )
     @irrelevant(
@@ -765,7 +765,7 @@ class Test_Suspicious_Request_Blocking:
 
     @irrelevant(
         library="python_lambda",
-        condition=context.weblog_variant in ("function-url", "alb"),
+        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
         reason="function-url event type does not support path params",
     )
     @irrelevant(
