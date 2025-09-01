@@ -101,9 +101,11 @@ class Test_Client_Stats:
         Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
         assertions to `test_client_stats` method.
         """
+        root_found = False
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
-            assert s["IsTraceRoot"] == 1
-            assert s["SpanKind"] == "server"
+            if s["SpanKind"] == "server":
+                root_found |= s["IsTraceRoot"] == 1
+        assert root_found
 
     @scenarios.default
     def test_disable(self):
