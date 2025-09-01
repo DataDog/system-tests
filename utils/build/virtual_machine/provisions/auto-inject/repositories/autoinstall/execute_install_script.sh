@@ -22,7 +22,7 @@ if [ "${DD_env}" == "dev" ]; then
       echo "DD_LANG: ${DD_LANG}"
       if [ "${DD_LANG}" == "python" ]; then
         # shellcheck disable=SC2155
-        export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); git -C "$TMP" init -q && git -C "$TMP" fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git -C "$TMP" rev-parse FETCH_HEAD^ || git -C "$TMP" rev-parse FETCH_HEAD); rm -rf "$TMP")
+        export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); (cd "$TMP" && git init -q && git fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git rev-parse FETCH_HEAD^ || git rev-parse FETCH_HEAD)); rm -rf "$TMP")
       fi
 else 
     export DD_SITE="datadoghq.com" 
