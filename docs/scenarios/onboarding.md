@@ -24,6 +24,7 @@
    * [Create a new test case](#Create-a-new-test-case)
 4. [How to debug your environment and tests results](#How-to-debug-your-environment-and-tests-results)
 5. [How to debug a virtual machine at runtime](#How-to-debug-a-virtual-machine-at-runtime)
+6. [Troubleshooting](#Troubleshooting)
 
 # Overall
 
@@ -874,3 +875,155 @@ Remember destroy the pulumi stack to shutdown and remove the ec2 instance:
 ```bash
 pulumi destroy
 ```
+# Troubleshooting
+
+When running an **AWS SSI** test, failures usually fall into one of the cases below. For each case, check the **Symptoms** first, then follow the **What to do** steps.
+
+> **Tip:** Many errors include a `Diagnostics:` marker in the logs. The real root cause is typically logged **right below** that line.
+
+---
+
+## Case 1 — AWS API interaction failure
+
+**Symptom**
+
+~~~
+Exception launching aws provision infrastructure
+~~~
+
+**What to do**
+
+1. Open the scenario’s log folder and inspect `tests.log`.
+2. Search for the diagnostics marker and read the lines that follow:
+   ~~~bash
+   grep -n "Diagnostics:" tests.log
+   ~~~
+3. Use that context as the **root cause** of the failure.
+
+---
+
+## Case 2 — VM provisioning failure (remote command)
+
+**Symptom**
+
+~~~
+Exception launching aws provision step remote command
+~~~
+
+**What to do**
+
+1. Open the VM log file:
+   ~~~
+   [vm_name].log
+   ~~~
+2. Review the remote commands executed on the instance and their outputs.
+3. Search for diagnostics:
+   ~~~bash
+   grep -n "Diagnostics:" [vm_name].log
+   ~~~
+4. Identify the failing command (package install, Docker/runtime setup, agent install, SSI packages, or test app build) and fix accordingly.
+
+---
+
+## Case 3 — Weblog application not listening on its HTTP port
+
+**Symptom**
+
+~~~
+Waited too long for the port 5985 on host [MACHINE_IP] to start accepting connections.
+~~~
+
+**What to do**
+
+1. **Build logs:** open `[vm_name].log` and scroll to the end; you should find the application build output there. Fix any build failures first.
+2. **Runtime logs:** if the build succeeded, check the app runtime logs.
+   - **Host-based apps:**
+     ```
+     /var/log/datadog_weblog/app.log
+     ```
+   - **Containerized apps:**
+     ```
+     /var/log/datadog_weblog/docker_logs.log
+     /var/log/datadog_weblog/journalctl_docker.log
+     ```
+3. Ensure the process/container is up and listening on the expected port.
+
+---
+
+## Case 4 — App is serving and sending traces, but **no traces appear in the Datadog backend**
+
+**Symptom**
+
+~~~
+Exception during trace in backend verification
+~~~
+
+**Possible causes & what to check**
+
+- **Tracer issue** — review app logs for tracer errors:
+/var/log/datadog_weblog/app.log
+/var/log/datadog_weblog/docker_logs.log
+- **Agent issue** — review Datadog Agent logs:
+/var/log/datadog
+- **Docker daemon issue** (if containerized) — review:
+/var/log/datadog_weblog/journalctl_docker.log
+- **Backend intake/processing** — manually locate the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and verify ingestion.
+
+---
+
+## Case 5 — Traces appear, but **Profiling** data is missing
+
+**Symptom**
+
+~~~
+Exception during trace in backend verification: Reached overall timeout of 300 for POST https://dd.datadoghq.com/api/unstable/profiles/list
+~~~
+
+**Possible causes & what to check**
+
+- **Tracer issue** — ensure profiling is supported/enabled for your language/runtime; check app logs:
+/var/log/datadog_weblog/app.log
+/var/log/datadog_weblog/docker_logs.log
+- **Agent issue** — verify Agent is healthy and APM/profile intake is enabled; check:
+/var/log/datadog
+- **Backend processing** — in the Datadog UI (system-tests org), locate the trace ID `{request_uuid}` and verify associated profiling data is present or delayed.
+
+> **Note:** Make sure profiling is actually enabled for the application (per language tracer guidance) before investigating backend intake.
+
+---
+
+## Case 6 — Traces appear, but **AppSec** signals are missing
+
+**Symptom**
+
+~~~
+expected '_dd.appsec.enabled' to be 1 in trace span metrics but found ...
+~~~
+
+**Possible causes & what to check**
+
+- **Tracer issue** — confirm AppSec is supported/enabled in the tracer; check app logs:
+/var/log/datadog_weblog/app.log
+/var/log/datadog_weblog/docker_logs.log
+- **Agent issue** — verify Agent logs and AppSec configuration:
+/var/log/datadog
+- **Backend processing** — manually look up the trace ID `{request_uuid}` in the Datadog UI (system-tests organization) and confirm AppSec data.
+
+---
+
+### Useful placeholders
+
+- `[vm_name]` — name of the provisioned VM for the scenario.
+- `[MACHINE_IP]` — IP address of the target machine.
+- `{request_uuid}` — request/trace identifier printed by the tests.
+
+### Quick commands
+
+```bash
+# Find diagnostics markers
+grep -n "Diagnostics:" tests.log
+grep -n "Diagnostics:" [vm_name].log
+
+# Scan for exceptions in the VM log
+grep -n "Exception" [vm_name].log
+
