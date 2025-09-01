@@ -73,7 +73,8 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_obfuscation(self):
@@ -93,7 +94,8 @@ class Test_Client_Stats:
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_is_trace_root(self):
@@ -199,7 +201,8 @@ class Test_Peer_Tags:
             weblog.get("/healthcheck")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_peer_tags(self):
