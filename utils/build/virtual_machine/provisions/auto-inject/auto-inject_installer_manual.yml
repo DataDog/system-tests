@@ -15,7 +15,7 @@
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       echo "DD_LANG: ${DD_LANG}"
       if [ "${DD_LANG}" == "python" ]; then
-        export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); git -C "$TMP" init -q && git -C "$TMP" fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git -C "$TMP" rev-parse FETCH_HEAD^ || git -C "$TMP" rev-parse FETCH_HEAD); rm -rf "$TMP")
+        export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); cd "$TMP" && git init -q && git fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git rev-parse FETCH_HEAD^ || git rev-parse FETCH_HEAD); cd - > /dev/null; rm -rf "$TMP")
       fi
 
     else 
