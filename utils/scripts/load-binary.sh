@@ -10,17 +10,18 @@
 #
 # Binaries sources:
 #
-# * Agent:      Docker hub datadog/agent-dev:master-py3
-# * cpp_httpd:  Github action artifact
-# * Golang:     github.com/DataDog/dd-trace-go/v2@main
-# * .NET:       ghcr.io/datadog/dd-trace-dotnet
-# * Java:       S3
-# * PHP:        ghcr.io/datadog/dd-trace-php
-# * Node.js:    Direct from github source
-# * C++:        Direct from github source
-# * Python:     Clone  locally the githu repo
-# * Ruby:       Direct from github source
-# * WAF:        Direct from github source, but not working, as this repo is now private
+# * Agent:         Docker hub datadog/agent-dev:master-py3
+# * cpp_httpd:     Github action artifact
+# * Golang:        github.com/DataDog/dd-trace-go/v2@main
+# * .NET:          ghcr.io/datadog/dd-trace-dotnet
+# * Java:          S3
+# * PHP:           ghcr.io/datadog/dd-trace-php
+# * Node.js:       Direct from github source
+# * C++:           Direct from github source
+# * Python:        Clone locally the github repo
+# * Ruby:          Direct from github source
+# * WAF:           Direct from github source, but not working, as this repo is now private
+# * Python Lambda: Fetch from GitHub Actions artifact
 ##########################################################################################
 
 set -eu
@@ -123,26 +124,26 @@ get_github_action_artifact() {
     SLUG=$1
     WORKFLOW=$2
     BRANCH=$3
-    PATTERN=$4
+    ARTIFACT_NAME=$4
+    PATTERN=$5
 
     # query filter seems not to be working ??
-    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
+    WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
     echo "Load artifact $HTML_URL"
-    ARTIFACTS=$(curl --silent -H "Authorization: token $GH_TOKEN" $ARTIFACT_URL)
-
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r '.artifacts[0].archive_download_url')
+    ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
-    curl -H "Authorization: token $GH_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
+    curl -H "Authorization: token $GITHUB_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
 
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
 
-    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+    find artifacts/ -type f -name "$PATTERN" -exec cp '{}' . ';'
 
     rm -rf artifacts artifacts.zip
 }
@@ -151,14 +152,14 @@ get_github_release_asset() {
     SLUG=$1
     PATTERN=$2
 
-    release=$(curl --silent --fail --show-error -H "Authorization: token $GH_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
+    release=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/releases/latest")
 
     name=$(echo $release | jq -r ".assets[].name | select(test(\"$PATTERN\"))")
     url=$(echo $release | jq -r ".assets[].browser_download_url | select(test(\"$PATTERN\"))")
 
     echo "Load $url"
 
-    curl -H "Authorization: token $GH_TOKEN" --output $name -L $url
+    curl -H "Authorization: token $GITHUB_TOKEN" --output $name -L $url
 }
 
 if test -f ".env"; then
@@ -168,11 +169,10 @@ fi
 TARGET=$1
 VERSION=${2:-'dev'}
 
-GITHUB_TOKEN="${GITHUB_TOKEN:-}"  # legacy
-GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+GITHUB_TOKEN="${GITHUB_TOKEN:-}"
 GITHUB_AUTH_HEADER=()
-if [ -n "$GH_TOKEN" ]; then
-  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GH_TOKEN")
+if [ -n "$GITHUB_TOKEN" ]; then
+  GITHUB_AUTH_HEADER=(-H "Authorization: Bearer $GITHUB_TOKEN")
 fi
 
 echo "Load $VERSION binary for $TARGET"
@@ -188,20 +188,26 @@ if [ "$TARGET" = "java" ]; then
 
 elif [ "$TARGET" = "dotnet" ]; then
     assert_version_is_dev
-    assert_target_branch_is_not_set
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-latest_snapshot}"
+    # Normalize branch name for image tag: replace '/' with '_'
+    NORMALIZED_BRANCH=$(echo "$LIBRARY_TARGET_BRANCH" | sed 's/\//_/g')
+
     rm -rf *.tar.gz
-    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:latest_snapshot .
+    if [ -n "$GITHUB_TOKEN" ]; then
+        echo "Log to GHCR with token"
+        echo "$GITHUB_TOKEN" | docker login ghcr.io --password-stdin -u "actor"  # username is ignored
+    fi
+
+    ../utils/scripts/docker_base_image.sh ghcr.io/datadog/dd-trace-dotnet/dd-trace-dotnet:${NORMALIZED_BRANCH} .
 
 elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    rm -rf dd-trace-py/
-    # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone --branch $LIBRARY_TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
-    cd dd-trace-py
-    echo "Checking out the ref"
-    git log -1 --format=%H
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
@@ -264,8 +270,8 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
-    echo "Using github.com/DataDog/orchestrion@main"
-    echo "github.com/DataDog/orchestrion@main" > orchestrion-load-from-go-get
+    echo "Using github.com/DataDog/orchestrion@latest"
+    echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
 elif [ "$TARGET" = "cpp" ]; then
     assert_version_is_dev
@@ -278,7 +284,7 @@ elif [ "$TARGET" = "cpp" ]; then
 
 elif [ "$TARGET" = "cpp_httpd" ]; then
     assert_version_is_dev
-    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog.so"
+    get_github_action_artifact "DataDog/httpd-datadog" "dev.yml" "main" "mod_datadog_artifact" "mod_datadog.so"
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
@@ -306,7 +312,7 @@ elif [ "$TARGET" = "waf_rule_set_v2" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
     curl --silent \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         --output "waf_rule_set.json" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
@@ -315,10 +321,14 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
     curl --fail --output "waf_rule_set.json" \
-        -H "Authorization: token $GH_TOKEN" \
+        -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+elif [ "$TARGET" = "python_lambda" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
 
+    get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
 else
     echo "Unknown target: $1"
     exit 1

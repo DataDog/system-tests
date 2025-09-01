@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_lambda_proxy_image:
+        description: "Shall we build the lambda-proxy image"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -85,7 +90,7 @@ env:
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ${{ (contains(inputs.scenarios, 'CROSSED_TRACING_LIBRARIES') || contains(inputs.scenarios, 'INTEGRATIONS')) && 'ubuntu-latest-16-cores' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -103,7 +108,7 @@ jobs:
           echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
@@ -111,7 +116,7 @@ jobs:
       uses: ./.github/actions/install_runner
     - name: Get binaries artifact
       if : ${{ inputs.binaries_artifact != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
       with:
         name: ${{ inputs.binaries_artifact }}
         path: binaries/
@@ -125,6 +130,9 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
+    - name: Build lambda-proxy image
+      if: inputs.build_lambda_proxy_image
+      run: ./build.sh -i lambda-proxy
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
@@ -362,6 +370,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
+    - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
@@ -420,6 +431,15 @@ jobs:
         DD_APP_KEY_2: ${{ secrets.DD_APP_KEY_2 }}
         DD_API_KEY_3: ${{ secrets.DD_API_KEY_3 }}
         DD_APP_KEY_3: ${{ secrets.DD_APP_KEY_3 }}
+    - name: Run APPSEC_LAMBDA_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
+      run: ./run.sh APPSEC_LAMBDA_DEFAULT
+    - name: Run APPSEC_LAMBDA_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      run: ./run.sh APPSEC_LAMBDA_BLOCKING
+    - name: Run APPSEC_LAMBDA_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      run: ./run.sh APPSEC_LAMBDA_API_SECURITY
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh
@@ -433,7 +453,7 @@ jobs:
       run: tar -czvf artifact.tar.gz $(ls | grep logs)
     - name: Upload artifact
       if: always() && steps.compress_logs.outcome == 'success'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         # log name convention to respect : logs_$SCENARIO-FAMILY_$LIBRARY_$WEBLOG_$CI-ENVIRONMENT
         name: ${{ inputs.logs_artifact_name }}

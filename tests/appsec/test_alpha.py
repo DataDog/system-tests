@@ -9,6 +9,7 @@ from utils import context, weblog, interfaces, scenarios, bug, features
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_Basic:
     """Detect attacks on raw URI and headers with default rules"""
 

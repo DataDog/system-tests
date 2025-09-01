@@ -584,6 +584,12 @@ class EndToEndScenario(DockerScenario):
         library_bugs = [
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[]",
+                condition=self.library >= "php@1.12.0",
+                ticket="DEBUG-4431",
+            ),
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
                 data_path="$",
                 condition=self.library > "nodejs@5.36.0",
                 ticket="DEBUG-3487",
@@ -649,6 +655,14 @@ class EndToEndScenario(DockerScenario):
                 data_path="$[]",
                 condition=self.library >= "php@1.8.3",
                 ticket="DEBUG-3709",
+            ),
+            _SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path=None,
+                condition=self.library
+                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and self.name == "TRACE_STATS_COMPUTATION",
+                ticket="APMSP-2158",
             ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
