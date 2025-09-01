@@ -287,13 +287,6 @@ class Test_Transport_Headers:
         assert "Datadog-Meta-Tracer-Version" in headers, "Datadog-Meta-Tracer-Version header not found"
         assert headers["Datadog-Meta-Tracer-Version"], "Datadog-Meta-Tracer-Version header should not be empty"
 
-        # we must have at least one of the CID resolution headers
-        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
-        cid_heaaders = [h for h in headers if h in cid_headers_list]
-        assert len(cid_heaaders) > 0, f"ContainerID resolution headers not found: {headers}"
-        for h in cid_heaaders:
-            assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
-
         if "Datadog-Obfuscation-Version" in headers:
             obfuscation_version = headers["Datadog-Obfuscation-Version"]
             # Validate it's a positive integer string
@@ -303,6 +296,32 @@ class Test_Transport_Headers:
             assert (
                 int(obfuscation_version) > 0
             ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+
+    @missing_feature(
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
+    @bug(
+        context.library == "java",
+        reason="LANGPLAT-755",
+    )
+    def test_container_id_header(self):
+        """Test that stats transport includes container id headers"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        # Test the most recent stats request
+        stats_request = stats_requests[-1]
+        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+
+        logger.debug(f"Stats request headers: {headers}")
+
+        # we must have at least one of the CID resolution headers
+        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
+        cid_headers = [h for h in headers if h in cid_headers_list]
+        assert len(cid_headers) > 0, f"ContainerID resolution headers not found: {headers}"
+        for h in cid_headers:
+            assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
 
 
 @features.client_side_stats_supported
@@ -316,7 +335,7 @@ class Test_Time_Bucketing:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_side_stats(self):
