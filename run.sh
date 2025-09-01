@@ -7,6 +7,7 @@
 set -e
 set -u
 set -o pipefail
+set -x
 
 function hint() {
     local program="${BASH_SOURCE[0]##*/}"
