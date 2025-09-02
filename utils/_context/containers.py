@@ -619,7 +619,7 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="datadog/system-tests:lambda-proxy",
+            image_name="datadog/system-tests:lambda-proxy-v1",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
