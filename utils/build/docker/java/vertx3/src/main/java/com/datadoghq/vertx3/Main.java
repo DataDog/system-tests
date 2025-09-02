@@ -346,6 +346,51 @@ public class Main {
                     setRootSpanTag("service", serviceName);
                     ctx.response().end("ok");
                 });
+        router.get("/make_distant_call").handler(ctx -> {
+            String url = ctx.request().getParam("url");
+            JsonObject requestHeaders = new JsonObject();
+
+            OkHttpClient client = new OkHttpClient.Builder()
+            .addNetworkInterceptor(chain -> { // Save request headers
+                Request request = chain.request();
+                Response response = chain.proceed(request);
+                Headers finalHeaders = request.headers();
+                for (String name : finalHeaders.names()) {
+                    requestHeaders.put(name, finalHeaders.get(name));
+                }
+
+                return response;
+            })
+            .build();
+
+            Request request = new Request.Builder()
+                    .url(url)
+                    .get()
+                    .build();
+
+            Response response = null;
+            try {
+                response = client.newCall(request).execute();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // Save response headers and status code
+            int status_code = response.code();
+            JsonObject responseHeaders = new JsonObject();
+            Headers headers = response.headers();
+            for (String name : headers.names()) {
+                responseHeaders.put(name, headers.get(name));
+            }
+
+            JsonObject result = new JsonObject();
+            result.put("url", url);
+            result.put("status_code", status_code);
+            result.put("request_headers", requestHeaders);
+            result.put("response_headers", responseHeaders);
+
+            ctx.response().end(result.encodePrettily());
+        });
         Router sessionRouter = Router.router(vertx);
         sessionRouter.get().handler(CookieHandler.create());
         sessionRouter.get().handler(SessionHandler.create(LocalSessionStore.create(vertx)));
