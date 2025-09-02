@@ -21,6 +21,12 @@ on:
         type: string
   pull_request: # DO NOT MERGE
 
+env:
+  LIBRARY:    ${{ (github.event_name == 'workflow_dispatch' && inputs.library)    || 'php' }}
+  WEBLOG:     ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)     || 'apache-mod-8.1' }}
+  SCENARIO:   ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)   || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT:  ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)  || '10' }}
+
 jobs:
   generate-matrix:
     runs-on: ubuntu-latest
@@ -29,7 +35,7 @@ jobs:
     steps:
       - id: make
         run: |
-          seq -s, 1 ${{ inputs.job_count }} | awk '{print "[\"" $0 "\"]"}' | sed 's/,/","/g' > arr.json
+          seq -s, 1 ${{ env.JOB_COUNT }} | awk '{print "[\"" $0 "\"]"}' | sed 's/,/","/g' > arr.json
           echo "array=$(cat arr.json)" >> $GITHUB_OUTPUT
 
   test:
@@ -47,21 +53,21 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        library: ${{ inputs.library }}
-        weblog: ${{ inputs.weblog }}
-        scenarios: ${{ inputs.scenario }}
+        library: ${{ env.LIBRARY }}
+        weblog: ${{ env.WEBLOG }}
+        scenarios: ${{ env.SCENARIO }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
 
     - run: |
         set -e
         for i in {1..100}
         do
           echo "Run #$i"
-          ./run.sh ${{ inputs.scenario }}
+          ./run.sh ${{ env.SCENARIO }}
         done
 
     - name: Upload artifact
@@ -69,4 +75,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: logs_${{ matrix.n }}
-        path: logs_${{ inputs.scenario }}
+        path: logs_${{ env.SCENARIO }}
