@@ -183,7 +183,7 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
         Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
         Capabilities.ASM_EXTENDED_DATA_COLLECTION,
-        Capabilities.APM_TRACING_MULTICONFIG
+        Capabilities.APM_TRACING_MULTICONFIG,
     },
     "nodejs": {
         Capabilities.ASM_ACTIVATION,
