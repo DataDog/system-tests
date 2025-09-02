@@ -21,6 +21,9 @@ ENV UWSGI_ENABLED=true
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
+echo "--- PIP FREEZE ---"\n\
+python -m pip freeze\n\
+echo "------------------"\n\
 uwsgi --http :7777 -w app:app --threads 2 --enable-threads --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
