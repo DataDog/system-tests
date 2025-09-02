@@ -68,9 +68,11 @@ class V1AnyValueKeys(IntEnum):
     array = 6
     key_value_list = 7
 
+
 # Keys that are strings so may arrive as indexes into the strings list
 _chunk_key_strings = ["origin"]
 _span_key_strings = ["service", "name_value", "resource", "type_value", "env", "version", "component"]
+
 
 def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
     uncompressed_payload = {}
@@ -85,6 +87,7 @@ def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
 
     return uncompressed_payload
 
+
 def _process_trace_attributes(trace_payload: dict, strings: list[str]) -> dict:
     # Process attributes in chunks
     for chunk in trace_payload.get("chunks", []):
@@ -96,6 +99,7 @@ def _process_trace_attributes(trace_payload: dict, strings: list[str]) -> dict:
                 span["attributes"] = _attributes_to_dict(span["attributes"], strings)
     return trace_payload
 
+
 def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
     if len(attrs) % 3 != 0:
         raise ValueError(f"Attributes list must be a multiple of 3: {attrs}")
@@ -106,24 +110,26 @@ def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
             k = strings[k]
         v_type = attrs[i + 1]
         v = attrs[i + 2]
-        if v_type == 1: # Attribute value is a string
+        if v_type == 1:  # Attribute value is a string
             if isinstance(v, int):
                 v = strings[v]
         attrs_dict[k] = v
     return attrs_dict
+
 
 def _uncompress_chunks(chunks: list, strings: list[str]) -> list:
     uncompressed_chunks = []
     for chunk in chunks:
         uncompressed_chunk = {}
         for k, v in chunk.items():
+            value = v
             if k in V1ChunkKeys:
                 if k == V1ChunkKeys.spans:
-                    if V1ChunkKeys(k).name in _chunk_key_strings and isinstance(v, int):
-                        v = strings[v]
-                    uncompressed_chunk[V1ChunkKeys.spans.name] = _uncompress_spans(v, strings)
+                    if V1ChunkKeys(k).name in _chunk_key_strings and isinstance(value, int):
+                        value = strings[v]
+                    uncompressed_chunk[V1ChunkKeys.spans.name] = _uncompress_spans(value, strings)
                 else:
-                    uncompressed_chunk[V1ChunkKeys(k).name] = v
+                    uncompressed_chunk[V1ChunkKeys(k).name] = value
             else:
                 raise ValueError(f"Unknown V1ChunkKey: {k}")
         uncompressed_chunks.append(uncompressed_chunk)
@@ -135,10 +141,11 @@ def _uncompress_spans(spans: list, strings: list[str]) -> list:
     for span in spans:
         uncompressed_span = {}
         for k, v in span.items():
+            value = v
             if k in V1SpanKeys:
-                if V1SpanKeys(k).name in _span_key_strings and isinstance(v, int):
-                    v = strings[v]
-                uncompressed_span[V1SpanKeys(k).name] = v
+                if V1SpanKeys(k).name in _span_key_strings and isinstance(value, int):
+                    value = strings[v]
+                uncompressed_span[V1SpanKeys(k).name] = value
             else:
                 raise ValueError(f"Unknown V1SpanKey: {k}")
         uncompressed_spans.append(uncompressed_span)

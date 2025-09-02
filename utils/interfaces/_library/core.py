@@ -79,10 +79,40 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         if not trace_found:
             logger.warning("No trace found")
 
+    def get_traces_v1(self, request: HttpResponse | GrpcResponse | None = None):
+        rid: str | None = None
+
+        if request:
+            rid = request.get_rid()
+            logger.debug(f"Try to find traces related to request {rid}")
+            if isinstance(request, HttpResponse) and request.status_code is None:
+                logger.warning("HTTP app failed to respond, it will very probably fail")
+
+        trace_found = False
+        for data in self.get_data(path_filters="/v1/traces"):
+            traces = data["request"]["content"]
+            if not traces:  # may be none
+                continue
+
+            for trace in traces:
+                if rid is None:
+                    trace_found = True
+                    yield data, trace
+                else:
+                    for span in trace:
+                        if rid == get_rid_from_span(span):
+                            logger.debug(f"Found a trace in {data['log_filename']}")
+                            trace_found = True
+                            yield data, trace
+                            break
+
+        if not trace_found:
+            logger.warning("No trace found")
+
     def get_spans(self, request: HttpResponse | None = None, *, full_trace: bool = False):
         """Iterate over all spans reported by the tracer to the agent.
 
-        If request is not None and full_trace is False, only span trigered by that request will be
+        If request is not None and full_trace is False, only span triggered by that request will be
         returned.
         If request is not None and full_trace is True, all spans from a trace triggered by that
         request will be returned.
