@@ -75,7 +75,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def ingest_file(self, src_path: str):
         with self._lock:
-            if src_path in self._ingested_files:
+            if src_path in self._ingested_files or not src_path.endswith(".json"):
                 return
 
             logger.debug(f"Ingesting {src_path}")
