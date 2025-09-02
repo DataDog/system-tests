@@ -30,12 +30,13 @@ class Test_Client_Stats:
 
     @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
     @missing_feature(
-        context.weblog_variant in ("play", "ratpack", "spring-boot-3-native"),
+        context.weblog_variant in ("play", "ratpack"),
         library="java",
-        reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
+        reason="play and ratpack controllers also generate stats and the test will fail",
     )
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_stats(self):
@@ -122,7 +123,8 @@ class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_info_endpoint_supports_client_side_stats(self):
@@ -262,7 +264,8 @@ class Test_Transport_Headers:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_transport_headers(self):
