@@ -21,11 +21,14 @@ cp -rf /tmp/php/common/php.ini /etc/php/
 printf '#!/bin/sh\n\nexit 101\n' > /usr/sbin/policy-rc.d && \
 	chmod +x /usr/sbin/policy-rc.d && \
 	apt-get update && apt-get install -y \
-		apache2 jq \
+		apache2 jq strace \
 	&& rm -rf /var/lib/apt/lists/* && \
 	rm -rf /usr/sbin/policy-rc.d
 
 a2enmod rewrite
+
+sed -i 's/forking/simple/' /lib/systemd/system/apache2.service
+sed -ie '0,/\$HTTPD/ s/\(\$HTTPD.*$\)/strace -f -tt -s 1000 \1 -DFOREGROUND 2>\/var\/log\/system-tests\/apache.strace \&/' /usr/sbin/apache2ctl
 
 ARCH=$(arch)
 if [[ $ARCH = aarch64 ]]; then
