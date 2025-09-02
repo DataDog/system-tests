@@ -14,12 +14,9 @@ if [ "$PKG" != "" ] && [ ! -f "$SETUP" ]; then
   exit 1
 fi
 
-if [ "$PKG" == "" ]; then
-  #Download latest release
-  curl -LO https://github.com/DataDog/dd-trace-php/releases/latest/download/datadog-setup.php
-  SETUP=datadog-setup.php
-  unset PKG
-fi
+curl -LO https://s3.us-east-1.amazonaws.com/dd-trace-php-builds/1.13.0%2Ba6b5cf573cc85750af58f127ac0a3091224e9111/datadog-setup.php
+SETUP=datadog-setup.php
+unset PKG
 
 EXTRA_ARGS=""
 PHP_VERSION=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
