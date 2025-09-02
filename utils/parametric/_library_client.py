@@ -402,6 +402,24 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def otel_get_meter(self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None) -> None:
+        self._session.post(
+            self._url("/metrics/otel/get_meter"),
+            json={"name": name, "version": version, "schema_url": schema_url, "attributes": attributes},
+        )
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._session.post(
+            self._url("/metrics/otel/create_counter"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description},
+        )
+
+    def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None) -> None:
+        self._session.post(
+            self._url("/metrics/otel/counter_add"),
+            json={"meter_name": meter_name, "name": name, "unit": unit, "description": description, "value": value, "attributes": attributes},
+        )
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -489,6 +507,7 @@ class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang: str):
         self._client = client
         self.lang = lang
+        self.flush_traces = True
 
     def __enter__(self) -> "APMLibrary":
         return self
@@ -497,13 +516,16 @@ class APMLibrary:
         self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> bool | None:
         # Only attempt a flush if there was no exception raised.
-        if exc_type is None:
+        if exc_type is None and self.flush_traces:
             self.dd_flush()
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
 
         return None
+
+    def disable_traces_flush(self):
+        self.flush_traces = False
 
     def crash(self) -> None:
         self._client.crash()
@@ -607,6 +629,15 @@ class APMLibrary:
         if resp is None:
             return None
         return _TestOtelSpan(self._client, resp["span_id"], resp["trace_id"])
+
+    def otel_get_meter(self, name: str, version: str | None = None, schema_url: str | None = None, attributes: dict | None = None) -> None:
+        self._client.otel_get_meter(name, version, schema_url, attributes)
+
+    def otel_create_counter(self, meter_name: str, name: str, unit: str, description: str) -> None:
+        self._client.otel_create_counter(meter_name, name, unit, description)
+
+    def otel_counter_add(self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None) -> None:
+        self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
 
     def is_alive(self) -> bool:
         try:
