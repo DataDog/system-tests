@@ -77,6 +77,7 @@ class Test_Client_Stats:
         or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="rasp endpoint not implemented")
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
