@@ -81,7 +81,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:latest"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):

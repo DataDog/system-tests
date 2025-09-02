@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_lambda_proxy_image:
+        description: "Shall we build the lambda-proxy image"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -125,6 +130,9 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
+    - name: Build lambda-proxy image
+      if: inputs.build_lambda_proxy_image
+      run: ./build.sh -i lambda-proxy
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
@@ -140,9 +148,6 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
-    - name: Build Lambda Proxy
-      if: ${{ endsWith(inputs.library, '_lambda') }}
-      run: ./build.sh python_lambda -i lambda-proxy
 
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
@@ -263,15 +268,15 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
@@ -365,6 +370,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
+    - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
@@ -426,6 +434,12 @@ jobs:
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
+    - name: Run APPSEC_LAMBDA_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      run: ./run.sh APPSEC_LAMBDA_BLOCKING
+    - name: Run APPSEC_LAMBDA_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      run: ./run.sh APPSEC_LAMBDA_API_SECURITY
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh

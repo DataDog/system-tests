@@ -67,6 +67,7 @@ refs:
   - &ref_5_60_0 '>=5.60.0'
   - &ref_5_61_0 '>=5.61.0'  # fastify iast support
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
+  - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -89,7 +90,9 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          fastify: *ref_5_64_0
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
@@ -860,6 +863,8 @@ tests/:
         express5: missing_feature  # graphql not yet compatible with express5
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
+      Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
@@ -1086,6 +1091,9 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
+        '*': *ref_5_39_0
+        nextjs: irrelevant
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
         '*': *ref_5_39_0
         nextjs: irrelevant
       Test_Debugger_Method_Probe_Snaphots: missing_feature
@@ -1327,11 +1335,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: *ref_5_56_0
     Test_Baggage_Headers_Malformed: *ref_5_56_0

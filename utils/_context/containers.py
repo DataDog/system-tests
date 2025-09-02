@@ -619,7 +619,7 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="system_tests/lambda-proxy",
+            image_name="datadog/system-tests:lambda-proxy",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
@@ -633,8 +633,12 @@ class LambdaProxyContainer(TestedContainer):
                 "test": f"curl --fail --silent --show-error --max-time 2 localhost:{self.container_port}/healthcheck",
                 "retries": 60,
             },
-            local_image_only=True,
         )
+
+    def post_start(self):
+        super().post_start()
+
+        logger.stdout(f"Proxied event type: {self.environment.get("LAMBDA_EVENT_TYPE")}")
 
 
 class AgentContainer(TestedContainer):
@@ -1002,7 +1006,7 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
-        if library == "php":
+        if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
     def post_start(self):
@@ -1239,9 +1243,10 @@ class LocalstackContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",

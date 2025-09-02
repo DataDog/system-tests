@@ -45,8 +45,8 @@ def main(repo_slug: str, run_id: int, output: str) -> None:
     result: list[str] = []
 
     with requests.Session() as session:
-        if "GH_TOKEN" in environ:
-            session.headers["Authorization"] = environ["GH_TOKEN"]
+        if "GITHUB_TOKEN" in environ:
+            session.headers["Authorization"] = environ["GITHUB_TOKEN"]
 
         jobs = get_jobs(session, repo_slug, run_id)
 

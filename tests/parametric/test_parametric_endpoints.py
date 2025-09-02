@@ -6,7 +6,6 @@ When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
 """
 
-import json
 import pytest
 import time
 
@@ -14,6 +13,7 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import retrieve_span_events
 from utils.parametric.spec.trace import find_only_span
 from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
 from opentelemetry.trace import SpanKind
@@ -625,9 +625,9 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
-        assert len(events) == 1
+        events = retrieve_span_events(span)
+        assert events is not None
+        assert len(events) == 1, f"events: {events}"
         assert events[0]["name"] == "some_event"
         assert events[0]["time_unix_nano"] == 1730393556000000000
         assert events[0]["attributes"]["key"] == "value"
@@ -648,9 +648,9 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
-        assert len(events) == 1
+        events = retrieve_span_events(span)
+        assert events is not None
+        assert len(events) == 1, f"events: {events}"
         assert events[0]["name"].lower() in ["exception", "error"]
         assert events[0]["attributes"]["error.key"] == "value"
 
