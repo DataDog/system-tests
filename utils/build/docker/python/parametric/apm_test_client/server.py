@@ -741,7 +741,6 @@ class LogGenerateArgs(BaseModel):
     message: str
     level: str
     logger_name: str
-    logger_type: LoggerType = LoggerType.default
     span_id: Optional[int] = None
 
 

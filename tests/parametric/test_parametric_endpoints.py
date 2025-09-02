@@ -746,19 +746,11 @@ class Test_Parametric_Write_Log:
         - message: str
         - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
         - logger_name: str
-        - logger_type: int (ex: 0=default, 1=third_party_logger, 2=another_third_party_logger)
+        - span_id: Union[int, str]  (optional)
 
         Supported Return Values:
         - success: bool
         """
-        # Test with default logger type (0)
-        result = test_library.write_log("Test log message", LogLevel.INFO, "test_logger")
-        assert result is True
-
-        # Test with explicit logging type (1)
-        result = test_library.write_log("Debug message", LogLevel.DEBUG, "debug_logger", logger_type=1)
-        assert result is True
-
         # Test with different log levels
         result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
         assert result is True
@@ -768,4 +760,25 @@ class Test_Parametric_Write_Log:
 
         # Test with custom logger name
         result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
+        assert result is True
+
+    def test_write_log_with_span_id(self, test_agent, test_library):
+        """Validates that /log/write creates a log message with the specified parameters.
+
+        Supported Parameters:
+        - message: str
+        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        - logger_name: str
+        - span_id: Union[int, str]  (optional)
+        """
+        with test_library.otel_start_span("otel_span") as s1:
+            pass
+
+        with test_library.dd_start_span("dd_span") as s2:
+            pass
+
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", span_id=s1.span_id)
+        assert result is True
+
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
         assert result is True

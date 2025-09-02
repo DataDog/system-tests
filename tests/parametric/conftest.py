@@ -426,7 +426,7 @@ class _TestAgentAPI:
         time.sleep(1)
         # Attempt to retrieve telemetry events, suppressing request-related exceptions
         with contextlib.suppress(requests.exceptions.RequestException):
-            events += self.telemetry(clear=False)
+            events = self.telemetry(clear=False)
         if not events:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
@@ -446,6 +446,27 @@ class _TestAgentAPI:
         if clear:
             self.clear()
         return configurations
+
+    def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
+        """Get the telemetry metrics from the test agent."""
+        metrics = []
+
+        for _ in range(wait_loops):
+            for event in self.telemetry(clear=False):
+                telemetry_event = self._get_telemetry_event(event, "generate-metrics")
+                logger.debug("Found telemetry event: %s", telemetry_event)
+                if telemetry_event is None:
+                    continue
+                for series in telemetry_event["payload"]["series"]:
+                    if metric_name is None or series["metric"] == metric_name:
+                        metrics.append(series)
+                        break
+            metrics.sort(key=lambda x: (x["metric"], x["tags"]))
+            time.sleep(0.01)
+
+        if clear:
+            self.clear()
+        return metrics
 
     def _get_telemetry_event(self, event: dict, request_type: str):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
