@@ -97,11 +97,9 @@ fn init_tracing() -> Result<SdkTracerProvider> {
 
     let mut builder = dd_trace::Config::builder();
     builder.set_log_level_filter(dd_trace::log::LevelFilter::Debug);
-    Ok(datadog_opentelemetry::init_datadog(
-        builder.build(),
-        SdkTracerProvider::builder(),
-        None,
-    ))
+    Ok(datadog_opentelemetry::tracing()
+        .with_config(builder.build())
+        .init())
 }
 
 fn log_error(error: &impl Display) {
