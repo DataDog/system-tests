@@ -55,3 +55,4 @@ jobs:
           echo 'Impacted libraries: -> ${{ steps.compute.outputs.library_matrix }}'
           echo 'Desired execution time: -> ${{ steps.compute.outputs.desired_execution_time }}'
           echo 'Target branch: -> ${{ steps.get-target-branch.outputs.target-branch }}'
+          echo 'Rebuild lambda-proxy: -> ${{ steps.compute.outputs.rebuild_lambda_proxy }}'
