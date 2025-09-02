@@ -45,7 +45,7 @@ tests/:
 
       Test_FeatureC: # declare a version for a class, depending on weblog
         '*': missing_feature # All other weblogs: not yet available
-        django: v1.2
+        django-*: v1.2 # All weblogs starting with "django-", for example "django-1", "django-2", etc...
         flask: v1.3
         uwsgi: bug (jira ticket) # For a weblog, skip it with bug, or flaky
 
