@@ -582,12 +582,12 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
-            _SchemaBug(
-                endpoint="/debugger/v1/diagnostics",
-                data_path="$[].content[]",
-                condition=self.library >= "php@1.12.0",
-                ticket="DEBUG-4431",
-            ),
+            # _SchemaBug(
+            #     endpoint="/debugger/v1/diagnostics",
+            #     data_path="$[].content[]",
+            #     condition=self.library >= "php@1.12.0",
+            #     ticket="DEBUG-4431",
+            # ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$",

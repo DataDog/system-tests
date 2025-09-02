@@ -223,6 +223,9 @@ class _RequestLogger:
             with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)
 
+            with open(f"{log_filename}.request.raw", opener=lambda path, flags: os.open(path, flags, 0o777), mode="wb") as f:
+                f.write(flow.request.content)
+
         except:
             logger.exception("Unexpected error")
 
