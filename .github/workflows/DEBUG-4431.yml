@@ -1,0 +1,70 @@
+name: Reproduce DEBUG-4431
+
+on:
+  workflow_dispatch:
+    inputs:
+      library:
+        description: Which library
+        default: php
+        type: string
+      weblog:
+        description: Which weblog
+        default: apache-mod-8.1
+        type: string
+      scenario:
+        description: Which scenario
+        default: DEBUGGER_EXPRESSION_LANGUAGE
+        type: string
+      job_count:
+        description: How many jobs
+        default: "10"
+        type: string
+  pull_request: # DO NOT MERGE
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.make.outputs.array }}
+    steps:
+      - id: make
+        run: |
+          seq -s, 1 ${{ inputs.job_count }} | awk '{print "[\"" $0 "\"]"}' | sed 's/,/","/g' > arr.json
+          echo "array=$(cat arr.json)" >> $GITHUB_OUTPUT
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+    - name: Pull images
+      uses: ./.github/actions/pull_images
+      with:
+        library: ${{ inputs.library }}
+        weblog: ${{ inputs.weblog }}
+        scenarios: ${{ inputs.scenario }}
+        dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
+        dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Build weblog
+      id: build
+      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+
+    - run: |
+        set -e
+        for i in {1..100}
+        do
+          echo "Run #$i"
+          ./run.sh ${{ inputs.scenario }}
+        done
+
+    - name: Upload artifact
+      if: always() && steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_${{ matrix.n }}
+        path: logs_${{ inputs.scenario }}
