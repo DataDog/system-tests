@@ -703,6 +703,17 @@ class _Scenarios:
         doc="Test scenario for checking if debugger successfully generates snapshots for probes",
     )
 
+    debugger_probes_snapshot_with_scm = DebuggerScenario(
+        "DEBUGGER_PROBES_SNAPSHOT_WITH_SCM",
+        weblog_env={
+            "DD_DYNAMIC_INSTRUMENTATION_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
+            "DD_GIT_REPOSITORY_URL": "https://github.com/datadog/hello",
+            "DD_GIT_COMMIT_SHA": "1234hash",
+        },
+        doc="Test scenario for checking if debugger successfully generates SCM metadata in snapshots for probes",
+    )
+
     debugger_pii_redaction = DebuggerScenario(
         "DEBUGGER_PII_REDACTION",
         weblog_env={
@@ -813,9 +824,10 @@ class _Scenarios:
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
@@ -847,8 +859,9 @@ class _Scenarios:
 
     simple_auto_injection_appsec = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_APPSEC",
-        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
-        app_env={"DD_APPSEC_ENABLED": "true"},
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )

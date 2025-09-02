@@ -873,6 +873,8 @@ tests/:
         express5: missing_feature  # graphql not yet compatible with express5
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
+      Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
@@ -1099,6 +1101,9 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
+        '*': *ref_5_39_0
+        nextjs: irrelevant
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
         '*': *ref_5_39_0
         nextjs: irrelevant
       Test_Debugger_Method_Probe_Snaphots: missing_feature
@@ -1339,11 +1344,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: *ref_5_56_0
     Test_Baggage_Headers_Malformed: *ref_5_56_0

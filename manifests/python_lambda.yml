@@ -20,6 +20,8 @@ tests/:
       Test_Basic: v7.112.0
     test_blocking_addresses.py:
       Test_Blocking_client_ip: v8.113.0
+      Test_Blocking_client_ip_with_K8_private_ip: v8.113.0
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v8.113.0
       Test_Blocking_request_body_multipart: v8.113.0
       Test_Blocking_request_cookies: v8.113.0

@@ -66,6 +66,71 @@ class Test_Blocking_client_ip:
         interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
+@features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@scenarios.external_processing_blocking
+class Test_Blocking_client_ip_with_forwarded:
+    """Test if blocking is supported on http.client_ip address"""
+
+    def setup_blocking_ipv4(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for=127.0.0.1;host="example.host";by=2.2.2.2;proto=http,for="1.1.1.1:6543"'}
+        )
+
+    def test_blocking_ipv4(self):
+        """Can block the request forwarded for the ip (in IPv4 format)"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_ipv6(self):
+        self.rm_req_block = weblog.get(
+            headers={"Forwarded": 'for="[::1]",for="[9f7b:5e67:5472:4464:90b0:6b0a:9aa6:f9dc]:4485"'},
+        )
+
+    def test_blocking_ipv6(self):
+        """Can block the request forwarded for the ip (in IPv6 format)"""
+
+        assert self.rm_req_block.status_code == 403
+        interfaces.library.assert_waf_attack(self.rm_req_block, rule="blk-001-001")
+
+    def setup_blocking_before(self):
+        self.block_req2 = weblog.get(
+            "/tag_value/tainted_value_6512/200",
+            headers={"Forwarded": 'host="example.host";by=2.2.2.2;proto=https;for=1.1.1.1'},
+        )
+
+    def test_blocking_before(self):
+        """Test that blocked requests are blocked before being processed"""
+        # second request should block and must not set the tag in span
+        assert self.block_req2.status_code == 403
+        interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
+        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+
+
+@features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@scenarios.external_processing_blocking
+class Test_Blocking_client_ip_with_K8_private_ip:
+    """Test if blocking is supported on http.client_ip address"""
+
+    def setup_blocking(self):
+        self.rm_req_block = [
+            weblog.get(headers={"X-Forwarded-For": f"192.168.0.1, 100.65.0.{i}, 1.1.1.1"}) for i in range(11)
+        ]
+
+    def test_blocking(self):
+        """Can block the request forwarded for the ip (in IPv4 format)"""
+
+        for request in self.rm_req_block:
+            assert request.status_code == 403
+            interfaces.library.assert_waf_attack(request, rule="blk-001-001")
+
+
 @scenarios.appsec_blocking
 @scenarios.appsec_lambda_blocking
 @features.appsec_request_blocking

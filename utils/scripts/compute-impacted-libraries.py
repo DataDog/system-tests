@@ -5,6 +5,52 @@ import re
 import sys
 from typing import TextIO
 
+# do not include otel in system-tests CI by default, as the staging backend is not stable enough
+default_libraries = [
+    "cpp",
+    "cpp_httpd",
+    "cpp_nginx",
+    "dotnet",
+    "golang",
+    "java",
+    "nodejs",
+    "php",
+    "python",
+    "ruby",
+    "python_lambda",
+]
+
+libraries = (
+    "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"
+)
+
+
+def get_impacted_libraries(modified_file: str) -> list[str]:
+    """Return the list of impacted libraries by this file"""
+    if modified_file.endswith((".md", ".rdoc", ".txt")):
+        # modification in documentation file
+        return []
+
+    files_with_no_impact = [
+        "utils/scripts/compute-impacted-libraries.py",
+        ".github/workflows/compute-impacted-libraries.yml",
+    ]
+    if modified_file in files_with_no_impact:
+        return []
+
+    patterns = [
+        rf"^manifests/({libraries})\.",
+        rf"^utils/build/docker/({libraries})/",
+        rf"^lib-injection/build/docker/({libraries})/",
+        rf"^utils/build/build_({libraries})_base_images.sh",
+    ]
+
+    for pattern in patterns:
+        if match := re.search(pattern, modified_file):
+            return [match[1]]
+
+    return default_libraries
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
@@ -18,39 +64,27 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"  # noqa: E501
     result = set()
-
-    # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-    # all_libraries = {
-    #   "cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "java_otel", "python_otel", "nodejs_otel"
-    # }
-    all_libraries = {
-        "cpp",
-        "cpp_httpd",
-        "cpp_nginx",
-        "dotnet",
-        "golang",
-        "java",
-        "nodejs",
-        "php",
-        "python",
-        "ruby",
-        "python_lambda",
-    }
 
     if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
         print("Not in PR => run all libraries")
-        result |= all_libraries
+        result |= set(default_libraries)
 
     else:
         pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", pr_title)
         user_choice = None
+        branch_selector = None
+        prevent_library_selector_mismatch = True
         if match:
             print(f"PR title matchs => run {match[1]}")
             user_choice = match[1]
             result.add(user_choice)
+
+            # if users specified a branch, another job will prevent the merge
+            # so let user do what he/she wants :
+            branch_selector = match[2]
+            prevent_library_selector_mismatch = branch_selector is None
 
         print("Inspect modified files to determine impacted libraries...")
 
@@ -58,29 +92,25 @@ def main() -> None:
             modified_files: list[str] = [line.strip() for line in f]
 
         for file in modified_files:
-            match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})[\./]", file)
+            impacted_libraries = get_impacted_libraries(file)
+
+            if file.endswith((".md", ".rdoc", ".txt")):
+                # modification in documentation file
+                continue
 
             if user_choice is None:
                 # user let the script pick impacted libraries
-                if match:
-                    result.add(match[2])
-                else:
-                    result |= all_libraries
-            else:  # noqa: PLR5501
+                result |= set(impacted_libraries)
+            elif prevent_library_selector_mismatch and len(impacted_libraries) > 0:
                 # user specified a library in the PR title
-                if match:
-                    if match[2] != user_choice:
-                        print(
-                            f"""File {file} is modified, and it may impact {match[2]}.
-                            Please remove the PR title prefix [{user_choice}]"""
-                        )
-                        sys.exit(1)
-                elif file.startswith("tests/"):
+                # and there are some impacted libraries
+                if file.startswith("tests/"):
                     # modification in tests files are complex, trust user
                     ...
-                else:
+                elif impacted_libraries != [user_choice]:
+                    # only acceptable use case : impacted library exactly matches user choice
                     print(
-                        f"""File {file} is modified, it may impact all libraries.
+                        f"""File {file} is modified, and it may impact {', '.join(impacted_libraries)}.
                         Please remove the PR title prefix [{user_choice}]"""
                     )
                     sys.exit(1)

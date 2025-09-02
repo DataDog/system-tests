@@ -265,6 +265,8 @@ generate_system_tests_end_to_end_images:
       - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
       - ./utils/build/build_tracer_buddies.sh --push
       - ./utils/build/build_python_base_images.sh --push
+      - ./build.sh -i lambda-proxy
+      - docker push datadog/system-tests:lambda-proxy
   when: manual
 
 generate_system_tests_lib_injection_images:
