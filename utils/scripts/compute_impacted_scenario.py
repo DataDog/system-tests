@@ -154,7 +154,7 @@ def main() -> None:
                     r"manifests/.*": None,  # already handled by the manifest comparison
                     r"repository\.datadog\.yml": None,
                     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
-                    r"utils/_context/_scenarios/aws_lambda\.py": scenario_groups.appsec_lambda,
+                    r"utils/_context/_scenarios/aws_lambda\.py": scenario_groups.lambda_end_to_end,
                     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
                     r"utils/_context/_scenarios/default\.py": scenarios.default,
                     r"utils/_context/_scenarios/integrations\.py": scenario_groups.integrations,
@@ -164,6 +164,7 @@ def main() -> None:
                     r"utils/_context/_scenarios/profiling\.py": scenario_groups.profiling,
                     r"utils/_context/virtual_machine\.py": scenario_groups.onboarding,
                     r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
+                    r"utils/build/docker/lambda_proxy/.*": scenario_groups.lambda_end_to_end,
                     r"utils/build/docker/nodejs_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/python_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/python_lambda/.*": scenario_groups.appsec_lambda,

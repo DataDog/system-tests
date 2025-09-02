@@ -34,6 +34,7 @@ class _ScenarioGroups:
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     ipv6 = ScenarioGroup()
+    lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
