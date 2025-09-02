@@ -626,6 +626,7 @@ class LambdaProxyContainer(TestedContainer):
                 "RIE_HOST": lambda_weblog_host,
                 "RIE_PORT": lambda_weblog_port,
             },
+            volumes={"./utils/build/docker/lambda_proxy": {"bind": "/app", "mode": "ro"}},
             ports={
                 f"{self.host_port}/tcp": self.container_port,
             },
