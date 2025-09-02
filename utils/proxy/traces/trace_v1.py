@@ -68,13 +68,16 @@ class V1AnyValueKeys(IntEnum):
     array = 6
     key_value_list = 7
 
+# Keys that are strings so may arrive as indexes into the strings list
+_chunk_key_strings = ["origin"]
+_span_key_strings = ["service", "name_value", "resource", "type_value", "env", "version", "component"]
 
-def _uncompress_keys(trace_payload: dict) -> dict:
+def _uncompress_keys(trace_payload: dict, strings: list[str]) -> dict:
     uncompressed_payload = {}
     for k, v in trace_payload.items():
         if k in V1TracePayloadKeys:
             if k == V1TracePayloadKeys.chunks:
-                uncompressed_payload[V1TracePayloadKeys.chunks.name] = _uncompress_chunks(v)
+                uncompressed_payload[V1TracePayloadKeys.chunks.name] = _uncompress_chunks(v, strings)
             else:
                 uncompressed_payload[V1TracePayloadKeys(k).name] = v
         else:
@@ -82,15 +85,43 @@ def _uncompress_keys(trace_payload: dict) -> dict:
 
     return uncompressed_payload
 
+def _process_trace_attributes(trace_payload: dict, strings: list[str]) -> dict:
+    # Process attributes in chunks
+    for chunk in trace_payload.get("chunks", []):
+        if "attributes" in chunk:
+            chunk["attributes"] = _attributes_to_dict(chunk["attributes"], strings)
+        # Process attributes in spans
+        for span in chunk.get("spans", []):
+            if "attributes" in span:
+                span["attributes"] = _attributes_to_dict(span["attributes"], strings)
+    return trace_payload
 
-def _uncompress_chunks(chunks: list) -> list:
+def _attributes_to_dict(attrs: list, strings: list[str]) -> dict:
+    if len(attrs) % 3 != 0:
+        raise ValueError(f"Attributes list must be a multiple of 3: {attrs}")
+    attrs_dict = {}
+    for i in range(0, len(attrs), 3):
+        k = attrs[i]
+        if isinstance(k, int):
+            k = strings[k]
+        v_type = attrs[i + 1]
+        v = attrs[i + 2]
+        if v_type == 1: # Attribute value is a string
+            if isinstance(v, int):
+                v = strings[v]
+        attrs_dict[k] = v
+    return attrs_dict
+
+def _uncompress_chunks(chunks: list, strings: list[str]) -> list:
     uncompressed_chunks = []
     for chunk in chunks:
         uncompressed_chunk = {}
         for k, v in chunk.items():
             if k in V1ChunkKeys:
                 if k == V1ChunkKeys.spans:
-                    uncompressed_chunk[V1ChunkKeys.spans.name] = _uncompress_spans(v)
+                    if V1ChunkKeys(k).name in _chunk_key_strings and isinstance(v, int):
+                        v = strings[v]
+                    uncompressed_chunk[V1ChunkKeys.spans.name] = _uncompress_spans(v, strings)
                 else:
                     uncompressed_chunk[V1ChunkKeys(k).name] = v
             else:
@@ -99,12 +130,14 @@ def _uncompress_chunks(chunks: list) -> list:
     return uncompressed_chunks
 
 
-def _uncompress_spans(spans: list) -> list:
+def _uncompress_spans(spans: list, strings: list[str]) -> list:
     uncompressed_spans = []
     for span in spans:
         uncompressed_span = {}
         for k, v in span.items():
             if k in V1SpanKeys:
+                if V1SpanKeys(k).name in _span_key_strings and isinstance(v, int):
+                    v = strings[v]
                 uncompressed_span[V1SpanKeys(k).name] = v
             else:
                 raise ValueError(f"Unknown V1SpanKey: {k}")
@@ -138,8 +171,9 @@ def _deserialize_trace_id(chunk: dict):
 def deserialize_v1_trace(content: bytes) -> dict:
     data: dict = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
-    _unstream_strings(data)
-    data = _uncompress_keys(data)
+    strings = _unstream_strings(data)
+    data = _uncompress_keys(data, strings)
+    data = _process_trace_attributes(data, strings)
     for chunk in data.get("chunks", []):
         _deserialize_trace_id(chunk)
     return data
