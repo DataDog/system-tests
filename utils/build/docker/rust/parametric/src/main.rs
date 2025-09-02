@@ -42,7 +42,7 @@ struct AppState {
     contexts: Arc<Mutex<HashMap<u64, Arc<ContextWithParent>>>>,
     current_context: Arc<Mutex<Arc<ContextWithParent>>>,
     extracted_span_contexts: Arc<Mutex<HashMap<u64, ::opentelemetry::Context>>>,
-    tracer_provider: Arc<SdkTracerProvider>,
+    tracer_provider: SdkTracerProvider,
 }
 
 #[derive(Default, Clone)]
@@ -73,7 +73,7 @@ async fn main() {
     panic::set_hook(Box::new(|panic| error!(%panic, "process panicked")));
 
     // Run and log any error.
-    if let Err(ref error) = run(Arc::new(tracer)).await {
+    if let Err(ref error) = run(tracer).await {
         error!(
             error = format!("{error:#}"),
             backtrace = %error.backtrace(),
@@ -126,7 +126,7 @@ pub struct Config {
     shutdown_timeout: Option<Duration>,
 }
 
-pub async fn serve(config: Config, tracer_provider: Arc<SdkTracerProvider>) -> Result<()> {
+pub async fn serve(config: Config, tracer_provider: SdkTracerProvider) -> Result<()> {
     let Config {
         addr,
         port,
@@ -242,7 +242,7 @@ fn make_span(request: &Request<Body>) -> Span {
     info_span!("incoming request", path, ?headers, trace_id = field::Empty)
 }
 
-async fn run(tracer: Arc<SdkTracerProvider>) -> Result<()> {
+async fn run(tracer: SdkTracerProvider) -> Result<()> {
     let port = u16::from_str_radix(
         &env::var("APM_TEST_CLIENT_SERVER_PORT").unwrap_or("8080".to_string()),
         10,
