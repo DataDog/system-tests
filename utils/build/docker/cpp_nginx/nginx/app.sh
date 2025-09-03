@@ -1,5 +1,11 @@
 #!/bin/bash
 
+backend &
+
+if [[ $DD_TRACE_DEBUG = true ]]; then
+  sed -i 's/\(error_log [^ ]* \)info;/\1debug;/' /etc/nginx/nginx.conf
+fi
+
 if [[ "${DDPROF_ENABLE:-,,}" == "yes" ]]; then
   ddprof -l notice nginx -g 'daemon off;'
 else
