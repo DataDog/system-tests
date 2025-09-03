@@ -105,6 +105,7 @@ app.get('/params/:value', (req, res) => {
 })
 
 app.get('/headers', (req, res) => {
+  console.log('req.query', req.query)
   res.set({
     'content-type': 'text/plain',
     'content-length': '42',
