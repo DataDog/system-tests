@@ -449,6 +449,14 @@ tests/:
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualAppsec: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   debugger/:
     test_debugger_code_origins.py:
       Test_Debugger_Code_Origins: missing_feature

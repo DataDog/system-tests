@@ -127,7 +127,7 @@ def main() -> None:
             "version": "dev",
         }
         for library in sorted(result)
-        if "otel" not in library and library not in ("cpp_nginx",)
+        if "otel" not in library
     ]
 
     if args.output:

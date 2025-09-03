@@ -8,7 +8,7 @@ RUN python --version && curl --version
 
 # install python deps
 RUN pip install --upgrade pip
-RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg2 itsdangerous xmltodict==0.14.2
+RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg itsdangerous xmltodict==0.14.2
 
 # Install Rust toolchain
 RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
