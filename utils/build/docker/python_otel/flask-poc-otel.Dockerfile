@@ -1,4 +1,4 @@
-FROM datadog/system-tests:flask-poc.base-v1
+FROM datadog/system-tests:flask-poc.base-v11
 
 #TODO RMM: Change docker flask-poc base to fix psycopg2 ( psycopg2-binary is not supported by open telemetry)
 RUN apt update
