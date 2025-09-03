@@ -1,10 +1,10 @@
-FROM golang:1.24 AS build
+FROM golang:1.24-alpine3.22 AS build
+
+# install jq and curl
+RUN apk add --no-cache jq curl
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # build application binary
 COPY utils/build/docker/golang/app/ /app/
@@ -23,7 +23,9 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.24
+FROM golang:1.24-alpine3.22
+
+RUN apk add --no-cache curl
 
 COPY --from=build /app/weblog /app/weblog
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
@@ -35,6 +37,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent' \
     DD_DATA_STREAMS_ENABLED=true \
     DD_LOGGING_RATE=0
 
-RUN printf "#!/bin/bash\nexec ./weblog" > app.sh
+RUN printf "#!/bin/sh\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
