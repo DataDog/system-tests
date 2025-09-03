@@ -142,7 +142,7 @@ class _TestAgentAPI:
             log.write(json.dumps(json_trace))
 
     def traces(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
-        resp = self._session.get(self._url("/test/session/traces"), **kwargs)
+        resp = self._session.get(self._otlp_url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
         resp_json = resp.json()
@@ -417,7 +417,7 @@ class _TestAgentAPI:
         metrics = []
         for _ in range(wait_loops):
             try:
-                metrics = self.metrics(clear=False)
+                metrics = self.metrics()
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -442,7 +442,7 @@ class _TestAgentAPI:
         metrics = []
         for _ in range(wait_loops):
             try:
-                metrics = self.metrics(clear=False)
+                metrics = self.metrics()
             except requests.exceptions.RequestException:
                 pass
             else:
@@ -720,10 +720,6 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
 
-    def metrics(self) -> list[Any]:
-        resp = self._session.get(self._otlp_url("/test/session/metrics"))
-        return cast(list[Any], resp.json())
-
 
 @pytest.fixture(scope="session")
 def docker() -> str | None:
@@ -901,7 +897,7 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
-    apm_test_server.host_otlp_http_port = scenarios.parametric.get_host_port(worker_id, 4600) # This doesn't have an OTLP port but whatever, refactor later
+    ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
