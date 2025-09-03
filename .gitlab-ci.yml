@@ -254,7 +254,7 @@ check_merge_labels:
 
 generate_system_tests_end_to_end_images:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
-  tags: ["runner:docker"]
+  tags: ["docker-in-docker:amd64"]
   needs: []
   stage: system-tests-utils
   allow_failure: true
