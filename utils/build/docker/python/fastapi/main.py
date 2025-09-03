@@ -301,7 +301,9 @@ async def rasp_ssrf(request: Request):
     try:
         print("rasp_ssrf", f"http://{domain}", file=sys.stderr)
         # DEV: use requests here due to permission error with urllib
-        with requests.get(f"http://{domain}", timeout=1) as url_in:
+        with requests.get(
+            f"http://{domain}", timeout=1
+        ) as url_in:  # nosemgrep: test endpoint simulating SSRF over HTTP
             return PlainTextResponse(f"url http://{domain} open with {len(url_in.read())} bytes")
     except Exception as e:
         print(repr(e), file=sys.stderr)

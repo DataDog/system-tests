@@ -29,7 +29,11 @@ def _post(path: str, payload: list[dict] | dict) -> None:
     else:
         domain = "localhost"
 
-    requests.post(f"http://{domain}:{ProxyContainer.command_host_port}{path}", data=json.dumps(payload), timeout=30)
+    requests.post(
+        f"http://{domain}:{ProxyContainer.command_host_port}{path}",
+        data=json.dumps(payload),
+        timeout=30,
+    )  # nosemgrep: internal test-only HTTP call to local proxy
 
 
 class RemoteConfigStateResults:
