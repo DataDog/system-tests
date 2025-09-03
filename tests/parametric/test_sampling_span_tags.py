@@ -342,20 +342,27 @@ class Test_Sampling_Span_Tags:
 @features.trace_sampling
 class Test_Knuth_Sample_Rate:
     @pytest.mark.parametrize(
-        "library_env",
+        "library_env,sample_rate",
         [
-            {
-                "DD_TRACE_SAMPLE_RATE": None,
-                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
-            },
-            {
-                "DD_TRACE_SAMPLE_RATE": None,
-                "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
-                "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":1, "name":"span"}]',
-            },
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+                },
+                "1",
+            ),
+            (
+                {
+                    "DD_TRACE_SAMPLE_RATE": None,
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                    "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":0.123456, "name":"span"}]',
+                    "DD_TRACE_COMPUTE_STATS": "false",
+                },
+                "0.123456",
+            ),
         ],
     )
-    def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env):
+    def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env, sample_rate):
         """When a trace is sampled via a sampling rule, the knuth sample rate
         is sent to the agent on the chunk root span with the _dd.p.ksr key in the metrics field.
         """
@@ -378,7 +385,7 @@ class Test_Knuth_Sample_Rate:
         for trace in traces:
             assert len(trace) == 1, f"Expected 1 span in the trace: {trace}"
             span = trace[0]
-            assert span["metrics"].get("_dd.p.ksr") == 1.0, f"Expected 1.0 for span {span}"
+            assert span["meta"].get("_dd.p.ksr") == sample_rate, f"Expected {sample_rate} for span {span}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -387,7 +394,6 @@ class Test_Knuth_Sample_Rate:
                 "DD_TRACE_PROPAGATION_STYLE": "Datadog",
                 # Ensure sampling configurationations are not set.
                 "DD_TRACE_SAMPLE_RATE": None,
-                "DD_TRACE_SAMPLING_RULES": None,
             }
         ],
     )
@@ -402,16 +408,16 @@ class Test_Knuth_Sample_Rate:
                 ["x-datadog-parent-id", "987654321"],
                 ["x-datadog-sampling-priority", "2"],
                 ["x-datadog-origin", "synthetics"],
-                ["x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1"],
+                ["x-datadog-tags", "_dd.p.dm=-8,_dd.p.ksr=1.000000"],
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
-            assert "_dd.p.ksr=1" in outgoing_headers["x-datadog-tags"]
+            assert "_dd.p.ksr=1.000000" in outgoing_headers["x-datadog-tags"]
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 123456789
         assert span.get("parent_id") == 987654321
         assert span["meta"].get("_dd.p.dm") == "-8"
-        assert span["metrics"].get("_dd.p.ksr") == 1
+        assert span["meta"].get("_dd.p.ksr") == "1.000000"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
 
     @pytest.mark.parametrize(
@@ -421,7 +427,6 @@ class Test_Knuth_Sample_Rate:
                 "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
                 # Ensure sampling configurationations are not set.
                 "DD_TRACE_SAMPLE_RATE": None,
-                "DD_TRACE_SAMPLING_RULES": None,
             }
         ],
     )
@@ -432,14 +437,14 @@ class Test_Knuth_Sample_Rate:
         with test_library:
             incoming_headers = [
                 ["traceparent", "00-00000000000000000000000000000007-0000000000000006-01"],
-                ["tracestate", "dd=s:2;o:synthetics;t.dm:-8;t.ksr:1"],
+                ["tracestate", "dd=s:2;o:synthetics;t.dm:-8;t.ksr:0.1"],
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
-            assert "t.ksr:1" in outgoing_headers["tracestate"]
+            assert "t.ksr:0.1" in outgoing_headers["tracestate"]
 
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 7
         assert span.get("parent_id") == 6
         assert span["meta"].get("_dd.p.dm") == "-8"
-        assert span["metrics"].get("_dd.p.ksr") == 1
-        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["meta"].get("_dd.p.ksr") == "0.1"
+        assert span["meta"].get(SAMPLING_PRIORITY_KEY) == 2
