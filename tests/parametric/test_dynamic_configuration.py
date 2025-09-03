@@ -742,6 +742,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(library="ruby", reason="APMAPI-867")
     @flaky(library="python", reason="APMAPI-1051")
+    @bug(library="cpp", reason="APMAPI-1595")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
