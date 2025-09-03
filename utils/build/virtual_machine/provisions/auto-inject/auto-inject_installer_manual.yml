@@ -15,7 +15,7 @@
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       echo "DD_LANG: ${DD_LANG}"
       if [ "${DD_LANG}" == "python" ]; then
-        export DD_INSTALLER_LIBRARY_VERSION=$(TMP=$(mktemp -d); cd "$TMP" && git init -q && git fetch -q --depth=2 https://github.com/Datadog/dd-trace-py.git main && (git rev-parse FETCH_HEAD^ || git rev-parse FETCH_HEAD); cd - > /dev/null; rm -rf "$TMP")
+        export DD_INSTALLER_LIBRARY_VERSION=3
       fi
 
     else 
@@ -23,7 +23,7 @@
       #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
       #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
       if [ "${DD_LANG}" == "python" ]; then
-        export DD_INSTALLER_LIBRARY_VERSION=$(REPO=https://github.com/Datadog/dd-trace-py.git; TAG=$(git ls-remote --tags --refs "$REPO" 'v3*' | cut -f2 | sed 's#refs/tags/##' | grep -Eiv '(-?rc[0-9]*$)' | sort -V | tail -1); [ -z "$TAG" ] && { echo "No stable v3* tags found" >&2; exit 1; }; SHA=$(git ls-remote --tags "$REPO" "refs/tags/$TAG^{}" | cut -f1); [ -n "$SHA" ] || SHA=$(git ls-remote --tags "$REPO" "refs/tags/$TAG" | cut -f1); echo "$SHA")
+        export DD_INSTALLER_LIBRARY_VERSION=3
       fi
     fi
 
@@ -57,29 +57,12 @@
       export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_INSTALLER="${DD_INSTALLER_INSTALLER_VERSION}"
     fi
 
-    # Env variables set on the scenario definition. Write to application_monitoring.yaml
+    # Env variables set on the scenario definition. Write to file and load
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
-    
-    # Create the application_monitoring.yaml file with apm_configuration_default section
-    sudo mkdir -p /etc/datadog-agent
-    echo "apm_configuration_default:" | sudo tee /etc/datadog-agent/application_monitoring.yaml > /dev/null
-    
-    # Parse SCENARIO_AGENT_ENV (key=value pairs) and write to YAML format
-    if [ -n "${SCENARIO_AGENT_ENV}" ]; then
-        echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
-        echo "${SCENARIO_AGENT_ENV}"
-        echo "${SCENARIO_AGENT_ENV}" | tr ' ' '\n' | while IFS='=' read -r key value; do
-            if [ -n "${key}" ] && [ -n "${value}" ]; then
-                echo "  ${key}: ${value}" | sudo tee -a /etc/datadog-agent/application_monitoring.yaml > /dev/null
-                # Also export for immediate use
-                export "${key}=${value}"
-            fi
-        done
-    fi
-    
-    echo "APPLICATION MONITORING CONFIG:"
-    sudo cat /etc/datadog-agent/application_monitoring.yaml || true
-
+    echo "${SCENARIO_AGENT_ENV}" > scenario_agent.env
+    echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
+    cat scenario_agent.env
+    export $(cat scenario_agent.env | xargs)
 
 
     sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
@@ -111,6 +94,7 @@
     sudo mkdir -p /etc/datadog-agent/inject
     sudo cp docker_config.yaml /etc/datadog-agent/inject/docker_config.yaml
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+    echo "${SCENARIO_AGENT_ENV}" | sudo tee -a /etc/environment # TODO: remove when application_monitoring.yaml is supported everywhere
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
 - os_type: windows
   remote-command: |
