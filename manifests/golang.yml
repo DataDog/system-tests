@@ -765,6 +765,7 @@ tests/:
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint is not defined)
+      Test_Parametric_Write_Log: missing_feature
     test_process_discovery.py: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature

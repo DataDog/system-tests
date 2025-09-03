@@ -571,6 +571,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
+      Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
