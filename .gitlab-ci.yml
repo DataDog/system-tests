@@ -258,15 +258,41 @@ generate_system_tests_end_to_end_images:
   needs: []
   stage: system-tests-utils
   allow_failure: true
+  parallel:
+    matrix:
+      # Python base images
+      - DOCKERFILE: "utils/build/docker/python/django-py3.13.base.Dockerfile"
+        TAG: "datadog/system-tests:django-py3.13.base-v4"
+      - DOCKERFILE: "utils/build/docker/python/fastapi.base.Dockerfile"
+        TAG: "datadog/system-tests:fastapi.base-v6"
+      - DOCKERFILE: "utils/build/docker/python/python3.12.base.Dockerfile"
+        TAG: "datadog/system-tests:python3.12.base-v9"
+      - DOCKERFILE: "utils/build/docker/python/django-poc.base.Dockerfile"
+        TAG: "datadog/system-tests:django-poc.base-v7"
+      - DOCKERFILE: "utils/build/docker/python/flask-poc.base.Dockerfile"
+        TAG: "datadog/system-tests:flask-poc.base-v11"
+      - DOCKERFILE: "utils/build/docker/python/uwsgi-poc.base.Dockerfile"
+        TAG: "datadog/system-tests:uwsgi-poc.base-v7"
+      # Tracer buddies
+      - DOCKERFILE: "utils/build/docker/python/flask-poc.Dockerfile"
+        TAG: "datadog/system-tests:python_buddy-v1"
+      - DOCKERFILE: "utils/build/docker/nodejs/express4.Dockerfile"
+        TAG: "datadog/system-tests:nodejs_buddy-v1"
+      - DOCKERFILE: "utils/build/docker/java/spring-boot.Dockerfile"
+        TAG: "datadog/system-tests:java_buddy-v1"
+      - DOCKERFILE: "utils/build/docker/ruby/rails70.Dockerfile"
+        TAG: "datadog/system-tests:ruby_buddy-v1"
+      - DOCKERFILE: "utils/build/docker/golang/net-http.Dockerfile"
+        TAG: "datadog/system-tests:golang_buddy-v1"
+      # Lambda proxy
+      - DOCKERFILE: "utils/build/docker/lambda-proxy.Dockerfile"
+        TAG: "datadog/system-tests:lambda-proxy"
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
-      - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-      - ./utils/build/build_tracer_buddies.sh --push
-      - ./utils/build/build_python_base_images.sh --push
-      - ./build.sh -i lambda-proxy
-      - docker push datadog/system-tests:lambda-proxy
+    - docker buildx build --push --progress=plain -f "$DOCKERFILE" -t "$TAG" .
   when: manual
 
 generate_system_tests_lib_injection_images:
