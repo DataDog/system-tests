@@ -1,7 +1,7 @@
 FROM python:3.13-slim
 
 # print versions
-RUN python --version 
+RUN python --version
 # install python deps
 ENV PIP_ROOT_USER_ACTION=ignore
 RUN pip install --upgrade pip
