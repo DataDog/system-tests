@@ -283,10 +283,10 @@ class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
+    @irrelevant(library="java", reason="APMAPI-1592")
+    @irrelevant(library="cpp", reason="APMAPI-1592")
+    @irrelevant(library="nodejs", reason="APMAPI-1592")
     @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
-    @bug(context.library == "java", reason="APMAPI-1592")
-    @bug(context.library == "cpp", reason="APMAPI-1592")
-    @bug(context.library == "nodejs", reason="APMAPI-1592")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
 
