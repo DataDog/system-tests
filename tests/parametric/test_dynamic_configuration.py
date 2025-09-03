@@ -182,6 +182,8 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLE_EXCEPTION_REPLAY,
         Capabilities.APM_TRACING_ENABLE_CODE_ORIGIN,
         Capabilities.APM_TRACING_ENABLE_LIVE_DEBUGGING,
+        Capabilities.ASM_EXTENDED_DATA_COLLECTION,
+        Capabilities.APM_TRACING_MULTICONFIG,
     },
     "nodejs": {
         Capabilities.ASM_ACTIVATION,
@@ -283,6 +285,9 @@ class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}, {**DEFAULT_ENVVARS, "DD_TRACE_ENABLED": "false"}])
     @irrelevant(library="golang")
     @irrelevant(library="dotnet", reason="dotnet tracer supports re-enabling over RC")
+    @irrelevant(library="java", reason="APMAPI-1592")
+    @irrelevant(library="cpp", reason="APMAPI-1592")
+    @irrelevant(library="nodejs", reason="APMAPI-1592")
     @bug(context.library < "java@1.47.0", reason="APMAPI-1225")
     def test_tracing_client_tracing_disable_one_way(self, library_env, test_agent, test_library):
         trace_enabled_env = library_env.get("DD_TRACE_ENABLED", "true") == "true"
@@ -293,6 +298,7 @@ class TestDynamicConfigTracingEnabled:
             test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
         _set_rc(test_agent, _create_rc_config({}))
+        test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
         with test_library, test_library.dd_start_span("test"):
             pass
 
