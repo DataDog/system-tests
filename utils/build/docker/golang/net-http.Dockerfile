@@ -1,7 +1,7 @@
 FROM golang:1.24-alpine3.22 AS build
 
 # install jq and curl
-RUN apk add --no-cache jq curl
+RUN apk add --no-cache jq curl bash
 
 # print important lib versions
 RUN go version && curl --version
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 FROM golang:1.24-alpine3.22
 
-RUN apk add --no-cache curl
+RUN apk add --no-cache curl bash
 
 COPY --from=build /app/weblog /app/weblog
 COPY --from=build /app/SYSTEM_TESTS_LIBRARY_VERSION /app/SYSTEM_TESTS_LIBRARY_VERSION
