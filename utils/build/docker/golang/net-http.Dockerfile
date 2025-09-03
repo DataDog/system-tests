@@ -1,6 +1,6 @@
 FROM golang:1.24-alpine3.22 AS build
 
-# install jq and curl
+# install jq, curl and bash
 RUN apk add --no-cache jq curl bash
 
 # print important lib versions
@@ -37,6 +37,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent' \
     DD_DATA_STREAMS_ENABLED=true \
     DD_LOGGING_RATE=0
 
-RUN printf "#!/bin/sh\nexec ./weblog" > app.sh
+RUN printf "#!/bin/bash\nexec ./weblog" > app.sh
 RUN chmod +x app.sh
 CMD ["./app.sh"]
