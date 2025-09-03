@@ -134,6 +134,7 @@ def main() -> None:
                     r"\.vscode/.*": None,
                     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
                     r"\.github/CODEOWNERS": None,
+                    r"\.github/workflows/debug-harness\.yml": None,
                     r"\.github/workflows/run-docker-ssi\.yml": scenario_groups.docker_ssi,
                     r"\.github/workflows/run-end-to-end\.yml": scenario_groups.end_to_end,
                     r"\.github/workflows/run-graphql\.yml": scenario_groups.graphql,
