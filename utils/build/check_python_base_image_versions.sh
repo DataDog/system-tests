@@ -28,15 +28,15 @@ exit_code=0
 for canonical_tag in $canonical_images; do
     image_name=$(echo "$canonical_tag" | sed 's|datadog/system-tests:||' | sed -E 's|-v[0-9]+||')
     canonical_version=$(echo "$canonical_tag" | grep -o "v[0-9]\{1,\}")
-    
+
     echo "Checking $image_name (expected: $canonical_version)"
-    
+
     # Find all occurrences of this image in other files
     while IFS= read -r file; do
         if [ -n "$file" ]; then
             # Get all versions of this image in the file
             versions=$(grep -o "datadog/system-tests:$(echo "$image_name" | sed 's/\./\\./g')-v[0-9]\{1,\}" "$file" 2>/dev/null || true)
-            
+
             if [ -n "$versions" ]; then
                 for version_tag in $versions; do
                     found_version=$(echo "$version_tag" | grep -o "v[0-9]\{1,\}")
@@ -50,12 +50,12 @@ for canonical_tag in $canonical_images; do
             fi
         fi
     done <<< "$all_files"
-    
+
     # Also check the if block in the build script itself
     echo "  Checking if block in $BUILD_SCRIPT"
     escaped_name=$(echo "$image_name" | sed 's/\./\\./g')
     if_versions=$(sed -n '/^if \[/,/^fi/p' "$BUILD_SCRIPT" | grep -o "datadog/system-tests:${escaped_name}-v[0-9]\{1,\}" 2>/dev/null || true)
-    
+
     if [ -n "$if_versions" ]; then
         for version_tag in $if_versions; do
             found_version=$(echo "$version_tag" | grep -o "v[0-9]\{1,\}")

@@ -28,19 +28,19 @@ for image_tag in $images; do
     full_name_with_version=$(echo "$image_tag" | sed 's|datadog/system-tests:||')
     image_name=$(echo "$full_name_with_version" | sed -E 's/-v[0-9]+$//')
     new_version=$(echo "$full_name_with_version" | grep -o "v[0-9]\{1,\}")
-    
+
     echo "Syncing $image_name to $new_version"
-    
+
     # Escape dots in image name for regex
     escaped_name=$(echo "$image_name" | sed 's/\./\\./g')
-    
+
     # Update all files containing this image
     grep -l "datadog/system-tests:${escaped_name}-v" $files_to_update 2>/dev/null | while read -r file; do
         echo "  Updating $file"
         sed -E -i.bak "s|datadog/system-tests:${escaped_name}-v[0-9]+|datadog/system-tests:${image_name}-${new_version}|g" "$file"
         rm -f "$file.bak"
     done
-    
+
     # Also update the if block in the build script itself
     echo "  Updating if block in $BUILD_SCRIPT"
     sed -E -i.bak "s|datadog/system-tests:${escaped_name}-v[0-9]+|datadog/system-tests:${image_name}-${new_version}|g" "$BUILD_SCRIPT"
