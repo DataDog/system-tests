@@ -86,13 +86,17 @@ class Test_Ssrf_BodyXml:
     def test_ssrf_post_xml(self):
         assert self.r.status_code == 403
 
+        expected_http_value = "http://169.254.169.254"
+        if context.library == "nodejs":
+            expected_http_value += "/"
+
         interfaces.library.assert_rasp_attack(
             self.r,
             "rasp-934-100",
             {
                 "resource": {
                     "address": "server.io.net.url",
-                    "value": "http://169.254.169.254",
+                    "value": expected_http_value,
                 },
                 "params": {
                     "address": "server.request.body",
