@@ -1466,7 +1466,7 @@ tests/:
     Test_StandardTagsReferrerHostname: missing_feature
     Test_StandardTagsRoute:
       '*': v2.11.0
-      nextjs: missing_feature  # http.route not added in nextjs
+      nextjs: v5.0.0  # http.route not added in nextjs
     Test_StandardTagsStatusCode: v2.11.0
     Test_StandardTagsUrl: *ref_3_0_0
     Test_StandardTagsUserAgent: v2.9.0
