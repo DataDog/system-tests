@@ -35,7 +35,7 @@ for canonical_tag in $canonical_images; do
     while IFS= read -r file; do
         if [ -n "$file" ]; then
             # Get all versions of this image in the file
-            versions=$(grep -o "datadog/system-tests:$(echo "$image_name" | sed 's/\./\\./g')-v[0-9]\{1,\}" "$file" 2>/dev/null || true)
+            versions=$(grep -o "datadog/system-tests:${image_name//./\\.}-v[0-9]\{1,\}" "$file" 2>/dev/null || true)
 
             if [ -n "$versions" ]; then
                 for version_tag in $versions; do
@@ -53,7 +53,7 @@ for canonical_tag in $canonical_images; do
 
     # Also check the if block in the build script itself
     echo "  Checking if block in $BUILD_SCRIPT"
-    escaped_name=$(echo "$image_name" | sed 's/\./\\./g')
+    escaped_name=${image_name//./\\.}
     if_versions=$(sed -n '/^if \[/,/^fi/p' "$BUILD_SCRIPT" | grep -o "datadog/system-tests:${escaped_name}-v[0-9]\{1,\}" 2>/dev/null || true)
 
     if [ -n "$if_versions" ]; then

@@ -25,17 +25,17 @@ files_to_update=$(grep -rl "datadog/system-tests:.*base-v" . | grep -v "$BUILD_S
 
 for image_tag in $images; do
     # Extract image name (without datadog/system-tests: prefix)
-    full_name_with_version=$(echo "$image_tag" | sed 's|datadog/system-tests:||')
+    full_name_with_version=${image_tag#datadog/system-tests:}
     image_name=$(echo "$full_name_with_version" | sed -E 's/-v[0-9]+$//')
     new_version=$(echo "$full_name_with_version" | grep -o "v[0-9]\{1,\}")
 
     echo "Syncing $image_name to $new_version"
 
     # Escape dots in image name for regex
-    escaped_name=$(echo "$image_name" | sed 's/\./\\./g')
+    escaped_name=${image_name//./\\.}
 
     # Update all files containing this image
-    grep -l "datadog/system-tests:${escaped_name}-v" $files_to_update 2>/dev/null | while read -r file; do
+    echo "$files_to_update" | xargs grep -l "datadog/system-tests:${escaped_name}-v" 2>/dev/null | while read -r file; do
         echo "  Updating $file"
         sed -E -i.bak "s|datadog/system-tests:${escaped_name}-v[0-9]+|datadog/system-tests:${image_name}-${new_version}|g" "$file"
         rm -f "$file.bak"
