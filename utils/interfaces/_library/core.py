@@ -89,17 +89,21 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 logger.warning("HTTP app failed to respond, it will very probably fail")
 
         trace_found = False
-        for data in self.get_data(path_filters="/v1/traces"):
+        for data in self.get_data(path_filters="/v1.0/traces"):
             traces = data["request"]["content"]
             if not traces:  # may be none
                 continue
 
-            for trace in traces:
+            if not traces.get("chunks"):
+                continue
+
+            for trace in traces.get("chunks"):
                 if rid is None:
                     trace_found = True
                     yield data, trace
                 else:
-                    for span in trace:
+                    for span in trace.get("spans"):
+                        logger.debug("GOT SPAN", span)
                         if rid == get_rid_from_span(span):
                             logger.debug(f"Found a trace in {data['log_filename']}")
                             trace_found = True
