@@ -216,6 +216,31 @@ build() {
                 docker load --input $BINARIES_FILENAME
             else
 
+                # dd-trace-py compilation if required
+                if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
+                    echo "Compiling dd-trace-py"
+
+                    # Choose Python version based on weblog variant
+                    case "$WEBLOG_VARIANT" in
+                        flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
+                            PYTHON_VERSION="3.11"
+                            ;;
+                        django-py3.13)
+                            PYTHON_VERSION="3.13"
+                            ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
+                        *)
+                            echo "Error: Unknown weblog variant, python version could not be determined" >&2
+                            exit 1
+                            ;;
+                    esac
+
+                    echo "Using Python version: $PYTHON_VERSION"
+                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                fi
+
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
                 GITHUB_TOKEN_SECRET_ARG=""
@@ -269,7 +294,7 @@ build() {
                 --load \
                 --progress=plain \
                 -f utils/build/docker/lambda-proxy.Dockerfile \
-                -t datadog/system-tests:lambda-proxy \
+                -t datadog/system-tests:lambda-proxy-v1 \
                 $EXTRA_DOCKER_ARGS \
                 .
         else

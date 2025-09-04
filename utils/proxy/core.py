@@ -131,6 +131,8 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
+        elif port == ProxyPorts.agent:
+            flow.response = http.Response.make(200, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
@@ -144,7 +146,7 @@ class _RequestLogger:
             return
 
         try:
-            logger.info(f"    => Response {flow.response.status_code}")
+            logger.info(f"    => {flow.request.pretty_url} Response {flow.response.status_code}")
 
             self._modify_response(flow)
 
@@ -218,7 +220,7 @@ class _RequestLogger:
                     export_content_files_to=export_content_files_to,
                 )
 
-            logger.info(f"    => Saving data as {log_filename}")
+            logger.info(f"    => Saving {flow.request.pretty_url} as {log_filename}")
 
             with open(log_filename, "w", encoding="utf-8", opener=lambda path, flags: os.open(path, flags, 0o777)) as f:
                 json.dump(data, f, indent=2, cls=ObjectDumpEncoder)

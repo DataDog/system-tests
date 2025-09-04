@@ -835,9 +835,10 @@ class _Scenarios:
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
@@ -869,8 +870,9 @@ class _Scenarios:
 
     simple_auto_injection_appsec = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_APPSEC",
-        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
-        app_env={"DD_APPSEC_ENABLED": "true"},
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )

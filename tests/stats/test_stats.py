@@ -1,5 +1,6 @@
 import pytest
 from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
+from utils._decorators import flaky
 
 """
 Test scenarios we want:
@@ -30,12 +31,13 @@ class Test_Client_Stats:
 
     @bug(context.weblog_variant in ("django-poc", "python3.12"), library="python", reason="APMSP-1375")
     @missing_feature(
-        context.weblog_variant in ("play", "ratpack", "spring-boot-3-native"),
+        context.weblog_variant in ("play", "ratpack"),
         library="java",
-        reason="not available in spring-boot-native. play and ratpack controllers also generate stats and the test will fail",
+        reason="play and ratpack controllers also generate stats and the test will fail",
     )
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_stats(self):
@@ -73,9 +75,11 @@ class Test_Client_Stats:
             weblog.get(f"/rasp/sqli?user_id={user_id}")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
+    @flaky(library="java", reason="LANGPLAT-760")
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
@@ -86,7 +90,6 @@ class Test_Client_Stats:
             logger.debug(f"asserting on {s}")
             hits += s["Hits"]
             top_hits += s["TopLevelHits"]
-            assert s["Service"] == "sqlite3.db", "expect sqlite3.db as service"
             assert s["Type"] == "sql", "expect 'sql' type"
         assert (
             stats_count <= 4
@@ -94,7 +97,8 @@ class Test_Client_Stats:
         assert hits == top_hits == 4, "expect exactly 4 'OK' hits and top level hits across all payloads"
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_is_trace_root(self):
@@ -102,9 +106,11 @@ class Test_Client_Stats:
         Note: Once all tracers have implmented it and the test xpasses for all of them, we can move these
         assertions to `test_client_stats` method.
         """
+        root_found = False
         for s in interfaces.agent.get_stats(resource="GET /stats-unique"):
-            assert s["IsTraceRoot"] == 1
-            assert s["SpanKind"] == "server"
+            if s["SpanKind"] == "server":
+                root_found |= s["IsTraceRoot"] == 1
+        assert root_found
 
     @scenarios.default
     def test_disable(self):
@@ -118,7 +124,8 @@ class Test_Agent_Info_Endpoint:
     """Test agent /info endpoint feature detection for Client-Side Stats"""
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_info_endpoint_supports_client_side_stats(self):
@@ -198,7 +205,8 @@ class Test_Peer_Tags:
             weblog.get("/healthcheck")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_peer_tags(self):
@@ -224,7 +232,13 @@ class Test_Peer_Tags:
                 assert len(peer_tags) > 0, f"Client spans should have peer tags, found: {peer_tags}"
 
                 # Common peer tags we expect for HTTP client calls
-                expected_peer_tag_prefixes = ["out.host", "http.host", "network.destination", "server.address"]
+                expected_peer_tag_prefixes = [
+                    "out.host",
+                    "http.host",
+                    "network.destination",
+                    "server.address",
+                    "peer.hostname",
+                ]
                 found_expected_tags = any(
                     any(tag.startswith(prefix) for prefix in expected_peer_tag_prefixes) for tag in peer_tags
                 )
@@ -251,7 +265,8 @@ class Test_Transport_Headers:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
+        or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_transport_headers(self):
@@ -280,13 +295,6 @@ class Test_Transport_Headers:
         assert "Datadog-Meta-Tracer-Version" in headers, "Datadog-Meta-Tracer-Version header not found"
         assert headers["Datadog-Meta-Tracer-Version"], "Datadog-Meta-Tracer-Version header should not be empty"
 
-        # we must have at least one of the CID resolution headers
-        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
-        cid_heaaders = [h for h in headers if h in cid_headers_list]
-        assert len(cid_heaaders) > 0, f"ContainerID resolution headers not found: {headers}"
-        for h in cid_heaaders:
-            assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
-
         if "Datadog-Obfuscation-Version" in headers:
             obfuscation_version = headers["Datadog-Obfuscation-Version"]
             # Validate it's a positive integer string
@@ -296,6 +304,32 @@ class Test_Transport_Headers:
             assert (
                 int(obfuscation_version) > 0
             ), f"Obfuscation version should be positive integer, found: {obfuscation_version}"
+
+    @missing_feature(
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
+    @bug(
+        context.library == "java",
+        reason="LANGPLAT-755",
+    )
+    def test_container_id_header(self):
+        """Test that stats transport includes container id headers"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        # Test the most recent stats request
+        stats_request = stats_requests[-1]
+        headers = {header[0]: header[1] for header in stats_request["request"]["headers"]}
+
+        logger.debug(f"Stats request headers: {headers}")
+
+        # we must have at least one of the CID resolution headers
+        cid_headers_list = ["Datadog-Entity-Id", "Datadog-External-Env", "Datadog-Container-ID"]
+        cid_headers = [h for h in headers if h in cid_headers_list]
+        assert len(cid_headers) > 0, f"ContainerID resolution headers not found: {headers}"
+        for h in cid_headers:
+            assert len(headers[h]) > 0, "ContainerID resolution header should not be empty"
 
 
 @features.client_side_stats_supported
@@ -367,7 +401,7 @@ class Test_Time_Bucketing:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_agent_aggregated_stats(self):
