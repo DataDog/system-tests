@@ -619,13 +619,14 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="datadog/system-tests:lambda-proxy",
+            image_name="datadog/system-tests:lambda-proxy-v1",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
                 "RIE_HOST": lambda_weblog_host,
                 "RIE_PORT": lambda_weblog_port,
             },
+            volumes={"./utils/build/docker/lambda_proxy": {"bind": "/app", "mode": "ro"}},
             ports={
                 f"{self.host_port}/tcp": self.container_port,
             },
