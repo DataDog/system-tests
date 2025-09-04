@@ -1,5 +1,6 @@
 import pytest
 from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
+from utils._decorators import flaky
 
 """
 Test scenarios we want:
@@ -78,7 +79,7 @@ class Test_Client_Stats:
         or context.library <= "java@1.52.1",
         reason="Tracers have not implemented this feature yet.",
     )
-    @missing_feature(weblog_variant="spring-boot-3-native", reason="rasp endpoint not implemented")
+    @flaky(library="java", reason="LANGPLAT-760")
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
