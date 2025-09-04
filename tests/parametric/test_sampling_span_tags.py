@@ -342,7 +342,7 @@ class Test_Sampling_Span_Tags:
 @features.trace_sampling
 class Test_Knuth_Sample_Rate:
     @pytest.mark.parametrize(
-        "library_env,sample_rate",
+        ("library_env", "sample_rate"),
         [
             (
                 {
@@ -354,13 +354,14 @@ class Test_Knuth_Sample_Rate:
             (
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
-                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
-                    "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":0.123456, "name":"span"}]',
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.1234567}]',
+                    "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":0, "name":"span"}]',
                     "DD_TRACE_COMPUTE_STATS": "false",
                 },
-                "0.123456",
+                "0.123457",
             ),
         ],
+        ids=["truncate_trailing_zeros", "percision_of_6_digits"],
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env, sample_rate):
         """When a trace is sampled via a sampling rule, the knuth sample rate
@@ -447,4 +448,4 @@ class Test_Knuth_Sample_Rate:
         assert span.get("parent_id") == 6
         assert span["meta"].get("_dd.p.dm") == "-8"
         assert span["meta"].get("_dd.p.ksr") == "0.1"
-        assert span["meta"].get(SAMPLING_PRIORITY_KEY) == 2
+        assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
