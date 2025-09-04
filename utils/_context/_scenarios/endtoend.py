@@ -360,23 +360,23 @@ class EndToEndScenario(DockerScenario):
             # 2. the trace agent port where the buddy connect to the agent
             # 3. and the host port where the buddy is accessible
             supported_languages = [
-                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
-                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
-                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
-                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v1"),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v1"),
             ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v1",
+                    image_name,
                     self.host_log_folder,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, trace_agent_port, host_port in supported_languages
+                for language, trace_agent_port, host_port, image_name in supported_languages
             ]
 
             for buddy in self.buddies:
