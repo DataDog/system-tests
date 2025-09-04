@@ -160,14 +160,14 @@ class TestDockerSSIFeatures:
     @features.ssi_injection_metadata
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
-    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
     @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
     @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
     @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
     @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
     @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
     @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
-    @missing_feature(context.library < "nodejs@5.65.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
     @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
     @missing_feature(context.library == "ruby", reason="Not implemented yet")
     def test_injection_metadata(self):
