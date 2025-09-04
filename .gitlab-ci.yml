@@ -280,7 +280,7 @@ generate_system_tests_lambda_proxy_image:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
       - ./build.sh -i lambda-proxy
-      - docker push datadog/system-tests:lambda-proxy
+      - docker push datadog/system-tests:lambda-proxy-v1
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
       changes:
