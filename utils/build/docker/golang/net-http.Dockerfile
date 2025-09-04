@@ -1,4 +1,4 @@
-FROM golang:golang:1.24-alpine3.22 AS build 
+FROM golang:golang:1.24-alpine3.22 AS build
 
 RUN apk add --no-cache jq curl bash gcc musl-dev
 
