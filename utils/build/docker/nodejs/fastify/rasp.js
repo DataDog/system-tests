@@ -5,69 +5,69 @@ const { execSync, execFileSync } = require('child_process')
 const http = require('http')
 const pg = require('pg')
 
-function initRaspEndpoints (app) {
+function initRaspEndpoints (fastify) {
   const pool = new pg.Pool()
 
-  app.get('/rasp/ssrf', (req, res) => {
-    const clientRequest = http.get(`http://${req.query.domain}`, () => {
-      res.end('end')
+  fastify.get('/rasp/ssrf', (request, reply) => {
+    const clientRequest = http.get(`http://${request.query.domain}`, () => {
+      reply.send('end')
     })
     clientRequest.on('error', (e) => {
       if (e.name === 'DatadogRaspAbortError') {
         // throwing in event emitter will bubble up to the process unhandled error handler
         throw e
       }
-      res.writeHead(500).end(e.message)
+      reply.code(500).send(e.message)
     })
   })
 
-  app.post('/rasp/ssrf', (req, res) => {
-    const clientRequest = http.get(`http://${req.body.domain}`, () => {
-      res.end('end')
+  fastify.post('/rasp/ssrf', (request, reply) => {
+    const clientRequest = http.get(`http://${request.body.domain}`, () => {
+      reply.send('end')
     })
     clientRequest.on('error', (e) => {
       if (e.name === 'DatadogRaspAbortError') {
         // throwing in event emitter will bubble up to the process unhandled error handler
         throw e
       }
-      res.writeHead(500).end(e.message)
+      reply.code(500).send(e.message)
     })
   })
 
-  app.get('/rasp/sqli', async (req, res) => {
+  fastify.get('/rasp/sqli', async (request, reply) => {
     try {
-      await pool.query(`SELECT * FROM users WHERE id='${req.query.user_id}'`)
+      await pool.query(`SELECT * FROM users WHERE id='${request.query.user_id}'`)
     } catch (e) {
       if (e.name === 'DatadogRaspAbortError') {
         throw e
       }
 
-      res.writeHead(500).end(e.message)
-      return
+      reply.code(500)
+      return e.message
     }
 
-    res.end('end')
+    return 'end'
   })
 
-  app.post('/rasp/sqli', async (req, res) => {
+  fastify.post('/rasp/sqli', async (request, reply) => {
     try {
-      await pool.query(`SELECT * FROM users WHERE id='${req.body.user_id}'`)
+      await pool.query(`SELECT * FROM users WHERE id='${request.body.user_id}'`)
     } catch (e) {
       if (e.name === 'DatadogRaspAbortError') {
         throw e
       }
 
-      res.writeHead(500).end(e.message)
-      return
+      reply.code(500)
+      return e.message
     }
 
-    res.end('end')
+    return 'end'
   })
 
-  app.get('/rasp/lfi', (req, res) => {
+  fastify.get('/rasp/lfi', async (request, reply) => {
     let result
     try {
-      result = JSON.stringify(statSync(req.query.file))
+      result = JSON.stringify(statSync(request.query.file))
     } catch (e) {
       result = e.toString()
 
@@ -75,13 +75,13 @@ function initRaspEndpoints (app) {
         throw e
       }
     }
-    res.send(result)
+    return result
   })
 
-  app.post('/rasp/lfi', (req, res) => {
+  fastify.post('/rasp/lfi', async (request, reply) => {
     let result
     try {
-      result = JSON.stringify(statSync(req.body.file))
+      result = JSON.stringify(statSync(request.body.file))
     } catch (e) {
       result = e.toString()
 
@@ -89,28 +89,13 @@ function initRaspEndpoints (app) {
         throw e
       }
     }
-    res.send(result)
+    return result
   })
 
-  app.get('/rasp/shi', (req, res) => {
+  fastify.get('/rasp/shi', async (request, reply) => {
     let result
     try {
-      result = execSync(`ls ${req.query.list_dir}`)
-    } catch (e) {
-      result = e.toString()
-
-      if (e.name === 'DatadogRaspAbortError') {
-        throw e
-      }
-    }
-
-    res.send(result)
-  })
-
-  app.post('/rasp/shi', (req, res) => {
-    let result
-    try {
-      result = execSync(`ls ${req.body.list_dir}`)
+      result = execSync(`ls ${request.query.list_dir}`)
     } catch (e) {
       result = e.toString()
 
@@ -119,13 +104,13 @@ function initRaspEndpoints (app) {
       }
     }
 
-    res.send(result)
+    return result
   })
 
-  app.get('/rasp/cmdi', (req, res) => {
+  fastify.post('/rasp/shi', async (request, reply) => {
     let result
     try {
-      result = execFileSync(req.query.command)
+      result = execSync(`ls ${request.body.list_dir}`)
     } catch (e) {
       result = e.toString()
 
@@ -134,13 +119,13 @@ function initRaspEndpoints (app) {
       }
     }
 
-    res.send(result)
+    return result
   })
 
-  app.post('/rasp/cmdi', (req, res) => {
+  fastify.get('/rasp/cmdi', async (request, reply) => {
     let result
     try {
-      result = execFileSync(req.body.command)
+      result = execFileSync(request.query.command)
     } catch (e) {
       result = e.toString()
 
@@ -149,23 +134,41 @@ function initRaspEndpoints (app) {
       }
     }
 
-    res.send(result)
+    return result
   })
 
-  app.get('/rasp/multiple', (req, res) => {
+  fastify.post('/rasp/cmdi', async (request, reply) => {
+    let result
     try {
-      statSync(req.query.file1)
+      // xml bs
+      const cmd = request.body.command.cmd ?? request.body.command
+
+      result = execFileSync(cmd)
+    } catch (e) {
+      result = e.toString()
+
+      if (e.name === 'DatadogRaspAbortError') {
+        throw e
+      }
+    }
+
+    return result
+  })
+
+  fastify.get('/rasp/multiple', async (request, reply) => {
+    try {
+      statSync(request.query.file1)
     } catch (e) {}
 
     try {
-      statSync(req.query.file2)
+      statSync(request.query.file2)
     } catch (e) {}
 
     try {
       statSync('../etc/passwd')
     } catch (e) {}
 
-    res.send('OK')
+    return 'OK'
   })
 }
 
