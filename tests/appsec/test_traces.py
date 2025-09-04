@@ -244,6 +244,7 @@ class Test_AppSecObfuscator:
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
     @scenarios.appsec_custom_rules
+    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -270,6 +271,7 @@ class Test_AppSecObfuscator:
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
+    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
