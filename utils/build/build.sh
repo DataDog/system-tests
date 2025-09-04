@@ -289,14 +289,7 @@ build() {
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                -f utils/build/docker/lambda-proxy.Dockerfile \
-                -t datadog/system-tests:lambda-proxy \
-                $EXTRA_DOCKER_ARGS \
-                .
+            echo "Building lambda-proxy is now handled by utils/build/build_lambda_proxy.sh"
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
