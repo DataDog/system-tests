@@ -1071,8 +1071,8 @@ tests/:
       Test_FR07_Host_Name: v3.13.0.dev
       Test_FR08_Custom_Headers: v3.13.0.dev
       Test_FR09_Log_Injection: v3.13.0.dev
-      Test_FR10_Timeout_Configuration: v3.13.0.dev
-      Test_FR11_Telemetry: v3.13.0.dev
+      Test_FR10_Timeout_Configuration: v3.14.0.dev
+      Test_FR11_Telemetry: v3.14.0.dev
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
