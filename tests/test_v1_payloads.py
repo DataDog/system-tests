@@ -1,7 +1,8 @@
-from utils import weblog, interfaces, scenarios
+from utils import weblog, interfaces, scenarios, features
 
 
 @scenarios.apm_tracing_efficient_payload
+@features.efficient_trace_payload
 class Test_V1Payloads:
     def setup_field_changes(self):
         self.r = weblog.get("/status?code=500")
