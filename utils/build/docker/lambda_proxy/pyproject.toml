@@ -3,4 +3,4 @@ name = "lambda-proxy"
 version = "0.1.0"
 description = "Minimal Flask app to proxy requests to an AWS RIE endpoint"
 requires-python = ">=3.13"
-dependencies = ["aws-sam-cli<=1.141.0", "flask>=3.1.1", "gunicorn>=23.0.0"]
+dependencies = ["aws-sam-cli==1.141.0", "flask==3.1.1", "gunicorn==23.0.0"]
