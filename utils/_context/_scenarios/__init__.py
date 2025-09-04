@@ -586,6 +586,17 @@ class _Scenarios:
         doc="",
     )
 
+    apm_tracing_efficient_payload = EndToEndScenario(
+        "APM_TRACING_EFFICIENT_PAYLOAD",
+        weblog_env={
+            "DD_TRACE_SAMPLE_RATE": "1.0",
+            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+        },
+        backend_interface_timeout=5,
+        require_api_key=True,
+        doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
+    )
+
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
