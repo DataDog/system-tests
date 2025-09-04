@@ -1076,7 +1076,7 @@ tests/:
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
-      Test_Knuth_Sample_Rate: v3.13.0.dev
+      Test_Knuth_Sample_Rate: v3.14.0.dev
       Test_Sampling_Span_Tags: v2.8.0
     test_span_events.py:
       Test_Span_Events: missing_feature
