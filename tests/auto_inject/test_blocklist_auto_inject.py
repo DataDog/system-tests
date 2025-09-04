@@ -169,26 +169,59 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
             return []
 
         blocked_commands = []
-
-        # Look for entries with commands that should be blocked
-        for entry_data in requirements_json.values():
-            if isinstance(entry_data, dict):
-                # Check for command patterns in the entry
-                command = entry_data.get("command", "")
-                cmdline = entry_data.get("cmdline", "")
-                main_class = entry_data.get(f"{language}_main_class", "")
-
-                # Build the full command that should be blocked
-                if command and self._is_language_command(command, language):
-                    blocked_commands.append(command)
-                elif cmdline and self._is_language_command(cmdline, language):
-                    blocked_commands.append(cmdline)
-                elif main_class:
-                    # Construct command with main class
-                    runtime_cmd = self._get_language_runtime_command(language)
-                    blocked_commands.append(f"{runtime_cmd} {main_class}")
+        deny_rules = requirements_json.get("deny", [])
+        
+        # Get the runtime command for this language
+        runtime_cmd = self._get_language_runtime_command(language)
+        
+        for deny_rule in deny_rules:
+            if not isinstance(deny_rule, dict):
+                continue
+                
+            cmds = deny_rule.get("cmds", [])
+            args = deny_rule.get("args", [])
+            
+            # Check if this rule applies to our language
+            if not self._rule_applies_to_language(cmds, language):
+                continue
+                
+            # If there are no args, it means the entire command pattern is blocked
+            if not args:
+                for cmd_pattern in cmds:
+                    # Convert wildcard pattern to actual command
+                    if cmd_pattern.endswith(f"/{runtime_cmd}") or cmd_pattern == f"**/{runtime_cmd}":
+                        blocked_commands.append(runtime_cmd)
+                continue
+            
+            # Process each argument pattern
+            for arg_rule in args:
+                if not isinstance(arg_rule, dict):
+                    continue
+                    
+                arg_list = arg_rule.get("args", [])
+                position = arg_rule.get("position")
+                
+                # Build blocked commands by combining cmd patterns with args
+                for cmd_pattern in cmds:
+                    if cmd_pattern.endswith(f"/{runtime_cmd}") or cmd_pattern == f"**/{runtime_cmd}":
+                        for arg in arg_list:
+                            # Create the full command that should be blocked
+                            blocked_command = f"{runtime_cmd} {arg}"
+                            blocked_commands.append(blocked_command)
 
         return list(set(blocked_commands))  # Remove duplicates
+
+    def _rule_applies_to_language(self, cmds, language):
+        """Check if a deny rule applies to the specified language based on command patterns"""
+        runtime_cmd = self._get_language_runtime_command(language)
+        
+        for cmd_pattern in cmds:
+            # Check if the command pattern matches our language's runtime
+            if (cmd_pattern.endswith(f"/{runtime_cmd}") or 
+                cmd_pattern == f"**/{runtime_cmd}" or
+                cmd_pattern == runtime_cmd):
+                return True
+        return False
 
     def _is_language_command(self, command, language):
         """Check if a command is for the specified language"""
