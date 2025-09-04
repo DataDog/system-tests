@@ -1,10 +1,9 @@
-FROM golang:1.24
+FROM golang:1.24-alpine3.22 AS build
+
+RUN apk add --no-cache jq curl bash gcc musl-dev
 
 # print important lib versions
 RUN go version && curl --version
-
-# install jq
-RUN apt-get update && apt-get -y install jq
 
 # download go dependencies
 RUN mkdir -p /app
@@ -18,7 +17,8 @@ COPY utils/build/docker/golang/app /app
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-ENV DD_TRACE_HEADER_TAGS='user-agent'
+ENV DD_TRACE_HEADER_TAGS='user-agent'\
+    CGO_ENABLED=1
 
 RUN go build -v -tags appsec -o weblog ./graph-gophers
 

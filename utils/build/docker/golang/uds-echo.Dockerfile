@@ -1,10 +1,9 @@
-FROM golang:1.24
+FROM golang:1.24-alpine3.22 AS build
+
+RUN apk add --no-cache jq curl bash gcc musl-dev socat
 
 # print important lib versions
 RUN go version && curl --version
-
-# install socat for the UDS
-RUN apt-get update && apt-get -y install socat jq
 
 # download go dependencies
 RUN mkdir -p /app
@@ -20,7 +19,8 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-ENV DD_TRACE_HEADER_TAGS='user-agent'
+ENV DD_TRACE_HEADER_TAGS='user-agent' \
+    CGO_ENABLED=1
 
 RUN go build -v -tags appsec -o weblog ./echo
 
