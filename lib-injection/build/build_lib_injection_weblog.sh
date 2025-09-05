@@ -138,8 +138,10 @@ done
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 echo "Target platforms: ${DOCKER_PLATFORM}"
 
-# Setup buildx
-setup_buildx
+# In CI environments, the builder instance is pre-configured for us.
+if [[ -z "${CI:-}" ]]; then
+    setup_buildx
+fi
 
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
