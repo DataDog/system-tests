@@ -291,6 +291,8 @@ generate_system_tests_lambda_proxy_image:
 
 generate_system_tests_lib_injection_images:
   extends: .base_job_k8s_docker_ssi
+  # override tags until base_job_k8s_docker_ssi is updated
+  tags: ["arch:amd64"]
   needs: []
   stage: system-tests-utils
   allow_failure: true
