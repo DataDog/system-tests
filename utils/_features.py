@@ -2514,11 +2514,11 @@ class _Features:
 
     @staticmethod
     def haproxy_stream_processing_offload(test_object):
-        """Support for HAProxy Stream Processing Offload
+        """HAProxy Stream Processing Offload
 
-        https://feature-parity.us1.prod.dog/#/?feature=350
+        https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
+        return _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
 
     @staticmethod
     def efficient_trace_payload(test_object):
