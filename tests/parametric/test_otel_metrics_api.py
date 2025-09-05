@@ -32,11 +32,9 @@ DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
 DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
 
 # Define common default environment variables to support the OpenTelemetry Metrics API feature:
-#   DD_TRACE_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   DD_METRICS_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
 #   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
 DEFAULT_ENVVARS = {
-    "DD_TRACE_OTEL_ENABLED": "true",
     "DD_METRICS_OTEL_ENABLED": "true",
     "OTEL_METRIC_EXPORT_INTERVAL": "60000", # Mitigate test flake by increasing the interval so that the only time new metrics are exported are when we manually flush them
     "CORECLR_ENABLE_PROFILING": "1",
