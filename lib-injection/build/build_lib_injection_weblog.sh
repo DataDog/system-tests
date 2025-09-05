@@ -140,7 +140,10 @@ echo "Target platforms: ${DOCKER_PLATFORM}"
 
 # In CI environments, the builder instance is pre-configured for us.
 # We check DOCKER_HOST to know if we're running on a Docker in Docker runner
-if [[ -z "${CI:-}" && -z "$DOCKER_HOST" ]]; then
+if [[ -z "${CI:-}" && -z "${DOCKER_HOST:-}" ]]; then
+    echo "DOCKER_HOST: $DOCKER_HOST"
+    echo "⚠️ skipping buildx setup"
+else
     setup_buildx
 fi
 
