@@ -19,8 +19,7 @@ COPY utils/build/docker/set-uds-transport.sh set-uds-transport.sh
 # download the proper tracer version
 COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-ENV DD_TRACE_HEADER_TAGS='user-agent' \
-    CGO_ENABLED=1
+ENV DD_TRACE_HEADER_TAGS='user-agent' 
 
 RUN go build -v -tags appsec -o weblog ./echo
 

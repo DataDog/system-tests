@@ -13,8 +13,7 @@ COPY utils/build/docker/golang/app/ /app/
 WORKDIR /app/net-http-orchestrion
 
 ENV GOCACHE=/root/.cache/go-build \
-    GOMODCACHE=/go/pkg/mod \
-    CGO_ENABLED=1
+    GOMODCACHE=/go/pkg/mod 
 RUN --mount=type=cache,target=${GOMODCACHE}                                     \
     --mount=type=cache,target=${GOCACHE}                                        \
     --mount=type=tmpfs,target=/tmp                                              \
