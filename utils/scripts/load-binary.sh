@@ -23,6 +23,7 @@
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
+# * Rust:          Clone locally the github repo
 ##########################################################################################
 
 set -eu
@@ -308,6 +309,13 @@ elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
     echo "DataDog/dd-trace-js#$LIBRARY_TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
+
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "$LIBRARY_TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
