@@ -149,7 +149,7 @@ cd $WEBLOG_FOLDER
 # Build the image with retry mechanism
 if [ -n "${PUSH_TAG+set}" ]; then
     echo "Building and pushing image to ${PUSH_TAG}"
-    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} . --push"
+    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} ."
 else
     echo "Building local image"
     retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t weblog-injection:latest --load ."
