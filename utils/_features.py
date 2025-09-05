@@ -2512,7 +2512,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=487
         """
-        return _mark_test_object(test_object, feature_id=484, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=487, owner=_Owner.tracer)
 
 
 features = _Features()
