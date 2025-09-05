@@ -1088,7 +1088,16 @@ class OtelMetricsForceFlushReturn(BaseModel):
 
 @app.post("/metrics/otel/force_flush")
 def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
-    get_meter_provider().force_flush()
+    meter_provider = get_meter_provider()
+
+    # Since force_flush is not part of the public API, we check if the
+    # meter provider has a force_flush method.
+    # If OpenTelemetry metrics is disabled, the meter provider will be
+    # a default _ProxyMeterProvider provided by the API which does not
+    # have the method.
+    if hasattr(meter_provider, 'force_flush'):
+        meter_provider.force_flush()
+
     return OtelMetricsForceFlushReturn(success=True)
 
 
