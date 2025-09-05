@@ -249,8 +249,6 @@ check_merge_labels:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
   script:
     - ./utils/scripts/get_pr_merged_labels.sh
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
 generate_system_tests_end_to_end_images:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
