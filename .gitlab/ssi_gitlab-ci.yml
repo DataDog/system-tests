@@ -156,6 +156,9 @@ ssi_tests:
 
 .k8s_lib_injection_base:
   extends: .base_job_k8s_docker_ssi
+  # override tags until base_job_k8s_docker_ssi is updated
+  # the tests are manipulating the images and running kind
+  tags: ["docker-in-docker:amd64"]
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
