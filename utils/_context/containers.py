@@ -1582,10 +1582,10 @@ class StreamProcessingOffloadContainer(TestedContainer):
         volumes: dict[str, dict[str, str]] | None,
     ) -> None:
         try:
-            with open("binaries/golang-haproxy-spoe-image", encoding="utf-8") as f:
+            with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
                 image = f.read().strip()
         except FileNotFoundError:
-            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoe:latest"
+            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
 
         environment: dict[str, str | None] = {
             "DD_SERVICE": "service_test",

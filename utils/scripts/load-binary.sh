@@ -279,6 +279,9 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
+    echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+    echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
+
     echo "Using github.com/DataDog/orchestrion@latest"
     echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
