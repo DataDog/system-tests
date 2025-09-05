@@ -1,4 +1,4 @@
-FROM golang:1.24-alpine3.22 AS build
+FROM golang:1.24-alpine AS build
 
 RUN apk add --no-cache jq curl bash gcc musl-dev
 
@@ -22,7 +22,7 @@ RUN --mount=type=cache,target=${GOMODCACHE}                                     
 
 # ==============================================================================
 
-FROM golang:1.24-alpine3.22
+FROM golang:1.24-alpine
 
 RUN apk add --no-cache curl bash gcc musl-dev
 
