@@ -182,6 +182,9 @@ jobs:
     - name: Run GRAPHQL_APPSEC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
+    - name: Run GRAPHQL_ERROR_TRACKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
+      run: ./run.sh GRAPHQL_ERROR_TRACKING
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6
