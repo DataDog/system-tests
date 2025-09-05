@@ -343,7 +343,7 @@ class Test_Time_Bucketing:
             weblog.get("/")
 
     @missing_feature(
-        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby"),
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_side_stats(self):
@@ -376,11 +376,6 @@ class Test_Time_Bucketing:
                 duration == expected_duration
             ), f"CSS bucket duration should be 10 seconds ({expected_duration} ns), found: {duration}"
 
-            # Validate bucket alignment (start should be aligned to 10-second boundaries)
-            assert (
-                start % expected_duration == 0
-            ), f"CSS bucket start should be aligned to 10-second boundaries, found: {start}"
-
             # Validate stats array is not empty and properly structured
             assert len(stats) > 0, "Bucket should contain stats, found empty bucket"
 
@@ -394,6 +389,37 @@ class Test_Time_Bucketing:
                 assert stat["Hits"] >= 0, f"Hits should be non-negative, found: {stat['Hits']}"
                 assert stat["Errors"] >= 0, f"Errors should be non-negative, found: {stat['Errors']}"
                 assert stat["Duration"] >= 0, f"Duration should be non-negative, found: {stat['Duration']}"
+
+    @missing_feature(
+        context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby"),
+        reason="Tracers have not implemented this feature yet.",
+    )
+    def test_client_side_stats_bucket_alignment(self):
+        """Test that client-side stats are aligned on 10-second intervals"""
+        stats_requests = list(interfaces.library.get_data("/v0.6/stats"))
+        assert len(stats_requests) > 0, "Should have at least one stats request"
+
+        # Get the payload content
+        stats_payload = stats_requests[-1]["request"]["content"]
+        stats_buckets = stats_payload.get("Stats", [])
+
+        assert len(stats_buckets) > 0, "Should have at least one stats bucket"
+
+        for bucket in stats_buckets:
+            start = bucket.get("Start")
+            duration = bucket.get("Duration")
+            stats = bucket.get("Stats", [])
+
+            logger.debug(f"Checking CSS bucket - Start: {start}, Duration: {duration}, Stats count: {len(stats)}")
+
+            # Validate bucket structure
+            assert start is not None, "Bucket should have Start time"
+
+            # Validate bucket alignment (start should be aligned to 10-second boundaries)
+            expected_duration = 10_000_000_000  # 10 seconds in nanoseconds
+            assert (
+                start % expected_duration == 0
+            ), f"CSS bucket start should be aligned to 10-second boundaries, found: {start}"
 
     def setup_agent_aggregated_stats(self):
         """Setup for agent stats test - generates spans for agent aggregation"""
