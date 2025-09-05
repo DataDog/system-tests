@@ -1449,6 +1449,17 @@ class DummyServerContainer(TestedContainer):
         )
 
 
+class InternalServerContainer(TestedContainer):
+    def __init__(self, host_log_folder: str) -> None:
+        super().__init__(
+            image_name="system-tests/internal_server",
+            name="internal-server",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://localhost:8089", "retries": 10},
+            local_image_only=True,
+        )
+
+
 class EnvoyContainer(TestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         from utils import weblog
