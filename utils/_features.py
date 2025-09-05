@@ -2506,5 +2506,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
+    @staticmethod
+    def otel_logs_enabled(test_object):
+        """OTEL logs are enabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=487
+        """
+        return _mark_test_object(test_object, feature_id=487, owner=_Owner.tracer)
+
 
 features = _Features()

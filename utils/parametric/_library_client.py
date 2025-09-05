@@ -7,6 +7,7 @@ from typing import TypedDict, NotRequired
 from types import TracebackType
 from collections.abc import Generator, Iterable
 from http import HTTPStatus
+from enum import Enum
 
 from docker.models.containers import Container
 import pytest
@@ -17,6 +18,13 @@ from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils._logger import logger
+
+
+class LogLevel(Enum):
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
 
 
 def _fail(message: str):
@@ -279,6 +287,53 @@ class APMLibraryClient:
 
         return HTTPStatus(r.status_code).is_success
 
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
+        """Generate a log message with the specified parameters.
+
+        Args:
+            message: The log message to generate
+            level: The log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+            logger_name: The name of the logger to use
+            logger_type: The type of logger (0=default for the language, 1=logging, 2=loguru, 3=struct_log)
+            span_id: The ID of the span that should be active when the log is generated
+
+        Returns:
+            bool: True if the log was generated successfully, False otherwise
+
+        """
+        resp = self._session.post(
+            self._url("/log/write"),
+            json={
+                "message": message,
+                "level": level.value,
+                "logger_name": logger_name,
+                "logger_type": logger_type,
+                "span_id": span_id,
+            },
+        )
+        return HTTPStatus(resp.status_code).is_success
+
+    def otel_logs_flush(self, timeout_sec: int) -> tuple[bool, str]:
+        """Flush all OpenTelemetry logs and get provider information.
+
+        Returns:
+            tuple[bool, str]: (success, message) - success status and provider information
+
+        """
+        try:
+            resp = self._session.post(
+                self._url("/log/otel/flush"),
+                json={"seconds": timeout_sec},
+            )
+            if HTTPStatus(resp.status_code).is_success:
+                data = resp.json()
+                return data["success"], data["message"]
+            return False, f"HTTP error: {resp.status_code}"
+        except Exception as e:
+            return False, f"Error: {e!s}"
+
     def otel_trace_start_span(
         self,
         name: str,
@@ -502,6 +557,9 @@ class APMLibrary:
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
                 self.otel_flush(1)
+                # Logs flush endpoint is not implemented in all parametric apps
+                # TODO: otel_flush should return False if the logs flush fails
+                self.otel_logs_flush()
 
         return None
 
@@ -581,6 +639,9 @@ class APMLibrary:
     def otel_flush(self, timeout_sec: int) -> bool:
         return self._client.otel_flush(timeout_sec)
 
+    def otel_logs_flush(self, timeout_sec: int = 3) -> bool:
+        return self._client.otel_logs_flush(timeout_sec)[0]
+
     def otel_is_recording(self, span_id: int) -> bool:
         return self._client.otel_is_recording(span_id)
 
@@ -613,3 +674,8 @@ class APMLibrary:
             return self._client.is_alive()
         except Exception:
             return False
+
+    def write_log(
+        self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
+    ) -> bool:
+        return self._client.write_log(message, level, logger_name, logger_type, span_id)

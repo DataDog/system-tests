@@ -313,12 +313,11 @@ class ParametricScenario(Scenario):
         env: dict[str, str],
         volumes: dict[str, str],
         network: str,
-        host_port: int,
-        container_port: int,
+        ports: dict[str, int],
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-        logger.info(f"Run container {name} from image {image} with host port {host_port}")
+        logger.info(f"Run container {name} from image {image} with ports {ports}")
 
         try:
             container: Container = _get_client().containers.run(
@@ -327,7 +326,7 @@ class ParametricScenario(Scenario):
                 environment=env,
                 volumes=self.compute_volumes(volumes),
                 network=network,
-                ports={f"{container_port}/tcp": host_port},
+                ports=ports,
                 command=command,
                 detach=True,
             )
@@ -365,7 +364,7 @@ def python_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
-RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
