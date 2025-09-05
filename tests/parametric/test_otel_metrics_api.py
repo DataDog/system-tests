@@ -571,50 +571,6 @@ class Test_Otel_Metrics_Api:
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "test1" or actual_attributes.get("deployment.environment.name") == "test1"
 
-    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "DD_ENV": "test1",
-                "DD_SERVICE": "test2",
-                "DD_VERSION": "5",
-                "DD_TAGS": "foo:bar1,baz:qux1",
-            },
-        ],
-    )
-    def test_otel_resource_attributes_mapping_sem_conv_1_27_0(self, test_agent, test_library):
-        name = "counter1"
-        expected_attributes = {
-            "deployment.environment.name": "test1",
-            "service.name": "test2",
-            "service.version": "5",
-            "foo": "bar1",
-            "baz": "qux1",
-        }
-
-        with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
-
-        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
-        pprint.pprint(metrics_data)
-
-        # Assert that there is only one item in ResourceMetrics
-        assert len(metrics_data) == 1
-
-        # Assert that the ResourceMetrics has the expected resources
-        resource_metrics = metrics_data[0]["resource_metrics"]
-        resource = resource_metrics[0]["resource"]
-        actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
-        assert set(expected_attributes) <= set(actual_attributes)
-
-    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -629,52 +585,6 @@ class Test_Otel_Metrics_Api:
         ],
     )
     def test_otel_resource_attributes_mapping_dd_preference(self, test_agent, test_library):
-        name = "counter1"
-        expected_attributes = {
-            "service.name": "test2",
-            "service.version": "5",
-            "foo": "bar1",
-            "baz": "qux1",
-        }
-
-        with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
-
-        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
-        pprint.pprint(metrics_data)
-
-        # Assert that there is only one item in ResourceMetrics
-        assert len(metrics_data) == 1
-
-        # Assert that the ResourceMetrics has the expected resources
-        resource_metrics = metrics_data[0]["resource_metrics"]
-        resource = resource_metrics[0]["resource"]
-        actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
-        assert set(expected_attributes) <= set(actual_attributes)
-
-        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
-        assert actual_attributes.get("deployment.environment") == "test1" or actual_attributes.get("deployment.environment.name") == "test1"
-
-    @missing_feature(context.library == "python", reason="Doesn't implement OTEL_RESOURCE_ATTRIBUTES with metrics")
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                **DEFAULT_ENVVARS,
-                "DD_ENV": "ignored_env",
-                "DD_SERVICE": "ignored_service",
-                "DD_VERSION": "ignored_version",
-                "DD_TAGS": "foo:ignored_bar1,baz:ignored_qux1",
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=test1,service.name=test2,service.version=5,foo=bar1,baz=qux1",
-            },
-        ],
-    )
-    def test_otel_resource_attributes_mapping_otel_preference(self, test_agent, test_library):
         name = "counter1"
         expected_attributes = {
             "service.name": "test2",
