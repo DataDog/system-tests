@@ -9,10 +9,12 @@ from utils import scenarios
 from utils import weblog
 
 
-@features.appsec_request_blocking
 @features.envoy_external_processing
-@scenarios.appsec_request_blocking
+@features.haproxy_stream_processing_offload
+@features.appsec_request_blocking
 @scenarios.external_processing
+@scenarios.stream_processing_offload
+@scenarios.appsec_request_blocking
 class Test_AppSecRequestBlocking:
     """A library should block requests when a rule is set to blocking mode."""
 
