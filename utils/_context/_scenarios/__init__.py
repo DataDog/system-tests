@@ -22,6 +22,7 @@ from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -824,9 +825,10 @@ class _Scenarios:
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
@@ -858,8 +860,9 @@ class _Scenarios:
 
     simple_auto_injection_appsec = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_APPSEC",
-        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
-        app_env={"DD_APPSEC_ENABLED": "true"},
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )
@@ -1003,19 +1006,7 @@ class _Scenarios:
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = EndToEndScenario(
-        "APPSEC_RASP",
-        weblog_env={
-            "DD_APPSEC_RASP_ENABLED": "true",
-            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
-            # added to test Test_ExtendedRequestBodyCollection
-            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
-        },
-        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
-    )
+    appsec_rasp = AppsecRaspScenario()
 
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",
