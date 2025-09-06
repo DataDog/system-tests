@@ -89,7 +89,7 @@ runs:
       uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # v3.0.2
       with:
         shell: bash
-        command: docker compose pull
+        command: docker compose pull; df -h
         timeout_minutes: 10
         retry_wait_seconds: 10
         max_attempts: 3
