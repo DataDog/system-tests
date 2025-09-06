@@ -118,31 +118,65 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
     def _find_requirements_json_file(self, ssh_client, language):
         """Find the requirements.json file in the datadog-apm-library-<language> installation directory"""
-        # Map system-tests language names to package names
-        language_package_map = {
-            "java": "java",
-            "python": "python",
-            "nodejs": "nodejs",
-            "dotnet": "dotnet",
-            "php": "php",
-            "ruby": "ruby",
+        # Map system-tests language names to possible package names (including alternatives)
+        language_package_variations = {
+            "java": ["java"],
+            "python": ["python", "py"],  # Alternative: datadog-apm-library-py
+            "nodejs": ["nodejs", "js"],  # Alternative: datadog-apm-library-js
+            "dotnet": ["dotnet"],
+            "php": ["php"],
+            "ruby": ["ruby"],
         }
 
-        package_name = language_package_map.get(language, language)
-        search_pattern = f"/opt/datadog-packages/datadog-apm-library-{package_name}/*/metadata/requirements.json"
+        package_variations = language_package_variations.get(language, [language])
 
-        _, stdout, stderr = ssh_client.exec_command(
-            f"find /opt/datadog-packages -name 'requirements.json' -path '*datadog-apm-library-{package_name}*' 2>/dev/null | head -1"
-        )
-        requirements_file_path = stdout.read().decode().strip()
+        logger.info(f"🔍 Searching for requirements.json for {language} language...")
+        logger.info(f"   📂 Package variations to try: {[f'datadog-apm-library-{pkg}' for pkg in package_variations]}")
 
-        if not requirements_file_path:
-            logger.warning(f"requirements.json not found for {language}, trying alternative search")
-            _, stdout, stderr = ssh_client.exec_command(f"ls {search_pattern} 2>/dev/null | head -1")
+        # Try each package name variation
+        for i, package_name in enumerate(package_variations):
+            search_pattern = f"/opt/datadog-packages/datadog-apm-library-{package_name}/*/metadata/requirements.json"
+
+            is_primary = i == 0
+            search_type = "Primary" if is_primary else "Alternative"
+            logger.info(f"   📍 {search_type} search pattern: {search_pattern}")
+
+            find_command = f"find /opt/datadog-packages -name 'requirements.json' -path '*datadog-apm-library-{package_name}*' 2>/dev/null | head -1"
+            logger.info(f"   🔧 Find command: {find_command}")
+
+            _, stdout, stderr = ssh_client.exec_command(find_command)
             requirements_file_path = stdout.read().decode().strip()
 
-        logger.info(f"Found requirements.json for {language} at: {requirements_file_path}")
-        return requirements_file_path if requirements_file_path else None
+            if requirements_file_path:
+                logger.info(f"✅ Found requirements.json for {language} at: {requirements_file_path}")
+                logger.info(f"   📦 Found using package name: datadog-apm-library-{package_name}")
+                return requirements_file_path
+            elif is_primary:
+                logger.warning(f"⚠️  Primary search failed for {language} (datadog-apm-library-{package_name})")
+            else:
+                logger.warning(f"⚠️  Alternative search failed for {language} (datadog-apm-library-{package_name})")
+
+            # Try ls command as fallback for this package variation
+            logger.info(f"   📍 Trying ls fallback for pattern: {search_pattern}")
+            ls_command = f"ls {search_pattern} 2>/dev/null | head -1"
+            logger.info(f"   🔧 List command: {ls_command}")
+
+            _, stdout, stderr = ssh_client.exec_command(ls_command)
+            requirements_file_path = stdout.read().decode().strip()
+
+            if requirements_file_path:
+                logger.info(f"✅ Found requirements.json for {language} at: {requirements_file_path}")
+                logger.info(f"   📦 Found using package name: datadog-apm-library-{package_name} (via ls)")
+                return requirements_file_path
+
+        # If we get here, no requirements.json was found with any package variation
+        logger.warning(f"❌ requirements.json file not found for {language}")
+        logger.warning("   📂 Searched in all package variations:")
+        for pkg in package_variations:
+            logger.warning(f"      - /opt/datadog-packages/datadog-apm-library-{pkg}/")
+        logger.warning("   📄 Expected file pattern: */metadata/requirements.json")
+        logger.warning(f"   💡 Make sure the {language} tracer library is properly installed")
+        return None
 
     def _get_requirements_json_content(self, ssh_client, requirements_file_path):
         """Read and parse the requirements.json file from the remote machine"""
@@ -154,13 +188,13 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         error_output = stderr.read().decode()
 
         if error_output:
-            logger.warning(f"Error reading requirements.json: {error_output}")
+            logger.warning(f"❌ Error reading requirements.json: {error_output}")
             return None
 
         try:
             return json.loads(requirements_content)
         except json.JSONDecodeError as e:
-            logger.error(f"Failed to parse requirements.json: {e}")
+            logger.error(f"❌ Failed to parse requirements.json: {e}")
             return None
 
     def _extract_blocked_commands(self, requirements_json, language):
@@ -170,72 +204,79 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
 
         blocked_commands = []
         deny_rules = requirements_json.get("deny", [])
-        
+
         # Get the runtime command for this language
         runtime_cmd = self._get_language_runtime_command(language)
-        
+
         for deny_rule in deny_rules:
             if not isinstance(deny_rule, dict):
                 continue
-                
+
             cmds = deny_rule.get("cmds", [])
             args = deny_rule.get("args", [])
-            
+            rule_id = deny_rule.get("id", "unknown")
+            rule_description = deny_rule.get("description", "No description")
+
             # Check if this rule applies to our language
             if not self._rule_applies_to_language(cmds, language):
                 continue
-                
+
             # If there are no args, it means the entire command pattern is blocked
             if not args:
                 for cmd_pattern in cmds:
                     # Convert wildcard pattern to actual command
                     if cmd_pattern.endswith(f"/{runtime_cmd}") or cmd_pattern == f"**/{runtime_cmd}":
-                        blocked_commands.append(runtime_cmd)
+                        blocked_commands.append(
+                            {"command": runtime_cmd, "id": rule_id, "description": rule_description}
+                        )
                 continue
-            
-            # Process each argument pattern
+
+            # Process argument patterns - collect and combine all args
+            # First, collect all args with their positions
+            all_args = []
             for arg_rule in args:
                 if not isinstance(arg_rule, dict):
                     continue
-                    
+
                 arg_list = arg_rule.get("args", [])
                 position = arg_rule.get("position")
-                
-                # Build blocked commands by combining cmd patterns with args
+
+                for arg in arg_list:
+                    all_args.append({"arg": arg, "position": position})
+
+            if all_args:
+                # Sort args by position (None positions go to the end)
+                sorted_args = sorted(all_args, key=lambda x: (x["position"] is None, x["position"]))
+
+                # Build blocked commands by combining cmd patterns with all args
                 for cmd_pattern in cmds:
                     if cmd_pattern.endswith(f"/{runtime_cmd}") or cmd_pattern == f"**/{runtime_cmd}":
-                        for arg in arg_list:
-                            # Create the full command that should be blocked
-                            blocked_command = f"{runtime_cmd} {arg}"
-                            blocked_commands.append(blocked_command)
+                        # Combine all args into a single command
+                        combined_args = " ".join([arg_info["arg"] for arg_info in sorted_args])
+                        blocked_command = f"{runtime_cmd} {combined_args}"
+                        blocked_commands.append(
+                            {"command": blocked_command, "id": rule_id, "description": rule_description}
+                        )
 
-        return list(set(blocked_commands))  # Remove duplicates
+        # Remove duplicates based on command only, keeping the first occurrence
+        seen_commands = set()
+        unique_blocked_commands = []
+        for cmd_info in blocked_commands:
+            if cmd_info["command"] not in seen_commands:
+                seen_commands.add(cmd_info["command"])
+                unique_blocked_commands.append(cmd_info)
+
+        return unique_blocked_commands
 
     def _rule_applies_to_language(self, cmds, language):
         """Check if a deny rule applies to the specified language based on command patterns"""
         runtime_cmd = self._get_language_runtime_command(language)
-        
+
         for cmd_pattern in cmds:
             # Check if the command pattern matches our language's runtime
-            if (cmd_pattern.endswith(f"/{runtime_cmd}") or 
-                cmd_pattern == f"**/{runtime_cmd}" or
-                cmd_pattern == runtime_cmd):
+            if cmd_pattern.endswith(f"/{runtime_cmd}") or cmd_pattern in (f"**/{runtime_cmd}", runtime_cmd):
                 return True
         return False
-
-    def _is_language_command(self, command, language):
-        """Check if a command is for the specified language"""
-        language_runtime_map = {
-            "java": ["java"],
-            "python": ["python", "python3", "python2"],
-            "nodejs": ["node", "npm", "npx"],
-            "dotnet": ["dotnet"],
-            "php": ["php"],
-            "ruby": ["ruby", "gem", "bundle"],
-        }
-
-        runtime_commands = language_runtime_map.get(language, [])
-        return any(command.strip().startswith(cmd) for cmd in runtime_commands)
 
     def _get_language_runtime_command(self, language):
         """Get the primary runtime command for a language"""
@@ -272,12 +313,12 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         # Find and read requirements.json file
         requirements_file_path = self._find_requirements_json_file(ssh_client, language)
         if not requirements_file_path:
-            logger.warning(f"requirements.json file not found for {language}, skipping test")
+            logger.warning(f"⏭️  Skipping requirements.json test for {language} - file not found")
             return
 
         requirements_json = self._get_requirements_json_content(ssh_client, requirements_file_path)
         if not requirements_json:
-            logger.warning(f"Could not parse requirements.json for {language}, skipping test")
+            logger.warning(f"⏭️  Skipping requirements.json test for {language} - could not parse file")
             return
 
         # Extract commands that should be blocked for this language
@@ -285,18 +326,25 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
         logger.info(f"Found {len(blocked_commands)} {language} commands to test for blocking")
 
         if not blocked_commands:
-            logger.warning(f"No blocked {language} commands found in requirements.json")
+            logger.warning(f"⏭️  Skipping requirements.json test for {language} - no blocked commands found")
             return
 
         # Test each blocked command
         failed_commands = []
-        for command in blocked_commands:
-            logger.info(f"Testing blocked command: {command}")
+        for cmd_info in blocked_commands:
+            command = cmd_info["command"]
+            rule_id = cmd_info["id"]
+            rule_description = cmd_info["description"]
+
+            logger.info(f"🔍 Testing blocked command: {command}")
+            logger.info(f"   📋 Rule ID: {rule_id}")
+            logger.info(f"   📝 Description: {rule_description}")
+
             try:
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 if not command_injection_skipped(command, local_log_file):
                     failed_commands.append(command)
-                    logger.error(f"Command should be blocked but was instrumented: {command}")
+                    logger.error(f"❌ Command should be blocked but was instrumented: {command}")
                 else:
                     logger.info(f"✅ Command properly blocked: {command}")
             except Exception as e:
@@ -307,7 +355,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
                     local_log_file = self._execute_remote_command(ssh_client, command)
                     if not command_injection_skipped(command, local_log_file):
                         failed_commands.append(command)
-                        logger.error(f"Command should be blocked but injection was attempted: {command}")
+                        logger.error(f"❌ Command should be blocked but injection was attempted: {command}")
                 except:
                     # If we can't get logs, assume the command was properly blocked
                     logger.info(f"Command execution and logging failed, assuming blocked: {command}")
@@ -382,7 +430,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
                 local_log_file = self._execute_remote_command(ssh_client, command)
                 if command_injection_skipped(command, local_log_file):
                     failed_commands.append(command)
-                    logger.error(f"Command should be instrumented but was blocked: {command}")
+                    logger.error(f"❌ Command should be instrumented but was blocked: {command}")
                 else:
                     logger.info(f"✅ Command properly instrumented: {command}")
             except Exception as e:
