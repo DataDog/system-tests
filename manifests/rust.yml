@@ -1,0 +1,87 @@
+---
+refs:
+  - &ref_0_0_1 "0.0.1"
+tests/:
+  parametric/:
+    test_128_bit_traceids.py:
+      Test_128_Bit_Traceids: *ref_0_0_1
+    test_config_consistency.py: missing_feature
+    test_crashtracking.py: missing_feature
+    test_dynamic_configuration.py: missing_feature
+    test_headers_b3.py: missing_feature
+    test_headers_b3multi.py: missing_feature
+    test_headers_baggage.py:
+      Test_Headers_Baggage: missing_feature
+      Test_Headers_Baggage_Span_Tags: missing_feature
+    test_headers_datadog.py:
+      Test_Headers_Datadog: *ref_0_0_1
+    test_headers_none.py:
+      Test_Headers_None: *ref_0_0_1
+    test_headers_precedence.py:
+      Test_Headers_Precedence: *ref_0_0_1
+    test_headers_tracecontext.py:
+      Test_Headers_Tracecontext: *ref_0_0_1
+    test_headers_tracestate_dd.py:
+      Test_Headers_Tracestate_DD: *ref_0_0_1
+    test_library_tracestats.py:
+      Test_Library_Tracestats: missing_feature
+    test_otel_api_interoperability.py:
+      Test_Otel_API_Interoperability: missing_feature
+    test_otel_env_vars.py:
+      Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
+    test_otel_span_methods.py:
+      Test_Otel_Span_Methods: *ref_0_0_1
+    test_otel_span_with_baggage.py:
+      Test_Otel_Span_With_Baggage: missing_feature
+    test_otel_tracer.py:
+      Test_Otel_Tracer: *ref_0_0_1
+    test_parametric_endpoints.py:
+      Test_Parametric_DDSpan_Add_Link: missing_feature
+      Test_Parametric_DDSpan_Finish: *ref_0_0_1
+      Test_Parametric_DDSpan_Set_Error: missing_feature
+      Test_Parametric_DDSpan_Set_Meta: *ref_0_0_1
+      Test_Parametric_DDSpan_Set_Metric: missing_feature
+      Test_Parametric_DDSpan_Set_Resource: missing_feature
+      Test_Parametric_DDSpan_Start: *ref_0_0_1
+      Test_Parametric_DDTrace_Baggage: missing_feature
+      Test_Parametric_DDTrace_Config: missing_feature
+      Test_Parametric_DDTrace_Crash: missing_feature
+      Test_Parametric_DDTrace_Current_Span: *ref_0_0_1
+      Test_Parametric_DDTrace_Extract_Headers: *ref_0_0_1
+      Test_Parametric_DDTrace_Flush: *ref_0_0_1
+      Test_Parametric_Inject_Headers: *ref_0_0_1
+      Test_Parametric_OtelSpan_Events: *ref_0_0_1
+      Test_Parametric_OtelSpan_Set_Name: *ref_0_0_1
+      Test_Parametric_OtelSpan_Start: *ref_0_0_1
+      Test_Parametric_Otel_Baggage: missing_feature
+      Test_Parametric_Otel_Current_Span: *ref_0_0_1
+    test_partial_flushing.py:
+      Test_Partial_Flushing: missing_feature
+    test_process_discovery.py: missing_feature
+    test_sampling_span_tags.py: missing_feature
+    test_span_events.py: missing_feature
+    test_span_links.py:
+      Test_Span_Links: missing_feature
+    test_span_sampling.py: missing_feature
+    test_telemetry.py:
+      Test_Consistent_Configs: missing_feature
+      Test_Defaults: missing_feature
+      Test_Environment: missing_feature
+      Test_Stable_Configuration_Origin: missing_feature
+      Test_TelemetryInstallSignature: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature
+      Test_TelemetrySSIConfigs: missing_feature
+    test_trace_sampling.py:
+      Test_Trace_Sampling_Basic: *ref_0_0_1
+      Test_Trace_Sampling_Globs: *ref_0_0_1
+      Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_0_0_1
+      Test_Trace_Sampling_Resource: *ref_0_0_1
+      # dd-trace-rs samples at span start, so any trace that doesn't start the span with the necessary attributes
+      # won't match the sampling rule. We want to fix this in the future, making sampling lazy.
+      # The tests in these suites that xpass also have this issue, we just end up with the right value by default.
+      Test_Trace_Sampling_Tags: missing_feature
+      Test_Trace_Sampling_Tags_Feb2024_Revision: missing_feature
+      Test_Trace_Sampling_With_W3C: missing_feature
+    test_tracer.py: missing_feature
+    test_tracer_flare.py:
+      TestTracerFlareV1: missing_feature

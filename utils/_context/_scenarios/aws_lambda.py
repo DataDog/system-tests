@@ -31,6 +31,7 @@ class LambdaScenario(DockerScenario):
         scenario_groups = [
             all_scenario_groups.tracer_release,
             all_scenario_groups.end_to_end,
+            all_scenario_groups.lambda_end_to_end,
         ] + (scenario_groups or [])
 
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)

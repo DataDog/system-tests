@@ -619,13 +619,14 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="datadog/system-tests:lambda-proxy",
+            image_name="datadog/system-tests:lambda-proxy-v1",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
                 "RIE_HOST": lambda_weblog_host,
                 "RIE_PORT": lambda_weblog_port,
             },
+            volumes={"./utils/build/docker/lambda_proxy": {"bind": "/app", "mode": "ro"}},
             ports={
                 f"{self.host_port}/tcp": self.container_port,
             },
@@ -954,7 +955,7 @@ class WeblogContainer(TestedContainer):
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
-        elif library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby", "rust"):
             header_tags = "user-agent"
         else:
             header_tags = ""

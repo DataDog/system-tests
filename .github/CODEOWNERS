@@ -9,6 +9,7 @@
 /utils/build/docker/php*/ @DataDog/apm-php @DataDog/system-tests-core
 /utils/build/docker/python*/ @DataDog/apm-python @DataDog/asm-python @DataDog/system-tests-core
 /utils/build/docker/ruby*/ @DataDog/ruby-guild @DataDog/asm-ruby @DataDog/system-tests-core
+/utils/build/docker/rust*/ @DataDog/apm-rust @DataDog/system-tests-core
 
 /utils/telemetry/intake/ @DataDog/apm-sdk-api @DataDog/system-tests-core
 /utils/telemetry/intake/static/ @DataDog/apm-sdk
@@ -30,5 +31,6 @@
 /manifests/php.yml @DataDog/apm-php @DataDog/asm-php
 /manifests/python.yml @DataDog/apm-python @DataDog/asm-python
 /manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
+/manifests/rust.yml @DataDog/apm-rust
 
 

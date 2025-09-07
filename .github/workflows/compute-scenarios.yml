@@ -46,3 +46,8 @@ jobs:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+
+      - name: Print results
+        run: |
+          echo 'Scenarios: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios }}'
+          echo 'Scenario Groups: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios_groups }}'

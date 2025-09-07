@@ -158,15 +158,31 @@ class TestDockerSSIFeatures:
         self._setup_all()
 
     @features.ssi_injection_metadata
-    @missing_feature(
-        context.library in ("python", "nodejs", "dotnet", "java", "php", "ruby"), reason="Not implemented yet"
-    )
+    @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library == "java" and context.installed_language_runtime < "1.8.0_0")
+    @irrelevant(context.library == "php" and context.installed_language_runtime < "7.1")
+    @irrelevant(context.library == "nodejs" and context.installed_language_runtime < "17.0")
+    @irrelevant(context.library >= "python@3.0.0.dev" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library < "python@3.0.0.dev" and context.installed_language_runtime < "3.7.0")
+    @missing_feature(context.library < "java@1.52.0", reason="Not implemented yet")
+    @missing_feature(context.library < "python@3.11.0", reason="Not implemented yet")
+    @missing_feature(context.library < "dotnet@3.22.0", reason="Not implemented yet")
+    @missing_feature(context.library < "nodejs@5.66.0", reason="Not implemented yet")
+    @missing_feature(context.library < "php@1.12.0", reason="Not implemented yet")
+    @missing_feature(context.library == "ruby", reason="Not implemented yet")
     def test_injection_metadata(self):
         logger.info("Testing injection result variables")
         events = interfaces.test_agent.get_injection_metadata_for_autoinject()
-        assert len(events) >= 1
+        events = sorted(events, key=lambda x: x["timestamp_millis"])
+        assert len(events) >= 2
 
-        injection_metadata = events[0]
-        assert injection_metadata["result"] == "success"
-        assert injection_metadata["result_reason"] == "the tracer was successfully injected"
-        assert injection_metadata["result_class"] == "success"
+        injector_event = events[0]
+        assert injector_event["component"] == "injector"
+        assert injector_event["result"] == "success"
+        assert injector_event["result_class"] == "success"
+        assert injector_event["result_reason"] != ""
+
+        tracer_event = events[1]
+        assert tracer_event["result"] == "success"
+        assert tracer_event["result_class"] == "success"
+        assert tracer_event["result_reason"] != ""
