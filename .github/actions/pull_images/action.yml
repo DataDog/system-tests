@@ -61,9 +61,11 @@ runs:
 
         echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
 
-        clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
-        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL  # 5Gb !
-        clear_dir_with_rsync /usr/share/dotnet # 1Gb
+        clear_dir_with_rsync /usr/local/lib/android &  # 9Gb!
+        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL &  # 5Gb !
+        clear_dir_with_rsync /usr/share/dotnet &  # 1Gb
+
+        wait
 
         # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
 
