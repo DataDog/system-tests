@@ -63,7 +63,13 @@ class LambdaScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        allowed_event_types = "apigateway-rest", "apigateway-http"
+        allowed_event_types = (
+            "apigateway-rest",
+            "apigateway-http",
+            "function-url",
+            "application-load-balancer",
+            "application-load-balancer-multi",
+        )
         event_type = self.lambda_weblog.image.labels.get("system-tests.lambda-proxy.event-type")
         if event_type not in allowed_event_types:
             pytest.exit(
