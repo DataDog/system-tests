@@ -1,6 +1,5 @@
 import pytest
 from utils import interfaces, weblog, features, scenarios, missing_feature, context, bug, logger
-from utils._decorators import flaky
 
 """
 Test scenarios we want:
@@ -37,7 +36,7 @@ class Test_Client_Stats:
     )
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_client_stats(self):
@@ -76,15 +75,16 @@ class Test_Client_Stats:
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
-    @flaky(library="java", reason="LANGPLAT-760")
+    @missing_feature(weblog_variant="spring-boot-3-native", reason="rasp endpoint not implemented")
     def test_obfuscation(self):
         stats_count = 0
         hits = 0
         top_hits = 0
         resource = "SELECT * FROM users WHERE id = ?"
+        # wait for 10 seconds to be sure all the buckets are flushed (better than be flaky)
         for s in interfaces.agent.get_stats(resource):
             stats_count += 1
             logger.debug(f"asserting on {s}")
@@ -98,7 +98,7 @@ class Test_Client_Stats:
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_is_trace_root(self):
@@ -125,7 +125,7 @@ class Test_Agent_Info_Endpoint:
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_info_endpoint_supports_client_side_stats(self):
@@ -206,7 +206,7 @@ class Test_Peer_Tags:
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_peer_tags(self):
@@ -266,7 +266,7 @@ class Test_Transport_Headers:
 
     @missing_feature(
         context.library in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "nodejs", "php", "python", "ruby")
-        or context.library <= "java@1.52.1",
+        or context.library <= "java@1.53.0",
         reason="Tracers have not implemented this feature yet.",
     )
     def test_transport_headers(self):
