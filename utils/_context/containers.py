@@ -955,7 +955,7 @@ class WeblogContainer(TestedContainer):
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
-        elif library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby", "rust"):
             header_tags = "user-agent"
         else:
             header_tags = ""

@@ -22,6 +22,7 @@ from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -1005,19 +1006,7 @@ class _Scenarios:
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = EndToEndScenario(
-        "APPSEC_RASP",
-        weblog_env={
-            "DD_APPSEC_RASP_ENABLED": "true",
-            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
-            # added to test Test_ExtendedRequestBodyCollection
-            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
-        },
-        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
-    )
+    appsec_rasp = AppsecRaspScenario()
 
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",
