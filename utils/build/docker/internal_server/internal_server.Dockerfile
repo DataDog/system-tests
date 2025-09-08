@@ -2,6 +2,8 @@ FROM python:3.13-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl
+RUN apt-get install -y wget
+
 
 # print versions
 RUN python --version && curl --version

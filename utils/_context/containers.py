@@ -1452,9 +1452,10 @@ class DummyServerContainer(TestedContainer):
 class InternalServerContainer(TestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         super().__init__(
-            image_name="system-tests/internal_server",
+            image_name="datadog/system-tests/internal_server_v1",
             name="internal-server",
             host_log_folder=host_log_folder,
+            ports={"8089": ("127.0.0.1",8089)},
             healthcheck={"test": "wget http://localhost:8089", "retries": 10},
             local_image_only=True,
         )
