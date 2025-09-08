@@ -12,7 +12,7 @@ import pytest
 
 from utils.parametric.spec.tracecontext import get_tracecontext
 from utils.parametric.spec.trace import find_span_in_traces, find_only_span
-from utils import missing_feature, context, scenarios, features
+from utils import missing_feature, bug, context, scenarios, features
 
 parametrize = pytest.mark.parametrize
 
@@ -224,6 +224,7 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
+    @bug(context.library == "cpp", reason="APMAPI-1599")
     def test_traceparent_version_illegal_characters(self, test_agent, test_library):
         """Harness sends an invalid traceparent with illegal characters in version
         expects a valid traceparent from the output header, with a newly generated trace_id
