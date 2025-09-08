@@ -65,6 +65,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
         "python",
         "python_otel",
         "ruby",
+        "rust",
         "dd_apm_inject",
         "k8s_cluster_agent",
         "python_lambda",

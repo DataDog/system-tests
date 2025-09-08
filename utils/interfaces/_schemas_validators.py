@@ -128,6 +128,9 @@ class SchemaValidator:
         if self.interface == "library" and path in ["/debugger/v1/diagnostics", "/symdb/v1/input"]:
             # Handle multipart structure where content contains nested parts with headers/content
             result = []
+            content = data["request"].get("content", [])
+            if content is None:
+                return content
             for part in data["request"].get("content", []):
                 if isinstance(part, dict) and "headers" in part and "content" in part:
                     # Convert headers from dict to object (already in correct format)
@@ -151,6 +154,11 @@ class SchemaValidator:
         if self.interface == "agent" and path == "/api/v2/debugger":
             # Extract the actual debugger data from multipart structure
             result = []
+            content = data["request"].get("content", [])
+
+            if content is None:
+                return content
+
             for part in data["request"].get("content", []):
                 if isinstance(part, dict) and "content" in part:
                     # Handle both array and single object content
