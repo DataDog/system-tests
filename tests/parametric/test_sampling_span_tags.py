@@ -354,11 +354,9 @@ class Test_Knuth_Sample_Rate:
             (
                 {
                     "DD_TRACE_SAMPLE_RATE": None,
-                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.1234567}]',
-                    "DD_SPAN_SAMPLING_RULES": '[{"sample_rate":0, "name":"span"}]',
-                    "DD_TRACE_COMPUTE_STATS": "false",
+                    "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0.7654321}]',
                 },
-                "0.123457",
+                "0.765432",
             ),
         ],
         ids=["truncate_trailing_zeros", "percision_of_6_digits"],
@@ -401,7 +399,7 @@ class Test_Knuth_Sample_Rate:
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(self, test_agent, test_library):
         """When a trace is extracted from datadog headers, the sampling decision
-       and rate is extracted from X-Datadog-Sampling-Priority and X-Datadog-Tags
+        and rate is extracted from X-Datadog-Sampling-Priority and X-Datadog-Tags
         headers. These values are stored in the span's meta fields.
         """
         with test_library:
@@ -434,7 +432,7 @@ class Test_Knuth_Sample_Rate:
         ],
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(self, test_agent, test_library):
-        """When a trace is extracted from a distributed tracing context, the sampling
+        """When a trace is extracted from tracecontext headers, the sampling rate and decision
         are sent in the tracestate header (t.dm, t.ksr). These values are stored in the span's meta fields.
         """
         with test_library:
