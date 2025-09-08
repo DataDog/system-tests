@@ -4,6 +4,6 @@ ENV PYTHONUNBUFFERED 1
 ENV DJANGO_SETTINGS_MODULE django_app
 WORKDIR /src
 ADD . /src
-RUN pip install django
+RUN pip install django==5.2.4
 EXPOSE 18080
 ENTRYPOINT ["python", "-m", "django", "runserver", "0.0.0.0:18080"]
