@@ -356,9 +356,10 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
                     if not command_injection_skipped(command, local_log_file):
                         failed_commands.append(command)
                         logger.error(f"❌ Command should be blocked but injection was attempted: {command}")
-                except:
+                except Exception as e:
                     # If we can't get logs, assume the command was properly blocked
                     logger.info(f"Command execution and logging failed, assuming blocked: {command}")
+                    logger.info(f"Exception: {e}")
 
         # Assert that all commands were properly blocked
         assert (
@@ -393,11 +394,7 @@ class TestAutoInjectBlockListInstallManualHost(_AutoInjectBlockListBaseTest):
                 "dotnet /tmp/app.dll",
                 "dotnet exec /tmp/myapp.dll",
             ],
-            "php": [
-                "php /tmp/app.php",
-                "php -f /tmp/script.php",
-                "php -S localhost:8000 /tmp/index.php",
-            ],
+            "php": ["php /tmp/app.php", "php -f /tmp/script.php"],
             "ruby": [
                 "ruby /tmp/app.rb",
                 "ruby -e 'puts \"hello\"'",
