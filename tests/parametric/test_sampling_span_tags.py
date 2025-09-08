@@ -365,7 +365,7 @@ class Test_Knuth_Sample_Rate:
     )
     def test_sampling_knuth_sample_rate_trace_sampling_rule(self, test_agent, test_library, library_env, sample_rate):
         """When a trace is sampled via a sampling rule, the knuth sample rate
-        is sent to the agent on the chunk root span with the _dd.p.ksr key in the metrics field.
+        is sent to the agent on the chunk root span with the _dd.p.ksr key in the meta field.
         """
 
         with test_library:
@@ -395,13 +395,14 @@ class Test_Knuth_Sample_Rate:
                 "DD_TRACE_PROPAGATION_STYLE": "Datadog",
                 # Ensure sampling configurationations are not set.
                 "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
             }
         ],
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_datadog(self, test_agent, test_library):
-        """When a trace is extracted from a distributed tracing context, the sampling
-        decision is conveyed by the X-Datadog-Sampling-Priority and X-Datadog-Tags
-        headers. These values are stored in the span's meta and metrics fields.
+        """When a trace is extracted from datadog headers, the sampling decision
+       and rate is extracted from X-Datadog-Sampling-Priority and X-Datadog-Tags
+        headers. These values are stored in the span's meta fields.
         """
         with test_library:
             incoming_headers = [
@@ -428,17 +429,18 @@ class Test_Knuth_Sample_Rate:
                 "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
                 # Ensure sampling configurationations are not set.
                 "DD_TRACE_SAMPLE_RATE": None,
+                "DD_TRACE_SAMPLING_RULES": None,
             }
         ],
     )
     def test_sampling_extract_knuth_sample_rate_distributed_tracing_tracecontext(self, test_agent, test_library):
         """When a trace is extracted from a distributed tracing context, the sampling
-        decision is conveyed by the tracestate header under the t.ksr key.
+        are sent in the tracestate header (t.dm, t.ksr). These values are stored in the span's meta fields.
         """
         with test_library:
             incoming_headers = [
                 ["traceparent", "00-00000000000000000000000000000007-0000000000000006-01"],
-                ["tracestate", "dd=s:2;o:synthetics;t.dm:-8;t.ksr:0.1"],
+                ["tracestate", "dd=s:2;o:synthetics;t.dm:-1;t.ksr:0.1"],
             ]
             outgoing_headers = test_library.dd_make_child_span_and_get_headers(incoming_headers)
             assert "t.ksr:0.1" in outgoing_headers["tracestate"]
@@ -446,6 +448,6 @@ class Test_Knuth_Sample_Rate:
         span = find_only_span(test_agent.wait_for_num_traces(1))
         assert span.get("trace_id") == 7
         assert span.get("parent_id") == 6
-        assert span["meta"].get("_dd.p.dm") == "-8"
+        assert span["meta"].get("_dd.p.dm") == "-1"
         assert span["meta"].get("_dd.p.ksr") == "0.1"
         assert span["metrics"].get(SAMPLING_PRIORITY_KEY) == 2
