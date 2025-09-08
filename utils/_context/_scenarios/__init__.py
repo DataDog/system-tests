@@ -102,14 +102,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    trace_propagation_style_default = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DEFAULT",
-        weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
-        },
-        doc="Test Default propagation",
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
