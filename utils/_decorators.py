@@ -102,6 +102,7 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "rust",
         ):
             raise ValueError(f"Unknown library: {library}")
 
@@ -240,6 +241,7 @@ def released(
     python_otel: str | None = None,
     nodejs_otel: str | None = None,
     ruby: str | None = None,
+    rust: str | None = None,
     agent: str | None = None,
     dd_apm_inject: str | None = None,
     k8s_cluster_agent: str | None = None,
@@ -300,6 +302,7 @@ def released(
             compute_declaration("python_otel", "python_otel", python_otel, context.library.version),
             compute_declaration("python_lambda", "python_lambda", python_lambda, context.library.version),
             compute_declaration("ruby", "ruby", ruby, context.library.version),
+            compute_declaration("rust", "rust", rust, context.library.version),
             compute_declaration("*", "agent", agent, context.agent_version),
             compute_declaration("*", "dd_apm_inject", dd_apm_inject, context.dd_apm_inject_version),
             compute_declaration("*", "k8s_cluster_agent", k8s_cluster_agent, context.k8s_cluster_agent_version),
