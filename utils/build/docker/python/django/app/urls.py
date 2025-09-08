@@ -1086,11 +1086,14 @@ def external_request(request):
     import urllib.request
     import urllib.error
     queries = {k:str(v) for k,v in request.GET.items()}
-    request = urllib.request.Request("http://127.0.0.1:8089/mirror_get/200", method="GET", headers=queries)
+    request = urllib.request.Request("http://internal_server:8089/mirror_get/200", method="GET", headers=queries)
     try:
         with urllib.request.urlopen(request, timeout=10) as fp:
             payload = fp.read().decode()
-            return JsonResponse({"status":int(fp.status), "headers":fp.headers, "payload":payload})
+            print(type(payload), payload)
+            print(type(fp.status), fp.status)
+            print(type(fp.headers), fp.headers)
+            return JsonResponse({"status":int(fp.status), "headers":dict(fp.headers.items()), "payload":payload})
     except urllib.error.HTTPError as e:
         return JsonResponse({"status":int(e.status), "error":repr(e)})
 

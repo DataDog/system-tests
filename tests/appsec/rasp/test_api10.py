@@ -15,7 +15,21 @@ class Test_API10_request_headers:
     """Shell Injection through query parameters"""
 
     def setup_api10_get_headers(self):
-        self.r = weblog.get("/external_request", params={"user-agent": "system-tests-agent"})
+        self.r = weblog.get("/external_request", params={"Witness": "pwq3ojtropiw3hjtowir"})
 
     def test_api10_get_headers(self):
         assert self.r.status_code == 200
+        print()
+        print(self.r.headers)
+        print(self.r.text)
+        def validate(span):
+            if span.get("parent_id") not in (0, None):
+                return None
+
+            assert "_dd.appsec.trace.mark" in span["meta"], "Missing _dd.appsec.trace.mark from span's meta"
+
+            assert span["meta"]["_dd.appsec.trace.mark"] == "TAG_API10_HEADER"
+
+            return True
+
+        interfaces.library.validate_spans(self.r, validator=validate)
