@@ -35,6 +35,7 @@ def test_tracer_release():
         scenarios.container_auto_injection_install_script_profiling,
         scenarios.container_auto_injection_install_script,
         scenarios.docker_ssi,
+        scenarios.docker_ssi_appsec,
         scenarios.docker_ssi_crashtracking,
         scenarios.docker_ssi_servicenaming,
         scenarios.external_processing_blocking,  # need to declare a white list of library in get-workflow-parameters
