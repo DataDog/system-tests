@@ -363,7 +363,7 @@ class EndToEndScenario(DockerScenario):
                 ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
                 ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
                 ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v2"),
                 ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v2"),
             ]
 
