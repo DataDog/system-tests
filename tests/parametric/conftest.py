@@ -32,18 +32,6 @@ from utils._context._scenarios.parametric import APMLibraryTestServer
 default_subprocess_run_timeout = 300
 
 
-@pytest.hookimpl(hookwrapper=True)
-def pytest_runtest_makereport(item, call):
-    item._report_sections = list(filter(
-        lambda section: not (
-            "Library Output" in section[1] or 
-            "Test Agent Output" in section[1] or
-            False
-        ),
-        item._report_sections
-    ))
-    return(yield)
-
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
     import uuid
@@ -127,10 +115,7 @@ def test_server_log_file(
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
-        f.seek(0)
-        request.node._report_sections.append(  # noqa: SLF001
-            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
-        )
+    request.node.add_report_section("teardown", f"{apm_test_server.lang.capitalize()} Library Output", f"Log file:\n./{log_path}")
 
 
 class _TestAgentAPI:
@@ -626,20 +611,7 @@ def test_agent_log_file(request: pytest.FixtureRequest) -> Generator[TextIO, Non
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
-        f.seek(0)
-        agent_output = ""
-        for line in f:
-            # Remove log lines that are not relevant to the test
-            if "GET /test/session/traces" in line:
-                continue
-            if "GET /test/session/requests" in line:
-                continue
-            if "GET /test/session/clear" in line:
-                continue
-            if "GET /test/session/apmtelemetry" in line:
-                continue
-            agent_output += line
-        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))  # noqa: SLF001
+    request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
 
 
 @pytest.fixture
