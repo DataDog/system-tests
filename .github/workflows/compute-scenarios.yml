@@ -19,11 +19,11 @@ jobs:
       scenarios_groups: ${{ steps.compute_impacted_scenarios.outputs.scenarios_groups }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
       - name: Checkout main branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
           ref: 'main'
@@ -46,3 +46,8 @@ jobs:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+
+      - name: Print results
+        run: |
+          echo 'Scenarios: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios }}'
+          echo 'Scenario Groups: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios_groups }}'

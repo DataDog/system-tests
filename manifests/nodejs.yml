@@ -46,7 +46,6 @@ refs:
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
   - &ref_5_32_0 '>=5.32.0'  # keep the anchor as we may backport stuff to v4 later
   - &ref_5_35_0 '>=5.35.0'
-  - &ref_5_36_0 '>=5.36.0'
   - &ref_5_37_0 '>=5.37.0'
   - &ref_5_38_0 '>=5.38.0'
   - &ref_5_39_0 '>=5.39.0'
@@ -67,6 +66,8 @@ refs:
   - &ref_5_60_0 '>=5.60.0'
   - &ref_5_61_0 '>=5.61.0'  # fastify iast support
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
+  - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
+  - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -89,7 +90,9 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          '*': missing_feature
+          fastify: *ref_5_64_0
       test_schemas.py:
         Test_Scanners:
           '*': *ref_4_21_0
@@ -504,187 +507,197 @@ tests/:
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Cmdi_BodyUrlEncoded:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
-        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_BodyXml:
+          '*': missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Capability: *ref_5_30_0
         Test_Cmdi_Mandatory_SpanTags:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Optional_SpanTags:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Rules_Version: *ref_5_30_0
         Test_Cmdi_StackTrace:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Telemetry:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Telemetry_V2:
           '*': *ref_5_46_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_Telemetry_Variant_Tag:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Cmdi_UrlQuery:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Cmdi_Waf_Version: *ref_5_30_0
       test_lfi.py:
         Test_Lfi_BodyJson:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Lfi_BodyUrlEncoded:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
-        Test_Lfi_BodyXml: missing_feature
+        Test_Lfi_BodyXml:
+          '*': missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_Capability: *ref_5_24_0
         Test_Lfi_Mandatory_SpanTags:
           '*': *ref_5_24_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_Optional_SpanTags:
           '*': *ref_5_24_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_RC_CustomAction:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Lfi_Rules_Version: *ref_5_26_0
         Test_Lfi_StackTrace:
           '*': *ref_5_24_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_Telemetry:
           '*': *ref_5_24_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_Telemetry_Multiple_Exploits:
           '*': *ref_5_37_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_Telemetry_V2:
           '*': *ref_5_46_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Lfi_UrlQuery:
           '*': *ref_5_24_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Lfi_Waf_Version: *ref_5_25_0
       test_shi.py:
         Test_Shi_BodyJson:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Shi_BodyUrlEncoded:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
-        Test_Shi_BodyXml: missing_feature
+        Test_Shi_BodyXml:
+          '*': missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Capability: *ref_5_25_0
         Test_Shi_Mandatory_SpanTags:
           '*': *ref_5_25_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Optional_SpanTags:
           '*': *ref_5_25_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Rules_Version: *ref_5_24_0
         Test_Shi_StackTrace:
           '*': *ref_5_25_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Telemetry:
           '*': *ref_5_25_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Telemetry_V2:
           '*': *ref_5_46_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_Telemetry_Variant_Tag:
           '*': *ref_5_30_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Shi_UrlQuery:
           '*': *ref_5_25_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Shi_Waf_Version: *ref_5_25_0
       test_sqli.py:
         Test_Sqli_BodyJson:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Sqli_BodyUrlEncoded:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
-        Test_Sqli_BodyXml: missing_feature
+        Test_Sqli_BodyXml:
+          '*': missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_Capability: *ref_5_23_0
         Test_Sqli_Mandatory_SpanTags:
           '*': *ref_5_23_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_Optional_SpanTags:
           '*': *ref_5_23_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_Rules_Version: *ref_5_25_0
         Test_Sqli_StackTrace:
           '*': *ref_5_23_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_Telemetry:
           '*': *ref_5_23_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_Telemetry_V2:
           '*': *ref_5_46_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Sqli_UrlQuery:
           '*': *ref_5_23_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Sqli_Waf_Version: *ref_5_25_0
       test_ssrf.py:
         Test_Ssrf_BodyJson:
           '*': *ref_5_20_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Ssrf_BodyUrlEncoded:
           '*': *ref_5_20_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
-        Test_Ssrf_BodyXml: missing_feature  # xml body not supported
+        Test_Ssrf_BodyXml:
+          '*': missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_Capability: *ref_5_23_0
         Test_Ssrf_Mandatory_SpanTags:
           '*': *ref_5_18_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_Optional_SpanTags:
           '*': *ref_5_18_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
           express5: *ref_5_29_0  # test uses querystring
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
           express5: *ref_5_29_0  # test uses querystring
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_Telemetry_V2:
           '*': *ref_5_46_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
         Test_Ssrf_UrlQuery:
           '*': *ref_5_20_0
           express5: *ref_5_29_0
-          fastify: missing_feature
+          fastify: *ref_5_66_0
           nextjs: missing_feature
         Test_Ssrf_Waf_Version: *ref_5_25_0
     waf/:
@@ -860,6 +873,8 @@ tests/:
         express5: missing_feature  # graphql not yet compatible with express5
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
+      Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
+      Test_Blocking_client_ip_with_forwarded: *ref_5_66_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
@@ -1086,6 +1101,9 @@ tests/:
       Test_Debugger_Probe_Budgets: missing_feature
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots:
+        '*': *ref_5_39_0
+        nextjs: irrelevant
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
         '*': *ref_5_39_0
         nextjs: irrelevant
       Test_Debugger_Method_Probe_Snaphots: missing_feature
@@ -1326,11 +1344,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: *ref_5_56_0
     Test_Baggage_Headers_Malformed: *ref_5_56_0
