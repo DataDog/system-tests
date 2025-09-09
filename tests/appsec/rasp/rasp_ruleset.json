@@ -280,7 +280,7 @@
     },
     {
       "id": "apiA-100-001",
-      "name": "API 10 tag rule on headers",
+      "name": "API 10 tag rule on request headers",
       "tags": {
         "type": "api10 request headers",
         "category": "attack_attempt"
@@ -305,8 +305,8 @@
         "event": true,
         "keep": true,
         "attributes": {
-          "_dd.appsec.trace.mark": {
-            "value": "TAG_API10_HEADER"
+          "_dd.appsec.trace.req_header": {
+            "value": "TAG_API10_REQ_HEADERS"
           }
         }
       },
@@ -314,7 +314,7 @@
     },
     {
       "id": "apiA-100-002",
-      "name": "API 10 tag rule on body",
+      "name": "API 10 tag rule on request body",
       "tags": {
         "type": "api10 request body",
         "category": "attack_attempt"
@@ -339,8 +339,39 @@
         "event": true,
         "keep": true,
         "attributes": {
-          "_dd.appsec.trace.mark": {
-            "value": "TAG_API10_BODY"
+          "_dd.appsec.trace.req_body": {
+            "value": "TAG_API10_REQ_BODY"
+          }
+        }
+      },
+      "on_match": []
+    },      
+    {
+      "id": "apiA-100-003",
+      "name": "API 10 tag rule on request method",
+      "tags": {
+        "type": "api10 request method",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.request.method",
+              }
+            ],
+            "list": ["TRACE"]
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "output": {
+        "event": true,
+        "keep": true,
+        "attributes": {
+          "_dd.appsec.trace.req_method": {
+            "value": "TAG_API10_REQ_METHOD"
           }
         }
       },

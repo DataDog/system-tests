@@ -1081,12 +1081,13 @@ def s3_multipart_upload(request):
 
     return JsonResponse(result)
 
-
+@require_http_methods(["GET", "TRACE"])
 def external_request(request):
     import urllib.request
     import urllib.error
     queries = {k:str(v) for k,v in request.GET.items()}
-    request = urllib.request.Request("http://internal_server:8089/mirror_get/200", method="GET", headers=queries)
+    method = "TRACE" if request.method == "TRACE" else "GET"
+    request = urllib.request.Request("http://internal_server:8089/mirror_get/200", method=method, headers=queries)
     try:
         with urllib.request.urlopen(request, timeout=10) as fp:
             payload = fp.read().decode()
