@@ -874,7 +874,7 @@ tests/:
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+      Test_Blocking_client_ip_with_forwarded: *ref_5_66_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
