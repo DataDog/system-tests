@@ -115,7 +115,9 @@ def test_server_log_file(
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
-    request.node.add_report_section("teardown", f"{apm_test_server.lang.capitalize()} Library Output", f"Log file:\n./{log_path}")
+    request.node.add_report_section(
+        "teardown", f"{apm_test_server.lang.capitalize()} Library Output", f"Log file:\n./{log_path}"
+    )
 
 
 class _TestAgentAPI:
