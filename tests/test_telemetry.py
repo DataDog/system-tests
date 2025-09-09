@@ -569,8 +569,6 @@ class Test_Telemetry:
 @scenarios.telemetry_enhanced_config_reporting
 @rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
 class Test_TelemetryEnhancedConfigReporting:
-    """Test that configuration sources are sent with telemetry events of interest in correct precedence order under the app-started and app-client-configuration-change events"""
-
     CONFIG_PRECEDENCE_ORDER = {
         "nodejs": {
             "configuration": {
@@ -602,7 +600,6 @@ class Test_TelemetryEnhancedConfigReporting:
     }
 
     def test_telemetry_events_seq_id(self):
-        """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
         configurations = interfaces.library.get_telemetry_configurations()
         assert configurations, "No configurations found"
         for cnf in configurations:
@@ -610,11 +607,10 @@ class Test_TelemetryEnhancedConfigReporting:
             assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
 
     def test_telemetry_enhanced_config_reporting_precedence(self):
-        """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
         config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
         config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
 
-        # Group configs by name and origin for this payload, keeping only the last occurrence for each (name, origin)
+        # Group configs by name and origin, keeping only the last occurrence for each (name, origin)
         configurations = interfaces.library.get_telemetry_configurations()
         assert configurations, "No configurations found"
         configs_by_name: dict[str, dict[str, dict]] = {}
@@ -623,9 +619,9 @@ class Test_TelemetryEnhancedConfigReporting:
             origin = cnf["origin"]
             if name not in configs_by_name:
                 configs_by_name[name] = {}
-            configs_by_name[name][origin] = cnf  # overwrite, so only the last for this origin
+            configs_by_name[name][origin] = cnf
 
-        # For each name, get the list of latest configs (one per origin)
+        # Get the list of latest configs (one per origin) for each name
         configs_by_name_final: dict[str, list[dict]] = {
             name: list(origin_map.values()) for name, origin_map in configs_by_name.items()
         }
@@ -634,7 +630,7 @@ class Test_TelemetryEnhancedConfigReporting:
         assert (
             len(matching_configs) >= len(config_precedence_order)
         ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
-        # order by seq_id
+        # Sort by seq_id to match precedence order
         matching_configs.sort(key=lambda x: x["seq_id"])
 
         for i in range(len(config_precedence_order)):
