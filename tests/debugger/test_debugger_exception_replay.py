@@ -210,7 +210,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):  # noqa: ARG001
+        def __scrub_python(key, value, parent):
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
@@ -229,6 +229,10 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
                 scrubbed.append({"<runtime>": "<scrubbed>"})
                 return scrubbed
+
+            elif key == "type" and value == "er_snapshot":
+                del parent["type"]
+
             return __scrub(value)
 
         def __scrub_none(key, value, parent):  # noqa: ARG001
