@@ -32,6 +32,18 @@ from utils._context._scenarios.parametric import APMLibraryTestServer
 default_subprocess_run_timeout = 300
 
 
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    item._report_sections = list(filter(
+        lambda section: not (
+            "Library Output" in section[1] or 
+            "Test Agent Output" in section[1] or
+            False
+        ),
+        item._report_sections
+    ))
+    return(yield)
+
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
     import uuid
