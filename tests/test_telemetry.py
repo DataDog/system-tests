@@ -1,4 +1,5 @@
 import json
+from typing import Any
 from collections import defaultdict
 from datetime import timedelta
 import time
@@ -569,74 +570,81 @@ class Test_Telemetry:
 @scenarios.telemetry_enhanced_config_reporting
 @rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
 class Test_TelemetryEnhancedConfigReporting:
-    CONFIG_PRECEDENCE_ORDER = {
+    # Expected configuration precedence: default -> env_var -> code
+    EXPECTED_CONFIGS: dict[str, dict[str, Any]] = {
         "nodejs": {
-            "configuration": {
-                "DD_LOG_INJECTION": [
-                    {"name": "DD_LOG_INJECTION", "origin": "default", "value": True},
-                    {"name": "DD_LOG_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOG_INJECTION", "origin": "code", "value": True},
-                ],
-            },
+            "name": "DD_LOG_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
         },
         "python": {
-            "configuration": {
-                "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
-                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
-                ],
-            },
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
         },
         "dotnet": {
-            "configuration": {
-                "DD_LOGS_INJECTION": [
-                    {"name": "DD_LOGS_INJECTION", "origin": "default", "value": True},
-                    {"name": "DD_LOGS_INJECTION", "origin": "env_var", "value": False},
-                    {"name": "DD_LOGS_INJECTION", "origin": "code", "value": True},
-                ],
-            },
+            "name": "DD_LOGS_INJECTION",
+            "precedence": [
+                {"origin": "default", "value": True},
+                {"origin": "env_var", "value": False},
+                {"origin": "code", "value": True},
+            ],
         },
     }
 
     def test_telemetry_events_seq_id(self):
+        """Verify all configuration entries have valid seq_id."""
         configurations = interfaces.library.get_telemetry_configurations()
         assert configurations, "No configurations found"
-        for cnf in configurations:
-            assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-            assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
+
+        for config in configurations:
+            assert "seq_id" in config, f"Configuration missing seq_id: {config}"
+            assert config["seq_id"] is not None, f"Configuration has null seq_id: {config}"
 
     def test_telemetry_enhanced_config_reporting_precedence(self):
-        config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
-        config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
+        """Verify configuration precedence order matches expected sequence."""
+        expected_config = self.EXPECTED_CONFIGS[context.library.name]
+        config_name = expected_config["name"]
+        expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
-        # Group configs by name and origin, keeping only the last occurrence for each (name, origin)
-        configurations = interfaces.library.get_telemetry_configurations()
-        assert configurations, "No configurations found"
-        configs_by_name: dict[str, dict[str, dict]] = {}
-        for cnf in configurations:
-            name = cnf["name"]
-            origin = cnf["origin"]
-            if name not in configs_by_name:
-                configs_by_name[name] = {}
-            configs_by_name[name][origin] = cnf
+        # Get configurations and filter by name
+        all_configs = interfaces.library.get_telemetry_configurations()
+        assert all_configs, "No configurations found"
 
-        # Get the list of latest configs (one per origin) for each name
-        configs_by_name_final: dict[str, list[dict]] = {
-            name: list(origin_map.values()) for name, origin_map in configs_by_name.items()
-        }
-        matching_configs = configs_by_name_final.get(config_name, [])
+        matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
+        assert matching_configs, f"No configurations found for {config_name}"
 
-        assert (
-            len(matching_configs) >= len(config_precedence_order)
-        ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
-        # Sort by seq_id to match precedence order
-        matching_configs.sort(key=lambda x: x["seq_id"])
+        # Group by origin and keep the latest (highest seq_id) for each origin
+        latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
-        for i in range(len(config_precedence_order)):
-            assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
-            assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
-            assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
+        # Sort by seq_id to get the precedence order
+        sorted_configs: list[dict[str, Any]] = sorted(latest_by_origin.values(), key=lambda x: x["seq_id"])
+
+        # Verify we have at least as many configs as expected
+        assert len(sorted_configs) >= len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
+
+        # Verify each configuration matches expected precedence
+        for i, expected in enumerate(expected_precedence):
+            actual = sorted_configs[i]
+            assert actual["name"] == config_name, f"Config: {actual}, Expected Name: {config_name}"
+            assert actual["origin"] == expected["origin"], f"Config: {actual}, Expected Origin: {expected['origin']}"
+            assert actual["value"] == expected["value"], f" Config: {actual}, Expected Value: {expected['value']}"
+
+    def _get_latest_configs_by_origin(self, configs: list[dict]) -> dict[str, dict[str, Any]]:
+        """Group configs by origin and return the latest (highest seq_id) for each origin."""
+        latest_by_origin: dict[str, dict[str, Any]] = {}
+
+        for config in configs:
+            origin = config["origin"]
+            if origin not in latest_by_origin or config["seq_id"] > latest_by_origin[origin]["seq_id"]:
+                latest_by_origin[origin] = config
+        return latest_by_origin
 
 
 @features.telemetry_instrumentation

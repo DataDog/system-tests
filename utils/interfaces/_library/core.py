@@ -179,20 +179,20 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
-    def get_telemetry_configurations(self):
+    def get_telemetry_configurations(self) -> list[dict]:
+        """Extract and sort configuration entries from telemetry events."""
         configurations = []
         for telemetry_payload in self.get_telemetry_data():
             content = telemetry_payload["request"]["content"]
-            # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+            # Handle message-batch format (used by dotnet)
             if content.get("request_type") == "message-batch":
                 content = content["payload"][0]
+            # Only process configuration-relevant events
             if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 continue
 
-            configurations += content["payload"]["configuration"]
-
-        configurations.sort(key=lambda x: x.get("seq_id", -1))
-        logger.debug("Found the following configs: %s", configurations)
+            configurations.extend(content["payload"]["configuration"])
+        logger.debug("Found configurations: %s", configurations)
         return configurations
 
     def get_telemetry_metric_series(self, namespace: str, metric: str):
