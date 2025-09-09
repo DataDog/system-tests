@@ -8,7 +8,7 @@ name: Daily Tag
 
 on:
   schedule:
-    - cron: '55 23 * * *' # Runs every day at 23:55 UTC, if there is no commit for that day
+    - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
   push:
     branches:
       - main
@@ -31,6 +31,14 @@ jobs:
       - name: Create and push tag
         run: |
           COMMIT=$(git rev-parse origin/main)
-          DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d' "$COMMIT")
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Use today's date (UTC)
+            DATE=$(date -u +'%Y-%m-%d')
+          else
+            # Use the commit date
+            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d' "$COMMIT")
+          fi
+
           git tag "$DATE" "$COMMIT" || echo "Tag $DATE already exists"
           git push origin "$DATE" || echo "Tag already pushed"
