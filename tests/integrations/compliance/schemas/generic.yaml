@@ -1,0 +1,15 @@
+root_span_attributes:
+  mandatory:
+    - meta.language
+    - meta.runtime-id
+    - metrics.process_id
+
+span_attributes:
+  mandatory:
+    - duration
+    - meta.span.kind
+    - name
+    - resource
+    - service
+    - start
+    - type
