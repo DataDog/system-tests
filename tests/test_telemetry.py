@@ -601,94 +601,46 @@ class Test_TelemetryEnhancedConfigReporting:
         },
     }
 
-    @scenarios.telemetry_enhanced_config_reporting
     def test_telemetry_events_seq_id(self):
         """Assert that the seq_id is sent for each configuration entry in telemetry events of interest"""
+        configurations = interfaces.library.get_telemetry_configurations()
+        assert configurations, "No configurations found"
+        for cnf in configurations:
+            assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
+            assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
 
-        def validator(data):
-            # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
-            # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
-            content = data["request"]["content"]
-            # dotnet sends message-batch with app-started [and app-client-configuration-change?]
-            if content.get("request_type") == "message-batch":
-                content = content["payload"][0]
-            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
-                return
-            configurations = content["payload"]["configuration"]
-            assert configurations, f"No configurations found in telemetry event: {configurations}"
-            for cnf in configurations:
-                assert "seq_id" in cnf, f"Configuration missing seq_id: {cnf}"
-                assert cnf["seq_id"] is not None, f"Configuration has null seq_id: {cnf}"
-
-        self.validate_library_telemetry_data(validator)
-
-    @scenarios.telemetry_enhanced_config_reporting
     def test_telemetry_enhanced_config_reporting_precedence(self):
         """Assert that the seq_id for each configuration entry for a given configuration name matches the origin precedence"""
+        config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
+        config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
 
-        def validator(data):
-            config_name = list(self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"].keys())[0]
-            config_precedence_order = self.CONFIG_PRECEDENCE_ORDER[context.library.name]["configuration"][config_name]
+        # Group configs by name and origin for this payload, keeping only the last occurrence for each (name, origin)
+        configurations = interfaces.library.get_telemetry_configurations()
+        assert configurations, "No configurations found"
+        configs_by_name: dict[str, dict[str, dict]] = {}
+        for cnf in configurations:
+            name = cnf["name"]
+            origin = cnf["origin"]
+            if name not in configs_by_name:
+                configs_by_name[name] = {}
+            configs_by_name[name][origin] = cnf  # overwrite, so only the last for this origin
 
-            # Map config name to the latest list of config entries (dicts)
-            latest_configs: dict[str, list[dict]] = {}
+        # For each name, get the list of latest configs (one per origin)
+        configs_by_name_final: dict[str, list[dict]] = {
+            name: list(origin_map.values()) for name, origin_map in configs_by_name.items()
+        }
+        matching_configs = configs_by_name_final.get(config_name, [])
 
-            for telemetry_payload in data:
-                content = telemetry_payload["request"]["content"]
-                # dotnet sends message-batch with app-started [and app-client-configuration-change?]
-                if content.get("request_type") == "message-batch":
-                    content = content["payload"][0]
-                # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
-                # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
-                if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
-                    continue
+        assert (
+            len(matching_configs) >= len(config_precedence_order)
+        ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
+        # order by seq_id
+        matching_configs.sort(key=lambda x: x["seq_id"])
 
-                configurations = content["payload"]["configuration"]
-                assert configurations, f"No configurations found in telemetry event: {configurations}"
-
-                # Group configs by name and origin for this payload, keeping only the last occurrence for each (name, origin)
-                configs_by_name: dict[str, dict[str, dict]] = {}
-                for cnf in configurations:
-                    name = cnf["name"]
-                    origin = cnf["origin"]
-                    if name not in configs_by_name:
-                        configs_by_name[name] = {}
-                    configs_by_name[name][origin] = cnf  # overwrite, so only the last for this origin
-
-                # For each name, get the list of latest configs (one per origin)
-                configs_by_name_final: dict[str, list[dict]] = {
-                    name: list(origin_map.values()) for name, origin_map in configs_by_name.items()
-                }
-
-                # Update latest_configs: replace only if present in this payload
-                latest_configs.update(configs_by_name_final)
-
-            matching_configs = latest_configs.get(config_name, [])
-
-            assert (
-                len(matching_configs) >= len(config_precedence_order)
-            ), f"Expected {len(config_precedence_order)} configurations for {config_name}, but found {len(matching_configs)}"
-            # order by seq_id
-            matching_configs.sort(key=lambda x: x["seq_id"])
-
-            for i in range(len(config_precedence_order)):
-                assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
-                assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
-                assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
-
-        self.validate_library_telemetry_data(validator, success_by_default=False, get_all_data_at_once=True)
-
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False, get_all_data_at_once=False):
-        """Reuse telemetry validation method from Test_Telemetry"""
-        telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
-
-        if len(telemetry_data) == 0 and not success_by_default:
-            raise ValueError("No telemetry data to validate on")
-        if get_all_data_at_once:
-            validator(telemetry_data)
-        else:
-            for data in telemetry_data:
-                validator(data)
+        for i in range(len(config_precedence_order)):
+            assert matching_configs[i]["name"] == config_precedence_order[i]["name"]
+            assert matching_configs[i]["origin"] == config_precedence_order[i]["origin"]
+            assert matching_configs[i]["value"] == config_precedence_order[i]["value"]
 
 
 @features.telemetry_instrumentation

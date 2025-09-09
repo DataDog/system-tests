@@ -179,6 +179,24 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 else:
                     yield data
 
+    def get_telemetry_configurations(self):
+        configurations = []
+        for telemetry_payload in self.get_telemetry_data():
+            content = telemetry_payload["request"]["content"]
+            # dotnet sends message-batch with app-started [and app-client-configuration-change?]
+            if content.get("request_type") == "message-batch":
+                content = content["payload"][0]
+            # Some SDKs may send programmatic configuration changes in the app-client-configuration-change event
+            # so we need to check for all relevant events to ensure that seq_id is correct in the lifetime of the application
+            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
+                continue
+
+            configurations += content["payload"]["configuration"]
+
+        configurations.sort(key=lambda x: x.get("seq_id", -1))
+        logger.debug("Found the following configs: %s", configurations)
+        return configurations
+
     def get_telemetry_metric_series(self, namespace: str, metric: str):
         relevant_series = []
         for data in self.get_telemetry_data():
