@@ -115,6 +115,11 @@ build() {
         echo "Setting remote cache for write"
         CACHE_TO="--cache-to type=registry,ref=${DOCKER_REGISTRY_CACHE_PATH}/${WEBLOG_VARIANT}:cache"
     fi
+    # In CI environments we don't have a docker daemon to load the resulting image.
+    # Unless DOCKER_HOST is set, then we're running on a Docker in Docker runner.
+    if [[ -z "${CI:-}" ]] || [[ -n "${CI:-}" && -n "$DOCKER_HOST" ]]; then
+        EXTRA_DOCKER_ARGS+=("--load")
+    fi
 
     echo "=================================="
     echo "build images for system tests"
@@ -290,14 +295,7 @@ build() {
                 fi
             fi
         elif [[ $IMAGE_NAME == lambda-proxy ]]; then
-            docker buildx build \
-                --build-arg BUILDKIT_INLINE_CACHE=1 \
-                --load \
-                --progress=plain \
-                -f utils/build/docker/lambda-proxy.Dockerfile \
-                -t datadog/system-tests:lambda-proxy-v1 \
-                $EXTRA_DOCKER_ARGS \
-                .
+            ./utils/build/build_lambda_proxy.sh "${EXTRA_DOCKER_ARGS[@]}"
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
