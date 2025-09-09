@@ -1,5 +1,6 @@
 import uuid
 import json
+import time
 from scp import SCPClient
 
 from utils import scenarios, context, features, irrelevant, logger
@@ -25,7 +26,29 @@ class _AutoInjectBlockListBaseTest:
         logger.info(stderr.readlines())
 
         scp = SCPClient(ssh_client.get_transport())
-        scp.get(remote_path=f"/var/log/datadog_weblog/{unique_log_name}", local_path=log_local_path)
+
+        # Retry mechanism for scp.get() - try up to 3 times
+        # Ruby might take more time to create the log file
+        max_retries = 3
+        last_exception: Exception | None = None
+
+        for attempt in range(max_retries):
+            try:
+                scp.get(remote_path=f"/var/log/datadog_weblog/{unique_log_name}", local_path=log_local_path)
+                logger.info(f"Successfully retrieved log file on attempt {attempt + 1}")
+                break
+            except Exception as e:
+                last_exception = e
+                logger.warning(f"Attempt {attempt + 1}/{max_retries} failed to retrieve log file: {e}")
+                if attempt < max_retries - 1:  # Don't sleep on the last attempt
+                    time.sleep(2)  # Wait 2 seconds before retrying
+        else:
+            # All retries failed, raise the last exception
+            logger.error(f"Failed to retrieve log file after {max_retries} attempts")
+            if last_exception is not None:
+                raise last_exception
+            else:
+                raise RuntimeError("Failed to retrieve log file but no exception was captured")
 
         return log_local_path
 
