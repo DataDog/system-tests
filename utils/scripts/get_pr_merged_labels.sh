@@ -34,7 +34,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-buddies-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-buddies-images' label. Launching the images generation process "
-        ./utils/build/build_tracer_buddies.sh --push --platform linux/amd64
+        ./utils/build/build_tracer_buddies.sh --platform linux/amd64
         echo "------------- The buddies images have been built and pushed ------------- "
     fi
 
@@ -44,7 +44,7 @@ if [[ $CI_COMMIT_MESSAGE =~ ($PR_PATTERN) ]]; then
         echo "The PR $PR_NUMBER doesn't contain the 'build-python-base-images' label "
     else
         echo "The PR $PR_NUMBER contains the 'build-python-base-images' label. Launching the images generation process "
-        ./utils/build/build_python_base_images.sh --push --platform linux/amd64
+        ./utils/build/build_python_base_images.sh --platform linux/amd64
         echo "------------- The python base images have been built and pushed ------------- "
     fi
 

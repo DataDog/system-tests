@@ -117,7 +117,7 @@ build() {
     fi
     # In CI environments we don't have a docker daemon to load the resulting image.
     # Unless DOCKER_HOST is set, then we're running on a Docker in Docker runner.
-    if [[ -z "${CI:-}" ]] || [[ -n "${CI:-}" && -n "$DOCKER_HOST" ]]; then
+    if [[ -z "${CI:-}" ]] || [[ -n "${CI:-}" && -n "${DOCKER_HOST:-}" ]]; then
         EXTRA_DOCKER_ARGS+=("--load")
     fi
 
