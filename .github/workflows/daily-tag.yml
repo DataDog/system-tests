@@ -14,6 +14,9 @@ on:
       - main
   workflow_dispatch: # allow manual trigger too
 
+permissions:
+  contents: write
+
 jobs:
   tag:
     runs-on: ubuntu-latest
@@ -40,5 +43,5 @@ jobs:
             DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d' "$COMMIT")
           fi
 
-          git tag "$DATE" "$COMMIT" || echo "Tag $DATE already exists"
-          git push origin "$DATE" || echo "Tag already pushed"
+          git tag -f "$DATE" "$COMMIT"
+          git push -f origin "$DATE"
