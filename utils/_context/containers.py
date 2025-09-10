@@ -1449,6 +1449,22 @@ class DummyServerContainer(TestedContainer):
         )
 
 
+class InternalServerContainer(TestedContainer):
+    def __init__(self, host_log_folder: str) -> None:
+        super().__init__(
+            image_name="demisto/fastapi:0.116.1.4266494",
+            name="internal_server",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
+            local_image_only=True,
+            command="/bin/sh /app/app.sh",
+            volumes={
+                "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
+                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
+            },
+        )
+
+
 class EnvoyContainer(TestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         from utils import weblog
