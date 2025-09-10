@@ -28,7 +28,9 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library >= "python@3.15", reason="Need to update approvals for upcoming version", force_skip=True)
+@missing_feature(
+    context.library >= "python@3.15", reason="Need to update approvals for upcoming version", force_skip=True
+)
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
