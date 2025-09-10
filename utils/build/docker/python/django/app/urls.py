@@ -1117,11 +1117,11 @@ def external_request(request):
     body = request.body or None
     if body:
         queries["Content-Type"] = request.headers.get("content-type") or "application/json"
-    request = urllib.request.Request(
+    urllib_request = urllib.request.Request(
         f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
     )
     try:
-        with urllib.request.urlopen(request, timeout=10) as fp:
+        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
             payload = fp.read().decode()
             return JsonResponse(
                 {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
