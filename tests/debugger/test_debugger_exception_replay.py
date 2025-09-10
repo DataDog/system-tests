@@ -135,7 +135,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                     if key in ["timestamp", "id", "exceptionId", "duration"]:
                         scrubbed_data[key] = "<scrubbed>"
                     else:
-                        scrubbed_data[key] = scrub_language(key, value, data)
+                        scrubbed_value = scrub_language(key, value, data)
+                        if scrubbed_value is not None:
+                            scrubbed_data[key] = scrubbed_value
 
                 return scrubbed_data
             elif isinstance(data, list):
@@ -210,7 +212,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return scrubbed
             return __scrub(value)
 
-        def __scrub_python(key, value, parent):
+        def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
                 value["fields"] = "<scrubbed>"
                 return value
@@ -231,7 +233,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 return scrubbed
 
             elif key == "type" and value == "er_snapshot":
-                del parent["type"]
+                return None
 
             return __scrub(value)
 
