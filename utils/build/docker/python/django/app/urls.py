@@ -1083,28 +1083,6 @@ def s3_multipart_upload(request):
     return JsonResponse(result)
 
 
-from ddtrace.appsec._ddwaf.waf import DDWaf
-
-
-def monitor(f):
-    name = getattr(f, "__name__", "unknown function")
-
-    def wrapped(*args, **kwargs):
-        print(f"\n>>> {name} called {args} {kwargs}")
-        try:
-            res = f(*args, **kwargs)
-            print(f"\n>>> {name} return {res}")
-            return res
-        except BaseException as e:
-            print(f"\n>>> {name} exception {e}")
-            raise
-
-    return wrapped
-
-
-DDWaf.run = monitor(DDWaf.run)
-
-
 @csrf_exempt
 @require_http_methods(["GET", "TRACE", "POST"])
 def external_request(request):
