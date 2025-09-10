@@ -207,6 +207,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
@@ -419,6 +427,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
@@ -740,6 +749,8 @@ tests/:
       Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py:
       Test_Span_Events: missing_feature
     test_span_links.py:
@@ -779,11 +790,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v2.13.0
     Test_Baggage_Headers_Malformed: v2.13.0

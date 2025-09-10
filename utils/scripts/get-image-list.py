@@ -24,7 +24,7 @@ def main(scenarios: list[str], library: str, weblog: str) -> None:
     # remove images that exists locally (they may not exists in the registry, ex: buddies)
     images = {image for image in images if image not in existing_tags}
 
-    compose_data = {"services": {re.sub(r"[/:\.]", "-", image): {"image": image} for image in sorted(images)}}
+    compose_data = {"services": {re.sub(r"[/:\.@]", "-", image): {"image": image} for image in sorted(images)}}
 
     print(yaml.dump(compose_data, default_flow_style=False))
 
@@ -55,6 +55,7 @@ if __name__ == "__main__":
             "python_otel",
             "nodejs_otel",
             "python_lambda",
+            "rust",
             "",
         ],
     )
