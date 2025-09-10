@@ -34,10 +34,10 @@ jobs:
 
           if [ "${{ github.event_name }}" = "schedule" ]; then
             # Use today's date (UTC)
-            DATE=$(date -u +'%Y-%m-%d')
+            DATE=$(date -u +'%Y.%m.%d')
           else
             # Use the commit date
-            DATE=$(git show -s --format=%cd --date=format:'%Y-%m-%d' "$COMMIT")
+            DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d' "$COMMIT")
           fi
 
           git tag "$DATE" "$COMMIT" || echo "Tag $DATE already exists"
