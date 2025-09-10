@@ -560,6 +560,7 @@ tests/:
         django-poc: v1.10
         fastapi: v2.4.0
         flask-poc: v1.10
+      Test_Blocking_client_ip_with_K8_private_ip: v2.4.0
       Test_Blocking_client_ip_with_forwarded: v3.13.0.dev
       Test_Blocking_request_body:
         '*': v1.16.1
@@ -729,7 +730,9 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
-      Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_BlockingActionChangesWithRemoteConfig:
+        '*': v2.10.1
+        django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_Empty_Config: v3.10.0
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
@@ -1108,7 +1111,9 @@ tests/:
       TestTracerFlareV1: v3.12.0.dev
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: v2.1.0
+      Test_RemoteConfigurationExtraServices:
+        '*': v2.1.1
+        django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
@@ -1134,13 +1139,6 @@ tests/:
             django-poc: v2.14.0
             flask-poc: v2.14.0
             python3.12: v2.14.0
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats:
-        '*': v0.1 (real version unknown)
-        django-py3.13: bug (APMLP-364)
   test_baggage.py:
     Test_Baggage_Headers_Basic:
       '*': irrelevant
@@ -1250,7 +1248,7 @@ tests/:
   test_semantic_conventions.py:
     Test_Meta:
       '*': v1.80.0
-      django-py3.13: bug (APMLP-364)
+      django-py3.13: v3.0.0
     Test_MetaDatadogTags: v3.2.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:

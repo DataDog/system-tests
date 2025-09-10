@@ -339,6 +339,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_body_multipart: missing_feature
@@ -448,6 +449,14 @@ tests/:
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualAppsec: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   debugger/:
     test_debugger_code_origins.py:
       Test_Debugger_Code_Origins: missing_feature
@@ -597,9 +606,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v3.6.0
     Test_Baggage_Headers_Malformed: v3.6.0
