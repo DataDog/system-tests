@@ -593,7 +593,6 @@ class _Scenarios:
             "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
         },
         backend_interface_timeout=5,
-        require_api_key=True,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
 
