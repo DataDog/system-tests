@@ -741,6 +741,8 @@ tests/:
       Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py:
       Test_Span_Events: missing_feature
     test_span_links.py:
