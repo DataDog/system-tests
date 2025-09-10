@@ -14,6 +14,7 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import retrieve_span_links
 from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils import bug, features, missing_feature, irrelevant, context, scenarios
+from urllib.parse import urlparse
 
 EXPECTED_SERVICE_NAME = "test2"
 EXPECTED_ENV = "test1"
@@ -728,6 +729,72 @@ class Test_Resource_Attributes:
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "otelenv" or actual_attributes.get("deployment.environment.name") == "otelenv"
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_Custom_Endpoints:
+    """FR05: Custom OTLP Endpoint Tests"""
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {**DEFAULT_ENVVARS},
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_otlp_custom_endpoint(
+        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = f"test_otlp_custom_endpoint-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4320
+        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        assert first_metrics_data is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {**DEFAULT_ENVVARS},
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4321,
+            ),
+        ],
+    )
+    def test_otlp_metrics_custom_endpoint(
+        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = f"test_otlp_metrics_custom_endpoint-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4321
+        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        assert first_metrics_data is not None
 
 
 @features.otel_metrics_api
