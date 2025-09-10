@@ -58,6 +58,76 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
             bucket_counts[-1] += 1
     return bucket_counts
 
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_FR01_Enable_OTLP_Metrics_Collection:
+    """FR01: OTLP Metrics Collection Enable/Disable Tests"""
+    
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": "true", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
+        ],
+    )
+    def test_otlp_metrics_enabled(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+
+        name = "enabled-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        assert first_metrics_data is not None
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": "false", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
+        ],
+    )
+    def test_otlp_metrics_disabled(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+        name = "disabled-counter"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": None, "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
+        ],
+    )
+    def test_otlp_metrics_disabled_by_default(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+        name = "disabled-by-default-counter"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+
+
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api:
