@@ -513,6 +513,7 @@ tests/:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)
       Test_Empty_Config: missing_feature (the test relies on remote AppSec activation)
+      Test_Invalid_Config: missing_feature (the test relies on remote AppSec activation)
       Test_Multiple_Actions: missing_feature (the test relies on remote AppSec activation)
       Test_Unknown_Action: missing_feature (the test relies on remote AppSec activation)
       Test_UpdateRuleFileWithRemoteConfig: missing_feature (the test relies on remote AppSec activation)

@@ -1686,6 +1686,7 @@ tests/:
       Test_Empty_Config:
         '*': missing_feature
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_Invalid_Config: missing_feature
       Test_Multiple_Actions:
         '*': v1.42.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
