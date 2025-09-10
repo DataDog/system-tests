@@ -232,6 +232,7 @@ class Test_Config_RateLimit:
     )
     @flaky(library="java", reason="APMAPI-908")
     @bug(context.library == "golang", reason="APMAPI-1030")
+    @missing_feature(library="cpp")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="s1"):

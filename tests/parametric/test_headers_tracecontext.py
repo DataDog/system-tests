@@ -224,6 +224,7 @@ class Test_Headers_Tracecontext:
         assert traceparent.trace_id != "12345678901234567890123456789012"
 
     @temporary_enable_optin_tracecontext()
+    @missing_feature(library="cpp")
     def test_traceparent_version_illegal_characters(self, test_agent, test_library):
         """Harness sends an invalid traceparent with illegal characters in version
         expects a valid traceparent from the output header, with a newly generated trace_id
