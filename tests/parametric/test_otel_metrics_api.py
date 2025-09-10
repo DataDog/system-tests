@@ -837,3 +837,75 @@ class Test_OTLP_Protocols:
             metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf" if protocol == "http/protobuf" else "application/grpc"
         ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
 
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_FR08_Custom_Headers:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+
+        name = "test_custom_http_headers_included_in_otlp_export-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
+        assert first_metrics_data is not None
+
+        requests = test_agent.requests()
+        test_agent.clear()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert metrics_requests[0]["headers"].get("api-key") == "key", f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert (
+            metrics_requests[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=5,foo=bar1,baz=qux1",
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_metrics_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+
+        name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
+        assert first_metrics_data is not None
+
+        requests = test_agent.requests()
+        test_agent.clear()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert metrics_requests[0]["headers"].get("api-key") == "key", f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert (
+            metrics_requests[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
