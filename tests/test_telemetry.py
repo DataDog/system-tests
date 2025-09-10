@@ -609,6 +609,14 @@ class Test_TelemetryEnhancedConfigReporting:
                 {"origin": "code", "value": True},
             ],
         },
+        "java": {
+            "name": "logs_injection_enabled",
+            "precedence": [
+                {"origin": "default", "value": "true"},
+                {"origin": "jvm_prop", "value": "true"},
+                {"origin": "env_var", "value": "false"},
+            ],
+        },
     }
 
     def test_telemetry_events_seq_id(self):

@@ -135,6 +135,7 @@ class _Scenarios:
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
+            "DD_TRACE_CONFIG": "ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
