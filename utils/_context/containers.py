@@ -1456,7 +1456,6 @@ class InternalServerContainer(TestedContainer):
             name="internal_server",
             host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
-            local_image_only=True,
             command="/bin/sh /app/app.sh",
             volumes={
                 "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
