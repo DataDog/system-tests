@@ -138,8 +138,10 @@ done
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 echo "Target platforms: ${DOCKER_PLATFORM}"
 
-# Setup buildx
-setup_buildx
+# In CI environments, the builder instance is pre-configured for us.
+if [[ -z "${CI:-}" ]]; then
+    setup_buildx
+fi
 
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
@@ -147,7 +149,7 @@ cd $WEBLOG_FOLDER
 # Build the image with retry mechanism
 if [ -n "${PUSH_TAG+set}" ]; then
     echo "Building and pushing image to ${PUSH_TAG}"
-    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} . --push"
+    retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t ${PUSH_TAG} ."
 else
     echo "Building local image"
     retry_with_backoff "docker buildx build ${PLATFORM_ARGS} -t weblog-injection:latest --load ."
