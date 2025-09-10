@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -1081,22 +1082,62 @@ def s3_multipart_upload(request):
 
     return JsonResponse(result)
 
-@require_http_methods(["GET", "TRACE"])
+
+from ddtrace.appsec._ddwaf.waf import DDWaf
+
+
+def monitor(f):
+    name = getattr(f, "__name__", "unknown function")
+
+    def wrapped(*args, **kwargs):
+        print(f"\n>>> {name} called {args} {kwargs}")
+        try:
+            res = f(*args, **kwargs)
+            print(f"\n>>> {name} return {res}")
+            return res
+        except BaseException as e:
+            print(f"\n>>> {name} exception {e}")
+            raise
+
+    return wrapped
+
+
+DDWaf.run = monitor(DDWaf.run)
+
+
+@csrf_exempt
+@require_http_methods(["GET", "TRACE", "POST"])
 def external_request(request):
     import urllib.request
     import urllib.error
-    queries = {k:str(v) for k,v in request.GET.items()}
-    method = "TRACE" if request.method == "TRACE" else "GET"
-    request = urllib.request.Request("http://internal_server:8089/mirror_get/200", method=method, headers=queries)
+
+    queries = {k: str(v) for k, v in request.GET.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = request.body
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+        request = urllib.request.Request(
+            f"http://internal_server:8089/mirror/{status}{url_extra}",
+            method=request.method,
+            headers=queries,
+            data=body,
+        )
+    else:
+        request = urllib.request.Request(
+            f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries
+        )
     try:
         with urllib.request.urlopen(request, timeout=10) as fp:
             payload = fp.read().decode()
             print(type(payload), payload)
             print(type(fp.status), fp.status)
             print(type(fp.headers), fp.headers)
-            return JsonResponse({"status":int(fp.status), "headers":dict(fp.headers.items()), "payload":payload})
+            return JsonResponse(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
     except urllib.error.HTTPError as e:
-        return JsonResponse({"status":int(e.status), "error":repr(e)})
+        return JsonResponse({"status": int(e.status), "error": repr(e)})
 
 
 urlpatterns = [

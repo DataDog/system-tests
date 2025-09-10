@@ -1458,8 +1458,10 @@ class InternalServerContainer(TestedContainer):
             healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
             local_image_only=True,
             command="/bin/sh /app/app.sh",
-            volumes={"./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
-                     "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"}},
+            volumes={
+                "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
+                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
+            },
         )
 
 

@@ -30,10 +30,10 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
-
     {
       "id": "rasp-930-100",
       "name": "Local file inclusion exploit",
@@ -79,7 +79,8 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
     {
@@ -127,7 +128,8 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
     {
@@ -177,7 +179,8 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
     {
@@ -226,7 +229,8 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
     {
@@ -275,7 +279,8 @@
       ],
       "transformers": [],
       "on_match": [
-        "stack_trace", "block"
+        "stack_trace",
+        "block"
       ]
     },
     {
@@ -296,7 +301,9 @@
                 ]
               }
             ],
-            "list": ["pwq3ojtropiw3hjtowir"]
+            "list": [
+              "pwq3ojtropiw3hjtowir"
+            ]
           },
           "operator": "exact_match"
         }
@@ -305,7 +312,7 @@
         "event": true,
         "keep": true,
         "attributes": {
-          "_dd.appsec.trace.req_header": {
+          "_dd.appsec.trace.req_headers": {
             "value": "TAG_API10_REQ_HEADERS"
           }
         }
@@ -326,11 +333,13 @@
               {
                 "address": "server.io.net.request.body",
                 "key_path": [
-                  "payload"
+                  "payload_in"
                 ]
               }
             ],
-            "list": ["qw2jedrkjerbgol23ewpfirj2qw3or"]
+            "list": [
+              "qw2jedrkjerbgol23ewpfirj2qw3or"
+            ]
           },
           "operator": "exact_match"
         }
@@ -345,7 +354,7 @@
         }
       },
       "on_match": []
-    },      
+    },
     {
       "id": "apiA-100-003",
       "name": "API 10 tag rule on request method",
@@ -358,10 +367,12 @@
           "parameters": {
             "inputs": [
               {
-                "address": "server.io.net.request.method",
+                "address": "server.io.net.request.method"
               }
             ],
-            "list": ["TRACE"]
+            "list": [
+              "TRACE"
+            ]
           },
           "operator": "exact_match"
         }
@@ -376,6 +387,108 @@
         }
       },
       "on_match": []
-    }      
+    },
+    {
+      "id": "apiA-100-004",
+      "name": "API 10 tag rule on response status",
+      "tags": {
+        "type": "api10 response status",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.status"
+              }
+            ],
+            "list": [
+              "201"
+            ]
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "output": {
+        "event": true,
+        "keep": true,
+        "attributes": {
+          "_dd.appsec.trace.res_status": {
+            "value": "TAG_API10_RES_STATUS"
+          }
+        }
+      },
+      "on_match": []
+    },
+    {
+      "id": "apiA-100-005",
+      "name": "API 10 tag rule on response headers",
+      "tags": {
+        "type": "api10 response headers",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.headers",
+                "key_path": [
+                  "echo-headers"
+                ]
+              }
+            ],
+            "list": [
+              "qwoierj12l3"
+            ]
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "output": {
+        "event": true,
+        "keep": true,
+        "attributes": {
+          "_dd.appsec.trace.res_headers": {
+            "value": "TAG_API10_RES_HEADERS"
+          }
+        }
+      },
+      "on_match": []
+    },
+    {
+      "id": "apiA-100-006",
+      "name": "API 10 tag rule on response body",
+      "tags": {
+        "type": "api10 reponse body",
+        "category": "attack_attempt"
+      },
+      "conditions": [
+        {
+          "parameters": {
+            "inputs": [
+              {
+                "address": "server.io.net.response.body"
+              }
+            ],
+            "list": [
+              "kqehf09123r4lnksef"
+            ]
+          },
+          "operator": "exact_match"
+        }
+      ],
+      "output": {
+        "event": true,
+        "keep": true,
+        "attributes": {
+          "_dd.appsec.trace.res_body": {
+            "value": "TAG_API10_RES_BODY"
+          }
+        }
+      },
+      "on_match": []
+    }
   ]
 }
