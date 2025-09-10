@@ -41,6 +41,17 @@ DEFAULT_ENVVARS = {
     "CORECLR_ENABLE_PROFILING": "1",
 }
 
+@pytest.fixture
+def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_name, test_agent_otlp_grpc_port):
+    """Set up a custom endpoint for OTLP metrics."""
+    prev_value = library_env.get(endpoint_env)
+    library_env[endpoint_env] = f"http://{test_agent_container_name}:{test_agent_otlp_grpc_port}"
+    yield library_env
+    if prev_value is None:
+        del library_env[endpoint_env]
+    else:
+        library_env[endpoint_env] = prev_value
+
 def find_metric_by_name(scope_metrics: list[dict], name: str):
     for scope_metric in scope_metrics:
         for metric in scope_metric["metrics"]:
