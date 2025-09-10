@@ -21,6 +21,7 @@ def test_tracer_release():
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
         scenarios.mock_the_test,
+        scenarios.mock_the_test_2,
         scenarios.test_the_test,
         scenarios.todo,
         # Is it targeting tracers ?
@@ -52,6 +53,7 @@ def test_tracer_release():
         scenarios.k8s_lib_injection_spark_djm,
         scenarios.k8s_lib_injection_uds,
         scenarios.k8s_lib_injection,
+        scenarios.k8s_injector_dev_single_service,
         scenarios.lib_injection_validation_unsupported_lang,
         scenarios.lib_injection_validation,
         scenarios.local_auto_injection_install_script,

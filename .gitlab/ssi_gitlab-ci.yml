@@ -76,6 +76,11 @@ ssi_tests:
         - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
         - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
     after_script: |
+        # Only fetch FP params on main in system-tests repo (use default CI creds)
+        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+        fi
         # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
         echo "Setting up AWS credentials for after_script..."
         mkdir -p ~/.aws
@@ -121,8 +126,6 @@ ssi_tests:
 
         # Feature parity
         if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
           for folder in reports/logs*/ ; do
             echo "Checking folder: ${folder}"
             for filename in ./${folder}*_feature_parity.json; do
@@ -156,7 +159,7 @@ ssi_tests:
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
-  timeout: 25 minutes
+  timeout: 35 minutes
   variables:
     # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
     FF_USE_NEW_BASH_EVAL_STRATEGY: true

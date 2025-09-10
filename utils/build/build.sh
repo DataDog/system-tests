@@ -26,7 +26,7 @@ readonly DEFAULT_SAVE_TO_BINARIES=0
 # XXX: Avoid associative arrays for Bash 3 compatibility.
 readonly DEFAULT_nodejs=express4
 readonly DEFAULT_python=flask-poc
-readonly DEFAULT_ruby=rails70
+readonly DEFAULT_ruby=rails72
 readonly DEFAULT_golang=net-http
 readonly DEFAULT_java=spring-boot
 readonly DEFAULT_java_otel=spring-boot-native
@@ -37,6 +37,8 @@ readonly DEFAULT_dotnet=poc
 readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
+readonly DEFAULT_python_lambda=apigw-rest
+readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -57,6 +59,7 @@ print_usage() {
     echo -e "  ${CYAN}--weblog-variant <var>${NC}     Weblog variant (env: WEBLOG_VARIANT)."
     echo -e "  ${CYAN}--images <images>${NC}          Comma-separated list of images to build (env: BUILD_IMAGES, default: ${DEFAULT_BUILD_IMAGES})."
     echo -e "  ${CYAN}--docker${NC}                   Build docker image instead of local install (env: DOCKER_MODE, default: ${DEFAULT_DOCKER_MODE})."
+    echo -e "  ${CYAN}--github-token-file <file>${NC} Path to a file containing a GitHub token used for authenticated operations (e.g. cloning private repos, accessing the API)."
     echo -e "  ${CYAN}--extra-docker-args <args>${NC} Extra arguments passed to docker build (env: EXTRA_DOCKER_ARGS)."
     echo -e "  ${CYAN}--cache-mode <mode>${NC}        Cache mode (env: DOCKER_CACHE_MODE)."
     echo -e "  ${CYAN}--platform <platform>${NC}      Target Docker platform."
@@ -214,13 +217,51 @@ build() {
                 docker load --input $BINARIES_FILENAME
             else
 
+                # dd-trace-py compilation if required
+                if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
+                    echo "Compiling dd-trace-py"
+
+                    # Choose Python version based on weblog variant
+                    case "$WEBLOG_VARIANT" in
+                        flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
+                            PYTHON_VERSION="3.11"
+                            ;;
+                        django-py3.13)
+                            PYTHON_VERSION="3.13"
+                            ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
+                        *)
+                            echo "Error: Unknown weblog variant, python version could not be determined" >&2
+                            exit 1
+                            ;;
+                    esac
+
+                    echo "Using Python version: $PYTHON_VERSION"
+                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                fi
+
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
+
+                GITHUB_TOKEN_SECRET_ARG=""
+
+                if [ -n "${GITHUB_TOKEN_FILE:-}" ]; then
+                    if [ ! -f "$GITHUB_TOKEN_FILE" ]; then
+                        echo "Error: GitHub token file not found at $GITHUB_TOKEN_FILE" >&2
+                        exit 1
+                    fi
+
+                    echo "Using GitHub token from $GITHUB_TOKEN_FILE"
+                    GITHUB_TOKEN_SECRET_ARG="--secret id=github_token,src=$GITHUB_TOKEN_FILE"
+                fi
 
                 docker buildx build \
                     --build-arg BUILDKIT_INLINE_CACHE=1 \
                     --load \
                     --progress=plain \
                     ${DOCKER_PLATFORM_ARGS} \
+                    ${GITHUB_TOKEN_SECRET_ARG} \
                     -f ${DOCKERFILE} \
                     --label "system-tests-library=${TEST_LIBRARY}" \
                     --label "system-tests-weblog-variant=${WEBLOG_VARIANT}" \
@@ -248,6 +289,15 @@ build() {
                     docker save system_tests/weblog | gzip > $BINARIES_FILENAME
                 fi
             fi
+        elif [[ $IMAGE_NAME == lambda-proxy ]]; then
+            docker buildx build \
+                --build-arg BUILDKIT_INLINE_CACHE=1 \
+                --load \
+                --progress=plain \
+                -f utils/build/docker/lambda-proxy.Dockerfile \
+                -t datadog/system-tests:lambda-proxy-v1 \
+                $EXTRA_DOCKER_ARGS \
+                .
         else
             echo "Don't know how to build $IMAGE_NAME"
             exit 1
@@ -260,7 +310,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_otel|ruby) TEST_LIBRARY="$1";;
+        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;
@@ -269,6 +319,7 @@ while [[ "$#" -gt 0 ]]; do
         -c|--cache-mode) DOCKER_CACHE_MODE="$2"; shift ;;
         -p|--docker-platform) DOCKER_PLATFORM="--platform $2"; shift ;;
         -s|--save-to-binaries) SAVE_TO_BINARIES=1 ;;
+        --github-token-file) GITHUB_TOKEN_FILE="$2"; shift ;;
         --binary-url) BINARY_URL="$2"; shift ;;
         --binary-path) BINARY_PATH="$2"; shift ;;
         --list-libraries) COMMAND=list-libraries ;;
@@ -291,6 +342,7 @@ BUILD_IMAGES="${BUILD_IMAGES:-${DEFAULT_BUILD_IMAGES}}"
 TEST_LIBRARY="${TEST_LIBRARY:-${DEFAULT_TEST_LIBRARY}}"
 BINARY_PATH="${BINARY_PATH:-}"
 BINARY_URL="${BINARY_URL:-}"
+GITHUB_TOKEN_FILE="${GITHUB_TOKEN_FILE:-}"
 
 if [[ "${BUILD_IMAGES}" =~ /weblog/ && ! -d "${SCRIPT_DIR}/docker/${TEST_LIBRARY}" ]]; then
     echo "Library ${TEST_LIBRARY} not found"

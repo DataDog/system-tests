@@ -8,6 +8,7 @@ from utils.scripts.ci_orchestrators.workflow_data import (
     get_endtoend_definitions,
     get_docker_ssi_matrix,
     get_k8s_matrix,
+    get_k8s_injector_dev_matrix,
 )
 from utils.scripts.ci_orchestrators.gitlab_exporter import print_gitlab_pipeline
 
@@ -86,13 +87,19 @@ class CiData:
             "job_matrix": list(range(1, parametric_job_count + 1)),
             "enable": len(scenario_map["parametric"]) > 0
             and "otel" not in library
-            and library not in ("cpp_nginx", "cpp_httpd"),
+            and library not in ("cpp_nginx", "cpp_httpd", "python_lambda"),
         }
 
         self.data["externalprocessing"] = {"scenarios": scenario_map.get("externalprocessing", [])}
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),
+            library,
+        )
+
+        self.data["k8s_injector_dev_scenario_defs"] = get_k8s_injector_dev_matrix(
+            "utils/scripts/ci_orchestrators/k8s_injector_dev.json",
+            scenario_map.get("k8s_injector_dev", []),
             library,
         )
 
@@ -230,6 +237,8 @@ if __name__ == "__main__":
             "java_otel",
             "nodejs_otel",
             "python_otel",
+            "python_lambda",
+            "rust",
         ],
     )
 

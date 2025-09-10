@@ -59,9 +59,9 @@ class Test_TelemetryMetrics:
             "success",
         }
         series = self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name)
-        # TODO(Python). Gunicorn creates 2 process (main gunicorn process + X child workers). It generates two init
+        # Gunicorn creates 2 process (main gunicorn process + X child workers). It may generates two init (but not always as initialization is now lazy)
         if context.library == "python" and context.weblog_variant not in ("fastapi", "uwsgi-poc"):
-            assert len(series) == 2
+            assert len(series) in (1, 2)
         else:
             assert len(series) == 1
         s = series[0]
@@ -228,6 +228,8 @@ def _validate_headers(headers, request_type):
     expected_language = context.library.name
     if expected_language == "java":
         expected_language = "jvm"
+    elif expected_language == "golang":
+        expected_language = "go"
 
     # empty value means we don't care about the content, but we want to check the key exists
     # a set means "any of"
@@ -244,7 +246,7 @@ def _validate_headers(headers, request_type):
     elif context.library > "nodejs@4.20.0":
         # APM Node.js migrates Telemetry to V2
         expected_headers["DD-Telemetry-API-Version"] = "v2"
-    elif context.library >= "java@1.23.0":
+    elif context.library >= "java@1.23.0" or context.library >= "golang@2.0.0":
         expected_headers["DD-Telemetry-API-Version"] = "v2"
     else:
         expected_headers["DD-Telemetry-API-Version"] = "v1"

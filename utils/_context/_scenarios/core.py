@@ -27,14 +27,17 @@ class _ScenarioGroups:
     all = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
+    appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
     end_to_end = ScenarioGroup()
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     ipv6 = ScenarioGroup()
+    lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
+    k8s_injector_dev = ScenarioGroup()
     open_telemetry = ScenarioGroup()
     profiling = ScenarioGroup()
     sampling = ScenarioGroup()
@@ -75,6 +78,7 @@ VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
     "libinjection",
+    "k8s_injector_dev",
     "aws_ssi",
     "parametric",
     "testthetest",

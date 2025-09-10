@@ -28,7 +28,6 @@ import mock
 import urllib3
 import xmltodict
 import graphene
-import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -40,6 +39,8 @@ if os.environ.get("INCLUDE_MYSQL", "true") == "true":
     import mysql
     import MySQLdb
     import pymysql
+
+from loguru import logger as log
 
 from flask import Flask
 from flask import Response
@@ -87,7 +88,6 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
 
 import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -112,16 +112,24 @@ except ImportError:
     set_user = lambda *args, **kwargs: None
 
 
-logging.basicConfig(
-    level=logging.INFO,
-    format=(
-        "%(asctime)s %(levelname)s [%(name)s] [%(filename)s:%(lineno)d] "
-        "[dd.service=%(dd.service)s dd.env=%(dd.env)s dd.version=%(dd.version)s dd.trace_id=%(dd.trace_id)s dd.span_id=%(dd.span_id)s]"
-        " %(message)s"
-    ),
+# Configure loguru logger
+log.remove()
+# Sink for unstructured logs
+log.add(
+    sys.stdout,
+    format="{level}:{name}:{message}",
+    level="INFO",
+    serialize=False,
+    filter=lambda record: not record["extra"].get("structured"),
+)
+# Sink for structured logs
+log.add(
+    sys.stdout,
+    level="INFO",
+    serialize=True,
+    filter=lambda record: record["extra"].get("structured"),
 )
 
-log = logging.getLogger(__name__)
 
 POSTGRES_CONFIG = dict(
     host="postgres",
@@ -150,8 +158,6 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
 
 def main():
-    # IAST Flask patch
-    ddtrace_iast_flask_patch()
     app = Flask(__name__)
     app.secret_key = "SECRET_FOR_TEST"
     app.config["SESSION_TYPE"] = "memcached"
@@ -588,7 +594,7 @@ MAGIC_SESSION_KEY = "random_session_id"
 
 @app.route("/session/new")
 def session_new():
-    response = Response("OK")
+    response = Response(MAGIC_SESSION_KEY)
     response.set_cookie("session_id", MAGIC_SESSION_KEY)
     return response
 
@@ -1421,10 +1427,18 @@ def track_user_login_failure_event():
 def before_request():
     try:
         current_user = DB_USER.get(flask.session.get("login"), None)
-        if current_user:
-            set_user(ddtrace.tracer, user_id=current_user.uid, email=current_user.email, mode="auto")
+        login = current_user.login if current_user else None
+        user_id = current_user.uid if current_user else None
+        session_id = flask_request.cookies.get("session_id", None)
+        if current_user or session_id:
+            try:
+                import ddtrace.appsec.track_user_sdk as track_user_sdk
+
+                track_user_sdk.track_user(login=login, user_id=user_id, session_id=session_id, _auto=True)
+            except Exception:
+                # Fallback to the legacy set_user function if track_user_sdk or _auto is not available
+                set_user(ddtrace.tracer, user_id=user_id, email=login, session_id=session_id, mode="auto")
     except Exception:
-        # to be compatible with all tracer versions
         pass
 
 
@@ -1547,7 +1561,8 @@ def set_cookie():
 @app.route("/log/library", methods=["GET"])
 def log_library():
     message = flask_request.args.get("msg")
-    log.info(message)
+    structured = flask_request.args.get("structured", "true").lower() == "true"
+    log.bind(structured=structured).info(message)
     return Response("OK")
 
 

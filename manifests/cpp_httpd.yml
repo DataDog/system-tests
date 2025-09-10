@@ -29,11 +29,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
     Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
@@ -55,7 +50,8 @@ tests/:
     Test_Config_IntegrationEnabled_True: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
     Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
-    Test_Config_LogInjection_Default: missing_feature
+    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Unstructured: missing_feature
     Test_Config_LogInjection_Enabled: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature

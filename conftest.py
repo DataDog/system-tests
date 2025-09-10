@@ -62,6 +62,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption(
         "--k8s-cluster-img", type=str, action="store", help="Set the datadog cluster image on the docker registry"
     )
+    parser.addoption(
+        "--k8s-ssi-registry-base",
+        type=str,
+        action="store",
+        help="Set the default ssi registry base for the injection images (cluster agent, injector and library init)",
+    )
+
     # Onboarding scenarios mandatory parameters
     parser.addoption("--vm-weblog", type=str, action="store", help="Set virtual machine weblog")
     parser.addoption("--vm-library", type=str, action="store", help="Set virtual machine library to test")
@@ -106,7 +113,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store",
         default="",
         help="Library to test (e.g. 'python', 'ruby')",
-        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby"],
+        choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
     )
 
     # report data to feature parity dashboard
@@ -138,6 +145,12 @@ def pytest_configure(config: pytest.Config) -> None:
     ):
         config.option.skip_empty_scenario = True
 
+    if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
+        config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    # clean input
+    config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
+
     # First of all, we must get the current scenario
 
     current_scenario: Scenario | None = None
@@ -158,6 +171,7 @@ def pytest_configure(config: pytest.Config) -> None:
         config.option.xmlpath = f"{context.scenario.host_log_folder}/reportJunit.xml"
 
     configure_decorators(config)
+    logger.info(f"Force execute: {config.option.force_execute}")
 
 
 # Called at the very begening
@@ -213,6 +227,7 @@ def _collect_item_metadata(item: pytest.Item):
         "details": details,
         "testDeclaration": test_declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
+        "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
 
 

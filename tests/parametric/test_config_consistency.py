@@ -396,8 +396,8 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "ruby": "true",
         "java": "true",
         "golang": None,
-        "python": "structured",
-        "nodejs": "structured",
+        "python": "true",
+        "nodejs": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
@@ -420,6 +420,7 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+@bug(context.library > "php@1.11.0", reason="APMAPI-1568")
 class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
 
@@ -673,7 +674,8 @@ class Test_Stable_Config_Default(StableConfigWriter):
                             {
                                 "origin": "process_arguments",
                                 "key": "-Darg1",
-                                "operator": "exists",
+                                "operator": "equals",
+                                "matches": ["value"],
                             }
                         ],
                         "configuration": {"DD_SERVICE": QuotedStr("{{process_arguments['-Darg1']}}")},

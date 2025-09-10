@@ -1,9 +1,11 @@
-FROM datadog/system-tests:uwsgi-poc.base-v5
+FROM datadog/system-tests:uwsgi-poc.base-v7
 
 WORKDIR /app
 
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
+# TODO(munir): Move loguru install to the base image, currently lack permissions to push a new base image.
+RUN pip install loguru==0.7.3
 
 COPY utils/build/docker/python/flask /app
 COPY utils/build/docker/python/iast.py /app/iast.py
@@ -19,7 +21,10 @@ ENV UWSGI_ENABLED=true
 # note, only thread mode is supported
 # https://ddtrace.readthedocs.io/en/stable/advanced_usage.html#uwsgi
 RUN echo '#!/bin/bash \n\
-uwsgi --http :7777 -w app:app --threads 2 --enable-threads --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
+echo "--- PIP FREEZE ---"\n\
+python -m pip freeze\n\
+echo "------------------"\n\
+uwsgi --http :7777 -w app:app --threads 2 --enable-threads --skip-atexit --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 

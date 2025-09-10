@@ -314,6 +314,11 @@ class Test_Headers_Tracestate_DD:
     )
     @bug(context.library in ["python@2.7.2", "python@2.7.3"], reason="AIT-9945")
     @bug(context.library == "ruby", reason="APMAPI-812")
+    @bug(context.library >= "php@1.11.0", reason="APMAPI-1539")
+    @missing_feature(
+        context.library == "rust",
+        reason="can't guarantee the order of strings in the tracestate since they came from the map.",
+    )
     def test_headers_tracestate_dd_propagate_propagatedtags(self, test_agent, test_library):
         """Harness sends a request with both tracestate and traceparent
         expects a valid traceparent from the output header with the same trace_id
@@ -325,7 +330,7 @@ class Test_Headers_Tracestate_DD:
                 [
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
-                    ["x-datadog-tags", "_dd.p.dm=-4"],
+                    ["x-datadog-tags", "_dd.p.usr.id=MTIz"],
                 ],
             )
 
@@ -336,6 +341,7 @@ class Test_Headers_Tracestate_DD:
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
                     ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64=="],
+                    ["x-datadog-sampling-priority", "1"],
                 ],
             )
 
@@ -345,6 +351,7 @@ class Test_Headers_Tracestate_DD:
                     ["x-datadog-trace-id", "7890123456789012"],
                     ["x-datadog-parent-id", "1234567890123456"],
                     ["x-datadog-tags", "_dd.p.dm=-4,_dd.p.usr.id=baz64==,_dd.p.url=http://localhost"],
+                    ["x-datadog-sampling-priority", "1"],
                 ],
             )
 
@@ -358,13 +365,13 @@ class Test_Headers_Tracestate_DD:
 
         # 1) x-datadog-tags is populated with well-known propagated tags
         # Result: Tags are placed into the tracestate where "_dd.p." is replaced with "t."
-        assert headers1["x-datadog-tags"] == "_dd.p.dm=-4"
+        assert "_dd.p.usr.id=MTIz" in headers1["x-datadog-tags"]
 
         traceparent1, tracestate1 = get_tracecontext(headers1)
         dd_items1 = tracestate1["dd"].split(";")
         assert "traceparent" in headers1
         assert "tracestate" in headers1
-        assert "t.dm:-4" in dd_items1
+        assert "t.usr.id:MTIz" in dd_items1
 
         # 2) x-datadog-tags is populated with well-known tags that require
         #    substituting "=" characters with ":" characters

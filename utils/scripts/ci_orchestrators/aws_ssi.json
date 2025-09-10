@@ -461,7 +461,8 @@
                     "RedHat_8_6_amd64",
                     "Ubuntu_21_arm64",
                     "Rocky_Linux_8_amd64",
-                    "Rocky_Linux_8_arm64"
+                    "Rocky_Linux_8_arm64",
+                    "Fedora_41_arm64"
                 ]
             },
             {
@@ -477,7 +478,8 @@
                     "OracleLinux_9_2_amd64",
                     "OracleLinux_9_2_arm64",
                     "OracleLinux_9_3_amd64",
-                    "OracleLinux_9_3_arm64"
+                    "OracleLinux_9_3_arm64",
+                    "Fedora_41_arm64"
                 ]
             },
             {
@@ -537,7 +539,8 @@
                 ],
                 "excluded_os_names": [
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Fedora_41_arm64"
                 ]
             },
             {
@@ -600,7 +603,10 @@
                     "RedHat_9_0_amd64",
                     "RedHat_9_0_arm64",
                     "Ubuntu_24_10_amd64",
-                    "Ubuntu_24_10_arm64"
+                    "Ubuntu_24_10_arm64",
+                    "Amazon_Linux_2_arm64",
+                    "RedHat_8_6_arm64",
+                    "Rocky_Linux_8_arm64"
                 ]
             },
             {
