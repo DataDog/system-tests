@@ -210,3 +210,16 @@ class TestHostAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
 class TestContainerAutoInjectInstallScriptAppsec(base.AutoInjectBaseTest):
     def test_appsec(self):
         self._test_install(context.virtual_machine, appsec=True)
+
+@features.installer_auto_instrumentation
+@scenarios.simple_ai_installer_auto_injection
+class TestSimpleAIInstallerAutoInjectManual(base.AutoInjectBaseTest):
+    def test_install(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_install for : [{virtual_machine.name}]"
+        )
+        self._test_install(virtual_machine)
+        logger.info(
+            f"Done test_install for : [{virtual_machine.name}]"
+        )
