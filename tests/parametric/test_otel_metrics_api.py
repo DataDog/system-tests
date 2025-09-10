@@ -685,3 +685,45 @@ class Test_Otel_Metrics_Api:
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "test1" or actual_attributes.get("deployment.environment.name") == "test1"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_OTLP_Protocols:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+            },
+        ],
+        ids=["http_protobuf", "grpc"],
+    )
+    def test_otlp_protocols(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
+        name = f"test_otlp_protocols-{protocol}-counter"
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
+        assert first_metrics_data is not None
+
+        requests = test_agent.requests()
+        test_agent.clear()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf" if protocol == "http/protobuf" else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
