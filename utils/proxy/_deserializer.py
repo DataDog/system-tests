@@ -28,6 +28,7 @@ from opentelemetry.proto.collector.logs.v1.logs_service_pb2 import (
     ExportLogsServiceResponse,
 )
 from _decoders.protobuf_schemas import MetricPayload, TracePayload, SketchPayload
+from traces.trace_v1 import deserialize_v1_trace
 
 
 logger = logging.getLogger(__name__)
@@ -144,6 +145,9 @@ def deserialize_http_message(
         # replace zero length strings/bytes by None
         return content if content else None
 
+    if path == "/v1.0/traces" and source_is_datadog_tracer:
+        return deserialize_v1_trace(content)
+
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):
         result = msgpack.unpackb(content, unicode_errors="replace", strict_map_key=False)
 
@@ -187,17 +191,7 @@ def deserialize_http_message(
             _deserialized_nested_json_from_trace_payloads(result, interface)
             return result
         if path == "/api/v2/series":
-            try:
-                return MessageToDict(MetricPayload.FromString(content))
-            except Exception as e:
-                return {
-                    "content-length": len(content),
-                    "error": str(e),
-                    "raw_content": repr(content),
-                    "message": message,
-                    "key": key,
-                    "interface": interface,
-                }
+            return MessageToDict(MetricPayload.FromString(content))
         if path == "/api/beta/sketches":
             return MessageToDict(SketchPayload.FromString(content))
 
@@ -357,7 +351,11 @@ def deserialize(data: dict[str, Any], key: str, content: bytes | None, interface
         )
     except:
         status_code: int = data[key]["status_code"]
-        if key == "response" and status_code in (HTTPStatus.INTERNAL_SERVER_ERROR, HTTPStatus.REQUEST_TIMEOUT):
+        if key == "response" and status_code in (
+            HTTPStatus.INTERNAL_SERVER_ERROR,
+            HTTPStatus.REQUEST_TIMEOUT,
+            HTTPStatus.FORBIDDEN,
+        ):
             # backend may respond 500, while giving application/x-protobuf as content-type
             # deserialize_http_message() will fail, but it cannot be considered as an
             # internal error, we only log it, and do not store anything in traceback

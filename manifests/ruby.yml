@@ -20,8 +20,10 @@ tests/:
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
-        Test_Scanners: missing_feature
+        Test_Scanners: v2.19.0
         Test_Schema_Request_Cookies: v1.15.0
         Test_Schema_Request_FormUrlEncoded_Body: missing_feature
         Test_Schema_Request_Headers: v1.15.0
@@ -30,10 +32,16 @@ tests/:
           "*": v1.15.0
           rack: irrelevant (rack does not have path parameters support)
         Test_Schema_Request_Query_Parameters: v1.15.0
-        Test_Schema_Response_Body: missing_feature
-        Test_Schema_Response_Body_env_var: missing_feature
+        Test_Schema_Response_Body:
+          "*": v2.20.0-dev
+          graphql23: missing_feature (no way to separate request paths)
+          rack: missing_feature (performance impact of JSON parsing)
+        Test_Schema_Response_Body_env_var: missing_feature (performance impact of JSON parsing)
         Test_Schema_Response_Headers: v1.15.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block:
+          "*": v2.20.0-dev
+          graphql23: missing_feature (no way to separate request paths)
+          rack: missing_feature (performance impact of JSON parsing)
     iast/:
       sink/:
         test_code_injection.py:
@@ -199,6 +207,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
@@ -341,9 +357,16 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
       Test_SCAStandalone_Telemetry: irrelevant
       Test_SCAStandalone_Telemetry_V2: v2.13.0
-      Test_UserEventsStandalone_Automated: missing_feature
-      Test_UserEventsStandalone_SDK_V1: missing_feature
-      Test_UserEventsStandalone_SDK_V2: missing_feature
+      Test_UserEventsStandalone_Automated:
+        "*": v2.20.0-dev
+        rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra14: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra22: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+        uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
+      Test_UserEventsStandalone_SDK_V1: v2.20.0-dev
+      Test_UserEventsStandalone_SDK_V2: v2.20.0-dev
     test_automated_login_events.py:
       Test_Login_Events: irrelevant
       Test_Login_Events_Extended: irrelevant
@@ -404,6 +427,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
       Test_Blocking_request_cookies: v1.0.0
@@ -563,11 +588,21 @@ tests/:
         rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM:
+        "*": irrelevant
+        rails72: v2.17.1
+        rails80: v2.17.1
+        uds-rails: v2.17.1
       Test_Debugger_Method_Probe_Snaphots:
         "*": irrelevant
         rails72: v2.8.0
         rails80: v2.8.0
         uds-rails: v2.12.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM:
+        "*": irrelevant
+        rails72: v2.17.1
+        rails80: v2.17.1
+        uds-rails: v2.17.1
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
         "*": irrelevant
@@ -714,6 +749,8 @@ tests/:
       Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py:
       Test_Span_Events: missing_feature
     test_span_links.py:
@@ -753,11 +790,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
-    test_stats.py:
-      Test_Client_Stats: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v2.13.0
     Test_Baggage_Headers_Malformed: v2.13.0
@@ -789,7 +821,7 @@ tests/:
       rails72: v2.14.0
     Test_Config_LogInjection_Default_Structured: incomplete_test_app (endpoint not implemented)
     Test_Config_LogInjection_Default_Unstructured:
-      '*': irrelevant (endpoint not implemented)
+      "*": irrelevant (endpoint not implemented)
       rails72: irrelevant (dd-trace-rb enables log injection by default, we are planning to revist this behavior in the future. This will likely be the new default)
     Test_Config_LogInjection_Enabled:
       "*": irrelevant (endpoint not implemented)

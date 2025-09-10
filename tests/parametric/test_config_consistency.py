@@ -176,6 +176,7 @@ class Test_Config_TraceAgentURL:
         ],
     )
     @missing_feature(context.library == "ruby", reason="does not support ipv6")
+    @missing_feature(library="cpp")
     def test_dd_trace_agent_http_url_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
@@ -199,6 +200,7 @@ class Test_Config_TraceAgentURL:
     @missing_feature(context.library == "php", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "golang", reason="does not support ipv6 hostname")
     @missing_feature(context.library == "python", reason="does not support ipv6 hostname")
+    @missing_feature(library="cpp")
     def test_dd_agent_host_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
@@ -232,6 +234,7 @@ class Test_Config_RateLimit:
     )
     @flaky(library="java", reason="APMAPI-908")
     @bug(context.library == "golang", reason="APMAPI-1030")
+    @missing_feature(library="cpp")
     def test_setting_trace_rate_limit_strict(self, library_env, test_agent, test_library):
         with test_library:
             with test_library.dd_start_span(name="s1"):
@@ -421,6 +424,7 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+@bug(context.library > "php@1.11.0", reason="APMAPI-1568")
 class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
 

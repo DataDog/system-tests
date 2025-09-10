@@ -23,6 +23,8 @@ tests/:
           net-http: irrelevant (net-http doesn't handle path params)
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
         Test_Scanners: v2.0.0
         Test_Schema_Request_Cookies: v1.60.0
@@ -202,51 +204,72 @@ tests/:
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
+        TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
     rasp/:
-      test_cmdi.py: missing_feature
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
+      test_cmdi.py:
+        Test_Cmdi_BodyJson: missing_feature
+        Test_Cmdi_BodyUrlEncoded: missing_feature
+        Test_Cmdi_BodyXml: missing_feature
+        Test_Cmdi_Capability: missing_feature
+        Test_Cmdi_Mandatory_SpanTags: missing_feature
+        Test_Cmdi_Optional_SpanTags: missing_feature
+        Test_Cmdi_Rules_Version: v2.3.0-dev  # Possibly earlier
+        Test_Cmdi_StackTrace: missing_feature
+        Test_Cmdi_Telemetry: missing_feature
+        Test_Cmdi_Telemetry_V2: missing_feature
+        Test_Cmdi_Telemetry_Variant_Tag: missing_feature
+        Test_Cmdi_UrlQuery: missing_feature
+        Test_Cmdi_Waf_Version: v2.3.0-dev  # Possibly earlier
       test_lfi.py:
         Test_Lfi_BodyJson:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_BodyUrlEncoded:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_BodyXml:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Capability:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Mandatory_SpanTags:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Optional_SpanTags:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_RC_CustomAction:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Rules_Version:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_StackTrace:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Telemetry:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Telemetry_Multiple_Exploits:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Telemetry_V2:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_UrlQuery:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
         Test_Lfi_Waf_Version:
-          '*': irrelevant
+          '*': irrelevant (LFi detection requires orchestrion)
           net-http-orchestrion: v2.0.0
       test_shi.py: irrelevant (there is no equivalent to system(3) in go)
       test_sqli.py:
@@ -316,8 +339,7 @@ tests/:
       test_blocking.py:
         Test_Blocking: v1.50.0-rc.1
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse:
-          '*': v1.63.0
+        Test_CustomBlockingResponse: v1.63.0
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:
@@ -404,23 +426,27 @@ tests/:
       Test_UserEventsStandalone_SDK_V1: missing_feature
       Test_UserEventsStandalone_SDK_V2: missing_feature
     test_automated_login_events.py:
-      Test_Login_Events: missing_feature
-      Test_Login_Events_Extended: missing_feature
-      Test_V2_Login_Events: missing_feature
-      Test_V2_Login_Events_Anon: missing_feature
-      Test_V2_Login_Events_RC: missing_feature
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-      Test_V3_Login_Events: missing_feature
-      Test_V3_Login_Events_Anon: missing_feature
-      Test_V3_Login_Events_Blocking: missing_feature
-      Test_V3_Login_Events_RC: missing_feature
+      Test_Login_Events:
+        '*': irrelevant (Go only supports SDK events)
+        net-http-orchestrion: missing_feature
+      Test_Login_Events_Extended: irrelevant (Go only supports SDK events)
+      Test_V2_Login_Events: irrelevant (Go only supports SDK events)
+      Test_V2_Login_Events_Anon: irrelevant (Go only supports SDK events)
+      Test_V2_Login_Events_RC: irrelevant (Go only supports SDK events)
+      Test_V3_Auto_User_Instrum_Mode_Capability: irrelevant (Go only supports SDK events)
+      Test_V3_Login_Events: irrelevant (Go only supports SDK events)
+      Test_V3_Login_Events_Anon: irrelevant (Go only supports SDK events)
+      Test_V3_Login_Events_Blocking: irrelevant (Go only supports SDK events)
+      Test_V3_Login_Events_RC: irrelevant (Go only supports SDK events)
     test_automated_user_and_session_tracking.py:
-      Test_Automated_Session_Blocking: missing_feature
-      Test_Automated_User_Blocking: missing_feature
-      Test_Automated_User_Tracking: missing_feature
+      Test_Automated_Session_Blocking: irrelevant (Go only supports SDK events)
+      Test_Automated_User_Blocking: irrelevant (Go only supports SDK events)
+      Test_Automated_User_Tracking: irrelevant (Go only supports SDK events)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v1.51.0
+      Test_Blocking_client_ip_with_K8_private_ip: v2.2.0
+      Test_Blocking_client_ip_with_forwarded: v2.3.0-dev
       Test_Blocking_request_body: missing_feature
       Test_Blocking_request_body_multipart: irrelevant (Body blocking happens through SDK)
       Test_Blocking_request_cookies:
@@ -450,7 +476,9 @@ tests/:
       Test_Blocking_response_headers: missing_feature
       Test_Blocking_response_status: missing_feature
       Test_Blocking_user_id: v1.51.0
-      Test_Suspicious_Request_Blocking: flaky (APPSEC-57080)
+      Test_Suspicious_Request_Blocking:
+        '*': v2.3.0-dev
+        net-http-orchestrion: missing_feature (path params are not supported)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
@@ -572,28 +600,30 @@ tests/:
         gin: v1.37.0
   debugger/:
     test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins: missing_feature (feature not implented)
+      Test_Debugger_Code_Origins: missing_feature (feature not implemented)
     test_debugger_exception_replay.py:
-      Test_Debugger_Exception_Replay: missing_feature (feature not implented)
+      Test_Debugger_Exception_Replay: missing_feature (feature not implemented)
     test_debugger_expression_language.py:
-      Test_Debugger_Expression_Language: missing_feature (feature not implented)
+      Test_Debugger_Expression_Language: missing_feature (feature not implemented)
     test_debugger_inproduct_enablement.py:
       Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: missing_feature (feature not implented)
-      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implented)
+      Test_Debugger_PII_Redaction: missing_feature (feature not implemented)
+      Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature (feature not implemented)
     test_debugger_probe_budgets.py:
-      Test_Debugger_Probe_Budgets: missing_feature (feature not implented)
+      Test_Debugger_Probe_Budgets: missing_feature (feature not implemented)
     test_debugger_probe_snapshot.py:
-      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
     test_debugger_probe_status.py:
-      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implented)
-      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implented)
+      Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implemented)
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: missing_feature (feature not implented)
+      Test_Debugger_SymDb: missing_feature (feature not implemented)
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: missing_feature
   integrations/:
@@ -743,6 +773,8 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint is not defined)
     test_process_discovery.py: missing_feature
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

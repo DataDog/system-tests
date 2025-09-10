@@ -13,8 +13,6 @@ stages:
   - system-tests-utils
 
 variables:
-    # Do not modify this - must be the repository name for Kubernetes gitlab runners to run
-    KUBERNETES_SERVICE_ACCOUNT_OVERWRITE: system-tests #helm-charts
     TEST: 1
 
 compute_pipeline:
@@ -254,20 +252,24 @@ check_merge_labels:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
 
-generate_system_tests_end_to_end_images:
+generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
   tags: ["runner:docker"]
   needs: []
   stage: system-tests-utils
-  allow_failure: true
+  allow_failure: false
   before_script:
     - export DOCKER_LOGIN=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-write --with-decryption --query "Parameter.Value" --out text)
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
+    - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
-      - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
-      - ./utils/build/build_tracer_buddies.sh --push
-      - ./utils/build/build_python_base_images.sh --push
-  when: manual
+      - ./build.sh -i lambda-proxy
+      - docker push datadog/system-tests:lambda-proxy-v1
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
+      changes:
+        - utils/build/docker/lambda_proxy/pyproject.toml
+        - utils/build/docker/lambda-proxy.Dockerfile
 
 generate_system_tests_lib_injection_images:
   extends: .base_job_k8s_docker_ssi

@@ -126,7 +126,7 @@ jobs:
           echo "ref=main" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       with:
         repository: 'DataDog/system-tests'
         ref: ${{ steps.compute_ref.outputs.ref }}
@@ -167,15 +167,16 @@ jobs:
         ./utils/scripts/load-binary.sh ${{ inputs.library }}
       env:
         LIBRARY_TARGET_BRANCH: "${{ inputs._system_tests_library_target_branch }}"
-        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        CIRCLECI_TOKEN: ${{ secrets.CIRCLECI_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload artifact
       if: ${{ inputs._system_tests_dev_mode }}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
-        include-hidden-files: ${{ inputs.library == 'python' }}
+        include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
     - name: Set unique ID
       id: unique_id
       run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT

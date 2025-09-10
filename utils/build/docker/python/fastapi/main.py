@@ -103,9 +103,9 @@ async def custom_404_handler(request: Request, _):
     return JSONResponse({"error": 404}, status_code=404)
 
 
-@app.get("/", response_class=PlainTextResponse)
-@app.post("/", response_class=PlainTextResponse)
-@app.options("/", response_class=PlainTextResponse)
+@app.get("/", response_class=PlainTextResponse, status_code=200)
+@app.post("/", response_class=PlainTextResponse, status_code=200)
+@app.options("/", response_class=PlainTextResponse, status_code=200)
 async def root():
     return "Hello, World!"
 
@@ -1275,3 +1275,31 @@ def return_headers(request: Request):
     for key, value in request.headers.items():
         headers[key] = value
     return JSONResponse(headers)
+
+
+@app.get("/external_request", response_class=JSONResponse, status_code=200)
+@app.post("/external_request", response_class=JSONResponse, status_code=200)
+@app.trace("/external_request", response_class=JSONResponse, status_code=200)
+async def external_request(request: Request):
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in request.query_params.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    try:
+        body = await request.body()
+    except Exception:
+        body = None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    urllib_request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
+    )
+    try:
+        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+
+    except urllib.error.HTTPError as e:
+        return {"status": int(e.status), "error": repr(e)}

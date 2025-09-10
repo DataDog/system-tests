@@ -101,6 +101,7 @@ class Test_Headers_Precedence:
     @irrelevant(context.library >= "cpp@0.1.12", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "java@1.24.0", reason="Implements the new 'datadog,tracecontext' default")
     @irrelevant(context.library >= "ruby@1.17.0", reason="Implements the new 'datadog,tracecontext' default")
+    @irrelevant(context.library == "rust", reason="Implements the new 'datadog,tracecontext' default")
     def test_headers_precedence_propagationstyle_legacy(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_datadog(test_agent, test_library)
 
@@ -219,6 +220,7 @@ class Test_Headers_Precedence:
     @irrelevant(context.library == "cpp", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "java", reason="Issue: tracecontext,Datadog was never the default configuration")
     @irrelevant(context.library == "ruby", reason="Issue: tracecontext,Datadog was never the default configuration")
+    @irrelevant(context.library == "rust", reason="Issue: tracecontext,Datadog was never the default configuration")
     def test_headers_precedence_propagationstyle_default_tracecontext_datadog(self, test_agent, test_library):
         self.test_headers_precedence_propagationstyle_tracecontext_datadog(test_agent, test_library)
 

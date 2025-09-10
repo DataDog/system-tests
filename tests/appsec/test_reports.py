@@ -68,6 +68,7 @@ class Test_Info:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_RequestHeaders:
     """Request Headers for IP resolution"""
 
@@ -107,6 +108,7 @@ class Test_RequestHeaders:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_TagsFromRule:
     """Tags tags from the rule"""
 
@@ -135,6 +137,7 @@ class Test_TagsFromRule:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_ExtraTagsFromRule:
     """Extra tags may be added to the rule match since libddwaf 1.10.0"""
 
@@ -164,6 +167,7 @@ def _get_appsec_triggers(request):
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_AttackTimestamp:
     """Attack timestamp"""
 

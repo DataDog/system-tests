@@ -16,6 +16,8 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
         Test_API_Security_Sampling_With_Delay: v2.50.0
+      test_endpoint_discovery.py:
+        Test_Endpoint_Discovery: v3.24.0
       test_schemas.py:
         Test_Scanners: v2.46.0
         Test_Schema_Request_Cookies: v2.46.0
@@ -193,6 +195,14 @@ tests/:
       test_security_controls.py:
         TestSecurityControls: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: v3.7.0
         Test_Cmdi_BodyUrlEncoded: v3.7.0
@@ -337,6 +347,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
+      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
+      Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_body_multipart: missing_feature
       Test_Blocking_request_cookies: v2.29.0
@@ -445,6 +457,14 @@ tests/:
       Test_RetainTraces: v1.29.0
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist: v2.30.0
+  auto_inject/:
+    test_auto_inject_install.py:
+      TestContainerAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestContainerAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptAppsec: bug (PROF-12209)
+      TestHostAutoInjectInstallScriptProfiling: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualAppsec: bug (PROF-12209)
+      TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   debugger/:
     test_debugger_code_origins.py:
       Test_Debugger_Code_Origins: missing_feature
@@ -463,7 +483,9 @@ tests/:
       Test_Debugger_Probe_Budgets: v2.53.0
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: v2.53.0
+      Test_Debugger_Line_Probe_Snaphots_With_SCM: v2.53.0
       Test_Debugger_Method_Probe_Snaphots: v2.53.0
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.53.0
     test_debugger_probe_status.py:
       Test_Debugger_Method_Probe_Statuses: v2.53.0
     test_debugger_symdb.py:
@@ -553,6 +575,8 @@ tests/:
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint are not implemented)
     test_process_discovery.py:
       Test_ProcessDiscovery: v3.19.0
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -590,9 +614,6 @@ tests/:
           Test_CopyObject: missing_feature
           Test_MultipartUpload: missing_feature
           Test_PutObject: missing_feature
-  stats/:
-    test_miscs.py:
-      Test_Miscs: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: v3.6.0
     Test_Baggage_Headers_Malformed: v3.6.0
