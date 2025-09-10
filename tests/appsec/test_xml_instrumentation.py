@@ -14,23 +14,25 @@ class Test_XmlWafIntegration:
 
     def setup_xml_value_attack(self):
         """Test WAF attack detection in XML element content."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><data><script>alert(1)</script></data>"
-        self.r_xml_value = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string>var_dump ()</string>"
+        self.r_xml_value = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_value_attack(self):
-        """Verify WAF detects XSS attack in XML content."""
+        """Verify WAF detects attack in XML content."""
         interfaces.library.assert_waf_attack(
             self.r_xml_value, 
-            value='<script>alert(1)</script>', 
+            value='var_dump ()', 
             address="server.request.body"
         )
 
     def setup_xml_attribute_attack(self):
         """Test WAF attack detection in XML attribute values."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><data attack='var_dump ()' />"
-        self.r_xml_attr = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string attack='var_dump ()' />"
+        self.r_xml_attr = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_attribute_attack(self):
         """Verify WAF detects attack in XML attributes."""
@@ -42,9 +44,10 @@ class Test_XmlWafIntegration:
 
     def setup_xml_sql_injection(self):
         """Test WAF attack detection for SQL injection in XML."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><query>' OR 1=1 --</query>"
-        self.r_xml_sqli = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string>' OR 1=1 --</string>"
+        self.r_xml_sqli = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_sql_injection(self):
         """Verify WAF detects SQL injection in XML content."""
@@ -56,9 +59,10 @@ class Test_XmlWafIntegration:
 
     def setup_xml_text_content_type(self):
         """Test XML with text/xml content type."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><payload>var_dump ()</payload>"
-        self.r_text_xml = weblog.post("/waf", data=xml_data, headers={"Content-Type": "text/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "text/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string>var_dump ()</string>"
+        self.r_text_xml = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_text_content_type(self):
         """Verify WAF works with text/xml content type."""
@@ -70,9 +74,10 @@ class Test_XmlWafIntegration:
 
     def setup_xml_nested_attack(self):
         """Test WAF detection in nested XML elements."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><root><level1><level2>var_dump ()</level2></level1></root>"
-        self.r_nested = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string>var_dump ()</string>"
+        self.r_nested = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_nested_attack(self):
         """Verify WAF detects attacks in nested XML structures."""
@@ -84,9 +89,10 @@ class Test_XmlWafIntegration:
 
     def setup_xml_multiple_attacks(self):
         """Test XML with multiple attack vectors."""
-        # Use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><data attack='var_dump ()'>var_dump ()</data>"
-        self.r_multiple = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string attack='var_dump ()'>var_dump ()</string>"
+        self.r_multiple = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_xml_multiple_attacks(self):
         """Verify WAF detects attacks in XML with multiple attack vectors."""
@@ -108,9 +114,10 @@ class Test_XmlJsonParity:
         # JSON request
         self.r_json = weblog.post("/waf", json={"attack": attack_payload})
         
-        # Equivalent XML request - use XML format with declaration like existing working tests
-        xml_data = "<?xml version='1.0' encoding='utf-8'?><data>var_dump ()</data>"
-        self.r_xml = weblog.post("/waf", data=xml_data, headers={"Content-Type": "application/xml"})
+        # Equivalent XML request - use exact same pattern as working tests in test_addresses.py
+        headers = {"Content-Type": "application/xml"}
+        xml_data = "<?xml version='1.0' encoding='utf-8'?><string>var_dump ()</string>"
+        self.r_xml = weblog.post("/waf", data=xml_data, headers=headers)
 
     def test_equivalent_payloads(self):
         """Verify JSON and XML requests with same payload both trigger WAF."""

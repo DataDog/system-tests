@@ -1740,10 +1740,10 @@ tests/:
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
     test_xml_instrumentation.py:
       Test_XmlWafIntegration:
-        '*': v1.52.0  # New XML instrumentation for WAF integration
+        '*': v1.54.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_XmlJsonParity:
-        '*': v1.52.0  # Verify XML and JSON have equivalent WAF behavior
+        '*': v1.54.0-SNAPSHOT
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_shell_execution.py:
       Test_ShellExecution:
