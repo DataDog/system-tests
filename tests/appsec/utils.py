@@ -25,6 +25,8 @@ def find_series(namespace: str, metrics: list[str]) -> list:
 
 
 def find_configuration() -> Generator:
+    for payload in _get_telemetry_payload("app-started"):
+        yield payload.get("configuration")
     for payload in _get_telemetry_payload("app-client-configuration-change"):
         yield payload.get("configuration")
 
