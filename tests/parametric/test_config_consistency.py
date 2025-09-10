@@ -176,6 +176,7 @@ class Test_Config_TraceAgentURL:
         ],
     )
     @missing_feature(context.library == "ruby", reason="does not support ipv6")
+    @missing_feature(library="cpp")
     def test_dd_trace_agent_http_url_ipv6(self, library_env, test_agent, test_library):
         with test_library as t:
             resp = t.config()
