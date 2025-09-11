@@ -252,7 +252,7 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
                         "--ssi-env $ONBOARDING_FILTER_ENV"
                         + custom_extra_params
                         + " --report-run-url ${CI_JOB_URL} --report-environment "
-                        + ci_environment + " --ssi-force-build"
+                        + ci_environment + " --ssi-force-build --ssi-push-base-images"
                     ),
                 ]
                 if os.getenv("CI_PROJECT_NAME") != "system-tests":
