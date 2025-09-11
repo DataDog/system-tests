@@ -10,6 +10,7 @@ from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
+from .otel_postgres_metrics import OpenTelemetryPostgreSQLScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
@@ -590,6 +591,12 @@ class _Scenarios:
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
+
+    otel_postgres_metrics_e2e = OpenTelemetryPostgreSQLScenario(
+        "OTEL_POSTGRES_METRICS_E2E",
+        require_api_key=True,
+        doc="OpenTelemetry E2E testing with PostgreSQL metrics collection via OTEL collector",
+    )
 
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
