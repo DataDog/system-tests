@@ -207,6 +207,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
@@ -743,6 +751,8 @@ tests/:
       Test_ProcessDiscovery: v2.18.0
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.4.0
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py:
       Test_Span_Events: missing_feature
     test_span_links.py:

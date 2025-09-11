@@ -20,6 +20,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.utils.safestring import mark_safe
+from django.views.decorators.http import require_http_methods
 from moto import mock_aws
 import urllib3
 from iast import (
@@ -1082,6 +1083,31 @@ def s3_multipart_upload(request):
     return JsonResponse(result)
 
 
+@csrf_exempt
+@require_http_methods(["GET", "TRACE", "POST"])
+def external_request(request):
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in request.GET.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = request.body or None
+    if body:
+        queries["Content-Type"] = request.headers.get("content-type") or "application/json"
+    urllib_request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
+    )
+    try:
+        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return JsonResponse(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return JsonResponse({"status": int(e.status), "error": repr(e)})
+
+
 urlpatterns = [
     path("", hello_world),
     path("api_security/sampling/<int:status_code>", api_security_sampling_status),
@@ -1177,4 +1203,5 @@ urlpatterns = [
     path("mock_s3/put_object", s3_put_object),
     path("mock_s3/copy_object", s3_copy_object),
     path("mock_s3/multipart_upload", s3_multipart_upload),
+    path("external_request", external_request),
 ]

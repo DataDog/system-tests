@@ -206,6 +206,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v0.0.0  # Compliant because no IAST support
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -767,6 +775,8 @@ tests/:
       Test_Parametric_Otel_Current_Span: missing_feature (otel current span endpoint is not defined)
       Test_Parametric_Write_Log: missing_feature
     test_process_discovery.py: missing_feature
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

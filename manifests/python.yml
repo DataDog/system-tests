@@ -294,6 +294,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
+      test_api10.py:
+        Test_API10_all: v3.14.0.rc
+        Test_API10_request_body: v3.14.0.rc
+        Test_API10_request_headers: v3.14.0.rc
+        Test_API10_request_method: v3.14.0.rc
+        Test_API10_response_body: v3.14.0.rc
+        Test_API10_response_headers: v3.14.0.rc
+        Test_API10_response_status: v3.14.0.rc
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
@@ -730,7 +738,9 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
-      Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_BlockingActionChangesWithRemoteConfig:
+        '*': v2.10.1
+        django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_Empty_Config: v3.10.0
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
@@ -1088,6 +1098,7 @@ tests/:
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: v3.14.0.dev
       Test_Sampling_Span_Tags: v2.8.0
     test_span_events.py:
       Test_Span_Events: missing_feature
@@ -1119,7 +1130,9 @@ tests/:
       TestTracerFlareV1: v3.12.0.dev
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: v2.1.0
+      Test_RemoteConfigurationExtraServices:
+        '*': v2.1.1
+        django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4

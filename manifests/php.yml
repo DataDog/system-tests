@@ -205,6 +205,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -578,6 +586,8 @@ tests/:
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature (The sampling priority chosen when the trace was extracted without a sampling decision is not consistent with the tracer's configuration. See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

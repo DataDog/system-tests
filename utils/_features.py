@@ -2512,7 +2512,15 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=487
         """
-        return _mark_test_object(test_object, feature_id=487, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=487, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
+    def api10(test_object):
+        """API Security supports endpoint discovery
+
+        https://feature-parity.us1.prod.dog/#/?feature=490
+        """
+        return _mark_test_object(test_object, feature_id=490, owner=_Owner.asm)
 
 
 features = _Features()
