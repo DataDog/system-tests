@@ -840,7 +840,12 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting: missing_feature
+    Test_GraphQLOperationErrorReporting:
+      '*': missing_feature
+      graphql23: missing_feature
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
+      graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
     Test_Propagate: missing_feature
