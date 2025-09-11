@@ -791,14 +791,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

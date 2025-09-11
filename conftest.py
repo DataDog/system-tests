@@ -5,7 +5,7 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence
+from collections.abc import Sequence, Callable
 import json
 import os
 from pathlib import Path
@@ -341,6 +341,20 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
+            # decorate test for junit
+            metadata = _collect_item_metadata(item)
+
+            item.user_properties.append(("dd_tags[test.codeowners]", str(metadata["owners"])))
+
+            for feature_id in metadata["features"]:
+                item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
+
+            if metadata["testDeclaration"]:
+                item.user_properties.append(("dd_tags[systest.case.declaration]", metadata["testDeclaration"]))
+
+            if metadata["details"]:
+                item.user_properties.append(("dd_tags[systest.case.skip_reason]", metadata["details"]))
+
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
@@ -506,13 +520,19 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         data = session.config._json_report.report  # noqa: SLF001
 
         try:
-            junit_modifyreport(
-                data, session.config.option.xmlpath, junit_properties=context.scenario.get_junit_properties()
-            )
+            junit_modifyreport(session.config.option.xmlpath)
 
             export_feature_parity_dashboard(session, data)
         except Exception:
             logger.exception("Fail to export export reports", exc_info=True)
+
+
+### decorate junit export
+@pytest.fixture(scope="session", autouse=True)
+def log_global_env_facts(record_testsuite_property: Callable) -> None:
+    properties = context.scenario.get_junit_properties()
+    for key, value in properties.items():
+        record_testsuite_property(key, value or "")
 
 
 def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:

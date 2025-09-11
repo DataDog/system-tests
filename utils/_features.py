@@ -7,14 +7,14 @@ class _Owner(StrEnum):
 
     apm_serverless = "@DataDog/apm-serverless"
     asm = "@DataDog/asm-libraries"  # application security monitoring
-    auto_instrumentation = "DataDog/teams/unified-instrumentation-setup"
+    auto_instrumentation = "DataDog/unified-instrumentation-setup"
     data_pipeline = "@DataDog/libdatadog-apm"  # or agent-apm? TODO @ekump
     debugger = "@DataDog/debugger"
     idm = "@DataDog/apm-idm"
     language_platform = "@DataDog/apm-lang-platform"
     profiler = "@DataDog/profiling"  # it does not exists
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    sdk_capabilities = "DataDog/apm-sdk-api"
+    sdk_capabilities = "@DataDog/apm-sdk-api"
     tracer = "n/a"  # legacy client libraries from feature parity dashboard, need to be adressed to good teams
 
 
