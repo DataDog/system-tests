@@ -4,13 +4,10 @@ path_root = Path(__file__).parents[2]
 sys.path.append(str(path_root))
 
 import os
-import yaml
-import manifests.parser.core as manifest_parser
 import json
 import urllib.request
 import argparse
 from collections import defaultdict
-import re
 
 FPD_URL = "https://dd-feature-parity.azurewebsites.net/Tests/Groups"
 
@@ -86,43 +83,60 @@ def analyze_test_classes(fpd_data):
     return easy_wins
 
 
+def handle_multiline_yaml(lines, i, stripped_line, class_name):
+    """Handle multiline YAML parsing and return (is_multiline, actual_value, lines_to_replace)"""
+    status_part = ""
+    if ": " in stripped_line:
+        status_part = stripped_line.split(": ", 1)[1]
+    
+    if status_part in ['>-', '|-', '>', '|']:
+        # This is multiline YAML, read the next line for the actual value
+        if i + 1 < len(lines):
+            next_line = lines[i + 1].strip()
+            return True, next_line, 2  # Replace 2 lines (header + content)
+        return True, status_part, 1  # Incomplete multiline
+    return False, None, 0
+
+
+def calculate_multiline_replacement_count(lines, i, line):
+    """Calculate how many lines need to be replaced for multiline YAML entries"""
+    base_indent = len(line) - len(line.lstrip())
+    lines_to_replace = 1
+    
+    if line.strip().endswith('>-') or line.strip().endswith('|-') or line.strip().endswith('>') or line.strip().endswith('|'):
+        # This is multiline YAML, need to remove continuation lines too
+        # Look for lines that are indented more than the current line
+        j = i + 1
+        while j < len(lines):
+            next_line = lines[j]
+            # Check if this line is a continuation (more indented than base_indent)
+            if next_line.strip() == '':
+                # Skip empty lines
+                j += 1
+                continue
+            elif len(next_line) - len(next_line.lstrip()) > base_indent:
+                # This line is more indented than the base, so it's a continuation
+                lines_to_replace += 1
+                j += 1
+            else:
+                # This line is not more indented, so we've reached the end of the multiline content
+                break
+    
+    return lines_to_replace
+
+
 def get_language_from_env_key(env_key):
     """Extract language from environment key"""
-    # Environment keys are like '2_parametric_', '5_integrations_'
     # Map numeric language IDs to actual language names
     language_map = {
-        '2': 'dotnet',
-        '3': 'nodejs', 
-        '4': 'php',
-        '5': 'python',
-        '6': 'golang',   
-        '7': 'ruby',
-        '8': 'java',
-        '9': 'cpp'
+        2: 'dotnet', 3: 'nodejs', 4: 'php', 5: 'python',
+        6: 'golang', 7: 'ruby', 8: 'java', 9: 'cpp'
     }
     
-    language_id = env_key.split('_')[0]
+    language_id = int(env_key.split('_')[0])
     return language_map.get(language_id, f'unknown_{language_id}')
 
 
-def test_exists_in_manifest(test_class, manifest_data):
-    """Check if a test class path exists in the manifest data structure"""
-    path_parts = test_class.split('/')
-    current = manifest_data
-    
-    # Navigate through the nested structure
-    for part in path_parts[:-1]:
-        if part not in current:
-            return False
-        current = current[part]
-    
-    # Handle the final file::class part
-    final_part = path_parts[-1]
-    if '::' in final_part:
-        file_name, class_name = final_part.split('::', 1)
-        return file_name in current and class_name in current[file_name]
-    else:
-        return final_part in current
 
 
 def test_is_missing_feature_or_bug(test_class, manifest_file):
@@ -146,11 +160,9 @@ def test_is_missing_feature_or_bug(test_class, manifest_file):
                     status_part = stripped.split(": ", 1)[1]
                     
                     # Handle YAML multiline indicators like >- or |-
-                    if status_part in ['>-', '|-', '>', '|']:
-                        # Read the next line to get the actual value
-                        if i + 1 < len(lines):
-                            next_line = lines[i + 1].strip()
-                            return next_line.startswith('missing_feature') or next_line.startswith('bug') or next_line.startswith('incomplete_test_app')
+                    is_multiline, actual_value, _ = handle_multiline_yaml(lines, i, stripped, class_name)
+                    if is_multiline and actual_value:
+                        return actual_value.startswith('missing_feature') or actual_value.startswith('bug') or actual_value.startswith('incomplete_test_app')
                     
                     # Direct check for missing_feature, bug, or incomplete_test_app
                     return status_part.startswith('missing_feature') or status_part.startswith('bug') or status_part.startswith('incomplete_test_app')
@@ -168,7 +180,6 @@ def is_already_activated(test_class, manifest_file):
     path_parts = test_class.split('/')
     file_name, class_name = path_parts[-1].split('::', 1)
     
-    # Special statuses that indicate the test is NOT already activated
     special_statuses = ['bug', 'missing_feature', 'incomplete_test_app', 'irrelevant']
     
     try:
@@ -184,13 +195,10 @@ def is_already_activated(test_class, manifest_file):
                     status_part = stripped.split(": ", 1)[1]
                     
                     # Handle YAML multiline indicators like >- or |-
-                    if status_part in ['>-', '|-', '>', '|']:
-                        # Read the next line to get the actual value
-                        if i + 1 < len(lines):
-                            next_line = lines[i + 1].strip()
-                            first_word = next_line.split()[0] if next_line.split() else ""
-                            # Check if it starts with any special status
-                            return not any(first_word.startswith(status) for status in special_statuses)
+                    is_multiline, actual_value, _ = handle_multiline_yaml(lines, i, stripped, class_name)
+                    if is_multiline and actual_value:
+                        first_word = actual_value.split()[0] if actual_value.split() else ""
+                        return not any(first_word.startswith(status) for status in special_statuses)
                     
                     # Remove any comments
                     clean_status = status_part.split(" #")[0].split(" (")[0].strip()
@@ -223,12 +231,10 @@ def get_test_status_reason(test_class, manifest_file):
                     status_part = stripped.split(": ", 1)[1]
                     
                     # Handle YAML multiline indicators like >- or |-
-                    if status_part in ['>-', '|-', '>', '|']:
-                        # Read the next line(s) to get the actual value
-                        if i + 1 < len(lines):
-                            next_line = lines[i + 1].strip()
-                            # Extract the first word as the status
-                            first_word = next_line.split()[0] if next_line.split() else status_part
+                    is_multiline, actual_value, _ = handle_multiline_yaml(lines, i, stripped, class_name)
+                    if is_multiline:
+                        if actual_value:
+                            first_word = actual_value.split()[0] if actual_value.split() else status_part
                             return f"current_status: {first_word} (multiline YAML)"
                         else:
                             return f"current_status: {status_part} (incomplete multiline)"
@@ -247,38 +253,10 @@ def get_test_status_reason(test_class, manifest_file):
         return f"error_reading_manifest: {e}"
 
 
-def get_all_variants_for_language(language):
-    """Get all possible variants for a language by scanning Dockerfiles"""
-    import os
-    import glob
-    
-    docker_dir = f"utils/build/docker/{language}"
-    if not os.path.exists(docker_dir):
-        return []
-    
-    variants = set()
-    
-    # Look for .Dockerfile files (these are the actual variants)
-    dockerfile_pattern = os.path.join(docker_dir, "*.Dockerfile")
-    for dockerfile in glob.glob(dockerfile_pattern):
-        filename = os.path.basename(dockerfile)
-        if filename.endswith('.Dockerfile'):
-            variant = filename[:-len('.Dockerfile')]
-            # Skip base dockerfiles - they're not variants, just foundations
-            if not '.base' in variant:
-                variants.add(variant)
-    
-    # Add parametric variant if parametric directory exists
-    if os.path.exists(os.path.join(docker_dir, 'parametric')):
-        variants.add(f'parametric-{language}')
-    
-    return sorted(list(variants))
 
 
-def should_use_concise_format(variants, language):
+def should_use_concise_format(variants):
     """Determine if we should use concise 'test: xpass' format instead of variant structure"""
-    # By default, use concise format when all variants pass (indicated by '*')
-    # The analyze_test_classes function now uses '*' to indicate all tested variants passed
     return '*' in variants
 
 
@@ -315,19 +293,11 @@ def update_manifest_file_with_variants(test_class, language, variants, version="
             incomplete_test_app_match = stripped == f"{class_name}: incomplete_test_app" or stripped.startswith(f"{class_name}: incomplete_test_app")
             
             # Check for multiline YAML patterns (e.g., "ClassName: >-" followed by "missing_feature")
-            multiline_match = False
-            multiline_missing_feature = False
-            multiline_bug = False
-            multiline_incomplete_test_app = False
-            
-            if stripped.startswith(f"{class_name}: >-") or stripped.startswith(f"{class_name}: |-") or stripped.startswith(f"{class_name}: >") or stripped.startswith(f"{class_name}: |"):
-                # Check the next line for the actual status
-                if i + 1 < len(lines):
-                    next_line = lines[i + 1].strip()
-                    multiline_missing_feature = next_line.startswith('missing_feature')
-                    multiline_bug = next_line.startswith('bug')
-                    multiline_incomplete_test_app = next_line.startswith('incomplete_test_app')
-                    multiline_match = multiline_missing_feature or multiline_bug or multiline_incomplete_test_app
+            is_multiline, actual_value, _ = handle_multiline_yaml(lines, i, stripped, class_name)
+            multiline_missing_feature = is_multiline and actual_value and actual_value.startswith('missing_feature')
+            multiline_bug = is_multiline and actual_value and actual_value.startswith('bug')
+            multiline_incomplete_test_app = is_multiline and actual_value and actual_value.startswith('incomplete_test_app')
+            multiline_match = multiline_missing_feature or multiline_bug or multiline_incomplete_test_app
             
             if missing_feature_match or bug_match or incomplete_test_app_match or multiline_match:
                 # For multiline, use the multiline flags; for direct, use the direct flags
@@ -342,33 +312,15 @@ def update_manifest_file_with_variants(test_class, language, variants, version="
             line = lines[i]
             
             # Determine if we should use concise format
-            use_concise = should_use_concise_format(variants, language)
+            use_concise = should_use_concise_format(variants)
             
             if use_concise:
                 # Handle multiline YAML vs direct format
                 base_indent = len(line) - len(line.lstrip())
                 new_line = ' ' * base_indent + f"{class_name}: {version}\n"
                 
-                # Check if this is a multiline YAML case that needs multiple lines removed
-                lines_to_replace = 1
-                if line.strip().endswith('>-') or line.strip().endswith('|-') or line.strip().endswith('>') or line.strip().endswith('|'):
-                    # This is multiline YAML, need to remove continuation lines too
-                    # Look for lines that are indented more than the current line
-                    j = i + 1
-                    while j < len(lines):
-                        next_line = lines[j]
-                        # Check if this line is a continuation (more indented than base_indent)
-                        if next_line.strip() == '':
-                            # Skip empty lines
-                            j += 1
-                            continue
-                        elif len(next_line) - len(next_line.lstrip()) > base_indent:
-                            # This line is more indented than the base, so it's a continuation
-                            lines_to_replace += 1
-                            j += 1
-                        else:
-                            # This line is not more indented, so we've reached the end of the multiline content
-                            break
+                # Calculate how many lines need to be replaced for multiline YAML
+                lines_to_replace = calculate_multiline_replacement_count(lines, i, line)
                 
                 # Replace the line(s)
                 lines[i:i+lines_to_replace] = [new_line]
@@ -401,26 +353,8 @@ def update_manifest_file_with_variants(test_class, language, variants, version="
                     variant_key = f"'{variant}'" if variant != '*' else "'*'"
                     new_lines.append(' ' * variant_indent + f"{variant_key}: {version}\n")
                 
-                # Check if this is a multiline YAML case that needs multiple lines removed
-                lines_to_replace = 1
-                if line.strip().endswith('>-') or line.strip().endswith('|-') or line.strip().endswith('>') or line.strip().endswith('|'):
-                    # This is multiline YAML, need to remove continuation lines too
-                    # Look for lines that are indented more than the current line
-                    j = i + 1
-                    while j < len(lines):
-                        next_line = lines[j]
-                        # Check if this line is a continuation (more indented than base_indent)
-                        if next_line.strip() == '':
-                            # Skip empty lines
-                            j += 1
-                            continue
-                        elif len(next_line) - len(next_line.lstrip()) > base_indent:
-                            # This line is more indented than the base, so it's a continuation
-                            lines_to_replace += 1
-                            j += 1
-                        else:
-                            # This line is not more indented, so we've reached the end of the multiline content
-                            break
+                # Calculate how many lines need to be replaced for multiline YAML
+                lines_to_replace = calculate_multiline_replacement_count(lines, i, line)
                 
                 # Replace the line(s) with the new structure
                 lines[i:i+lines_to_replace] = new_lines
@@ -503,7 +437,7 @@ def main():
     by_language = defaultdict(list)
     for test_class, lang_env_variant_tuples in easy_wins.items():
         for language, env_key, variant in lang_env_variant_tuples:
-            language_name = get_language_from_env_key(f"{language}_")  # Convert numeric to name
+            language_name = get_language_from_env_key(f"{language}_")
             if args.language is None or language_name == args.language:
                 by_language[language_name].append((test_class, variant))
     
@@ -584,12 +518,9 @@ def main():
             # Filter out already activated tests from the update list
             manifest_file = f"manifests/{language}.yml"
             tests_to_update = []
-            if os.path.exists(manifest_file):
-                for test_class, variant in test_class_variants:
-                    if not is_already_activated(test_class, manifest_file):
-                        tests_to_update.append((test_class, variant))
-            else:
-                tests_to_update = test_class_variants
+            for test_class, variant in test_class_variants:
+                if not os.path.exists(manifest_file) or not is_already_activated(test_class, manifest_file):
+                    tests_to_update.append((test_class, variant))
             
             if tests_to_update:
                 print(f"\n{language}.yml:")
