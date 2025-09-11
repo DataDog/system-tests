@@ -785,7 +785,13 @@ class _Scenarios:
     )
 
     # Single Step Instrumentation scenarios (HOST and CONTAINER)
-
+    simple_ai_installer_auto_injection = InstallerAutoInjectionScenario(
+        "SIMPLE_AI_INSTALLER_AUTO_INJECTION",
+        "Onboarding Container Single Step Instrumentation scenario (minimal test scenario) with AI",
+        scenario_groups=[scenario_groups.simple_onboarding],
+        vm_provision="auto-inject-ai",
+        github_workflow="aws_ssi",
+    )
     simple_installer_auto_injection = InstallerAutoInjectionScenario(
         "SIMPLE_INSTALLER_AUTO_INJECTION",
         "Onboarding Container Single Step Instrumentation scenario (minimal test scenario)",
