@@ -85,3 +85,4 @@ tests/:
     test_tracer.py: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
+  test_v1_payloads.py: missing_feature

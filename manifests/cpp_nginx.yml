@@ -290,3 +290,4 @@ tests/:
     Test_Telemetry: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature
+  test_v1_payloads.py: missing_feature
