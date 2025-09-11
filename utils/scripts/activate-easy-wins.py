@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import sys
 import urllib.request
 from collections import defaultdict
 from pathlib import Path
@@ -70,8 +69,9 @@ class ManifestEntry:
 
     def is_activated(self) -> bool:
         """Check if this entry is already activated (doesn't have special status)"""
-        if self.status == STATUS_VARIANT_STRUCTURE:
-            return True
+        # STATUS_VARIANT_STRUCTURE means we have a complex variant structure,
+        # which could contain both activated and non-activated variants
+        # We should not consider this as "activated" globally
         return not any(self.status.startswith(s) for s in SPECIAL_STATUSES)
 
 
@@ -299,9 +299,9 @@ def update_manifest_file_with_variants(
     test_class: str, language: str, variants: list[str], version: str = STATUS_XPASS
 ) -> bool:
     """Update manifest file with variant-specific test activation"""
-    manifest_file = f"{MANIFEST_DIR}/{language}{MANIFEST_EXTENSION}"
+    manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
 
-    if not Path(manifest_file).exists():
+    if not manifest_file.exists():
         print(f"Warning: Manifest file {manifest_file} does not exist")
         return False
 
@@ -311,7 +311,7 @@ def update_manifest_file_with_variants(
             lines = f.readlines()
 
         # Find updatable test entries using the unified parsing function
-        matches = find_test_class_in_manifest(test_class, manifest_file)
+        matches = find_test_class_in_manifest(test_class, str(manifest_file))
 
         # Filter for updatable entries
         updatable_entries = [entry for entry in matches if entry.is_updatable()]
@@ -413,10 +413,10 @@ def main() -> None:
     parser.add_argument(
         "--conservative",
         action="store_true",
-        default=False,
+        default=True,
         help=(
             f"Only update tests that are marked as {STATUS_MISSING_FEATURE}, "
-            f"{STATUS_BUG}, or {STATUS_INCOMPLETE_TEST_APP} in manifest files"
+            f"{STATUS_BUG}, or {STATUS_INCOMPLETE_TEST_APP} in manifest files (default behavior)"
         ),
     )
     parser.add_argument(
@@ -424,9 +424,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Conservative mode is the default unless --force-add is specified
-    if not args.force_add:
-        args.conservative = True
+    # Force-add mode disables conservative mode
+    if args.force_add:
+        args.conservative = False
 
     # Parse language-specific versions
     language_versions = {}
@@ -462,7 +462,11 @@ def main() -> None:
     by_language: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)
     for test_class, lang_env_variant_tuples in easy_wins.items():
         for language, _env_key, variant in lang_env_variant_tuples:
-            language_id = int(language.split("_")[0]) if "_" in str(language) else int(language)
+            try:
+                language_id = int(language.split("_")[0]) if "_" in str(language) else int(language)
+            except ValueError:
+                print(f"Warning: Could not parse language ID from '{language}', skipping")
+                continue
             language_name = LANGUAGE_MAP.get(language_id, f"unknown_{language_id}")
             if args.language is None or language_name == args.language:
                 by_language[language_name].append((test_class, variant))
@@ -473,11 +477,19 @@ def main() -> None:
     already_activated_tests: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)
 
     # Categorize all easy wins first (before conservative filtering)
+    # Group by test_class and env_key to avoid duplicates
+    seen_test_class_lang = set()
     for language, test_class_variants in by_language.items():
-        manifest_file = f"{MANIFEST_DIR}/{language}{MANIFEST_EXTENSION}"
-        if Path(manifest_file).exists():
+        manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
+        if manifest_file.exists():
             for test_class, _variant in test_class_variants:
-                status_info = get_test_status_info(test_class, manifest_file)
+                # Skip if we've already processed this test_class for this language
+                key = (test_class, language)
+                if key in seen_test_class_lang:
+                    continue
+                seen_test_class_lang.add(key)
+
+                status_info = get_test_status_info(test_class, str(manifest_file))
                 # Generate reason string once
                 if status_info.status is None:
                     reason = MSG_NOT_IN_MANIFEST
@@ -496,13 +508,13 @@ def main() -> None:
     if args.conservative:
         filtered_by_language: dict[str, list[tuple[str, str]]] = {}
         for language, test_class_variants in by_language.items():
-            manifest_file = f"{MANIFEST_DIR}/{language}{MANIFEST_EXTENSION}"
-            if Path(manifest_file).exists():
+            manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
+            if manifest_file.exists():
                 filtered_classes = []
-                for test_class, _variant in test_class_variants:
+                for test_class, variant_value in test_class_variants:
                     # Check if this test class exists as missing_feature or bug
-                    if get_test_status_info(test_class, manifest_file).is_updatable:
-                        filtered_classes.append((test_class, variant))
+                    if get_test_status_info(test_class, str(manifest_file)).is_updatable:
+                        filtered_classes.append((test_class, variant_value))
 
                 if filtered_classes:
                     filtered_by_language[language] = filtered_classes
@@ -553,18 +565,18 @@ def main() -> None:
         print("\nDry run - would update the following:")
         for language, test_class_variants in sorted(by_language.items()):
             # Filter out already activated tests from the update list
-            manifest_file = f"{MANIFEST_DIR}/{language}{MANIFEST_EXTENSION}"
+            manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
             tests_to_update = []
-            for test_class, _variant in test_class_variants:
-                if not Path(manifest_file).exists() or not get_test_status_info(test_class, manifest_file).is_activated:
-                    tests_to_update.append((test_class, _variant))
+            for test_class, variant_value in test_class_variants:
+                if not manifest_file.exists() or not get_test_status_info(test_class, str(manifest_file)).is_activated:
+                    tests_to_update.append((test_class, variant_value))
 
             if tests_to_update:
                 print(f"\n{language}.yml:")
                 # Group by test class to show variants together
                 by_test_class: defaultdict[str, list[str]] = defaultdict(list)
-                for test_class, variant in tests_to_update:
-                    by_test_class[test_class].append(variant)
+                for test_class, variant_value in tests_to_update:
+                    by_test_class[test_class].append(variant_value)
 
                 for test_class in sorted(by_test_class.keys()):
                     variants = sorted(set(by_test_class[test_class]))
@@ -578,10 +590,10 @@ def main() -> None:
         for language, test_class_variants in sorted(by_language.items()):
             # Group by test class to avoid duplicates
             test_variants: dict[str, set[str]] = {}
-            for test_class, _variant in test_class_variants:
+            for test_class, variant_value in test_class_variants:
                 if test_class not in test_variants:
                     test_variants[test_class] = set()
-                test_variants[test_class].add(variant)
+                test_variants[test_class].add(variant_value)
 
             for test_class in sorted(test_variants.keys()):
                 variants = sorted(test_variants[test_class])
