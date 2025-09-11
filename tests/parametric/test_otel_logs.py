@@ -1,12 +1,9 @@
 import pytest
-import logging
 import base64
 
-from utils import scenarios, features
+from utils import scenarios, features, logger
 from utils.parametric._library_client import LogLevel
 from urllib.parse import urlparse
-
-logger = logging.getLogger(__name__)
 
 
 def find_log_record(log_payloads, logger_name: str, log_message: str):
@@ -186,7 +183,7 @@ class Test_FR04_Trace_Span_IDs:
     @pytest.mark.parametrize(
         "library_env",
         [
-            {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
+            {"DD_TRACE_OTEL_ENABLED": "true", "DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
         ],
     )
     def test_otel_span_context_injection(self, test_agent, test_library):
@@ -228,7 +225,7 @@ class Test_FR05_Custom_Endpoints:
 
         assert (
             urlparse(library_env[endpoint_env]).port == 4320
-        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "test_logger", "test_otlp_custom_endpoint") is not None
 
@@ -344,7 +341,14 @@ class Test_FR07_Host_Name:
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_HOSTNAME": "ddhostname",
                 "DD_TRACE_REPORT_HOSTNAME": "false",
+                "DD_TRACE_DEBUG": None,
+            },
+            {
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": None,
                 "DD_TRACE_DEBUG": None,
             },
             {
@@ -353,7 +357,7 @@ class Test_FR07_Host_Name:
                 "DD_TRACE_DEBUG": None,
             },
         ],
-        ids=["disabled", "default"],
+        ids=["disabled", "hostname_set_via_dd_hostname", "default"],
     )
     def test_hostname_omitted(self, test_agent, test_library, library_env):
         """host.name is omitted when not configured."""
@@ -449,7 +453,7 @@ class Test_FR09_Log_Injection:
             },
         ],
     )
-    def test_log_injection_disabled_when_otel_enabled(self, test_agent, test_library, library_env):
+    def test_log_injection_when_otel_enabled(self, test_agent, test_library, library_env):
         """Log injection is disabled when OpenTelemetry Logs support is enabled."""
         with test_library as library, library.dd_start_span("test_span") as span:
             library.write_log(
@@ -477,6 +481,37 @@ class Test_FR09_Log_Injection:
                 assert (
                     dd_attr not in log_attr
                 ), f"Found {dd_attr} in log attributes: {log_attrs}, should not duplicate resource attributes"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_LOGS_OTEL_ENABLED": "true",
+                "DD_SERVICE": "testservice",
+                "DD_ENV": "testenv",
+                "DD_VERSION": "1.0.0",
+                "DD_TRACE_DEBUG": None,
+            },
+        ],
+    )
+    def test_log_without_active_span(self, test_agent, test_library, library_env):
+        """LogRecords generated without an active span not should have span_id and trace_id."""
+        with test_library as library:
+            library.write_log("test_log_without_span", LogLevel.INFO, "test_logger")
+
+        log_payloads = test_agent.wait_for_num_log_payloads(1)
+        log_record = find_log_record(log_payloads, "test_logger", "test_log_without_span")
+        resource = find_resource(log_payloads, "test_logger", "test_log_without_span")
+
+        # Verify no trace correlation when no active span
+        assert log_record.get("span_id") is None
+        assert log_record.get("trace_id") is None
+
+        # Verify service/env/version are ONLY in resource attributes
+        resource_attrs = find_attributes(resource)
+        assert resource_attrs.get("service.name") == "testservice"
+        assert resource_attrs.get("deployment.environment") == "testenv"
+        assert resource_attrs.get("service.version") == "1.0.0"
 
 
 @features.otel_logs_enabled
