@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 path_root = Path(__file__).parents[2]
-sys.path.append(str(path_root))
 
 FPD_URL = "https://dd-feature-parity.azurewebsites.net/Tests/Groups"
 
