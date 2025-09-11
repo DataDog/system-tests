@@ -80,8 +80,8 @@ nvm use "$NODEJS_VERSION"
 # Lock npm to compatible version based on Node.js version
 function get_compatible_npm_version() {
     local node_version="$1"
-    local major_version=$(echo "$node_version" | cut -d. -f1)
-    local minor_version=$(echo "$node_version" | cut -d. -f2)
+    local major_version
+    major_version=$(echo "$node_version" | cut -d. -f1)
 
     # npm version compatibility matrix
     if [ "$major_version" -ge 20 ]; then
