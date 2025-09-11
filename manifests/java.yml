@@ -753,6 +753,14 @@ tests/:
           ratpack: missing_feature
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': v1.45.0
@@ -2084,6 +2092,8 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
     test_process_discovery.py: missing_feature
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:

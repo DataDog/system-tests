@@ -1976,3 +1976,30 @@ def view_iast_sc_iv_overloaded_insecure():
     if _sc_v_overloaded(user, password):
         _sink_point_sqli(table=user)
     return Response("OK")
+
+
+@app.route("/external_request", methods=["GET", "TRACE", "POST"])
+def external_request():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = flask_request.data or None
+    if body:
+        queries["Content-Type"] = flask_request.headers.get("content-type") or "application/json"
+    request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}",
+        method=flask_request.method,
+        headers=queries,
+        data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})
