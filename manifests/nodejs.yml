@@ -504,6 +504,14 @@ tests/:
           fastify: *ref_5_61_0
           nextjs: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': *ref_5_30_0
@@ -874,7 +882,7 @@ tests/:
         nextjs: irrelevant  # nextjs is not related with graphql
       Test_Blocking_client_ip: *ref_3_19_0
       Test_Blocking_client_ip_with_K8_private_ip: *ref_5_57_0
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+      Test_Blocking_client_ip_with_forwarded: *ref_5_66_0
       Test_Blocking_request_body:
         '*': *ref_3_19_0
         fastify: *ref_5_57_0
@@ -1306,6 +1314,8 @@ tests/:
     test_partial_flushing.py:
       Test_Partial_Flushing: bug (APMLP-270)
     test_process_discovery.py: missing_feature
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py:
       Test_Span_Links: *ref_5_3_0

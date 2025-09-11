@@ -18,13 +18,11 @@ default_libraries = [
     "python",
     "ruby",
     "python_lambda",
+    "rust",
 ]
 
 lambda_libraries = ["python_lambda"]
-
-libraries = (
-    "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"
-)
+libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
 
 
 def get_impacted_libraries(modified_file: str) -> list[str]:
