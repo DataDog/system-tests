@@ -735,7 +735,6 @@ def test_agent(
         log_file=test_agent_log_file,
         network=docker_network,
     ):
-        # TODO: Avoid hardcoding the OTLP port, mark this configurable via fixtures/env vars
         client = _TestAgentAPI("localhost", core_host_port, otlp_http_host_port, pytest_request=request)
         time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
@@ -798,14 +797,13 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
-    ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
         command=apm_test_server.container_cmd,
         env=env,
-        ports=ports,
+        ports={f"{apm_test_server.container_port}/tcp": apm_test_server.host_port},
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network=docker_network,

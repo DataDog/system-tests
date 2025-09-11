@@ -730,13 +730,6 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     return OtelSetAttributesReturn()
 
 
-class LoggerType(enum.IntEnum):
-    default = 0  # Default logger for the language
-    logging = 1
-    loguru = 2
-    struct_log = 3
-
-
 class LogGenerateArgs(BaseModel):
     message: str
     level: str
