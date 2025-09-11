@@ -2,7 +2,7 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI"
+                "DOCKER_SSI", "DOCKER_SSI_APPSEC"
             ],
             "weblogs": [
                 {
