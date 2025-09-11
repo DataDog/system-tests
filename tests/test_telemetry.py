@@ -579,7 +579,6 @@ class Test_Telemetry:
 
 
 @features.telemetry_app_started_event
-@missing_feature(context.library == "cpp", reason="Not implemented")
 @scenarios.telemetry_enhanced_config_reporting
 @rfc("https://docs.google.com/document/d/1vhIimn2vt4tDRSxsHn6vWSc8zYHl0Lv0Fk7CQps04C4/edit?usp=sharing")
 class Test_TelemetryEnhancedConfigReporting:
