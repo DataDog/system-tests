@@ -633,21 +633,21 @@ class Test_TelemetryEnhancedConfigReporting:
         config_name = expected_config["name"]
         expected_precedence: list[dict[str, Any]] = expected_config["precedence"]
 
-        # Get configurations and filter by name
+        # Get configurations from telemetry events
         all_configs = interfaces.library.get_telemetry_configurations()
         assert all_configs, "No configurations found"
 
         matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
         assert matching_configs, f"No configurations found for {config_name}"
 
-        # Group by origin and keep the latest (highest seq_id) for each origin
+        # Group configurations by origin and keep the latest (highest seq_id) for each origin
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
-        # Sort by seq_id to get the precedence order
+        # Sort latest configurations by origin by seq_id to get the effective precedence order
         sorted_configs: list[dict[str, Any]] = sorted(latest_by_origin.values(), key=lambda x: x["seq_id"])
 
-        # Verify we have at least as many configs as expected
-        assert len(sorted_configs) >= len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
+        # Verify that configurations for the expected number of origins were received
+        assert len(sorted_configs) == len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
 
         # Verify each configuration matches expected precedence
         for i, expected in enumerate(expected_precedence):
