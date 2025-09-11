@@ -1456,7 +1456,8 @@ class InternalServerContainer(TestedContainer):
             name="internal_server",
             host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
-            command="/bin/sh /app/app.sh",
+            working_dir="/app",
+            command="uvicorn app:app --host 0.0.0.0 --port 8089",
             volumes={
                 "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
                 "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
