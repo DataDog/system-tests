@@ -314,19 +314,40 @@ class Test_FR07_Host_Name:
         assert attrs.get("host.name") == "ddhostname"
 
     @pytest.mark.parametrize(
-        "library_env",
+        ("library_env", "host_attribute"),
         [
-            {
-                "DD_LOGS_OTEL_ENABLED": "true",
-                "OTEL_RESOURCE_ATTRIBUTES": "host.name=otelenv-host",
-                "DD_HOSTNAME": "ddhostname",
-                "DD_TRACE_REPORT_HOSTNAME": "true",
-                "DD_TRACE_DEBUG": None,
-            },
+            (
+                {
+                    "DD_LOGS_OTEL_ENABLED": "true",
+                    "OTEL_RESOURCE_ATTRIBUTES": "host.name=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                    "DD_TRACE_DEBUG": None,
+                },
+                "host.name",
+            ),
+            (
+                {
+                    "DD_LOGS_OTEL_ENABLED": "true",
+                    "OTEL_RESOURCE_ATTRIBUTES": "host.id=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                    "DD_TRACE_DEBUG": None,
+                },
+                "host.id",
+            ),
+            (
+                {
+                    "DD_LOGS_OTEL_ENABLED": "true",
+                    "OTEL_RESOURCE_ATTRIBUTES": "datadog.host.name=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                    "DD_TRACE_DEBUG": None,
+                },
+                "datadog.host.name",
+            ),
         ],
+        ids=["host.name", "host.id", "datadog.host.name"],
     )
-    def test_hostname_from_otel_resources(self, test_agent, test_library, library_env):
-        """OTEL_RESOURCE_ATTRIBUTES host.name takes precedence over DD_HOSTNAME."""
+    def test_hostname_from_otel_resources(self, test_agent, test_library, library_env, host_attribute):
+        """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
         with test_library as library:
             library.write_log("test_hostname_from_otel_resources", LogLevel.INFO, "test_logger")
 
@@ -334,7 +355,7 @@ class Test_FR07_Host_Name:
         resource = find_resource(log_payloads, "test_logger", "test_hostname_from_otel_resources")
         attrs = find_attributes(resource)
 
-        assert attrs.get("host.name") == "otelenv-host"
+        assert attrs.get(host_attribute) == "otelenv-host"
 
     @pytest.mark.parametrize(
         "library_env",
