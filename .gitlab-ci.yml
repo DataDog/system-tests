@@ -4,11 +4,11 @@ include:
 stages:
   - configure
   - nodejs
-  #- java
-  #- dotnet
-  #- python
-  #- php
-  #- ruby
+  - java
+  - dotnet
+  - python
+  - php
+  - ruby
   - pipeline-status
   - system-tests-utils
 
@@ -90,7 +90,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-.java_ssi_pipeline:
+java_ssi_pipeline:
   stage: java
   needs: ["compute_pipeline", "nodejs_ssi_pipeline"]
   variables:
@@ -105,7 +105,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-.dotnet_ssi_pipeline:
+dotnet_ssi_pipeline:
   stage: dotnet
   needs: ["compute_pipeline", "java_ssi_pipeline"]
   variables:
@@ -120,7 +120,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-.python_ssi_pipeline:
+python_ssi_pipeline:
   stage: python
   needs: ["compute_pipeline", "dotnet_ssi_pipeline"]
   variables:
@@ -135,7 +135,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-.php_ssi_pipeline:
+php_ssi_pipeline:
   stage: php
   needs: ["compute_pipeline", "python_ssi_pipeline"]
   variables:
@@ -150,7 +150,7 @@ nodejs_ssi_pipeline:
     - if: '$SCHEDULED_JOB == null'
   when: always
 
-.ruby_ssi_pipeline:
+ruby_ssi_pipeline:
   stage: ruby
   needs: ["compute_pipeline", "php_ssi_pipeline"]
   variables:
