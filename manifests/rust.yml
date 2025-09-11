@@ -29,6 +29,7 @@ tests/:
       Test_Otel_API_Interoperability: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
+    test_otel_logs.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: *ref_0_0_1
     test_otel_span_with_baggage.py:
@@ -55,6 +56,7 @@ tests/:
       Test_Parametric_OtelSpan_Start: *ref_0_0_1
       Test_Parametric_Otel_Baggage: missing_feature
       Test_Parametric_Otel_Current_Span: *ref_0_0_1
+      Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature

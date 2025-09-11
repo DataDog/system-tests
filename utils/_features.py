@@ -2149,12 +2149,20 @@ class _Features:
         return _mark_test_object(test_object, feature_id=343, owner=_Owner.asm)
 
     @staticmethod
-    def graphql_query_error_reporting(test_object):
-        """GraphQL query error reporting
+    def graphql_operation_error_reporting(test_object):
+        """GraphQL operation error reporting
 
         https://feature-parity.us1.prod.dog/#/?feature=354
         """
         return _mark_test_object(test_object, feature_id=354, owner=_Owner.idm)
+
+    @staticmethod
+    def graphql_operation_error_tracking(test_object):
+        """GraphQL operation error tracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=485
+        """
+        return _mark_test_object(test_object, feature_id=485, owner=_Owner.idm)
 
     @staticmethod
     def envoy_external_processing(test_object):
@@ -2513,6 +2521,15 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=488
         """
         return _mark_test_object(test_object, feature_id=488, owner=_Owner.language_platform)
+
+    @staticmethod
+    def otel_logs_enabled(test_object):
+        """OTEL logs are enabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=487
+        """
+        return _mark_test_object(test_object, feature_id=487, owner=_Owner.sdk_capabilities)
+
 
     @staticmethod
     def api10(test_object):

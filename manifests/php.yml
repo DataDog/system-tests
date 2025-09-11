@@ -565,6 +565,7 @@ tests/:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
+    test_otel_logs.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
@@ -578,6 +579,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
+      Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
@@ -657,7 +659,11 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLOperationErrorReporting:
+      '*': missing_feature
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
   test_identify.py:
     Test_Basic: v0.85.0
     Test_Propagate: v0.85.0
