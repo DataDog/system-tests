@@ -9,7 +9,8 @@ from utils import scenarios, features, bug, missing_feature, context, flaky
 class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     """Base class with common methods for status probe tests"""
 
-    expected_diagnostics: dict = {}
+    expected_diagnostics: dict[str, debugger.ProbeStatus] = {}
+    expect_error_on_missing_symbol: bool = False
 
     def _setup(self, probes_name: str, probe_type: str):
         self.initialize_weblog_remote_config()
@@ -26,11 +27,18 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         self.set_probes(probes)
 
+        # The Go debugger can report an ERROR status if a symbol is missing
+        # because it knows definitively that a symbol will not later show up.
+        if context.library == "golang":
+            self.expect_error_on_missing_symbol = True
+
         ### set expected
         self.expected_diagnostics = {}
         for probe in self.probe_definitions:
             if probe["id"].endswith("installed"):
                 self.expected_diagnostics[probe["id"]] = "INSTALLED"
+            elif self.expect_error_on_missing_symbol:
+                self.expected_diagnostics[probe["id"]] = "ERROR"
             else:
                 self.expected_diagnostics[probe["id"]] = "RECEIVED"
 
@@ -46,14 +54,20 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
         self._validate_diagnostics()
 
     def _validate_diagnostics(self):
-        def _check_probe_status(expected_id, expected_status):
+        def _check_probe_status(expected_id, expected_status: debugger.ProbeStatus):
             if expected_id not in self.probe_diagnostics:
                 return f"Probe {expected_id} was not received."
 
-            actual_status = self.probe_diagnostics[expected_id]["status"]
+            probe_data = self.probe_diagnostics[expected_id]
+            actual_status = probe_data["status"]
+            status_history = probe_data["status_history"]
+
             if actual_status != expected_status:
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
-
+            if expected_status != "RECEIVED":
+                # Assert that we saw RECEIVED before whatever else we expect.
+                if "RECEIVED" not in status_history:
+                    return f"Probe {expected_id} with status {expected_status} did not have RECEIVED in history: {status_history}"
             return None
 
         assert self.probe_diagnostics, "Probes were not received"
@@ -73,6 +87,9 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 @bug(context.library == "python@2.16.1", reason="DEBUG-3127")
 @flaky(context.library > "php@1.8.3", reason="DEBUG-3814")
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(
+    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
+)
 class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
     """Tests for method-level probe status"""
 
@@ -88,6 +105,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_metric", probe_type="metric")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_status(self):
         self._assert()
 
@@ -96,6 +114,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_span", probe_type="span")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_method_status(self):
         self._assert()
 
@@ -104,6 +123,7 @@ class Test_Debugger_Method_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_spandecoration", probe_type="decor")
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_status(self):
         self._assert()
 
@@ -120,6 +140,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
         self._setup("probe_status_log_line", probe_type="log")
 
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_log_line_status(self):
         self._assert()
 
@@ -130,6 +151,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_metric_line_status(self):
         self._assert()
 
@@ -140,5 +162,6 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_status(self):
         self._assert()
