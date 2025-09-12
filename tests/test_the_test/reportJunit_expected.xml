@@ -1,0 +1,62 @@
+<testsuites>
+    <testsuite name="system_tests_suite" errors="0" failures="1" skipped="3" tests="6" time="0.747"
+        timestamp="2025-09-12T08:58:47.879135" hostname="COMP-C02FL1L0ML87">
+        <properties>
+            <property name="dd_tags[systest.suite.context.scenario]" value="MOCK_THE_TEST" />
+            <property name="dd_tags[systest.suite.summary.passed]" value="1" />
+            <property name="dd_tags[systest.suite.summary.skipped]" value="2" />
+            <property name="dd_tags[systest.suite.summary.total]" value="6" />
+            <property name="dd_tags[systest.suite.summary.collected]" value="7" />
+        </properties>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases" name="tests.test_the_test.test_junit.Test_Cases.test_pass" time="0.000">
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="passed" />
+                <property name="dd_tags[systest.case.skip_reason]" value="" />
+            </properties>
+        </testcase>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases"
+            name="tests.test_the_test.test_junit.Test_Cases.test_fail" time="0.000">
+            <failure message="Failed: dummy">self = &lt;tests.test_the_test.test_junit.Test_Cases object at 0x10cf01eb0&gt;
+    def test_fail(self):
+&gt;       pytest.fail("dummy")
+E       Failed: dummy
+tests/test_the_test/test_junit.py:20: Failed</failure>
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="failed" />
+                <property name="dd_tags[systest.case.skip_reason]" value="" />
+            </properties>
+            <failure />
+        </testcase>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases"
+            name="tests.test_the_test.test_junit.Test_Cases.test_skipped" time="0.000">
+            <skipped type="pytest.skip" message="irrelevant">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:22: irrelevant</skipped>
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="skipped" />
+                <property name="dd_tags[systest.case.skip_reason]" value="irrelevant" />
+            </properties>
+        </testcase>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases"
+            name="tests.test_the_test.test_junit.Test_Cases.test_xfail" time="0.000">
+            <skipped type="pytest.xfail" message="bug (APMRP-360)" />
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="xfailed" />
+                <property name="dd_tags[systest.case.skip_reason]" value="bug (APMRP-360)" />
+            </properties>
+        </testcase>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases"
+            name="tests.test_the_test.test_junit.Test_Cases.test_xpass" time="0.000">
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="xpassed" />
+                <property name="dd_tags[systest.case.skip_reason]" value="bug (APMRP-360)" />
+            </properties>
+        </testcase>
+        <testcase classname="tests.test_the_test.test_junit.Test_Cases"
+            name="tests.test_the_test.test_junit.Test_Cases.test_flaky" time="0.000">
+            <skipped type="pytest.skip" message="flaky (APMRP-360)">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:34: flaky (APMRP-360)</skipped>
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="skipped" />
+                <property name="dd_tags[systest.case.skip_reason]" value="flaky (APMRP-360)" />
+            </properties>
+        </testcase>
+    </testsuite>
+</testsuites>
