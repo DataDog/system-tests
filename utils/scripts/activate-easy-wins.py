@@ -1,609 +1,242 @@
 from __future__ import annotations
 
-import argparse
 import json
+import os
 import urllib.request
-from collections import defaultdict
+import zipfile
+from enum import Enum
 from pathlib import Path
 from typing import Any
 
+import requests
+import ruamel.yaml
+
+
+class UnexpectedStatusError(Exception):
+    """Raised when an unexpected status is encountered."""
+
+
 path_root = Path(__file__).parents[2]
 
-FPD_URL = "https://dd-feature-parity.azurewebsites.net/Tests/Groups"
-
-# Status constants
-STATUS_MISSING_FEATURE = "missing_feature"
-STATUS_BUG = "bug"
-STATUS_INCOMPLETE_TEST_APP = "incomplete_test_app"
-STATUS_IRRELEVANT = "irrelevant"
-STATUS_VARIANT_STRUCTURE = "variant_structure"
-STATUS_XPASS = "xpass"
-STATUS_PASSED = "passed"
-STATUS_XPASSED = "xpassed"
-
-# YAML multiline indicators
-YAML_MULTILINE_INDICATORS = [">-", "|-", ">", "|"]
-
-# Special statuses that indicate test is not activated
-SPECIAL_STATUSES = [STATUS_BUG, STATUS_MISSING_FEATURE, STATUS_INCOMPLETE_TEST_APP, STATUS_IRRELEVANT]
-
-# Updatable statuses
-UPDATABLE_STATUSES = [STATUS_MISSING_FEATURE, STATUS_BUG, STATUS_INCOMPLETE_TEST_APP]
-
-# Test outcomes that qualify as passing
-PASSING_OUTCOMES = [STATUS_XPASSED, STATUS_PASSED]
-
-# Language mapping
-LANGUAGE_MAP = {2: "dotnet", 3: "nodejs", 4: "php", 5: "python", 6: "golang", 7: "ruby", 8: "java", 9: "cpp"}
-
-# Common strings
-MANIFEST_DIR = "manifests"
-MANIFEST_EXTENSION = ".yml"
-TEST_SEPARATOR = "::"
-DEFAULT_VARIANT = "*"
-
-# Error messages
-MSG_NOT_IN_MANIFEST = "not_in_manifest"
-MSG_HAS_VARIANT_STRUCTURE = "has_variant_structure"
-MSG_NOT_A_TEST_CLASS = "not_a_test_class"
-
-# Display constants
-MAX_TESTS_TO_SHOW = 3
-HTTP_OK = 200
-MIN_PARTS_FOR_TEST_CLASS = 2
+ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=1"
 
 
-class ManifestEntry:
-    """Represents a test class entry found in a manifest file"""
+def pull_artifact(url: str) -> None:
+    token = os.getenv("GITHUB_TOKEN")  # expects your GitHub token in env var
 
-    def __init__(self, *, line_index: int, status: str, is_multiline: bool, lines_to_replace: int, original_line: str):
-        self.line_index = line_index
-        self.status = status
-        self.is_multiline = is_multiline
-        self.lines_to_replace = lines_to_replace
-        self.original_line = original_line
+    req_runs = urllib.request.Request(url)  # noqa: S310
+    req_runs.add_header("Authorization", f"token {token}")
+    req_runs.add_header("Accept", "application/vnd.github+json")
+    with urllib.request.urlopen(req_runs) as resp_runs:  # noqa: S310
+        artifacts = json.load(resp_runs)
 
-    def is_updatable(self) -> bool:
-        """Check if this entry can be updated (has updatable status)"""
-        return any(self.status.startswith(s) for s in UPDATABLE_STATUSES)
+    artifacts_url = artifacts["workflow_runs"][0]["artifacts_url"]
+    req_artifacts = urllib.request.Request(artifacts_url)  # noqa: S310
+    req_artifacts.add_header("Authorization", f"token {token}")
+    req_artifacts.add_header("Accept", "application/vnd.github+json")
+    with urllib.request.urlopen(req_artifacts) as resp_artifacts:  # noqa: S310
+        artifacts = json.load(resp_artifacts)
 
-    def is_activated(self) -> bool:
-        """Check if this entry is already activated (doesn't have special status)"""
-        # STATUS_VARIANT_STRUCTURE means we have a complex variant structure,
-        # which could contain both activated and non-activated variants
-        # We should not consider this as "activated" globally
-        return not any(self.status.startswith(s) for s in SPECIAL_STATUSES)
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "python-requests",
+    }
+    download_url = artifacts["artifacts"][0]["archive_download_url"]
 
+    with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
+        r.raise_for_status()
+        with open("./data.zip", "wb") as f:
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
 
-class TestStatusInfo:
-    """Represents test status information from manifest parsing"""
-
-    def __init__(self, *, status: str | None = None, is_updatable: bool = False, is_activated: bool = False):
-        self.status = status
-        self.is_updatable = is_updatable
-        self.is_activated = is_activated
-
-    @classmethod
-    def from_manifest_entry(cls, entry: ManifestEntry) -> TestStatusInfo:
-        """Create TestStatusInfo from a ManifestEntry"""
-        if entry is None:
-            return cls()
-        return cls(status=entry.status, is_updatable=entry.is_updatable(), is_activated=entry.is_activated())
+    with zipfile.ZipFile("./data.zip") as z:
+        z.extractall("./data")
 
 
-def fetch_fpd_data() -> list[dict[str, Any]]:
-    """Fetch test data from the Feature Parity Dashboard API"""
-    req = urllib.request.Request(FPD_URL, method="GET")  # noqa: S310
-    with urllib.request.urlopen(req, timeout=30) as resp:  # noqa: S310
-        if resp.status != HTTP_OK:
-            raise RuntimeError(f"HTTP {resp.status}")
-        return json.load(resp)
+class TestClassStatus(Enum):
+    ACTIVATE = 1
+    CACTIVATE = 2
+    NOEDIT = 3
+
+    @staticmethod
+    def parse(test_status: str) -> TestClassStatus:
+        match test_status:
+            case "passed":
+                return TestClassStatus.CACTIVATE
+            case "xpassed":
+                return TestClassStatus.ACTIVATE
+            case "failed":
+                return TestClassStatus.NOEDIT
+            case "xfailed":
+                return TestClassStatus.NOEDIT
+            case "skipped":
+                return TestClassStatus.NOEDIT
+            case _:
+                raise UnexpectedStatusError(f"Unexpected status: {test_status}")
 
 
-def extract_test_class_from_path(test_path: str) -> str | None:
-    """Extract test class name from test path like 'tests/foo.py::TestClass::test_method'"""
-    if TEST_SEPARATOR not in test_path:
-        return None
-
-    # Split by :: and take up to the test class (not individual test method)
-    parts = test_path.split(TEST_SEPARATOR)
-    if len(parts) >= MIN_PARTS_FOR_TEST_CLASS:
-        # Return path up to and including the test class
-        return f"{parts[0]}{TEST_SEPARATOR}{parts[1]}"
-    return None
-
-
-def analyze_test_classes(fpd_data: list[dict[str, Any]]) -> dict[str, list[tuple[str, str, str]]]:
-    """Analyze FPD data to find test classes where all tests have passed or xpassed status per language"""
-    # Group tests by test class and language, track all outcomes
-    test_class_language_outcomes: dict[str, dict[str, dict[str, list[tuple[str, str]]]]] = defaultdict(
-        lambda: defaultdict(lambda: defaultdict(list))
-    )
-
-    for test_group in fpd_data:
-        language = test_group.get("language", "")
-        scenario = test_group.get("scenario", "")
-        environment = test_group.get("environment", "")
-        variant = test_group.get("variant", DEFAULT_VARIANT)  # Default variant is '*'
-
-        # Create a key for this specific environment (language is handled separately now)
-        env_key = f"{scenario}_{environment}" if environment else scenario
-
-        for test_run in test_group.get("systemTestRuns", []):
-            test_path = test_run.get("testPath", "")
-            original_outcome = test_run.get("originalOutcome", "")
-
-            test_class = extract_test_class_from_path(test_path)
-            if test_class:
-                # Store outcomes grouped by test_class -> language -> env_key
-                test_class_language_outcomes[test_class][language][env_key].append((variant, original_outcome))
-
-    # Find test classes where ALL outcomes for a specific language are passed or xpassed
-    easy_wins: dict[str, list[tuple[str, str, str]]] = {}
-
-    for test_class, language_data in test_class_language_outcomes.items():
-        for language, env_data in language_data.items():
-            # Check if ALL outcomes for this test class in this language are xpassed
-            all_outcomes_for_language = []
-            env_keys_for_language = []
-
-            for env_key, variant_outcomes in env_data.items():
-                outcomes = [outcome for variant, outcome in variant_outcomes]
-                all_outcomes_for_language.extend(outcomes)
-                env_keys_for_language.append(env_key)
-
-            # If ALL outcomes for this language are 'xpassed' or 'passed', it's an easy win for this language
-            if all_outcomes_for_language and all(outcome in PASSING_OUTCOMES for outcome in all_outcomes_for_language):
-                if test_class not in easy_wins:
-                    easy_wins[test_class] = []
-                # Add entries with language information included
-                for env_key in env_keys_for_language:
-                    easy_wins[test_class].append((language, env_key, DEFAULT_VARIANT))  # Include language, env, variant
-
-    return easy_wins
+def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> TestClassStatus:
+    match (status1, status2):
+        case (TestClassStatus.ACTIVATE, TestClassStatus.ACTIVATE):
+            return TestClassStatus.ACTIVATE
+        case (TestClassStatus.CACTIVATE, TestClassStatus.ACTIVATE):
+            return TestClassStatus.CACTIVATE
+        case (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
+            return TestClassStatus.CACTIVATE
+        case (TestClassStatus.CACTIVATE, TestClassStatus.CACTIVATE):
+            return TestClassStatus.CACTIVATE
+        case (TestClassStatus.NOEDIT, _):
+            return TestClassStatus.NOEDIT
+        case (_, TestClassStatus.NOEDIT):
+            return TestClassStatus.NOEDIT
+        case _:
+            raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def handle_multiline_yaml(
-    lines: list[str], i: int, stripped_line: str, _class_name: str
-) -> tuple[bool, str | None, int]:
-    """Handle multiline YAML parsing and return (is_multiline, actual_value, lines_to_replace)"""
-    status_part = ""
-    if ": " in stripped_line:
-        status_part = stripped_line.split(": ", 1)[1]
-
-    if status_part in YAML_MULTILINE_INDICATORS:
-        # This is multiline YAML, calculate actual lines to replace
-        lines_to_replace = calculate_multiline_replacement_count(lines, i, lines[i])
-
-        # Read the next line for the actual value
-        if i + 1 < len(lines):
-            next_line = lines[i + 1].strip()
-            return True, next_line, lines_to_replace
-        return True, status_part, lines_to_replace  # Incomplete multiline
-    return False, None, 1
-
-
-def calculate_multiline_replacement_count(lines: list[str], i: int, line: str) -> int:
-    """Calculate how many lines need to be replaced for multiline YAML entries"""
-    base_indent = len(line) - len(line.lstrip())
-    lines_to_replace = 1
-
-    if any(line.strip().endswith(indicator) for indicator in YAML_MULTILINE_INDICATORS):
-        # This is multiline YAML, need to remove continuation lines too
-        # Look for lines that are indented more than the current line
-        j = i + 1
-        while j < len(lines):
-            next_line = lines[j]
-            # Check if this line is a continuation (more indented than base_indent)
-            if next_line.strip() == "":
-                # Skip empty lines
-                j += 1
-                continue
-            if len(next_line) - len(next_line.lstrip()) > base_indent:
-                # This line is more indented than the base, so it's a continuation
-                lines_to_replace += 1
-                j += 1
-            else:
-                # This line is not more indented, so we've reached the end of the multiline content
-                break
-
-    return lines_to_replace
-
-
-def get_test_status_info(test_class: str, manifest_file: str) -> TestStatusInfo:
-    """Get test status information from manifest file"""
-    matches = find_test_class_in_manifest(test_class, manifest_file)
-
-    if not matches:
-        return TestStatusInfo()
-
-    # Use the first match (there should typically be only one)
-    entry = matches[0]
-    return TestStatusInfo.from_manifest_entry(entry)
-
-
-def find_test_class_in_manifest(test_class: str, manifest_file: str) -> list[ManifestEntry]:
-    """Find test class entries in manifest file and return ManifestEntry objects"""
-    if TEST_SEPARATOR not in test_class:
-        return []
-
-    path_parts = test_class.split("/")
-    file_name, class_name = path_parts[-1].split(TEST_SEPARATOR, 1)
-
-    try:
-        with open(manifest_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-    except OSError:
-        return []
-
-    matches = []
-    for i, line in enumerate(lines):
-        stripped = line.strip()
-        if stripped.startswith(f"{class_name}:"):
-            # Extract the status after the colon
-            if ": " in stripped:
-                status_part = stripped.split(": ", 1)[1]
-
-                # Handle YAML multiline indicators
-                is_multiline, actual_value, lines_count = handle_multiline_yaml(lines, i, stripped, class_name)
-                if is_multiline:
-                    if actual_value:
-                        first_word = actual_value.split()[0] if actual_value.split() else status_part
-                        matches.append(
-                            ManifestEntry(
-                                line_index=i,
-                                status=first_word,
-                                is_multiline=True,
-                                lines_to_replace=lines_count,
-                                original_line=line,
-                            )
-                        )
+def parse_artifact_data() -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
+    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
+    for language in os.listdir("./data/dev"):
+        test_data[language] = {}
+        for variant in os.listdir(f"./data/dev/{language}"):
+            for scenario in os.listdir(f"./data/dev/{language}/{variant}"):
+                with open(f"./data/dev/{language}/{variant}/{scenario}") as file:
+                    scenario_data = json.load(file)
+                for test in scenario_data["tests"]:
+                    test_path = test["path"].split("::")[0]
+                    test_class = test["path"].split("::")[1]
+                    if not test_data[language].get(test_path):
+                        test_data[language][test_path] = {}
+                    if not test_data[language][test_path].get(test_class):
+                        test_data[language][test_path][test_class] = {}
+                    if not test_data[language][test_path][test_class].get(variant):
+                        # if variant == "fastapi":
+                        #     breakpoint()
+                        test_data[language][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
                     else:
-                        matches.append(
-                            ManifestEntry(
-                                line_index=i,
-                                status=status_part,
-                                is_multiline=True,
-                                lines_to_replace=1,
-                                original_line=line,
-                            )
+                        outcome = TestClassStatus.parse(test["outcome"])
+                        previous_outcome = test_data[language][test_path][test_class][variant]
+                        test_data[language][test_path][test_class][variant] = merge_update_status(
+                            outcome, previous_outcome
                         )
-                else:
-                    # Remove any comments for clean status
-                    clean_status = status_part.split(" #")[0].split(" (")[0].strip()
-                    matches.append(
-                        ManifestEntry(
-                            line_index=i,
-                            status=clean_status,
-                            is_multiline=False,
-                            lines_to_replace=1,
-                            original_line=line,
-                        )
-                    )
-            else:
-                # Has variant structure
-                matches.append(
-                    ManifestEntry(
-                        line_index=i,
-                        status=STATUS_VARIANT_STRUCTURE,
-                        is_multiline=False,
-                        lines_to_replace=1,
-                        original_line=line,
-                    )
-                )
 
-    return matches
+    return test_data
 
 
-def update_manifest_file_with_variants(
-    test_class: str, language: str, variants: list[str], version: str = STATUS_XPASS
-) -> bool:
-    """Update manifest file with variant-specific test activation"""
-    manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
-
-    if not manifest_file.exists():
-        print(f"Warning: Manifest file {manifest_file} does not exist")
-        return False
-
-    try:
-        # Read the original content
-        with open(manifest_file, "r", encoding="utf-8") as f:
-            lines = f.readlines()
-
-        # Find updatable test entries using the unified parsing function
-        matches = find_test_class_in_manifest(test_class, str(manifest_file))
-
-        # Filter for updatable entries
-        updatable_entries = [entry for entry in matches if entry.is_updatable()]
-
-        if updatable_entries:
-            # Use the first updatable entry
-            entry = updatable_entries[0]
-            i = entry.line_index
-            line = lines[i]
-            path_parts = test_class.split("/")
-            file_name, class_name = path_parts[-1].split(TEST_SEPARATOR, 1)
-
-            # Determine if we should use concise format
-            use_concise = DEFAULT_VARIANT in variants
-
-            if use_concise:
-                # Handle multiline YAML vs direct format
-                base_indent = len(line) - len(line.lstrip())
-                new_line = " " * base_indent + f"{class_name}: {version}\n"
-
-                # Replace the line(s)
-                lines[i : i + entry.lines_to_replace] = [new_line]
-
-                # Write back the file
-                with open(manifest_file, "w", encoding="utf-8") as f:
-                    f.writelines(lines)
-
-                print(f"Updated {manifest_file}: {test_class} = {version} (was {entry.status})")
-                return True
-            # Found a missing_feature or bug entry - replace with variant structure
-            base_indent = len(line) - len(line.lstrip())
-            variant_indent = base_indent + 2
-
-            # Create the new variant structure
-            new_lines = []
-            new_lines.append(" " * base_indent + f"{class_name}:\n")
-
-            # Add '*': original_status for other variants not in our list
-            comment = f" (was {entry.status})" if entry.status != STATUS_MISSING_FEATURE else ""
-            new_lines.append(" " * variant_indent + f"'*': {entry.status}{comment}\n")
-
-            # Add specific variants that pass
-            for variant in sorted(variants):
-                if variant == DEFAULT_VARIANT:
-                    continue  # Skip the wildcard, we handle it above
-                variant_key = f"'{variant}'"
-                new_lines.append(" " * variant_indent + f"{variant_key}: {version}\n")
-
-            # Replace the line(s) with the new structure
-            lines[i : i + entry.lines_to_replace] = new_lines
-
-            # Write back the file
-            with open(manifest_file, "w", encoding="utf-8") as f:
-                f.writelines(lines)
-
-            variants_str = ", ".join(sorted(variants))
-            print(
-                f"Updated {manifest_file}: {test_class} = {version} for variants: {variants_str} (was {entry.status})"
-            )
-            return True
-
-        # Check if test class exists with other configurations
-        if matches:
-            # Test class found but not updatable
-            print(
-                f"Skipping {manifest_file}: {test_class} already has a configuration "
-                f"(no {'/'.join(UPDATABLE_STATUSES)} found)"
-            )
-            return False
-
-        # Test class not found in manifest
-        print(f"Skipping {manifest_file}: {test_class} not found in manifest")
-        return False
-
-    except Exception as e:
-        print(f"Error updating {manifest_file}: {e}")
-        return False
+def parse_manifest() -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
+    yaml = ruamel.yaml.YAML()
+    yaml.width = 200
+    with open("./manifests/cpp.yml") as file:
+        # manifest = yaml.safe_load(file)
+        return yaml.load(file)
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Activate test classes with all xpass tests")
-    parser.add_argument("--dry-run", action="store_true", help="Show what would be updated without making changes")
-    parser.add_argument("--language", type=str, help="Only process specific language (e.g., python, java)")
-    parser.add_argument(
-        "--version",
-        type=str,
-        default=STATUS_XPASS,
-        help=f"Version value to set for activated test classes (default: {STATUS_XPASS})",
-    )
-    parser.add_argument(
-        "--language-versions",
-        type=str,
-        help=(
-            f"Specify different versions per language in format: "
-            f"cpp=v1.2.3,python=v2.0.0,java={STATUS_XPASS} "
-            f"(languages not specified use --version default)"
-        ),
-    )
-    parser.add_argument(
-        "--conservative",
-        action="store_true",
-        default=True,
-        help=(
-            f"Only update tests that are marked as {STATUS_MISSING_FEATURE}, "
-            f"{STATUS_BUG}, or {STATUS_INCOMPLETE_TEST_APP} in manifest files (default behavior)"
-        ),
-    )
-    parser.add_argument(
-        "--force-add", action="store_true", help="Add missing tests even if they don't exist in manifests"
-    )
-    args = parser.parse_args()
+def write_manifest(manifest: ruamel.yaml.CommentedMap) -> None:  # type: ignore[type-arg]
+    yaml = ruamel.yaml.YAML()
+    yaml.width = 200
+    with open("data.yaml", "w", encoding="utf8") as outfile:
+        # yaml.dump(manifest, outfile, width=200, allow_unicode=True)
+        yaml.dump(manifest, outfile)
 
-    # Force-add mode disables conservative mode
-    if args.force_add:
-        args.conservative = False
 
-    # Parse language-specific versions
-    language_versions = {}
-    if args.language_versions:
-        try:
-            for pair in args.language_versions.split(","):
-                if "=" in pair:
-                    lang, version = pair.strip().split("=", 1)
-                    language_versions[lang.strip()] = version.strip()
-                else:
-                    print(f"Warning: Invalid format in language-versions: '{pair}'. Expected format: language=version")
-        except Exception as e:
-            print(f"Error parsing language-versions: {e}")
-            return
+def build_search(path: list[str]) -> list[str | None]:
+    ret: list[str | None] = ["", None, None]
+    field_count = 1
+    for level in path:
+        if len(level) == 0 or level[-1] == "/" or level[-3:] == ".py":
+            if isinstance(ret[0], str):
+                ret[0] += level
+        else:
+            ret[field_count] = level
+            field_count += 1
+    return ret
 
-    # Function to get version for a specific language
-    def get_version_for_language(language: str) -> str:
-        return language_versions.get(language, args.version)
 
-    print("Fetching test data from Feature Parity Dashboard...")
-    test_results = fetch_fpd_data()
-    print(f"Loaded {len(test_results)} test groups")
-
-    print("Analyzing test classes for easy wins...")
-    easy_wins = analyze_test_classes(test_results)
-    print(f"Found {len(easy_wins)} test classes with all passed/xpassed tests")
-
-    if not easy_wins:
-        print("No easy wins found!")
-        return
-
-    # Group easy wins by language with variant information
-    by_language: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)
-    for test_class, lang_env_variant_tuples in easy_wins.items():
-        for language, _env_key, variant in lang_env_variant_tuples:
-            try:
-                language_id = int(language.split("_")[0]) if "_" in str(language) else int(language)
-            except ValueError:
-                print(f"Warning: Could not parse language ID from '{language}', skipping")
-                continue
-            language_name = LANGUAGE_MAP.get(language_id, f"unknown_{language_id}")
-            if args.language is None or language_name == args.language:
-                by_language[language_name].append((test_class, variant))
-
-    # Track tests that are not being updated and the reasons why
-    not_updated_tests: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)
-    # Track tests that are already activated (have version numbers)
-    already_activated_tests: defaultdict[str, list[tuple[str, str]]] = defaultdict(list)
-
-    # Categorize all easy wins first (before conservative filtering)
-    # Group by test_class and env_key to avoid duplicates
-    seen_test_class_lang = set()
-    for language, test_class_variants in by_language.items():
-        manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
-        if manifest_file.exists():
-            for test_class, _variant in test_class_variants:
-                # Skip if we've already processed this test_class for this language
-                key = (test_class, language)
-                if key in seen_test_class_lang:
-                    continue
-                seen_test_class_lang.add(key)
-
-                status_info = get_test_status_info(test_class, str(manifest_file))
-                # Generate reason string once
-                if status_info.status is None:
-                    reason = MSG_NOT_IN_MANIFEST
-                elif status_info.status == STATUS_VARIANT_STRUCTURE:
-                    reason = MSG_HAS_VARIANT_STRUCTURE
-                else:
-                    reason = f"current_status: {status_info.status}"
-
-                if status_info.is_activated:
-                    # Test is already activated with a version number
-                    already_activated_tests[language].append((test_class, reason))
-                elif not status_info.is_updatable:
-                    not_updated_tests[language].append((test_class, reason))
-
-    # If conservative mode, filter to only tests that exist in manifests
-    if args.conservative:
-        filtered_by_language: dict[str, list[tuple[str, str]]] = {}
-        for language, test_class_variants in by_language.items():
-            manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
-            if manifest_file.exists():
-                filtered_classes = []
-                for test_class, variant_value in test_class_variants:
-                    # Check if this test class exists as missing_feature or bug
-                    if get_test_status_info(test_class, str(manifest_file)).is_updatable:
-                        filtered_classes.append((test_class, variant_value))
-
-                if filtered_classes:
-                    filtered_by_language[language] = filtered_classes
-
-        by_language.clear()
-        by_language.update(filtered_by_language)
-        print(
-            f"\nConservative mode: Only updating tests marked as "
-            f"{STATUS_MISSING_FEATURE}, {STATUS_BUG}, or {STATUS_INCOMPLETE_TEST_APP}"
-        )
-    # No additional categorization needed in non-conservative mode since we already did it above
-
-    # Show summary
-    print("\nEasy wins by language:")
-    for language, test_class_variants in sorted(by_language.items()):
-        print(f"  {language}: {len(test_class_variants)} test class/variant combinations")
-
-    # Show tests that are xpass but not being updated with reasons
-    if not_updated_tests:
-        total_not_updated = sum(len(tests) for tests in not_updated_tests.values())
-        print(f"\nTests that are passed/xpassed but not being updated ({total_not_updated} total):")
-        for language, test_class_reasons in sorted(not_updated_tests.items()):
-            print(f"  {language}: {len(test_class_reasons)} tests")
-
-            # Group by reason for better presentation
-            by_reason = defaultdict(list)
-            for test_class, reason in test_class_reasons:
-                by_reason[reason].append(test_class)
-
-            for reason, test_classes in sorted(by_reason.items()):
-                print(f"    {reason} ({len(test_classes)} tests):")
-                for test_class in sorted(set(test_classes))[:MAX_TESTS_TO_SHOW]:
-                    print(f"      - {test_class}")
-                if len(set(test_classes)) > MAX_TESTS_TO_SHOW:
-                    print(f"      ... and {len(set(test_classes)) - MAX_TESTS_TO_SHOW} more")
-    elif not already_activated_tests:
-        print("\nAll passed/xpassed tests are being updated.")
-    # If we have both not_updated and already_activated, we already showed both sections
-
-    # Show tests that are already activated (summary only)
-    if already_activated_tests:
-        total_already_activated = sum(len(tests) for tests in already_activated_tests.values())
-        print(f"\nTests that are already activated in manifest ({total_already_activated} total):")
-        for language, test_class_reasons in sorted(already_activated_tests.items()):
-            print(f"  {language}: {len(test_class_reasons)} tests")
-
-    if args.dry_run:
-        print("\nDry run - would update the following:")
-        for language, test_class_variants in sorted(by_language.items()):
-            # Filter out already activated tests from the update list
-            manifest_file = path_root / MANIFEST_DIR / f"{language}{MANIFEST_EXTENSION}"
-            tests_to_update = []
-            for test_class, variant_value in test_class_variants:
-                if not manifest_file.exists() or not get_test_status_info(test_class, str(manifest_file)).is_activated:
-                    tests_to_update.append((test_class, variant_value))
-
-            if tests_to_update:
-                print(f"\n{language}.yml:")
-                # Group by test class to show variants together
-                by_test_class: defaultdict[str, list[str]] = defaultdict(list)
-                for test_class, variant_value in tests_to_update:
-                    by_test_class[test_class].append(variant_value)
-
-                for test_class in sorted(by_test_class.keys()):
-                    variants = sorted(set(by_test_class[test_class]))
-                    if len(variants) == 1 and variants[0] == DEFAULT_VARIANT:
-                        print(f"  {test_class}")
-                    else:
-                        print(f"  {test_class} (variants: {', '.join(variants)})")
+def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
+    if type(root) is dict:
+        for branch in root.values():
+            current = merge_update_status(current, get_global_update_status(branch, current))
     else:
-        print("\nUpdating manifest files...")
-        total_updated = 0
-        for language, test_class_variants in sorted(by_language.items()):
-            # Group by test class to avoid duplicates
-            test_variants: dict[str, set[str]] = {}
-            for test_class, variant_value in test_class_variants:
-                if test_class not in test_variants:
-                    test_variants[test_class] = set()
-                test_variants[test_class].add(variant_value)
-
-            for test_class in sorted(test_variants.keys()):
-                variants = sorted(test_variants[test_class])
-                # Update with variant-specific entries
-                version_for_language = get_version_for_language(language)
-                if update_manifest_file_with_variants(test_class, language, variants, version_for_language):
-                    total_updated += 1
-
-        print(f"\nCompleted! Updated {total_updated} test class entries across manifest files.")
+        current = merge_update_status(current, root)
+    return current
 
 
-if __name__ == "__main__":
-    main()
+def update_entry(
+    language: str,
+    _manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
+    search: list[str | None],
+    root_path: list[str],
+    ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+) -> None:
+    get_global_update_status(test_data, TestClassStatus.ACTIVATE)
+    update_status = TestClassStatus.NOEDIT
+    try:
+        if search[1] and isinstance(search[0], str) and isinstance(search[1], str):
+            update_status = get_global_update_status(
+                test_data[language][search[0]][search[1]], TestClassStatus.ACTIVATE
+            )
+        elif isinstance(search[0], str):
+            update_status = get_global_update_status(test_data[language][search[0]], TestClassStatus.ACTIVATE)
+    except (KeyError, TypeError):
+        pass
+    if update_status == TestClassStatus.ACTIVATE and (
+        "bug" in ancester[root_path[-1]]
+        or "missing_feature" in ancester[root_path[-1]]
+        or "incomplete_test_app" in ancester[root_path[-1]]
+    ):
+        ancester[root_path[-1]] = "xpass"
+        # Remove comments from updated entry
+        if hasattr(ancester, "ca") and hasattr(ancester.ca, "items") and root_path[-1] in ancester.ca.items:
+            del ancester.ca.items[root_path[-1]]
+
+
+def update_tree(
+    root: ruamel.yaml.CommentedMap | str,  # type: ignore[type-arg]
+    ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    language: str,
+    manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
+    root_path: list[str],
+) -> None:
+    if type(root) is ruamel.yaml.comments.CommentedMap:
+        for branch_path, branch in root.items():
+            update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path])
+    else:
+        search = build_search(root_path)
+        update_entry(language, manifest, test_data, search, root_path, ancester)
+
+
+def update_manifest(
+    language: str,
+    manifest: ruamel.yaml.CommentedMap,
+    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
+) -> None:
+    update_tree(manifest, manifest, language, manifest, test_data, [])
+
+
+def get_versions() -> None:
+    versions = {}
+    for library in os.listdir("./data/dev"):
+        variant = os.listdir(f"./data/dev/{library}")[0]
+        file_paths = os.listdir(f"./data/dev/{library}/{variant}")
+        found_version = False
+        for file_path in file_paths:
+            if found_version:
+                break
+            with open(f"./data/dev/{library}/{variant}/{file_path}") as file:
+                data = json.load(file)
+                for dep in data["testedDependencies"]:
+                    if dep["name"] == "library":
+                        versions[library] = dep["version"]
+                        found_version = True
+
+
+get_versions()
+pull_artifact(ARTIFACT_URL)
+manifest = parse_manifest()
+test_data = parse_artifact_data()
+update_manifest("cpp", manifest, test_data)
+write_manifest(manifest)
