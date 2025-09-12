@@ -10,6 +10,7 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
     """Base class with common methods for status probe tests"""
 
     expected_diagnostics: dict[str, debugger.ProbeStatus] = {}
+    expect_error_on_missing_symbol: bool = False
 
     def _setup(self, probes_name: str, probe_type: str):
         self.initialize_weblog_remote_config()
@@ -26,11 +27,18 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
         self.set_probes(probes)
 
+        # The Go debugger can report an ERROR status if a symbol is missing
+        # because it knows definitively that a symbol will not later show up.
+        if context.library == "golang":
+            self.expect_error_on_missing_symbol = True
+
         ### set expected
         self.expected_diagnostics = {}
         for probe in self.probe_definitions:
             if probe["id"].endswith("installed"):
                 self.expected_diagnostics[probe["id"]] = "INSTALLED"
+            elif self.expect_error_on_missing_symbol:
+                self.expected_diagnostics[probe["id"]] = "ERROR"
             else:
                 self.expected_diagnostics[probe["id"]] = "RECEIVED"
 
@@ -52,28 +60,9 @@ class BaseDebuggerProbeStatusTest(debugger.BaseDebuggerTest):
 
             probe_data = self.probe_diagnostics[expected_id]
             actual_status = probe_data["status"]
-            status_history = probe_data["status_history"]
 
             if actual_status != expected_status:
-                # For golang probes targeting non-existent methods, check for RECEIVED->ERROR sequence
-                if (
-                    expected_status == "RECEIVED"
-                    and actual_status == "ERROR"
-                    and context.library == "golang"
-                    and expected_id.endswith("received")
-                ):
-                    # Verify that we saw RECEIVED before ERROR
-                    if "RECEIVED" in status_history and status_history.index("RECEIVED") < status_history.index(
-                        "ERROR"
-                    ):
-                        return None  # This is the expected sequence: RECEIVED -> ERROR
-                    else:
-                        return (
-                            f"Probe {expected_id} with ERROR status did not have RECEIVED in history: {status_history}"
-                        )
-
                 return f"Received probe {expected_id} with status {actual_status}. Expected {expected_status}"
-
             return None
 
         assert self.probe_diagnostics, "Probes were not received"
