@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import time
 import types
+import xml.etree.ElementTree as ET
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
@@ -19,7 +20,6 @@ from manifests.parser.core import load as load_manifests
 from utils import context
 from utils._context._scenarios import scenarios, Scenario
 from utils._logger import logger
-from utils.scripts.junit_report import junit_modifyreport
 from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators
 from utils.properties_serialization import SetupProperties
@@ -495,6 +495,14 @@ def pytest_json_modifyreport(json_report: dict) -> None:
         logger.error("Fail to modify json report", exc_info=True)
 
 
+### decorate junit export
+@pytest.fixture(scope="session", autouse=True)
+def log_global_env_facts(record_testsuite_property: Callable) -> None:
+    properties = context.scenario.get_junit_properties()
+    for key, value in properties.items():
+        record_testsuite_property(key, value or "")
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     logger.info("Executing pytest_sessionfinish")
 
@@ -517,22 +525,22 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 indent=2,
             )
 
-        data = session.config._json_report.report  # noqa: SLF001
+        if session.config.option.xmlpath:
+            # Test optimization needs to have the full name in name attribute
+            junit_report = ET.parse(session.config.option.xmlpath)  # noqa: S314
+
+            for testcase in junit_report.iter("testcase"):
+                if "classname" in testcase.attrib:
+                    testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
+                    del testcase.attrib["classname"]
+
+            junit_report.write(session.config.option.xmlpath)
 
         try:
-            junit_modifyreport(session.config.option.xmlpath)
-
+            data = session.config._json_report.report  # noqa: SLF001
             export_feature_parity_dashboard(session, data)
         except Exception:
-            logger.exception("Fail to export export reports", exc_info=True)
-
-
-### decorate junit export
-@pytest.fixture(scope="session", autouse=True)
-def log_global_env_facts(record_testsuite_property: Callable) -> None:
-    properties = context.scenario.get_junit_properties()
-    for key, value in properties.items():
-        record_testsuite_property(key, value or "")
+            logger.exception("Fail to export reports", exc_info=True)
 
 
 def export_feature_parity_dashboard(session: pytest.Session, data: dict) -> None:

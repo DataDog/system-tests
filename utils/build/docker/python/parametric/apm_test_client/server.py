@@ -7,6 +7,7 @@ from typing import Tuple
 from typing import Any
 import logging
 import os
+import enum
 from fastapi import FastAPI
 import opentelemetry.trace
 from pydantic import BaseModel
@@ -44,6 +45,8 @@ except ImportError:
     from ddtrace import Span
     from ddtrace.context import Context
     from ddtrace.sampling_rule import SamplingRule
+
+from opentelemetry._logs import get_logger_provider
 
 log = logging.getLogger(__name__)
 
@@ -609,6 +612,29 @@ def otel_flush_spans(args: OtelFlushSpansArgs):
     return OtelFlushSpansReturn(success=True)
 
 
+class LogFlushArgs(BaseModel):
+    seconds: int
+
+
+class LogFlushReturn(BaseModel):
+    success: bool
+    message: str
+
+
+@app.post("/log/otel/flush")
+def otel_flush_logs(args: LogFlushArgs):
+    """Get the current OpenTelemetry logs provider and flush all logs."""
+    try:
+        # Get the current logs provider
+        logs_provider = get_logger_provider()
+        message = str(type(logs_provider).__name__)
+        # Force flush all logs
+        logs_provider.force_flush(timeout_millis=args.seconds * 1000)
+        return LogFlushReturn(success=True, message=message)
+    except Exception as e:
+        return LogFlushReturn(success=False, message=f"Error: {str(e)}")
+
+
 class OtelIsRecordingArgs(BaseModel):
     span_id: int
 
@@ -702,6 +728,51 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+class LogGenerateArgs(BaseModel):
+    message: str
+    level: str
+    logger_name: str
+    span_id: Optional[int] = None
+
+
+class LogGenerateReturn(BaseModel):
+    success: bool
+
+
+@app.post("/log/write")
+def write_log(args: LogGenerateArgs):
+    # Create a logger with the specified name
+    logger = logging.getLogger(args.logger_name)
+
+    # Set the log level based on the provided level
+    level_mapping = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+    }
+    log_level = level_mapping.get(args.level.upper(), logging.INFO)
+    logger.setLevel(log_level)
+
+    if args.span_id:
+        span = spans.get(args.span_id, otel_spans.get(args.span_id))
+
+        if not span:
+            raise ValueError(f"Span not found for span_id: {args.span_id}")
+
+        if isinstance(span, OtelSpan):
+            with opentelemetry.trace.use_span(span):
+                logger.log(log_level, args.message)
+        else:
+            with ddtrace.tracer._activate_context(span.context):
+                logger.log(log_level, args.message)
+
+    else:
+        logger.log(log_level, args.message)
+
+    return LogGenerateReturn(success=True)
 
 
 def get_ddtrace_version() -> Tuple[int, int, int]:

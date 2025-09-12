@@ -1,38 +1,46 @@
 ---
+# For features that are not yet available in the latest release,
+# please specify a version greater than the current release using `>`.
+# DO NOT SPECIFY A NON EXISTING RELEASE.
+#
+# For example, if the latest release is `v1.0.0` and a feature like Baggage
+# is only supported on the `main` branch and in the upcoming release,
+# use `>1.0.0` to indicate that requirement.
 tests/:
   parametric/:
     test_128_bit_traceids.py:
-      Test_128_Bit_Traceids: v1.0.1.dev
+      Test_128_Bit_Traceids: ">1.0.0"
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
-      Test_Config_RateLimit: v1.0.1.dev
+      Test_Config_RateLimit: ">1.0.0"
       Test_Config_Tags: missing_feature
-      Test_Config_TraceAgentURL: v1.0.1.dev
-      Test_Config_TraceEnabled: v1.0.1.dev
+      Test_Config_TraceAgentURL: ">1.0.0"
+      Test_Config_TraceEnabled: ">1.0.0"
       Test_Config_TraceLogDirectory: missing_feature
-      Test_Config_UnifiedServiceTagging: v1.0.1.dev
+      Test_Config_UnifiedServiceTagging: ">1.0.0"
       Test_Stable_Config_Default: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
-      TestDynamicConfigV1_EmptyServiceTargets: v1.0.1.dev
+      TestDynamicConfigV1_EmptyServiceTargets: ">1.0.0"
     test_headers_b3multi.py:
-      Test_Headers_B3multi: v1.0.1.dev
+      Test_Headers_B3multi: ">1.0.0"
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
       Test_Headers_Baggage_Span_Tags: missing_feature
     test_headers_datadog.py:
-      Test_Headers_Datadog: v1.0.1.dev
+      Test_Headers_Datadog: ">1.0.0"
     test_headers_none.py:
-      Test_Headers_None: v1.0.1.dev
+      Test_Headers_None: ">1.0.0"
     test_headers_precedence.py:
-      Test_Headers_Precedence: v1.0.1.dev
+      Test_Headers_Precedence: ">1.0.0"
     test_headers_tracecontext.py:
-      Test_Headers_Tracecontext: v1.0.1.dev
+      Test_Headers_Tracecontext: ">1.0.0"
     test_headers_tracestate_dd.py:
-      Test_Headers_Tracestate_DD: v1.0.1.dev
+      Test_Headers_Tracestate_DD: ">1.0.0"
     test_otel_api_interoperability.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: missing_feature
+    test_otel_logs.py: missing_feature
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
@@ -46,7 +54,7 @@ tests/:
       Test_Parametric_DDTrace_Config: incomplete_test_app (config endpoint is not implemented)
       Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not implemented)
-      Test_Parametric_DDTrace_Extract_Headers: v1.0.1.dev
+      Test_Parametric_DDTrace_Extract_Headers: ">1.0.0"
       # cpp tracer does not support the OpenTelemetry API, otel parametric endpoints are not implemented
 
       Test_Parametric_OtelSpan_End: missing_feature (otel api is not supported)
@@ -59,12 +67,13 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Current_Span: missing_feature (otel api is not supported)
       Test_Parametric_Otel_Trace_Flush: missing_feature (otel api is not supported)
+      Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py:
-      Test_ProcessDiscovery: v1.0.1.dev
+      Test_ProcessDiscovery: ">1.0.0"
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: v1.0.1.dev
+      Test_Decisionless_Extraction: ">1.0.0"
     test_sampling_span_tags.py:
       Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
