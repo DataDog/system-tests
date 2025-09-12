@@ -2,7 +2,7 @@
 
 ## 🎯 Overview
 
-This guide provides real-world, practical examples of using Cursor AI effectively with the system-tests repository. 
+This guide provides real-world, practical examples of using Cursor AI effectively with the system-tests repository.
 
 ## 🚀 Quick Start Examples
 
@@ -41,7 +41,7 @@ This guide provides real-world, practical examples of using Cursor AI effectivel
 "Create a new Node.js weblog provision for AWS SSI tests"
 ```
 
-### Example 6: AWS SSI Scenario Creation  
+### Example 6: AWS SSI Scenario Creation
 ```markdown
 # User Query:
 "I want to create a new AWS SSI scenario for testing crash tracking"
@@ -118,7 +118,7 @@ Create the same SQLI endpoint for Vert.x 4 and Jersey
 # ✅ Good: Specific, contextual requests
 "Create Spring Boot endpoints for IAST SQL injection testing based on test_sqli.py"
 
-# ❌ Avoid: Vague requests  
+# ❌ Avoid: Vague requests
 "Help me with Java"
 
 # ✅ Good: Include scenario type context

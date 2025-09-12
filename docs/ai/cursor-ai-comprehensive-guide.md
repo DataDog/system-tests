@@ -54,8 +54,8 @@ Cursor AI automatically loads all rules marked with `alwaysApply: true`. No addi
 These rules are automatically loaded when you start Cursor:
 ```yaml
 ---
-description: 
-globs: 
+description:
+globs:
 alwaysApply: true
 ---
 ```
