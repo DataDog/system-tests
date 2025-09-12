@@ -69,8 +69,12 @@ def _normalize_etree(filename: str, ignore_attrs: Iterable[str] | None = None) -
     rough = ET.tostring(root, encoding="utf-8")
 
     # clean moving parts
-
-    cleaned_rough = re.sub(rb"0x[0-9abcdef]{8,}", b"0xhash", rough)
-    lines = minidom.parseString(cleaned_rough).toprettyxml(indent="  ").splitlines()  # noqa: S318
+    rough = re.sub(rb"0x[0-9abcdef]{8,}", b"0xhash", rough)
+    rough = re.sub(
+        rb"/[\w/\-\.]+/system-tests/tests/test_the_test/test_junit.py",
+        b"system-tests/tests/test_the_test/test_junit.py",
+        rough,
+    )
+    lines = minidom.parseString(rough).toprettyxml(indent="  ").splitlines()  # noqa: S318
 
     return [line for line in lines if len(line.strip()) != 0]
