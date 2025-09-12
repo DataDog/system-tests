@@ -2530,7 +2530,6 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=487, owner=_Owner.sdk_capabilities)
 
-
     @staticmethod
     def api10(test_object):
         """API Security supports endpoint discovery
