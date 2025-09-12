@@ -7,14 +7,14 @@ class _Owner(StrEnum):
 
     apm_serverless = "@DataDog/apm-serverless"
     asm = "@DataDog/asm-libraries"  # application security monitoring
-    auto_instrumentation = "DataDog/teams/unified-instrumentation-setup"
+    auto_instrumentation = "@DataDog/unified-instrumentation-setup"
     data_pipeline = "@DataDog/libdatadog-apm"  # or agent-apm? TODO @ekump
     debugger = "@DataDog/debugger"
     idm = "@DataDog/apm-idm"
     language_platform = "@DataDog/apm-lang-platform"
     profiler = "@DataDog/profiling"  # it does not exists
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    sdk_capabilities = "DataDog/apm-sdk-api"
+    sdk_capabilities = "@DataDog/apm-sdk-api"
     tracer = "n/a"  # legacy client libraries from feature parity dashboard, need to be adressed to good teams
 
 
@@ -2088,9 +2088,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
-        return _mark_test_object(
-            test_object, feature_id=339, owner=_Owner.tracer
-        )  # tracing/otel/api, tracing/datadog/api
+        return _mark_test_object(test_object, feature_id=339, owner=_Owner.rp)  # tracing/otel/api, tracing/datadog/api
 
     @staticmethod
     def iast_stack_trace(test_object):
@@ -2149,12 +2147,20 @@ class _Features:
         return _mark_test_object(test_object, feature_id=343, owner=_Owner.asm)
 
     @staticmethod
-    def graphql_query_error_reporting(test_object):
-        """GraphQL query error reporting
+    def graphql_operation_error_reporting(test_object):
+        """GraphQL operation error reporting
 
         https://feature-parity.us1.prod.dog/#/?feature=354
         """
         return _mark_test_object(test_object, feature_id=354, owner=_Owner.idm)
+
+    @staticmethod
+    def graphql_operation_error_tracking(test_object):
+        """GraphQL operation error tracking
+
+        https://feature-parity.us1.prod.dog/#/?feature=485
+        """
+        return _mark_test_object(test_object, feature_id=485, owner=_Owner.idm)
 
     @staticmethod
     def envoy_external_processing(test_object):
@@ -2390,7 +2396,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=395
         """
-        return _mark_test_object(test_object, feature_id=395, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=395, owner=_Owner.asm)
 
     @staticmethod
     def appsec_collect_all_headers(test_object):
@@ -2398,7 +2404,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=390
         """
-        return _mark_test_object(test_object, feature_id=390, owner=_Owner.tracer)  # appsec/25q2
+        return _mark_test_object(test_object, feature_id=390, owner=_Owner.asm)  # appsec/25q2
 
     @staticmethod
     def appsec_collect_request_body(test_object):
@@ -2406,7 +2412,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=391
         """
-        return _mark_test_object(test_object, feature_id=391, owner=_Owner.tracer)  # appsec/rasp, appsec/25q2
+        return _mark_test_object(test_object, feature_id=391, owner=_Owner.asm)  # appsec/rasp, appsec/25q2
 
     @staticmethod
     def referrer_hostname(test_object):
@@ -2505,6 +2511,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=483
         """
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
+
+    @staticmethod
+    def otel_logs_enabled(test_object):
+        """OTEL logs are enabled
+
+        https://feature-parity.us1.prod.dog/#/?feature=487
+        """
+        return _mark_test_object(test_object, feature_id=487, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def api10(test_object):
