@@ -518,6 +518,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
             for testcase in junit_report.iter("testcase"):
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
+                    del testcase.attrib["classname"]
 
             junit_report.write(session.config.option.xmlpath)
 
