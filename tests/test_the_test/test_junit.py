@@ -39,13 +39,16 @@ class Test_Cases:
 def test_main():
     run_system_tests(test_path="tests/test_the_test/test_junit.py", expected_return_code=1)
 
-    observed = _normalize_etree("logs_mock_the_test/reportJunit.xml")
-    expected = _normalize_etree("tests/test_the_test/reportJunit_expected.xml")
+    fromfile = "logs_mock_the_test/reportJunit.xml"
+    tofile = "tests/test_the_test/reportJunit_expected.xml"
+
+    observed = _normalize_etree(fromfile)
+    expected = _normalize_etree(tofile)
 
     if observed == expected:
         return
 
-    diff = "\n".join(difflib.unified_diff(observed, expected, lineterm=""))
+    diff = "\n".join(difflib.unified_diff(observed, expected, lineterm="", fromfile=fromfile, tofile=tofile))
     pytest.fail(f"XML documents differ:\n{diff}")
 
 
