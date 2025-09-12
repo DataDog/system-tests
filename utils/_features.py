@@ -2513,6 +2513,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
     @staticmethod
+    def efficient_trace_payload(test_object):
+        """Efficient Trace Payload
+
+        https://feature-parity.us1.prod.dog/#/?feature=488
+        """
+        return _mark_test_object(test_object, feature_id=488, owner=_Owner.language_platform)
+
+    @staticmethod
     def otel_logs_enabled(test_object):
         """OTEL logs are enabled
 

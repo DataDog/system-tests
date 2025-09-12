@@ -12,7 +12,7 @@ def test_deserialize_http_message():
                 {
                     1: 1,
                     2: "rum",
-                    3: ["some-global", 1, "cool-value"],
+                    3: ["some-global", 1, "cool-value", 1, 1, 2],
                     4: [
                         {
                             1: "my-service",
@@ -50,7 +50,7 @@ def test_deserialize_http_message():
                     {
                         "service": "my-service",
                         "name_value": "span-name",
-                        "resource": 1,
+                        "resource": "hello",
                         "span_id": 1234,
                         "parent_id": 5555,
                         "component": "my-component",
@@ -60,13 +60,13 @@ def test_deserialize_http_message():
                         "start": 987,
                         "duration": 150,
                         "error": True,
-                        "attributes": ["foo", 1, "bar", "fooNum", 3, 3.14],
+                        "attributes": {"foo": "bar", "fooNum": 3.14},
                         "type_value": "span-type",
                     }
                 ],
                 "priority": 1,
                 "origin": "rum",
-                "attributes": ["some-global", 1, "cool-value"],
+                "attributes": {"some-global": "cool-value", "hello": "rum"},
                 "trace_id": "0x000000000000005500000000000021E3",
                 "sampling_mechanism": 4,
             }

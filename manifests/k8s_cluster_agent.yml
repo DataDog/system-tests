@@ -5,3 +5,4 @@ tests/:
       TestK8sLibInjectioProfilingClusterEnabled: v7.57.0
       TestK8sLibInjectioProfilingClusterOverride: v7.57.0
       TestK8sLibInjectioProfilingDisabledByDefault: v7.57.0
+  test_v1_payloads.py: missing_feature

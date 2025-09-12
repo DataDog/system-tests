@@ -64,6 +64,12 @@ def get_rid_from_span(span: dict) -> str | None:
     meta = span.get("meta", {})
     metrics = span.get("metrics", {})
 
+    if span.get("attributes") is not None:
+        # This is a v1 span so it won't have a meta or metrics field
+        # To reuse the logic here just override meta with the attributes
+        meta = span.get("attributes")
+        metrics = span.get("attributes")
+
     user_agent = None
 
     if span.get("type") == "rpc":
