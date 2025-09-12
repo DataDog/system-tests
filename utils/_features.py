@@ -2088,9 +2088,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=339
         """
-        return _mark_test_object(
-            test_object, feature_id=339, owner=_Owner.rp
-        )  # tracing/otel/api, tracing/datadog/api
+        return _mark_test_object(test_object, feature_id=339, owner=_Owner.rp)  # tracing/otel/api, tracing/datadog/api
 
     @staticmethod
     def iast_stack_trace(test_object):
