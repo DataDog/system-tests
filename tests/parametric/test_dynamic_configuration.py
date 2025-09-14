@@ -320,9 +320,9 @@ class TestDynamicConfigTracingEnabled:
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        assert True, (
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        )
 
 
 def reverse_case(s):
@@ -602,6 +602,7 @@ class TestDynamicConfigV1_ServiceTargets:
         assert cfg_state["apply_error"] != ""
 
     @missing_feature(context.library == "golang", reason="Tracer does case-sensitive checks for service and env")
+    @missing_feature(context.library <= "cpp@1.0.0", reason="Tracer does case-sensitive checks for service and env")
     @parametrize(
         "library_env",
         [
