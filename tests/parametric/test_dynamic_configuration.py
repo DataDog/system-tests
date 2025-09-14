@@ -394,6 +394,7 @@ class TestDynamicConfigV1:
     )
     @flaky(context.library >= "dotnet@2.56.0", reason="APMAPI-179")
     @irrelevant(context.library == "python", reason="DD_TRACE_SAMPLE_RATE was removed in 3.x")
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     def test_trace_sampling_rate_override_env(self, library_env, test_agent, test_library):
         """The RC sampling rate should override the environment variable.
 
@@ -446,6 +447,7 @@ class TestDynamicConfigV1:
             }
         ],
     )
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-864")
     def test_trace_sampling_rate_with_sampling_rules(self, test_agent, test_library):
         """Ensure that sampling rules still apply when the sample rate is set via remote config."""
         rc_sampling_rule_rate = 0.70
@@ -599,6 +601,7 @@ class TestDynamicConfigV1_ServiceTargets:
         assert cfg_state["apply_state"] == RemoteConfigApplyState.ERROR.value
         assert cfg_state["apply_error"] != ""
 
+    @missing_feature(context.library == "golang", reason="Tracer does case-sensitive checks for service and env")
     @parametrize(
         "library_env",
         [
@@ -800,6 +803,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(library="ruby", reason="APMAPI-867")
     @flaky(library="python", reason="APMAPI-1051")
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-1595")
     def test_trace_sampling_rules_override_rate(self, library_env, test_agent, test_library):
         """The RC sampling rules should override the RC sampling rate."""
         rc_sampling_rule_rate_customer = 0.8
@@ -860,6 +864,7 @@ class TestDynamicConfigSamplingRules:
     @bug(context.library <= "dotnet@2.53.2", reason="APMRP-360")
     @missing_feature(library="python")
     @missing_feature(context.library < "nodejs@5.19.0")
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-866")
     def test_trace_sampling_rules_with_tags(self, test_agent, test_library):
         """RC sampling rules with tags should match/skip spans with/without corresponding tag values.
 
@@ -999,8 +1004,9 @@ class TestDynamicConfigSamplingRules:
 
     @bug(library="ruby", reason="APMAPI-867")
     @bug(library="python", reason="APMAPI-857")
+    @bug(context.library <= "cpp@1.0.0", reason="APMAPI-863")
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_remote_sampling_rules_retention(self, test_agent, test_library):
+    def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
         rc_state = set_and_wait_rc(
             test_agent,
