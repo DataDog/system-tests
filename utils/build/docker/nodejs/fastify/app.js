@@ -499,7 +499,7 @@ fastify.get('/load_dependency', async (request, reply) => {
 })
 
 fastify.all('/tag_value/:tag_value/:status_code', async (request, reply) => {
-  const web = require('dd-trace/packages/dd-trace/src/plugins/util/web')
+  const web = require('dd-trace/packages/datadog-plugin-web/src/utils')
   web.root(request.raw).setTag('appsec.events.system_tests_appsec_event.value', request.params.tag_value)
 
   for (const [k, v] of Object.entries(request.query)) {
