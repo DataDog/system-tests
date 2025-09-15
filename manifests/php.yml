@@ -715,7 +715,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: v0.99.1
     Test_TelemetryV2: v0.90
   test_v1_payloads.py: missing_feature
