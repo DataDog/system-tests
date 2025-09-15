@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import urllib.request
 import zipfile
 from enum import Enum
 from pathlib import Path
@@ -42,27 +41,26 @@ ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/acti
 def pull_artifact(url: str, path_root: str, path_data_root: str) -> None:
     token = os.getenv("GITHUB_TOKEN")  # expects your GitHub token in env var
 
-    req_runs = urllib.request.Request(url)  # noqa: S310
-    req_runs.add_header("Authorization", f"token {token}")
-    req_runs.add_header("Accept", "application/vnd.github+json")
-    with urllib.request.urlopen(req_runs) as resp_runs:  # noqa: S310
-        artifacts = json.load(resp_runs)
-
-    artifacts_url = artifacts["workflow_runs"][4]["artifacts_url"]
-    req_artifacts = urllib.request.Request(artifacts_url)  # noqa: S310
-    req_artifacts.add_header("Authorization", f"token {token}")
-    req_artifacts.add_header("Accept", "application/vnd.github+json")
-    with urllib.request.urlopen(req_artifacts) as resp_artifacts:  # noqa: S310
-        artifacts = json.load(resp_artifacts)
-
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
         "User-Agent": "python-requests",
     }
-    download_url = artifacts["artifacts"][0]["archive_download_url"]
 
+    # Get workflow runs
+    with requests.get(url, headers=headers, timeout=60) as resp_runs:
+        resp_runs.raise_for_status()
+        runs_data = resp_runs.json()
+
+    # Get artifacts from the 5th workflow run
+    artifacts_url = runs_data["workflow_runs"][4]["artifacts_url"]
+    with requests.get(artifacts_url, headers=headers, timeout=60) as resp_artifacts:
+        resp_artifacts.raise_for_status()
+        artifacts_data = resp_artifacts.json()
+
+    # Download the first artifact
+    download_url = artifacts_data["artifacts"][0]["archive_download_url"]
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
         with open(f"{path_root}/data.zip", "wb") as f:
@@ -70,6 +68,7 @@ def pull_artifact(url: str, path_root: str, path_data_root: str) -> None:
                 if chunk:
                     f.write(chunk)
 
+    # Extract the downloaded zip file
     with zipfile.ZipFile(f"{path_root}/data.zip") as z:
         z.extractall(path_data_root)
 
@@ -120,7 +119,7 @@ def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dic
         test_data[language] = {}
         for variant in os.listdir(f"{path_data_opt}/{language}"):
             for scenario in os.listdir(f"{path_data_opt}/{language}/{variant}"):
-                with open(f"{path_data_opt}/{language}/{variant}/{scenario}") as file:
+                with open(f"{path_data_opt}/{language}/{variant}/{scenario}", encoding="utf-8") as file:
                     scenario_data = json.load(file)
                 for test in scenario_data["tests"]:
                     test_path = test["path"].split("::")[0]
@@ -144,7 +143,7 @@ def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dic
 def parse_manifest(library: str, path_root: str) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
     yaml = ruamel.yaml.YAML()
     yaml.width = 200
-    with open(f"{path_root}/manifests/{library}.yml") as file:
+    with open(f"{path_root}/manifests/{library}.yml", encoding="utf-8") as file:
         return yaml.load(file)
 
 
@@ -171,7 +170,7 @@ def build_search(path: list[str]) -> list[str | None]:
 def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
     if current == TestClassStatus.NOEDIT:
         return TestClassStatus.NOEDIT
-    if type(root) is dict:
+    if isinstance(root, dict):
         for branch in root.values():
             current = merge_update_status(current, get_global_update_status(branch, current))
     else:
@@ -185,7 +184,7 @@ def update_entry(
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
     search: list[str | None],
     root_path: list[str],
-    ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     versions: dict[str, str],
 ) -> str | None:
     try:
@@ -197,15 +196,15 @@ def update_entry(
             update_status = get_global_update_status(test_data[language][search[0]], TestClassStatus.ACTIVATE)
 
         if update_status == TestClassStatus.ACTIVATE and (
-            "bug" in ancester[root_path[-1]]
-            or "missing_feature" in ancester[root_path[-1]]
-            or "incomplete_test_app" in ancester[root_path[-1]]
+            "bug" in ancestor[root_path[-1]]
+            or "missing_feature" in ancestor[root_path[-1]]
+            or "incomplete_test_app" in ancestor[root_path[-1]]
         ):
-            ret = ancester[root_path[-1]]
-            ancester[root_path[-1]] = versions[language]
+            ret = ancestor[root_path[-1]]
+            ancestor[root_path[-1]] = versions[language]
             # Remove comments from updated entry
-            if hasattr(ancester, "ca") and hasattr(ancester.ca, "items") and root_path[-1] in ancester.ca.items:
-                del ancester.ca.items[root_path[-1]]
+            if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
+                del ancestor.ca.items[root_path[-1]]
             return ret
         return None
     except KeyError:
@@ -214,7 +213,7 @@ def update_entry(
 
 def update_tree(
     root: ruamel.yaml.CommentedMap | str,  # type: ignore[type-arg]
-    ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     language: str,
     manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
@@ -222,13 +221,13 @@ def update_tree(
     versions: dict[str, str],
 ) -> list[tuple[list[str], str, str]]:
     updates = []
-    if type(root) is ruamel.yaml.comments.CommentedMap:
+    if isinstance(root, ruamel.yaml.comments.CommentedMap):
         for branch_path, branch in root.items():
             ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
             updates += ret
     else:
         search = build_search(root_path)
-        old_status = update_entry(language, manifest, test_data, search, root_path, ancester, versions)
+        old_status = update_entry(language, manifest, test_data, search, root_path, ancestor, versions)
         if old_status:
             updates.append((root_path, old_status, versions[language]))
     return updates
@@ -252,14 +251,14 @@ def get_versions(path_data_opt: str) -> dict[str, str]:
         for file_path in file_paths:
             if found_version:
                 break
-            with open(f"{path_data_opt}/{library}/{variant}/{file_path}") as file:
+            with open(f"{path_data_opt}/{library}/{variant}/{file_path}", encoding="utf-8") as file:
                 data = json.load(file)
                 for dep in data["testedDependencies"]:
                     if dep["name"] == "library":
                         versions[library] = dep["version"]
                         found_version = True
-                if not versions.get(library):
-                    versions[library] = "xpass"
+        if not versions.get(library):
+            versions[library] = "xpass"
     return versions
 
 
@@ -275,6 +274,7 @@ def main() -> None:
     parser.add_argument("--no-download", action="store_true", help="Skip downloading test data")
     parser.add_argument("--data-path", type=str, help="Custom path to store test data")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be updated without writing to files")
+    parser.add_argument("--summary-only", action="store_true", help="Show only the final summary")
 
     args = parser.parse_args()
 
@@ -290,37 +290,49 @@ def main() -> None:
     test_data = parse_artifact_data(path_data_opt)
     versions = get_versions(path_data_opt)
 
-    if args.dry_run:
+    if args.dry_run and not args.summary_only:
         print("🔍 DRY RUN MODE - No files will be modified\n")
 
     total_updates = 0
+    library_counts = {}
 
     for library in args.libraries:
-        action = "Analyzing" if args.dry_run else "Processing"
-        print(f"\n📋 {action} {library.upper()}...")
         manifest = parse_manifest(library, path_root)
         updates = update_manifest(library, manifest, test_data, versions)
+        library_counts[library] = len(updates)
 
-        if updates:
-            verb = "Would update" if args.dry_run else "Found"
-            print(f"✅ {verb} {len(updates)} updates:")
-            for path, old_status, new_version in updates:
-                search_result = build_search(path)
-                test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
-                print(f"   • {test_path}")
-                print(f"     {old_status} → {new_version}")
-        else:
-            message = "No updates would be needed" if args.dry_run else "No updates needed"
-            print(f"   {message}")
+        if not args.summary_only:
+            action = "Analyzing" if args.dry_run else "Processing"
+            print(f"\n📋 {action} {library.upper()}...")
+
+            if updates:
+                verb = "Would update" if args.dry_run else "Found"
+                print(f"✅ {verb} {len(updates)} updates:")
+                for path, old_status, new_version in updates:
+                    search_result = build_search(path)
+                    test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
+                    print(f"   • {test_path}")
+                    print(f"     {old_status} → {new_version}")
+            else:
+                message = "No updates would be needed" if args.dry_run else "No updates needed"
+                print(f"   {message}")
 
         total_updates += len(updates)
         if not args.dry_run:
             write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
 
+    # Display summary with per-library counts
     if args.dry_run:
         print(f"\n🔍 Dry Run Summary: Would update {total_updates} entries across {len(args.libraries)} libraries")
     else:
         print(f"\n🎉 Summary: Updated {total_updates} entries across {len(args.libraries)} libraries")
+
+    # Show per-library breakdown
+    for library, count in library_counts.items():
+        if count > 0:
+            print(f"   • {library}: {count}")
+        elif not args.summary_only:  # Only show zero counts in detailed mode
+            print(f"   • {library}: 0")
 
 
 if __name__ == "__main__":
