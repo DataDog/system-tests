@@ -28,22 +28,48 @@
     #There are some old machines that need to change the repositories because there are not available anymore
     lsb_release=/etc/lsb-release
     must_update_repositories="false"
+
     if [ -e "$lsb_release" ]; then
       if grep -q 'Ubuntu 21' "$lsb_release"; then
           must_update_repositories="true"
       elif grep -q 'Ubuntu 23' "$lsb_release"; then
           #Why this works for arm machine but not for amd64?
           must_update_repositories="true"
+      elif grep -q 'Ubuntu 24.10' "$lsb_release"; then
+          echo "Detected Ubuntu 24.10 - applying repository fixes"
+          must_update_repositories="true"
       fi
     fi 
     if [ "$must_update_repositories" == "true" ]; then
         echo "Configuring archive ubuntu repositories"
+        
+        # Fix traditional sources.list format
         sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
         sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
         sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
+        
+        # Also fix DEB822 format files (Ubuntu 24.10+)
+        if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ]; then
+            echo "Fixing DEB822 format ubuntu.sources file"
+            sudo sed -i 's|URIs: http://us-east-1\.ec2\.ports\.ubuntu\.com/ubuntu-ports|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+            sudo sed -i 's|URIs: http://ports\.ubuntu\.com/ubuntu-ports|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+            sudo sed -i 's|URIs: http://archive\.ubuntu\.com/ubuntu/|URIs: http://old-releases.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+            sudo sed -i 's|URIs: http://security\.ubuntu\.com/ubuntu/|URIs: http://old-releases.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+        fi
+        
+        # Fix any other sources.list.d files
+        for file in /etc/apt/sources.list.d/*.list; do
+            if [ -f "$file" ]; then
+                sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' "$file"
+                sudo sed -i -r 's/ubuntu-ports/ubuntu/g' "$file"
+                sudo sed -i -r 's/us-east-1.ec2.//g' "$file"
+            fi
+        done
+        
         echo 'apt_preserve_sources_list: true' | sudo tee -a /etc/cloud/cloud.cfg
         sudo apt-get update
     fi
+
     #Debian 11 repositories are not available anymore, so we need to update the repositories
     if [ -e "/etc/debian_version" ]; then
       if grep -q '11' "/etc/debian_version"; then
