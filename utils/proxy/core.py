@@ -132,7 +132,7 @@ class _RequestLogger:
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
         elif port == ProxyPorts.agent:
-            flow.response = http.Response.make(200, b"Ok")
+            flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod
     def request_is_from_tracer(request: Request) -> bool:
