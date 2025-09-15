@@ -40,8 +40,10 @@ class OpenTelemetryScenario(DockerScenario):
         include_rabbitmq: bool = False,
         include_mysql_db: bool = False,
         include_sqlserver: bool = False,
+        collector_config_file: str | None = None,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
+        wait_for_otel_interface: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -61,7 +63,18 @@ class OpenTelemetryScenario(DockerScenario):
             self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
             self._required_containers.append(self.agent_container)
         if include_collector:
-            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            if collector_config_file is not None:
+                original_config = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG")
+                os.environ["SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG"] = collector_config_file
+                try:
+                    self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+                finally:
+                    if original_config is not None:
+                        os.environ["SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG"] = original_config
+                    else:
+                        os.environ.pop("SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG", None)
+            else:
+                self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
             self._required_containers.append(self.collector_container)
         self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
         if include_agent:
@@ -74,6 +87,7 @@ class OpenTelemetryScenario(DockerScenario):
         self.include_intake = include_intake
         self.backend_interface_timeout = backend_interface_timeout
         self._require_api_key = require_api_key
+        self.wait_for_otel_interface = wait_for_otel_interface
 
     def configure(self, config: pytest.Config):
         super().configure(config)
@@ -89,9 +103,14 @@ class OpenTelemetryScenario(DockerScenario):
             self.collector_container.environment["DD_SITE"] = dd_site
         if self.include_agent:
             self.weblog_container.environment["OTEL_SYSTEST_INCLUDE_AGENT"] = "True"
-            interfaces.agent.configure(self.host_log_folder, replay=self.replay)
 
+        # Configure all interfaces (similar to EndToEndScenario)
+        interfaces.agent.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library.configure(self.host_log_folder, replay=self.replay)
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
+        interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interface_watchdog(self):
@@ -123,12 +142,13 @@ class OpenTelemetryScenario(DockerScenario):
 
         if not self.replay:
             warmups.insert(0, self._start_interface_watchdog)
-            warmups.append(self._wait_for_app_readiness)
+            if self.wait_for_otel_interface:
+                warmups.append(self._wait_for_app_readiness)
 
         return warmups
 
     def _wait_for_app_readiness(self):
-        if self.use_proxy:
+        if self.use_proxy and self.wait_for_otel_interface:
             logger.debug("Wait for app readiness")
 
             if not interfaces.open_telemetry.ready.wait(40):
@@ -137,7 +157,8 @@ class OpenTelemetryScenario(DockerScenario):
 
     def post_setup(self, session: pytest.Session):  # noqa: ARG002
         if self.use_proxy:
-            self._wait_interface(interfaces.open_telemetry, 5)
+            if self.wait_for_otel_interface:
+                self._wait_interface(interfaces.open_telemetry, 5)
             self._wait_interface(interfaces.backend, self.backend_interface_timeout)
 
         self.close_targets()
