@@ -353,7 +353,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
                 item.user_properties.append(("dd_tags[systest.case.declaration]", metadata["testDeclaration"]))
 
             if metadata["details"]:
-                item.user_properties.append(("dd_tags[systest.case.skip_reason]", metadata["details"]))
+                item.user_properties.append(("dd_tags[systest.case.declarationDetails]", metadata["details"]))
 
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
