@@ -152,11 +152,48 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
-    # Create the jobs by scenario.
+
+    # Step 1: Collect all unique weblogs and create a build job
+    all_weblogs = set()
+    for scenario, weblogs in k8s_matrix.items():
+        for weblog_name in weblogs.keys():
+            all_weblogs.add(weblog_name)
+
+    # Create a single build job with parallel matrix for all unique weblogs
+    if all_weblogs:
+        build_job_name = f"k8s_build_weblogs_{language}"
+        build_matrix = []
+        for weblog_name in all_weblogs:
+            build_matrix.append({
+                "K8S_WEBLOG": weblog_name,
+                "TEST_LIBRARY": language
+            })
+
+        result_pipeline[build_job_name] = {
+            "extends": ".k8s_weblog_build_base",
+            "parallel": {
+                "matrix": build_matrix
+            }
+        }
+
+    # Step 2: Create the test jobs by scenario.
     for scenario, weblogs in k8s_matrix.items():
         job = scenario
         result_pipeline[job] = {}
         result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
+
+        # Add variable-based matrix dependency on specific weblog builds
+        if all_weblogs:
+            result_pipeline[job]["needs"] = [{
+                "job": build_job_name,
+                "parallel": {
+                    "matrix": [{
+                        "K8S_WEBLOG": "$K8S_WEBLOG",
+                        "TEST_LIBRARY": language
+                    }]
+                }
+            }]
+
         # Job variables
         result_pipeline[job]["variables"] = {}
         result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
