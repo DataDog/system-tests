@@ -6,13 +6,13 @@
         </properties>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_pass">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
             </properties>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_fail" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
             </properties>
             <failure message="Failed: dummy">self = &lt;tests.test_the_test.test_junit.Test_Cases object at 0x10cf01eb0&gt;
@@ -23,7 +23,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_skipped" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
                 <property name="dd_tags[systest.case.declaration]" value="irrelevant"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="irrelevant"/>
@@ -32,7 +32,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xfail" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
@@ -41,7 +41,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xpass" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
@@ -49,7 +49,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_flaky" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="['@DataDog/apm-sdk-api']"/>
+                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[test.feature_id]" value="346"/>
                 <property name="dd_tags[systest.case.declaration]" value="flaky"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="flaky (APMRP-360)"/>
