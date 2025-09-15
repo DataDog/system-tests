@@ -60,6 +60,7 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -94,6 +95,7 @@ class DockerScenario(Scenario):
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
             self._required_containers.append(self.proxy_container)
