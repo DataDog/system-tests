@@ -13,14 +13,31 @@ class GitLabReferenceYAMLTag:
         return self.reference
 
 
+class NoQuoteDumper(yaml.SafeDumper):
+    """Custom YAML dumper that avoids quoting only GitLabReferenceYAMLTag objects"""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._gitlab_references = set()
+
+    def represent_data(self, data):
+        # Track GitLabReferenceYAMLTag objects
+        if isinstance(data, GitLabReferenceYAMLTag):
+            self._gitlab_references.add(str(data))
+        return super().represent_data(data)
+
+    def choose_scalar_style(self):
+        # Only affect scalars that are from GitLabReferenceYAMLTag objects
+        if (hasattr(self.event, 'value') and
+            self.event.value in self._gitlab_references):
+            return None  # Plain style, no quotes
+        return super().choose_scalar_style()
+
 def yaml_reference_representer(dumper, data):
-    """Custom YAML representer to output references without quotes"""
-    # Use plain style to avoid quotes
-    return dumper.represent_scalar('tag:yaml.org,2002:str', str(data), style=None)
+    """Custom YAML representer to output GitLabReferenceYAMLTag without quotes"""
+    return dumper.represent_scalar('tag:yaml.org,2002:str', str(data))
 
-
-# Register the custom representer
-yaml.add_representer(GitLabReferenceYAMLTag, yaml_reference_representer)
+NoQuoteDumper.add_representer(GitLabReferenceYAMLTag, yaml_reference_representer)
 
 
 def _generate_unique_prefix(scenario_specs_matrix, prefix_length=3):
@@ -152,27 +169,23 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
     if matrix_data["libinjection_scenario_defs"]:
         # Copy the base job templates for the k8s lib injection system tests
         result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
-        result_pipeline[".k8s_weblog_build_base"] = pipeline_data[".k8s_weblog_build_base"]
+        result_pipeline[".k8s_lib_injection_weblog_build_base"] = pipeline_data[".k8s_lib_injection_weblog_build_base"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
             if os.getenv("SYSTEM_TESTS_REF"):
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(
                     0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
                 )
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "git pull")
-                result_pipeline[".k8s_weblog_build_base"]["script"].insert(
+                result_pipeline[".k8s_lib_injection_weblog_build_base"]["script"].insert(
                     0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
                 )
-                result_pipeline[".k8s_weblog_build_base"]["script"].insert(0, "git pull")
+                result_pipeline[".k8s_lib_injection_weblog_build_base"]["script"].insert(0, "git pull")
             result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd /system-tests")
-            result_pipeline[".k8s_weblog_build_base"]["script"].insert(0, "cd /system-tests")
+            result_pipeline[".k8s_lib_injection_weblog_build_base"]["script"].insert(0, "cd /system-tests")
 
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
-    pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
-
-    # Post-process to remove quotes from YAML references
-    import re
-    pipeline_yml = re.sub(r"'(!reference \[[^\]]+\])'", r'\1', pipeline_yml)
+    pipeline_yml = yaml.dump(result_pipeline, Dumper=NoQuoteDumper, sort_keys=False, default_flow_style=False)
 
     output_file = f"{language}_ssi_gitlab_pipeline.yml"
     with open(output_file, "w") as file:
@@ -189,38 +202,62 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         for weblog_name in weblogs.keys():
             all_weblogs.add(weblog_name)
 
-    # Step 2: Generate the shared matrix for all scenarios
-    shared_matrix = []
+    # Step 2: Generate two matrices - one for build (weblog only), one for test (weblog + cluster)
+    test_matrix = []    # Full matrix for K8S lib injection test jobs (includes cluster images)
+    build_matrix = []   # Simplified matrix for builds (weblog only)
     cluster_agent_versions_scenario = None
+    weblog_seen = set()  # Track which weblogs we've already added to avoid duplicates
+
     for scenario, weblogs in k8s_matrix.items():
         for weblog_name, cluster_agent_versions in weblogs.items():
+            if weblog_name in weblog_seen:
+                continue  # Skip duplicate weblogs from multiple scenarios
+            weblog_seen.add(weblog_name)
             k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
+
+            # Add to build matrix (no cluster images needed)
+            build_matrix.append({
+                "K8S_WEBLOG": weblog_name,
+            })
+
+            # Add to test matrix (with cluster images)
             if cluster_agent_versions:
-                shared_matrix.append({
+                test_matrix.append({
                     "K8S_WEBLOG": weblog_name,
                     "K8S_WEBLOG_IMG": k8s_weblog_img,
                     "K8S_CLUSTER_IMG": cluster_agent_versions,
                 })
                 cluster_agent_versions_scenario = cluster_agent_versions
             else:
-                shared_matrix.append({
+                test_matrix.append({
                     "K8S_WEBLOG": weblog_name,
                     "K8S_WEBLOG_IMG": k8s_weblog_img,
                     "K8S_CLUSTER_IMG": "None"
                 })
 
-    # Step 3: Create the matrix reference
+    # Step 3: Create the matrix references
     matrix_ref_name = ".k8s_lib_injection_matrix"
+    build_matrix_ref_name = ".k8s_lib_injection_build_matrix"
+
     result_pipeline[matrix_ref_name] = {
-        "matrix": shared_matrix
+        "matrix": test_matrix
+    }
+    result_pipeline[build_matrix_ref_name] = {
+        "matrix": build_matrix
     }
 
     # Step 4: Create a single build job with parallel matrix reference
     if all_weblogs:
         build_job_name = f"k8s_build_weblogs_{language}"
+        # Get the scenario name from the first scenario (they should all be the same)
+        scenario_name = next(iter(k8s_matrix.keys()))
         result_pipeline[build_job_name] = {
-            "extends": ".k8s_weblog_build_base",
-            "parallel": GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
+            "extends": ".k8s_lib_injection_weblog_build_base",
+            "variables": {
+                "TEST_LIBRARY": language,
+                "K8S_SCENARIO": scenario_name
+            },
+            "parallel": GitLabReferenceYAMLTag(f"!reference [ {build_matrix_ref_name} ]")
         }
 
     # Step 5: Create the test jobs by scenario
@@ -236,13 +273,13 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
 
         # Use the shared matrix reference
-        result_pipeline[job]["parallel"] = GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
+        result_pipeline[job]["parallel"] = GitLabReferenceYAMLTag(f"!reference [ {matrix_ref_name} ]")
 
         # Add matrix dependency on build job
         if all_weblogs:
             result_pipeline[job]["needs"] = [{
                 "job": build_job_name,
-                "parallel": GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
+                "parallel": GitLabReferenceYAMLTag(f"!reference [ {build_matrix_ref_name} ]")
             }]
 
         # Set injector and lib_init images (existing logic)
