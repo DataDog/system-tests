@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import cProfile
 import json
 import os
 import urllib.request
@@ -16,12 +17,29 @@ class UnexpectedStatusError(Exception):
     """Raised when an unexpected status is encountered."""
 
 
-path_root = Path(__file__).parents[2]
+LIBRARIES = [
+    "agent",
+    "cpp_httpd",
+    "cpp_nginx",
+    "cpp",
+    "dd_apm_inject",
+    "dotnet",
+    "golang",
+    "java",
+    "k8s_cluster_agent",
+    "nodejs",
+    "php",
+    "python_lambda",
+    "python_otel",
+    "python",
+    "ruby",
+    "rust"
+]
 
-ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=1"
+ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=5"
 
 
-def pull_artifact(url: str) -> None:
+def pull_artifact(url: str, path_root: str, path_data_root: str) -> None:
     token = os.getenv("GITHUB_TOKEN")  # expects your GitHub token in env var
 
     req_runs = urllib.request.Request(url)  # noqa: S310
@@ -30,7 +48,7 @@ def pull_artifact(url: str) -> None:
     with urllib.request.urlopen(req_runs) as resp_runs:  # noqa: S310
         artifacts = json.load(resp_runs)
 
-    artifacts_url = artifacts["workflow_runs"][0]["artifacts_url"]
+    artifacts_url = artifacts["workflow_runs"][4]["artifacts_url"]
     req_artifacts = urllib.request.Request(artifacts_url)  # noqa: S310
     req_artifacts.add_header("Authorization", f"token {token}")
     req_artifacts.add_header("Accept", "application/vnd.github+json")
@@ -47,13 +65,13 @@ def pull_artifact(url: str) -> None:
 
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
-        with open("./data.zip", "wb") as f:
+        with open(f"{path_root}/data.zip", "wb") as f:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
 
-    with zipfile.ZipFile("./data.zip") as z:
-        z.extractall("./data")
+    with zipfile.ZipFile(f"{path_root}/data.zip") as z:
+        z.extractall(path_data_root)
 
 
 class TestClassStatus(Enum):
@@ -96,13 +114,13 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
             raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def parse_artifact_data() -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
+def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
-    for language in os.listdir("./data/dev"):
+    for language in os.listdir(path_data_opt):
         test_data[language] = {}
-        for variant in os.listdir(f"./data/dev/{language}"):
-            for scenario in os.listdir(f"./data/dev/{language}/{variant}"):
-                with open(f"./data/dev/{language}/{variant}/{scenario}") as file:
+        for variant in os.listdir(f"{path_data_opt}/{language}"):
+            for scenario in os.listdir(f"{path_data_opt}/{language}/{variant}"):
+                with open(f"{path_data_opt}/{language}/{variant}/{scenario}") as file:
                     scenario_data = json.load(file)
                 for test in scenario_data["tests"]:
                     test_path = test["path"].split("::")[0]
@@ -112,8 +130,6 @@ def parse_artifact_data() -> dict[str, dict[str, dict[str, dict[str, TestClassSt
                     if not test_data[language][test_path].get(test_class):
                         test_data[language][test_path][test_class] = {}
                     if not test_data[language][test_path][test_class].get(variant):
-                        # if variant == "fastapi":
-                        #     breakpoint()
                         test_data[language][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
                     else:
                         outcome = TestClassStatus.parse(test["outcome"])
@@ -125,19 +141,17 @@ def parse_artifact_data() -> dict[str, dict[str, dict[str, dict[str, TestClassSt
     return test_data
 
 
-def parse_manifest() -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
+def parse_manifest(library: str, path_root: str) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
     yaml = ruamel.yaml.YAML()
     yaml.width = 200
-    with open("./manifests/cpp.yml") as file:
-        # manifest = yaml.safe_load(file)
+    with open(f"{path_root}/manifests/{library}.yml") as file:
         return yaml.load(file)
 
 
-def write_manifest(manifest: ruamel.yaml.CommentedMap) -> None:  # type: ignore[type-arg]
+def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile: str) -> None:  # type: ignore[type-arg]
     yaml = ruamel.yaml.YAML()
     yaml.width = 200
-    with open("data.yaml", "w", encoding="utf8") as outfile:
-        # yaml.dump(manifest, outfile, width=200, allow_unicode=True)
+    with open(outfile, "w", encoding="utf8") as outfile:
         yaml.dump(manifest, outfile)
 
 
@@ -155,7 +169,9 @@ def build_search(path: list[str]) -> list[str | None]:
 
 
 def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
-    if type(root) is dict:
+    if current == TestClassStatus.NOEDIT:
+        return TestClassStatus.NOEDIT
+    elif type(root) is dict:
         for branch in root.values():
             current = merge_update_status(current, get_global_update_status(branch, current))
     else:
@@ -170,6 +186,7 @@ def update_entry(
     search: list[str | None],
     root_path: list[str],
     ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
+    versions
 ) -> None:
     get_global_update_status(test_data, TestClassStatus.ACTIVATE)
     update_status = TestClassStatus.NOEDIT
@@ -187,7 +204,7 @@ def update_entry(
         or "missing_feature" in ancester[root_path[-1]]
         or "incomplete_test_app" in ancester[root_path[-1]]
     ):
-        ancester[root_path[-1]] = "xpass"
+        ancester[root_path[-1]] = versions[language]
         # Remove comments from updated entry
         if hasattr(ancester, "ca") and hasattr(ancester.ca, "items") and root_path[-1] in ancester.ca.items:
             del ancester.ca.items[root_path[-1]]
@@ -200,43 +217,62 @@ def update_tree(
     manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
     root_path: list[str],
+    versions
 ) -> None:
     if type(root) is ruamel.yaml.comments.CommentedMap:
         for branch_path, branch in root.items():
-            update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path])
+            update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
     else:
         search = build_search(root_path)
-        update_entry(language, manifest, test_data, search, root_path, ancester)
+        update_entry(language, manifest, test_data, search, root_path, ancester, versions)
 
 
 def update_manifest(
     language: str,
     manifest: ruamel.yaml.CommentedMap,
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
+    versions
 ) -> None:
-    update_tree(manifest, manifest, language, manifest, test_data, [])
+    update_tree(manifest, manifest, language, manifest, test_data, [], versions)
 
 
-def get_versions() -> None:
+def get_versions(path_data_opt: str):
     versions = {}
-    for library in os.listdir("./data/dev"):
-        variant = os.listdir(f"./data/dev/{library}")[0]
-        file_paths = os.listdir(f"./data/dev/{library}/{variant}")
+    for library in os.listdir(path_data_opt):
+        variant = os.listdir(f"{path_data_opt}/{library}")[0]
+        file_paths = os.listdir(f"{path_data_opt}/{library}/{variant}")
         found_version = False
         for file_path in file_paths:
             if found_version:
                 break
-            with open(f"./data/dev/{library}/{variant}/{file_path}") as file:
+            with open(f"{path_data_opt}/{library}/{variant}/{file_path}") as file:
                 data = json.load(file)
                 for dep in data["testedDependencies"]:
                     if dep["name"] == "library":
                         versions[library] = dep["version"]
                         found_version = True
+                if not versions.get(library):
+                    versions[library] = "xpass"
+    return versions
 
 
-get_versions()
-pull_artifact(ARTIFACT_URL)
-manifest = parse_manifest()
-test_data = parse_artifact_data()
-update_manifest("cpp", manifest, test_data)
-write_manifest(manifest)
+
+def main() -> None:
+    path_root = Path(__file__).parents[2]
+    path_data_root = f"{path_root}/data"
+    path_data_opt = f"{path_data_root}/dev"
+
+    get_versions(path_data_opt)
+    print("Pulling test results")
+    pull_artifact(ARTIFACT_URL, path_root, path_data_root)
+    print("Parsing test results")
+    test_data = parse_artifact_data(path_data_opt)
+    versions = get_versions(path_data_opt)
+    for library in LIBRARIES:
+        print(f"Updating manifest for {library}")
+        manifest = parse_manifest(library, path_root)
+        update_manifest(library, manifest, test_data, versions)
+        write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
+
+if __name__ == "__main__":
+    main()
