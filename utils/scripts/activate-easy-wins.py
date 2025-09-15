@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import cProfile
 import json
 import os
 import urllib.request
@@ -149,10 +148,10 @@ def parse_manifest(library: str, path_root: str) -> ruamel.yaml.CommentedMap:  #
         return yaml.load(file)
 
 
-def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile: str) -> None:  # type: ignore[type-arg]
+def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str) -> None:  # type: ignore[type-arg]
     yaml = ruamel.yaml.YAML()
     yaml.width = 200
-    with open(outfile, "w", encoding="utf8") as outfile:
+    with open(outfile_path, "w", encoding="utf8") as outfile:
         yaml.dump(manifest, outfile)
 
 
@@ -172,7 +171,7 @@ def build_search(path: list[str]) -> list[str | None]:
 def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
     if current == TestClassStatus.NOEDIT:
         return TestClassStatus.NOEDIT
-    elif type(root) is dict:
+    if type(root) is dict:
         for branch in root.values():
             current = merge_update_status(current, get_global_update_status(branch, current))
     else:
@@ -187,8 +186,8 @@ def update_entry(
     search: list[str | None],
     root_path: list[str],
     ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    versions
-) -> None:
+    versions: dict[str, str],
+) -> str | None:
     try:
         if search[1] and isinstance(search[0], str) and isinstance(search[1], str):
             update_status = get_global_update_status(
@@ -209,7 +208,7 @@ def update_entry(
                 del ancester.ca.items[root_path[-1]]
             return ret
         return None
-    except (KeyError):
+    except KeyError:
         return None
 
 
@@ -220,9 +219,9 @@ def update_tree(
     manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
     root_path: list[str],
-    versions
-) -> None:
-    updates= []
+    versions: dict[str, str],
+) -> list[tuple[list[str], str, str]]:
+    updates = []
     if type(root) is ruamel.yaml.comments.CommentedMap:
         for branch_path, branch in root.items():
             ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
@@ -239,12 +238,12 @@ def update_manifest(
     language: str,
     manifest: ruamel.yaml.CommentedMap,
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
-    versions
-) -> None:
+    versions: dict[str, str],
+) -> list[tuple[list[str], str, str]]:
     return update_tree(manifest, manifest, language, manifest, test_data, [], versions)
 
 
-def get_versions(path_data_opt: str):
+def get_versions(path_data_opt: str) -> dict[str, str]:
     versions = {}
     for library in os.listdir(path_data_opt):
         variant = os.listdir(f"{path_data_opt}/{library}")[0]
@@ -264,7 +263,6 @@ def get_versions(path_data_opt: str):
     return versions
 
 
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="Activate easy wins in system tests")
     parser.add_argument(
@@ -272,27 +270,15 @@ def main() -> None:
         nargs="*",
         choices=LIBRARIES,
         default=LIBRARIES,
-        help="Libraries to update (default: all libraries)"
+        help="Libraries to update (default: all libraries)",
     )
-    parser.add_argument(
-        "--no-download",
-        action="store_true",
-        help="Skip downloading test data"
-    )
-    parser.add_argument(
-        "--data-path",
-        type=str,
-        help="Custom path to store test data"
-    )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Show what would be updated without writing to files"
-    )
+    parser.add_argument("--no-download", action="store_true", help="Skip downloading test data")
+    parser.add_argument("--data-path", type=str, help="Custom path to store test data")
+    parser.add_argument("--dry-run", action="store_true", help="Show what would be updated without writing to files")
 
     args = parser.parse_args()
 
-    path_root = Path(__file__).parents[2]
+    path_root = str(Path(__file__).parents[2])
     path_data_root = args.data_path if args.data_path else f"{path_root}/data"
     path_data_opt = f"{path_data_root}/dev"
 
@@ -335,6 +321,7 @@ def main() -> None:
         print(f"\n🔍 Dry Run Summary: Would update {total_updates} entries across {len(args.libraries)} libraries")
     else:
         print(f"\n🎉 Summary: Updated {total_updates} entries across {len(args.libraries)} libraries")
+
 
 if __name__ == "__main__":
     main()
