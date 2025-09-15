@@ -2350,3 +2350,4 @@ tests/:
     Test_TelemetryConfigurationChaining: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
+  test_v1_payloads.py: missing_feature

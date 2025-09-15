@@ -293,7 +293,6 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
-"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
     "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO

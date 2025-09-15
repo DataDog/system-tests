@@ -1281,9 +1281,6 @@ def return_headers(request: Request):
 @app.post("/external_request", response_class=JSONResponse, status_code=200)
 @app.trace("/external_request", response_class=JSONResponse, status_code=200)
 async def external_request(request: Request):
-    import urllib.request
-    import urllib.error
-
     queries = {k: str(v) for k, v in request.query_params.items()}
     status = queries.pop("status", "200")
     url_extra = queries.pop("url_extra", "")
@@ -1293,13 +1290,15 @@ async def external_request(request: Request):
         body = None
     if body:
         queries["Content-Type"] = request.headers.get("content-type") or "application/json"
-    urllib_request = urllib.request.Request(
-        f"http://internal_server:8089/mirror/{status}{url_extra}", method=request.method, headers=queries, data=body
-    )
+    full_url = f"http://internal_server:8089/mirror/{status}{url_extra}"
     try:
-        with urllib.request.urlopen(urllib_request, timeout=10) as fp:
-            payload = fp.read().decode()
-            return {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
-
-    except urllib.error.HTTPError as e:
+        with requests.Session() as s:
+            response = s.request(request.method, full_url, data=body, headers=queries, timeout=10)
+            payload = response.text
+            return {
+                "status": int(response.status_code),
+                "headers": dict(response.headers),
+                "payload": json.loads(payload),
+            }
+    except Exception as e:
         return {"status": int(e.status), "error": repr(e)}
