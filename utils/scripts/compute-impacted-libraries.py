@@ -29,7 +29,6 @@ otel_libraries = ["java_otel", "python_otel", "nodejs_otel"]
 libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|python_lambda|rust"
 
 
-
 def get_impacted_libraries(modified_file: str) -> list[str]:
     """Return the list of impacted libraries by this file"""
     if modified_file.endswith((".md", ".rdoc", ".txt")):
