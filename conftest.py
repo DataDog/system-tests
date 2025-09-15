@@ -346,8 +346,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
             item.user_properties.append(("dd_tags[test.codeowners]", json.dumps(metadata["owners"])))
 
-            for feature_id in metadata["features"]:
-                item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
+            # for feature_id in metadata["features"]:
+            #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
 
             if metadata["testDeclaration"]:
                 item.user_properties.append(("dd_tags[systest.case.declaration]", metadata["testDeclaration"]))
