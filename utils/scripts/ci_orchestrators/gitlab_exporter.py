@@ -131,15 +131,21 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
             language, matrix_data["dockerssi_scenario_defs"], ci_environment, result_pipeline
         )
     if matrix_data["libinjection_scenario_defs"]:
-        # Copy the base job for the k8s lib injection system tests
+        # Copy the base job templates for the k8s lib injection system tests
         result_pipeline[".k8s_lib_injection_base"] = pipeline_data[".k8s_lib_injection_base"]
+        result_pipeline[".k8s_weblog_build_base"] = pipeline_data[".k8s_weblog_build_base"]
         if os.getenv("CI_PROJECT_NAME") != "system-tests":
             if os.getenv("SYSTEM_TESTS_REF"):
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(
                     0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
                 )
                 result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "git pull")
+                result_pipeline[".k8s_weblog_build_base"]["script"].insert(
+                    0, f"git checkout {os.getenv('SYSTEM_TESTS_REF')}"
+                )
+                result_pipeline[".k8s_weblog_build_base"]["script"].insert(0, "git pull")
             result_pipeline[".k8s_lib_injection_base"]["script"].insert(0, "cd /system-tests")
+            result_pipeline[".k8s_weblog_build_base"]["script"].insert(0, "cd /system-tests")
 
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
@@ -153,76 +159,73 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
 def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipeline) -> None:
     result_pipeline["stages"].append("K8S_LIB_INJECTION")
 
-    # Step 1: Collect all unique weblogs and create a build job
+    # Step 1: Collect all unique weblogs and generate shared matrix
     all_weblogs = set()
     for scenario, weblogs in k8s_matrix.items():
         for weblog_name in weblogs.keys():
             all_weblogs.add(weblog_name)
 
-    # Create a single build job with parallel matrix for all unique weblogs
+    # Step 2: Generate the shared matrix for all scenarios
+    shared_matrix = []
+    cluster_agent_versions_scenario = None
+    for scenario, weblogs in k8s_matrix.items():
+        for weblog_name, cluster_agent_versions in weblogs.items():
+            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
+            if cluster_agent_versions:
+                shared_matrix.append({
+                    "K8S_WEBLOG": weblog_name,
+                    "K8S_WEBLOG_IMG": k8s_weblog_img,
+                    "K8S_CLUSTER_IMG": cluster_agent_versions,
+                })
+                cluster_agent_versions_scenario = cluster_agent_versions
+            else:
+                shared_matrix.append({
+                    "K8S_WEBLOG": weblog_name,
+                    "K8S_WEBLOG_IMG": k8s_weblog_img,
+                    "K8S_CLUSTER_IMG": "None"
+                })
+
+    # Step 3: Create the matrix reference
+    matrix_ref_name = ".k8s_lib_injection_matrix"
+    result_pipeline[matrix_ref_name] = {
+        "matrix": shared_matrix
+    }
+
+    # Step 4: Create a single build job with parallel matrix reference
     if all_weblogs:
         build_job_name = f"k8s_build_weblogs_{language}"
-        build_matrix = []
-        for weblog_name in all_weblogs:
-            build_matrix.append({
-                "K8S_WEBLOG": weblog_name,
-                "TEST_LIBRARY": language
-            })
-
         result_pipeline[build_job_name] = {
             "extends": ".k8s_weblog_build_base",
-            "parallel": {
-                "matrix": build_matrix
-            }
+            "parallel": f"!reference [{matrix_ref_name}]"
         }
 
-    # Step 2: Create the test jobs by scenario.
+    # Step 5: Create the test jobs by scenario
     for scenario, weblogs in k8s_matrix.items():
         job = scenario
         result_pipeline[job] = {}
         result_pipeline[job]["extends"] = ".k8s_lib_injection_base"
-
-        # Add variable-based matrix dependency on specific weblog builds
-        if all_weblogs:
-            result_pipeline[job]["needs"] = [{
-                "job": build_job_name,
-                "parallel": {
-                    "matrix": [{
-                        "K8S_WEBLOG": "$K8S_WEBLOG",
-                        "TEST_LIBRARY": language
-                    }]
-                }
-            }]
 
         # Job variables
         result_pipeline[job]["variables"] = {}
         result_pipeline[job]["variables"]["TEST_LIBRARY"] = language
         result_pipeline[job]["variables"]["K8S_SCENARIO"] = scenario
         result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
-        result_pipeline[job]["parallel"] = {"matrix": []}
-        cluster_agent_versions_scenario = None
-        for weblog_name, cluster_agent_versions in weblogs.items():
-            k8s_weblog_img = os.getenv("K8S_WEBLOG_IMG", "${PRIVATE_DOCKER_REGISTRY}" + f"/system-tests/{weblog_name}")
-            if cluster_agent_versions:
-                result_pipeline[job]["parallel"]["matrix"].append(
-                    {
-                        "K8S_WEBLOG": weblog_name,
-                        "K8S_WEBLOG_IMG": k8s_weblog_img,
-                        "K8S_CLUSTER_IMG": cluster_agent_versions,
-                    }
-                )
-                cluster_agent_versions_scenario = cluster_agent_versions
-            else:
-                result_pipeline[job]["parallel"]["matrix"].append(
-                    {"K8S_WEBLOG": weblog_name, "K8S_WEBLOG_IMG": k8s_weblog_img, "K8S_CLUSTER_IMG": "None"}
-                )
 
-        # Job variables: injector and lib_init
+        # Use the shared matrix reference
+        result_pipeline[job]["parallel"] = f"!reference [{matrix_ref_name}]"
+
+        # Add matrix dependency on build job
+        if all_weblogs:
+            result_pipeline[job]["needs"] = [{
+                "job": build_job_name,
+                "parallel": f"!reference [{matrix_ref_name}]"
+            }]
+
+        # Set injector and lib_init images (existing logic)
         k8s_lib_init_img, k8s_injector_img = _get_k8s_injector_image_refs(
             language, ci_environment, cluster_agent_versions_scenario
         )
         result_pipeline[job]["variables"]["K8S_LIB_INIT_IMG"] = k8s_lib_init_img
-        # In the no admission controller scenarios we don't use the injector
         result_pipeline[job]["variables"]["K8S_INJECTOR_IMG"] = k8s_injector_img if k8s_injector_img else "None"
 
 

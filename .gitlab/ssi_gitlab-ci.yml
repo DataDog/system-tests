@@ -18,147 +18,147 @@ ssi_tests:
     - echo "NO AWS TESTS TO RUN"
 
 .base_docker_ssi_job:
-    extends: .base_job_k8s_docker_ssi
-    needs: []
-    allow_failure: false
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-    after_script: |
-        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
-        mkdir -p reports/
-        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-            cp -R logs_"${SCENARIO_SUFIX}" reports/
-        else
-            cp -R /system-tests/logs_"${SCENARIO_SUFIX}" reports/
-        fi
-        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-          for folder in reports/logs*/ ; do
-            echo "Checking folder: ${folder}"
-            for filename in ./${folder}feature_parity.json; do
-              if [ -e ${filename} ]
-              then
-                echo "Processing report: ${filename}"
-                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
-              fi
-            done
-          done
-        fi
-    retry:
-      max: 2
-      when:
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      #Timeout 124
-      exit_codes:
-        - 3
-        - 124
-    artifacts:
-      when: always
-      paths:
-        - reports/
+  extends: .base_job_k8s_docker_ssi
+  needs: []
+  allow_failure: false
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  after_script: |
+    SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+    mkdir -p reports/
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        cp -R logs_"${SCENARIO_SUFIX}" reports/
+    else
+        cp -R /system-tests/logs_"${SCENARIO_SUFIX}" reports/
+    fi
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+        for filename in ./${folder}feature_parity.json; do
+          if [ -e ${filename} ]
+          then
+            echo "Processing report: ${filename}"
+            curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+          fi
+        done
+      done
+    fi
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    #Timeout 124
+    exit_codes:
+      - 3
+      - 124
+  artifacts:
+    when: always
+    paths:
+      - reports/
 
 .base_job_onboarding_system_tests:
-    extends: .base_job_onboarding
-    needs: []
-    allow_failure: false
-    variables:
-      # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
-      FF_USE_NEW_BASH_EVAL_STRATEGY: true
-    script:
-        - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
-        - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
-    after_script: |
-        # Only fetch FP params on main in system-tests repo (use default CI creds)
-        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
-          export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
-        fi
-        # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
-        echo "Setting up AWS credentials for after_script..."
-        mkdir -p ~/.aws
+  extends: .base_job_onboarding
+  needs: []
+  allow_failure: false
+  variables:
+    # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  script:
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+    - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
+  after_script: |
+    # Only fetch FP params on main in system-tests repo (use default CI creds)
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      export FP_IMPORT_URL=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-import-url --with-decryption --query "Parameter.Value" --out text)
+      export FP_API_KEY=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.fp-api-key --with-decryption --query "Parameter.Value" --out text)
+    fi
+    # Re-establish AWS credentials for S3 operations (after_script runs in new shell session)
+    echo "Setting up AWS credentials for after_script..."
+    mkdir -p ~/.aws
 
-        # Clean up any existing config and recreate it
-        rm -f ~/.aws/config
-        aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text > ~/.aws/config
-        export AWS_PROFILE=apm-ecosystems-reliability-ci
+    # Clean up any existing config and recreate it
+    rm -f ~/.aws/config
+    aws ssm get-parameter --region us-east-1 --name ci.${CI_PROJECT_NAME}.apm-ecosystems-reliability-profile --with-decryption --query "Parameter.Value" --out text > ~/.aws/config
+    export AWS_PROFILE=apm-ecosystems-reliability-ci
 
-        SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
-        mkdir -p reports/
-        # Upload logs to S3 and delete large files
-        if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-            LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
-        else
-            LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
-        fi
-        # Upload to S3
-        if [ -d "$LOGS_FOLDER" ]; then
-            echo "Uploading logs to S3..."
-            EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
-            LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
-            S3_BUCKET="system-tests-aws-ssi-apm"
-            S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
+    SCENARIO_SUFIX=$(echo "$SCENARIO" | tr "[:upper:]" "[:lower:]")
+    mkdir -p reports/
+    # Upload logs to S3 and delete large files
+    if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+        LOGS_FOLDER="logs_${SCENARIO_SUFIX}"
+    else
+        LOGS_FOLDER="system-tests/logs_${SCENARIO_SUFIX}"
+    fi
+    # Upload to S3
+    if [ -d "$LOGS_FOLDER" ]; then
+        echo "Uploading logs to S3..."
+        EXECUTION_UNIQUE_IDENTIFIER="${CI_PIPELINE_ID:-datadog-local}"
+        LAST_DIRECTORY=$(basename "$LOGS_FOLDER")
+        S3_BUCKET="system-tests-aws-ssi-apm"
+        S3_DESTINATION="s3://${S3_BUCKET}/${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
 
-            echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
-            echo "Local folder: ${LOGS_FOLDER}"
-            echo "S3 destination: ${S3_DESTINATION}"
+        echo "Uploading folder to S3 bucket: ${S3_BUCKET}"
+        echo "Local folder: ${LOGS_FOLDER}"
+        echo "S3 destination: ${S3_DESTINATION}"
 
-            aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive --quiet || echo "Failed to upload logs to S3"
+        aws s3 cp "$LOGS_FOLDER" "$S3_DESTINATION" --recursive --quiet || echo "Failed to upload logs to S3"
 
-            # Generate AWS Console URL for the uploaded folder
-            AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
-            echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
+        # Generate AWS Console URL for the uploaded folder
+        AWS_CONSOLE_URL="https://s3.console.aws.amazon.com/s3/buckets/${S3_BUCKET}?region=us-east-1&prefix=${EXECUTION_UNIQUE_IDENTIFIER}/${LAST_DIRECTORY}/${VM}_${WEBLOG}/"
+        echo "S3 logs URL (AWS Console): ${AWS_CONSOLE_URL}"
 
-            # Delete large files (>50MB) to avoid CI/CD archiving
-            echo "Deleting large files to avoid CI/CD archiving..."
-            find "$LOGS_FOLDER" -type f -size +50M -exec sh -c 'echo "Deleting large file ($(du -h "$1" | cut -f1)): $1" && rm "$1"' _ {} \; || echo "Failed to delete some large files"
-        fi
+        # Delete large files (>50MB) to avoid CI/CD archiving
+        echo "Deleting large files to avoid CI/CD archiving..."
+        find "$LOGS_FOLDER" -type f -size +50M -exec sh -c 'echo "Deleting large file ($(du -h "$1" | cut -f1)): $1" && rm "$1"' _ {} \; || echo "Failed to delete some large files"
+    fi
 
-        # Logs to be archived by gitlab
-        cp -R "$LOGS_FOLDER" reports/
+    # Logs to be archived by gitlab
+    cp -R "$LOGS_FOLDER" reports/
 
-        # Feature parity
-        if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
-          for folder in reports/logs*/ ; do
-            echo "Checking folder: ${folder}"
-            for filename in ./${folder}*_feature_parity.json; do
-              if [ -e ${filename} ]
-              then
-                echo "Processing report: ${filename}"
-                curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
-              fi
-            done
-          done
-        fi
-    retry:
-      max: 2
-      when:
-        - unknown_failure
-        - data_integrity_failure
-        - runner_system_failure
-        - scheduler_failure
-        - api_failure
-      #System-tests exit code 1 if there are tests failures
-      #System-tests exit code 3 if there is a issue starting the scenario
-      exit_codes:
-        - 3
-    artifacts:
-        when: always
-        paths:
-            - reports/
+    # Feature parity
+    if [ "$CI_COMMIT_BRANCH" = "main" ] && [ "$CI_PROJECT_NAME" = "system-tests" ]; then
+      for folder in reports/logs*/ ; do
+        echo "Checking folder: ${folder}"
+        for filename in ./${folder}*_feature_parity.json; do
+          if [ -e ${filename} ]
+          then
+            echo "Processing report: ${filename}"
+            curl -X POST ${FP_IMPORT_URL} --fail --header "Content-Type: application/json" --header "FP_API_KEY: ${FP_API_KEY}" --data "@${filename}" --include
+          fi
+        done
+      done
+    fi
+  retry:
+    max: 2
+    when:
+      - unknown_failure
+      - data_integrity_failure
+      - runner_system_failure
+      - scheduler_failure
+      - api_failure
+    #System-tests exit code 1 if there are tests failures
+    #System-tests exit code 3 if there is a issue starting the scenario
+    exit_codes:
+      - 3
+  artifacts:
+    when: always
+    paths:
+      - reports/
 
 .build_lib_injection_weblog_base:
   extends: .base_job_k8s_docker_ssi
   # override tags until base_job_k8s_docker_ssi is updated
   # the tests are manipulating the images and running kind
-  tags: ["docker-in-docker:amd64"]
+  tags: ["arch:amd64"]
   needs: []
   stage: K8S_LIB_INJECTION
   allow_failure: false
@@ -187,6 +187,34 @@ ssi_tests:
       - runner_system_failure
       - scheduler_failure
       - api_failure
+
+.k8s_weblog_build_base:
+  extends: .base_job_k8s_docker_ssi
+  stage: K8S_LIB_INJECTION
+  needs: []
+  allow_failure: false
+  timeout: 20 minutes
+  variables:
+    FF_USE_NEW_BASH_EVAL_STRATEGY: true
+  script:
+    - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
+    - source venv/bin/activate
+    - aws ecr get-login-password | docker login --username ${PRIVATE_DOCKER_REGISTRY_USER} --password-stdin ${PRIVATE_DOCKER_REGISTRY}
+    - export PRIVATE_DOCKER_REGISTRY_TOKEN=$(aws ecr get-login-password --region us-east-1)
+    - |
+      if [ "$CI_PROJECT_NAME" = "system-tests" ] && [ "$CI_PIPELINE_SOURCE" != "schedule" ]; then
+        TAG_NAME=$([ "$CI_COMMIT_BRANCH" = "main" ] && echo "latest" || echo "$CI_COMMIT_BRANCH" | tr '/' '-')
+        ./lib-injection/build/build_lib_injection_weblog.sh -w ${K8S_WEBLOG} -l ${TEST_LIBRARY} \
+          --push-tag ${PRIVATE_DOCKER_REGISTRY}/system-tests/${K8S_WEBLOG}:${TAG_NAME} \
+          --docker-platform linux/arm64,linux/amd64
+      else
+        TAG_NAME="latest"
+      fi
+    - echo "TAG_NAME=${TAG_NAME}" > weblog_build_${K8S_WEBLOG}_${TEST_LIBRARY}.env
+  artifacts:
+    reports:
+      dotenv: weblog_build_${K8S_WEBLOG}_${TEST_LIBRARY}.env
+    expire_in: 1 hour
 
 .k8s_lib_injection_base:
   extends: .base_job_k8s_docker_ssi
