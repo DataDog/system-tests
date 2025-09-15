@@ -104,6 +104,7 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
 
     @bug(library="python_otel", reason="OTEL-940")
     @bug(library="nodejs_otel", reason="OTEL-940")
+    @bug(library="java_otel", reason="OTEL-2778")
     def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
         for db_operation, request in self.get_requests():
@@ -139,10 +140,6 @@ class Test_Postgres(_BaseOtelDbIntegrationTestClass):
 
     db_service = "postgresql"
 
-    @bug(library="java_otel", reason="OTEL-2778")
-    def test_obfuscate_query(self):
-        super().test_obfuscate_query()
-
 
 @features.otel_mysql_support
 @scenarios.otel_integrations
@@ -150,10 +147,6 @@ class Test_MySql(_BaseOtelDbIntegrationTestClass):
     """OpenTelemetry/MySql integration"""
 
     db_service = "mysql"
-
-    @bug(library="java_otel", reason="OTEL-2778")
-    def test_obfuscate_query(self):
-        super().test_obfuscate_query()
 
     @bug(library="java_otel", reason="OTEL-2778")
     def test_properties(self):
