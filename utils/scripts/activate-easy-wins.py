@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import cProfile
 import json
 import os
@@ -258,17 +259,40 @@ def get_versions(path_data_opt: str):
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Activate easy wins in system tests")
+    parser.add_argument(
+        "--libraries",
+        nargs="*",
+        choices=LIBRARIES,
+        default=LIBRARIES,
+        help="Libraries to update (default: all libraries)"
+    )
+    parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Skip downloading test data"
+    )
+    parser.add_argument(
+        "--data-path",
+        type=str,
+        help="Custom path to store test data"
+    )
+
+    args = parser.parse_args()
+
     path_root = Path(__file__).parents[2]
-    path_data_root = f"{path_root}/data"
+    path_data_root = args.data_path if args.data_path else f"{path_root}/data"
     path_data_opt = f"{path_data_root}/dev"
 
-    get_versions(path_data_opt)
-    print("Pulling test results")
-    pull_artifact(ARTIFACT_URL, path_root, path_data_root)
+    if not args.no_download:
+        print("Pulling test results")
+        pull_artifact(ARTIFACT_URL, path_root, path_data_root)
+
     print("Parsing test results")
     test_data = parse_artifact_data(path_data_opt)
     versions = get_versions(path_data_opt)
-    for library in LIBRARIES:
+
+    for library in args.libraries:
         print(f"Updating manifest for {library}")
         manifest = parse_manifest(library, path_root)
         update_manifest(library, manifest, test_data, versions)
