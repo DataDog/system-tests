@@ -90,7 +90,6 @@ class TestSecurityControls:
         self.setup_iast_is_enabled()
         self.r = weblog.post("/iast/sc/s/not-configured", data={"param": "param"})
 
-    @flaky(context.library == "nodejs" and context.weblog_variant == "fastify", reason="APPSEC-58724")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(
