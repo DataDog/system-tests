@@ -341,6 +341,20 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
 
+            # decorate test for junit
+            metadata = _collect_item_metadata(item)
+
+            item.user_properties.append(("dd_tags[test.codeowners]", json.dumps(metadata["owners"])))
+
+            # for feature_id in metadata["features"]:
+            #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
+
+            if metadata["testDeclaration"]:
+                item.user_properties.append(("dd_tags[systest.case.declaration]", metadata["testDeclaration"]))
+
+            if metadata["details"]:
+                item.user_properties.append(("dd_tags[systest.case.declarationDetails]", metadata["details"]))
+
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
                     logger.info(f"{item.nodeid} is normally skipped, but forced thanks to -F {forced}")
