@@ -46,15 +46,31 @@
         # Fix traditional sources.list format
         sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list 
         sudo sed -i -r 's/ubuntu-ports/ubuntu/g' /etc/apt/sources.list
+        sudo sed -i -r 's/us-east-1.ec2.archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+        sudo sed -i -r 's/archive.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+        sudo sed -i -r 's/security.ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
         sudo sed -i -r 's/us-east-1.ec2.//g' /etc/apt/sources.list
         
         # Also fix DEB822 format files (Ubuntu 24.10+)
         if [ -f "/etc/apt/sources.list.d/ubuntu.sources" ]; then
             echo "Fixing DEB822 format ubuntu.sources file"
+            echo "Before fix:"
+            cat /etc/apt/sources.list.d/ubuntu.sources
+            
+            # ARM64 patterns (ports)
             sudo sed -i 's|URIs: http://us-east-1\.ec2\.ports\.ubuntu\.com/ubuntu-ports|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
             sudo sed -i 's|URIs: http://ports\.ubuntu\.com/ubuntu-ports|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+            # AMD64 patterns (archive)
+            sudo sed -i 's|URIs: http://us-east-1\.ec2\.archive\.ubuntu\.com/ubuntu|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
             sudo sed -i 's|URIs: http://archive\.ubuntu\.com/ubuntu/|URIs: http://old-releases.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+            sudo sed -i 's|URIs: http://archive\.ubuntu\.com/ubuntu|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
             sudo sed -i 's|URIs: http://security\.ubuntu\.com/ubuntu/|URIs: http://old-releases.ubuntu.com/ubuntu/|g' /etc/apt/sources.list.d/ubuntu.sources
+            sudo sed -i 's|URIs: http://security\.ubuntu\.com/ubuntu|URIs: http://old-releases.ubuntu.com/ubuntu|g' /etc/apt/sources.list.d/ubuntu.sources
+            # Catch-all for any remaining security.ubuntu.com URLs
+            sudo sed -i 's|security\.ubuntu\.com|old-releases.ubuntu.com|g' /etc/apt/sources.list.d/ubuntu.sources
+            
+            echo "After fix:"
+            cat /etc/apt/sources.list.d/ubuntu.sources
         fi
         
         # Fix any other sources.list.d files
@@ -62,7 +78,12 @@
             if [ -f "$file" ]; then
                 sudo sed -i -r 's/ports.ubuntu.com/old-releases.ubuntu.com/g' "$file"
                 sudo sed -i -r 's/ubuntu-ports/ubuntu/g' "$file"
+                sudo sed -i -r 's/us-east-1.ec2.archive.ubuntu.com/old-releases.ubuntu.com/g' "$file"
+                sudo sed -i -r 's/archive.ubuntu.com/old-releases.ubuntu.com/g' "$file"
+                sudo sed -i -r 's/security.ubuntu.com/old-releases.ubuntu.com/g' "$file"
                 sudo sed -i -r 's/us-east-1.ec2.//g' "$file"
+                # Catch-all for any remaining security URLs in .list files  
+                sudo sed -i 's|security\.ubuntu\.com|old-releases.ubuntu.com|g' "$file"
             fi
         done
         
