@@ -446,7 +446,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         for item in language_dir.iterdir():
             if item.is_dir():
                 item_ver = version.parse(item.name)
-                if item_ver < current_ver:
+                if item_ver <= current_ver:
                     compatible_versions.append(item.name)
 
         compatible_versions.sort(key=lambda x: version.parse(x), reverse=True)
