@@ -22,7 +22,7 @@ default_libraries = [
 ]
 
 lambda_libraries = ["python_lambda"]
-otel_libraries = ["java_otel", "python_otel", "nodejs_otel"]
+otel_libraries = ["java_otel", "python_otel"]  #, "nodejs_otel"]
 
 # nodejs_otel is broken: dependancy needs to be pinned
 # libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
