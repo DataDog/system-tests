@@ -19,22 +19,22 @@ class UnexpectedStatusError(Exception):
 
 
 LIBRARIES = [
-    "agent",
+    # "agent",
     "cpp_httpd",
-    "cpp_nginx",
+    # "cpp_nginx",
     "cpp",
-    "dd_apm_inject",
+    # "dd_apm_inject",
     "dotnet",
     "golang",
     "java",
-    "k8s_cluster_agent",
+    # "k8s_cluster_agent",
     "nodejs",
     "php",
     "python_lambda",
-    "python_otel",
+    # "python_otel",
     "python",
     "ruby",
-    "rust"
+    # "rust"
 ]
 
 ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=5"
@@ -189,8 +189,6 @@ def update_entry(
     ancester: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     versions
 ) -> None:
-    get_global_update_status(test_data, TestClassStatus.ACTIVATE)
-    update_status = TestClassStatus.NOEDIT
     try:
         if search[1] and isinstance(search[0], str) and isinstance(search[1], str):
             update_status = get_global_update_status(
@@ -198,17 +196,21 @@ def update_entry(
             )
         elif isinstance(search[0], str):
             update_status = get_global_update_status(test_data[language][search[0]], TestClassStatus.ACTIVATE)
-    except (KeyError, TypeError):
-        pass
-    if update_status == TestClassStatus.ACTIVATE and (
-        "bug" in ancester[root_path[-1]]
-        or "missing_feature" in ancester[root_path[-1]]
-        or "incomplete_test_app" in ancester[root_path[-1]]
-    ):
-        ancester[root_path[-1]] = versions[language]
-        # Remove comments from updated entry
-        if hasattr(ancester, "ca") and hasattr(ancester.ca, "items") and root_path[-1] in ancester.ca.items:
-            del ancester.ca.items[root_path[-1]]
+
+        if update_status == TestClassStatus.ACTIVATE and (
+            "bug" in ancester[root_path[-1]]
+            or "missing_feature" in ancester[root_path[-1]]
+            or "incomplete_test_app" in ancester[root_path[-1]]
+        ):
+            ret = ancester[root_path[-1]]
+            ancester[root_path[-1]] = versions[language]
+            # Remove comments from updated entry
+            if hasattr(ancester, "ca") and hasattr(ancester.ca, "items") and root_path[-1] in ancester.ca.items:
+                del ancester.ca.items[root_path[-1]]
+            return ret
+        return None
+    except (KeyError):
+        return None
 
 
 def update_tree(
@@ -220,12 +222,17 @@ def update_tree(
     root_path: list[str],
     versions
 ) -> None:
+    updates= []
     if type(root) is ruamel.yaml.comments.CommentedMap:
         for branch_path, branch in root.items():
-            update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
+            ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
+            updates += ret
     else:
         search = build_search(root_path)
-        update_entry(language, manifest, test_data, search, root_path, ancester, versions)
+        old_status = update_entry(language, manifest, test_data, search, root_path, ancester, versions)
+        if old_status:
+            updates.append((root_path, old_status, versions[language]))
+    return updates
 
 
 def update_manifest(
@@ -234,7 +241,7 @@ def update_manifest(
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
     versions
 ) -> None:
-    update_tree(manifest, manifest, language, manifest, test_data, [], versions)
+    return update_tree(manifest, manifest, language, manifest, test_data, [], versions)
 
 
 def get_versions(path_data_opt: str):
@@ -295,7 +302,9 @@ def main() -> None:
     for library in args.libraries:
         print(f"Updating manifest for {library}")
         manifest = parse_manifest(library, path_root)
-        update_manifest(library, manifest, test_data, versions)
+        updates = update_manifest(library, manifest, test_data, versions)
+        for line in updates: print(f"{build_search(line[0])[0]}::{build_search(line[0])[1]}: {line[1]} to {line[2]}")
+        print(len(updates))
         write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
 
 if __name__ == "__main__":
