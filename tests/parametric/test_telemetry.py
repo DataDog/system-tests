@@ -578,7 +578,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
-        print("MTOFF: configurations" + str(configurations))
         # Configuration set via fleet config should have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
         telemetry_item = configurations[apm_telemetry_name]
