@@ -756,6 +756,7 @@ tests/:
         '*': v2.10.1
         django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_Empty_Config: v3.10.0
+      Test_Invalid_Config: v3.15.0.dev
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
