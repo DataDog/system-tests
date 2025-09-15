@@ -23,7 +23,11 @@ default_libraries = [
 
 lambda_libraries = ["python_lambda"]
 otel_libraries = ["java_otel", "python_otel", "nodejs_otel"]
-libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
+
+# nodejs_otel is broken: dependancy needs to be pinned
+# libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
+libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|python_lambda|rust"
+
 
 
 def get_impacted_libraries(modified_file: str) -> list[str]:
