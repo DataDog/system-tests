@@ -4,6 +4,25 @@ import hashlib
 import json
 
 
+class GitLabReferenceYAMLTag:
+    """Custom class to represent YAML references that should not be quoted"""
+    def __init__(self, reference):
+        self.reference = reference
+
+    def __str__(self):
+        return self.reference
+
+
+def yaml_reference_representer(dumper, data):
+    """Custom YAML representer to output references without quotes"""
+    # Use plain style to avoid quotes
+    return dumper.represent_scalar('tag:yaml.org,2002:str', str(data), style=None)
+
+
+# Register the custom representer
+yaml.add_representer(GitLabReferenceYAMLTag, yaml_reference_representer)
+
+
 def _generate_unique_prefix(scenario_specs_matrix, prefix_length=3):
     """Generate a unique prefix for each scenario name/stage
     collect all the possible scenarios to generate unique prefixes for each scenario
@@ -150,6 +169,11 @@ def print_ssi_gitlab_pipeline(language, matrix_data, ci_environment) -> None:
         print_k8s_gitlab_pipeline(language, matrix_data["libinjection_scenario_defs"], ci_environment, result_pipeline)
 
     pipeline_yml = yaml.dump(result_pipeline, sort_keys=False, default_flow_style=False)
+
+    # Post-process to remove quotes from YAML references
+    import re
+    pipeline_yml = re.sub(r"'(!reference \[[^\]]+\])'", r'\1', pipeline_yml)
+
     output_file = f"{language}_ssi_gitlab_pipeline.yml"
     with open(output_file, "w") as file:
         file.write(pipeline_yml)
@@ -196,7 +220,7 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         build_job_name = f"k8s_build_weblogs_{language}"
         result_pipeline[build_job_name] = {
             "extends": ".k8s_weblog_build_base",
-            "parallel": f"!reference [{matrix_ref_name}]"
+            "parallel": GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
         }
 
     # Step 5: Create the test jobs by scenario
@@ -212,13 +236,13 @@ def print_k8s_gitlab_pipeline(language, k8s_matrix, ci_environment, result_pipel
         result_pipeline[job]["variables"]["REPORT_ENVIRONMENT"] = ci_environment
 
         # Use the shared matrix reference
-        result_pipeline[job]["parallel"] = f"!reference [{matrix_ref_name}]"
+        result_pipeline[job]["parallel"] = GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
 
         # Add matrix dependency on build job
         if all_weblogs:
             result_pipeline[job]["needs"] = [{
                 "job": build_job_name,
-                "parallel": f"!reference [{matrix_ref_name}]"
+                "parallel": GitLabReferenceYAMLTag(f"!reference [{matrix_ref_name}]")
             }]
 
         # Set injector and lib_init images (existing logic)
