@@ -431,7 +431,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         - Otherwise: use maximum compatible version (assumes folders exist)
         """
         current_version = self.get_tracer()["tracer_version"]
-        current_version = re.sub(r'[^0-9.].*$', '', current_version)
+        current_version = re.sub(r"[^0-9.].*$", "", current_version)
 
         if _STORE_NEW_APPROVALS:
             return current_version
