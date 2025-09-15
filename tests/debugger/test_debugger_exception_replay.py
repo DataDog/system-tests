@@ -17,8 +17,8 @@ def get_env_bool(env_var_name, *, default=False) -> bool:
 
 
 _OVERRIDE_APROVALS = get_env_bool("DI_OVERRIDE_APPROVALS")
-_SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 _STORE_NEW_APPROVALS = get_env_bool("DI_STORE_NEW_APPROVALS")
+_SKIP_SCRUB = get_env_bool("DI_SKIP_SCRUB")
 
 _max_retries = 2
 _timeout_first = 5
@@ -31,9 +31,6 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-# @missing_feature(
-#     context.library >= "python@3.15", reason="Need to update approvals for upcoming version", force_skip=True
-# )
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
@@ -434,6 +431,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         - Otherwise: use maximum compatible version (assumes folders exist)
         """
         current_version = self.get_tracer()["tracer_version"]
+        current_version = re.sub(r'[^0-9.].*$', '', current_version)
 
         if _STORE_NEW_APPROVALS:
             return current_version
