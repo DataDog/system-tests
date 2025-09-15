@@ -22,6 +22,7 @@ default_libraries = [
 ]
 
 lambda_libraries = ["python_lambda"]
+otel_libraries = ["java_otel", "python_otel", "nodejs_otel"]
 libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
 
 
@@ -45,6 +46,9 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
     for pattern in lambda_proxy_patterns:
         if re.match(pattern, modified_file):
             return lambda_libraries
+
+    if modified_file in ("utils/_context/_scenarios/open_telemetry.py",):
+        return otel_libraries
 
     patterns = [
         rf"^manifests/({libraries})\.",
