@@ -5,4 +5,3 @@ tests/:
       TestDockerSSIFeatures: v0.19.1
     test_docker_ssi_crash.py:
       TestDockerSSICrash: v0.19.1
-  test_v1_payloads.py: missing_feature
