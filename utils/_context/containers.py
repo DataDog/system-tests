@@ -567,6 +567,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         enable_ipv6: bool,
+        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -590,6 +591,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
+                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={
