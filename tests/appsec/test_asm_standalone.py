@@ -736,15 +736,24 @@ class BaseSCAStandaloneTelemetry:
     def test_telemetry_sca_enabled_propagated(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
-        configuration_by_name: dict[str, dict] = {}
+        configuration_by_name: dict[str, list[dict]] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
-            if content.get("request_type") != "app-started":
+            if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
-
+            for item in configuration:
+                if item["name"] not in configuration_by_name:
+                    configuration_by_name[item["name"]] = []
+                configuration_by_name[item["name"]].append(item)
+        if len(configuration_by_name):
+            # Checking if we need to sort due to multiple sources being sent for the same config
+            sample_key = next(iter(configuration_by_name))
+            if "seq_id" in configuration_by_name[sample_key][0]:
+                # Sort seq_id for each config from highest to lowest
+                for payload in configuration_by_name.values():
+                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
         assert configuration_by_name
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
@@ -755,7 +764,7 @@ class BaseSCAStandaloneTelemetry:
         outcome_value: bool | str = True
         if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
-        assert cfg_appsec_enabled.get("value") == outcome_value
+        assert cfg_appsec_enabled[0].get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
         # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
@@ -860,7 +869,6 @@ class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagat
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
-@bug(context.library >= "python@3.10.1" and context.weblog_variant in ["flask-poc", "uds-flask"], reason="APPSEC-58276")
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
     """IAST correctly propagates AppSec events in distributing tracing with DD_APM_TRACING_ENABLED=false."""
 

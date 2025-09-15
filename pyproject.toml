@@ -29,7 +29,8 @@ junit_suite_name = "system_tests_suite"
 
 markers =[
     "scenario: run a test only for a specified scenario",
-    "features: declare the feature id"
+    "features: declare the feature id",
+    "owners: declare the owner of the test",
 ]
 
 python_files = "test_*.py *utils.py"
@@ -292,7 +293,6 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
-"utils/scripts/junit_report.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
     "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO

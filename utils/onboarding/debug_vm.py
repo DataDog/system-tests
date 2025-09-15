@@ -24,6 +24,36 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
         c = vm.get_ssh_connection()
         logger.info(f"Connected [{vm.get_ip()}]")
 
+        # Execute remote commands to collect logs prior to download
+        commands_to_run = [
+            "sudo mkdir -p /var/log/datadog_weblog || true",
+            # Docker and systemd related logs (mirrors utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml)
+            "sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true",
+            "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true",
+            "sudo journalctl -xeu docker > /var/log/datadog_weblog/journalctl_docker.log 2>&1 || true",
+            # Copy Datadog Agent configuration files
+            "sudo cp /etc/datadog-agent/application_monitoring.yaml /var/log/datadog_weblog/application_monitoring.yaml 2>&1 || true",
+            # Additional logs requested
+            "sudo cat /var/log/cloud-init.log > /var/log/datadog_weblog/cloud-init.log 2>&1 || true",
+            "sudo cat /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>&1 || true",
+            "sudo dmesg > /var/log/datadog_weblog/dmesg.log 2>&1 || true",
+            "sudo systemctl list-dependencies docker.service > /var/log/datadog_weblog/docker_list_dependencies.log 2>&1 || true",
+            "sudo systemctl list-timers --all > /var/log/datadog_weblog/system.timers.log 2>&1 || true",
+            "sudo crontab -l > /var/log/datadog_weblog/crontab.log 2>&1 || true",
+            "sudo cat /var/log/apt/history.log  > /var/log/datadog_weblog/apt.log 2>&1 || true",
+            "sudo cat /var/log/yum.log  > /var/log/datadog_weblog/yum.log 2>&1 || true",
+        ]
+
+        for cmd in commands_to_run:
+            try:
+                logger.info(f"Executing remote command: {cmd}")
+                _stdin, stdout, _stderr = c.exec_command(cmd)
+                exit_status = stdout.channel.recv_exit_status()
+                logger.info(f"Remote command exit status: {exit_status}")
+            except Exception as exec_err:
+                logger.warning(f"Failed executing command on {vm.get_ip()}: {cmd}")
+                logger.exception(exec_err)
+
         # Create SFTP client
         sftp = c.open_sftp()
 

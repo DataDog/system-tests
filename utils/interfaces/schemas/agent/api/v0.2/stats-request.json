@@ -1,41 +1,80 @@
 {
   "$id": "/agent/api/v0.2/stats-request.json",
   "type": "object",
+  "required": ["Stats"],
   "properties": {
     "Stats": {
       "type": "array",
+      "description": "Array of ClientStatsPayload containing deployment-level information",
       "items": {
         "type": "object",
+        "required": ["Hostname", "Env", "Version", "Stats", "Lang", "TracerVersion", "RuntimeID", "Sequence", "Service", "ProcessTags"],
         "properties": {
+          "Hostname": { "type": "string", "description": "Tracer hostname" },
+          "Env": { "type": "string", "description": "Environment" },
+          "Version": { "type": "string", "description": "Service version" },
           "Stats": {
             "type": "array",
+            "description": "Time-bucketed stats",
             "items": {
               "type": "object",
+              "required": ["Start", "Duration", "Stats"],
               "properties": {
-                "Start": { "type": "integer" },
-                "Duration": { "type": "integer" },
+                "Start": { "type": "integer", "minimum": 0, "description": "Bucket start time (nanoseconds)" },
+                "Duration": { "type": "integer", "minimum": 0, "description": "Bucket duration (nanoseconds)" },
                 "Stats": {
                   "type": "array",
+                  "description": "Grouped stats",
                   "items": {
                     "type": "object",
+                    "required": ["Service", "Name", "Resource", "Type", "Hits", "Errors", "Duration", "OkSummary", "ErrorSummary", "Synthetics", "TopLevelHits", "IsTraceRoot"],
                     "properties": {
-                      "Service": { "type": "string" },
-                      "Name": { "type": "string" },
-                      "Resource": { "type": "string" }
-                    },
-                    "required": ["Service", "Name", "Resource"]
+                      "Service": { "type": "string", "description": "Service name" },
+                      "Name": { "type": "string", "description": "Span name" },
+                      "Resource": { "type": "string", "description": "Resource name" },
+                      "HTTPStatusCode": { "type": "integer", "description": "HTTP status code" },
+                      "Type": { "type": "string", "description": "Span type" },
+                      "DBType": { "type": "string", "description": "Database type (reserved)" },
+                      "Hits": { "type": "integer", "minimum": 0, "description": "Total span count" },
+                      "Errors": { "type": "integer", "minimum": 0, "description": "Error span count" },
+                      "Duration": { "type": "integer", "minimum": 0, "description": "Total duration (nanoseconds)" },
+                      "OkSummary": { "type": "string", "description": "DDSketch for OK spans" },
+                      "ErrorSummary": { "type": "string", "description": "DDSketch for error spans" },
+                      "Synthetics": { "type": "boolean", "description": "Synthetics traffic flag" },
+                      "TopLevelHits": { "type": "integer", "minimum": 0, "description": "Top-level span count" },
+                      "SpanKind": { "type": "string", "description": "Span kind" },
+                      "PeerTags": { 
+                        "type": "array", 
+                        "items": { "type": "string" },
+                        "description": "Peer tags"
+                      },
+                      "IsTraceRoot": { "type": "integer", "description": "Trace root flag" },
+                      "GRPCStatusCode": { "type": "string", "description": "gRPC status code" }
+                    }
                   }
-                }
-              },
-              "required": ["Start", "Duration", "Stats"]
+                },
+                "AgentTimeShift": { "type": "integer", "description": "Agent time shift adjustment" }
+              }
             }
-          }
-        },
-        "required": ["Stats"]
+          },
+          "Lang": { "type": "string", "description": "Language identifier" },
+          "TracerVersion": { "type": "string", "description": "Tracer version" },
+          "RuntimeID": { "type": "string", "description": "Runtime identifier" },
+          "Sequence": { "type": "integer", "minimum": 0, "description": "Sequence number" },
+          "AgentAggregation": { "type": "string", "description": "Agent aggregation type" },
+          "Service": { "type": "string", "description": "Main service name" },
+          "ContainerID": { "type": "string", "description": "Container ID" },
+          "Tags": { 
+            "type": "array", 
+            "items": { "type": "string" },
+            "description": "Container tags"
+          },
+          "GitCommitSha": { "type": "string", "description": "Git commit SHA" },
+          "ImageTag": { "type": "string", "description": "Container image tag" },
+          "ProcessTagsHash": { "type": "integer", "description": "Process tags hash" },
+          "ProcessTags": { "type": "string", "description": "Process tags string" }
+        }
       }
     }
-  },
-  "required": [
-    "Stats"
-  ]
+  }
 }

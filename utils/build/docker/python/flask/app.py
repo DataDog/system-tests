@@ -28,7 +28,6 @@ import mock
 import urllib3
 import xmltodict
 import graphene
-import datetime
 
 
 if os.environ.get("INCLUDE_POSTGRES", "true") == "true":
@@ -88,8 +87,15 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
+
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    from ddtrace import config
+
+    config._logs_injection = True
+
 from ddtrace.appsec import trace_utils as appsec_trace_utils
-from ddtrace.appsec.iast import ddtrace_iast_flask_patch
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
 from ddtrace.data_streams import set_consume_checkpoint
@@ -160,8 +166,6 @@ MARIADB_CONFIG["collation"] = "utf8mb4_unicode_520_ci"
 
 
 def main():
-    # IAST Flask patch
-    ddtrace_iast_flask_patch()
     app = Flask(__name__)
     app.secret_key = "SECRET_FOR_TEST"
     app.config["SESSION_TYPE"] = "memcached"
@@ -1980,3 +1984,30 @@ def view_iast_sc_iv_overloaded_insecure():
     if _sc_v_overloaded(user, password):
         _sink_point_sqli(table=user)
     return Response("OK")
+
+
+@app.route("/external_request", methods=["GET", "TRACE", "POST"])
+def external_request():
+    import urllib.request
+    import urllib.error
+
+    queries = {k: str(v) for k, v in flask_request.args.items()}
+    status = queries.pop("status", "200")
+    url_extra = queries.pop("url_extra", "")
+    body = flask_request.data or None
+    if body:
+        queries["Content-Type"] = flask_request.headers.get("content-type") or "application/json"
+    request = urllib.request.Request(
+        f"http://internal_server:8089/mirror/{status}{url_extra}",
+        method=flask_request.method,
+        headers=queries,
+        data=body,
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=10) as fp:
+            payload = fp.read().decode()
+            return jsonify(
+                {"status": int(fp.status), "headers": dict(fp.headers.items()), "payload": json.loads(payload)}
+            )
+    except urllib.error.HTTPError as e:
+        return jsonify({"status": int(e.status), "error": repr(e)})
