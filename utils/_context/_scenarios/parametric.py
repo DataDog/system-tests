@@ -81,7 +81,7 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0"
+    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -147,6 +147,7 @@ class ParametricScenario(Scenario):
             "php": php_library_factory,
             "python": python_library_factory,
             "ruby": ruby_library_factory,
+            "rust": rust_library_factory,
         }[library]
 
         self.apm_test_server_definition = factory()
@@ -160,7 +161,7 @@ class ParametricScenario(Scenario):
             self._clean_networks()
 
         # https://github.com/DataDog/system-tests/issues/2799
-        if library in ("nodejs", "python", "golang", "ruby", "dotnet"):
+        if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
             output = _get_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
@@ -312,12 +313,11 @@ class ParametricScenario(Scenario):
         env: dict[str, str],
         volumes: dict[str, str],
         network: str,
-        host_port: int,
-        container_port: int,
+        ports: dict[str, int],
         command: list[str],
         log_file: TextIO,
     ) -> Generator[Container, None, None]:
-        logger.info(f"Run container {name} from image {image} with host port {host_port}")
+        logger.info(f"Run container {name} from image {image} with ports {ports}")
 
         try:
             container: Container = _get_client().containers.run(
@@ -326,7 +326,7 @@ class ParametricScenario(Scenario):
                 environment=env,
                 volumes=self.compute_volumes(volumes),
                 network=network,
-                ports={f"{container_port}/tcp": host_port},
+                ports=ports,
                 command=command,
                 detach=True,
             )
@@ -364,7 +364,7 @@ def python_library_factory() -> APMLibraryTestServer:
 FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 WORKDIR /app
 RUN pyenv global 3.11
-RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0
+RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
 COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
@@ -649,6 +649,46 @@ RUN mkdir /parametric-tracer-logs
         container_img=dockerfile_content,
         container_cmd=["parametric-http-server"],
         container_build_dir=cpp_absolute_appdir,
+        container_build_context=_get_base_directory(),
+        env={},
+    )
+
+
+def rust_library_factory() -> APMLibraryTestServer:
+    rust_appdir = os.path.join("utils", "build", "docker", "rust", "parametric")
+    rust_absolute_appdir = os.path.join(_get_base_directory(), rust_appdir)
+    rust_reldir = rust_appdir.replace("\\", "/")
+
+    return APMLibraryTestServer(
+        lang="rust",
+        container_name="rust-test-client",
+        container_tag="rust-test-client",
+        container_img=f"""
+FROM rust:1.84.1-slim-bookworm AS builder
+WORKDIR /usr/app
+COPY {rust_reldir} .
+COPY {rust_reldir}/../install_ddtrace.sh ./binaries/ /binaries/
+COPY {rust_reldir}/Cargo.toml /usr/app/
+COPY {rust_reldir}/src /usr/app/
+
+RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
+
+RUN /binaries/install_ddtrace.sh
+
+RUN \
+    --mount=type=cache,target=/usr/app/target/ \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release && cp ./target/release/ddtrace-rs-client /usr/app
+
+FROM debian:bookworm-slim AS final
+COPY --from=builder /usr/app/ddtrace-rs-client /usr/app/ddtrace-rs-client
+COPY --from=builder /usr/app/Cargo.lock /usr/app/Cargo.lock
+COPY {rust_reldir}/system_tests_library_version.sh /usr/app/system_tests_library_version.sh
+RUN mkdir /parametric-tracer-logs
+WORKDIR /usr/app
+            """,
+        container_cmd=["./ddtrace-rs-client"],
+        container_build_dir=rust_absolute_appdir,
         container_build_context=_get_base_directory(),
         env={},
     )

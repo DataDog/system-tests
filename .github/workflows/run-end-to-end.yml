@@ -54,6 +54,11 @@ on:
         default: false
         required: false
         type: boolean
+      build_lambda_proxy_image:
+        description: "Shall we build the lambda-proxy image"
+        default: false
+        required: false
+        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -125,6 +130,9 @@ jobs:
     - name: Build proxy image
       if: inputs.build_proxy_image
       run: ./build.sh -i proxy
+    - name: Build lambda-proxy image
+      if: inputs.build_lambda_proxy_image
+      run: ./build.sh -i lambda-proxy
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
@@ -140,9 +148,6 @@ jobs:
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
-    - name: Build Lambda Proxy
-      if: ${{ endsWith(inputs.library, '_lambda') }}
-      run: ./build.sh python_lambda -i lambda-proxy
 
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
@@ -177,6 +182,9 @@ jobs:
     - name: Run GRAPHQL_APPSEC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
+    - name: Run GRAPHQL_ERROR_TRACKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
+      run: ./run.sh GRAPHQL_ERROR_TRACKING
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6
@@ -217,6 +225,9 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
+      run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
@@ -263,15 +274,15 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      # C++ 1.2.0 freeze when the rules file is missing
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
+      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
@@ -344,9 +355,9 @@ jobs:
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-    - name: Run TELEMETRY_APP_STARTED_CONFIG_CHAINING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_CONFIG_CHAINING"')
-      run: ./run.sh TELEMETRY_APP_STARTED_CONFIG_CHAINING
+    - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
@@ -365,6 +376,9 @@ jobs:
     - name: Run DEBUGGER_PROBES_SNAPSHOT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT"')
       run: ./run.sh DEBUGGER_PROBES_SNAPSHOT
+    - name: Run DEBUGGER_PROBES_SNAPSHOT_WITH_SCM scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PROBES_SNAPSHOT_WITH_SCM"')
+      run: ./run.sh DEBUGGER_PROBES_SNAPSHOT_WITH_SCM
     - name: Run DEBUGGER_PII_REDACTION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"DEBUGGER_PII_REDACTION"')
       run: ./run.sh DEBUGGER_PII_REDACTION
@@ -426,6 +440,12 @@ jobs:
     - name: Run APPSEC_LAMBDA_DEFAULT scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_DEFAULT"')
       run: ./run.sh APPSEC_LAMBDA_DEFAULT
+    - name: Run APPSEC_LAMBDA_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_BLOCKING"')
+      run: ./run.sh APPSEC_LAMBDA_BLOCKING
+    - name: Run APPSEC_LAMBDA_API_SECURITY scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
+      run: ./run.sh APPSEC_LAMBDA_API_SECURITY
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs.enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh

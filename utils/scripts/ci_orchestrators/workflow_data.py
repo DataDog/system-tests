@@ -423,7 +423,7 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
 
     # Only Allow Lambda scenarios for the lambda libraries
     is_lambda_library = library in ("python_lambda",)
-    is_lambda_scenario = scenario in ("APPSEC_LAMBDA_DEFAULT", "APPSEC_LAMBDA_API_SECURITY")
+    is_lambda_scenario = scenario in ("APPSEC_LAMBDA_DEFAULT", "APPSEC_LAMBDA_BLOCKING", "APPSEC_LAMBDA_API_SECURITY")
     if is_lambda_library != is_lambda_scenario:
         return False
 
