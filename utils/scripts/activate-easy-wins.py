@@ -284,6 +284,11 @@ def main() -> None:
         type=str,
         help="Custom path to store test data"
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Show what would be updated without writing to files"
+    )
 
     args = parser.parse_args()
 
@@ -299,27 +304,37 @@ def main() -> None:
     test_data = parse_artifact_data(path_data_opt)
     versions = get_versions(path_data_opt)
 
+    if args.dry_run:
+        print("🔍 DRY RUN MODE - No files will be modified\n")
+
     total_updates = 0
 
     for library in args.libraries:
-        print(f"\n📋 Processing {library.upper()}...")
+        action = "Analyzing" if args.dry_run else "Processing"
+        print(f"\n📋 {action} {library.upper()}...")
         manifest = parse_manifest(library, path_root)
         updates = update_manifest(library, manifest, test_data, versions)
 
         if updates:
-            print(f"✅ Found {len(updates)} updates:")
+            verb = "Would update" if args.dry_run else "Found"
+            print(f"✅ {verb} {len(updates)} updates:")
             for path, old_status, new_version in updates:
                 search_result = build_search(path)
                 test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
                 print(f"   • {test_path}")
                 print(f"     {old_status} → {new_version}")
         else:
-            print("   No updates needed")
+            message = "No updates would be needed" if args.dry_run else "No updates needed"
+            print(f"   {message}")
 
         total_updates += len(updates)
-        write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
+        if not args.dry_run:
+            write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
 
-    print(f"\n🎉 Summary: Updated {total_updates} entries across {len(args.libraries)} libraries")
+    if args.dry_run:
+        print(f"\n🔍 Dry Run Summary: Would update {total_updates} entries across {len(args.libraries)} libraries")
+    else:
+        print(f"\n🎉 Summary: Updated {total_updates} entries across {len(args.libraries)} libraries")
 
 if __name__ == "__main__":
     main()
