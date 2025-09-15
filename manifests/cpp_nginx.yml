@@ -1,4 +1,12 @@
 ---
+#
+# For features that are not yet available in the latest release,
+# please specify a version greater than the current release using `>`.
+# DO NOT SPECIFY A NON EXISTING RELEASE.
+#
+# For example, if the latest release is `v1.0.0` and a feature like Baggage
+# is only supported on the `main` branch and in the upcoming release,
+# use `>1.0.0` to indicate that requirement.
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -282,3 +290,4 @@ tests/:
     Test_Telemetry: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature
+  test_v1_payloads.py: missing_feature

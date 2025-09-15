@@ -202,6 +202,18 @@ class _Scenarios:
         github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
+    graphql_error_tracking = EndToEndScenario(
+        "GRAPHQL_ERROR_TRACKING",
+        weblog_env={
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+            "DD_TRACE_GRAPHQL_ERROR_TRACKING": "true",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="GraphQL error tracking tests with OpenTelemetry semantics",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.appsec],
+    )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
@@ -585,6 +597,16 @@ class _Scenarios:
         backend_interface_timeout=5,
         require_api_key=True,
         doc="",
+    )
+
+    apm_tracing_efficient_payload = EndToEndScenario(
+        "APM_TRACING_EFFICIENT_PAYLOAD",
+        weblog_env={
+            "DD_TRACE_SAMPLE_RATE": "1.0",
+            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+        },
+        backend_interface_timeout=5,
+        doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
