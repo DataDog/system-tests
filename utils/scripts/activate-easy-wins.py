@@ -299,13 +299,27 @@ def main() -> None:
     test_data = parse_artifact_data(path_data_opt)
     versions = get_versions(path_data_opt)
 
+    total_updates = 0
+
     for library in args.libraries:
-        print(f"Updating manifest for {library}")
+        print(f"\n📋 Processing {library.upper()}...")
         manifest = parse_manifest(library, path_root)
         updates = update_manifest(library, manifest, test_data, versions)
-        for line in updates: print(f"{build_search(line[0])[0]}::{build_search(line[0])[1]}: {line[1]} to {line[2]}")
-        print(len(updates))
+
+        if updates:
+            print(f"✅ Found {len(updates)} updates:")
+            for path, old_status, new_version in updates:
+                search_result = build_search(path)
+                test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
+                print(f"   • {test_path}")
+                print(f"     {old_status} → {new_version}")
+        else:
+            print("   No updates needed")
+
+        total_updates += len(updates)
         write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
+
+    print(f"\n🎉 Summary: Updated {total_updates} entries across {len(args.libraries)} libraries")
 
 if __name__ == "__main__":
     main()
