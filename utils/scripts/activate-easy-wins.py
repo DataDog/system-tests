@@ -35,7 +35,9 @@ LIBRARIES = [
     # "rust"
 ]
 
-ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
+ARTIFACT_URL = (
+    "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
+)
 
 
 def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
@@ -120,11 +122,11 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
 
 def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
-    for dir in os.listdir(path_data_opt):
-        if "dev" in dir:
+    for directory in os.listdir(path_data_opt):
+        if "dev" in directory:
             continue
-        for scenario in os.listdir(f"{path_data_opt}/{dir}"):
-            with open(f"{path_data_opt}/{dir}/{scenario}/feature_parity.json", encoding="utf-8") as file:
+        for scenario in os.listdir(f"{path_data_opt}/{directory}"):
+            with open(f"{path_data_opt}/{directory}/{scenario}/feature_parity.json", encoding="utf-8") as file:
                 scenario_data = json.load(file)
             library = scenario_data["language"]
             variant = scenario_data["variant"]
@@ -142,9 +144,7 @@ def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dic
                 else:
                     outcome = TestClassStatus.parse(test["outcome"])
                     previous_outcome = test_data[library][test_path][test_class][variant]
-                    test_data[library][test_path][test_class][variant] = merge_update_status(
-                        outcome, previous_outcome
-                    )
+                    test_data[library][test_path][test_class][variant] = merge_update_status(outcome, previous_outcome)
 
     return test_data
 
@@ -251,7 +251,7 @@ def update_manifest(
     return update_tree(manifest, manifest, language, manifest, test_data, [], versions)
 
 
-def get_versions(path_data_opt: str, libraries) -> dict[str, str]:
+def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
     versions = {}
     for library in libraries:
         found_version = False
