@@ -502,7 +502,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     """Clients should report origin of configurations set by stable configuration faithfully"""
 
     @pytest.mark.parametrize(
-        ("local_cfg", "library_env", "fleet_cfg", "expected_origin"),
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origins"),
         [
             (
                 {
