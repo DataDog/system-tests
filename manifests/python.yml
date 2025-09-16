@@ -1160,7 +1160,7 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.15.0.dev2+g56f74bbf0
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this environment variable is not supported)
     Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
     Test_Config_IntegrationEnabled_False:
@@ -1216,11 +1216,11 @@ tests/:
     Test_HeaderTags_Colon_Trailing: v2.8.0
     Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
-    Test_HeaderTags_Short: v3.15.0.dev2+g56f74bbf0
-    Test_HeaderTags_Whitespace_Header: v3.15.0.dev2+g56f74bbf0
-    Test_HeaderTags_Whitespace_Tag: v3.15.0.dev2+g56f74bbf0
+    Test_HeaderTags_Short: missing_feature
+    Test_HeaderTags_Whitespace_Header: missing_feature
+    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
-    Test_HeaderTags_Whitespace_Val_Short: v3.15.0.dev2+g56f74bbf0
+    Test_HeaderTags_Whitespace_Val_Short: missing_feature
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
