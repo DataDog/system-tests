@@ -1551,12 +1551,12 @@ class HAProxyContainer(TestedContainer):
             name="haproxy",
             host_log_folder=host_log_folder,
             volumes={
-                "./tests/stream_processing_offload/haproxy.cfg": {
+                "./utils/build/docker/haproxy/haproxy.cfg": {
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
                     "mode": "ro",
                 },
-                "./tests/stream_processing_offload/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
-                "./tests/stream_processing_offload/datadog_aap_blocking_response.lua": {
+                "./utils/build/docker/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
+                "./utils/build/docker/haproxy/datadog_aap_blocking_response.lua": {
                     "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
                     "mode": "ro",
                 },
