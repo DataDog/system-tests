@@ -89,6 +89,18 @@ def _mapped_telemetry_name(context, apm_telemetry_name):
     return apm_telemetry_name
 
 
+def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict | None:
+    """Find a configuration by origin from a list of configuration dictionaries.
+
+    Returns the first configuration that matches the origin,
+    or None if no match is found.
+    """
+    for config in config_list:
+        if config.get("origin") == origin:
+            return config
+    return None
+
+
 @scenarios.parametric
 @rfc("https://docs.google.com/document/d/1In4TfVBbKEztLzYg4g0si5H56uzAbYB3OfqzRGP2xhg/edit")
 @features.telemetry_app_started_event
@@ -513,7 +525,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ],
     )
     def test_stable_configuration_origin(
-        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origin
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
     ):
         with test_library:
             self.write_stable_config(
@@ -533,11 +545,17 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
 
-        configuration = test_agent.wait_for_telemetry_configurations()
-        for cfg_name, origin in expected_origin.items():
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        for cfg_name, expected_origin in expected_origins.items():
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
-            telemetry_item = configuration[apm_telemetry_name]
-            assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
+            config_list = configuration_by_name.get(apm_telemetry_name, [])
+            assert config_list, f"No configurations found for '{apm_telemetry_name}'"
+
+            telemetry_item = _find_configuration_by_origin(config_list, expected_origin)
+            assert (
+                telemetry_item is not None
+            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'"
+            assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
             assert telemetry_item["value"]
 
     @missing_feature(context.library == "nodejs", reason="Not implemented")
@@ -577,15 +595,28 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.container_restart()
             test_library.dd_start_span("test")
 
-        configurations = test_agent.wait_for_telemetry_configurations()
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # Configuration set via fleet config should have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
-        telemetry_item = configurations[apm_telemetry_name]
+        config_list = configuration_by_name.get(apm_telemetry_name, [])
+        assert config_list, f"No configurations found for '{apm_telemetry_name}'"
+
+        telemetry_item = _find_configuration_by_origin(config_list, "fleet_stable_config")
+        assert (
+            telemetry_item is not None
+        ), f"No configuration found for '{apm_telemetry_name}' with origin 'fleet_stable_config'"
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
+
         # Configuration set via local config should not have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "dynamic_instrumentation_enabled")
-        telemetry_item = configurations[apm_telemetry_name]
+        config_list = configuration_by_name.get(apm_telemetry_name, [])
+        assert config_list, f"No configurations found for '{apm_telemetry_name}'"
+
+        telemetry_item = _find_configuration_by_origin(config_list, "local_stable_config")
+        assert (
+            telemetry_item is not None
+        ), f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
         assert telemetry_item["origin"] == "local_stable_config"
         assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
 

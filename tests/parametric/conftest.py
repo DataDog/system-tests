@@ -413,14 +413,19 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
-        """Waits for and returns the latest configurations captured in telemetry events.
+    def wait_for_telemetry_configurations(
+        self, *, service: str | None = None, clear: bool = False
+    ) -> dict[str, list[dict]]:
+        """Waits for and returns configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
         The function ensures that at least one telemetry event is captured before processing.
+        Returns a dictionary where keys are configuration names and values are lists of
+        configuration dictionaries, allowing for multiple entries per configuration name
+        with different origins.
         """
         events = []
-        configurations = {}
+        configurations: dict[str, list[dict]] = {}
         # Allow time for telemetry events to be captured
         time.sleep(1)
         # Attempt to retrieve telemetry events, suppressing request-related exceptions
@@ -439,9 +444,11 @@ class _TestAgentAPI:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store only the latest configuration for each name. This is the configuration
-                        # that should be used by the application.
-                        configurations[config["name"]] = config
+                        # Store all configurations, allowing multiple entries per name with different origins
+                        config_name = config["name"]
+                        if config_name not in configurations:
+                            configurations[config_name] = []
+                        configurations[config_name].append(config)
         if clear:
             self.clear()
         return configurations
