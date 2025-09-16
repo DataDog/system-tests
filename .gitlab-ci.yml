@@ -27,6 +27,13 @@ variables:
   after_script:
     - echo "=== DEBUG INFORMATION ==="
     - echo "=== Cluster State ==="
+    - kubectl cluster-info || echo "Failed to get cluster info"
+    - kubectl cluster-info dump || echo "Failed to get cluster dump"
+    - echo ""
+    - sed -i -E -e "s/localhost|0\.0\.0\.0/docker/g" "$HOME/.kube/config"
+    - kubectl cluster-info || echo "Failed to get cluster info"
+    - kubectl cluster-info dump || echo "Failed to get cluster dump"
+    - echo ""
     - kubectl get nodes --show-labels || echo "Failed to get nodes"
     - kubectl get namespaces || echo "Failed to get namespaces"
     - kubectl get pods --all-namespaces || echo "Failed to get pods"
