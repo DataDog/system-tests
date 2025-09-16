@@ -143,3 +143,4 @@ tests/:
     test_versions.py:
       Test_Events: v7.112.0
   test_v1_payloads.py: missing_feature
+  test_resource_renaming.py: missing_feature

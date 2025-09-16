@@ -1447,6 +1447,7 @@ tests/:
   test_profiling.py:
     Test_Profile: *ref_5_16_0  #actual version unknown
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: *ref_5_54_0
     Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown

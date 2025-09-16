@@ -1302,3 +1302,8 @@ async def external_request(request: Request):
             }
     except Exception as e:
         return {"status": int(e.status), "error": repr(e)}
+
+
+@app.get("/resource_renaming/{path:path}", response_class=PlainTextResponse)
+def resource_renaming(path: str = ""):
+    return "ok"

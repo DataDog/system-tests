@@ -110,6 +110,16 @@ class _Scenarios:
         doc="Test Default propagation",
     )
 
+    trace_resource_renaming = EndToEndScenario(
+        "TRACE_RESOURCE_RENAMING",
+        weblog_env={
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+        },
+        doc="Test resource renaming",
+    )
+
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",

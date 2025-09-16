@@ -689,6 +689,7 @@ tests/:
       uds: missing_feature (to be confirmed)
   test_protobuf.py:
     Test_Protobuf: v3.15.0
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.11.1  # real version unknown
     Test_SamplingDecisionAdded: v3.11.1  # real version unknown

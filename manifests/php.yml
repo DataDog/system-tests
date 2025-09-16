@@ -689,6 +689,7 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown

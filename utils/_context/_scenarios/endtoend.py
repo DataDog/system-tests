@@ -663,7 +663,7 @@ class EndToEndScenario(DockerScenario):
                 data_path=None,
                 condition=self.library
                 in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
-                and self.name == "TRACE_STATS_COMPUTATION",
+                and self.name in ("TRACE_STATS_COMPUTATION", "TRACE_RESOURCE_RENAMING"),
                 ticket="APMSP-2158",
             ),
         ]

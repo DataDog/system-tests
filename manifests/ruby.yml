@@ -874,6 +874,7 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v2.15.0  # real version unknown
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
