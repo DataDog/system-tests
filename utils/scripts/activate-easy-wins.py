@@ -38,7 +38,7 @@ LIBRARIES = [
 ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=5"
 
 
-def pull_artifact(url: str, token, path_root: str, path_data_root: str) -> None:
+def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -259,12 +259,13 @@ def get_versions(path_data_opt: str) -> dict[str, str]:
             versions[library] = "xpass"
     return versions
 
-def get_environ():
+
+def get_environ() -> dict[str, str]:
     environ = {**os.environ}
 
     try:
         with open(".env", "r", encoding="utf-8") as f:
-            lines = [l.replace("export ", "").strip().split("=") for l in f.readlines() if l.strip()]
+            lines = [line.replace("export ", "").strip().split("=") for line in f if line.strip()]
             environ = {**environ, **dict(lines)}
     except FileNotFoundError:
         pass
