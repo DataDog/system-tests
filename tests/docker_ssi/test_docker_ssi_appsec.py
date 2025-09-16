@@ -14,7 +14,7 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
-    @missing_feature(condition=context.library in ("nodejs",), reason="No implemented")
+    @missing_feature(condition=context.library in ("nodejs", "java"), reason="No implemented")
     def test_telemetry_source_ssi(self):
         root_span = interfaces.test_agent.get_traces(request=self.r)
         assert root_span, f"No traces found for request {self.r.get_rid()}"
