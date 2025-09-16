@@ -1,11 +1,27 @@
-# CI overlay config for Docker-in-Docker runners
-# This gets merged with kind-config-template.yaml in GitLab CI environments
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+# Complete CI config for Docker-in-Docker runners
 networking:
   ipFamily: ipv4
   apiServerAddress: "0.0.0.0"
+nodes:
+  - role: control-plane
+    extraPortMappings:
+      # agent port - accessible from all interfaces in CI
+      - containerPort: 8126
+        hostPort: 8127
+        listenAddress: "0.0.0.0"
+        protocol: TCP
+      # app port - accessible from all interfaces in CI
+      - containerPort: 18080
+        hostPort: 18081
+        listenAddress: "0.0.0.0"
+        protocol: TCP
 kubeadmConfigPatches:
   - |
     kind: ClusterConfiguration
     apiServer:
       certSANs:
         - "docker"
+        - "localhost"
+        - "0.0.0.0"

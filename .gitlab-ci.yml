@@ -52,9 +52,8 @@ variables:
     - cp "$HOME/.kube/config" reports/kubeconfig || echo "Failed to copy kubeconfig"
     - kind get kubeconfig --name lib-injection-testing > reports/kind-kubeconfig || echo "Failed to get kind kubeconfig"
     - echo "=== Saving kind cluster config files ==="
-    - find /tmp -name "*kind-config*.yaml" -exec cp {} reports/ \; || echo "No kind config files found in /tmp"
-    - find . -name "kind-config*.yaml" -exec cp {} reports/ \; || echo "No kind config files found in current dir"
-    - cp merged-kind-config.yaml reports/ 2>/dev/null || echo "No merged kind config found"
+    - cp utils/k8s_lib_injection/resources/kind-config-template.yaml reports/base-kind-config.yaml || echo "Failed to copy base kind config"
+    - cp utils/k8s_lib_injection/resources/kind-config-ci-template.yaml reports/ci-kind-config.yaml || echo "Failed to copy CI kind config"
     - cp original-kubeconfig.yaml reports/ 2>/dev/null || echo "No original kubeconfig found"
     - cp fixed-kubeconfig.yaml reports/ 2>/dev/null || echo "No fixed kubeconfig found"
     - kind delete clusters --all || true

@@ -335,13 +335,11 @@ class K8sKindClusterProvider(K8sClusterProvider):
         super().__init__(is_local_managed=True)
 
     def configure_cluster(self):
-        base_template = "utils/k8s_lib_injection/resources/kind-config-template.yaml"
-
-        # In CI environments, merge base config with CI overlay for Docker-in-Docker compatibility
+        # In CI environments, use dedicated CI config for Docker-in-Docker compatibility
         if "CI" in os.environ:
-            cluster_template = self._create_merged_kind_config(base_template)
+            cluster_template = "utils/k8s_lib_injection/resources/kind-config-ci-template.yaml"
         else:
-            cluster_template = base_template
+            cluster_template = "utils/k8s_lib_injection/resources/kind-config-template.yaml"
 
         self._cluster_info = K8sClusterInfo(
             cluster_name="lib-injection-testing",
@@ -349,55 +347,6 @@ class K8sKindClusterProvider(K8sClusterProvider):
             cluster_template=cluster_template,
         )
 
-    def _create_merged_kind_config(self, base_config_path):
-        """Merge base kind config with CI overlay for Docker-in-Docker compatibility"""
-        try:
-            # Read base config
-            with open(base_config_path, 'r') as f:
-                base_config = yaml.safe_load(f)
-
-            # Read CI overlay
-            ci_overlay_path = "utils/k8s_lib_injection/resources/kind-config-ci-template.yaml"
-            with open(ci_overlay_path, 'r') as f:
-                ci_overlay = yaml.safe_load(f)
-
-            # Merge configs (CI overlay takes precedence)
-            merged_config = self._deep_merge(base_config, ci_overlay)
-
-            # Write merged config to temp file
-            temp_config = tempfile.NamedTemporaryFile(mode='w', suffix='-kind-config.yaml', delete=False)
-            yaml.dump(merged_config, temp_config, default_flow_style=False)
-            temp_config.close()
-
-            logger.info(f"[Kind Config] Created merged CI config: {temp_config.name}")
-
-            # Also save a copy for debugging (will be picked up by artifacts)
-            try:
-                debug_config_path = "merged-kind-config.yaml"
-                with open(debug_config_path, 'w') as f:
-                    yaml.dump(merged_config, f, default_flow_style=False)
-                logger.info(f"[Kind Config] Debug copy saved to: {debug_config_path}")
-            except Exception as e:
-                logger.warning(f"[Kind Config] Failed to save debug copy: {e}")
-
-            return temp_config.name
-
-        except Exception as e:
-            logger.error(f"[Kind Config] Failed to merge configs, using base: {e}")
-            return base_config_path
-
-    def _deep_merge(self, base, overlay):
-        """Deep merge two dictionaries, with overlay taking precedence"""
-        if not isinstance(overlay, dict):
-            return overlay
-
-        result = base.copy()
-        for key, value in overlay.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = self._deep_merge(result[key], value)
-            else:
-                result[key] = value
-        return result
 
     def _fix_kubeconfig_for_ci(self):
         """Fix kubeconfig server address for Docker-in-Docker CI environments"""
@@ -516,6 +465,35 @@ class K8sKindClusterProvider(K8sClusterProvider):
         # Apply GitLab-specific setup if in GitLab CI
         if "GITLAB_CI" in os.environ:
             self._setup_kind_in_gitlab()
+
+        # Wait for cluster to be fully ready
+        logger.info("[Kind Create] Waiting for cluster to stabilize...")
+        logger.info("[DEBUG SLEEP] Starting 20-minute debug sleep - connect to the pod for manual debugging")
+        print("[DEBUG SLEEP] Starting 20-minute debug sleep - connect to the pod for manual debugging")
+
+        # Create debug marker file in tmp
+        try:
+            import tempfile
+            debug_file = os.path.join(tempfile.gettempdir(), "kind-debug-sleep-active")
+            with open(debug_file, 'w') as f:
+                f.write("Kind cluster debug sleep started at: " + str(time.time()) + "\n")
+                f.write("Cluster name: " + self.get_cluster_info().cluster_name + "\n")
+                f.write("Context name: " + self.get_cluster_info().context_name + "\n")
+            logger.info(f"[DEBUG SLEEP] Created debug marker file: {debug_file}")
+            print(f"[DEBUG SLEEP] Created debug marker file: {debug_file}")
+        except Exception as e:
+            logger.warning(f"[DEBUG SLEEP] Failed to create debug marker file: {e}")
+
+        time.sleep(1200)  # 20 minutes for extended debugging
+
+        # Remove debug marker file
+        try:
+            if os.path.exists(debug_file):
+                os.remove(debug_file)
+            logger.info("[DEBUG SLEEP] Debug sleep completed, marker file removed")
+            print("[DEBUG SLEEP] Debug sleep completed, marker file removed")
+        except Exception as e:
+            logger.warning(f"[DEBUG SLEEP] Failed to remove debug marker file: {e}")
         # Method to create a kubernetes secret to access to the internal registry
         if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
