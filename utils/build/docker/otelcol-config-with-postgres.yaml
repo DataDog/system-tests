@@ -3,7 +3,7 @@ receivers:
     protocols:
       http:
         endpoint: 0.0.0.0:4318
-  
+
   # PostgreSQL receiver for system-tests database
   postgresql:
     endpoint: postgres:5433
@@ -38,6 +38,13 @@ exporters:
 processors:
   batch:
 
+  # TODO: Check if rid needs to be a static value or if it should be dynamic
+  attributes/add_rid:
+    actions:
+      - key: rid
+        value: "otel-postgres-metrics"
+        action: upsert
+
 extensions:
   health_check:
     endpoint: "0.0.0.0:13133"
@@ -58,7 +65,7 @@ service:
     # PostgreSQL metrics pipeline
     metrics/postgresql:
       receivers: [postgresql]
-      processors: [batch]
+      processors: [attributes/add_rid, batch]
       exporters: [datadog, logging, debug]
     
     logs:
