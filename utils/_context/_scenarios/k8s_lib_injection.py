@@ -131,8 +131,11 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         warmups.append(lambda: logger.terminal.write_sep("=", "Starting Kubernetes Cluster", bold=True))
         warmups.append(self.k8s_cluster_provider.ensure_cluster)
 
+        # Add debug commands after cluster setup
+        warmups.append(self._debug_cluster_state)
+
         if not self.with_datadog_operator:
-            warmups.append(self.k8s_datadog.deploy_test_agent)
+            warmups.append(self._deploy_test_agent_with_debug)
             warmups.append(lambda: self.k8s_datadog.deploy_datadog_cluster_agent(self.host_log_folder))
             warmups.append(self.test_weblog.install_weblog_pod)
         else:
@@ -140,6 +143,159 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
             warmups.append(self.test_weblog.install_weblog_pod)
 
         return warmups
+
+    def _debug_cluster_state(self):
+        """Debug cluster state after setup"""
+        from utils.k8s_lib_injection.k8s_command_utils import execute_command
+        logger.terminal.write_sep("=", "DEBUG: Cluster State", bold=True)
+        try:
+            logger.info("Checking cluster nodes and labels...")
+            execute_command("kubectl get nodes --show-labels")
+
+            logger.info("Checking namespaces...")
+            execute_command("kubectl get namespaces")
+
+            logger.info("Checking all pods...")
+            execute_command("kubectl get pods --all-namespaces")
+
+            logger.info("Checking available Docker images...")
+            execute_command("docker images | grep -E '(kindest|datadog|dd-apm-test-agent)' || echo 'No relevant images found'")
+
+            logger.info("Checking cluster info...")
+            execute_command("kubectl cluster-info")
+
+            logger.info("Checking cluster info with kind context...")
+            execute_command("kubectl cluster-info --context kind-lib-injection-testing")
+
+            logger.info("Checking kubeconfig contents...")
+            execute_command("cat $HOME/.kube/config")
+
+            logger.info("Listing kind clusters...")
+            execute_command("kind get clusters")
+
+            logger.info("Listing kind cluster nodes...")
+            execute_command("kind get nodes --name lib-injection-testing")
+
+            logger.info("Getting kind cluster kubeconfig...")
+            execute_command("kind get kubeconfig --name lib-injection-testing")
+
+            logger.info("Checking Docker containers (kind nodes)...")
+            execute_command("docker ps --filter name=lib-injection-testing")
+
+        except Exception as e:
+            logger.error(f"Debug cluster state failed: {e}")
+
+    def _debug_daemonset_status(self):
+        """Debug daemonset deployment issues"""
+        from utils.k8s_lib_injection.k8s_command_utils import execute_command
+        logger.terminal.write_sep("=", "DEBUG: DaemonSet Status", bold=True)
+        try:
+            logger.info("Checking DaemonSets...")
+            execute_command("kubectl get daemonsets -n default")
+
+            logger.info("Describing datadog DaemonSet...")
+            execute_command("kubectl describe daemonset datadog -n default || echo 'DaemonSet not found'")
+
+            logger.info("Checking pods with app=datadog label...")
+            execute_command("kubectl get pods -l app=datadog -n default")
+
+            logger.info("Describing datadog pods...")
+            execute_command("kubectl describe pods -l app=datadog -n default || echo 'No pods found'")
+
+            logger.info("Checking recent events...")
+            execute_command("kubectl get events -n default --sort-by='.lastTimestamp' | tail -20")
+
+            logger.info("Checking node resources...")
+            execute_command("kubectl top nodes || echo 'Metrics not available'")
+
+        except Exception as e:
+            logger.error(f"Debug daemonset status failed: {e}")
+
+    def _deploy_test_agent_with_debug(self):
+        """Deploy test agent with debug info between creation and waiting"""
+        try:
+            # Create the DaemonSet without waiting
+            self._create_test_agent_daemonset()
+
+            # Debug the state immediately after creation
+            self._debug_daemonset_status()
+
+            # Now wait for it to be ready (this is where it will likely fail)
+            self.k8s_datadog.wait_for_test_agent("default")
+
+        except Exception as e:
+            logger.error(f"Test agent deployment failed: {e}")
+            # Run debug again to show the failed state
+            self._debug_daemonset_status()
+            raise
+
+    def _create_test_agent_daemonset(self):
+        """Create the test agent DaemonSet without waiting"""
+        from kubernetes import client
+
+        logger.info(f"[Test agent] Deploying Datadog test agent on the cluster: {self.k8s_datadog.k8s_cluster_info.cluster_name}")
+
+        container = client.V1Container(
+            name="trace-agent",
+            image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.31.1",
+            image_pull_policy="Always",
+            ports=[client.V1ContainerPort(container_port=8126, host_port=8126, name="traceport", protocol="TCP")],
+            command=["ddapm-test-agent"],
+            env=[
+                client.V1EnvVar(name="SNAPSHOT_CI", value="0"),
+                client.V1EnvVar(name="PORT", value="8126"),
+                client.V1EnvVar(name="DD_APM_RECEIVER_SOCKET", value="/var/run/datadog/apm.socket"),
+                client.V1EnvVar(name="LOG_LEVEL", value="DEBUG"),
+                client.V1EnvVar(
+                    name="ENABLED_CHECKS", value="trace_count_header,meta_tracer_version_header,trace_content_length"
+                ),
+            ],
+            volume_mounts=[client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog")],
+            readiness_probe=client.V1Probe(
+                initial_delay_seconds=1,
+                period_seconds=2,
+                timeout_seconds=10,
+                success_threshold=1,
+                tcp_socket=client.V1TCPSocketAction(port=8126),
+            ),
+            liveness_probe=client.V1Probe(
+                initial_delay_seconds=15,
+                period_seconds=15,
+                timeout_seconds=10,
+                success_threshold=1,
+                failure_threshold=12,
+                tcp_socket=client.V1TCPSocketAction(port=8126),
+            ),
+        )
+        # Template
+        template = client.V1PodTemplateSpec(
+            metadata=client.V1ObjectMeta(labels={"app": "datadog"}),
+            spec=client.V1PodSpec(
+                containers=[container],
+                dns_policy="ClusterFirst",
+                node_selector={"kubernetes.io/os": "linux"},
+                restart_policy="Always",
+                scheduler_name="default-scheduler",
+                security_context=client.V1PodSecurityContext(run_as_user=0),
+                termination_grace_period_seconds=30,
+                volumes=[
+                    client.V1Volume(
+                        name="datadog",
+                        host_path=client.V1HostPathVolumeSource(path="/var/run/datadog", type="DirectoryOrCreate"),
+                    )
+                ],
+            ),
+        )
+        # Spec
+        spec = client.V1DaemonSetSpec(
+            selector=client.V1LabelSelector(match_labels={"app": "datadog"}), template=template
+        )
+        # DaemonSet
+        daemonset = client.V1DaemonSet(
+            api_version="apps/v1", kind="DaemonSet", metadata=client.V1ObjectMeta(name="datadog"), spec=spec
+        )
+        self.k8s_datadog.k8s_cluster_info.apps_api().create_namespaced_daemon_set(namespace="default", body=daemonset)
+        logger.info("[Test agent] DaemonSet creation request sent")
 
     def pytest_sessionfinish(self, session, exitstatus):  # noqa: ARG002
         self.close_targets()
