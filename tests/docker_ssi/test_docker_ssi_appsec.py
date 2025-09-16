@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, interfaces, weblog, logger, features
+from utils import scenarios, interfaces, weblog, features, missing_feature, context
 
 
 @features.appsec_service_activation_origin_metric
@@ -14,9 +14,8 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
+    @missing_feature(condition=context.library in ("nodejs",), reason="No implemented")
     def test_telemetry_source_ssi(self):
-        logger.info("Testing Docker SSI service tracking")
-        # There are traces related with the request
         root_span = interfaces.test_agent.get_traces(request=self.r)
         assert root_span, f"No traces found for request {self.r.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
