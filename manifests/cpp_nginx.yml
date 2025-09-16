@@ -288,6 +288,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
     Test_Telemetry: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature
   test_v1_payloads.py: missing_feature

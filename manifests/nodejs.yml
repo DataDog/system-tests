@@ -501,7 +501,7 @@ tests/:
       test_security_controls.py:
         TestSecurityControls:
           '*': *ref_5_37_0
-          fastify: *ref_5_61_0
+          fastify: flaky (APPSEC-58724)
           nextjs: missing_feature
     rasp/:
       test_api10.py:
@@ -1497,7 +1497,10 @@ tests/:
       '*': *ref_3_2_0
       nextjs: missing_feature
       uds-express4: *ref_3_7_0
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting:
+      '*': irrelevant
+      express4: *ref_5_56_0
+      express5: *ref_5_56_0
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: *ref_4_21_0
   test_v1_payloads.py: missing_feature

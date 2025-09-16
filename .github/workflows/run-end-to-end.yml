@@ -355,9 +355,9 @@ jobs:
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-    - name: Run TELEMETRY_APP_STARTED_CONFIG_CHAINING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_CONFIG_CHAINING"')
-      run: ./run.sh TELEMETRY_APP_STARTED_CONFIG_CHAINING
+    - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
