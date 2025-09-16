@@ -416,6 +416,7 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
     def ensure_cluster(self):
         logger.info("Ensuring kind cluster")
+        print("[DEBUG] K8sKindClusterProvider.ensure_cluster() method started")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
 
         logger.info(f"[Kind Create] Running command: {kind_command}")
@@ -429,8 +430,15 @@ class K8sKindClusterProvider(K8sClusterProvider):
         except Exception as e:
             logger.warning(f"[Kind Create] Could not read config file: {e}")
 
-        output = execute_command(kind_command)
-        logger.info(f"[Kind Create] Command output: {output}")
+        try:
+            output = execute_command(kind_command)
+            logger.info(f"[Kind Create] Command output: {output}")
+            print(f"[Kind Create] SUCCESS: kind create command completed")
+        except Exception as e:
+            logger.error(f"[Kind Create] FAILED: kind create command failed: {e}")
+            print(f"[Kind Create] FAILED: kind create command failed: {e}")
+            # Still continue to reach the sleep for debugging
+            pass
 
         # Verify cluster accessibility immediately after creation
         cluster_name = self.get_cluster_info().cluster_name
@@ -460,11 +468,27 @@ class K8sKindClusterProvider(K8sClusterProvider):
 
         # Apply CI-specific kubeconfig fixes
         if "CI" in os.environ:
-            self._fix_kubeconfig_for_ci()
+            try:
+                logger.info("[Kind Create] Applying CI-specific kubeconfig fixes...")
+                print("[Kind Create] Applying CI-specific kubeconfig fixes...")
+                self._fix_kubeconfig_for_ci()
+                print("[Kind Create] SUCCESS: CI kubeconfig fixes completed")
+            except Exception as e:
+                logger.error(f"[Kind Create] FAILED: CI kubeconfig fixes failed: {e}")
+                print(f"[Kind Create] FAILED: CI kubeconfig fixes failed: {e}")
+                # Continue to reach the sleep for debugging
 
         # Apply GitLab-specific setup if in GitLab CI
         if "GITLAB_CI" in os.environ:
-            self._setup_kind_in_gitlab()
+            try:
+                logger.info("[Kind Create] Applying GitLab-specific setup...")
+                print("[Kind Create] Applying GitLab-specific setup...")
+                self._setup_kind_in_gitlab()
+                print("[Kind Create] SUCCESS: GitLab setup completed")
+            except Exception as e:
+                logger.error(f"[Kind Create] FAILED: GitLab setup failed: {e}")
+                print(f"[Kind Create] FAILED: GitLab setup failed: {e}")
+                # Continue to reach the sleep for debugging
 
         # Wait for cluster to be fully ready
         logger.info("[Kind Create] Waiting for cluster to stabilize...")
