@@ -62,6 +62,10 @@ class _RequestLogger:
         self.rc_api_sequential_commands = None
         self.rc_api_runtime_ids_request_count: dict = {}
 
+        logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
+        logger.info(f"mocked_backend: {self.mocked_backend}")
+        logger.info(f"span_meta_structs_disabled: {self.span_meta_structs_disabled}")
+
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
         logger.error(message)
