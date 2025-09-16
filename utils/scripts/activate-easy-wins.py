@@ -35,7 +35,7 @@ LIBRARIES = [
     # "rust"
 ]
 
-ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=5"
+ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/nightly.yml/runs?per_page=1"
 
 
 def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> None:
@@ -51,14 +51,21 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
         resp_runs.raise_for_status()
         runs_data = resp_runs.json()
 
-    # Get artifacts from the 5th workflow run
-    artifacts_url = runs_data["workflow_runs"][4]["artifacts_url"]
-    with requests.get(artifacts_url, headers=headers, timeout=60) as resp_artifacts:
-        resp_artifacts.raise_for_status()
-        artifacts_data = resp_artifacts.json()
+    download_url = None
+    page = 0
+    while not download_url:
+        page += 1
+        # Get artifacts from the 5th workflow run
+        artifacts_url = runs_data["workflow_runs"][0]["artifacts_url"] + f"?page={page}"
+        with requests.get(artifacts_url, headers=headers, timeout=60) as resp_artifacts:
+            resp_artifacts.raise_for_status()
+            artifacts_data = resp_artifacts.json()
 
-    # Download the first artifact
-    download_url = artifacts_data["artifacts"][0]["archive_download_url"]
+        # Download the first artifact
+        for artifact in artifacts_data["artifacts"]:
+            if artifact["name"] == "test-report":
+                download_url = artifact["archive_download_url"]
+
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
         with open(f"{path_root}/data.zip", "wb") as f:
@@ -113,27 +120,31 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
 
 def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
-    for language in os.listdir(path_data_opt):
-        test_data[language] = {}
-        for variant in os.listdir(f"{path_data_opt}/{language}"):
-            for scenario in os.listdir(f"{path_data_opt}/{language}/{variant}"):
-                with open(f"{path_data_opt}/{language}/{variant}/{scenario}", encoding="utf-8") as file:
-                    scenario_data = json.load(file)
-                for test in scenario_data["tests"]:
-                    test_path = test["path"].split("::")[0]
-                    test_class = test["path"].split("::")[1]
-                    if not test_data[language].get(test_path):
-                        test_data[language][test_path] = {}
-                    if not test_data[language][test_path].get(test_class):
-                        test_data[language][test_path][test_class] = {}
-                    if not test_data[language][test_path][test_class].get(variant):
-                        test_data[language][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
-                    else:
-                        outcome = TestClassStatus.parse(test["outcome"])
-                        previous_outcome = test_data[language][test_path][test_class][variant]
-                        test_data[language][test_path][test_class][variant] = merge_update_status(
-                            outcome, previous_outcome
-                        )
+    for dir in os.listdir(path_data_opt):
+        if "dev" in dir:
+            continue
+        for scenario in os.listdir(f"{path_data_opt}/{dir}"):
+            with open(f"{path_data_opt}/{dir}/{scenario}/feature_parity.json", encoding="utf-8") as file:
+                scenario_data = json.load(file)
+            library = scenario_data["language"]
+            variant = scenario_data["variant"]
+            if not test_data.get(library):
+                test_data[library] = {}
+            for test in scenario_data["tests"]:
+                test_path = test["path"].split("::")[0]
+                test_class = test["path"].split("::")[1]
+                if not test_data[library].get(test_path):
+                    test_data[library][test_path] = {}
+                if not test_data[library][test_path].get(test_class):
+                    test_data[library][test_path][test_class] = {}
+                if not test_data[library][test_path][test_class].get(variant):
+                    test_data[library][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
+                else:
+                    outcome = TestClassStatus.parse(test["outcome"])
+                    previous_outcome = test_data[library][test_path][test_class][variant]
+                    test_data[library][test_path][test_class][variant] = merge_update_status(
+                        outcome, previous_outcome
+                    )
 
     return test_data
 
@@ -240,22 +251,25 @@ def update_manifest(
     return update_tree(manifest, manifest, language, manifest, test_data, [], versions)
 
 
-def get_versions(path_data_opt: str) -> dict[str, str]:
+def get_versions(path_data_opt: str, libraries) -> dict[str, str]:
     versions = {}
-    for library in os.listdir(path_data_opt):
-        variant = os.listdir(f"{path_data_opt}/{library}")[0]
-        file_paths = os.listdir(f"{path_data_opt}/{library}/{variant}")
+    for library in libraries:
         found_version = False
-        for file_path in file_paths:
+        for variant in os.listdir(path_data_opt):
             if found_version:
                 break
-            with open(f"{path_data_opt}/{library}/{variant}/{file_path}", encoding="utf-8") as file:
-                data = json.load(file)
+            if library not in variant:
+                continue
+            for scenario in os.listdir(f"{path_data_opt}/{variant}"):
+                if found_version:
+                    break
+                with open(f"{path_data_opt}/{variant}/{scenario}/feature_parity.json", encoding="utf-8") as file:
+                    data = json.load(file)
                 for dep in data["testedDependencies"]:
                     if dep["name"] == "library":
                         versions[library] = dep["version"]
                         found_version = True
-        if not versions.get(library):
+        if not found_version:
             versions[library] = "xpass"
     return versions
 
@@ -292,7 +306,7 @@ def main() -> None:
 
     path_root = str(Path(__file__).parents[2])
     path_data_root = args.data_path if args.data_path else f"{path_root}/data"
-    path_data_opt = f"{path_data_root}/dev"
+    path_data_opt = path_data_root
 
     if not args.no_download:
         print("Pulling test results")
@@ -301,7 +315,7 @@ def main() -> None:
 
     print("Parsing test results")
     test_data = parse_artifact_data(path_data_opt)
-    versions = get_versions(path_data_opt)
+    versions = get_versions(path_data_opt, args.libraries)
 
     if args.dry_run and not args.summary_only:
         print("🔍 DRY RUN MODE - No files will be modified\n")
