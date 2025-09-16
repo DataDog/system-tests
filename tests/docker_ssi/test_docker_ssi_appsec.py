@@ -13,7 +13,6 @@ class TestDockerSSIAppsecFeatures:
         parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
-
     def test_telemetry_source_ssi(self):
         logger.info("Testing Docker SSI service tracking")
         # There are traces related with the request
@@ -28,5 +27,9 @@ class TestDockerSSIAppsecFeatures:
         # Check that instrumentation source is ssi
         injection_source = configurations.get("DD_APPSEC_ENABLED")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"] ["value"] in ["1", 1, True], f"instrumentation_source value is not ssi {injection_source}"
+        assert injection_source["value"]["value"] in [
+            "1",
+            1,
+            True,
+        ], f"instrumentation_source value is not ssi {injection_source}"
         assert injection_source["origin"] == "ssi", f"instrumentation_source value is not ssi {injection_source}"
