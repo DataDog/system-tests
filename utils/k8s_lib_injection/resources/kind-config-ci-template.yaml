@@ -1,0 +1,11 @@
+# CI overlay config for Docker-in-Docker runners
+# This gets merged with kind-config-template.yaml in GitLab CI environments
+networking:
+  ipFamily: ipv4
+  apiServerAddress: "0.0.0.0"
+kubeadmConfigPatches:
+  - |
+    kind: ClusterConfiguration
+    apiServer:
+      certSANs:
+        - "docker"

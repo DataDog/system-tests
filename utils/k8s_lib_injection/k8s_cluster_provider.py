@@ -4,6 +4,7 @@ import tempfile
 import json
 import base64
 import time
+import yaml
 from pathlib import Path
 from utils._logger import logger
 from utils.k8s_lib_injection.k8s_command_utils import execute_command
@@ -334,11 +335,59 @@ class K8sKindClusterProvider(K8sClusterProvider):
         super().__init__(is_local_managed=True)
 
     def configure_cluster(self):
+        base_template = "utils/k8s_lib_injection/resources/kind-config-template.yaml"
+
+        # In CI environments, merge base config with CI overlay for Docker-in-Docker compatibility
+        if "CI" in os.environ:
+            cluster_template = self._create_merged_kind_config(base_template)
+        else:
+            cluster_template = base_template
+
         self._cluster_info = K8sClusterInfo(
             cluster_name="lib-injection-testing",
             context_name="kind-lib-injection-testing",
-            cluster_template="utils/k8s_lib_injection/resources/kind-config-template.yaml",
+            cluster_template=cluster_template,
         )
+
+    def _create_merged_kind_config(self, base_config_path):
+        """Merge base kind config with CI overlay for Docker-in-Docker compatibility"""
+        try:
+            # Read base config
+            with open(base_config_path, 'r') as f:
+                base_config = yaml.safe_load(f)
+
+            # Read CI overlay
+            ci_overlay_path = "utils/k8s_lib_injection/resources/kind-config-ci-template.yaml"
+            with open(ci_overlay_path, 'r') as f:
+                ci_overlay = yaml.safe_load(f)
+
+            # Merge configs (CI overlay takes precedence)
+            merged_config = self._deep_merge(base_config, ci_overlay)
+
+            # Write merged config to temp file
+            temp_config = tempfile.NamedTemporaryFile(mode='w', suffix='-kind-config.yaml', delete=False)
+            yaml.dump(merged_config, temp_config, default_flow_style=False)
+            temp_config.close()
+
+            logger.info(f"[Kind Config] Created merged CI config: {temp_config.name}")
+            return temp_config.name
+
+        except Exception as e:
+            logger.error(f"[Kind Config] Failed to merge configs, using base: {e}")
+            return base_config_path
+
+    def _deep_merge(self, base, overlay):
+        """Deep merge two dictionaries, with overlay taking precedence"""
+        if not isinstance(overlay, dict):
+            return overlay
+
+        result = base.copy()
+        for key, value in overlay.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge(result[key], value)
+            else:
+                result[key] = value
+        return result
 
     def configure_networking(self):
         """Configure the networking properties for the cluster"""
@@ -357,15 +406,11 @@ class K8sKindClusterProvider(K8sClusterProvider):
         logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
 
-        if "GITLAB_CI" in os.environ:
-            # Kind needs to run in bridge network to communicate with the internet: https://github.com/DataDog/buildenv/blob/master/cookbooks/dd_firewall/templates/rules.erb#L96
-            new_env = os.environ.copy()
-            new_env["KIND_EXPERIMENTAL_DOCKER_NETWORK"] = "bridge"
-            execute_command(kind_command, subprocess_env=new_env)
+        execute_command(kind_command)
 
+        # Apply GitLab-specific setup if in GitLab CI
+        if "GITLAB_CI" in os.environ:
             self._setup_kind_in_gitlab()
-        else:
-            execute_command(kind_command)
         # Method to create a kubernetes secret to access to the internal registry
         if PrivateRegistryConfig.is_configured():
             self._create_secret_to_access_to_internal_registry()
