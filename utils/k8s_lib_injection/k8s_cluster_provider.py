@@ -406,7 +406,45 @@ class K8sKindClusterProvider(K8sClusterProvider):
         logger.info("Ensuring kind cluster")
         kind_command = f"kind create cluster --image=kindest/node:v1.25.3@sha256:f52781bc0d7a19fb6c405c2af83abfeb311f130707a0e219175677e366cc45d1 --name {self.get_cluster_info().cluster_name} --config {self.get_cluster_info().cluster_template} --wait 1m"
 
-        execute_command(kind_command)
+        logger.info(f"[Kind Create] Running command: {kind_command}")
+        logger.info(f"[Kind Create] Using config file: {self.get_cluster_info().cluster_template}")
+
+        # Show the config file content for debugging
+        try:
+            with open(self.get_cluster_info().cluster_template, 'r') as f:
+                config_content = f.read()
+            logger.info(f"[Kind Create] Config file content:\n{config_content}")
+        except Exception as e:
+            logger.warning(f"[Kind Create] Could not read config file: {e}")
+
+        output = execute_command(kind_command)
+        logger.info(f"[Kind Create] Command output: {output}")
+
+        # Verify cluster accessibility immediately after creation
+        cluster_name = self.get_cluster_info().cluster_name
+        context_name = self.get_cluster_info().context_name
+
+        logger.info("[Kind Create] Verifying cluster accessibility...")
+        try:
+            # Test with kind- prefixed context
+            kind_context_output = execute_command(f"kubectl cluster-info --context kind-{cluster_name}")
+            logger.info(f"[Kind Create] Cluster info (kind-{cluster_name}): {kind_context_output}")
+        except Exception as e:
+            logger.warning(f"[Kind Create] Failed to get cluster info with kind-{cluster_name}: {e}")
+
+        try:
+            # Test with configured context name
+            context_output = execute_command(f"kubectl cluster-info --context {context_name}")
+            logger.info(f"[Kind Create] Cluster info ({context_name}): {context_output}")
+        except Exception as e:
+            logger.warning(f"[Kind Create] Failed to get cluster info with {context_name}: {e}")
+
+        try:
+            # Test with default context (should be set by kind create)
+            default_output = execute_command("kubectl cluster-info")
+            logger.info(f"[Kind Create] Cluster info (default context): {default_output}")
+        except Exception as e:
+            logger.warning(f"[Kind Create] Failed to get cluster info with default context: {e}")
 
         # Apply GitLab-specific setup if in GitLab CI
         if "GITLAB_CI" in os.environ:
