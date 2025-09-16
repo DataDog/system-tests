@@ -216,7 +216,7 @@
             "os_distro": "deb",
             "os_branch": "ubuntu25",
             "os_cpu": "amd64",
-            "default_vm": true,
+            "default_vm": false,
             "disabled": false
         },
         {
@@ -230,7 +230,7 @@
             "os_distro": "deb",
             "os_branch": "ubuntu25",
             "os_cpu": "arm64",
-            "default_vm": true,
+            "default_vm": false,
             "disabled": false
         },
         {
