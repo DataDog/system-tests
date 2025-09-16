@@ -6299,7 +6299,7 @@
         "uds-sinatra": 34
       }
     },
-    "TELEMETRY_APP_STARTED_CONFIG_CHAINING": {
+    "TELEMETRY_ENHANCED_CONFIG_REPORTING": {
       "*": 39.8156462585034,
       "dotnet": {
         "*": 68,

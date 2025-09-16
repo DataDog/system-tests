@@ -34,6 +34,7 @@ class _ScenarioGroups:
     graphql = ScenarioGroup()
     integrations = ScenarioGroup()
     ipv6 = ScenarioGroup()
+    lambda_end_to_end = ScenarioGroup()
     lib_injection = ScenarioGroup()
     lib_injection_profiling = ScenarioGroup()
     k8s_injector_dev = ScenarioGroup()
@@ -198,7 +199,7 @@ class Scenario:
     def parametrized_tests_metadata(self):
         return {}
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         return {"dd_tags[systest.suite.context.scenario]": self.name}
 
     def customize_feature_parity_dashboard(self, result: dict):

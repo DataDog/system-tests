@@ -3,6 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import json
+
 from utils import (
     bug,
     context,
@@ -58,6 +59,7 @@ class Test_Blocking_client_ip:
     def setup_blocking_before(self):
         self.block_req2 = weblog.get("/tag_value/tainted_value_6512/200", headers={"X-Forwarded-For": "1.1.1.1"})
 
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # second request should block and must not set the tag in span
@@ -69,6 +71,7 @@ class Test_Blocking_client_ip:
 @features.appsec_request_blocking
 @features.envoy_external_processing
 @scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
 @scenarios.external_processing_blocking
 class Test_Blocking_client_ip_with_forwarded:
     """Test if blocking is supported on http.client_ip address"""
@@ -107,6 +110,27 @@ class Test_Blocking_client_ip_with_forwarded:
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
         interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+
+
+@features.appsec_request_blocking
+@features.envoy_external_processing
+@scenarios.appsec_blocking
+@scenarios.appsec_lambda_blocking
+@scenarios.external_processing_blocking
+class Test_Blocking_client_ip_with_K8_private_ip:
+    """Test if blocking is supported on http.client_ip address"""
+
+    def setup_blocking(self):
+        self.rm_req_block = [
+            weblog.get(headers={"X-Forwarded-For": f"192.168.0.1, 100.65.0.{i}, 1.1.1.1"}) for i in range(11)
+        ]
+
+    def test_blocking(self):
+        """Can block the request forwarded for the ip (in IPv4 format)"""
+
+        for request in self.rm_req_block:
+            assert request.status_code == 403
+            interfaces.library.assert_waf_attack(request, rule="blk-001-001")
 
 
 @scenarios.appsec_blocking
@@ -167,6 +191,7 @@ class Test_Blocking_request_method:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -234,6 +259,7 @@ class Test_Blocking_request_uri:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -301,6 +327,7 @@ class Test_Blocking_request_path_params:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /param is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -360,6 +387,7 @@ class Test_Blocking_request_query:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -419,6 +447,7 @@ class Test_Blocking_request_headers:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -478,6 +507,7 @@ class Test_Blocking_request_cookies:
         context.scenario is scenarios.external_processing_blocking,
         reason="The endpoint /tag_value is not implemented in the weblog",
     )
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -535,7 +565,7 @@ class Test_Blocking_request_body:
         )
 
     @irrelevant(
-        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3"),
+        context.weblog_variant in ("akka-http", "play", "jersey-grizzly2", "resteasy-netty3", "nginx"),
         reason="Blocks on text/plain if parsed to a String",
     )
     def test_non_blocking_plain_text(self):
@@ -548,6 +578,7 @@ class Test_Blocking_request_body:
         self.set_req1 = weblog.post("/tag_value/clean_value_3882/200", data={"good": "value"})
         self.block_req2 = weblog.post("/tag_value/tainted_value_body/200", data={"value5": "bsldhkuqwgervf"})
 
+    @irrelevant(context.library == "cpp_nginx", reason="Tag adding happens before WAF run")
     def test_blocking_before(self):
         """Test that blocked requests are blocked before being processed"""
         # first request should not block and must set the tag in span accordingly
@@ -705,6 +736,11 @@ class Test_Suspicious_Request_Blocking:
         )
 
     @irrelevant(
+        library="python_lambda",
+        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
+        reason="function-url event type does not support path params",
+    )
+    @irrelevant(
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
     )
@@ -727,6 +763,11 @@ class Test_Suspicious_Request_Blocking:
             headers={"content-type": "text/plain", "client": "malicious-header-kCgvxrYeiwUSYkAuniuGktdvzXYEPSff"},
         )
 
+    @irrelevant(
+        library="python_lambda",
+        condition=context.weblog_variant in ("function-url", "alb", "alb-multi"),
+        reason="function-url event type does not support path params",
+    )
     @irrelevant(
         context.library == "ruby" and context.weblog_variant == "rack",
         reason="Rack don't send anything to the server.request.path_params WAF address",
