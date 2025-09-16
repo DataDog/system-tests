@@ -1,15 +1,16 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, interfaces, weblog, logger
+from utils import scenarios, interfaces, weblog, logger, features
 
 
+@features.appsec_service_activation_origin_metric
 @scenarios.docker_ssi_appsec
 class TestDockerSSIAppsecFeatures:
     """Test the ssi in a simulated host injection environment (docker container + test agent)
     We test that the injection is performed and appsec is enabled and telemetry is generated.
     """
 
-    def setup_telemetry_appsec(self):
+    def setup_telemetry_source_ssi(self):
         parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
