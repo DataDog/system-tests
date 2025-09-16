@@ -27,13 +27,6 @@ variables:
   after_script:
     - echo "=== DEBUG INFORMATION ==="
     - echo "=== Cluster State ==="
-    - kubectl cluster-info || echo "Failed to get cluster info"
-    - kubectl cluster-info dump || echo "Failed to get cluster dump"
-    - echo ""
-    - sed -i -E -e "s/localhost|0\.0\.0\.0/docker/g" "$HOME/.kube/config"
-    - kubectl cluster-info || echo "Failed to get cluster info"
-    - kubectl cluster-info dump || echo "Failed to get cluster dump"
-    - echo ""
     - kubectl get nodes --show-labels || echo "Failed to get nodes"
     - kubectl get namespaces || echo "Failed to get namespaces"
     - kubectl get pods --all-namespaces || echo "Failed to get pods"
@@ -54,8 +47,17 @@ variables:
     - echo "=== Docker Images Debug ==="
     - docker images | grep -E '(kindest|datadog|dd-apm-test-agent)' || echo "No relevant images found"
     - echo "=== End Debug Information ==="
-    - kind delete clusters --all || true
+    - echo "=== Saving kubeconfig and kind config ==="
     - mkdir -p reports
+    - cp "$HOME/.kube/config" reports/kubeconfig || echo "Failed to copy kubeconfig"
+    - kind get kubeconfig --name lib-injection-testing > reports/kind-kubeconfig || echo "Failed to get kind kubeconfig"
+    - echo "=== Saving kind cluster config files ==="
+    - find /tmp -name "*kind-config*.yaml" -exec cp {} reports/ \; || echo "No kind config files found in /tmp"
+    - find . -name "kind-config*.yaml" -exec cp {} reports/ \; || echo "No kind config files found in current dir"
+    - cp merged-kind-config.yaml reports/ 2>/dev/null || echo "No merged kind config found"
+    - cp original-kubeconfig.yaml reports/ 2>/dev/null || echo "No original kubeconfig found"
+    - cp fixed-kubeconfig.yaml reports/ 2>/dev/null || echo "No fixed kubeconfig found"
+    - kind delete clusters --all || true
     - |
       if [ "$CI_PROJECT_NAME" = "system-tests" ]; then
         cp -R logs_*/ reports/;
@@ -76,20 +78,12 @@ variables:
           done;
         done;
       fi
-  retry:
-    max: 2
-    when:
-      - unknown_failure
-      - data_integrity_failure
-      - runner_system_failure
-      - scheduler_failure
-      - api_failure
-    exit_codes:
-      - 3
   artifacts:
     when: always
     paths:
       - reports/
+      - logs_k8s_lib_injection/
+      - logs_*/
 
 .k8s_lib_injection_matrix:
   matrix:

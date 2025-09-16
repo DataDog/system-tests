@@ -370,6 +370,16 @@ class K8sKindClusterProvider(K8sClusterProvider):
             temp_config.close()
 
             logger.info(f"[Kind Config] Created merged CI config: {temp_config.name}")
+
+            # Also save a copy for debugging (will be picked up by artifacts)
+            try:
+                debug_config_path = "merged-kind-config.yaml"
+                with open(debug_config_path, 'w') as f:
+                    yaml.dump(merged_config, f, default_flow_style=False)
+                logger.info(f"[Kind Config] Debug copy saved to: {debug_config_path}")
+            except Exception as e:
+                logger.warning(f"[Kind Config] Failed to save debug copy: {e}")
+
             return temp_config.name
 
         except Exception as e:
@@ -388,6 +398,59 @@ class K8sKindClusterProvider(K8sClusterProvider):
             else:
                 result[key] = value
         return result
+
+    def _fix_kubeconfig_for_ci(self):
+        """Fix kubeconfig server address for Docker-in-Docker CI environments"""
+        try:
+            kubeconfig_path = os.path.expanduser("~/.kube/config")
+            logger.info(f"[CI Fix] Fixing kubeconfig server address in {kubeconfig_path}")
+
+            # Read current kubeconfig
+            with open(kubeconfig_path, 'r') as f:
+                kubeconfig_content = f.read()
+
+            logger.info(f"[CI Fix] Original kubeconfig content:\n{kubeconfig_content}")
+
+            # Save original kubeconfig for debugging
+            try:
+                with open("original-kubeconfig.yaml", 'w') as f:
+                    f.write(kubeconfig_content)
+                logger.info("[CI Fix] Original kubeconfig saved to original-kubeconfig.yaml")
+            except Exception as e:
+                logger.warning(f"[CI Fix] Failed to save original kubeconfig: {e}")
+
+            # Replace localhost and 0.0.0.0 with docker in server URLs
+            import re
+            # Match server: https://localhost:port or server: https://0.0.0.0:port
+            fixed_content = re.sub(
+                r'(\s+server:\s+https://)(?:localhost|0\.0\.0\.0)(:[\d]+)',
+                r'\1docker\2',
+                kubeconfig_content
+            )
+
+            # Write back the fixed kubeconfig
+            with open(kubeconfig_path, 'w') as f:
+                f.write(fixed_content)
+
+            logger.info(f"[CI Fix] Fixed kubeconfig content:\n{fixed_content}")
+
+            # Save fixed kubeconfig for debugging
+            try:
+                with open("fixed-kubeconfig.yaml", 'w') as f:
+                    f.write(fixed_content)
+                logger.info("[CI Fix] Fixed kubeconfig saved to fixed-kubeconfig.yaml")
+            except Exception as e:
+                logger.warning(f"[CI Fix] Failed to save fixed kubeconfig: {e}")
+
+            # Verify the fix worked
+            try:
+                test_output = execute_command("kubectl cluster-info")
+                logger.info(f"[CI Fix] Verification - kubectl cluster-info: {test_output}")
+            except Exception as e:
+                logger.warning(f"[CI Fix] Verification failed: {e}")
+
+        except Exception as e:
+            logger.error(f"[CI Fix] Failed to fix kubeconfig: {e}")
 
     def configure_networking(self):
         """Configure the networking properties for the cluster"""
@@ -445,6 +508,10 @@ class K8sKindClusterProvider(K8sClusterProvider):
             logger.info(f"[Kind Create] Cluster info (default context): {default_output}")
         except Exception as e:
             logger.warning(f"[Kind Create] Failed to get cluster info with default context: {e}")
+
+        # Apply CI-specific kubeconfig fixes
+        if "CI" in os.environ:
+            self._fix_kubeconfig_for_ci()
 
         # Apply GitLab-specific setup if in GitLab CI
         if "GITLAB_CI" in os.environ:
