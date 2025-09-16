@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
+RUN apt-get update && apt-get install -y curl gcc
 
 # print versions
 RUN python --version && curl --version
@@ -9,7 +9,7 @@ RUN python --version && curl --version
 #DRIVER MSSQL
 RUN apt-get update \
     && apt-get install -y curl apt-transport-https gnupg2\
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null \
     && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev

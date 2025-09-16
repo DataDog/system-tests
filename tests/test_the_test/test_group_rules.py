@@ -21,6 +21,7 @@ def test_tracer_release():
         # list of scenario that will never be part of tracer release
         scenarios.fuzzer,
         scenarios.mock_the_test,
+        scenarios.mock_the_test_2,
         scenarios.test_the_test,
         scenarios.todo,
         # Is it targeting tracers ?

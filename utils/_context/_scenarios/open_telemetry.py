@@ -42,6 +42,7 @@ class OpenTelemetryScenario(DockerScenario):
         include_sqlserver: bool = False,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -49,6 +50,7 @@ class OpenTelemetryScenario(DockerScenario):
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
+            mocked_backend=mocked_backend,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,

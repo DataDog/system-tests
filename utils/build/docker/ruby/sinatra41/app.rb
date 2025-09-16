@@ -3,6 +3,7 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'faraday'
+require 'sinatra/json'
 
 begin
   require 'datadog/auto_instrument'
@@ -26,6 +27,10 @@ if defined?(Datadog::Tracing)
 else
   Datadog.tracer.trace('init.service') {}
 end
+
+# Since Sinatra 4.1, Rack::Protection::HostAuthorization is enabled by default in non dev environments.
+# We need to disable it for the tests to work in the CI.
+set :host_authorization, { permitted_hosts: [] }
 
 get '/' do
   'Hello, world!'
@@ -169,19 +174,52 @@ get '/custom_event' do
   'Ok'
 end
 
+post '/user_login_success_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_success(
+    params['login'],
+    params['user_id'],
+    **params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
+post '/user_login_failure_event_v2' do
+  require 'datadog/kit/appsec/events/v2'
+  request.body.rewind
+  params = JSON.parse(request.body.read)
+
+  Datadog::Kit::AppSec::Events::V2.track_user_login_failure(
+    params['login'],
+    params.fetch('exists', 'false') == 'true',
+    params.fetch('metadata', {}).transform_keys(&:to_sym)
+  )
+
+  'OK'
+end
+
 %i[get post options].each do |request_method|
   send(request_method, '/tag_value/:tag_value/:status_code') do
-    if request_method == :post && params['tag_value'].include?('payload_in_response_body')
-      content_type :json
-      return { "payload": request.POST }.to_json
+    event_value = params['tag_value']
+    status_code = params['status_code']
+
+    headers_from_query = request.query_string.split('&').map { |e| e.split('=') } || []
+    headers_from_query.each do |key, value|
+      response.headers[key] = value
+    end
+
+    if request.request_method == 'POST' && event_value.include?('payload_in_response_body')
+      return json(payload: request.POST)
     end
 
     trace = Datadog::Tracing.active_trace
-    trace.set_tag('appsec.events.system_tests_appsec_event.value', params['tag_value'])
+    trace.set_tag('appsec.events.system_tests_appsec_event.value', event_value)
 
-    status params['status_code']
-    headers request.params || {}
-
+    status status_code
     'Value tagged'
   end
 end
@@ -244,3 +282,22 @@ ssrf_handler = lambda do
 end
 get '/rasp/ssrf', &ssrf_handler
 post '/rasp/ssrf', &ssrf_handler
+
+get '/flush' do
+  # NOTE: If anything needs to be flushed here before the test suite ends,
+  #       this is the place to do it.
+  #       See https://github.com/DataDog/system-tests/blob/64539d1d19d14e0ab040d8e4a01562da1531b7d5/docs/internals/flushing.md
+  if (telemetry = Datadog.send(:components)&.telemetry)
+    telemetry.instance_variable_get(:@worker)&.loop_wait_time = 0
+
+    # HACK: In the current implementation there is no way to force the flushing.
+    #       Instead we are giving us a fraction of time after setting `loop_wait_time`
+    #       and just wait till all penging messages are flushed.
+    #
+    # NOTE: Be aware that system-tests doesn't like slow responses, so change that
+    #       value carefully.
+    sleep 0.2
+  end
+
+  'OK'
+end

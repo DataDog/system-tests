@@ -6,7 +6,6 @@ When in doubt refer to the python implementation as the source of truth via
 the OpenAPI schema: https://github.com/DataDog/system-tests/blob/44281005e9d2ddec680f31b2813eb90af831c0fc/docs/scenarios/parametric.md#shared-interface
 """
 
-import json
 import pytest
 import time
 
@@ -14,11 +13,12 @@ from utils.parametric.spec.trace import find_trace
 from utils.parametric.spec.trace import find_span
 from utils.parametric.spec.trace import find_span_in_traces
 from utils.parametric.spec.trace import retrieve_span_links
+from utils.parametric.spec.trace import retrieve_span_events
 from utils.parametric.spec.trace import find_only_span
-from utils import irrelevant, bug, scenarios, features, context
+from utils import irrelevant, bug, incomplete_test_app, scenarios, features, context
 from opentelemetry.trace import SpanKind
 from opentelemetry.trace import StatusCode
-from utils.parametric._library_client import Link
+from utils.parametric._library_client import Link, LogLevel
 
 # this global mark applies to all tests in this file.
 #   DD_TRACE_OTEL_ENABLED=true is required in the tracers to enable OTel
@@ -625,9 +625,9 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
-        assert len(events) == 1
+        events = retrieve_span_events(span)
+        assert events is not None
+        assert len(events) == 1, f"events: {events}"
         assert events[0]["name"] == "some_event"
         assert events[0]["time_unix_nano"] == 1730393556000000000
         assert events[0]["attributes"]["key"] == "value"
@@ -648,9 +648,9 @@ class Test_Parametric_OtelSpan_Events:
 
         traces = test_agent.wait_for_num_traces(1)
         span = find_only_span(traces)
-        assert "events" in span["meta"]
-        events = json.loads(span["meta"]["events"])
-        assert len(events) == 1
+        events = retrieve_span_events(span)
+        assert events is not None
+        assert len(events) == 1, f"events: {events}"
         assert events[0]["name"].lower() in ["exception", "error"]
         assert events[0]["attributes"]["error.key"] == "value"
 
@@ -733,3 +733,52 @@ class Test_Parametric_Otel_Trace_Flush:
             pass
 
         assert test_library.otel_flush(timeout_sec=5)
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_Write_Log:
+    @incomplete_test_app(context.library != "python", reason="Logs endpoint is only implemented in python app")
+    def test_write_log(self, test_agent, test_library):
+        """Validates that /log/write creates a log message with the specified parameters.
+
+        Supported Parameters:
+        - message: str
+        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        - logger_name: str
+        - span_id: Union[int, str]  (optional)
+
+        Supported Return Values:
+        - success: bool
+        """
+        # Test with different log levels
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger")
+        assert result is True
+
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger")
+        assert result is True
+
+        # Test with custom logger name
+        result = test_library.write_log("Custom logger message", LogLevel.INFO, "custom_app_logger")
+        assert result is True
+
+    def test_write_log_with_span_id(self, test_agent, test_library):
+        """Validates that /log/write creates a log message with the specified parameters.
+
+        Supported Parameters:
+        - message: str
+        - level: LogLevel enum (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+        - logger_name: str
+        - span_id: Union[int, str]  (optional)
+        """
+        with test_library.otel_start_span("otel_span") as s1:
+            pass
+
+        with test_library.dd_start_span("dd_span") as s2:
+            pass
+
+        result = test_library.write_log("Warning message", LogLevel.WARNING, "warning_logger", span_id=s1.span_id)
+        assert result is True
+
+        result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
+        assert result is True

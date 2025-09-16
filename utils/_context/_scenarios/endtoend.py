@@ -60,6 +60,7 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -94,6 +95,7 @@ class DockerScenario(Scenario):
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
             self._required_containers.append(self.proxy_container)
@@ -363,23 +365,23 @@ class EndToEndScenario(DockerScenario):
             # 2. the trace agent port where the buddy connect to the agent
             # 3. and the host port where the buddy is accessible
             supported_languages = [
-                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python),
-                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs),
-                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby),
-                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang),
+                ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
+                ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
+                ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v2"),
+                ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v2"),
             ]
 
             self.buddies += [
                 BuddyContainer(
                     f"{language}_buddy",
-                    f"datadog/system-tests:{language}_buddy-v1",
+                    image_name,
                     self.host_log_folder,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
                 )
-                for language, trace_agent_port, host_port in supported_languages
+                for language, trace_agent_port, host_port, image_name in supported_languages
             ]
 
             for buddy in self.buddies:
@@ -551,7 +553,10 @@ class EndToEndScenario(DockerScenario):
                 interfaces.library, 0 if force_interface_timout_to_zero else self.library_interface_timeout
             )
 
-            if self.library in ("nodejs",):
+            if self.library in (
+                "nodejs",
+                "ruby",
+            ):
                 from utils import weblog  # TODO better interface
 
                 # for weblogs who supports it, call the flush endpoint
@@ -596,6 +601,12 @@ class EndToEndScenario(DockerScenario):
 
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         library_bugs = [
+            _SchemaBug(
+                endpoint="/debugger/v1/diagnostics",
+                data_path="$[].content[]",
+                condition=self.library >= "php@1.12.0",
+                ticket="DEBUG-4431",
+            ),
             _SchemaBug(
                 endpoint="/debugger/v1/diagnostics",
                 data_path="$",
@@ -663,6 +674,14 @@ class EndToEndScenario(DockerScenario):
                 data_path="$[]",
                 condition=self.library >= "php@1.8.3",
                 ticket="DEBUG-3709",
+            ),
+            _SchemaBug(
+                endpoint="/v0.6/stats",
+                data_path=None,
+                condition=self.library
+                in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
+                and self.name == "TRACE_STATS_COMPUTATION",
+                ticket="APMSP-2158",
             ),
         ]
         self._test_schemas(session, interfaces.library, library_bugs)
@@ -791,14 +810,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

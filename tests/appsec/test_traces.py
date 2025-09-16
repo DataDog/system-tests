@@ -8,7 +8,7 @@ from utils.tools import nested_lookup
 from utils.dd_constants import SamplingPriority
 
 
-RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
+RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python", "cpp"]
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -16,6 +16,7 @@ RUNTIME_FAMILIES = ["nodejs", "ruby", "jvm", "dotnet", "go", "php", "python"]
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_RetainTraces:
     """Retain trace (manual keep & appsec.event = true)"""
 
@@ -59,6 +60,7 @@ class Test_RetainTraces:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_AppSecEventSpanTags:
     """AppSec correctly fill span tags."""
 
@@ -71,9 +73,15 @@ class Test_AppSecEventSpanTags:
 
         spans = [span for _, span in interfaces.library.get_root_spans()]
         assert spans, "No root spans to validate"
-        spans = [s for s in spans if s.get("type") == "web"]
-        assert spans, "No spans of type web to validate"
+        spans = [s for s in spans if s.get("type") in ("web", "serverless")]
+        assert spans, "No spans of type web or serverless to validate"
         for span in spans:
+            if span.get("type") == "serverless" and "_dd.appsec.unsupported_event_type" in span["metrics"]:
+                # For serverless, the `healthcheck` event is not supported
+                assert (
+                    span["metrics"]["_dd.appsec.unsupported_event_type"] == 1
+                ), "_dd.appsec.unsupported_event_type should be 1 or 1.0"
+                continue
             assert "_dd.appsec.enabled" in span["metrics"], "Cannot find _dd.appsec.enabled in span metrics"
             assert span["metrics"]["_dd.appsec.enabled"] == 1, "_dd.appsec.enabled should be 1 or 1.0"
             assert "_dd.runtime_family" in span["meta"], "Cannot find _dd.runtime_family in span meta"
@@ -84,6 +92,7 @@ class Test_AppSecEventSpanTags:
     def setup_header_collection(self):
         self.r = weblog.get("/headers", headers={"User-Agent": "Arachni/v1", "Content-Type": "text/plain"})
 
+    @bug(library="python_lambda", reason="APPSEC-58202")
     @bug(context.library < f"python@{PYTHON_RELEASE_GA_1_1}", reason="APMRP-360")
     @bug(context.library < "java@1.2.0", weblog_variant="spring-boot-openliberty", reason="APPSEC-6734")
     @bug(
@@ -91,7 +100,7 @@ class Test_AppSecEventSpanTags:
         weblog_variant="fastify",
         reason="APPSEC-57432",  # Response headers collection not supported yet
     )
-    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet"], reason="test")
+    @irrelevant(context.library not in ["golang", "nodejs", "java", "dotnet", "python_lambda"], reason="test")
     @irrelevant(context.scenario is scenarios.external_processing, reason="Irrelevant tag set for golang")
     def test_header_collection(self):
         """AppSec should collect some headers for http.request and http.response and store them in span tags.
@@ -113,7 +122,7 @@ class Test_AppSecEventSpanTags:
     @bug(context.library < "java@0.93.0", reason="APMRP-360")
     def test_root_span_coherence(self):
         """Appsec tags are not on span where type is not web, http or rpc"""
-        valid_appsec_span_types = ["web", "http", "rpc"]
+        valid_appsec_span_types = ["web", "http", "rpc", "serverless"]
         spans = [span for _, _, span in interfaces.library.get_spans()]
         assert spans, "No spans to validate"
         assert any("_dd.appsec.enabled" in s.get("metrics", {}) for s in spans), "No appsec-enabled spans found"
@@ -134,6 +143,7 @@ class Test_AppSecEventSpanTags:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_AppSecObfuscator:
     """AppSec obfuscates sensitive data."""
 
@@ -234,6 +244,7 @@ class Test_AppSecObfuscator:
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
     @scenarios.appsec_custom_rules
+    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_key_with_custom_rules(self):
         """General obfuscation test of several attacks on several rule addresses."""
         # Validate that the AppSec events do not contain the following secret value.
@@ -260,6 +271,7 @@ class Test_AppSecObfuscator:
     @missing_feature(
         context.library < "nodejs@5.57.0" and context.weblog_variant == "fastify", reason="Cookies not supported yet"
     )
+    @bug(context.library >= "cpp_nginx@1.8.0", reason="APPSEC-58808")
     def test_appsec_obfuscator_cookies_with_custom_rules(self):
         """Specific obfuscation test for the cookies which often contain sensitive data and are
         expected to be properly obfuscated on sensitive cookies only.
@@ -285,6 +297,7 @@ class Test_AppSecObfuscator:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_CollectRespondHeaders:
     """AppSec should collect some headers for http.response and store them in span tags."""
 
@@ -295,6 +308,7 @@ class Test_CollectRespondHeaders:
         context.scenario is scenarios.external_processing,
         reason="The endpoint /headers is not implemented in the weblog",
     )
+    @bug(library="python_lambda", reason="APPSEC-58202")
     def test_header_collection(self):
         def assert_header_in_span_meta(span, header):
             if header not in span["meta"]:
@@ -313,6 +327,7 @@ class Test_CollectRespondHeaders:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_CollectDefaultRequestHeader:
     HEADERS = {
         "User-Agent": "MyBrowser",
@@ -346,6 +361,7 @@ class Test_CollectDefaultRequestHeader:
 @features.envoy_external_processing
 @scenarios.external_processing
 @scenarios.default
+@scenarios.appsec_lambda_default
 class Test_ExternalWafRequestsIdentification:
     def setup_external_wafs_header_collection(self):
         self.r = weblog.get(

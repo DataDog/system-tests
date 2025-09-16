@@ -1,9 +1,9 @@
 module systemtests.weblog
 
-go 1.23.0
+go 1.24.0
 
 require (
-	github.com/99designs/gqlgen v0.17.70
+	github.com/99designs/gqlgen v0.17.72
 	github.com/DataDog/dd-trace-go/contrib/99designs/gqlgen/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/contrib/IBM/sarama/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/contrib/database/sql/v2 v2.0.0
@@ -23,9 +23,9 @@ require (
 	github.com/graphql-go/graphql v0.8.1
 	github.com/graphql-go/handler v0.2.3
 	github.com/labstack/echo/v4 v4.11.1
-	github.com/mattn/go-sqlite3 v1.14.18
+	github.com/mattn/go-sqlite3 v1.14.32
 	github.com/sirupsen/logrus v1.9.3
-	github.com/vektah/gqlparser/v2 v2.5.23
+	github.com/vektah/gqlparser/v2 v2.5.25
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0
 	go.opentelemetry.io/otel v1.35.0
 	go.opentelemetry.io/otel/trace v1.35.0
@@ -136,12 +136,12 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.4.0 // indirect
-	golang.org/x/crypto v0.36.0 // indirect
+	golang.org/x/crypto v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20250210185358-939b2ce775ac // indirect
 	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/net v0.39.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/xerrors v0.0.0-20240903120638-7835f813f4da // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20250324211829-b45e905df463 // indirect
