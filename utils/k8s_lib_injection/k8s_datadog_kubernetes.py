@@ -59,19 +59,19 @@ class K8sDatadog:
             ],
             volume_mounts=[client.V1VolumeMount(mount_path="/var/run/datadog", name="datadog")],
             readiness_probe=client.V1Probe(
-                initial_delay_seconds=10,  # Increased from 1s to 10s to allow dd-apm-test-agent to start
-                period_seconds=2,
-                timeout_seconds=10,
+                initial_delay_seconds=30,
+                period_seconds=10,
+                timeout_seconds=5,
                 success_threshold=1,
-                failure_threshold=5,  # Added failure threshold for better debugging
+                failure_threshold=10,
                 tcp_socket=client.V1TCPSocketAction(port=8126),
             ),
             liveness_probe=client.V1Probe(
-                initial_delay_seconds=15,
-                period_seconds=15,
+                initial_delay_seconds=60,
+                period_seconds=30,
                 timeout_seconds=10,
                 success_threshold=1,
-                failure_threshold=12,
+                failure_threshold=20,
                 tcp_socket=client.V1TCPSocketAction(port=8126),
             ),
         )
