@@ -1,7 +1,7 @@
-from utils import scenarios, weblog, interfaces, rfc
+from utils import scenarios, weblog, interfaces, features
 
 
-@rfc("https://docs.google.com/document/d/1n78MrcuX6J9YbPA-mpECS9hHfEvg12e2m2OjqCd2QTM")
+@features.resource_renaming
 @scenarios.trace_resource_renaming
 class Test_Resource_Renaming_HTTP_Endpoint_Tag:
     """Test the correct extraction of the http.endpoint tag"""
@@ -78,7 +78,7 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
             assert endpoint == "/resource_renaming/double/slash"
 
 
-@rfc("https://docs.google.com/document/d/1n78MrcuX6J9YbPA-mpECS9hHfEvg12e2m2OjqCd2QTM")
+@features.resource_renaming
 @scenarios.trace_resource_renaming
 class Test_Resource_Renaming_Stats_Aggregation_Keys:
     """Test that stats aggregation includes method and endpoint in aggregation keys"""
