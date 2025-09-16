@@ -44,7 +44,18 @@ Visit [Cursor specialized tasks](cursor-specialized-prompts.md) to explore the s
 
 If you introduce new instructions, enhance existing documentation, or improve the predefined rules, you're strongly encouraged to add corresponding tests. These tests play a vital role in validating your enhancements and ensuring the AI assistant performs optimally. For further guidance, see section [Prompt validation](ai-tools-prompt-validation.md).
 
-#### MCP Servers Integration
+#### 📚 Complete Cursor AI Documentation Suite
+
+Cursor AI documentation suite:
+
+- **[Cursor AI Comprehensive Guide](cursor-ai-comprehensive-guide.md)**: Complete overview of AI integration with practical examples and workflows
+- **[Cursor Practical Examples](cursor-practical-examples.md)**: Real-world examples and step-by-step workflows
+- **[Cursor Specialized Prompts](cursor-specialized-prompts.md)**: Manual rule activation guide
+- **[AI Tools Prompt Validation (beta)](ai-tools-prompt-validation.md)**: Testing and validation framework
+
+**📖 New to AI in system-tests?** Start with the [Cursor AI Comprehensive Guide](cursor-ai-comprehensive-guide.md) for a complete introduction.
+
+#### MCP Servers Integration (Beta)
 
 Cursor supports Model Context Protocol (MCP) servers that extend AI capabilities with specialized tools and integrations. The system-tests repository provides several MCP server configurations to enhance your development workflow:
 

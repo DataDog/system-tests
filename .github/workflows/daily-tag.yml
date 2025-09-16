@@ -1,0 +1,47 @@
+name: Daily Tag
+
+# This workflow tags the latest commit on main (system-tests) with the current date (YYYY-MM-DD).
+#
+# ⚠️ Note: For the current day, the tag is mutable: if new commits are pushed to main, the tag for
+# today will move forward. If you need a stable reference, use the tag from the previous day (D-1),
+# which always points to the final commit of that day.
+
+on:
+  schedule:
+    - cron: '00 00 * * *' # Runs every day at 00:00 UTC, to set the tag for today
+  push:
+    branches:
+      - main
+  workflow_dispatch: # allow manual trigger too
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        run: |
+          COMMIT=$(git rev-parse origin/main)
+
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            # Use today's date (UTC)
+            DATE=$(date -u +'%Y.%m.%d')
+          else
+            # Use the commit date
+            DATE=$(git show -s --format=%cd --date=format:'%Y.%m.%d' "$COMMIT")
+          fi
+
+          git tag -f "$DATE" "$COMMIT"
+          git push -f origin "$DATE"

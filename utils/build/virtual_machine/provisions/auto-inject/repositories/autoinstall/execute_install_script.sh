@@ -17,8 +17,19 @@ if [ "${DD_env}" == "dev" ]; then
     # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
     export DD_SITE="datad0g.com"
     export DD_INSTALLER_REGISTRY_URL='install.datad0g.com'
+      #The latest_snapshot of python tracer version is 2.x we want to use 3.x. Get from repo.
+      #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+      echo "DD_LANG: ${DD_LANG}"
+      if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+      fi
 else 
     export DD_SITE="datadoghq.com" 
+      #The latest release of python tracer version is 2.x we want to use 3.x. Get from repo tags v3* and not rc*. We get the SHA of the tag.
+      #more details: https://datadoghq.atlassian.net/browse/APMSP-2259
+      if [ "${DD_LANG}" == "python" ]; then
+        export DD_INSTALLER_DEFAULT_PKG_VERSION_DATADOG_APM_LIBRARY_PYTHON=3
+      fi
 fi
 
 # Environment variables for the installer
