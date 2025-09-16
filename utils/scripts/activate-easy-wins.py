@@ -38,9 +38,7 @@ LIBRARIES = [
 ARTIFACT_URL = "https://api.github.com/repos/DataDog/system-tests-dashboard/actions/workflows/push-feature-parity-dashboard.yml/runs?per_page=5"
 
 
-def pull_artifact(url: str, path_root: str, path_data_root: str) -> None:
-    token = os.getenv("GITHUB_TOKEN")  # expects your GitHub token in env var
-
+def pull_artifact(url: str, token, path_root: str, path_data_root: str) -> None:
     headers = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
@@ -261,8 +259,21 @@ def get_versions(path_data_opt: str) -> dict[str, str]:
             versions[library] = "xpass"
     return versions
 
+def get_environ():
+    environ = {**os.environ}
+
+    try:
+        with open(".env", "r", encoding="utf-8") as f:
+            lines = [l.replace("export ", "").strip().split("=") for l in f.readlines() if l.strip()]
+            environ = {**environ, **dict(lines)}
+    except FileNotFoundError:
+        pass
+
+    return environ
+
 
 def main() -> None:
+    environ = get_environ()
     parser = argparse.ArgumentParser(description="Activate easy wins in system tests")
     parser.add_argument(
         "--libraries",
@@ -284,7 +295,8 @@ def main() -> None:
 
     if not args.no_download:
         print("Pulling test results")
-        pull_artifact(ARTIFACT_URL, path_root, path_data_root)
+        token = environ["GITHUB_TOKEN"]  # expects your GitHub token in env var
+        pull_artifact(ARTIFACT_URL, token, path_root, path_data_root)
 
     print("Parsing test results")
     test_data = parse_artifact_data(path_data_opt)
