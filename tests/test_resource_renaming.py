@@ -2,7 +2,7 @@ from utils import scenarios, weblog, interfaces, features
 
 
 @features.resource_renaming
-@scenarios.trace_resource_renaming
+@scenarios.tracing_config_nondefault_3
 class Test_Resource_Renaming_HTTP_Endpoint_Tag:
     """Test the correct extraction of the http.endpoint tag"""
 
@@ -79,7 +79,7 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
 
 
 @features.resource_renaming
-@scenarios.trace_resource_renaming
+@scenarios.tracing_config_nondefault_3
 class Test_Resource_Renaming_Stats_Aggregation_Keys:
     """Test that stats aggregation includes method and endpoint in aggregation keys"""
 
