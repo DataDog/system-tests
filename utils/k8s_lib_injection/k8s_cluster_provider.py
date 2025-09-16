@@ -359,6 +359,11 @@ class K8sKindClusterProvider(K8sClusterProvider):
                 kubeconfig_content = f.read()
 
             logger.info(f"[CI Fix] Original kubeconfig content:\n{kubeconfig_content}")
+            print(f"[CI Fix] Original kubeconfig server URLs:")
+            import re
+            server_lines = [line for line in kubeconfig_content.split('\n') if 'server:' in line]
+            for line in server_lines:
+                print(f"[CI Fix] Found: {line.strip()}")
 
             # Save original kubeconfig for debugging
             try:
@@ -368,20 +373,39 @@ class K8sKindClusterProvider(K8sClusterProvider):
             except Exception as e:
                 logger.warning(f"[CI Fix] Failed to save original kubeconfig: {e}")
 
-            # Replace localhost and 0.0.0.0 with docker in server URLs
+            # Replace localhost, 0.0.0.0, and Docker internal IPs with docker in server URLs
             import re
-            # Match server: https://localhost:port or server: https://0.0.0.0:port
-            fixed_content = re.sub(
-                r'(\s+server:\s+https://)(?:localhost|0\.0\.0\.0)(:[\d]+)',
-                r'\1docker\2',
-                kubeconfig_content
-            )
+            # Match various server URL patterns that need fixing in Docker-in-Docker CI
+            patterns_to_fix = [
+                # https://localhost:port -> https://docker:port
+                (r'(\s+server:\s+https://)localhost(:[\d]+)', r'\1docker\2'),
+                # https://0.0.0.0:port -> https://docker:port
+                (r'(\s+server:\s+https://)0\.0\.0\.0(:[\d]+)', r'\1docker\2'),
+                # https://172.17.0.x:port -> https://docker:port (Docker internal network)
+                (r'(\s+server:\s+https://)172\.17\.0\.\d+(:[\d]+)', r'\1docker\2'),
+                # https://172.18.0.x:port -> https://docker:port (kind network range)
+                (r'(\s+server:\s+https://)172\.18\.0\.\d+(:[\d]+)', r'\1docker\2'),
+            ]
+
+            fixed_content = kubeconfig_content
+            for pattern, replacement in patterns_to_fix:
+                old_fixed = fixed_content
+                fixed_content = re.sub(pattern, replacement, fixed_content)
+                if old_fixed != fixed_content:
+                    print(f"[CI Fix] Applied pattern: {pattern} -> {replacement}")
+
+            if fixed_content == kubeconfig_content:
+                print("[CI Fix] WARNING: No server URLs were modified!")
 
             # Write back the fixed kubeconfig
             with open(kubeconfig_path, 'w') as f:
                 f.write(fixed_content)
 
             logger.info(f"[CI Fix] Fixed kubeconfig content:\n{fixed_content}")
+            print(f"[CI Fix] Fixed kubeconfig server URLs:")
+            fixed_server_lines = [line for line in fixed_content.split('\n') if 'server:' in line]
+            for line in fixed_server_lines:
+                print(f"[CI Fix] Fixed: {line.strip()}")
 
             # Save fixed kubeconfig for debugging
             try:
@@ -439,6 +463,37 @@ class K8sKindClusterProvider(K8sClusterProvider):
             print(f"[Kind Create] FAILED: kind create command failed: {e}")
             # Still continue to reach the sleep for debugging
             pass
+
+        # Check kubeconfig immediately after kind create
+        print(f"[Kind Create] Checking kubeconfig after cluster creation...")
+        try:
+            kubeconfig_path = os.path.expanduser("~/.kube/config")
+            print(f"[Kind Create] Kubeconfig path: {kubeconfig_path}")
+            print(f"[Kind Create] Kubeconfig exists: {os.path.exists(kubeconfig_path)}")
+            if os.path.exists(kubeconfig_path):
+                with open(kubeconfig_path, 'r') as f:
+                    content = f.read()
+                print(f"[Kind Create] Kubeconfig size: {len(content)} bytes")
+                print(f"[Kind Create] Kubeconfig preview: {content[:200]}...")
+            else:
+                print("[Kind Create] Kubeconfig file does not exist!")
+        except Exception as e:
+            print(f"[Kind Create] Failed to check kubeconfig: {e}")
+
+        # Try to manually get kubeconfig from kind
+        try:
+            print(f"[Kind Create] Getting kubeconfig directly from kind...")
+            kind_kubeconfig = execute_command(f"kind get kubeconfig --name {cluster_name}")
+            print(f"[Kind Create] Kind kubeconfig output: {kind_kubeconfig[:200]}...")
+
+            # Write it to the standard location
+            kubeconfig_dir = os.path.expanduser("~/.kube")
+            os.makedirs(kubeconfig_dir, exist_ok=True)
+            with open(os.path.join(kubeconfig_dir, "config"), 'w') as f:
+                f.write(kind_kubeconfig)
+            print("[Kind Create] Wrote kubeconfig to ~/.kube/config")
+        except Exception as e:
+            print(f"[Kind Create] Failed to get kubeconfig from kind: {e}")
 
         # Verify cluster accessibility immediately after creation
         cluster_name = self.get_cluster_info().cluster_name

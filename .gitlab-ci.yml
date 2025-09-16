@@ -43,6 +43,8 @@ variables:
     - kubectl describe daemonset datadog -n default || echo "DaemonSet not found"
     - kubectl get pods -l app=datadog -n default || echo "Failed to get datadog pods"
     - kubectl describe pods -l app=datadog -n default || echo "No datadog pods found"
+    - echo "=== Datadog Pod Logs and Status ==="
+    - for pod in $(kubectl get pods -l app=datadog -n default --no-headers 2>/dev/null | awk '{print $1}' || echo ""); do if [ -n "$pod" ]; then echo "=== Logs from $pod ==="; kubectl logs "$pod" -n default --tail=50 || echo "Failed to get logs from $pod"; echo "=== Processes in $pod ==="; kubectl exec "$pod" -n default -- ps aux || echo "Failed to get processes from $pod"; echo "=== Port 8126 status in $pod ==="; kubectl exec "$pod" -n default -- netstat -tlnp 2>/dev/null | grep 8126 || echo "Port 8126 not listening in $pod"; fi; done
     - kubectl get events -n default --sort-by='.lastTimestamp' | tail -20 || echo "Failed to get events"
     - echo "=== Docker Images Debug ==="
     - docker images | grep -E '(kindest|datadog|dd-apm-test-agent)' || echo "No relevant images found"

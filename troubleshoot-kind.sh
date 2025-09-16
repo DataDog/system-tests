@@ -139,6 +139,31 @@ echo "kubectl describe daemonset datadog -n default" | tee -a "$LOG_DIR/commands
 kubectl describe daemonset datadog -n default 2>&1 | tee "$LOG_DIR/daemonset-datadog.log" || echo "Datadog daemonset not found" | tee -a "$LOG_DIR/daemonset-datadog.log"
 
 echo ""
+echo "kubectl get pods -l app=datadog -n default" | tee -a "$LOG_DIR/commands.log"
+kubectl get pods -l app=datadog -n default 2>&1 | tee "$LOG_DIR/datadog-pods.log" || echo "Failed to get datadog pods" | tee -a "$LOG_DIR/datadog-pods.log"
+
+echo ""
+echo "kubectl describe pods -l app=datadog -n default" | tee -a "$LOG_DIR/commands.log"
+kubectl describe pods -l app=datadog -n default 2>&1 | tee "$LOG_DIR/datadog-pods-describe.log" || echo "No datadog pods found" | tee -a "$LOG_DIR/datadog-pods-describe.log"
+
+# Get logs from failing datadog pods
+echo ""
+echo "=== 12.5. Datadog Pod Logs ===" | tee -a "$LOG_DIR/commands.log"
+for pod in $(kubectl get pods -l app=datadog -n default --no-headers 2>/dev/null | awk '{print $1}'); do
+    echo ""
+    echo "kubectl logs $pod -n default" | tee -a "$LOG_DIR/commands.log"
+    kubectl logs "$pod" -n default 2>&1 | tee "$LOG_DIR/datadog-pod-$pod-logs.log" || echo "Failed to get logs from $pod" | tee -a "$LOG_DIR/datadog-pod-$pod-logs.log"
+
+    echo ""
+    echo "kubectl exec $pod -n default -- netstat -tlnp | grep 8126" | tee -a "$LOG_DIR/commands.log"
+    kubectl exec "$pod" -n default -- netstat -tlnp 2>&1 | grep 8126 | tee "$LOG_DIR/datadog-pod-$pod-netstat.log" || echo "Port 8126 not listening in $pod" | tee "$LOG_DIR/datadog-pod-$pod-netstat.log"
+
+    echo ""
+    echo "kubectl exec $pod -n default -- ps aux" | tee -a "$LOG_DIR/commands.log"
+    kubectl exec "$pod" -n default -- ps aux 2>&1 | tee "$LOG_DIR/datadog-pod-$pod-processes.log" || echo "Failed to get processes from $pod" | tee -a "$LOG_DIR/datadog-pod-$pod-processes.log"
+done
+
+echo ""
 echo "kubectl get events -n default --sort-by='.lastTimestamp'" | tee -a "$LOG_DIR/commands.log"
 kubectl get events -n default --sort-by=".lastTimestamp" 2>&1 | tail -20 | tee "$LOG_DIR/k8s-events.log" || echo "Failed to get events" | tee -a "$LOG_DIR/k8s-events.log"
 

@@ -200,7 +200,103 @@ class K8sDatadog:
 
         if not daemonset_created:
             logger.info("[Test agent] Daemonset not created. Last status: %s" % daemonset_status)
-            raise Exception("Daemonset not created")
+
+            # Add extensive debugging before failing
+            try:
+                logger.info("[Test agent] DEBUG: Collecting daemonset debug information...")
+                print("[Test agent] DEBUG: Collecting daemonset debug information...")
+
+                # Check if daemonset exists
+                try:
+                    ds = self.k8s_cluster_info.apps_api().read_namespaced_daemon_set("datadog", namespace)
+                    logger.info(f"[Test agent] DEBUG: DaemonSet exists - desired: {ds.status.desired_number_scheduled}, ready: {ds.status.number_ready}, available: {ds.status.number_available}")
+                    print(f"[Test agent] DEBUG: DaemonSet exists - desired: {ds.status.desired_number_scheduled}, ready: {ds.status.number_ready}, available: {ds.status.number_available}")
+                except Exception as e:
+                    logger.info(f"[Test agent] DEBUG: DaemonSet not found: {e}")
+                    print(f"[Test agent] DEBUG: DaemonSet not found: {e}")
+
+                # Check pods
+                try:
+                    from kubernetes import client
+                    v1 = client.CoreV1Api()
+                    pods = v1.list_namespaced_pod(namespace, label_selector="app=datadog")
+                    logger.info(f"[Test agent] DEBUG: Found {len(pods.items)} datadog pods")
+                    print(f"[Test agent] DEBUG: Found {len(pods.items)} datadog pods")
+
+                    for pod in pods.items:
+                        pod_name = pod.metadata.name
+                        logger.info(f"[Test agent] DEBUG: Pod {pod_name} - phase: {pod.status.phase}, ready: {pod.status.container_statuses[0].ready if pod.status.container_statuses else 'unknown'}")
+                        print(f"[Test agent] DEBUG: Pod {pod_name} - phase: {pod.status.phase}, ready: {pod.status.container_statuses[0].ready if pod.status.container_statuses else 'unknown'}")
+
+                        # Get pod logs using Kubernetes Python client
+                        try:
+                            logger.info(f"[Test agent] DEBUG: Getting logs from pod {pod_name}...")
+                            print(f"[Test agent] DEBUG: Getting logs from pod {pod_name}...")
+                            pod_logs = v1.read_namespaced_pod_log(name=pod_name, namespace=namespace, tail_lines=50)
+                            logger.info(f"[Test agent] DEBUG: Pod {pod_name} logs:\n{pod_logs}")
+                            print(f"[Test agent] DEBUG: Pod {pod_name} logs:\n{pod_logs}")
+                        except Exception as e:
+                            logger.info(f"[Test agent] DEBUG: Failed to get logs from {pod_name}: {e}")
+                            print(f"[Test agent] DEBUG: Failed to get logs from {pod_name}: {e}")
+
+                        # Get pod description for more details
+                        try:
+                            logger.info(f"[Test agent] DEBUG: Getting detailed pod description for {pod_name}...")
+                            print(f"[Test agent] DEBUG: Getting detailed pod description for {pod_name}...")
+                            pod_details = v1.read_namespaced_pod(name=pod_name, namespace=namespace)
+
+                            # Container status details
+                            if pod_details.status.container_statuses:
+                                for container_status in pod_details.status.container_statuses:
+                                    logger.info(f"[Test agent] DEBUG: Container {container_status.name} - ready: {container_status.ready}, restart_count: {container_status.restart_count}")
+                                    print(f"[Test agent] DEBUG: Container {container_status.name} - ready: {container_status.ready}, restart_count: {container_status.restart_count}")
+
+                                    if container_status.state.waiting:
+                                        logger.info(f"[Test agent] DEBUG: Container {container_status.name} waiting: {container_status.state.waiting.reason} - {container_status.state.waiting.message}")
+                                        print(f"[Test agent] DEBUG: Container {container_status.name} waiting: {container_status.state.waiting.reason} - {container_status.state.waiting.message}")
+
+                                    if container_status.state.terminated:
+                                        logger.info(f"[Test agent] DEBUG: Container {container_status.name} terminated: exit_code={container_status.state.terminated.exit_code}, reason={container_status.state.terminated.reason}")
+                                        print(f"[Test agent] DEBUG: Container {container_status.name} terminated: exit_code={container_status.state.terminated.exit_code}, reason={container_status.state.terminated.reason}")
+                        except Exception as e:
+                            logger.info(f"[Test agent] DEBUG: Failed to get pod details for {pod_name}: {e}")
+                            print(f"[Test agent] DEBUG: Failed to get pod details for {pod_name}: {e}")
+
+                        # In CI environment, add kubectl commands for manual debugging
+                        if "CI" in __import__("os").environ:
+                            logger.info(f"[Test agent] DEBUG: CI environment detected - use these commands for debugging:")
+                            print(f"[Test agent] DEBUG: CI environment detected - use these commands for debugging:")
+                            print(f"[Test agent] DEBUG: kubectl logs {pod_name} -n {namespace}")
+                            print(f"[Test agent] DEBUG: kubectl exec -it {pod_name} -n {namespace} -- ps aux")
+                            print(f"[Test agent] DEBUG: kubectl exec -it {pod_name} -n {namespace} -- netstat -tlnp")
+                            print(f"[Test agent] DEBUG: kubectl exec -it {pod_name} -n {namespace} -- sh")
+
+                        # Get pod events
+                        try:
+                            events = v1.list_namespaced_event(namespace, field_selector=f"involvedObject.name={pod_name}")
+                            for event in events.items[-5:]:  # Last 5 events
+                                logger.info(f"[Test agent] DEBUG: Pod {pod_name} event: {event.reason} - {event.message}")
+                                print(f"[Test agent] DEBUG: Pod {pod_name} event: {event.reason} - {event.message}")
+                        except Exception as e:
+                            logger.info(f"[Test agent] DEBUG: Failed to get events for {pod_name}: {e}")
+
+                        # Add debugging sleep for manual inspection
+                        if "CI" in __import__("os").environ:
+                            logger.info(f"[Test agent] DEBUG: SLEEPING 10 minutes for manual pod debugging - pod {pod_name} will remain available")
+                            print(f"[Test agent] DEBUG: SLEEPING 10 minutes for manual pod debugging - pod {pod_name} will remain available")
+                            print(f"[Test agent] DEBUG: Connect and run: kubectl logs {pod_name} -n {namespace}")
+                            print(f"[Test agent] DEBUG: Connect and run: kubectl exec -it {pod_name} -n {namespace} -- sh")
+                            __import__("time").sleep(600)  # 10 minute debugging window
+
+                except Exception as e:
+                    logger.info(f"[Test agent] DEBUG: Failed to check pods: {e}")
+                    print(f"[Test agent] DEBUG: Failed to check pods: {e}")
+
+            except Exception as debug_error:
+                logger.info(f"[Test agent] DEBUG: Debug collection failed: {debug_error}")
+                print(f"[Test agent] DEBUG: Debug collection failed: {debug_error}")
+
+            raise Exception("Daemonset not ready - pods failing health checks. Check debug output above.")
 
         w = watch.Watch()
         for event in w.stream(
