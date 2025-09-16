@@ -51,18 +51,24 @@ def extract_probe_ids(probes: dict | list) -> list:
     return [probe["id"] for probe in probes]
 
 
-def _get_path(test_name: str, suffix: str) -> str:
-    filename = test_name + "_" + BaseDebuggerTest.tracer["language"] + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", filename)
+def _get_path(test_name: str, suffix: str, version: str) -> str:
+    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+
+    language = BaseDebuggerTest.tracer["language"]
+    filename = test_name + "_" + suffix + ".json"
+    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str) -> None:
-    with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
+def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+    path = _get_path(test_name, suffix, version)
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def read_approval(test_name: str, suffix: str) -> dict:
-    with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
+def read_approval(test_name: str, suffix: str, version: str) -> dict:
+    path = _get_path(test_name, suffix, version)
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
