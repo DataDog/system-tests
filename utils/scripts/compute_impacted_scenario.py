@@ -190,6 +190,7 @@ def main() -> None:
                         scenario_groups.open_telemetry,
                         scenario_groups.external_processing,
                     ],
+                    r"utils/scripts/activate-easy-wins\.py": None,
                     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,
                     r"utils/scripts/ai/.*": None,
                     r"utils/scripts/check_version\.sh": None,
