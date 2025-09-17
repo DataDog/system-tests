@@ -63,6 +63,9 @@ class Summary:
     def get_count(self, outcome: Outcome) -> int:
         return len(self.tests_by_outcome[outcome])
 
+    def contains_error(self) -> bool:
+        return self.get_count(Outcome.failed) != 0 or self.get_count(Outcome.error) != 0
+
     def get_markdown(self) -> str:
         result: list[str] = []
 
@@ -158,6 +161,9 @@ def main() -> None:
     summary = Summary()
 
     crawl_folder(Path(args.base_dir), summary)
+
+    if not summary.contains_error():
+        return
 
     result = summary.get_markdown()
 
