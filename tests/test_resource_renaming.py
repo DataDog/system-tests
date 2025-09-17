@@ -1,4 +1,13 @@
 from utils import scenarios, weblog, interfaces, features
+from utils._weblog import HttpResponse
+
+
+def get_endpoint_tag(response: HttpResponse) -> str | None:
+    spans = interfaces.library.get_spans(response)
+    for _, _, span in spans:
+        if "http.endpoint" in span.get("meta", {}):
+            return span["meta"]["http.endpoint"]
+    return None
 
 
 @features.resource_renaming
@@ -14,43 +23,17 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
         self.r_param_hex = weblog.get("/resource_renaming/hex/abc123")
         self.r_param_hex_id = weblog.get("/resource_renaming/hex_id/abc123-abc123")
         self.r_param_str = weblog.get("/resource_renaming/files/very-long-filename-with-special-chars")
+        self.r_param_str_2 = weblog.get("/resource_renaming/files/test%40%2B%3D")
 
     def test_http_endpoint_basic(self):
         """Test basic endpoint extraction without parameters"""
-        spans = interfaces.library.get_spans(self.r_basic)
-        for _, _, span in spans:
-            if "http.endpoint" in span.get("meta", {}):
-                assert span["meta"]["http.endpoint"] == "/resource_renaming/some/url"
-
-        # Test integer parameter replacement
-        spans = interfaces.library.get_spans(self.r_param_int)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/int/{param:int}"
-
-        # Test integer id parameter replacement
-        spans = interfaces.library.get_spans(self.r_param_int_id)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/int_id/{param:int_id}"
-
-        # Test hex parameter replacement
-        spans = interfaces.library.get_spans(self.r_param_hex)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/hex/{param:hex}"
-
-        # Test hex id parameter replacement
-        spans = interfaces.library.get_spans(self.r_param_hex_id)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/hex_id/{param:hex_id}"
-
-        # Test string parameter replacement
-        spans = interfaces.library.get_spans(self.r_param_str)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/files/{param:str}"
+        assert get_endpoint_tag(self.r_basic) == "/resource_renaming/some/url"
+        assert get_endpoint_tag(self.r_param_int) == "/resource_renaming/int/{param:int}"
+        assert get_endpoint_tag(self.r_param_int_id) == "/resource_renaming/int_id/{param:int_id}"
+        assert get_endpoint_tag(self.r_param_hex) == "/resource_renaming/hex/{param:hex}"
+        assert get_endpoint_tag(self.r_param_hex_id) == "/resource_renaming/hex_id/{param:hex_id}"
+        assert get_endpoint_tag(self.r_param_str) == "/resource_renaming/files/{param:str}"
+        assert get_endpoint_tag(self.r_param_str_2) == "/resource_renaming/files/{param:str}"
 
     def setup_http_endpoint_edge_cases(self):
         """Setup requests for edge case testing"""
@@ -60,22 +43,9 @@ class Test_Resource_Renaming_HTTP_Endpoint_Tag:
 
     def test_http_endpoint_edge_cases(self):
         """Test that edge cases are handled correctly"""
-        spans = interfaces.library.get_spans(self.r_root)
-
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/"
-
-        spans = interfaces.library.get_spans(self.r_long_path)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert len(endpoint) > 0
-            assert endpoint == "/resource_renaming/a/b/c/d/e/f/g"
-
-        spans = interfaces.library.get_spans(self.r_empty_segments)
-        for _, _, span in spans:
-            endpoint = span["meta"]["http.endpoint"]
-            assert endpoint == "/resource_renaming/double/slash"
+        assert get_endpoint_tag(self.r_root) == "/"
+        assert get_endpoint_tag(self.r_long_path) == "/resource_renaming/a/b/c/d/e/f/g"
+        assert get_endpoint_tag(self.r_empty_segments) == "/resource_renaming/double/slash"
 
 
 @features.resource_renaming
