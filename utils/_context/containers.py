@@ -567,6 +567,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         enable_ipv6: bool,
+        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -590,6 +591,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
+                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={
@@ -1446,6 +1448,22 @@ class DummyServerContainer(TestedContainer):
             name="http-app",
             host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://localhost:8080", "retries": 10},
+        )
+
+
+class InternalServerContainer(TestedContainer):
+    def __init__(self, host_log_folder: str) -> None:
+        super().__init__(
+            image_name="demisto/fastapi:0.116.1.4266494",
+            name="internal_server",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
+            working_dir="/app",
+            command="uvicorn app:app --host 0.0.0.0 --port 8089",
+            volumes={
+                "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
+                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
+            },
         )
 
 

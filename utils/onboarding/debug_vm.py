@@ -31,6 +31,8 @@ def download_vm_logs(vm, remote_folder_paths, local_base_logs_folder):
             "sudo docker-compose ps > /var/log/datadog_weblog/docker_proccess.log 2>&1 || true",
             "sudo docker-compose logs > /var/log/datadog_weblog/docker_logs.log 2>&1 || true",
             "sudo journalctl -xeu docker > /var/log/datadog_weblog/journalctl_docker.log 2>&1 || true",
+            # Copy Datadog Agent configuration files
+            "sudo cp /etc/datadog-agent/application_monitoring.yaml /var/log/datadog_weblog/application_monitoring.yaml 2>&1 || true",
             # Additional logs requested
             "sudo cat /var/log/cloud-init.log > /var/log/datadog_weblog/cloud-init.log 2>&1 || true",
             "sudo cat /var/log/syslog > /var/log/datadog_weblog/syslog.log 2>&1 || true",

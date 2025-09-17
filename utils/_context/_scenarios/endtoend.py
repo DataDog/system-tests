@@ -60,6 +60,7 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -94,6 +95,7 @@ class DockerScenario(Scenario):
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
             self._required_containers.append(self.proxy_container)
@@ -363,7 +365,7 @@ class EndToEndScenario(DockerScenario):
                 ("python", ProxyPorts.python_buddy, BuddyHostPorts.python, "datadog/system-tests:python_buddy-v2"),
                 ("nodejs", ProxyPorts.nodejs_buddy, BuddyHostPorts.nodejs, "datadog/system-tests:nodejs_buddy-v1"),
                 ("java", ProxyPorts.java_buddy, BuddyHostPorts.java, "datadog/system-tests:java_buddy-v1"),
-                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v1"),
+                ("ruby", ProxyPorts.ruby_buddy, BuddyHostPorts.ruby, "datadog/system-tests:ruby_buddy-v2"),
                 ("golang", ProxyPorts.golang_buddy, BuddyHostPorts.golang, "datadog/system-tests:golang_buddy-v2"),
             ]
 
@@ -791,14 +793,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

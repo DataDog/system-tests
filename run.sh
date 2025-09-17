@@ -397,6 +397,11 @@ function main() {
                 unset "scenarios[${i}]"
                 ;;
 
+            TELEMETRY_APP_STARTED_CONFIG_CHAINING)
+                scenarios+=(TELEMETRY_ENHANCED_CONFIG_REPORTING)
+                unset "scenarios[${i}]"
+                ;;
+
             IAST_STANDALONE_V2)
                 scenarios+=(IAST_STANDALONE)
                 unset "scenarios[${i}]"

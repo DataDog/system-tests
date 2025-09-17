@@ -182,6 +182,9 @@ jobs:
     - name: Run GRAPHQL_APPSEC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_APPSEC"')
       run: ./run.sh GRAPHQL_APPSEC
+    - name: Run GRAPHQL_ERROR_TRACKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"GRAPHQL_ERROR_TRACKING"')
+      run: ./run.sh GRAPHQL_ERROR_TRACKING
     - name: Run IPV6 scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IPV6"')
       run: ./run.sh IPV6
@@ -222,6 +225,9 @@ jobs:
       env:
         DD_API_KEY: ${{ secrets.DD_API_KEY }}
         DD_APP_KEY: ${{ secrets.DD_APPLICATION_KEY }}
+    - name: Run APM_TRACING_EFFICIENT_PAYLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APM_TRACING_EFFICIENT_PAYLOAD"')
+      run: ./run.sh APM_TRACING_EFFICIENT_PAYLOAD
     - name: Run LIBRARY_CONF_CUSTOM_HEADER_TAGS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"LIBRARY_CONF_CUSTOM_HEADER_TAGS"')
       run: ./run.sh LIBRARY_CONF_CUSTOM_HEADER_TAGS
@@ -349,9 +355,9 @@ jobs:
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-    - name: Run TELEMETRY_APP_STARTED_CONFIG_CHAINING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_CONFIG_CHAINING"')
-      run: ./run.sh TELEMETRY_APP_STARTED_CONFIG_CHAINING
+    - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED
