@@ -763,8 +763,13 @@ class Test_TelemetrySSIConfigs:
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         ssi_enabled_telemetry_name = _mapped_telemetry_name(context, "ssi_injection_enabled")
-        inject_enabled = configuration_by_name.get(ssi_enabled_telemetry_name)
-        assert inject_enabled, ",\n".join(configuration_by_name.keys())
+        config_list = configuration_by_name.get(ssi_enabled_telemetry_name, [])
+        assert config_list, f"No configurations found for '{ssi_enabled_telemetry_name}'"
+
+        inject_enabled = (
+            _find_configuration_by_origin(config_list, "env_var") if expected_value is not None else config_list[0]
+        )
+        assert inject_enabled is not None, f"No configuration found for '{ssi_enabled_telemetry_name}'"
         assert inject_enabled.get("value") == expected_value
         if expected_value is not None:
             assert inject_enabled.get("origin") == "env_var"
