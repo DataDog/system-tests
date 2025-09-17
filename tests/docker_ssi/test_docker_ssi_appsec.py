@@ -19,6 +19,7 @@ class TestDockerSSIAppsecFeatures:
         root_span = interfaces.test_agent.get_traces(request=self.r)
         assert root_span, f"No traces found for request {self.r.get_rid()}"
         assert "service" in root_span, f"No service name found in root_span: {root_span}"
+
         # Get all captured telemetry configuration data
         configurations = interfaces.test_agent.get_telemetry_configurations(
             root_span["service"], root_span["meta"]["runtime-id"]
@@ -27,7 +28,7 @@ class TestDockerSSIAppsecFeatures:
         # Check that instrumentation source is ssi
         injection_source = configurations.get("DD_APPSEC_ENABLED")
         assert injection_source, f"instrumentation_source not found in configuration {configurations}"
-        assert injection_source["value"]["value"] in [
+        assert injection_source["value"] in [
             "1",
             1,
             True,
