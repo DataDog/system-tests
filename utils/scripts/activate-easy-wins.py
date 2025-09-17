@@ -122,23 +122,31 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
 
 def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
+
     for directory in os.listdir(path_data_opt):
         if "dev" in directory:
             continue
+
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
             with open(f"{path_data_opt}/{directory}/{scenario}/feature_parity.json", encoding="utf-8") as file:
                 scenario_data = json.load(file)
+
             library = scenario_data["language"]
             variant = scenario_data["variant"]
+
             if not test_data.get(library):
                 test_data[library] = {}
+
             for test in scenario_data["tests"]:
                 test_path = test["path"].split("::")[0]
                 test_class = test["path"].split("::")[1]
+
                 if not test_data[library].get(test_path):
                     test_data[library][test_path] = {}
+
                 if not test_data[library][test_path].get(test_class):
                     test_data[library][test_path][test_class] = {}
+
                 if not test_data[library][test_path][test_class].get(variant):
                     test_data[library][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
                 else:
@@ -337,22 +345,28 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
     versions = {}
     for library in libraries:
         found_version = False
+
         for variant in os.listdir(path_data_opt):
             if found_version:
                 break
             if library not in variant:
                 continue
+
             for scenario in os.listdir(f"{path_data_opt}/{variant}"):
                 if found_version:
                     break
+
                 with open(f"{path_data_opt}/{variant}/{scenario}/feature_parity.json", encoding="utf-8") as file:
                     data = json.load(file)
+
                 for dep in data["testedDependencies"]:
                     if dep["name"] == "library":
                         versions[library] = f"v{dep['version']}"
                         found_version = True
+
         if not found_version:
             versions[library] = "xpass"
+
     return versions
 
 
