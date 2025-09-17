@@ -358,7 +358,7 @@
     "appsec.apiSecurity.requestSampling": "api_security_request_sample_rate",
     "appsec.apiSecurity.sampleDelay": "api_security_sample_delay",
     "appsec.apiSecurity.endpointCollectionEnabled": "api_security_endpoint_collection_enabled",
-    "appsec.apiSecurity.apiSecurity.endpointCollectionMessageLimit": "api_security_endpoint_collection_message_limit",
+    "appsec.apiSecurity.endpointCollectionMessageLimit": "api_security_endpoint_collection_message_limit",
     "appsec.automated-user-events-tracking": "appsec_auto_user_events_tracking",
     "appsec.blockedTemplateGraphql": "appsec_blocked_template_graphql",
     "appsec.blockedTemplateHtml": "appsec_blocked_template_html",
