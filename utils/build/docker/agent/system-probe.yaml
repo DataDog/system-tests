@@ -1,3 +1,2 @@
-log_level: DEBUG
 dynamic_instrumentation:
   enabled: true
