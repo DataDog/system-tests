@@ -338,23 +338,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_api_security_no_response_body = EndToEndScenario(
-        "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
-        appsec_enabled=True,
-        weblog_env={
-            "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_ENABLED": "true",
-            "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
-            "DD_API_SECURITY_MAX_CONCURRENT_REQUESTS": "50",
-            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
-        },
-        doc="""
-        Scenario for API Security feature, testing schema types sent into span tags if
-        DD_API_SECURITY_ENABLED is set to true.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     appsec_api_security_with_sampling = EndToEndScenario(
         "APPSEC_API_SECURITY_WITH_SAMPLING",
         appsec_enabled=True,
@@ -418,6 +401,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="Scenario to test API Security in AppSec standalone mode",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],

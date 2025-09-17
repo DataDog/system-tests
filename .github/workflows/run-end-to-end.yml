@@ -193,6 +193,9 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
+    - name: Run TRACE_PROPAGATION_STYLE_DEFAULT scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_DEFAULT"')
+      run: ./run.sh TRACE_PROPAGATION_STYLE_DEFAULT
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
@@ -310,9 +313,6 @@ jobs:
     - name: Run APPSEC_API_SECURITY_RC scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_RC"')
       run: ./run.sh APPSEC_API_SECURITY_RC
-    - name: Run APPSEC_API_SECURITY_NO_RESPONSE_BODY scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_API_SECURITY_NO_RESPONSE_BODY"')
-      run: ./run.sh APPSEC_API_SECURITY_NO_RESPONSE_BODY
     - name: Run APPSEC_ATO_SDK scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_ATO_SDK"')
       run: ./run.sh APPSEC_ATO_SDK
