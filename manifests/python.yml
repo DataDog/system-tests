@@ -294,6 +294,28 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: v3.8.0.dev
     rasp/:
+      test_api10.py:
+        Test_API10_all:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_request_body:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_request_headers:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_request_method:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_response_body:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_response_headers:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_response_status:
+          '*': v3.14.0.rc
+          'fastapi': v3.15.0.dev (with requests support)
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
@@ -730,8 +752,11 @@ tests/:
       Test_Main: v2.0.0
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: v3.10.0.dev (partial support in v3.9.0)
-      Test_BlockingActionChangesWithRemoteConfig: v2.10.1
+      Test_BlockingActionChangesWithRemoteConfig:
+        '*': v2.10.1
+        django-py3.13: v3.15.0.dev (v2.10.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_Empty_Config: v3.10.0
+      Test_Invalid_Config: v3.15.0.dev
       Test_Multiple_Actions: v2.10.1
       Test_Unknown_Action: v2.10.1
       Test_UpdateRuleFileWithRemoteConfig: v2.16.0-rc (v2.11.0 but added telemetry and span tag support in 2.16)
@@ -1062,6 +1087,17 @@ tests/:
       Test_Otel_API_Interoperability: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.9.0
+    test_otel_logs.py:
+      Test_FR01_Enable_OTLP_Log_Collection: v3.13.0.dev
+      Test_FR03_Resource_Attributes: v3.13.0.dev
+      Test_FR04_Trace_Span_IDs: v3.13.0.dev
+      Test_FR05_Custom_Endpoints: v3.13.0.dev
+      Test_FR06_OTLP_Protocols: v3.13.0.dev
+      Test_FR07_Host_Name: v3.13.0.dev
+      Test_FR08_Custom_Headers: v3.13.0.dev
+      Test_FR09_Log_Injection: v3.13.0.dev
+      Test_FR10_Timeout_Configuration: v3.14.0.dev
+      Test_FR11_Telemetry: v3.14.0.dev
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v2.8.0
     test_otel_span_with_baggage.py:
@@ -1077,6 +1113,7 @@ tests/:
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: v3.14.0.dev
       Test_Sampling_Span_Tags: v2.8.0
     test_span_events.py:
       Test_Span_Events: missing_feature
@@ -1108,7 +1145,9 @@ tests/:
       TestTracerFlareV1: v3.12.0.dev
   remote_config/:
     test_remote_configuration.py:
-      Test_RemoteConfigurationExtraServices: v2.1.0
+      Test_RemoteConfigurationExtraServices:
+        '*': v2.1.1
+        django-py3.13: v3.15.0.dev (v2.1.1 but fixed incompatibility issue with gevent 25.8.2)
       Test_RemoteConfigurationUpdateSequenceASMDD: v2.9.0
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: missing_feature
       Test_RemoteConfigurationUpdateSequenceFeatures: v1.7.4
@@ -1199,9 +1238,12 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
-    Test_GraphQLQueryErrorReporting:
+    Test_GraphQLOperationErrorReporting:
       '*': missing_feature
       flask-poc: v3.1.0
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
+      flask-poc: missing_feature
   test_identify.py:
     Test_Basic: v1.5.0-rc1
     Test_Propagate: v1.9.0
@@ -1229,6 +1271,7 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0
@@ -1270,6 +1313,9 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting:
+      '*': irrelevant
+      flask-poc: v3.13.0rc1
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.17.3
+  test_v1_payloads.py: missing_feature

@@ -1,4 +1,12 @@
 ---
+#
+# For features that are not yet available in the latest release,
+# please specify a version greater than the current release using `>`.
+# DO NOT SPECIFY A NON EXISTING RELEASE.
+#
+# For example, if the latest release is `v1.0.0` and a feature like Baggage
+# is only supported on the `main` branch and in the upcoming release,
+# use `>1.0.0` to indicate that requirement.
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -262,6 +270,7 @@ tests/:
   test_library_conf.py: irrelevant
   test_miscs.py: irrelevant
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown
@@ -280,5 +289,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
     Test_Telemetry: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: missing_feature
+  test_v1_payloads.py: missing_feature

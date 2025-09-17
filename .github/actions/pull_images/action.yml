@@ -10,10 +10,6 @@ inputs:
   scenarios:
     description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
-  cleanup:
-    description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
-    required: false
-    default: "true"
   dockerhub_username:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
@@ -26,49 +22,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Free some place for scenarios known to require lot of images
-      if: ${{ (inputs.cleanup == 'true') || (contains(inputs.scenarios, '"INTEGRATIONS"') || contains(inputs.scenarios, '"CROSSED_TRACING_LIBRARIES"')) }}
-      shell: bash
-      run: |
-        # Usage: clear_dir_with_rsync "/path/to/folder"
-        clear_dir_with_rsync() {
-          local dir="$1"
-
-          # If no arg or path doesn't exist as a directory: do nothing
-          [[ -z "$dir" || ! -d "$dir" ]] && return 0
-
-          # Create an empty temp dir and sync it over the target with --delete
-          local empty
-          empty="$(mktemp -d)" || { echo "mktemp failed." >&2; return 1; }
-
-          # -a for efficient traversal; --delete to remove extra files in target
-          # --force to delete even if dirs are not empty; --omit-dir-times avoids dir mtime changes
-          if sudo rsync -a --delete --force --omit-dir-times "$empty/" "$dir/"; then
-            rmdir "$empty" 2>/dev/null || true
-            return 0
-          else
-            # If it fails,
-            # capture the exit code ($? → stored in st),
-            # clean up the temporary empty dir,
-            # and return the same exit code so the caller can see what went wrong.
-            local st=$?
-            rmdir "$empty" 2>/dev/null || true
-            return $st
-          fi
-        }
-
-        df -h
-
-        echo "Removing docker images, dotnet, android, ghc, and CodeQL cache to free space"
-
-        clear_dir_with_rsync /usr/local/lib/android  # 9Gb!
-        clear_dir_with_rsync /opt/hostedtoolcache/CodeQL  # 5Gb !
-        clear_dir_with_rsync /usr/share/dotnet # 1Gb
-
-        # sudo docker image prune --all --force  # if ever needed, but it's slow. Only 3Gb
-
-        df -h
-
     - name: Get image list
       shell: bash
       run: |
@@ -83,6 +36,11 @@ runs:
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
+
+    - name: clean-up
+      shell: bash
+      if: inputs.library == 'php'  # PHP use heavy images
+      run: sudo rm -rf /usr/local/lib/android
 
 #retry
     - name: Pull

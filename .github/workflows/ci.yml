@@ -96,18 +96,6 @@ jobs:
       artifact_retention_days: 3
       display_summary: true
 
-  system_tests_docker_mode:
-    name: Ruby Docker Mode
-    needs:
-    - lint
-    - test_the_test
-    - impacted_libraries
-    if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
-    uses: ./.github/workflows/run-docker-mode.yml
-    permissions:
-      packages: write
-    secrets: inherit
-
   exotics:
     name: Exotics scenarios
     needs:

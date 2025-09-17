@@ -44,6 +44,7 @@ class OpenTelemetryScenario(DockerScenario):
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
         wait_for_otel_interface: bool = True,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -51,6 +52,7 @@ class OpenTelemetryScenario(DockerScenario):
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
+            mocked_backend=mocked_backend,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -112,6 +114,7 @@ class OpenTelemetryScenario(DockerScenario):
         interfaces.library_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.agent_stdout.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):

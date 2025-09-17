@@ -57,38 +57,38 @@ tests/:
       test_blocking.py:
         Test_Blocking:
           "*": v8.113.0
-          alb-multi: bug (APPSEC-58787)
+          alb-multi: v8.114.0.dev
         Test_Blocking_strip_response_headers:
           "*": v8.113.0
-          alb-multi: bug (APPSEC-58787)
+          alb-multi: v8.114.0.dev
         Test_CustomBlockingResponse:
           "*": v8.113.0
-          alb-multi: bug (APPSEC-58787)
+          alb-multi: v8.114.0.dev
     test_alpha.py:
       Test_Basic: v7.112.0
     test_blocking_addresses.py:
       Test_Blocking_client_ip:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_client_ip_with_K8_private_ip:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+        alb-multi: v8.114.0.dev
+      Test_Blocking_client_ip_with_forwarded: v8.114.0.dev
       Test_Blocking_request_body:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_body_multipart:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_cookies:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_headers:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_method:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_path_params:
         "*": v8.113.0
         alb: irrelevant (application-load-balancer event type does not support path params)
@@ -96,34 +96,34 @@ tests/:
         function-url: irrelevant (function-url event type does not support path params)
       Test_Blocking_request_query:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_request_uri:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_response_headers:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_response_status:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Blocking_user_id:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Suspicious_Request_Blocking:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
     test_conf.py:
       Test_ConfigurationVariables_New_Obfuscation: v8.113.0
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint_Preprocessor:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Fingerprinting_Header_And_Network_Preprocessor:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
       Test_Fingerprinting_Session_Preprocessor:
         "*": v8.113.0
-        alb-multi: bug (APPSEC-58787)
+        alb-multi: v8.114.0.dev
     test_only_python.py:
       Test_ImportError: v7.112.0
     test_reports.py:
@@ -142,3 +142,5 @@ tests/:
       Test_RetainTraces: v7.112.0
     test_versions.py:
       Test_Events: v7.112.0
+  test_resource_renaming.py: missing_feature
+  test_v1_payloads.py: missing_feature
