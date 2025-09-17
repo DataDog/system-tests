@@ -159,6 +159,7 @@ def parse_manifest(library: str, path_root: str) -> ruamel.yaml.CommentedMap:  #
 def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str) -> None:  # type: ignore[type-arg]
     yaml = ruamel.yaml.YAML()
     yaml.width = 200
+    yaml.explicit_start = True
     with open(outfile_path, "w", encoding="utf8") as outfile:
         yaml.dump(manifest, outfile)
 
