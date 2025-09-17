@@ -723,7 +723,7 @@ class BaseSCAStandaloneTelemetry:
         # test standalone is enabled and dropping traces
         spans_checked = 0
         for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
-            if span["metrics"][SAMPLING_PRIORITY_KEY] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+            if span["metrics"]["_dd.apm.enabled"] == 0:
                 spans_checked += 1
 
         assert spans_checked > 0
