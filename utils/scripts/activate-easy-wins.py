@@ -188,6 +188,66 @@ def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassSt
     return current
 
 
+def build_updated_subtree(
+    test_data_root: Any,  # type: ignore[misc]  # noqa: ANN401
+    original_value: str,
+    version: str,
+    *,
+    is_file_level: bool = False,
+) -> ruamel.yaml.CommentedMap | None:  # type: ignore[type-arg]
+    """Build an updated subtree containing both activated and non-activated parts."""
+
+    def _collect_all_paths_with_status(root: Any, path: list[str]) -> list[tuple[list[str], TestClassStatus]]:  # type: ignore[misc]  # noqa: ANN401
+        all_paths = []
+
+        if isinstance(root, dict):
+            for key, branch in root.items():
+                branch_paths = _collect_all_paths_with_status(branch, [*path, key])
+                all_paths.extend(branch_paths)
+        else:
+            # Leaf node - return path with its status
+            print(path, root)
+            if len(path) > 1 and "parametric" in path[-1]:
+                all_paths.append((path[:-1], root))
+            else:
+                all_paths.append((path, root))
+
+        return all_paths
+
+    all_paths = _collect_all_paths_with_status(test_data_root, [])
+    activable_paths = [
+        path for path, status in all_paths if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
+    ]
+
+    if not activable_paths:
+        return None
+
+    # For test class-level entries, only build subtree if partial activation is needed
+    if len(activable_paths) == len(all_paths) and not is_file_level:
+        return None  # Full activation - let caller handle this
+
+    # Build subtree structure with both activated and non-activated paths
+    # Sort paths to ensure lexicographic key ordering
+    sorted_paths = sorted(all_paths, key=lambda x: x[0])
+
+    subtree = ruamel.yaml.CommentedMap()
+
+    for path, status in sorted_paths:
+        current = subtree
+        for part in path[:-1]:
+            if part not in current:
+                current[part] = ruamel.yaml.CommentedMap()
+            current = current[part]
+
+        # Set value based on whether this path should be activated
+        if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
+            current[path[-1]] = version  # New version for activated paths
+        else:
+            current[path[-1]] = original_value  # Keep original value for non-activated paths
+
+    return subtree
+
+
 def update_entry(
     language: str,
     _manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
@@ -198,24 +258,45 @@ def update_entry(
     versions: dict[str, str],
 ) -> str | None:
     try:
-        if search[1] and isinstance(search[0], str) and isinstance(search[1], str):
-            update_status = get_global_update_status(
-                test_data[language][search[0]][search[1]], TestClassStatus.ACTIVATE
-            )
+        if search[1] and isinstance(search[0], str) and isinstance(search[1], str) and search[1] != "*":
+            test_data_root = test_data[language][search[0]][search[1]]
         elif isinstance(search[0], str):
-            update_status = get_global_update_status(test_data[language][search[0]], TestClassStatus.ACTIVATE)
+            test_data_root: Any = test_data[language][search[0]]  # type: ignore[misc]
+        else:
+            return None
+        update_status = get_global_update_status(test_data_root, TestClassStatus.ACTIVATE)
 
-        if update_status == TestClassStatus.ACTIVATE and (
-            "bug" in ancestor[root_path[-1]]
-            or "missing_feature" in ancestor[root_path[-1]]
-            or "incomplete_test_app" in ancestor[root_path[-1]]
-        ):
+        current_value = ancestor[root_path[-1]]
+        should_activate = (
+            "bug" in current_value or "missing_feature" in current_value or "incomplete_test_app" in current_value
+        )
+
+        if should_activate and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
             ret = ancestor[root_path[-1]]
-            ancestor[root_path[-1]] = versions[language]
+
+            # Determine if this is a file-level entry (search[1] is None) or test class-level (search[1] is set)
+            is_file_level = search[1] is None
+
+            # Try to build a subtree for partial activation
+            subtree = build_updated_subtree(
+                test_data_root, current_value, versions[language], is_file_level=is_file_level
+            )
+
+            if subtree is not None:
+                # Partial activation or file-level activation
+                print("Partial activation")
+                ancestor[root_path[-1]] = subtree
+            elif update_status == TestClassStatus.ACTIVATE:
+                # Full activation for test class level
+                ancestor[root_path[-1]] = versions[language]
+            else:
+                return None
+
             # Remove comments from updated entry
             if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
                 del ancestor.ca.items[root_path[-1]]
             return ret
+
         return None
     except KeyError:
         return None
