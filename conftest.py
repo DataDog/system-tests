@@ -344,7 +344,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
             # decorate test for junit
             metadata = _collect_item_metadata(item)
 
-            item.user_properties.append(("dd_tags[test.codeowners]", json.dumps(metadata["owners"])))
+            item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
 
             # for feature_id in metadata["features"]:
             #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
