@@ -67,7 +67,7 @@ node_modules/
 utils/build/docker/*/parametric/Dockerfile
 
 # debugger
-/tests/debugger/approvals/*received*
+/tests/debugger/approvals/**/*received*
 .aider*
 
 # version check
