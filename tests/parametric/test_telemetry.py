@@ -809,8 +809,13 @@ class Test_TelemetrySSIConfigs:
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # # Check that the tags name match the expected value
         inject_force_telemetry_name = _mapped_telemetry_name(context, "ssi_forced_injection_enabled")
-        inject_force = configuration_by_name.get(inject_force_telemetry_name)
-        assert inject_force, ",\n".join(configuration_by_name.keys())
+        config_list = configuration_by_name.get(inject_force_telemetry_name, [])
+        assert config_list, f"No configurations found for '{inject_force_telemetry_name}'"
+
+        inject_force = (
+            _find_configuration_by_origin(config_list, "env_var") if expected_value != "none" else config_list[0]
+        )
+        assert inject_force is not None, f"No configuration found for '{inject_force_telemetry_name}'"
         assert str(inject_force.get("value")).lower() == expected_value
         if expected_value != "none":
             assert inject_force.get("origin") == "env_var"
