@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
@@ -12,6 +12,7 @@
 #
 # * Agent:         Docker hub datadog/agent-dev:master-py3
 # * cpp_httpd:     Github action artifact
+# * cpp_nginx:     From circle ci
 # * Golang:        github.com/DataDog/dd-trace-go/v2@main
 # * .NET:          ghcr.io/datadog/dd-trace-dotnet
 # * Java:          S3
@@ -22,6 +23,7 @@
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
+# * Rust:          Clone locally the github repo
 ##########################################################################################
 
 set -eu
@@ -102,20 +104,23 @@ get_circleci_artifact() {
 
     ARTIFACTS=$(curl --silent https://circleci.com/api/v2/project/$SLUG/$JOB_NUMBER/artifacts -H "Circle-Token: $CIRCLECI_TOKEN")
     QUERY=".items[] | select(.path | test(\"$ARTIFACT_PATTERN\"))"
-    ARTIFACT_URL=$(echo $ARTIFACTS | jq -r "$QUERY | .url")
+    readarray -t ARTIFACT_URLS < <(jq -r "$QUERY | .url" <<< "$ARTIFACTS")
 
-    if [ -z "$ARTIFACT_URL" ]; then
+    if [[ ${#ARTIFACT_URLS[@]} -eq 0 ]]; then
         echo "Oooops, I did not found any artifact that satisfy this pattern: $ARTIFACT_PATTERN. Here is the list:"
         echo $ARTIFACTS | jq -r ".items[] | .path"
         exit 1
     fi
+    echo "${ARTIFACT_URLS[@]}"
 
-    ARTIFACT_NAME=$(echo $ARTIFACTS | jq -r "$QUERY | .path" | sed -E 's/libs\///')
-    echo "Artifact URL: $ARTIFACT_URL"
-    echo "Artifact name: $ARTIFACT_NAME"
-    echo "Downloading artifact..."
-
-    curl --silent -L $ARTIFACT_URL --output $ARTIFACT_NAME
+    local aurl= aname=
+    for aurl in "${ARTIFACT_URLS[@]}"; do
+      aname="${aurl##*/}"
+      echo "Artifact URL: $aurl"
+      echo "Artifact Name: $aname"
+      echo "Downloading artifact..."
+      curl --silent -L "$aurl" --output "$aname"
+    done
 }
 
 get_github_action_artifact() {
@@ -131,11 +136,15 @@ get_github_action_artifact() {
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+
+    # this wil fail if there are more than 100 artifacts
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
+    ARTIFACT_URL="$ARTIFACT_URL?per_page=100"
+
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
-    echo "Load artifact $HTML_URL"
+    echo "Load artifacts for $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
-    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))).[0].archive_download_url')
+    ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
 
     curl -H "Authorization: token $GITHUB_TOKEN" --output artifacts.zip -L $ARCHIVE_URL
@@ -143,7 +152,7 @@ get_github_action_artifact() {
     mkdir -p artifacts/
     unzip artifacts.zip -d artifacts/
 
-    find artifacts/ -type f -name $PATTERN -exec cp '{}' . ';'
+    find artifacts/ -type f -name "$PATTERN" -exec cp '{}' . ';'
 
     rm -rf artifacts artifacts.zip
 }
@@ -205,12 +214,9 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
-    rm -rf dd-trace-py/
-    # do not use `--depth 1`, setuptools_scm, does not like it
-    git clone --branch $LIBRARY_TARGET_BRANCH https://github.com/DataDog/dd-trace-py.git
-    cd dd-trace-py
-    echo "Checking out the ref"
-    git log -1 --format=%H
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
 
 elif [ "$TARGET" = "ruby" ]; then
     assert_version_is_dev
@@ -291,8 +297,8 @@ elif [ "$TARGET" = "cpp_httpd" ]; then
 
 elif [ "$TARGET" = "cpp_nginx" ]; then
     assert_version_is_dev
-    echo "Nowhere to load cpp_nginx from"
-    exit 1
+    ARCH=$(arch | sed -e s/x86_64/amd64/ -e s/aarch64/arm64/)
+    get_circleci_artifact gh/DataDog/nginx-datadog build-and-test "build 1.28.0 on ${ARCH} WAF ON" 'ngx_http_datadog_module\\.so.*'
 
 elif [ "$TARGET" = "agent" ]; then
     assert_version_is_dev
@@ -307,6 +313,13 @@ elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
     echo "DataDog/dd-trace-js#$LIBRARY_TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
+
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "$LIBRARY_TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1

@@ -32,10 +32,15 @@ jobs:
         uses: ./.github/actions/install_runner
       - name: Get scenario map
         run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-      - name: Get list of modified files
-        run:  |
-          git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
-          git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
+      - name: Files changed in PR
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api \
+            repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/files \
+            --paginate --jq '.[].filename' \
+            > modified_files.txt
           cat modified_files.txt
       - name: Compute impacted scenario
         id: compute_impacted_scenarios
@@ -46,3 +51,8 @@ jobs:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
+
+      - name: Print results
+        run: |
+          echo 'Scenarios: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios }}'
+          echo 'Scenario Groups: -> ${{ steps.compute_impacted_scenarios.outputs.scenarios_groups }}'
