@@ -80,7 +80,7 @@ telemetry_name_mapping = {
     },
     "trace_debug_enabled": {
         "php": "trace.debug",
-        "golang": "trace_debug",
+        "java": "trace_debug",
     }
 }
 
