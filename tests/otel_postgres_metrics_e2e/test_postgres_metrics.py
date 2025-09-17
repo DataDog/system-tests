@@ -1,9 +1,11 @@
 import os
 import re
 import time
+import json
 from datetime import datetime
 from utils import context, scenarios, interfaces
 
+# Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 POSTGRESQL_METRICS = {
     "postgresql.connection.max": {"data_type": "Gauge", "description": "Configured maximum number of client connections allowed"},
     "postgresql.database.count": {"data_type": "Sum", "description": "Number of user databases"},
@@ -19,12 +21,12 @@ POSTGRESQL_METRICS = {
     "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk"},
     "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
     "postgresql.table.vacuum.count": {"data_type": "Sum", "description": "Number of times a table has manually been vacuumed"},
+    "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
+    "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
+    "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
+    "postgresql.bgwriter.duration": {"data_type": "Sum", "description": "Total time spent writing and syncing files to disk by checkpoints"},
+    "postgresql.bgwriter.maxwritten": {"data_type": "Sum", "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers"},
     # missing metrics
-    # "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
-    # "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
-    # "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
-    # "postgresql.bgwriter.duration": {"data_type": "Sum", "description": "Total time spent writing and syncing files to disk by checkpoints"},
-    # "postgresql.bgwriter.maxwritten": {"data_type": "Sum", "description": "Number of times the background writer stopped a cleaning scan"},
     # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
     # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
     # "postgresql.wal.lag": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification"},
@@ -52,24 +54,56 @@ class Test_PostgreSQLMetricsCollection:
         """
         The goal of this test is to validate that the metrics appear in the Otel Collector logs.
         """
-        collector_log_path = f"{context.scenario.host_log_folder}/docker/collector/stderr.log"
-        assert os.path.exists(collector_log_path), f"Collector log file not found: {collector_log_path}"
+        collector_log_path = f"{context.scenario.host_log_folder}/interfaces/collector/metrics.json"
+        assert os.path.exists(collector_log_path), f"Metrics log file not found: {collector_log_path}"
 
+        # Default behaviors is that metrics are batched together in the file exporter
+        metrics_batch = []
         with open(collector_log_path, 'r', encoding='utf-8') as f:
-            log_content = f.read()
-        
+            for row in f:
+                if row.strip():
+                    metrics_batch.append(json.loads(row.strip()))
+
+        found_metrics = set()
+        metrics_dont_match_spec = set()
+        for data in metrics_batch:
+            if "resourceMetrics" in data:
+                for resource_metric in data["resourceMetrics"]:
+                    if "scopeMetrics" in resource_metric:
+                        for scope_metric in resource_metric["scopeMetrics"]:
+                            if "metrics" in scope_metric:
+                                for metric in scope_metric["metrics"]:
+                                    if "name" in metric:
+                                        found_metrics.add(metric["name"])
+
+
+                                        # For metrics we do find, check payload is expected
+                                        description = metric["description"]
+                                        gauge_type = 'gauge' in metric.keys()
+                                        sum_type = 'sum' in metric.keys()
+
+                                        expected_type = POSTGRESQL_METRICS[metric["name"]]['data_type'].lower()
+                                        expected_description = POSTGRESQL_METRICS[metric["name"]]['description']
+
+                                        if expected_type == 'sum':
+                                            if not sum_type:
+                                                metrics_dont_match_spec.add(f"{metric['name']}: Expected Sum type but got Gauge")
+                                        elif expected_type == 'gauge':
+                                            if not gauge_type:
+                                                metrics_dont_match_spec.add(f"{metric['name']}: Expected Gauge type but got Sum")
+
+                                        # Sometimes the spec has a period, but the actual logs don't.
+                                        if description.rstrip('.') != expected_description.rstrip('.'):
+                                            metrics_dont_match_spec.add(f"{metric['name']}: Description mismatch - Expected: '{expected_description}', Got: '{description}'")
+
+
+
         validation_results = []
         failed_validations = []
 
+        # As a last check, make sure that ALL metrics in the expected list show up in the logs
         for metric_name, specs in POSTGRESQL_METRICS.items():
-            metric_pattern = rf"-> Name: {re.escape(metric_name)}.*?-> DataType: {specs['data_type']}.*?Value: \d+"
-            matches = re.findall(metric_pattern, log_content, re.DOTALL)
-
-            metric_occurrence = len(matches)
-            min_occurrence = 1
-            description = specs['description']
-            
-            if metric_occurrence >= min_occurrence:
+            if metric_name in found_metrics:
                 result = f"✅ {metric_name}"
                 validation_results.append(result)
             else:
@@ -77,9 +111,14 @@ class Test_PostgreSQLMetricsCollection:
                 validation_results.append(result)
                 failed_validations.append(result)
 
+        # A metric can fail different parts of the spec
+        for spec_mismatch in metrics_dont_match_spec:
+            failed_validations.append(f"❌ Spec mismatch: {spec_mismatch}")
+            validation_results.append(f"❌ Spec mismatch: {spec_mismatch}")
+
         assert len(failed_validations) == 0, (
-            f"CRITICAL: {len(failed_validations)} metrics failed detailed validation!\n"
-            f"\n\nAll detailed validations:\n" + "\n".join(validation_results)
+            f"Error: {len(failed_validations)} metrics failed the expected behavior!\n"
+            f"\n\nFailed validations:\n" + "\n".join(failed_validations)
         )
 
     def test_postgresql_metrics_received_by_backend(self):

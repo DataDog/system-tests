@@ -4,7 +4,6 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
-  # PostgreSQL receiver for system-tests database
   postgresql:
     endpoint: postgres:5433
     username: system_tests_user
@@ -17,23 +16,27 @@ receivers:
 
 exporters:
   datadog:
-    traces:
-      span_name_as_resource_name: true
     api:
       key: ${DD_API_KEY}
       site: ${DD_SITE}
       fail_on_invalid_key: true
     metrics:
-      histograms:
-        mode: distributions
-        send_aggregation_metrics: true
-  
-  logging:
-    verbosity: detailed
-  
-  # Optional: OTLP exporter if you need it
+      instrumentation_scope_metadata_as_tags: true
+
   debug:
     verbosity: detailed
+
+  file/traces:
+    path: /tmp/traces.json
+    format: json
+
+  file/metrics:
+    path: /tmp/metrics.json
+    format: json
+
+  file/logs:
+    path: /tmp/logs.json
+    format: json
 
 processors:
   batch:
@@ -55,20 +58,19 @@ service:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
+      exporters: [datadog, file/traces]
     
     metrics:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
-    
-    # PostgreSQL metrics pipeline
+      exporters: [datadog, file/metrics]
+
     metrics/postgresql:
       receivers: [postgresql]
       processors: [attributes/add_rid, batch]
-      exporters: [datadog, logging, debug]
+      exporters: [datadog, debug, file/metrics]
     
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [datadog, logging]
+      exporters: [datadog, file/logs]
