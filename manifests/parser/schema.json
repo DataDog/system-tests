@@ -37,7 +37,7 @@
       "allOf": [
         {
           "if": { "type": "string" },
-          "then": { "$ref": "#/$defs/skipped_declaration" }
+          "then": { "$ref": "#/$defs/feature_state" }
         },
         {
           "if": { "type": "object" },
