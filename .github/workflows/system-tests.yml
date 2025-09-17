@@ -274,7 +274,7 @@ jobs:
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
 
-  stream_processing_offload:
+  run_stream_processing_offload:
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.streamprocessingoffload_scenarios != '[]' && inputs.library == 'golang'}}
