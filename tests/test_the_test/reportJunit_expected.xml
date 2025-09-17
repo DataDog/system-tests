@@ -7,11 +7,13 @@
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_pass">
             <properties>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="passed"/>
             </properties>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_fail" time="0.000">
             <properties>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="failed"/>
             </properties>
             <failure message="Failed: dummy">self = &lt;tests.test_the_test.test_junit.Test_Cases object at 0x10cf01eb0&gt;
     def test_fail(self):
@@ -24,6 +26,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="irrelevant"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="irrelevant"/>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
             </properties>
             <skipped type="pytest.skip" message="irrelevant">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:22: irrelevant</skipped>
         </testcase>
@@ -32,6 +35,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
+                <property name="dd_tags[systest.case.outcome]" value="xfailed"/>
             </properties>
             <skipped type="pytest.xfail" message="bug (APMRP-360)" />
         </testcase>
@@ -40,6 +44,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
+                <property name="dd_tags[systest.case.outcome]" value="xpassed"/>
             </properties>
         </testcase>
         <testcase name="tests.test_the_test.test_junit.Test_Cases.test_flaky" time="0.000">
@@ -47,6 +52,7 @@ tests/test_the_test/test_junit.py:20: Failed</failure>
                 <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="flaky"/>
                 <property name="dd_tags[systest.case.declarationDetails]" value="flaky (APMRP-360)"/>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
             </properties>
             <skipped type="pytest.skip" message="flaky (APMRP-360)">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:34: flaky (APMRP-360)</skipped>
         </testcase>

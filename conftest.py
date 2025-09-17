@@ -5,7 +5,7 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence, Callable
+from collections.abc import Sequence, Callable, Generator
 import json
 import os
 from pathlib import Path
@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 from pytest_jsonreport.plugin import JSONReport
+from pluggy._result import _Result as Result
 
 from manifests.parser.core import load as load_manifests
 from utils import context
@@ -425,6 +426,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     last_item_file = ""
     for item in session.items:
         if _item_is_skipped(item):
+            item.user_properties.append(("dd_tags[systest.case.outcome]", "skipped"))
             continue
 
         if not item.instance:  # item is a method bounded to a class
@@ -474,6 +476,28 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
+    # Run all other hooks to get the report object
+    # rep: pytest.TestReport = pytest.TestReport.from_item_and_call(item, call)
+
+    outcome = yield
+    rep: pytest.TestReport = outcome.get_result()
+
+    if rep.when == "call":  # only attach outcome after test call
+        # rep.outcome is one of: passed, failed, skipped
+        # but json_report also distinguishes xfailed/xpassed
+        # via rep.wasxfail and outcome
+        value = rep.outcome
+        if getattr(rep, "wasxfail", None):
+            if rep.outcome == "skipped":
+                value = "xfailed"
+            elif rep.outcome == "passed":
+                value = "xpassed"
+
+        item.user_properties.append(("dd_tags[systest.case.outcome]", value))
 
 
 @pytest.hookimpl(optionalhook=True)
