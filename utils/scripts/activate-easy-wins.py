@@ -267,7 +267,7 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                     data = json.load(file)
                 for dep in data["testedDependencies"]:
                     if dep["name"] == "library":
-                        versions[library] = dep["version"]
+                        versions[library] = f"v{dep['version']}"
                         found_version = True
         if not found_version:
             versions[library] = "xpass"
