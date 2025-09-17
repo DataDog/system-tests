@@ -640,6 +640,8 @@ class Test_TelemetryEnhancedConfigReporting:
         matching_configs = [cfg for cfg in all_configs if cfg["name"] == config_name]
         assert matching_configs, f"No configurations found for {config_name}"
 
+        print(json.dumps(matching_configs, indent=2))
+
         # Group configurations by origin and keep the latest (highest seq_id) for each origin
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
@@ -648,6 +650,9 @@ class Test_TelemetryEnhancedConfigReporting:
 
         # Verify that configurations for the expected number of origins were received
         assert len(sorted_configs) == len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
+
+        print(json.dumps(expected_precedence, indent=2))
+        print(json.dumps(sorted_configs, indent=2))
 
         # Verify each configuration matches expected precedence
         for i, expected in enumerate(expected_precedence):
