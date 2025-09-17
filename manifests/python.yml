@@ -19,9 +19,9 @@ tests/:
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': v3.13.0.dev
-          'django-poc': v3.12.0.dev
-          'django-py3.13': v3.12.0.dev
-          'python3.12': v3.12.0.dev
+          django-poc: v3.12.0.dev
+          django-py3.13: v3.12.0.dev
+          python3.12: v3.12.0.dev
       test_schemas.py:
         Test_Scanners:
           '*': v2.4.0
@@ -81,23 +81,23 @@ tests/:
         test_header_injection.py:
           TestHeaderInjection:
             '*': irrelevant (was v2.10.0.dev but algorithm was updated will be updated)
-            'django-poc': v3.10.0.dev
-            'django-py3.13': v3.10.0.dev
-            'python3.12': v3.10.0.dev
+            django-poc: v3.10.0.dev
+            django-py3.13: v3.10.0.dev
+            python3.12: v3.10.0.dev
           TestHeaderInjectionExclusionAccessControlAllow: missing_feature
           TestHeaderInjectionExclusionContentEncoding: missing_feature
           TestHeaderInjectionExclusionPragma: missing_feature
           TestHeaderInjectionExclusionTransferEncoding: missing_feature
           TestHeaderInjection_ExtendedLocation:
             '*': irrelevant (was v3.1.0.dev but algorithm was updated will be updated)
-            'django-poc': v3.10.0.dev
-            'django-py3.13': v3.10.0.dev
-            'python3.12': v3.10.0.dev
+            django-poc: v3.10.0.dev
+            django-py3.13: v3.10.0.dev
+            python3.12: v3.10.0.dev
           TestHeaderInjection_StackTrace:
             '*': irrelevant (was v3.9.0.dev but algorithm was updated will be updated)
-            'django-poc': v3.10.0.dev
-            'django-py3.13': v3.10.0.dev
-            'python3.12': v3.10.0.dev
+            django-poc: v3.10.0.dev
+            django-py3.13: v3.10.0.dev
+            python3.12: v3.10.0.dev
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: missing_feature
           Test_HstsMissingHeader_ExtendedLocation: missing_feature
@@ -259,7 +259,7 @@ tests/:
           TestMultipart: missing_feature
         test_parameter_name.py:
           TestParameterName:
-            "*": v2.20.0
+            '*': v2.20.0
             fastapi: v2.20.1
         test_parameter_value.py:
           TestParameterValue:
@@ -297,25 +297,25 @@ tests/:
       test_api10.py:
         Test_API10_all:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_request_body:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_request_headers:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_request_method:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_response_body:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_response_headers:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
         Test_API10_response_status:
           '*': v3.14.0.rc
-          'fastapi': v3.15.0.dev (with requests support)
+          fastapi: v3.15.0.dev (with requests support)
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
@@ -545,19 +545,19 @@ tests/:
       Test_V3_Auto_User_Instrum_Mode_Capability: v2.11.0
       Test_V3_Login_Events:
         '*': v2.20.0.dev
-        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
       Test_V3_Login_Events_Anon:
         '*': v2.20.0.dev
-        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
       Test_V3_Login_Events_Blocking:
         '*': v2.20.0.dev
-        'django-poc': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.20.0.dev but weblog use new SDK now)
       Test_V3_Login_Events_RC: v2.11.0
     test_automated_user_and_session_tracking.py:
       Test_Automated_Session_Blocking:
@@ -567,14 +567,14 @@ tests/:
         python3.12: v3.3.0.dev
       Test_Automated_User_Blocking:
         '*': v3.0.0.rc
-        'django-poc': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v3.0.0.rc but weblog use new SDK now)
       Test_Automated_User_Tracking:
         '*': v3.1.0.dev
-        'django-poc': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
@@ -657,9 +657,9 @@ tests/:
         python3.12: v3.7.0.dev (is v1.16.1 but weblog use new SDK now)
       Test_Suspicious_Request_Blocking:
         '*': v2.4.0
-        'django-poc': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.4.0 but weblog use new SDK now)
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.5.0
     test_conf.py:
@@ -674,21 +674,21 @@ tests/:
     test_event_tracking.py:
       Test_CustomEvent:
         '*': v1.10.0
-        'django-poc': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
-        'django-py3.13': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)'
+        django-py3.13: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v1.10.0 but weblog use new SDK now)
       Test_CustomEvent_Metrics: v3.10.0.dev
       Test_UserLoginFailureEvent:
         '*': v2.10.0
-        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
-        'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        django-py3.13: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginFailureEvent_Metrics: v3.10.0.dev
       Test_UserLoginSuccessEvent:
         '*': v2.10.0
-        'django-poc': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
-        'django-py3.13': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)'
+        django-py3.13: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.10.0 but weblog use new SDK now)
       Test_UserLoginSuccessEvent_Metrics: v3.10.0.dev
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled:
@@ -798,9 +798,9 @@ tests/:
     test_user_blocking_full_denylist.py:
       Test_UserBlocking_FullDenylist:
         '*': v2.11.0
-        'django-poc': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
-        'django-py3.13': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
-        'python3.12': v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        django-poc: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        django-py3.13: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
+        python3.12: v3.7.0.dev (is v2.11.0 but weblog use new SDK now)
     test_versions.py:
       Test_Events: v0.58.5
   debugger/:
@@ -1109,7 +1109,7 @@ tests/:
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py: v3.15.0+dev27.gc76661eea
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -1199,7 +1199,7 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this environment variable is not supported)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.15.0+dev27.gc76661eea
     Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
     Test_Config_IntegrationEnabled_False:
@@ -1258,11 +1258,11 @@ tests/:
     Test_HeaderTags_Colon_Trailing: v2.8.0
     Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
-    Test_HeaderTags_Short: missing_feature
-    Test_HeaderTags_Whitespace_Header: missing_feature
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
+    Test_HeaderTags_Short: v3.15.0+dev27.gc76661eea
+    Test_HeaderTags_Whitespace_Header: v3.15.0+dev27.gc76661eea
+    Test_HeaderTags_Whitespace_Tag: v3.15.0+dev27.gc76661eea
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
-    Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v3.15.0+dev27.gc76661eea
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
@@ -1289,10 +1289,10 @@ tests/:
     Test_MetaDatadogTags: v3.2.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:
-      "*": missing_feature (endpoint not implemented)
+      '*': missing_feature (endpoint not implemented)
       flask-poc: v3.0.0
     Test_SpanEvents_WithoutAgentSupport:
-      "*": missing_feature (endpoint not implemented)
+      '*': missing_feature (endpoint not implemented)
       flask-poc: v3.0.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v2.7.0
@@ -1315,6 +1315,6 @@ tests/:
     Test_TelemetryEnhancedConfigReporting:
       '*': irrelevant
       flask-poc: v3.13.0rc1
-    Test_TelemetrySCAEnvVar: missing_feature
+    Test_TelemetrySCAEnvVar: v3.15.0+dev27.gc76661eea
     Test_TelemetryV2: v1.17.3
   test_v1_payloads.py: missing_feature
