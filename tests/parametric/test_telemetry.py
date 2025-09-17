@@ -157,8 +157,13 @@ class Test_Defaults:
                 continue
             mapped_apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
 
-            cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
-            assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
+            config_list = configuration_by_name.get(mapped_apm_telemetry_name, [])
+            assert config_list, f"No configurations found for '{mapped_apm_telemetry_name}'"
+
+            cfg_item = _find_configuration_by_origin(config_list, "default")
+            assert (
+                cfg_item is not None
+            ), f"No configuration found for '{mapped_apm_telemetry_name}' with origin 'default'"
             if isinstance(value, tuple):
                 assert (
                     cfg_item.get("value") in value
@@ -310,7 +315,10 @@ class Test_Environment:
                 continue
 
             mapped_apm_telemetry_name = _mapped_telemetry_name(context, apm_telemetry_name)
-            cfg_item = configuration_by_name.get(mapped_apm_telemetry_name)
+            config_list = configuration_by_name.get(mapped_apm_telemetry_name, [])
+            assert config_list, f"No configurations found for '{mapped_apm_telemetry_name}'"
+
+            cfg_item = _find_configuration_by_origin(config_list, "env_var")
             assert cfg_item is not None, f"Missing telemetry config item for '{mapped_apm_telemetry_name}'"
             if isinstance(environment_value, tuple):
                 assert cfg_item.get("value") in environment_value, f"Unexpected value for '{mapped_apm_telemetry_name}'"
