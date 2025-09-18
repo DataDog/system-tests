@@ -538,7 +538,7 @@ tests/:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_Empty_Config: missing_feature
-      Test_Invalid_Config: missing_feature
+      Test_Invalid_Config: v2.2.3
       Test_Multiple_Actions: v1.69.0
       Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
@@ -628,30 +628,30 @@ tests/:
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
-          "*": irrelevant
+          '*': irrelevant
           net-http: v0.1  # real version not known
       test_kinesis.py:
         Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
           net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_rabbitmq.py:
         Test_RabbitMQ_Trace_Context_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
           net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature
           net-http-orchestrion: missing_feature (Endpoint not implemented)
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
           net-http-orchestrion: missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          "*": irrelevant
+          '*': irrelevant
           net-http: missing_feature (Endpoint not implemented)
           net-http-orchestrion: missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
@@ -662,64 +662,64 @@ tests/:
       Test_Dbm: missing_feature
     test_dsm.py:
       Test_DsmContext_Extraction_Base64:
-        "*": irrelevant
+        '*': irrelevant
         net-http: v0.1  # real version unknown
       Test_DsmContext_Injection_Base64:
-        "*": irrelevant
+        '*': irrelevant
         net-http: v0.1  # real version unknown
       Test_DsmHttp: missing_feature
       Test_DsmKafka:
-        "*": irrelevant
+        '*': irrelevant
         net-http: v0.1  # real version unknown
       Test_DsmKinesis:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_FanoutExchange:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmRabbitmq_TopicExchange:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmSNS:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_DsmSQS:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Inter_Process:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
-        "*": irrelevant
+        '*': irrelevant
         net-http: missing_feature (Endpoint not implemented)
         net-http-orchestrion: missing_feature (Endpoint not implemented)
     test_inferred_proxy.py:
       Test_AWS_API_Gateway_Inferred_Span_Creation:
-        "*": irrelevant
+        '*': irrelevant
         chi: v1.72.1
         echo: v1.72.1
         gin: v1.72.1
         net-http: v1.72.1
         net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
-        "*": irrelevant
+        '*': irrelevant
         chi: v1.72.1
         echo: v1.72.1
         gin: v1.72.1
         net-http: v1.72.1
         net-http-orchestrion: v1.72.1
       Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
-        "*": irrelevant
+        '*': irrelevant
         chi: v1.72.1
         echo: v1.72.1
         gin: v1.72.1
@@ -813,8 +813,8 @@ tests/:
           Test_PutObject: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed: v2.2.3
+    Test_Baggage_Headers_Malformed2: v2.2.3
     Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -848,7 +848,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: v2.2.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_graphql.py:
@@ -897,10 +897,10 @@ tests/:
     Test_Meta: v1.45.0
   test_span_events.py:
     Test_SpanEvents_WithAgentSupport:
-      "*": irrelevant
+      '*': irrelevant
       net-http: v1.73.0
     Test_SpanEvents_WithoutAgentSupport:
-      "*": irrelevant
+      '*': irrelevant
       net-http: v1.73.0
   test_standard_tags.py:
     Test_StandardTagsClientIp: v1.46.0
