@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import time
 import types
+from typing import Any
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -476,6 +477,23 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
     setup_properties.log_requests(item)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_fixture_setup(
+    fixturedef,  # noqa: ARG001, ANN001
+    request: pytest.FixtureRequest,
+) -> Generator[None, Any, None]:
+    try:
+        (yield).get_result()
+    except BaseException:
+        outcome = "error"
+
+        for name, value in request.node.user_properties:
+            if name == "dd_tags[systest.case.declaration]" and value in ("bug", "notImplemented"):
+                outcome = "xfailed"
+
+        request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
 
 
 @pytest.hookimpl(hookwrapper=True)

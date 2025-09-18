@@ -9,10 +9,6 @@ import sys
 import xml.etree.ElementTree as ET
 
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)]
-)
-
 REPORT_FILENAME = "reportJunit.xml"
 
 
@@ -130,6 +126,7 @@ def compute_file(file_path: Path, summary: Summary) -> None:
                 logging.debug("   Process %s", testcase.attrib["name"])
 
                 test_properties = get_properties(testcase)
+
                 test = Test(
                     nodeid=testcase.attrib["name"],
                     outcome=test_properties[PropertyName.OUTCOME],
@@ -155,8 +152,21 @@ def main() -> None:
         default="",
         help="Path to the output file for the summary. Default to stdout",
     )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="store_true",  # turns flag into a boolean
+        default=False,  # (optional) default is False anyway
+        help="Enable verbose output",
+    )
 
     args = parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        handlers=[logging.StreamHandler(sys.stdout)],
+    )
 
     summary = Summary()
 

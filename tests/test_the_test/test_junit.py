@@ -5,9 +5,14 @@ import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
 import pytest
-from utils import scenarios, features, irrelevant, bug, flaky
+from utils import scenarios, features, irrelevant, bug, flaky, missing_feature
 
 from .utils import run_system_tests
+
+
+@pytest.fixture
+def error_fixture():
+    raise TypeError("nope!")
 
 
 @scenarios.mock_the_test
@@ -34,21 +39,31 @@ class Test_Cases:
     @flaky(condition=True, reason="APMRP-360")
     def test_flaky(self): ...
 
+    @bug(condition=True, reason="APMRP-360")
+    def test_error_on_bug(self, error_fixture): ...
+
+    @missing_feature(condition=True, reason="APMRP-360")
+    def test_error_on_missing_feature(self, error_fixture): ...
+
+    def test_error(self, error_fixture): ...
+
 
 @scenarios.test_the_test
 def test_main():
     run_system_tests(test_path="tests/test_the_test/test_junit.py", expected_return_code=1)
 
-    fromfile = "logs_mock_the_test/reportJunit.xml"
-    tofile = "tests/test_the_test/reportJunit_expected.xml"
+    observed_file = "logs_mock_the_test/reportJunit.xml"
+    expected_file = "tests/test_the_test/reportJunit_expected.xml"
 
-    observed = _normalize_etree(fromfile)
-    expected = _normalize_etree(tofile)
+    expected = _normalize_etree(expected_file)
+    observed = _normalize_etree(observed_file)
 
     if observed == expected:
         return
 
-    diff = "\n".join(difflib.unified_diff(observed, expected, lineterm="", fromfile=fromfile, tofile=tofile))
+    diff = "\n".join(
+        difflib.unified_diff(expected, observed, lineterm="", fromfile=expected_file, tofile=observed_file)
+    )
     pytest.fail(f"XML documents differ:\n{diff}")
 
 
