@@ -3,7 +3,68 @@ import json
 import os
 import re
 import sys
-from typing import TextIO
+from typing import Any, TextIO
+
+# do not include otel in system-tests CI by default, as the staging backend is not stable enough
+default_libraries = [
+    "cpp",
+    "cpp_httpd",
+    "cpp_nginx",
+    "dotnet",
+    "golang",
+    "java",
+    "nodejs",
+    "php",
+    "python",
+    "ruby",
+    "python_lambda",
+    "rust",
+]
+
+lambda_libraries = ["python_lambda"]
+otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
+
+# nodejs_otel is broken: dependancy needs to be pinned
+# libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
+libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|python_lambda|rust"
+
+
+def get_impacted_libraries(modified_file: str) -> list[str]:
+    """Return the list of impacted libraries by this file"""
+    if modified_file.endswith((".md", ".rdoc", ".txt")):
+        # modification in documentation file
+        return []
+
+    files_with_no_impact = [
+        "utils/scripts/compute-impacted-libraries.py",
+        ".github/workflows/compute-impacted-libraries.yml",
+    ]
+    if modified_file in files_with_no_impact:
+        return []
+
+    lambda_proxy_patterns = [
+        "utils/build/docker/lambda_proxy/.+",
+        "utils/build/docker/lambda-proxy.Dockerfile",
+    ]
+    for pattern in lambda_proxy_patterns:
+        if re.match(pattern, modified_file):
+            return lambda_libraries
+
+    if modified_file in ("utils/_context/_scenarios/open_telemetry.py",):
+        return otel_libraries
+
+    patterns = [
+        rf"^manifests/({libraries})\.",
+        rf"^utils/build/docker/({libraries})/",
+        rf"^lib-injection/build/docker/({libraries})/",
+        rf"^utils/build/build_({libraries})_base_images.sh",
+    ]
+
+    for pattern in patterns:
+        if match := re.search(pattern, modified_file):
+            return [match[1]]
+
+    return default_libraries
 
 
 def main() -> None:
@@ -18,30 +79,11 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda"  # noqa: E501
     result = set()
-
-    # do not include otel in system-tests CI by default, as the staging backend is not stable enough
-    # all_libraries = {
-    #   "cpp", "dotnet", "golang", "java", "nodejs", "php", "python", "ruby", "java_otel", "python_otel", "nodejs_otel"
-    # }
-    all_libraries = {
-        "cpp",
-        "cpp_httpd",
-        "cpp_nginx",
-        "dotnet",
-        "golang",
-        "java",
-        "nodejs",
-        "php",
-        "python",
-        "ruby",
-        "python_lambda",
-    }
 
     if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
         print("Not in PR => run all libraries")
-        result |= all_libraries
+        result |= set(default_libraries)
 
     else:
         pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
@@ -49,6 +91,7 @@ def main() -> None:
         user_choice = None
         branch_selector = None
         prevent_library_selector_mismatch = True
+        rebuild_lambda_proxy = False
         if match:
             print(f"PR title matchs => run {match[1]}")
             user_choice = match[1]
@@ -65,33 +108,28 @@ def main() -> None:
             modified_files: list[str] = [line.strip() for line in f]
 
         for file in modified_files:
+            impacted_libraries = get_impacted_libraries(file)
+
             if file.endswith((".md", ".rdoc", ".txt")):
                 # modification in documentation file
                 continue
 
-            match = re.search(rf"^(manifests|utils/build/docker|lib-injection/build/docker)/({libraries})[\./]", file)
+            if file in ("utils/build/docker/lambda_proxy/pyproject.toml", "utils/build/docker/lambda-proxy.Dockerfile"):
+                rebuild_lambda_proxy = True
 
             if user_choice is None:
                 # user let the script pick impacted libraries
-                if match:
-                    result.add(match[2])
-                else:
-                    result |= all_libraries
-            elif prevent_library_selector_mismatch:
+                result |= set(impacted_libraries)
+            elif prevent_library_selector_mismatch and len(impacted_libraries) > 0:
                 # user specified a library in the PR title
-                if match:
-                    if match[2] != user_choice:
-                        print(
-                            f"""File {file} is modified, and it may impact {match[2]}.
-                            Please remove the PR title prefix [{user_choice}]"""
-                        )
-                        sys.exit(1)
-                elif file.startswith("tests/"):
+                # and there are some impacted libraries
+                if file.startswith("tests/"):
                     # modification in tests files are complex, trust user
                     ...
-                else:
+                elif impacted_libraries != [user_choice]:
+                    # only acceptable use case : impacted library exactly matches user choice
                     print(
-                        f"""File {file} is modified, it may impact all libraries.
+                        f"""File {file} is modified, and it may impact {', '.join(impacted_libraries)}.
                         Please remove the PR title prefix [{user_choice}]"""
                     )
                     sys.exit(1)
@@ -108,22 +146,27 @@ def main() -> None:
             "version": "dev",
         }
         for library in sorted(result)
-        if "otel" not in library and library not in ("cpp_nginx",)
+        if "otel" not in library
     ]
+
+    libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
+    outputs = {
+        "library_matrix": populated_result,
+        "libraries_with_dev": libraries_with_dev,
+        "desired_execution_time": 600 if len(result) == 1 else 3600,
+        "rebuild_lambda_proxy": rebuild_lambda_proxy,
+    }
 
     if args.output:
         with open(args.output, "w", encoding="utf-8") as f:
-            print_result(populated_result, result, f)
+            print_github_outputs(outputs, f)
     else:
-        print_result(populated_result, result, sys.stdout)
+        print_github_outputs(outputs, sys.stdout)
 
 
-def print_result(populated_result: list, result: set[str], f: TextIO) -> None:
-    libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
-
-    print(f"library_matrix={json.dumps(populated_result)}", file=f)
-    print(f"libraries_with_dev={json.dumps(libraries_with_dev)}", file=f)
-    print(f"desired_execution_time={600 if len(result) == 1 else 3600}", file=f)
+def print_github_outputs(outputs: dict[str, Any], f: TextIO) -> None:
+    for name, value in outputs.items():
+        print(f"{name}={json.dumps(value)}", file=f)
 
 
 if __name__ == "__main__":

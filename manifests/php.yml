@@ -205,6 +205,14 @@ tests/:
       test_vulnerability_schema.py:
         TestIastVulnerabilitySchema: missing_feature
     rasp/:
+      test_api10.py:
+        Test_API10_all: missing_feature
+        Test_API10_request_body: missing_feature
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -325,11 +333,8 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: v1.11.0
       Test_AppSecStandalone_NotEnabled: v1.6.2
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.8.0
-      Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v1.8.0
       Test_UserEventsStandalone_Automated: v1.8.0
       Test_UserEventsStandalone_SDK_V1: v1.8.0
@@ -420,6 +425,7 @@ tests/:
       Test_AsmDdMultiConfiguration: v1.12.0
       Test_BlockingActionChangesWithRemoteConfig: v1.6.2
       Test_Empty_Config: missing_feature
+      Test_Invalid_Config: missing_feature
       Test_Multiple_Actions: v1.6.2
       Test_Unknown_Action: v1.6.2
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
@@ -562,6 +568,7 @@ tests/:
       Test_Otel_API_Interoperability: v0.94.0
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
+    test_otel_logs.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
@@ -575,12 +582,15 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
+      Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: >-
         missing_feature (The sampling priority chosen when the trace was extracted without a sampling decision is not consistent with the tracer's configuration. See <https://github.com/DataDog/system-tests/actions/runs/7629296312/job/20782699614?pr=2005>.)
+    test_sampling_span_tags.py:
+      Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
     test_span_links.py: missing_feature
     test_telemetry.py:
@@ -652,7 +662,11 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_graphql.py: missing_feature
+  test_graphql.py:
+    Test_GraphQLOperationErrorReporting:
+      '*': missing_feature
+    Test_GraphQLOperationErrorTracking:
+      '*': missing_feature
   test_identify.py:
     Test_Basic: v0.85.0
     Test_Propagate: v0.85.0
@@ -677,6 +691,7 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (profiling seems not to be activated)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: bug (APMAPI-736)
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown
@@ -703,6 +718,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: missing_feature
     Test_Telemetry: v0.90
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: v0.99.1
     Test_TelemetryV2: v0.90
+  test_v1_payloads.py: missing_feature

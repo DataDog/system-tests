@@ -82,6 +82,7 @@ class Capabilities(IntEnum):
     ASM_DD_MULTICONFIG = 42
     ASM_TRACE_TAGGING_RULES = 43
     ASM_EXTENDED_DATA_COLLECTION = 44
+    APM_TRACING_MULTICONFIG = 45
 
 
 class SamplingPriority(IntEnum):

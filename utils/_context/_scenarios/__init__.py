@@ -22,6 +22,7 @@ from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -101,14 +102,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    trace_propagation_style_default = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DEFAULT",
-        weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
-        },
-        doc="Test Default propagation",
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -129,11 +122,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_app_started_config_chaining = EndToEndScenario(
-        "TELEMETRY_APP_STARTED_CONFIG_CHAINING",
+    telemetry_enhanced_config_reporting = EndToEndScenario(
+        "TELEMETRY_ENHANCED_CONFIG_REPORTING",
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
+            "DD_TRACE_CONFIG": "ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
@@ -201,6 +195,18 @@ class _Scenarios:
         github_workflow="endtoend",
         scenario_groups=[scenario_groups.appsec],
     )
+    # This GraphQL scenario can be used for any GraphQL testing, not just AppSec
+    graphql_error_tracking = EndToEndScenario(
+        "GRAPHQL_ERROR_TRACKING",
+        weblog_env={
+            "DD_TRACE_GRAPHQL_ERROR_EXTENSIONS": "int,float,str,bool,other",
+            "DD_TRACE_GRAPHQL_ERROR_TRACKING": "true",
+        },
+        weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+        doc="GraphQL error tracking tests with OpenTelemetry semantics",
+        github_workflow="endtoend",
+        scenario_groups=[scenario_groups.appsec],
+    )
     appsec_rules_monitoring_with_errors = EndToEndScenario(
         "APPSEC_RULES_MONITORING_WITH_ERRORS",
         weblog_env={"DD_APPSEC_RULES": "/appsec_custom_rules_with_errors.json"},
@@ -256,7 +262,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            In this scenario, we use remote config. By the spec, when remote config is available, rules file
             embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
@@ -417,38 +423,11 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_standalone_experimental = EndToEndScenario(
-        "APPSEC_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out) V2",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    iast_standalone_experimental = EndToEndScenario(
-        "IAST_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -469,19 +448,6 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sca_standalone_experimental = EndToEndScenario(
-        "SCA_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -536,7 +502,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            In this scenario, we use remote config. By the spec, when remote config is available, rules file
             embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
@@ -586,8 +552,18 @@ class _Scenarios:
         doc="",
     )
 
+    apm_tracing_efficient_payload = EndToEndScenario(
+        "APM_TRACING_EFFICIENT_PAYLOAD",
+        weblog_env={
+            "DD_TRACE_SAMPLE_RATE": "1.0",
+            "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+        },
+        backend_interface_timeout=5,
+        doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
+    )
+
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
@@ -663,6 +639,9 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
         doc="",
@@ -824,9 +803,10 @@ class _Scenarios:
 
     simple_auto_injection_profiling = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_PROFILING",
-        "Onboarding Single Step Instrumentation scenario with profiling activated by the app env var",
+        "Onboarding Single Step Instrumentation scenario with profiling activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_PROFILING_ENABLED": "auto"},
         app_env={
-            "DD_PROFILING_ENABLED": "auto",
             "DD_PROFILING_UPLOAD_PERIOD": "10",
             "DD_INTERNAL_PROFILING_LONG_LIVED_THRESHOLD": "1500",
         },
@@ -858,8 +838,9 @@ class _Scenarios:
 
     simple_auto_injection_appsec = InstallerAutoInjectionScenario(
         "SIMPLE_AUTO_INJECTION_APPSEC",
-        "Onboarding Single Step Instrumentation scenario with Appsec activated by the app env var",
-        app_env={"DD_APPSEC_ENABLED": "true"},
+        "Onboarding Single Step Instrumentation scenario with Appsec activated by the "
+        "stable config (application_monitoring.yaml)",
+        agent_env={"DD_APPSEC_ENABLED": "true"},
         scenario_groups=[scenario_groups.all, scenario_groups.simple_onboarding_appsec],
         github_workflow="aws_ssi",
     )
@@ -1003,18 +984,14 @@ class _Scenarios:
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = EndToEndScenario(
-        "APPSEC_RASP",
+
+    appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
+
+    appsec_standalone_rasp = AppsecRaspScenario(
+        "APPSEC_STANDALONE_RASP",
         weblog_env={
-            "DD_APPSEC_RASP_ENABLED": "true",
-            "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
-            # added to test Test_ExtendedRequestBodyCollection
-            "DD_APPSEC_RASP_COLLECT_REQUEST_BODY": "true",
+            "DD_APM_TRACING_ENABLED": "false",
         },
-        weblog_volumes={"./tests/appsec/rasp/rasp_ruleset.json": {"bind": "/appsec_rasp_ruleset.json", "mode": "ro"}},
-        doc="Enable APPSEC RASP",
-        github_workflow="endtoend",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
     )
 
     appsec_rasp_non_blocking = EndToEndScenario(

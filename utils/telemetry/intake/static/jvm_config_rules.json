@@ -9,6 +9,7 @@
         "api-security_enabled": "api_security_enabled",
         "api-security_request_sample_rate": "api_security_request_sample_rate",
         "civisibility.agent.jar.uri": "civisibility_agent_jar_uri",
+        "civisibility.code.coverage.report.upload.enabled": "civisibility_code_coverage_report_upload_enabled",
         "civisibility.code.coverage.excludes": "civisibility_code_coverage_excludes",
         "civisibility.code.coverage.includes": "civisibility_code_coverage_includes",
         "civisibility.code.coverage.root.packages.limit": "civisibility_code_coverage_root_packages_limit",

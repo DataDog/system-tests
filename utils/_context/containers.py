@@ -97,6 +97,7 @@ class TestedContainer:
         user: str | None = None,
         volumes: dict | None = None,
         working_dir: str | None = None,
+        pid_mode: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
@@ -126,6 +127,7 @@ class TestedContainer:
         self.security_opt = security_opt
         self.ulimits: list | None = None
         self.privileged = False
+        self.pid_mode = pid_mode
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -220,6 +222,7 @@ class TestedContainer:
             security_opt=self.security_opt,
             privileged=self.privileged,
             ulimits=self.ulimits,
+            pid_mode=self.pid_mode,
         )
 
         self.healthy = self.wait_for_health()
@@ -567,6 +570,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         enable_ipv6: bool,
+        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -590,6 +594,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
+                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={
@@ -619,13 +624,14 @@ class LambdaProxyContainer(TestedContainer):
         self.container_port = "7777"
 
         super().__init__(
-            image_name="datadog/system-tests:lambda-proxy",
+            image_name="datadog/system-tests:lambda-proxy-v1",
             name="lambda-proxy",
             host_log_folder=host_log_folder,
             environment={
                 "RIE_HOST": lambda_weblog_host,
                 "RIE_PORT": lambda_weblog_port,
             },
+            volumes={"./utils/build/docker/lambda_proxy": {"bind": "/app", "mode": "ro"}},
             ports={
                 f"{self.host_port}/tcp": self.container_port,
             },
@@ -954,7 +960,7 @@ class WeblogContainer(TestedContainer):
         header_tags = ""
         if library in ("cpp_nginx", "cpp_httpd", "dotnet", "java", "python"):
             header_tags = "user-agent:http.request.headers.user-agent"
-        elif library in ("golang", "nodejs", "php", "ruby"):
+        elif library in ("golang", "nodejs", "php", "ruby", "rust"):
             header_tags = "user-agent"
         else:
             header_tags = ""
@@ -1006,7 +1012,7 @@ class WeblogContainer(TestedContainer):
             except Exception:
                 logger.info("No local dd-trace-js found")
 
-        if library == "php":
+        if library in ("php", "cpp_nginx"):
             self.enable_core_dumps()
 
     def post_start(self):
@@ -1243,9 +1249,10 @@ class LocalstackContainer(TestedContainer):
 class MySqlContainer(SqlDbTestedContainer):
     def __init__(self, host_log_folder: str) -> None:
         super().__init__(
-            image_name="mysql/mysql-server:latest",
+            image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
-            command="--default-authentication-plugin=mysql_native_password",
+            command="--lc-messages-dir=/usr/share/mysql-8.0/english "
+            "--default-authentication-plugin=mysql_native_password",
             environment={
                 "MYSQL_DATABASE": "mysql_dbname",
                 "MYSQL_USER": "mysqldb",
@@ -1444,6 +1451,22 @@ class DummyServerContainer(TestedContainer):
             name="http-app",
             host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://localhost:8080", "retries": 10},
+        )
+
+
+class InternalServerContainer(TestedContainer):
+    def __init__(self, host_log_folder: str) -> None:
+        super().__init__(
+            image_name="demisto/fastapi:0.116.1.4266494",
+            name="internal_server",
+            host_log_folder=host_log_folder,
+            healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
+            working_dir="/app",
+            command="uvicorn app:app --host 0.0.0.0 --port 8089",
+            volumes={
+                "./utils/build/docker/internal_server/app.py": {"bind": "/app/app.py", "mode": "ro"},
+                "./utils/build/docker/internal_server/app.sh": {"bind": "/app/app.sh", "mode": "ro"},
+            },
         )
 
 

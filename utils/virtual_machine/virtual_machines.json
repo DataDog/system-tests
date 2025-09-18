@@ -206,6 +206,34 @@
             "disabled": false
         },
         {
+            "name": "Ubuntu_25_04_amd64",
+            "aws_config": {
+                "ami_id": "ami-0a54ff6f081ad46ae",
+                "ami_instance_type": "t3.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu25",
+            "os_cpu": "amd64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
+            "name": "Ubuntu_25_04_arm64",
+            "aws_config": {
+                "ami_id": "ami-0bcb08446fd149731",
+                "ami_instance_type": "t4g.medium",
+                "user": "ubuntu"
+            },
+            "os_type": "linux",
+            "os_distro": "deb",
+            "os_branch": "ubuntu25",
+            "os_cpu": "arm64",
+            "default_vm": false,
+            "disabled": false
+        },
+        {
             "name": "Debian_12_amd64",
             "aws_config": {
                 "ami_id": "ami-0779caf41f9ba54f0",
