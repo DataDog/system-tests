@@ -13,20 +13,7 @@ EXTENDED_DATA_COLLECTION_ACTION = (
         "actions": [
             {
                 "id": "extended_data_collection_example",
-                "parameters": {"headers_redaction": False, "max_collected_headers": 50},
-                "type": "extended_data_collection",
-            }
-        ]
-    },
-)
-
-EXTENDED_DATA_COLLECTION_ACTION_WITH_REDACTION = (
-    "datadog/2/ASM/actions/config",
-    {
-        "actions": [
-            {
-                "id": "extended_data_collection_example",
-                "parameters": {"headers_redaction": True, "max_collected_headers": 50},
+                "parameters": {"max_collected_headers": 50},
                 "type": "extended_data_collection",
             }
         ]
@@ -112,53 +99,6 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert meta.get("http.request.headers.x-my-header-2") == "value2"
         assert meta.get("http.request.headers.x-my-header-3") == "value3"
         assert meta.get("http.request.headers.x-my-header-4") == "value4"
-        assert meta.get("http.request.headers.content-type") == "text/html"
-
-        # Check that no headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
-        assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
-
-    def setup_extended_data_collection_with_rc_redaction(self):
-        """Setup test with remote config for extended data collection with headers redaction enabled"""
-        # Configure remote config with extended data collection action (with redaction) and rule
-        self.config_state = (
-            rc.rc_state.reset()
-            .set_config(*EXTENDED_DATA_COLLECTION_ACTION_WITH_REDACTION)
-            .set_config(*EXTENDED_DATA_COLLECTION_RULE)
-            .apply()
-        )
-
-        # Make a request that triggers the extended data collection rule
-        self.response = weblog.get(
-            "/headers",
-            params={"param": "collect"},
-            headers={
-                "X-My-Header-1": "value1",
-                "X-My-Header-2": "value2",
-                "X-My-Header-3": "value3",
-                "X-My-Header-4": "value4",
-                "Content-Type": "text/html",
-            },
-        )
-
-    def test_extended_data_collection_with_rc_redaction(self):
-        """Test that extended data collection with headers redaction works when configured via remote config"""
-        # Verify remote config was applied successfully
-        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED
-
-        # Verify the request was processed
-        assert self.response.status_code == 200
-
-        # Verify extended data collection with redaction is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
-
-        # Check that extended headers are NOT collected when redaction is enabled
-        assert meta.get("http.request.headers.x-my-header-1") is None
-        assert meta.get("http.request.headers.x-my-header-2") is None
-        assert meta.get("http.request.headers.x-my-header-3") is None
-        assert meta.get("http.request.headers.x-my-header-4") is None
-        # Standard headers should still be collected
         assert meta.get("http.request.headers.content-type") == "text/html"
 
         # Check that no headers were discarded (within the 50 limit)
@@ -256,6 +196,60 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert discarded is not None
         assert discarded > 0
 
+    def setup_extended_data_collection_with_rc_and_authentication_headers(self):
+        """Setup test with remote config for extended data collection"""
+        # Configure remote config with extended data collection action and rule
+        self.config_state = (
+            rc.rc_state.reset()
+            .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
+            .set_config(*EXTENDED_DATA_COLLECTION_RULE)
+            .apply()
+        )
+
+        # Make a request that triggers the extended data collection rule
+        self.response = weblog.get(
+            "/headers",
+            params={"param": "collect"},
+            headers={
+                "Authorization": "value1",
+                "Proxy-Authorization": "value2",
+                "WWW-Authenticate": "value3",
+                "Proxy-Authenticate": "value4",
+                "Authentication-Info": "value5",
+                "Proxy-Authentication-Info": "value6",
+                "Cookie": "value7",
+                "Set-Cookie": "value8",
+                "Content-Type": "text/html",
+            },
+        )
+
+    def test_extended_data_collection_with_rc_and_authentication_headers(self):
+        """Test that extended data collection works when configured via remote config"""
+        # Verify remote config was applied successfully
+        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED
+
+        # Verify the request was processed
+        assert self.response.status_code == 200
+
+        # Verify extended data collection is working by checking span metadata
+        span = interfaces.library.get_root_span(request=self.response)
+        meta = span.get("meta", {})
+
+        # Check that extended headers are redacted
+        assert meta.get("http.request.headers.authorization") == "<redacted>"
+        assert meta.get("http.request.headers.proxy-authorization") == "<redacted>"
+        assert meta.get("http.request.headers.www-authenticate") == "<redacted>"
+        assert meta.get("http.request.headers.proxy-authenticate") == "<redacted>"
+        assert meta.get("http.request.headers.authentication-info") == "<redacted>"
+        assert meta.get("http.request.headers.proxy-authentication-info") == "<redacted>"
+        assert meta.get("http.request.headers.cookie") == "<redacted>"
+        assert meta.get("http.request.headers.set-cookie") == "<redacted>"
+        assert meta.get("http.request.headers.content-type") == "text/html"
+
+        # Check that no headers were discarded (within the 50 limit)
+        metrics = span.get("metrics", {})
+        assert metrics.get("_dd.appsec.request.header_collection.discarded") is None
+
 
 @features.appsec_extended_data_collection
 @scenarios.appsec_and_rc_enabled
@@ -295,46 +289,6 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.x-test-header-2") == "value2"
         assert meta.get("http.response.headers.x-test-header-3") == "value3"
         assert meta.get("http.response.headers.x-test-header-4") == "value4"
-        assert meta.get("http.response.headers.content-language") == "en-US"
-
-        # Check that no response headers were discarded (within the 50 limit)
-        metrics = span.get("metrics", {})
-        assert metrics.get("_dd.appsec.response.header_collection.discarded") is None
-
-    def setup_extended_response_headers_collection_with_rc_redaction(self):
-        """Setup test with remote config for extended response headers data collection with headers redaction enabled"""
-        # Configure remote config with extended data collection action (with redaction) and rule
-        self.config_state = (
-            rc.rc_state.reset()
-            .set_config(*EXTENDED_DATA_COLLECTION_ACTION_WITH_REDACTION)
-            .set_config(*EXTENDED_DATA_COLLECTION_RULE)
-            .apply()
-        )
-
-        # Make a request that triggers the extended data collection rule
-        self.response = weblog.get(
-            "/customResponseHeaders",
-            params={"param": "collect"},
-        )
-
-    def test_extended_response_headers_collection_with_rc_redaction(self):
-        """Test that extended response headers data collection with headers redaction works when configured via remote config"""
-        # Verify remote config was applied successfully
-        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED
-
-        # Verify the request was processed
-        assert self.response.status_code == 200
-
-        # Verify extended response headers data collection with redaction is working by checking span metadata
-        span = interfaces.library.get_root_span(request=self.response)
-        meta = span.get("meta", {})
-
-        # Check that extended response headers are NOT collected when redaction is enabled
-        assert meta.get("http.response.headers.x-test-header-1") is None
-        assert meta.get("http.response.headers.x-test-header-2") is None
-        assert meta.get("http.response.headers.x-test-header-3") is None
-        assert meta.get("http.response.headers.x-test-header-4") is None
-        # Standard response headers should still be collected
         assert meta.get("http.response.headers.content-language") == "en-US"
 
         # Check that no response headers were discarded (within the 50 limit)
@@ -420,6 +374,45 @@ class Test_ExtendedResponseHeadersDataCollection:
         discarded = metrics.get("_dd.appsec.response.header_collection.discarded")
         assert discarded is not None
         assert discarded > 0
+
+    def setup_extended_data_collection_with_rc_and_authentication_headers(self):
+        """Setup test with remote config for extended response headers data collection to test header limit"""
+        # Configure remote config with extended data collection action and rule
+        self.config_state = (
+            rc.rc_state.reset()
+            .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
+            .set_config(*EXTENDED_DATA_COLLECTION_RULE)
+            .apply()
+        )
+
+        # Generate 50 headers with the pattern "X-Test-Header-<n>": "value<n>"
+        self.response = weblog.get(
+            "/authorization_related_headers",
+            params={"param": "collect"},
+        )
+
+    def test_extended_data_collection_with_rc_and_authentication_headers(self):
+        """Test that extended response headers data collection respects the 50 header limit when configured via remote config"""
+        # Verify remote config was applied successfully
+        assert self.config_state.state == rc.ApplyState.ACKNOWLEDGED
+
+        # Verify the request was processed
+        assert self.response.status_code == 200
+
+        # Verify extended response headers data collection header limit is working by checking span metadata
+        span = interfaces.library.get_root_span(request=self.response)
+        meta = span.get("meta", {})
+
+        # Check that extended headers are redacted
+        assert meta.get("http.response.headers.authorization") == "<redacted>"
+        assert meta.get("http.response.headers.proxy-authorization") == "<redacted>"
+        assert meta.get("http.response.headers.www-authenticate") == "<redacted>"
+        assert meta.get("http.response.headers.proxy-authenticate") == "<redacted>"
+        assert meta.get("http.response.headers.authentication-info") == "<redacted>"
+        assert meta.get("http.response.headers.proxy-authentication-info") == "<redacted>"
+        assert meta.get("http.response.headers.cookie") == "<redacted>"
+        assert meta.get("http.response.headers.set-cookie") == "<redacted>"
+        
 
 
 @features.appsec_extended_data_collection
