@@ -21,8 +21,6 @@ def find_series(namespace: str, metrics: list[str]) -> list:
 
 
 def find_configuration() -> Generator:
-    for payload in _get_telemetry_payload("app-started"):
-        yield payload.get("configuration")
     for data in interfaces.library.get_telemetry_data():
         content = data["request"]["content"]
         if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
