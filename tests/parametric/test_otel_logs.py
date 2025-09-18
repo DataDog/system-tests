@@ -555,12 +555,24 @@ class Test_FR10_Timeout_Configuration:
         assert find_log_record(log_payloads, "test_logger", "test_default_timeout") is not None
         # Wait for telemetry configurations and verify the timeout has the default value of 10s
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
-        exporter_timeout = configurations_by_name.get("OTEL_EXPORTER_OTLP_TIMEOUT")
-        exporter_logs_timeout = configurations_by_name.get("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT")
-        assert exporter_timeout, f"OTEL_EXPORTER_OTLP_TIMEOUT should be set, configurations: {configurations_by_name}"
+
+        timeout_config_list = configurations_by_name.get("OTEL_EXPORTER_OTLP_TIMEOUT", [])
+        logs_timeout_config_list = configurations_by_name.get("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", [])
+
         assert (
-            exporter_logs_timeout
+            timeout_config_list
+        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be set, configurations: {configurations_by_name}"
+        assert (
+            logs_timeout_config_list
         ), f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be set, configurations: {configurations_by_name}"
+
+        # Find default configurations (since no env vars are set, these should have default origin)
+        exporter_timeout = next(
+            (cfg for cfg in timeout_config_list if cfg.get("origin") == "default"), timeout_config_list[0]
+        )
+        exporter_logs_timeout = next(
+            (cfg for cfg in logs_timeout_config_list if cfg.get("origin") == "default"), logs_timeout_config_list[0]
+        )
 
         assert (
             exporter_timeout.get("value") == 10000
@@ -610,8 +622,14 @@ class Test_FR11_Telemetry:
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
         ]:
-            config = configurations_by_name.get(expected_env)
-            assert config, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+            config_list = configurations_by_name.get(expected_env, [])
+            assert config_list, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = next(
+                (cfg for cfg in config_list if cfg.get("origin") == "env_var"), config_list[0] if config_list else None
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
