@@ -210,14 +210,14 @@ class Test_Consistent_Configs:
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
-        
+
         def get_env_config_value(config_name: str):
             config_list = configuration_by_name.get(config_name, [])
             if not config_list:
                 return None
             config = _find_configuration_by_origin(config_list, "env_var")
             return config.get("value") if config else None
-        
+
         assert get_env_config_value("DD_ENV") == "dev"
         assert get_env_config_value("DD_SERVICE") == "service_test"
         assert get_env_config_value("DD_VERSION") == "5.2.0"
@@ -246,14 +246,14 @@ class Test_Consistent_Configs:
             pass
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        
+
         def get_env_config_value(config_name: str):
             config_list = configuration_by_name.get(config_name, [])
             if not config_list:
                 return None
             config = _find_configuration_by_origin(config_list, "env_var")
             return config.get("value") if config else None
-        
+
         assert get_env_config_value("DD_TRACE_LOG_DIRECTORY") == "/some/temporary/directory"
         assert get_env_config_value("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES") == "200-250"
         assert get_env_config_value("DD_TRACE_HTTP_SERVER_ERROR_STATUSES") == "250-200"
@@ -846,10 +846,12 @@ class Test_TelemetrySSIConfigs:
         instrumentation_source_telemetry_name = _mapped_telemetry_name(context, "instrumentation_source")
         config_list = configuration_by_name.get(instrumentation_source_telemetry_name, [])
         assert config_list, f"No configurations found for '{instrumentation_source_telemetry_name}'"
-        
+
         # Take the first configuration (origin doesn't matter for this test)
         instrumentation_source = config_list[0]
-        assert instrumentation_source is not None, f"No configuration found for '{instrumentation_source_telemetry_name}'"
+        assert (
+            instrumentation_source is not None
+        ), f"No configuration found for '{instrumentation_source_telemetry_name}'"
         assert instrumentation_source.get("value").lower() != "ssi"
 
 
