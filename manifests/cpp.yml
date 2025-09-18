@@ -87,3 +87,5 @@ tests/:
     test_tracer.py:
       Test_TracerSCITagging: missing_feature
     test_tracer_flare.py: missing_feature
+  test_telemetry.py:
+    Test_TelemetryEnhancedConfigReporting: missing_feature

@@ -46,6 +46,8 @@ class _RequestLogger:
         self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
 
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
+        self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"
+
         self.span_meta_structs_disabled = os.environ.get("SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED") == "True"
 
         self.tracing_agent_target_host = os.environ.get("PROXY_TRACING_AGENT_TARGET_HOST", "agent")
@@ -59,6 +61,10 @@ class _RequestLogger:
         # mimic the old API
         self.rc_api_sequential_commands = None
         self.rc_api_runtime_ids_request_count: dict = {}
+
+        logger.info(f"rc_api_enabled: {self.rc_api_enabled}")
+        logger.info(f"mocked_backend: {self.mocked_backend}")
+        logger.info(f"span_meta_structs_disabled: {self.span_meta_structs_disabled}")
 
     @staticmethod
     def get_error_response(message: bytes) -> http.Response:
@@ -131,7 +137,7 @@ class _RequestLogger:
             )
             flow.request.scheme = "http"
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
-        elif port == ProxyPorts.agent:
+        elif port == ProxyPorts.agent and self.mocked_backend:
             flow.response = http.Response.make(202, b"Ok")
 
     @staticmethod

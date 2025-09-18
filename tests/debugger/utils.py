@@ -9,6 +9,7 @@ import os.path
 from pathlib import Path
 import uuid
 from urllib.parse import parse_qs
+from typing import TypedDict, Literal, Any
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
@@ -23,6 +24,20 @@ _TELEMETRY_PATH = "/api/v2/apmtelemetry"
 
 # Library paths
 _DEBUGGER_V2_INPUT_PATH = "/debugger/v2/input"
+
+# Type definitions
+ProbeStatus = Literal["RECEIVED", "INSTALLED", "EMITTING", "ERROR"]
+
+
+class ProbeDiagnosticsData(TypedDict):
+    """Type definition for probe diagnostics data structure."""
+
+    probeId: str
+    status: ProbeStatus
+    query: dict[str, list[str]]  # Result of parse_qs()
+
+
+ProbeDiagnosticsCollection = dict[str, ProbeDiagnosticsData]
 
 _CUR_DIR = str(Path(__file__).resolve().parent)
 
@@ -51,18 +66,24 @@ def extract_probe_ids(probes: dict | list) -> list:
     return [probe["id"] for probe in probes]
 
 
-def _get_path(test_name: str, suffix: str) -> str:
-    filename = test_name + "_" + BaseDebuggerTest.tracer["language"] + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", filename)
+def _get_path(test_name: str, suffix: str, version: str) -> str:
+    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+
+    language = BaseDebuggerTest.tracer["language"]
+    filename = test_name + "_" + suffix + ".json"
+    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str) -> None:
-    with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
+def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+    path = _get_path(test_name, suffix, version)
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def read_approval(test_name: str, suffix: str) -> dict:
-    with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
+def read_approval(test_name: str, suffix: str, version: str) -> dict:
+    path = _get_path(test_name, suffix, version)
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -74,14 +95,14 @@ def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
 class BaseDebuggerTest:
     tracer: dict[str, str] = {}
 
-    probe_definitions: list[dict] = []
-    probe_ids: list = []
+    probe_definitions: list[dict[str, Any]] = []
+    probe_ids: list[str] = []
 
-    probe_diagnostics: dict = {}
-    probe_snapshots: dict = {}
-    probe_spans: dict = {}
-    all_spans: list = []
-    symbols: list = []
+    probe_diagnostics: ProbeDiagnosticsCollection = {}
+    probe_snapshots: dict[str, list[dict[str, Any]]] = {}
+    probe_spans: dict[str, list[dict[str, Any]]] = {}
+    all_spans: list[dict[str, Any]] = []
+    symbols: list[dict[str, Any]] = []
 
     start_time: int | None = None
 
@@ -166,6 +187,11 @@ class BaseDebuggerTest:
                         ).lower()
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
+                    elif language == "golang":
+                        probe["where"]["typeName"] = "-"  # Ignored
+                        method = probe["where"]["methodName"]
+                        method = method[0].lower() + method[1:] if method else ""
+                        probe["where"]["methodName"] = "main." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -258,15 +284,15 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes(self, statuses: list[str], timeout: int = 30) -> bool:
+    def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data: dict, statuses: list[str]):
+    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
         found_ids = set()
 
-        def _check_all_probes_status(probe_diagnostics: dict, statuses: list[str]):
+        def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
 
@@ -474,7 +500,7 @@ class BaseDebuggerTest:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library in ("python", "ruby", "nodejs", "php"):
+            elif context.library in ("python", "ruby", "nodejs", "php", "golang"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
@@ -485,8 +511,8 @@ class BaseDebuggerTest:
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
 
-    def _process_diagnostics_data(self, datas: list[dict]):
-        probe_diagnostics: dict = {}
+    def _process_diagnostics_data(self, datas: list[dict[str, Any]]) -> ProbeDiagnosticsCollection:
+        probe_diagnostics: ProbeDiagnosticsCollection = {}
 
         def _should_update_status(current_status: str, new_status: str):
             transitions = {
@@ -496,7 +522,7 @@ class BaseDebuggerTest:
             }
             return transitions.get(current_status, False)
 
-        def _process_debugger(debugger: dict, query: str):
+        def _process_debugger(debugger: dict[str, Any], query: str) -> None:
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
                 probe_id = diagnostics["probeId"]
@@ -508,7 +534,7 @@ class BaseDebuggerTest:
                     if _should_update_status(current_status, status):
                         probe_diagnostics[probe_id]["status"] = status
                 else:
-                    probe_diagnostics[probe_id] = diagnostics
+                    probe_diagnostics[probe_id] = diagnostics.copy()
 
                 probe_diagnostics[probe_id]["query"] = parse_qs(query)
 
@@ -739,8 +765,8 @@ class BaseDebuggerTest:
     def assert_all_weblog_responses_ok(self, expected_code: int = 200) -> None:
         assert len(self.weblog_responses) > 0, "No responses available."
 
-        for respone in self.weblog_responses:
-            assert respone.status_code == expected_code
+        for response in self.weblog_responses:
+            assert response.status_code == expected_code
 
     ###### assert #####
 

@@ -97,6 +97,7 @@ class TestedContainer:
         user: str | None = None,
         volumes: dict | None = None,
         working_dir: str | None = None,
+        pid_mode: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
@@ -126,6 +127,7 @@ class TestedContainer:
         self.security_opt = security_opt
         self.ulimits: list | None = None
         self.privileged = False
+        self.pid_mode = pid_mode
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -220,6 +222,7 @@ class TestedContainer:
             security_opt=self.security_opt,
             privileged=self.privileged,
             ulimits=self.ulimits,
+            pid_mode=self.pid_mode,
         )
 
         self.healthy = self.wait_for_health()
@@ -567,6 +570,7 @@ class ProxyContainer(TestedContainer):
         meta_structs_disabled: bool,
         span_events: bool,
         enable_ipv6: bool,
+        mocked_backend: bool = True,
     ) -> None:
         """Parameters:
         span_events: Whether the agent supports the native serialization of span events
@@ -590,6 +594,7 @@ class ProxyContainer(TestedContainer):
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
                 "SYSTEM_TESTS_IPV6": str(enable_ipv6),
+                "SYSTEM_TEST_MOCKED_BACKEND": str(mocked_backend),
             },
             working_dir="/app",
             volumes={

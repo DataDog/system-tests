@@ -87,6 +87,14 @@ if os.environ.get("INCLUDE_RABBITMQ", "true") == "true":
     from integrations.messaging.rabbitmq import rabbitmq_produce
 
 import ddtrace
+
+# This mimics a scenario where a user has one config setting set in multiple sources
+# so that config chaining data is sent
+if os.environ.get("CONFIG_CHAINING_TEST", "").lower() == "true":
+    from ddtrace import config
+
+    config._logs_injection = True
+
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 from ddtrace.internal.datastreams import data_streams_processor
 from ddtrace.internal.datastreams.processor import DsmPathwayCodec
@@ -245,7 +253,7 @@ def check_and_create_users_table():
     # Check if 'users' exists
     cur.execute("""
         SELECT EXISTS (
-            SELECT FROM information_schema.tables 
+            SELECT FROM information_schema.tables
             WHERE table_name = 'users'
         );
     """)
@@ -1749,6 +1757,11 @@ def vulnerable_request_downstream():
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
     http_poolmanager.clear()
     return Response(response.data)
+
+
+@app.get("/resource_renaming/<path:path>")
+def resource_renaming(path: str):
+    return Response("ok", mimetype="text/plain")
 
 
 @app.route("/mock_s3/put_object", methods=["GET", "POST", "OPTIONS"])

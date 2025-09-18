@@ -102,14 +102,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    trace_propagation_style_default = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DEFAULT",
-        weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
-        },
-        doc="Test Default propagation",
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -130,11 +122,12 @@ class _Scenarios:
         scenario_groups=[scenario_groups.telemetry],
     )
 
-    telemetry_app_started_config_chaining = EndToEndScenario(
-        "TELEMETRY_APP_STARTED_CONFIG_CHAINING",
+    telemetry_enhanced_config_reporting = EndToEndScenario(
+        "TELEMETRY_ENHANCED_CONFIG_REPORTING",
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
+            "DD_TRACE_CONFIG": "ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
@@ -269,7 +262,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if  DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            In this scenario, we use remote config. By the spec, when remote config is available, rules file
             embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
@@ -549,7 +542,7 @@ class _Scenarios:
         weblog_env={"DD_APPSEC_RULES": None},
         doc="""
             The spec says that if DD_APPSEC_RULES is defined, then rules won't be loaded from remote config.
-            In this scenario, we use remote config. By the spec, whem remote config is available, rules file
+            In this scenario, we use remote config. By the spec, when remote config is available, rules file
             embedded in the tracer will never be used (it will be the file defined in DD_APPSEC_RULES, or the
             data coming from remote config). So, we set  DD_APPSEC_RULES to None to enable loading rules from
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
@@ -610,7 +603,7 @@ class _Scenarios:
     )
 
     otel_tracing_e2e = OpenTelemetryScenario("OTEL_TRACING_E2E", require_api_key=True, doc="")
-    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, doc="")
+    otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
     library_conf_custom_header_tags = EndToEndScenario(
@@ -686,6 +679,9 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
         doc="",

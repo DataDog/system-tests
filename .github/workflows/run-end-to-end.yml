@@ -136,7 +136,6 @@ jobs:
     - name: Pull images
       uses: ./.github/actions/pull_images
       with:
-        cleanup: "false"
         library: ${{ inputs.library }}
         weblog: ${{ inputs.weblog }}
         scenarios: ${{ inputs.scenarios }}
@@ -203,9 +202,6 @@ jobs:
     - name: Run TRACE_PROPAGATION_STYLE_W3C scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_W3C"')
       run: ./run.sh TRACE_PROPAGATION_STYLE_W3C
-    - name: Run TRACE_PROPAGATION_STYLE_DEFAULT scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_PROPAGATION_STYLE_DEFAULT"')
-      run: ./run.sh TRACE_PROPAGATION_STYLE_DEFAULT
     - name: Run INTEGRATIONS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATIONS"')
       run: ./run.sh INTEGRATIONS
@@ -355,9 +351,9 @@ jobs:
     - name: Run TELEMETRY_APP_STARTED_PRODUCTS_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_PRODUCTS_DISABLED"')
       run: ./run.sh TELEMETRY_APP_STARTED_PRODUCTS_DISABLED
-    - name: Run TELEMETRY_APP_STARTED_CONFIG_CHAINING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_APP_STARTED_CONFIG_CHAINING"')
-      run: ./run.sh TELEMETRY_APP_STARTED_CONFIG_CHAINING
+    - name: Run TELEMETRY_ENHANCED_CONFIG_REPORTING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_ENHANCED_CONFIG_REPORTING"')
+      run: ./run.sh TELEMETRY_ENHANCED_CONFIG_REPORTING
     - name: Run TELEMETRY_LOG_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_LOG_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_LOG_GENERATION_DISABLED

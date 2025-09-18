@@ -81,6 +81,7 @@ tests/:
   test_miscs.py: irrelevant
   test_profiling.py: missing_feature (missing profiling module in weblog)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.0.0  # real version unknown
     Test_SamplingDecisionAdded: v1.0.0  # real version unknown
@@ -95,5 +96,6 @@ tests/:
     Test_MessageBatch: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
   test_v1_payloads.py: missing_feature

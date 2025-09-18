@@ -618,11 +618,11 @@ tests/:
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
       Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots: v2.2.3
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Statuses: v2.2.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implemented)
     test_debugger_telemetry.py:
@@ -887,6 +887,7 @@ tests/:
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.72.1  # real version unknown
     Test_SamplingDecisionAdded: v1.72.1  # real version unknown
@@ -920,7 +921,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature (checks for metrics from the tracer)
     Test_ProductsDisabled: v1.53
     Test_Telemetry: v1.49.0
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.49.1
   test_v1_payloads.py: missing_feature

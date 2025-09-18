@@ -874,6 +874,7 @@ tests/:
   test_profiling.py:
     Test_Profile: missing_feature (temporary fix, scenario not working on dd-trace-rb CI)
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v2.15.0  # real version unknown
     Test_SamplingDecisionAdded: v2.12.1  # real version unknown
@@ -912,7 +913,7 @@ tests/:
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v1.22.0
     Test_Telemetry: v1.4.0
-    Test_TelemetryConfigurationChaining: missing_feature
+    Test_TelemetryEnhancedConfigReporting: missing_feature
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.11
   test_v1_payloads.py: missing_feature
