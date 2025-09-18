@@ -6,10 +6,14 @@ from utils._context.containers import InternalServerContainer
 
 
 class AppsecRaspScenario(EndToEndScenario):
-    def __init__(self):
+    def __init__(self, name: str, weblog_env: dict[str, str | None] | None = None):
+        if weblog_env is None:
+            weblog_env = {}
+
         super().__init__(
-            "APPSEC_RASP",
-            weblog_env={
+            name,
+            weblog_env=weblog_env
+            | {
                 "DD_APPSEC_RASP_ENABLED": "true",
                 "DD_APPSEC_RULES": "/appsec_rasp_ruleset.json",
                 # added to test Test_ExtendedRequestBodyCollection

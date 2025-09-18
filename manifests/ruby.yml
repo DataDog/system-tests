@@ -351,11 +351,8 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: v2.18.0
       Test_AppSecStandalone_NotEnabled: v2.13.0
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant
       Test_AppSecStandalone_UpstreamPropagation_V2: v2.13.0
-      Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: irrelevant
       Test_SCAStandalone_Telemetry_V2: v2.13.0
       Test_UserEventsStandalone_Automated:
         "*": v2.20.0-dev

@@ -97,6 +97,7 @@ class TestedContainer:
         user: str | None = None,
         volumes: dict | None = None,
         working_dir: str | None = None,
+        pid_mode: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
@@ -126,6 +127,7 @@ class TestedContainer:
         self.security_opt = security_opt
         self.ulimits: list | None = None
         self.privileged = False
+        self.pid_mode = pid_mode
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -220,6 +222,7 @@ class TestedContainer:
             security_opt=self.security_opt,
             privileged=self.privileged,
             ulimits=self.ulimits,
+            pid_mode=self.pid_mode,
         )
 
         self.healthy = self.wait_for_health()
