@@ -210,20 +210,22 @@ class Test_Consistent_Configs:
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         # # Check that the tags name match the expected value
-        assert configuration_by_name.get("DD_ENV", {}).get("value") == "dev"
-        assert configuration_by_name.get("DD_SERVICE", {}).get("value") == "service_test"
-        assert configuration_by_name.get("DD_VERSION", {}).get("value") == "5.2.0"
-        assert configuration_by_name.get("DD_TRACE_RATE_LIMIT", {}).get("value") == "10"
-        assert (
-            configuration_by_name.get("DD_TRACE_HEADER_TAGS", {}).get("value")
-            == "User-Agent:my-user-agent,Content-Type."
-        )
-        assert configuration_by_name.get("DD_TRACE_ENABLED", {}).get("value") is True
-        assert (
-            configuration_by_name.get("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP", {}).get("value")
-            == r"\d{3}-\d{2}-\d{4}"
-        )
-        assert configuration_by_name.get("DD_TRACE_CLIENT_IP_HEADER", {}).get("value") == "random-header-name"
+        
+        def get_env_config_value(config_name: str):
+            config_list = configuration_by_name.get(config_name, [])
+            if not config_list:
+                return None
+            config = _find_configuration_by_origin(config_list, "env_var")
+            return config.get("value") if config else None
+        
+        assert get_env_config_value("DD_ENV") == "dev"
+        assert get_env_config_value("DD_SERVICE") == "service_test"
+        assert get_env_config_value("DD_VERSION") == "5.2.0"
+        assert get_env_config_value("DD_TRACE_RATE_LIMIT") == "10"
+        assert get_env_config_value("DD_TRACE_HEADER_TAGS") == "User-Agent:my-user-agent,Content-Type."
+        assert get_env_config_value("DD_TRACE_ENABLED") is True
+        assert get_env_config_value("DD_TRACE_OBFUSCATION_QUERY_STRING_REGEXP") == r"\d{3}-\d{2}-\d{4}"
+        assert get_env_config_value("DD_TRACE_CLIENT_IP_HEADER") == "random-header-name"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -244,12 +246,18 @@ class Test_Consistent_Configs:
             pass
 
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
-        assert configuration_by_name.get("DD_TRACE_LOG_DIRECTORY", {}).get("value") == "/some/temporary/directory"
-        assert configuration_by_name.get("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES", {}).get("value") == "200-250"
-        assert configuration_by_name.get("DD_TRACE_HTTP_SERVER_ERROR_STATUSES", {}).get("value") == "250-200"
-        assert (
-            configuration_by_name.get("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING", {}).get("value") is False
-        )  # No telemetry received, tested with Python and Java(also tried: DD_HTTP_CLIENT_TAG_QUERY_STRING)
+        
+        def get_env_config_value(config_name: str):
+            config_list = configuration_by_name.get(config_name, [])
+            if not config_list:
+                return None
+            config = _find_configuration_by_origin(config_list, "env_var")
+            return config.get("value") if config else None
+        
+        assert get_env_config_value("DD_TRACE_LOG_DIRECTORY") == "/some/temporary/directory"
+        assert get_env_config_value("DD_TRACE_HTTP_CLIENT_ERROR_STATUSES") == "200-250"
+        assert get_env_config_value("DD_TRACE_HTTP_SERVER_ERROR_STATUSES") == "250-200"
+        assert get_env_config_value("DD_TRACE_HTTP_CLIENT_TAG_QUERY_STRING") is False
 
 
 @scenarios.parametric
@@ -836,8 +844,12 @@ class Test_TelemetrySSIConfigs:
         configuration_by_name = test_agent.wait_for_telemetry_configurations(service="service_test")
         # Check that the tags name match the expected value
         instrumentation_source_telemetry_name = _mapped_telemetry_name(context, "instrumentation_source")
-        instrumentation_source = configuration_by_name.get(instrumentation_source_telemetry_name)
-        assert instrumentation_source, ",\n".join(configuration_by_name.keys())
+        config_list = configuration_by_name.get(instrumentation_source_telemetry_name, [])
+        assert config_list, f"No configurations found for '{instrumentation_source_telemetry_name}'"
+        
+        # Take the first configuration (origin doesn't matter for this test)
+        instrumentation_source = config_list[0]
+        assert instrumentation_source is not None, f"No configuration found for '{instrumentation_source_telemetry_name}'"
         assert instrumentation_source.get("value").lower() != "ssi"
 
 
