@@ -605,8 +605,8 @@ class ProxyContainer(TestedContainer):
         )
 
     def configure(self, *, host_log_folder: str, replay: bool):
-        self.volumes[f"./{self.host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
         super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
 
 
 class LambdaProxyContainer(TestedContainer):
@@ -1347,8 +1347,11 @@ class APMTestAgentContainer(TestedContainer):
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
-        self.volumes[f"./{host_log_folder}/interfaces/test_agent_socket"] = {"bind": "/var/run/datadog/", "mode": "rw"}
-        return super().configure(host_log_folder=host_log_folder, replay=replay)
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
+            "bind": "/var/run/datadog/",
+            "mode": "rw",
+        }
 
 
 class MountInjectionVolume(TestedContainer):
@@ -1413,8 +1416,11 @@ class DockerSSIContainer(TestedContainer):
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
-        self.volumes[f"./{host_log_folder}/interfaces/test_agent_socket"] = {"bind": "/var/run/datadog/", "mode": "rw"}
         super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
+            "bind": "/var/run/datadog/",
+            "mode": "rw",
+        }
 
     def get_env(self, env_var: str):
         """Get env variables from the container"""
