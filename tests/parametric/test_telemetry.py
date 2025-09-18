@@ -594,7 +594,6 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
-        print("TEST CONFIGURATIONS", configurations)
         apm_telemetry_name = _mapped_telemetry_name(context, "trace_debug_enabled")
         telemetry_item = configurations[apm_telemetry_name]
         assert telemetry_item["origin"] == "fleet_stable_config"
