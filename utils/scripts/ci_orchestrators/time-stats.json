@@ -6611,7 +6611,7 @@
         "uds-sinatra": 54
       }
     },
-   "TRACE_PROPAGATION_STYLE_W3C": {
+    "TRACE_PROPAGATION_STYLE_W3C": {
       "*": 39.96972789115647,
       "dotnet": {
         "*": 68,
