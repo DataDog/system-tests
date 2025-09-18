@@ -566,6 +566,16 @@ class _Scenarios:
     otel_metric_e2e = OpenTelemetryScenario("OTEL_METRIC_E2E", require_api_key=True, mocked_backend=False, doc="")
     otel_log_e2e = OpenTelemetryScenario("OTEL_LOG_E2E", require_api_key=True, doc="")
 
+    otel_postgres_metrics_e2e = OpenTelemetryScenario(
+        "OTEL_POSTGRES_METRICS_E2E",
+        require_api_key=True,
+        include_postgres_db=True,
+        include_agent=False,
+        collector_config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+        wait_for_otel_interface=False,
+        doc="OpenTelemetry E2E testing with PostgreSQL metrics collection via OTEL collector",
+    )
+
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),
