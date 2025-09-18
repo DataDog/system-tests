@@ -47,6 +47,9 @@ class Test_Cases:
 
     def test_error(self, error_fixture): ...
 
+    @bug(condition=True, reason="APMRP-360", force_skip=True)
+    def test_force_skip(self): ...
+
 
 @scenarios.test_the_test
 def test_main():

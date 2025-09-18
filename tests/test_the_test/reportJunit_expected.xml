@@ -88,5 +88,14 @@ E       TypeError: nope!
 
 tests/test_the_test/test_junit.py:15: TypeError</error>
         </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_force_skip">
+            <properties>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.declaration]" value="bug"/>
+                <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
+            </properties>
+            <skipped message="bug (APMRP-360)" type="pytest.skip">system-tests/tests/test_the_test/test_junit.py:01: bug (APMRP-360)</skipped>
+        </testcase>
     </testsuite>
 </testsuites>
