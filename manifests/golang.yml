@@ -416,11 +416,8 @@ tests/:
         gin: v1.37.0
     test_asm_standalone.py:
       Test_APISecurityStandalone: missing_feature
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
-      Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v2.0.0
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature

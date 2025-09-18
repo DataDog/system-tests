@@ -423,38 +423,11 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_standalone_experimental = EndToEndScenario(
-        "APPSEC_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out) V2",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    iast_standalone_experimental = EndToEndScenario(
-        "IAST_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -475,19 +448,6 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sca_standalone_experimental = EndToEndScenario(
-        "SCA_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
