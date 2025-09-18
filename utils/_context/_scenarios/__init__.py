@@ -984,7 +984,15 @@ class _Scenarios:
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = AppsecRaspScenario()
+
+    appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
+
+    appsec_standalone_rasp = AppsecRaspScenario(
+        "APPSEC_STANDALONE_RASP",
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+        },
+    )
 
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",

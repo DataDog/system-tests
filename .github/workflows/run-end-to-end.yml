@@ -330,6 +330,9 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_STANDALONE_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
+      run: ./run.sh APPSEC_STANDALONE_RASP
     - name: Run APPSEC_RASP_NON_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
       run: ./run.sh APPSEC_RASP_NON_BLOCKING
