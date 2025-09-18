@@ -1,5 +1,5 @@
 <testsuites>
-    <testsuite name="system_tests_suite" errors="1" failures="1" skipped="5" tests="9" time="0.747"
+    <testsuite name="system_tests_suite" errors="1" failures="1" skipped="6" tests="10" time="0.747"
         timestamp="2025-09-12T08:58:47.879135" hostname="COMP-C02FL1L0ML87">
         <properties>
             <property name="dd_tags[systest.suite.context.scenario]" value="MOCK_THE_TEST" />

@@ -499,8 +499,6 @@ def pytest_fixture_setup(
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo) -> Generator[None, Result, None]:  # noqa: ARG001
     # Run all other hooks to get the report object
-    # rep: pytest.TestReport = pytest.TestReport.from_item_and_call(item, call)
-
     outcome = yield
     rep: pytest.TestReport = outcome.get_result()
 
