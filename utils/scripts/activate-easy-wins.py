@@ -214,7 +214,6 @@ def build_updated_subtree(
                 all_paths.extend(branch_paths)
         else:
             # Leaf node - return path with its status
-            print(path, root)
             if len(path) > 1 and "parametric" in path[-1]:
                 all_paths.append((path[:-1], root))
             else:
@@ -266,7 +265,9 @@ def update_entry(
     versions: dict[str, str],
 ) -> str | None:
     try:
-        if search[1] and isinstance(search[0], str) and isinstance(search[1], str) and search[1] != "*":
+        if search[2] and isinstance(search[0], str) and isinstance(search[1], str):
+            test_data_root = test_data[language][search[0]][search[1]][search[2]]
+        elif search[1] and isinstance(search[0], str) and isinstance(search[1], str):
             test_data_root = test_data[language][search[0]][search[1]]
         elif isinstance(search[0], str):
             test_data_root: Any = test_data[language][search[0]]  # type: ignore[misc]
@@ -292,7 +293,6 @@ def update_entry(
 
             if subtree is not None:
                 # Partial activation or file-level activation
-                print("Partial activation")
                 ancestor[root_path[-1]] = subtree
             elif update_status == TestClassStatus.ACTIVATE:
                 # Full activation for test class level
