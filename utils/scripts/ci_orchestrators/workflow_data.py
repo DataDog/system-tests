@@ -495,7 +495,6 @@ if __name__ == "__main__":
             "APM_TRACING_E2E_OTEL",
             "APM_TRACING_E2E_SINGLE_SPAN",
             "APPSEC_API_SECURITY",
-            "APPSEC_API_SECURITY_NO_RESPONSE_BODY",
             "APPSEC_API_SECURITY_RC",
             "APPSEC_API_SECURITY_WITH_SAMPLING",
             "APPSEC_AUTO_EVENTS_EXTENDED",
