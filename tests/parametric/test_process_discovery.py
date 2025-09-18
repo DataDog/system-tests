@@ -52,6 +52,30 @@ def get_context_tracer_version():
         return context.library.version
 
 
+def assert_v1(tracer_metadata, test_library, library_env):
+    assert tracer_metadata["runtime_id"]
+    # assert tracer_metadata["hostname"]
+
+    lang = "go" if test_library.lang == "golang" else test_library.lang
+    assert tracer_metadata["tracer_language"] == lang
+    assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
+    assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
+    assert tracer_metadata["service_env"] == library_env["DD_ENV"]
+
+    version = Version(tracer_metadata["tracer_version"])
+    assert version == get_context_tracer_version()
+    pass
+
+
+def assert_v2(tracer_metadata, test_library, library_env):
+    assert_v1(tracer_metadata, test_library, library_env)
+    assert tracer_metadata["process-tags"] == ""
+    assert tracer_metadata["container-id"] == ""
+
+
+asserters = {1: assert_v1, 2: assert_v2}
+
+
 @scenarios.parametric
 @features.process_discovery
 class Test_ProcessDiscovery:
@@ -75,15 +99,8 @@ class Test_ProcessDiscovery:
             assert rc
             assert validate_schema(tracer_metadata)
 
-            assert tracer_metadata["schema_version"] == 1
-            assert tracer_metadata["runtime_id"]
-            # assert tracer_metadata["hostname"]
+            schema_version = tracer_metadata["schema_version"]
+            assert_func = asserters.get(schema_version, None)
+            assert assert_func, f"unsupported version {schema_version}"
 
-            lang = "go" if test_library.lang == "golang" else test_library.lang
-            assert tracer_metadata["tracer_language"] == lang
-            assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
-            assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
-            assert tracer_metadata["service_env"] == library_env["DD_ENV"]
-
-            version = Version(tracer_metadata["tracer_version"])
-            assert version == get_context_tracer_version()
+            assert_func(tracer_metadata, test_library, library_env)
