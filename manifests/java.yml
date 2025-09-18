@@ -81,7 +81,7 @@ tests/:
           akka-http: bug (APPSEC-56888)
           play: v1.51.0-SNAPSHOT
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-          spring-boot-payara: bug (APPSEC-57921)
+          spring-boot-payara: v1.54.0-SNAPSHOT+c2aec92b86
           vertx3: v1.51.0-SNAPSHOT
           vertx4: v1.51.0-SNAPSHOT
         Test_Schema_Request_Cookies:
@@ -110,7 +110,7 @@ tests/:
           akka-http: bug (APPSEC-56888)
           jersey-grizzly2: bug (APPSEC-56846)
           play: v1.51.0-SNAPSHOT
-          resteasy-netty3: bug (APPSEC-56846)
+          resteasy-netty3: v1.54.0-SNAPSHOT+c2aec92b86
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
           vertx3: v1.51.0-SNAPSHOT
           vertx4: v1.51.0-SNAPSHOT
@@ -743,7 +743,7 @@ tests/:
         TestSamplingByRouteMethodCount:
           '*': v1.51.0-SNAPSHOT
           akka-http: bug (APPSEC-57926)
-          play: bug (APPSEC-57926)
+          play: v1.54.0-SNAPSHOT+c2aec92b86
           ratpack: bug (APPSEC-58210)
           spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       test_security_controls.py:
@@ -2023,7 +2023,7 @@ tests/:
         spring-boot: bug (AIDM-325)
       Test_Dsm_Manual_Checkpoint_Intra_Process:
         "*": irrelevant
-        spring-boot: bug (AIDM-325)
+        spring-boot: v1.54.0-SNAPSHOT+c2aec92b86
     test_inferred_proxy.py:  # Moved this block here
       Test_AWS_API_Gateway_Inferred_Span_Creation:
         "*": irrelevant
@@ -2070,7 +2070,7 @@ tests/:
       TestDynamicConfigV2: v1.31.0
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
-      Test_Headers_Baggage_Span_Tags: missing_feature
+      Test_Headers_Baggage_Span_Tags: v1.54.0-SNAPSHOT+c2aec92b86
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.35.2
@@ -2210,12 +2210,12 @@ tests/:
       '*': v0.64.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
-      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: v1.54.0-SNAPSHOT+c2aec92b86
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
       '*': v0.64.0
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       spring-boot-openliberty: incomplete_test_app (needs investigation to understand why test is failing)
-      spring-boot-wildfly: incomplete_test_app (needs investigation to understand why test is failing)
+      spring-boot-wildfly: v1.54.0-SNAPSHOT+c2aec92b86
     Test_Config_UnifiedServiceTagging_CustomService: v1.39.0
     Test_Config_UnifiedServiceTagging_Default: v1.39.0
   test_data_integrity.py:
@@ -2240,7 +2240,23 @@ tests/:
     Test_Propagate_Legacy:
       # XXX: spring-boot-3-native would have a higher version
       '*': v0.111.0
-  test_ipv6.py: missing_feature (APMAPI-869)
+  test_ipv6.py:
+    Test_Basic:
+      akka-http: v1.54.0-SNAPSHOT+c2aec92b86
+      jersey-grizzly2: v1.54.0-SNAPSHOT+c2aec92b86
+      play: v1.54.0-SNAPSHOT+c2aec92b86
+      ratpack: v1.54.0-SNAPSHOT+c2aec92b86
+      resteasy-netty3: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-3-native: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-jetty: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-openliberty: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-payara: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-undertow: v1.54.0-SNAPSHOT+c2aec92b86
+      spring-boot-wildfly: v1.54.0-SNAPSHOT+c2aec92b86
+      uds-spring-boot: v1.54.0-SNAPSHOT+c2aec92b86
+      vertx3: v1.54.0-SNAPSHOT+c2aec92b86
+      vertx4: v1.54.0-SNAPSHOT+c2aec92b86
   test_library_conf.py:
     Test_ExtractBehavior_Default:
       '*': incomplete_test_app (weblog endpoint not implemented)
@@ -2275,8 +2291,8 @@ tests/:
     Test_Profile:
       akka-http: v1.22.0
       spring-boot-3-native: v1.39.0
-      vertx3: missing_feature (Endpoint not implemented)
-      vertx4: missing_feature (Endpoint not implemented)
+      vertx3: v1.54.0-SNAPSHOT+c2aec92b86
+      vertx4: v1.54.0-SNAPSHOT+c2aec92b86
   test_protobuf.py:
     Test_Protobuf:
       '*': missing_feature
