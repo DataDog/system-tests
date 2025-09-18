@@ -82,6 +82,7 @@ telemetry_name_mapping = {
         "php": "trace.debug",
         "java": "trace_debug",
         "ruby": "DD_TRACE_DEBUG",
+        "python": "DD_TRACE_DEBUG",
     },
 }
 
