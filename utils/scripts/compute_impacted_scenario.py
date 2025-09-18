@@ -119,9 +119,9 @@ def main():
 
             elif file.startswith("utils/"):
                 if file.startswith("utils/interfaces/schemas"):
-                    scenarios_groups.add(ScenarioGroup.END_TO_END.value)
+                    result.add_scenario_group(ScenarioGroup.END_TO_END.value)
                 else:
-                    scenarios_groups.add(ScenarioGroup.ALL.value)
+                    result.add_scenario_group(ScenarioGroup.ALL.value)
 
             elif file in (".dockerignore", ".gitignore", ".gitlab-ci.yml", "CHANGELOG.md",):
                 # nothing to do
@@ -132,14 +132,14 @@ def main():
                 pass
 
             elif file == "conftest.py":
-                scenarios_groups.add(ScenarioGroup.ALL.value)
+                result.add_scenario_group(ScenarioGroup.ALL.value)
 
             elif file in ("format.sh", "pyproject.toml"):
                 # nothing to do
                 pass
 
             elif file in ("requirements.txt", "run.sh"):
-                scenarios_groups.add(ScenarioGroup.ALL.value)
+                result.add_scenario_group(ScenarioGroup.ALL.value)
 
             elif file in ("scenario_groups.yml", "shell.nix", "flake.nix", "flake.lock", "treefmt.nix"):
                 # nothing to do
