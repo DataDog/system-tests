@@ -273,7 +273,7 @@ class Test_Schema_Response_on_Block:
 
 
 @rfc("https://docs.google.com/document/d/1OCHPBCAErOL2FhLl64YAHB8woDyq66y5t-JGolxdf1Q/edit#heading=h.bth088vsbjrz")
-@scenarios.appsec_standalone_api_security
+@scenarios.appsec_api_security_with_sampling
 @features.api_security_schemas
 class Test_Schema_Response_Body_env_var:
     """Test API Security - Response Body Schema with urlencoded body and env var disabling response body parsing

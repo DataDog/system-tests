@@ -345,6 +345,7 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
+            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="""
         Scenario for API Security feature, testing api security sampling rate.
@@ -401,7 +402,6 @@ class _Scenarios:
             "DD_EXPERIMENTAL_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_SAMPLE_DELAY": "3",
-            "DD_API_SECURITY_PARSE_RESPONSE_BODY": "false",
         },
         doc="Scenario to test API Security in AppSec standalone mode",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
