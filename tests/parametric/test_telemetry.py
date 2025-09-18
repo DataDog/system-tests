@@ -534,7 +534,8 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
-            # Sleep to ensure the telemetry events are sent with different timestamps
+            # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
+            # seq_id can't be used to sort because payloads are sent from different tracer sessions.
             time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
