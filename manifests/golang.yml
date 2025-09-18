@@ -416,11 +416,8 @@ tests/:
         gin: v1.37.0
     test_asm_standalone.py:
       Test_APISecurityStandalone: missing_feature
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (v2 is implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.73.0-dev
-      Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: missing_feature
-      Test_SCAStandalone_Telemetry: irrelevant (v2 is implemented)
       Test_SCAStandalone_Telemetry_V2: v2.0.0
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
@@ -567,10 +564,10 @@ tests/:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
-      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v2.4.0-dev
+      TestServiceActivationEnvVarMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0-dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -618,11 +615,11 @@ tests/:
     test_debugger_probe_snapshot.py:
       Test_Debugger_Line_Probe_Snaphots: missing_feature (feature not implemented)
       Test_Debugger_Line_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Snaphots: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Snaphots_With_SCM: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Snaphots: v2.2.3
+      Test_Debugger_Method_Probe_Snaphots_With_SCM: v2.2.3
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
-      Test_Debugger_Method_Probe_Statuses: missing_feature (feature not implemented)
+      Test_Debugger_Method_Probe_Statuses: v2.2.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature (feature not implemented)
     test_debugger_telemetry.py:

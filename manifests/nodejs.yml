@@ -823,11 +823,8 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: *ref_5_52_0
       Test_AppSecStandalone_NotEnabled: *ref_5_18_0
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_AppSecStandalone_UpstreamPropagation_V2: *ref_5_40_0
-      Test_IastStandalone_UpstreamPropagation: irrelevant (due to v2)
       Test_IastStandalone_UpstreamPropagation_V2: *ref_5_40_0
-      Test_SCAStandalone_Telemetry: irrelevant (due to v2)
       Test_SCAStandalone_Telemetry_V2: *ref_5_40_0
       Test_UserEventsStandalone_Automated:
         '*': *ref_5_40_0
