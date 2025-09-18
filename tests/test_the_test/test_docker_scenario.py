@@ -7,7 +7,7 @@ from utils import scenarios
 
 class FakeContainer(_TestedContainer):
     def __init__(self, name, events=None) -> None:
-        super().__init__(name=name, image_name=name, host_log_folder="logs_test_the_test")
+        super().__init__(name=name, image_name=name)
         self._test_events = events if events is not None else []
 
     def start(self, network):  # noqa: ARG002
