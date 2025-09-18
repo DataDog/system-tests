@@ -1215,20 +1215,11 @@ tests/:
         vertx3: bug (APPSEC-56870)
         vertx4: bug (APPSEC-56871)
       Test_AppSecStandalone_NotEnabled: missing_feature
-      Test_AppSecStandalone_UpstreamPropagation:
-        '*': v1.36.0
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_AppSecStandalone_UpstreamPropagation_V2:
         '*': v1.47.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_IastStandalone_UpstreamPropagation:
-        '*': v1.36.0
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v1.47.0
-        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
-      Test_SCAStandalone_Telemetry:
-        '*': v1.36.0
         spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
       Test_SCAStandalone_Telemetry_V2:
         '*': v1.47.0
@@ -2290,6 +2281,7 @@ tests/:
     Test_Protobuf:
       '*': missing_feature
       spring-boot: v1.47.0
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction:
       '*': v1.49.0

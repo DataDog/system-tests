@@ -1096,6 +1096,10 @@ Examples:
 
 - `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`
 
+#### GET /resource_renaming/*
+
+This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
+
 ## Weblog specification
 
 There are several rules shared between all the existing end-to-end weblogs.
