@@ -436,6 +436,7 @@ class _TestAgentAPI:
 
         # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
+
         # Extract configuration data from relevant telemetry events
         for event in events:
             if service is not None and event["application"]["service_name"] != service:
