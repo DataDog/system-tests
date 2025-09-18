@@ -123,11 +123,18 @@ def main():
                 else:
                     result.add_scenario_group(ScenarioGroup.ALL.value)
 
-            elif file in (".dockerignore", ".gitignore", ".gitlab-ci.yml", "CHANGELOG.md",):
-                # nothing to do
-                pass
-
-            elif file in ("LICENSE", "LICENSE-3rdparty.csv", "NOTICE", "Pulumi.yaml", "README.md", "build.sh"):
+            elif file in (
+                ".dockerignore",
+                ".gitignore",
+                ".gitlab-ci.yml",
+                "CHANGELOG.md",
+                "LICENSE",
+                "LICENSE-3rdparty.csv",
+                "NOTICE",
+                "Pulumi.yaml",
+                "README.md",
+                "build.sh",
+            ):
                 # nothing to do
                 pass
 
