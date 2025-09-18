@@ -18,6 +18,9 @@
                     ],
                     "php": [
                         "php-app"
+                    ],
+                    "ruby": [
+                        "ruby-rails-app"
                     ]
                 }
             ]
@@ -193,6 +196,25 @@
         "php": [
             {
                 "name": "php-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "ruby": [
+            {
+                "name": "ruby-rails-app",
                 "supported_images": [
                     {
                         "name": "Ubuntu_22_amd64",
