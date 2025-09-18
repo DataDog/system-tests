@@ -511,7 +511,6 @@ if __name__ == "__main__":
             "APPSEC_RASP",
             "APPSEC_RASP_NON_BLOCKING",
             "APPSEC_RATE_LIMITER",
-            "APPSEC_REQUEST_BLOCKING",
             "APPSEC_RULES_MONITORING_WITH_ERRORS",
             "APPSEC_RUNTIME_ACTIVATION",
             "APPSEC_STANDALONE",
