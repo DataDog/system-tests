@@ -1,5 +1,5 @@
 from utils.onboarding.weblog_interface import make_get_request, warmup_weblog, make_internal_get_request
-from utils.onboarding.backend_interface import wait_backend_trace_id
+from utils.onboarding.backend_interface import wait_backend_trace_id, wait_backend_container_tags
 from utils.onboarding.wait_for_tcp_port import wait_for_port
 from utils.virtual_machine.vm_logger import vm_logger
 from utils import context, logger
@@ -52,6 +52,7 @@ class AutoInjectBaseTest:
 
         try:
             wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
+            wait_backend_container_tags(request_uuid)
         except (TimeoutError, AssertionError) as e:
             self._log_trace_debug_message(e, request_uuid)
             raise

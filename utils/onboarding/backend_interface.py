@@ -17,6 +17,11 @@ def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
         _query_for_profile(runtime_id)
 
 
+def wait_backend_container_tags(trace_id, validator=None):
+    logger.info(f"Waiting for backend container tags with trace_id: {trace_id}")
+    container_tags = _query_for_container_tags(trace_id, validator=validator)
+    assert container_tags, f"Could not find container tags for trace_id: {trace_id}."
+
 def _headers():
     """The backend can raise a 429 error if the rate limit is reached.
     We can use several app keys trying to avoid the rate limit.
@@ -71,6 +76,29 @@ def _query_for_trace_id(trace_id, validator=None):
         return None
 
     return root_span["meta"]["runtime-id"]
+
+
+def _query_for_container_tags(trace_id, validator=None):
+    url = f"{API_HOST}/api/ui/trace/{trace_id}"
+    trace_data = _make_request(url, headers=_headers())
+    if validator:
+        logger.info("Validating backend trace...")
+        if not validator(trace_id, trace_data):
+            logger.info("Backend trace is not valid")
+            return None
+        logger.info("Backend trace is valid")
+    root_id = trace_data["trace"]["root_id"]
+    root_span = trace_data["trace"]["spans"][root_id]
+    
+    # Check if container tags exist in the trace metadata
+    meta = root_span.get("meta", {})
+    container_tags = meta.get("_dd.tags.container")
+    
+    if container_tags:
+        logger.info(f"Found container tags: {container_tags}")
+        return container_tags
+    else:
+        return None
 
 
 def _make_request(
