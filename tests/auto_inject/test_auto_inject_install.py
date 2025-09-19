@@ -18,7 +18,6 @@ class TestLocalAutoInjectInstallScript(base.AutoInjectBaseTest):
     def test_install(self):
         self._test_install(context.virtual_machine)
 
-
 @features.auto_instrumentation_profiling
 @scenarios.simple_auto_injection_profiling
 class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
@@ -59,6 +58,12 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
     def test_install(self):
         self._test_install(context.virtual_machine)
+
+@features.container_auto_installation_script_origin_detection
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScriptOriginDetection(base.AutoInjectBaseTest):
+    def test_install(self):
+        self._test_install(context.virtual_machine, origin_detection=True)
 
 
 @features.container_auto_installation_script_profiling
