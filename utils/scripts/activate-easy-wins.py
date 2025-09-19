@@ -157,17 +157,12 @@ def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dic
     return test_data
 
 
-def parse_manifest(library: str, path_root: str) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
-    yaml = ruamel.yaml.YAML()
-    yaml.width = 200
+def parse_manifest(library: str, path_root: str, yaml) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
     with open(f"{path_root}/manifests/{library}.yml", encoding="utf-8") as file:
         return yaml.load(file)
 
 
-def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str) -> None:  # type: ignore[type-arg]
-    yaml = ruamel.yaml.YAML()
-    yaml.width = 200
-    yaml.explicit_start = True
+def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str, yaml) -> None:  # type: ignore[type-arg]
     with open(outfile_path, "w", encoding="utf8") as outfile:
         yaml.dump(manifest, outfile)
 
@@ -400,6 +395,14 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    yaml = ruamel.yaml.YAML()
+    yaml.explicit_start = True
+
+    yaml.width = 4096    
+    yaml.comment_column = 120
+    yaml.preserve_quotes = True
+    yaml.indent(mapping=2, sequence=2, offset=2)
+
     path_root = str(Path(__file__).parents[2])
     path_data_root = args.data_path if args.data_path else f"{path_root}/data"
     path_data_opt = path_data_root
@@ -420,7 +423,7 @@ def main() -> None:
     library_counts = {}
 
     for library in args.libraries:
-        manifest = parse_manifest(library, path_root)
+        manifest = parse_manifest(library, path_root, yaml)
         updates = update_manifest(library, manifest, test_data, versions)
         library_counts[library] = len(updates)
 
@@ -442,7 +445,7 @@ def main() -> None:
 
         total_updates += len(updates)
         if not args.dry_run:
-            write_manifest(manifest, f"{path_root}/manifests/{library}.yml")
+            write_manifest(manifest, f"{path_root}/manifests/{library}.yml", yaml)
 
     # Display summary with per-library counts
     if args.dry_run:
