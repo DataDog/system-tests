@@ -129,13 +129,13 @@ app.get('/customResponseHeaders', (req, res) => {
 
 app.get('/authorization_related_headers', (req, res) => {
   res.set({
-    'Authorization': 'value1',
+    Authorization: 'value1',
     'Proxy-Authorization': 'value2',
     'WWW-Authenticate': 'value3',
     'Proxy-Authenticate': 'value4',
     'Authentication-Info': 'value5',
     'Proxy-Authentication-Info': 'value6',
-    'Cookie': 'value7',
+    Cookie: 'value7',
     'Set-Cookie': 'value8',
     'content-type': 'text/plain'
   })

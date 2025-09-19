@@ -412,7 +412,6 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.proxy-authentication-info") == "<redacted>"
         assert meta.get("http.response.headers.cookie") == "<redacted>"
         assert meta.get("http.response.headers.set-cookie") == "<redacted>"
-        
 
 
 @features.appsec_extended_data_collection
