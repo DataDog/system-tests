@@ -82,6 +82,24 @@ object AppSecRoutes {
           }
         }
       } ~
+      path("authorization_related_headers") {
+        get {
+          val entity = HttpEntity(ContentTypes.`text/plain(UTF-8)`, "Response with custom headers")
+          respondWithHeaders(
+            RawHeader("Authorization", "value1"),
+            RawHeader("Proxy-Authorization", "value2"),
+            RawHeader("WWW-Authenticate", "value3"),
+            RawHeader("Proxy-Authenticate", "value4"),
+            RawHeader("Authentication-Info", "value5"),
+            RawHeader("Proxy-Authentication-Info", "value6"),
+            RawHeader("Cookie", "value7"),
+            RawHeader("Set-Cookie", "value8"),
+            RawHeader("content-type", "text/plain")
+          ) {
+            complete(entity)
+          }
+        }
+      } ~
       // Endpoint exceeding default header budget with 50 headers
       path("exceedResponseHeaders") {
         get {

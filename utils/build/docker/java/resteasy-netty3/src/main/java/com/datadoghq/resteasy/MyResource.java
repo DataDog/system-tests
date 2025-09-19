@@ -114,6 +114,24 @@ public class MyResource {
                 .entity("Response with custom headers").build();
     }
 
+    @GET
+    @Path("/authorization_related_headers")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response authResponseHeaders() {
+        return Response.status(200)
+                .header("Authorization", "value1")
+                .header("Proxy-Authorization", "value2")
+                .header("WWW-Authenticate", "value3")
+                .header("Proxy-Authenticate", "value4")
+                .header("Authentication-Info", "value5")
+                .header("Proxy-Authentication-Info", "value6")
+                .header("Cookie", "value7")
+                .header("Set-Cookie", "value8")
+                .header("content-type", "text/plain")
+                .entity("Response with sensitive headers")
+                .build();
+    }
+
     /**
      * Endpoint for sending a response with more than fifty headers.
      */

@@ -201,6 +201,21 @@ public class App {
         return "Response with custom headers";
     }
 
+    @GetMapping("/authorization_related_headers")
+    String authResponseHeaders(HttpServletResponse response) {
+        response.setHeader("Authorization", "value1");
+        response.setHeader("Proxy-Authorization", "value2");
+        response.setHeader("WWW-Authenticate", "value3");
+        response.setHeader("Proxy-Authenticate", "value4");
+        response.setHeader("Authentication-Info", "value5");
+        response.setHeader("Proxy-Authentication-Info", "value6");
+        response.setHeader("Cookie", "value7");
+        response.setHeader("Set-Cookie", "value8");
+        response.setHeader("content-type", "text/plain");
+        return "Response with authorization-related headers";
+    }
+
+
     @GetMapping("/exceedResponseHeaders")
     String exceedResponseHeaders(HttpServletResponse response) {
         for (int i = 1; i <= 50; i++) {
