@@ -358,6 +358,10 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                         versions[library] = f"v{dep['version']}"
                         found_version = True
 
+        if library == "cpp_httpd" and versions[library] == "v99.99.99":
+            with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
+                versions[library] = resp_runs.json()[0]["tag_name"]
+
         if not found_version:
             versions[library] = "xpass"
 
