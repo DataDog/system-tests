@@ -157,12 +157,12 @@ def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dic
     return test_data
 
 
-def parse_manifest(library: str, path_root: str, yaml) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
+def parse_manifest(library: str, path_root: str, yaml: ruamel.yaml.YAML) -> ruamel.yaml.CommentedMap:  # type: ignore[type-arg]
     with open(f"{path_root}/manifests/{library}.yml", encoding="utf-8") as file:
         return yaml.load(file)
 
 
-def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str, yaml) -> None:  # type: ignore[type-arg]
+def write_manifest(manifest: ruamel.yaml.CommentedMap, outfile_path: str, yaml: ruamel.yaml.YAML) -> None:  # type: ignore[type-arg]
     with open(outfile_path, "w", encoding="utf8") as outfile:
         yaml.dump(manifest, outfile)
 
@@ -207,12 +207,11 @@ def build_updated_subtree(
             for key, branch in root.items():
                 branch_paths = _collect_all_paths_with_status(branch, [*path, key])
                 all_paths.extend(branch_paths)
+        # Leaf node - return path with its status
+        elif len(path) > 1 and "parametric" in path[-1]:
+            all_paths.append((path[:-1], root))
         else:
-            # Leaf node - return path with its status
-            if len(path) > 1 and "parametric" in path[-1]:
-                all_paths.append((path[:-1], root))
-            else:
-                all_paths.append((path, root))
+            all_paths.append((path, root))
 
         return all_paths
 
@@ -263,7 +262,7 @@ def update_entry(
         if search[2] and isinstance(search[0], str) and isinstance(search[1], str):
             test_data_root = test_data[language][search[0]][search[1]][search[2]]
         elif search[1] and isinstance(search[0], str) and isinstance(search[1], str):
-            test_data_root = test_data[language][search[0]][search[1]]
+            test_data_root: Any = test_data[language][search[0]][search[1]]  # type: ignore[misc]
         elif isinstance(search[0], str):
             test_data_root: Any = test_data[language][search[0]]  # type: ignore[misc]
         else:
@@ -398,7 +397,7 @@ def main() -> None:
     yaml = ruamel.yaml.YAML()
     yaml.explicit_start = True
 
-    yaml.width = 4096    
+    yaml.width = 4096
     yaml.comment_column = 120
     yaml.preserve_quotes = True
     yaml.indent(mapping=2, sequence=2, offset=2)
