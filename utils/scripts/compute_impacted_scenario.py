@@ -166,6 +166,7 @@ def main() -> None:
                     r"utils/_context/_scenarios/open_telemetry\.py": scenario_groups.open_telemetry,
                     r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
                     r"utils/_context/_scenarios/profiling\.py": scenario_groups.profiling,
+                    r"utils/_context/_scenarios/stream_processing_offload\.py": scenario_groups.stream_processing_offload,  # noqa: E501
                     r"utils/_context/virtual_machine\.py": scenario_groups.onboarding,
                     r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/lambda_proxy/.*": scenario_groups.lambda_end_to_end,
