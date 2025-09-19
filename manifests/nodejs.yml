@@ -933,7 +933,7 @@ tests/:
       Test_ConfigurationVariables_New_Obfuscation: *ref_5_59_0
     test_customconf.py:
       Test_ConfRuleSet: v2.0.0
-      Test_CorruptedRules_Telemetry: *ref_5_44_0
+      Test_CorruptedRules_Telemetry: bug (APPSEC-59077)
       Test_MissingRules: v2.0.0
       Test_NoLimitOnWafRules: v2.4.0
     test_event_tracking.py:
@@ -1048,7 +1048,7 @@ tests/:
       Test_AsmDdMultiConfiguration: *ref_5_59_0
       Test_BlockingActionChangesWithRemoteConfig: *ref_4_1_0
       Test_Empty_Config: *ref_3_19_0
-      Test_Invalid_Config: *ref_5_66_0
+      Test_Invalid_Config: bug (APPSEC-59077)
       Test_Multiple_Actions: *ref_4_1_0
       Test_Unknown_Action: *ref_4_1_0
       Test_UpdateRuleFileWithRemoteConfig: *ref_3_19_0
