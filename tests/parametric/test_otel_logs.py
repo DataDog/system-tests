@@ -669,8 +669,14 @@ class Test_FR11_Telemetry:
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "grpc"),
             ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
         ]:
-            config = configurations_by_name.get(expected_env)
-            assert config, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+            config_list = configurations_by_name.get(expected_env, [])
+            assert config_list, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = next(
+                (cfg for cfg in config_list if cfg.get("origin") == "env_var"), config_list[0] if config_list else None
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
