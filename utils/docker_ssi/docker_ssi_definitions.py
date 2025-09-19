@@ -162,3 +162,26 @@ class DotnetRuntimeInstallableVersions:
             if version_check.version == version:
                 return version_check.version_id
         raise ValueError(f".NET version {version} not supported")
+
+
+class RubyRuntimeInstallableVersions:
+    """Ruby runtime versions that can be installed automatically"""
+
+    RUBY33 = RuntimeInstallableVersion("RUBY33", "3.3.6")
+    RUBY32 = RuntimeInstallableVersion("RUBY32", "3.2.6")
+    RUBY31 = RuntimeInstallableVersion("RUBY31", "3.1.3")
+
+    @staticmethod
+    def get_all_versions():
+        return [
+            RubyRuntimeInstallableVersions.RUBY33,
+            RubyRuntimeInstallableVersions.RUBY32,
+            RubyRuntimeInstallableVersions.RUBY31,
+        ]
+
+    @staticmethod
+    def get_version_id(version):
+        for version_check in RubyRuntimeInstallableVersions.get_all_versions():
+            if version_check.version == version:
+                return version_check.version_id
+        raise ValueError(f"Ruby version {version} not supported")
