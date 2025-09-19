@@ -11,7 +11,7 @@ class TestDockerSSIAppsecFeatures:
     """
 
     def setup_telemetry_source_ssi(self):
-        parsed_url = urlparse(scenarios.docker_ssi.weblog_url)
+        parsed_url = urlparse(scenarios.docker_ssi_appsec.weblog_url)
         self.r = weblog.request("GET", parsed_url.path, domain=parsed_url.hostname, port=parsed_url.port)
 
     @missing_feature(condition=context.library in ("nodejs", "java", "php"), reason="No implemented")
