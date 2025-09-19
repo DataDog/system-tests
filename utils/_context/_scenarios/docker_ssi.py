@@ -41,8 +41,8 @@ class DockerSSIScenario(Scenario):
 
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
-        self._weblog_injection = DockerSSIContainer(host_log_folder=self.host_log_folder, extra_env_vars=extra_env_vars)
-        self._agent_container = APMTestAgentContainer(host_log_folder=self.host_log_folder, agent_port=self.agent_port)
+        self._weblog_injection = DockerSSIContainer(extra_env_vars=extra_env_vars)
+        self._agent_container = APMTestAgentContainer(agent_port=self.agent_port)
 
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._agent_container)
@@ -123,7 +123,7 @@ class DockerSSIScenario(Scenario):
 
         for container in self._required_containers:
             try:
-                container.configure(replay=self.replay)
+                container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
             except Exception as e:
                 logger.error("Failed to configure container ", e)
                 logger.stdout("ERROR configuring container. check log file for more details")
