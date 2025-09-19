@@ -1,6 +1,6 @@
 from urllib.parse import urlparse
 
-from utils import scenarios, interfaces, weblog, features, missing_feature, context
+from utils import scenarios, interfaces, weblog, features, missing_feature, irrelevant, context
 
 
 @features.appsec_service_activation_origin_metric
