@@ -81,17 +81,18 @@ def _query_for_container_tags(trace_id):
     trace_data = _make_request(url, headers=_headers())
     root_id = trace_data["trace"]["root_id"]
     root_span = trace_data["trace"]["spans"][root_id]
-    
+
     # Check if container tags exist in the trace metadata
     meta = root_span.get("meta", {})
     container_tags = meta.get("_dd.tags.container")
-    
+
     if container_tags:
         logger.info(f"Found container tags: {container_tags}")
         return container_tags
     else:
         logger.warning(f"No container tags found in trace {trace_id}. Available meta keys: {list(meta.keys())}")
         return None
+
 
 def _make_request(
     url,
