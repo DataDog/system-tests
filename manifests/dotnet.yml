@@ -320,11 +320,8 @@ tests/:
       Test_Basic: v1.28.6
     test_asm_standalone.py:
       Test_APISecurityStandalone: v3.17.0
-      Test_AppSecStandalone_UpstreamPropagation: missing_feature
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.12.0
-      Test_IastStandalone_UpstreamPropagation: missing_feature
       Test_IastStandalone_UpstreamPropagation_V2: v3.12.0
-      Test_SCAStandalone_Telemetry: missing_feature
       Test_SCAStandalone_Telemetry_V2: missing_feature
       Test_UserEventsStandalone_Automated: v3.12.0
       Test_UserEventsStandalone_SDK_V1: missing_feature
@@ -689,6 +686,7 @@ tests/:
       uds: missing_feature (to be confirmed)
   test_protobuf.py:
     Test_Protobuf: v3.15.0
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.11.1  # real version unknown
     Test_SamplingDecisionAdded: v3.11.1  # real version unknown

@@ -10,7 +10,7 @@ packages = ["tests", "utils", "manifests"]
 dependencies = {file = ["requirements.txt"]}
 
 [tool.pytest.ini_options]
-addopts = "--json-report --json-report-indent=2 --color=yes --no-header --junitxml=reportJunit.xml -r Xf"
+addopts = "--json-report --json-report-indent=2 --color=yes --no-header -r Xf"
 testpaths = [
     "tests",
 ]

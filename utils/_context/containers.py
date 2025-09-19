@@ -77,6 +77,8 @@ def create_inject_volume():
 
 class TestedContainer:
     _container: Container = None
+    _starting_lock: RLock
+    host_log_folder: str
 
     # https://docker-py.readthedocs.io/en/stable/containers.html
     def __init__(
@@ -89,7 +91,6 @@ class TestedContainer:
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
         healthcheck: dict | None = None,
-        host_log_folder: str,
         local_image_only: bool = False,
         ports: dict | None = None,
         security_opt: list[str] | None = None,
@@ -97,10 +98,10 @@ class TestedContainer:
         user: str | None = None,
         volumes: dict | None = None,
         working_dir: str | None = None,
+        pid_mode: str | None = None,
     ) -> None:
         self.name = name
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
-        self.host_log_folder = host_log_folder
         self.allow_old_container = allow_old_container
 
         self.image = ImageInfo(image_name, local_image_only=local_image_only)
@@ -116,7 +117,6 @@ class TestedContainer:
         self.volumes = volumes or {}
         self.ports = ports or {}
         self.depends_on: list[TestedContainer] = []
-        self._starting_lock = RLock()
         self._starting_thread: Thread | None = None
         self.stdout_interface = stdout_interface
         self.working_dir = working_dir
@@ -126,6 +126,7 @@ class TestedContainer:
         self.security_opt = security_opt
         self.ulimits: list | None = None
         self.privileged = False
+        self.pid_mode = pid_mode
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -144,9 +145,11 @@ class TestedContainer:
         """Returns the image list that will be loaded to be able to run/build the container"""
         return [self.image.name]
 
-    def configure(self, *, replay: bool):
+    def configure(self, *, host_log_folder: str, replay: bool):
+        self.host_log_folder = host_log_folder
         if not replay:
             self.stop_previous_container()
+            self._starting_lock = RLock()
 
             Path(self.log_folder_path).mkdir(exist_ok=True, parents=True)
             Path(f"{self.log_folder_path}/logs").mkdir(exist_ok=True, parents=True)
@@ -220,6 +223,7 @@ class TestedContainer:
             security_opt=self.security_opt,
             privileged=self.privileged,
             ulimits=self.ulimits,
+            pid_mode=self.pid_mode,
         )
 
         self.healthy = self.wait_for_health()
@@ -469,7 +473,6 @@ class SqlDbTestedContainer(TestedContainer):
         name: str,
         *,
         image_name: str,
-        host_log_folder: str,
         db_user: str,
         environment: dict[str, str | None] | None = None,
         allow_old_container: bool = False,
@@ -488,7 +491,6 @@ class SqlDbTestedContainer(TestedContainer):
         super().__init__(
             image_name=image_name,
             name=name,
-            host_log_folder=host_log_folder,
             environment=environment,
             stdout_interface=stdout_interface,
             healthcheck=healthcheck,
@@ -562,7 +564,6 @@ class ProxyContainer(TestedContainer):
     def __init__(
         self,
         *,
-        host_log_folder: str,
         rc_api_enabled: bool,
         meta_structs_disabled: bool,
         span_events: bool,
@@ -581,12 +582,10 @@ class ProxyContainer(TestedContainer):
         super().__init__(
             image_name="datadog/system-tests:proxy-v1",
             name="proxy",
-            host_log_folder=host_log_folder,
             environment={
                 "DD_SITE": os.environ.get("DD_SITE"),
                 "DD_API_KEY": os.environ.get("DD_API_KEY", _FAKE_DD_API_KEY),
                 "DD_APP_KEY": os.environ.get("DD_APP_KEY"),
-                "SYSTEM_TESTS_HOST_LOG_FOLDER": host_log_folder,
                 "SYSTEM_TESTS_RC_API_ENABLED": str(rc_api_enabled),
                 "SYSTEM_TESTS_AGENT_SPAN_META_STRUCTS_DISABLED": str(meta_structs_disabled),
                 "SYSTEM_TESTS_AGENT_SPAN_EVENTS": str(span_events),
@@ -595,7 +594,6 @@ class ProxyContainer(TestedContainer):
             },
             working_dir="/app",
             volumes={
-                f"./{host_log_folder}/interfaces/": {"bind": f"/app/{host_log_folder}/interfaces", "mode": "rw"},
                 "./utils/": {"bind": "/app/utils/", "mode": "ro"},
             },
             ports={f"{ProxyPorts.proxy_commands}/tcp": ("127.0.0.1", self.command_host_port)},
@@ -606,12 +604,15 @@ class ProxyContainer(TestedContainer):
             },
         )
 
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{host_log_folder}/interfaces/"] = {"bind": "/app/logs/interfaces", "mode": "rw"}
+
 
 class LambdaProxyContainer(TestedContainer):
     def __init__(
         self,
         *,
-        host_log_folder: str,
         lambda_weblog_host: str,
         lambda_weblog_port: str,
     ) -> None:
@@ -623,7 +624,6 @@ class LambdaProxyContainer(TestedContainer):
         super().__init__(
             image_name="datadog/system-tests:lambda-proxy-v1",
             name="lambda-proxy",
-            host_log_folder=host_log_folder,
             environment={
                 "RIE_HOST": lambda_weblog_host,
                 "RIE_PORT": lambda_weblog_port,
@@ -648,9 +648,7 @@ class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
 
-    def __init__(
-        self, host_log_folder: str, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None
-    ) -> None:
+    def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -670,7 +668,6 @@ class AgentContainer(TestedContainer):
         super().__init__(
             image_name=self._get_image_name(),
             name="agent",
-            host_log_folder=host_log_folder,
             environment=environment,
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
@@ -715,7 +712,6 @@ class BuddyContainer(TestedContainer):
         self,
         name: str,
         image_name: str,
-        host_log_folder: str,
         host_port: int,
         trace_agent_port: int,
         environment: dict[str, str | None],
@@ -723,7 +719,6 @@ class BuddyContainer(TestedContainer):
         super().__init__(
             name=name,
             image_name=image_name,
-            host_log_folder=host_log_folder,
             healthcheck={"test": "curl --fail --silent --show-error --max-time 2 localhost:7777", "retries": 60},
             ports={"7777/tcp": host_port},
             environment={
@@ -794,7 +789,6 @@ class WeblogContainer(TestedContainer):
 
     def __init__(
         self,
-        host_log_folder: str,
         *,
         environment: dict[str, str | None] | None = None,
         tracer_sampling_rate: float | None = None,
@@ -814,7 +808,6 @@ class WeblogContainer(TestedContainer):
         self.container_grpc_port = 7778
 
         volumes = {} if volumes is None else volumes
-        volumes[f"./{host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         base_environment: dict[str, str | None] = {
             # Datadog setup
@@ -871,7 +864,6 @@ class WeblogContainer(TestedContainer):
         super().__init__(
             image_name="system_tests/weblog",
             name="weblog",
-            host_log_folder=host_log_folder,
             environment=environment,
             volumes=volumes,
             # ddprof's perf event open is blocked by default by docker's seccomp profile
@@ -945,8 +937,10 @@ class WeblogContainer(TestedContainer):
 
         return result
 
-    def configure(self, *, replay: bool):
-        super().configure(replay=replay)
+    def configure(self, *, host_log_folder: str, replay: bool):
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+
+        self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
 
@@ -1057,7 +1051,6 @@ class WeblogContainer(TestedContainer):
 class LambdaWeblogContainer(WeblogContainer):
     def __init__(
         self,
-        host_log_folder: str,
         *,
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
@@ -1088,7 +1081,6 @@ class LambdaWeblogContainer(WeblogContainer):
         )
 
         super().__init__(
-            host_log_folder,
             environment=environment,
             volumes=volumes,
         )
@@ -1107,11 +1099,10 @@ class LambdaWeblogContainer(WeblogContainer):
 
 
 class PostgresContainer(SqlDbTestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="postgres:alpine",
             name="postgres",
-            host_log_folder=host_log_folder,
             healthcheck={"test": "pg_isready -q -U postgres -d system_tests_dbname", "retries": 30},
             user="postgres",
             environment={"POSTGRES_PASSWORD": "password", "PGPORT": "5433"},
@@ -1131,19 +1122,16 @@ class PostgresContainer(SqlDbTestedContainer):
 
 
 class MongoContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
-        super().__init__(
-            image_name="mongo:latest", name="mongodb", host_log_folder=host_log_folder, allow_old_container=True
-        )
+    def __init__(self) -> None:
+        super().__init__(image_name="mongo:latest", name="mongodb", allow_old_container=True)
 
 
 class KafkaContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             # TODO: Look into apache/kafka-native but it doesn't include scripts.
             image_name="apache/kafka:3.7.1",
             name="kafka",
-            host_log_folder=host_log_folder,
             environment={
                 "KAFKA_PROCESS_ROLES": "broker,controller",
                 "KAFKA_NODE_ID": "1",
@@ -1188,32 +1176,29 @@ class KafkaContainer(TestedContainer):
 
 
 class CassandraContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="cassandra:latest",
             name="cassandra_db",
-            host_log_folder=host_log_folder,
             allow_old_container=True,
         )
 
 
 class RabbitMqContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="rabbitmq:3.12-management-alpine",
             name="rabbitmq",
-            host_log_folder=host_log_folder,
             allow_old_container=True,
             ports={"5672": ("127.0.0.1", 5672)},
         )
 
 
 class ElasticMQContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="softwaremill/elasticmq-native:1.6.11",
             name="elasticmq",
-            host_log_folder=host_log_folder,
             environment={"ELASTICMQ_OPTS": "-Dnode-address.hostname=0.0.0.0"},
             ports={9324: 9324},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
@@ -1222,7 +1207,7 @@ class ElasticMQContainer(TestedContainer):
 
 
 class LocalstackContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="localstack/localstack:4.1",
             name="localstack-main",
@@ -1237,14 +1222,13 @@ class LocalstackContainer(TestedContainer):
                 "SQS_PROVIDER": "elasticmq",
                 "DOCKER_HOST": "unix:///var/run/docker.sock",
             },
-            host_log_folder=host_log_folder,
             ports={"4566": ("127.0.0.1", 4566)},
             volumes={"/var/run/docker.sock": {"bind": "/var/run/docker.sock", "mode": "rw"}},
         )
 
 
 class MySqlContainer(SqlDbTestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="mysql/mysql-server:8.0.32",
             name="mysqldb",
@@ -1257,7 +1241,6 @@ class MySqlContainer(SqlDbTestedContainer):
                 "MYSQL_PASSWORD": "mysqldb",
             },
             allow_old_container=True,
-            host_log_folder=host_log_folder,
             healthcheck={"test": "/healthcheck.sh", "retries": 60},
             dd_integration_service="mysql",
             db_user="mysqldb",
@@ -1268,9 +1251,7 @@ class MySqlContainer(SqlDbTestedContainer):
 
 
 class MsSqlServerContainer(SqlDbTestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
-        self.data_mssql = f"./{host_log_folder}/data-mssql"
-
+    def __init__(self) -> None:
         healthcheck = {
             # Using 127.0.0.1 here instead of localhost to avoid using IPv6 in some systems.
             # -C : trust self signed certificates
@@ -1285,9 +1266,8 @@ class MsSqlServerContainer(SqlDbTestedContainer):
             user="root",
             environment={"ACCEPT_EULA": "1", "MSSQL_SA_PASSWORD": "yourStrong(!)Password"},
             allow_old_container=True,
-            host_log_folder=host_log_folder,
             ports={"1433/tcp": ("127.0.0.1", 1433)},
-            #  volumes={self.data_mssql: {"bind": "/var/opt/mssql/data", "mode": "rw"}},
+            #  volumes={f"./{host_log_folder}/data-mssql": {"bind": "/var/opt/mssql/data", "mode": "rw"}},
             healthcheck=healthcheck,
             dd_integration_service="mssql",
             db_user="SA",
@@ -1298,7 +1278,7 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 
 class OpenTelemetryCollectorContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
 
@@ -1317,7 +1297,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             command="--config=/etc/otelcol-config.yml",
             environment={},
             volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"}},
-            host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
 
@@ -1350,11 +1329,10 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
 
 class APMTestAgentContainer(TestedContainer):
-    def __init__(self, host_log_folder: str, agent_port: int = 8126) -> None:
+    def __init__(self, agent_port: int = 8126) -> None:
         super().__init__(
             image_name="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.20.0",
             name="ddapm-test-agent",
-            host_log_folder=host_log_folder,
             environment={
                 "SNAPSHOT_CI": "0",
                 "DD_APM_RECEIVER_SOCKET": "/var/run/datadog/apm.socket",
@@ -1366,16 +1344,21 @@ class APMTestAgentContainer(TestedContainer):
             },
             ports={agent_port: ("127.0.0.1", agent_port)},
             allow_old_container=False,
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
+            "bind": "/var/run/datadog/",
+            "mode": "rw",
+        }
 
 
 class MountInjectionVolume(TestedContainer):
-    def __init__(self, host_log_folder: str, name: str) -> None:
+    def __init__(self, name: str) -> None:
         super().__init__(
             image_name="",
             name=name,
-            host_log_folder=host_log_folder,
             command="/bin/true",
             volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-init/package", "mode": "rw"}},
         )
@@ -1394,11 +1377,10 @@ class MountInjectionVolume(TestedContainer):
 
 
 class WeblogInjectionInitContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection-init",
-            host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 8080)},
             allow_old_container=True,
             volumes={_VOLUME_INJECTOR_NAME: {"bind": "/datadog-lib", "mode": "rw"}},
@@ -1414,7 +1396,7 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 
 class DockerSSIContainer(TestedContainer):
-    def __init__(self, host_log_folder: str, extra_env_vars: dict | None = None) -> None:
+    def __init__(self, extra_env_vars: dict | None = None) -> None:
         environment = {
             "DD_DEBUG": "true",
             "DD_TRACE_DEBUG": "true",
@@ -1427,13 +1409,18 @@ class DockerSSIContainer(TestedContainer):
         super().__init__(
             image_name="docker.io/library/weblog-injection:latest",
             name="weblog-injection",
-            host_log_folder=host_log_folder,
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
             environment=cast(dict[str, str | None], environment),
-            volumes={f"./{host_log_folder}/interfaces/test_agent_socket": {"bind": "/var/run/datadog/", "mode": "rw"}},
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+        super().configure(host_log_folder=host_log_folder, replay=replay)
+        self.volumes[f"./{self.host_log_folder}/interfaces/test_agent_socket"] = {
+            "bind": "/var/run/datadog/",
+            "mode": "rw",
+        }
 
     def get_env(self, env_var: str):
         """Get env variables from the container"""
@@ -1442,21 +1429,19 @@ class DockerSSIContainer(TestedContainer):
 
 
 class DummyServerContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="jasonrm/dummy-server:latest",
             name="http-app",
-            host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://localhost:8080", "retries": 10},
         )
 
 
 class InternalServerContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         super().__init__(
             image_name="demisto/fastapi:0.116.1.4266494",
             name="internal_server",
-            host_log_folder=host_log_folder,
             healthcheck={"test": "wget http://internal_server:8089", "retries": 10},
             working_dir="/app",
             command="uvicorn app:app --host 0.0.0.0 --port 8089",
@@ -1468,13 +1453,12 @@ class InternalServerContainer(TestedContainer):
 
 
 class EnvoyContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         from utils import weblog
 
         super().__init__(
             image_name="envoyproxy/envoy:v1.31-latest",
             name="envoy",
-            host_log_folder=host_log_folder,
             volumes={"./tests/external_processing/envoy.yaml": {"bind": "/etc/envoy/envoy.yaml", "mode": "ro"}},
             ports={"80": ("127.0.0.1", weblog.port)},
             healthcheck={
@@ -1492,7 +1476,6 @@ class ExternalProcessingContainer(TestedContainer):
 
     def __init__(
         self,
-        host_log_folder: str,
         env: dict[str, str | None] | None,
         volumes: dict[str, dict[str, str]] | None,
     ) -> None:
@@ -1519,7 +1502,6 @@ class ExternalProcessingContainer(TestedContainer):
         super().__init__(
             image_name=image,
             name="extproc",
-            host_log_folder=host_log_folder,
             volumes=volumes,
             environment=environment,
             healthcheck={
