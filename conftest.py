@@ -194,6 +194,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 # called when each test item is collected
 def _collect_item_metadata(item: pytest.Item):
     details: str | None = None
+    test_declaration_legacy: str | None = None
     test_declaration: str | None = None
 
     # get the reason form skip before xfail
@@ -210,27 +211,43 @@ def _collect_item_metadata(item: pytest.Item):
         logger.debug(f"{item.nodeid} => {details} => skipped")
 
         if details.startswith("irrelevant"):
-            test_declaration = "irrelevant"
+            test_declaration = test_declaration_legacy = "irrelevant"
         elif details.startswith("flaky"):
-            test_declaration = "flaky"
+            test_declaration = test_declaration_legacy = "flaky"
         elif details.startswith("bug"):
-            test_declaration = "bug"
+            test_declaration = test_declaration_legacy = "bug"
         elif details.startswith("incomplete_test_app"):
-            test_declaration = "incompleteTestApp"
+            test_declaration_legacy = "incompleteTestApp"
+            test_declaration = "incomplete_test_app"
         elif details.startswith("missing_feature"):
-            test_declaration = "notImplemented"
+            test_declaration_legacy = "notImplemented"
+            test_declaration = "missing_feature"
         elif "got empty parameter set" in details:
             # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
             logger.info(f"No parameters found for ${item.nodeid}")
         else:
             pytest.exit(f"Unexpected test declaration for {item.nodeid} : {details}", 1)
 
-    return {
+    metadata = {
         "details": details,
-        "testDeclaration": test_declaration,
+        "testDeclaration": test_declaration_legacy,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
         "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
+
+    # decorate test for junit
+    item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
+
+    # for feature_id in metadata["features"]:
+    #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
+
+    if test_declaration:
+        item.user_properties.append(("dd_tags[systest.case.declaration]", test_declaration))
+
+    if details:
+        item.user_properties.append(("dd_tags[systest.case.declarationDetails]", details))
+
+    return metadata
 
 
 def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
@@ -342,20 +359,6 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         if context.scenario.name in declared_scenarios:
             logger.info(f"{item.nodeid} is included in {context.scenario}")
             selected.append(item)
-
-            # decorate test for junit
-            metadata = _collect_item_metadata(item)
-
-            item.user_properties.append(("test.codeowners", json.dumps(metadata["owners"])))
-
-            # for feature_id in metadata["features"]:
-            #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
-
-            if metadata["testDeclaration"]:
-                item.user_properties.append(("dd_tags[systest.case.declaration]", metadata["testDeclaration"]))
-
-            if metadata["details"]:
-                item.user_properties.append(("dd_tags[systest.case.declarationDetails]", metadata["details"]))
 
             for forced in config.option.force_execute:
                 if item.nodeid.startswith(forced):
@@ -487,11 +490,8 @@ def pytest_fixture_setup(
     try:
         (yield).get_result()
     except BaseException:
-        outcome = "error"
-
-        for name, value in request.node.user_properties:
-            if name == "dd_tags[systest.case.declaration]" and value in ("bug", "notImplemented"):
-                outcome = "xfailed"
+        xfails = [*request.node.iter_markers("xfail")]
+        outcome = "xfailed" if len(xfails) != 0 else "error"
 
         request.node.user_properties.append(("dd_tags[systest.case.outcome]", outcome))
 
