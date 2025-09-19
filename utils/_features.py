@@ -1919,6 +1919,15 @@ class _Features:
         return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
 
     @staticmethod
+    def container_auto_installation_script_origin_detection(test_object):
+        """Container origin detection works automatically in a containerized environment
+
+        https://feature-parity.us1.prod.dog/#/?feature=492
+        
+        """
+        return _mark_test_object(test_object, feature_id=492, owner=_Owner.auto_instrumentation)
+
+    @staticmethod
     def container_auto_installation_script_profiling(test_object):
         """Profiling works when enabled through the agent installer script in Container environments
 
