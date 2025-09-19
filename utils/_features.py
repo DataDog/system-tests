@@ -1923,7 +1923,7 @@ class _Features:
         """Container origin detection works automatically in a containerized environment
 
         https://feature-parity.us1.prod.dog/#/?feature=492
-        
+
         """
         return _mark_test_object(test_object, feature_id=492, owner=_Owner.auto_instrumentation)
 
