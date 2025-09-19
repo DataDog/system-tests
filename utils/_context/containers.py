@@ -1525,13 +1525,12 @@ class ExternalProcessingContainer(TestedContainer):
 
 
 class HAProxyContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(self) -> None:
         from utils import weblog
 
         super().__init__(
             image_name="haproxy:3.2",
             name="haproxy",
-            host_log_folder=host_log_folder,
             volumes={
                 "./utils/build/docker/haproxy/haproxy.cfg": {
                     "bind": "/usr/local/etc/haproxy/haproxy.cfg",
@@ -1559,7 +1558,6 @@ class StreamProcessingOffloadContainer(TestedContainer):
 
     def __init__(
         self,
-        host_log_folder: str,
         env: dict[str, str | None] | None,
         volumes: dict[str, dict[str, str]] | None,
     ) -> None:
@@ -1584,7 +1582,6 @@ class StreamProcessingOffloadContainer(TestedContainer):
         super().__init__(
             image_name=image,
             name="stream-processing-offload",
-            host_log_folder=host_log_folder,
             volumes=volumes,
             environment=environment,
             healthcheck={

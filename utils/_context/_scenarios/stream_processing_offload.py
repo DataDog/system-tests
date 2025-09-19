@@ -38,14 +38,13 @@ class StreamProcessingOffloadScenario(DockerScenario):
             rc_api_enabled=rc_api_enabled,
         )
 
-        self._agent_container = AgentContainer(self.host_log_folder)
+        self._agent_container = AgentContainer()
         self._stream_processing_offload_container = StreamProcessingOffloadContainer(
-            self.host_log_folder,
             env=stream_processing_offload_env,
             volumes=stream_processing_offload_volumes,
         )
-        self._haproxy_container = HAProxyContainer(self.host_log_folder)
-        self._http_app_container = DummyServerContainer(self.host_log_folder)
+        self._haproxy_container = HAProxyContainer()
+        self._http_app_container = DummyServerContainer()
 
         self._agent_container.depends_on.append(self.proxy_container)
         self._stream_processing_offload_container.depends_on.append(self.proxy_container)
