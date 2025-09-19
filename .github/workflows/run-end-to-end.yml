@@ -154,24 +154,15 @@ jobs:
     - name: Run APPSEC_STANDALONE_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_API_SECURITY"')
       run: ./run.sh APPSEC_STANDALONE_API_SECURITY
-    - name: Run APPSEC_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh APPSEC_STANDALONE_EXPERIMENTAL
     - name: Run TRACE_STATS_COMPUTATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TRACE_STATS_COMPUTATION"')
       run: ./run.sh TRACE_STATS_COMPUTATION
     - name: Run IAST_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE"')
       run: ./run.sh IAST_STANDALONE
-    - name: Run IAST_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh IAST_STANDALONE_EXPERIMENTAL
     - name: Run SCA_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE"')
       run: ./run.sh SCA_STANDALONE
-    - name: Run SCA_STANDALONE_EXPERIMENTAL scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"SCA_STANDALONE_EXPERIMENTAL"')
-      run: ./run.sh SCA_STANDALONE_EXPERIMENTAL
     - name: Run IAST_DEDUPLICATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"IAST_DEDUPLICATION"')
       run: ./run.sh IAST_DEDUPLICATION
@@ -339,6 +330,9 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_STANDALONE_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
+      run: ./run.sh APPSEC_STANDALONE_RASP
     - name: Run APPSEC_RASP_NON_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_NON_BLOCKING"')
       run: ./run.sh APPSEC_RASP_NON_BLOCKING
