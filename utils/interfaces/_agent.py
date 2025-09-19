@@ -146,6 +146,33 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid is None or get_rid_from_span(span) == rid:
                             yield data, span
 
+    def get_chunks_v1(self, request: HttpResponse | None = None):
+        """Attempts to fetch the v1 trace chunks the agent will submit to the backend.
+
+        When a valid request is given, then we filter the chunks to the ones sampled
+        during that request's execution, and only return those.
+        """
+
+        rid = request.get_rid() if request else None
+        if rid:
+            logger.debug(f"Will try to find agent spans related to request {rid}")
+
+        for data in self.get_data(path_filters="/api/v0.2/traces"):
+            if "idxTracerPayloads" not in data["request"]["content"]:
+                continue
+
+            # logger.debug(f"Looking at agent data {data}")
+            content = data["request"]["content"]["idxTracerPayloads"]
+
+            for payload in content:
+                # logger.debug(f"Looking at agent payload {payload}")
+                for chunk in payload["chunks"]:
+                    for span in chunk["spans"]:
+                        logger.debug(f"Looking at agent span {span}")
+                        if rid is None or get_rid_from_span(span) == rid:
+                            yield data, chunk
+                            break
+
     def get_spans_list(self, request: HttpResponse):
         return [span for _, span in self.get_spans(request)]
 
