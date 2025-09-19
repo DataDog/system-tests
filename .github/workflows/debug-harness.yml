@@ -11,6 +11,10 @@ on:
         description: Which weblog
         default: apache-mod-8.1
         type: string
+      agent_image:
+        description: Which agent image? (Use datadog/agent-dev:master-py3 for latest dev)
+        default: datadog/agent:latest
+        type: string
       scenario:
         description: Which scenario
         default: DEBUGGER_EXPRESSION_LANGUAGE
@@ -21,10 +25,11 @@ on:
         type: string
 
 env:
-  LIBRARY:    ${{ (github.event_name == 'workflow_dispatch' && inputs.library)    || 'php' }}
-  WEBLOG:     ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)     || 'apache-mod-8.1' }}
-  SCENARIO:   ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)   || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
-  JOB_COUNT:  ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)  || '10' }}
+  LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'php' }}
+  WEBLOG:       ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)      || 'apache-mod-8.1' }}
+  SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '10' }}
+  AGENT_IMAGE:  ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image) || 'datadog/agent:latest' }}
 
 jobs:
   generate-matrix:
@@ -44,6 +49,8 @@ jobs:
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+      - name: Select agent image
+        run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
       - name: Build weblog
         id: build
         run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"

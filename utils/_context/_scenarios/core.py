@@ -208,4 +208,4 @@ class Scenario:
         pass
 
     def __str__(self) -> str:
-        return f"Scenario '{self.name}'"
+        return f"{self.__class__.__name__} '{self.name}'"

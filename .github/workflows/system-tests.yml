@@ -314,7 +314,7 @@ jobs:
         run: |
           for d in logs_*; do
             if [ -f "$d/artifact.tar.gz" ]; then
-              tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/report.json'
+              tar -xzf "$d/artifact.tar.gz" -C "$d" --wildcards '*/reportJunit.xml'
             fi
           done
       - name: Get summary

@@ -2544,5 +2544,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=490, owner=_Owner.asm)
 
+    @staticmethod
+    def resource_renaming(test_object):
+        """Service Resource Renaming
+
+        https://feature-parity.us1.prod.dog/#/?feature=491
+        """
+        return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
+
 
 features = _Features()

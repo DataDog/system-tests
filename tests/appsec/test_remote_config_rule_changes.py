@@ -589,6 +589,13 @@ class Test_Invalid_Config:
         waf_config_errors_values = [point[1] for p in waf_config_errors_series for point in p["points"]]
         assert any(val >= 1.0 for val in waf_config_errors_values)
 
+        for p in waf_config_errors_series:
+            tags = dict(tag.split(":") for tag in p["tags"])
+            assert "waf_version" in tags
+            assert "event_rules_version" in tags
+            assert "action" in tags
+            assert tags["action"] == "update"
+
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200
         interfaces.library.assert_no_appsec_event(self.response_3)

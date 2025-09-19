@@ -524,14 +524,11 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: v3.9.0.dev
       Test_AppSecStandalone_NotEnabled: v2.12.3
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (was v2.12.3 for all, v2.17.1 for uwsgi-poc but will be replaced by V2)
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
-      Test_IastStandalone_UpstreamPropagation: irrelevant (was v2.18.0.dev but will be replaced by V2)
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
         flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
         uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-      Test_SCAStandalone_Telemetry: irrelevant (was v2.19.0.dev but will be replaced by V2)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
       Test_UserEventsStandalone_SDK_V1: v3.9.0
@@ -669,7 +666,7 @@ tests/:
       Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
-      Test_CorruptedRules_Telemetry: v3.10.0.dev
+      Test_CorruptedRules_Telemetry: v3.15.0.dev
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent:
@@ -1271,6 +1268,7 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
+  test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0
