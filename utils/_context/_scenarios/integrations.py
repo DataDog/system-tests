@@ -32,6 +32,7 @@ class IntegrationsScenario(EndToEndScenario):
             weblog_env={
                 "DD_DBM_PROPAGATION_MODE": "full",
                 "DD_TRACE_SPAN_ATTRIBUTE_SCHEMA": "v1",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "DD_TRACE_INFERRED_PROXY_SERVICES_ENABLED": "true",
