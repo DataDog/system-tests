@@ -342,8 +342,6 @@ class EndToEndScenario(DockerScenario):
         if use_proxy_for_weblog:
             self.weblog_container.depends_on.append(self.proxy_container)
 
-        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
-
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
 
@@ -388,6 +386,8 @@ class EndToEndScenario(DockerScenario):
 
     def configure(self, config: pytest.Config):
         super().configure(config)
+
+        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
