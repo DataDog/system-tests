@@ -145,7 +145,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ inputs.library }}
-      ref: ${{ inputs.ref }}
+      ref: ${{ needs.compute_parameters.outputs.ref }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       force_execute: ${{ inputs.force_execute }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
@@ -166,7 +166,7 @@ jobs:
     with:
       build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
       library: ${{ inputs.library }}
-      ref: ${{ inputs.ref }}
+      ref: ${{ needs.compute_parameters.outputs.ref }}
       version: ${{ needs.compute_parameters.outputs.ci_environment }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
@@ -181,21 +181,11 @@ jobs:
         weblog: ${{ fromJson(needs.compute_parameters.outputs.endtoend_defs_parallel_weblogs) }}
       fail-fast: false
     steps:
-      - name: Compute ref
-        id: compute_ref
-        run: |
-          if [[ "${{ inputs.ref }}" != "" ]]; then
-            echo "ref=${{ inputs.ref }}" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
-            echo "ref=" >> $GITHUB_OUTPUT
-          else
-            echo "ref=main" >> $GITHUB_OUTPUT
-          fi
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           repository: 'DataDog/system-tests'
-          ref: ${{ steps.compute_ref.outputs.ref }}
+          ref: ${{ needs.compute_parameters.outputs.ref }}
       - name: Get binaries artifact
         if : ${{ needs.compute_parameters.outputs.binaries_artifact != '' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
@@ -245,7 +235,7 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.job.library }}
-      ref: ${{ inputs.ref }}
+      ref: ${{ needs.compute_parameters.outputs.ref }}
       weblog: ${{ matrix.job.weblog }}
       weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
@@ -267,7 +257,7 @@ jobs:
     uses: ./.github/workflows/run-external-processing.yml
     secrets: inherit
     with:
-      ref: ${{ inputs.ref }}
+      ref: ${{ needs.compute_parameters.outputs.ref }}
       build_proxy_image: ${{ inputs.build_proxy_image }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}

@@ -97,11 +97,17 @@ on:
       unique_id:
         description: "A unique ID for the workflow run, used to set unique artifact names if the workflow is called in a matrix"
         value: ${{ jobs.main.outputs.unique_id }}
+      ref:
+        description: ""
+        value: ${{ jobs.main.outputs.ref }}
 
 jobs:
   main:
     name: Get parameters
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # required to get an oidc token
+      contents: read
     outputs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
@@ -118,7 +124,10 @@ jobs:
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
       unique_id: ${{ steps.unique_id.outputs.value }}
+      ref: ${{ steps.compute_ref.outputs.ref }}
     steps:
+    - uses: ChristopherHX/oidc@73eee1ff03fdfce10eda179f617131532209edbd
+      id: oidc
     - name: Compute ref
       id: compute_ref
       run: |
@@ -127,7 +136,7 @@ jobs:
         elif [[ "${{ github.repository }}" == "DataDog/system-tests" ]]; then
           echo "ref=" >> $GITHUB_OUTPUT
         else
-          echo "ref=main" >> $GITHUB_OUTPUT
+          echo "ref=${{ steps.oidc.outputs.job_workflow_repo_ref || 'main' }}" >> $GITHUB_OUTPUT
         fi
     - name: Checkout
       uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
