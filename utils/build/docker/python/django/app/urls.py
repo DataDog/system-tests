@@ -171,6 +171,10 @@ def set_cookie(request):
     return res
 
 
+def resource_renaming(request, path: str):
+    return HttpResponse("ok", content_type="text/plain")
+
+
 ### BEGIN EXPLOIT PREVENTION
 
 
@@ -1124,6 +1128,7 @@ urlpatterns = [
     path("returnheaders", return_headers),
     path("returnheaders/", return_headers),
     path("set_cookie", set_cookie),
+    path("resource_renaming/<path:path>", resource_renaming),
     path("rasp/cmdi", rasp_cmdi),
     path("rasp/lfi", rasp_lfi),
     path("rasp/multiple", rasp_multiple),

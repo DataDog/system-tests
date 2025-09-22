@@ -10,10 +10,6 @@ inputs:
   scenarios:
     description: "JSON array, or comma separated list of scenarios that will be executed"
     required: true
-  cleanup:
-    description: "Whether to cleanup the disk to free up more space. Should be disabled when a larger machine can be used instead."
-    required: false
-    default: "true"
   dockerhub_username:
     description: "To prevent reaching docker hub API limits, provide a username and token to login to docker hub"
     required: false
@@ -40,6 +36,11 @@ runs:
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_token }}
+
+    - name: clean-up
+      shell: bash
+      if: inputs.library == 'php'  # PHP use heavy images
+      run: sudo rm -rf /usr/local/lib/android
 
 #retry
     - name: Pull
