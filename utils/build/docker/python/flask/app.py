@@ -1731,10 +1731,9 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 
