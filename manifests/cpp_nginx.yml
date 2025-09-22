@@ -90,11 +90,8 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v1.7.0
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (V2 implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.7.0
-      Test_IastStandalone_UpstreamPropagation: irrelevant
       Test_IastStandalone_UpstreamPropagation_V2: irrelevant
-      Test_SCAStandalone_Telemetry: irrelevant
       Test_SCAStandalone_Telemetry_V2: missing_feature
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature

@@ -43,8 +43,16 @@ class Test_CorruptedRules_Telemetry:
         assert waf_init_metric, "waf.init missing 'success:false' or 'event_rules_version:unknown' tag"
 
         waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
-        waf_config_errors_metric = [d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]]
-        assert waf_config_errors_metric, "waf.config_errors missing 'event_rules_version:unknown' tag"
+        with_event_rules_version_tag = [
+            d for d in waf_config_errors_series if "event_rules_version:unknown" in d["tags"]
+        ]
+        assert with_event_rules_version_tag, "waf.config_errors missing 'event_rules_version:unknown' tag"
+
+        with_waf_version = [d for d in waf_config_errors_series if any(t.startswith("waf_version:") for t in d["tags"])]
+        assert with_waf_version, "waf.config_errors missing 'waf_version:<version>' tag"
+
+        with_action_tag = [d for d in waf_config_errors_series if "action:init" in d["tags"]]
+        assert with_action_tag, "waf.config_errors missing 'action:init' tag"
 
 
 @scenarios.appsec_missing_rules
