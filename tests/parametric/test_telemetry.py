@@ -78,6 +78,12 @@ telemetry_name_mapping = {
         "php": "dynamic_instrumentation.enabled",
         "ruby": "dynamic_instrumentation.enabled",
     },
+    "trace_debug_enabled": {
+        "php": "trace.debug",
+        "java": "trace_debug",
+        "ruby": "DD_TRACE_DEBUG",
+        "python": "DD_TRACE_DEBUG",
+    },
 }
 
 
@@ -530,11 +536,17 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
+            # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
+            # seq_id can't be used to sort because payloads are sent from different tracer sessions.
+            time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
 
         configuration = test_agent.wait_for_telemetry_configurations()
         for cfg_name, origin in expected_origin.items():
+            # The Go tracer does not support logs injection.
+            if context.library == "golang" and cfg_name == "logs_injection_enabled":
+                continue
             apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
             telemetry_item = configuration[apm_telemetry_name]
             assert telemetry_item["origin"] == origin, f"wrong origin for {telemetry_item}"
@@ -550,7 +562,9 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                 },
-                {"DD_LOGS_INJECTION": True},
+                {
+                    "DD_TRACE_DEBUG": True,
+                },
                 "1231231231231",
             )
         ],
@@ -574,15 +588,17 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
                 test_library,
             )
+            # Sleep to ensure the telemetry events are sent with different timestamps
+            time.sleep(1)
             test_library.container_restart()
             test_library.dd_start_span("test")
 
         configurations = test_agent.wait_for_telemetry_configurations()
-        # Configuration set via fleet config should have the config_id set
-        apm_telemetry_name = _mapped_telemetry_name(context, "logs_injection_enabled")
+        apm_telemetry_name = _mapped_telemetry_name(context, "trace_debug_enabled")
         telemetry_item = configurations[apm_telemetry_name]
         assert telemetry_item["origin"] == "fleet_stable_config"
         assert telemetry_item["config_id"] == fleet_config_id
+
         # Configuration set via local config should not have the config_id set
         apm_telemetry_name = _mapped_telemetry_name(context, "dynamic_instrumentation_enabled")
         telemetry_item = configurations[apm_telemetry_name]
