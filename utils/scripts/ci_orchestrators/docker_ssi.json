@@ -36,9 +36,6 @@
                     ],
                     "python": [
                         "py-app"
-                    ],
-                    "dotnet": [
-                        "dotnet-app"
                     ]
                 }
             ]
