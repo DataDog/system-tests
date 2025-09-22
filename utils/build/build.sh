@@ -223,7 +223,7 @@ build() {
 
                     # Choose Python version based on weblog variant
                     case "$WEBLOG_VARIANT" in
-                        flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
+                        flask-poc|django-poc|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
                         django-py3.13)
@@ -231,6 +231,9 @@ build() {
                             ;;
                         python3.12)
                             PYTHON_VERSION="3.12"
+                            ;;
+                        fastapi)
+                            PYTHON_VERSION="3.14.0rc3"
                             ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2

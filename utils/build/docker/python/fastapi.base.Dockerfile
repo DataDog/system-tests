@@ -1,4 +1,4 @@
-FROM python:3.14-rc-slim
+FROM python:3.14.0rc3-slim
 
 # install bin dependancies
 RUN apt-get update && apt-get install -y curl
