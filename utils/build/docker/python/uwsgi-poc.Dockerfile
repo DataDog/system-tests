@@ -1,4 +1,4 @@
-FROM datadog/system-tests:uwsgi-poc.base-v6
+FROM datadog/system-tests:uwsgi-poc.base-v7
 
 WORKDIR /app
 
@@ -24,7 +24,7 @@ RUN echo '#!/bin/bash \n\
 echo "--- PIP FREEZE ---"\n\
 python -m pip freeze\n\
 echo "------------------"\n\
-uwsgi --http :7777 -w app:app --threads 2 --enable-threads --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
+uwsgi --http :7777 -w app:app --threads 2 --enable-threads --skip-atexit --lazy-apps --import=ddtrace.bootstrap.sitecustomize\n' > app.sh
 RUN chmod +x app.sh
 CMD ./app.sh
 

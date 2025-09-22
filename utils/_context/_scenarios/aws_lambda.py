@@ -31,18 +31,17 @@ class LambdaScenario(DockerScenario):
         scenario_groups = [
             all_scenario_groups.tracer_release,
             all_scenario_groups.end_to_end,
+            all_scenario_groups.lambda_end_to_end,
         ] + (scenario_groups or [])
 
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
-            host_log_folder=self.host_log_folder,
             environment=weblog_env or {},
             volumes=weblog_volumes or {},
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(
-            host_log_folder=self.host_log_folder,
             lambda_weblog_host=self.lambda_weblog.name,
             lambda_weblog_port=str(self.lambda_weblog.container_port),
         )
@@ -62,7 +61,13 @@ class LambdaScenario(DockerScenario):
     def configure(self, config: pytest.Config):
         super().configure(config)
 
-        allowed_event_types = "apigateway-rest", "apigateway-http"
+        allowed_event_types = (
+            "apigateway-rest",
+            "apigateway-http",
+            "function-url",
+            "application-load-balancer",
+            "application-load-balancer-multi",
+        )
         event_type = self.lambda_weblog.image.labels.get("system-tests.lambda-proxy.event-type")
         if event_type not in allowed_event_types:
             pytest.exit(

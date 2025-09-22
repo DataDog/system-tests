@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import features, rfc, weblog, irrelevant, flaky, context
+from utils import features, rfc, weblog, irrelevant
 from tests.appsec.iast.utils import BaseSinkTest, assert_iast_vulnerability, assert_metric
 
 
@@ -90,7 +90,6 @@ class TestSecurityControls:
         self.setup_iast_is_enabled()
         self.r = weblog.post("/iast/sc/s/not-configured", data={"param": "param"})
 
-    @flaky(context.library == "nodejs" and context.weblog_variant == "fastify", reason="APPSEC-58724")
     def test_no_vulnerability_suppression_with_a_sanitizer_configured_for_a_different_vulnerability(self):
         self.assert_iast_is_enabled(self.check_r)
         assert_iast_vulnerability(

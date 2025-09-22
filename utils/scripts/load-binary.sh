@@ -23,6 +23,7 @@
 # * Ruby:          Direct from github source
 # * WAF:           Direct from github source, but not working, as this repo is now private
 # * Python Lambda: Fetch from GitHub Actions artifact
+# * Rust:          Clone locally the github repo
 ##########################################################################################
 
 set -eu
@@ -135,9 +136,13 @@ get_github_action_artifact() {
     WORKFLOWS=$(curl --silent --fail --show-error -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$SLUG/actions/workflows/$WORKFLOW/runs?per_page=100")
 
     QUERY="[.workflow_runs[] | select(.conclusion != \"failure\" and .head_branch == \"$BRANCH\" and .status == \"completed\")][0]"
+
+    # this wil fail if there are more than 100 artifacts
     ARTIFACT_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .artifacts_url")
+    ARTIFACT_URL="$ARTIFACT_URL?per_page=100"
+
     HTML_URL=$(echo $WORKFLOWS | jq -r "$QUERY | .html_url")
-    echo "Load artifact $HTML_URL"
+    echo "Load artifacts for $HTML_URL"
     ARTIFACTS=$(curl --silent -H "Authorization: token $GITHUB_TOKEN" $ARTIFACT_URL)
     ARCHIVE_URL=$(echo $ARTIFACTS | jq -r --arg ARTIFACT_NAME "$ARTIFACT_NAME" '.artifacts | map(select(.name | contains($ARTIFACT_NAME))) | .[0].archive_download_url')
     echo "Load archive $ARCHIVE_URL"
@@ -274,6 +279,9 @@ elif [ "$TARGET" = "golang" ]; then
     echo "Using ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev"
     echo "ghcr.io/datadog/dd-trace-go/service-extensions-callout:dev" > golang-service-extensions-callout-image
 
+    echo "Using ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+    echo "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev" > golang-haproxy-spoa-image
+
     echo "Using github.com/DataDog/orchestrion@latest"
     echo "github.com/DataDog/orchestrion@latest" > orchestrion-load-from-go-get
 
@@ -308,6 +316,13 @@ elif [ "$TARGET" = "nodejs" ]; then
     # NPM builds the package, so we put a trigger file that tells install script to get package from github#master
     echo "DataDog/dd-trace-js#$LIBRARY_TARGET_BRANCH" > nodejs-load-from-npm
     echo "Using $(cat nodejs-load-from-npm)"
+
+elif [ "$TARGET" = "rust" ]; then
+    assert_version_is_dev
+
+    LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    echo "$LIBRARY_TARGET_BRANCH" > rust-load-from-git
+    echo "Using $(cat rust-load-from-git)"
 
 elif [ "$TARGET" = "waf_rule_set_v1" ]; then
     exit 1
