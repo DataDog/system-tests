@@ -351,9 +351,6 @@ jobs:
     - name: Run TELEMETRY_METRIC_GENERATION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_DISABLED"')
       run: ./run.sh TELEMETRY_METRIC_GENERATION_DISABLED
-    - name: Run TELEMETRY_METRIC_GENERATION_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_METRIC_GENERATION_ENABLED"')
-      run: ./run.sh TELEMETRY_METRIC_GENERATION_ENABLED
     - name: Run TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED"')
       run: ./run.sh TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED

@@ -12,7 +12,6 @@ from utils import logger
 # You don't need to add B/A if A/B exists
 # Structure: {("SCENARIO_A", "SCENARIO_B"): "reason"}
 SKIP_MERGE_SCENARIOS: dict[tuple[str, str], str] = {
-    ("AGENT_SUPPORTING_SPAN_EVENTS", "TELEMETRY_METRIC_GENERATION_ENABLED"): "TODO",
     ("APPSEC_AND_RC_ENABLED", "APPSEC_API_SECURITY_RC"): "TODO",
     ("APPSEC_AND_RC_ENABLED", "APPSEC_AUTO_EVENTS_RC"): "TODO",
     ("APPSEC_AND_RC_ENABLED", "APPSEC_BLOCKING_FULL_DENYLIST"): "TODO",

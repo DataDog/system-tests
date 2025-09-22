@@ -146,12 +146,6 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
-    telemetry_metric_generation_enabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
-        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
@@ -1024,7 +1018,7 @@ class _Scenarios:
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
         scenario_groups=[scenario_groups.integrations],
