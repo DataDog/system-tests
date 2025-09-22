@@ -454,6 +454,44 @@ class _TestAgentAPI:
             self.clear()
         return configurations
 
+    def get_telemetry_config_by_origin(
+        self,
+        configurations: dict[str, list[dict]],
+        config_name: str,
+        origin: str,
+        *,
+        fallback_to_first: bool = False,
+        return_value_only: bool = False,
+    ) -> dict | str | int | bool | None:
+        """Get a telemetry configuration by name and origin.
+
+        Args:
+            configurations: The dict returned by wait_for_telemetry_configurations()
+            config_name: The configuration name to look for
+            origin: The origin to look for (e.g., "default", "env_var", "fleet_stable_config")
+            fallback_to_first: If True, return the first config if no config with the specified origin is found
+            return_value_only: If True, return only the "value" field, otherwise return the full config dict
+
+        Returns:
+            The configuration dict, the value, or None depending on parameters
+
+        """
+        config_list = configurations.get(config_name, [])
+        if not config_list:
+            return None
+
+        # Try to find config with the specified origin
+        config = next((cfg for cfg in config_list if cfg.get("origin") == origin), None)
+
+        # Fallback to first config if requested and no origin match found
+        if config is None and fallback_to_first and config_list:
+            config = config_list[0]
+
+        if config is None:
+            return None
+
+        return config.get("value") if return_value_only else config
+
     def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Get the telemetry metrics from the test agent."""
         metrics = []

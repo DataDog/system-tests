@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="system_tests_suite" errors="1" failures="0" skipped="0" tests="1" time="0.081" timestamp="2025-09-19T10:46:07.837120" hostname="COMP-J7JQ4620X6"><testcase classname="" name="" time="0.000"><error message="collection failure">venv/lib/python3.12/site-packages/pluggy/_hooks.py:265: in __call__
+    return self._hookexec(self.name, self.get_hookimpls(), kwargs, firstresult)
+venv/lib/python3.12/site-packages/pluggy/_manager.py:80: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+venv/lib/python3.12/site-packages/_pytest/python.py:206: in pytest_collect_file
+    module: Module = ihook.pytest_pycollect_makemodule(
+venv/lib/python3.12/site-packages/_pytest/config/compat.py:67: in fixed_hook
+    return hook(**kw)
+venv/lib/python3.12/site-packages/pluggy/_hooks.py:265: in __call__
+    return self._hookexec(self.name, self.get_hookimpls(), kwargs, firstresult)
+venv/lib/python3.12/site-packages/pluggy/_manager.py:80: in _hookexec
+    return self._inner_hookexec(hook_name, methods, kwargs, firstresult)
+conftest.py:251: in pytest_pycollect_makemodule
+    library = context.library.name
+utils/_context/core.py:53: in library
+    result = self._get_scenario_property("library", None)
+utils/_context/core.py:26: in _get_scenario_property
+    if hasattr(self.scenario, name):
+utils/_context/_scenarios/endtoend.py:766: in library
+    return self.weblog_container.library
+utils/_context/containers.py:1040: in library
+    assert self._library is not None, "Library version is not set"
+E   AssertionError: Library version is not set</error></testcase></testsuite></testsuites>
