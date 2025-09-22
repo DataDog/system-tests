@@ -517,3 +517,6 @@ class Test_ExtendedRequestBodyCollection:
         # Verify the body content is truncated
         assert body.get("param") == "collect"
         assert body.get("body_key") == "A" * 4096
+
+        meta = span.get("meta", {})
+        assert meta.get("_dd.appsec.request_body_size.exceeded") == "true"
