@@ -153,6 +153,20 @@
         "version_id": "DOTNET70",
         "version": "7.0.410"
       }
+    ],
+    "ruby": [
+      {
+        "version_id": "RUBY33",
+        "version": "3.3.6"
+      },
+      {
+        "version_id": "RUBY32",
+        "version": "3.2.6"
+      },
+      {
+        "version_id": "RUBY31",
+        "version": "3.1.3"
+      }
     ]
   }
 }
