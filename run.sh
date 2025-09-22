@@ -487,6 +487,10 @@ function main() {
             echo "${scenario} was removed, skipping."
             continue
         fi
+        if [[ "${scenario}" == APPSEC_REQUEST_BLOCKING ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
+                fi
         ####
 
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
