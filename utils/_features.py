@@ -2513,6 +2513,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
     @staticmethod
+    def haproxy_stream_processing_offload(test_object):
+        """HAProxy Stream Processing Offload
+
+        https://feature-parity.us1.prod.dog/#/?feature=489
+        """
+        return _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
+
+    @staticmethod
     def efficient_trace_payload(test_object):
         """Efficient Trace Payload
 
@@ -2535,6 +2543,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=490
         """
         return _mark_test_object(test_object, feature_id=490, owner=_Owner.asm)
+
+    @staticmethod
+    def resource_renaming(test_object):
+        """Service Resource Renaming
+
+        https://feature-parity.us1.prod.dog/#/?feature=491
+        """
+        return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
 
 
 features = _Features()

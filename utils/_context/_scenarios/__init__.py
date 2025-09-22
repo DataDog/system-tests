@@ -20,6 +20,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
@@ -100,14 +101,6 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_STYLE_EXTRACT": "tracecontext",
         },
         doc="Test W3C trace style",
-    )
-
-    trace_propagation_style_default = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DEFAULT",
-        weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
-        },
-        doc="Test Default propagation",
     )
 
     # Telemetry scenarios
@@ -431,38 +424,11 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_standalone_experimental = EndToEndScenario(
-        "APPSEC_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out) V2",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    iast_standalone_experimental = EndToEndScenario(
-        "IAST_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -483,19 +449,6 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sca_standalone_experimental = EndToEndScenario(
-        "SCA_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -687,6 +640,9 @@ class _Scenarios:
             "DD_TRACE_PROPAGATION_BEHAVIOR_EXTRACT": "restart",
             "DD_TRACE_PROPAGATION_EXTRACT_FIRST": "true",
             "DD_LOGS_INJECTION": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ENABLED": "true",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
         },
         appsec_enabled=False,
         doc="",
@@ -1024,12 +980,27 @@ class _Scenarios:
         doc="Validates the installer and the ssi service naming features on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
+    docker_ssi_appsec = DockerSSIScenario(
+        "DOCKER_SSI_APPSEC",
+        doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
+        appsec_enabled="true",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = AppsecRaspScenario()
+
+    appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
+
+    appsec_standalone_rasp = AppsecRaspScenario(
+        "APPSEC_STANDALONE_RASP",
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+        },
+    )
 
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",
@@ -1086,6 +1057,21 @@ class _Scenarios:
         doc="Envoy + external processing + blocking rule file",
         extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
+    stream_processing_offload = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD",
+        doc="HAProxy + stream processing offload agent",
+        rc_api_enabled=True,
+    )
+
+    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
+        doc="HAProxy + stream processing offload agent + blocking rule file",
+        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        stream_processing_offload_volumes={
+            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
+        },
     )
 
     ipv6 = IPV6Scenario("IPV6")
