@@ -8,7 +8,18 @@ RUN python --version && curl --version
 
 # install python deps
 RUN pip install --upgrade pip
-RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg itsdangerous xmltodict==0.14.2
+RUN pip install PyYAML
+RUN pip install pydantic==2.12.0a1
+RUN pip install fastapi
+RUN pip install uvicorn
+RUN pip install requests
+RUN pip install cryptography==42.0.8
+RUN pip install pycryptodome
+RUN pip install python-multipart
+RUN pip install jinja2
+RUN pip install psycopg
+RUN pip install itsdangerous
+RUN pip install xmltodict==0.14.2
 
 RUN mkdir app
 WORKDIR /app
