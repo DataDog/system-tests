@@ -20,7 +20,8 @@ concurrency:
 jobs:
   lint:
     uses: ./.github/workflows/lint.yml
-
+  codeowners:
+    uses: ./.github/workflows/codeowners.yml
   test_the_test:
     name: Test the test
     runs-on: ubuntu-latest
