@@ -70,14 +70,16 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
 
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
-        total_size = int(r.headers.get('content-length', 0))
+        total_size = int(r.headers.get("content-length", 0))
 
-        with open(f"{path_root}/data.zip", "wb") as f:
-            with tqdm(total=total_size, unit='B', unit_scale=True, desc="Downloading artifact") as pbar:
-                for chunk in r.iter_content(chunk_size=8192):
-                    if chunk:
-                        f.write(chunk)
-                        pbar.update(len(chunk))
+        with (
+            open(f"{path_root}/data.zip", "wb") as f,
+            tqdm(total=total_size, unit="B", unit_scale=True, desc="Downloading artifact") as pbar,
+        ):
+            for chunk in r.iter_content(chunk_size=8192):
+                if chunk:
+                    f.write(chunk)
+                    pbar.update(len(chunk))
 
     # Extract the downloaded zip file
     with zipfile.ZipFile(f"{path_root}/data.zip") as z:
@@ -124,19 +126,22 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
             raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def find_library(libraries, file_name):
+def find_library(libraries: list[str], file_name: str) -> str | None:
     libraries.sort(key=len, reverse=True)
     for library in libraries:
         if library in file_name:
             return library
+    return None
 
 
-def parse_artifact_data(path_data_opt: str, libraries) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
-    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
+def parse_artifact_data(
+    path_data_opt: str, libraries: list[str]
+) -> dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]]:
+    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]] = {}
 
     for directory in os.listdir(path_data_opt):
         library = find_library(libraries, directory)
-        if "dev" in directory or not library in libraries:
+        if "dev" in directory or library not in libraries:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
@@ -159,11 +164,17 @@ def parse_artifact_data(path_data_opt: str, libraries) -> dict[str, dict[str, di
                     test_data[library][test_path][test_class] = {}
 
                 if not test_data[library][test_path][test_class].get(variant):
-                    test_data[library][test_path][test_class][variant] = [TestClassStatus.parse(test["outcome"]), test["metadata"]["owners"]]
+                    test_data[library][test_path][test_class][variant] = (
+                        TestClassStatus.parse(test["outcome"]),
+                        set(test["metadata"]["owners"]),
+                    )
                 else:
                     outcome = TestClassStatus.parse(test["outcome"])
-                    previous_outcome = test_data[library][test_path][test_class][variant][0]
-                    test_data[library][test_path][test_class][variant] = [merge_update_status(outcome, previous_outcome), test["metadata"]["owners"]]
+                    previous_outcome, previous_owners = test_data[library][test_path][test_class][variant]
+                    test_data[library][test_path][test_class][variant] = (
+                        merge_update_status(outcome, previous_outcome),
+                        set(test["metadata"]["owners"]) | previous_owners,
+                    )
 
     return test_data
 
@@ -191,15 +202,15 @@ def build_search(path: list[str]) -> list[str | None]:
     return ret
 
 
-def get_global_update_status(root: Any, current: TestClassStatus, owners) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
+def get_global_update_status(root: Any, current: TestClassStatus, owners: set[str]) -> tuple[TestClassStatus, set[str]]:  # type: ignore[misc]  # noqa: ANN401
     if current == TestClassStatus.NOEDIT:
-        return TestClassStatus.NOEDIT, set
+        return TestClassStatus.NOEDIT, set()
     if isinstance(root, dict):
         for branch in root.values():
             current = merge_update_status(current, get_global_update_status(branch, current, owners)[0])
     else:
         current = merge_update_status(current, root[0])
-        owners |= set(root[1])
+        owners |= root[1]
     return current, owners
 
 
@@ -264,7 +275,7 @@ def build_updated_subtree(
 def update_entry(
     language: str,
     _manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
+    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],
     search: list[str | None],
     root_path: list[str],
     ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
@@ -287,7 +298,11 @@ def update_entry(
             "bug" in current_value or "missing_feature" in current_value or "incomplete_test_app" in current_value
         )
 
-        if should_activate and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE) and not owners & excluded_owners:
+        if (
+            should_activate
+            and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
+            and not owners & excluded_owners
+        ):
             ret = (ancestor[root_path[-1]], owners)
 
             # Determine if this is a file-level entry (search[1] is None) or test class-level (search[1] is set)
@@ -322,7 +337,7 @@ def update_tree(
     ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     language: str,
     manifest: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
-    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
+    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],
     root_path: list[str],
     versions: dict[str, str],
     excluded_owners: set[str],
@@ -330,7 +345,9 @@ def update_tree(
     updates = []
     if isinstance(root, ruamel.yaml.comments.CommentedMap):
         for branch_path, branch in root.items():
-            ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions, excluded_owners)
+            ret = update_tree(
+                branch, root, language, manifest, test_data, [*root_path, branch_path], versions, excluded_owners
+            )
             updates += ret
     else:
         search = build_search(root_path)
@@ -344,7 +361,7 @@ def update_tree(
 def update_manifest(
     language: str,
     manifest: ruamel.yaml.CommentedMap,
-    test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
+    test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]],  # type: ignore[type-arg]
     versions: dict[str, str],
     excluded_owners: set[str],
 ) -> list[tuple[list[str], str, str, set[str]]]:
