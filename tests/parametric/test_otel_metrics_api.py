@@ -393,6 +393,41 @@ class Test_Otel_Metrics_Api:
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=-2**32, max_value=2**32), st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_updowncounter_add_multiple_values_with_different_tags(self, test_agent, test_library, first_value, second_value):
+        name = f"updowncounter1-{first_value}-{second_value}-different-tags"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+        updowncounter = find_metric_by_name(scope_metrics, name)
+        self.assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
     @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
     def test_otel_gauge_record_value(self, test_agent, test_library, n):
