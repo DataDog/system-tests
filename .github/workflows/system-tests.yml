@@ -119,6 +119,16 @@ on:
         default: false
         required: false
         type: boolean
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
+      test_optimization_api_key:
+        description: "If push_to_test_optimization, the DD_API_KEY to be used"
+        default: ""
+        required: false
+        type: string
 
 jobs:
   compute_parameters:
@@ -153,6 +163,8 @@ jobs:
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   lib_injection:
     needs:
@@ -259,6 +271,8 @@ jobs:
       enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   external_processing:
     needs:
@@ -273,6 +287,8 @@ jobs:
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   run_stream_processing_offload:
     needs:
@@ -287,6 +303,8 @@ jobs:
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   display_summary:
     name: Report failures

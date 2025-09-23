@@ -66,6 +66,16 @@ on:
         default: "1"
         required: false
         type: string
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
+      test_optimization_api_key:
+        description: "If push_to_test_optimization, the DD_API_KEY to be used"
+        default: ""
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -120,8 +130,9 @@ jobs:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
-      # - name: Upload results CI Visibility
-      #   if: ${{ always() }}
-      #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      #   env:
-      #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+
+      - name: Push results to Test Optimization
+        if: ${{ inputs.push_to_test_optimization }}
+        uses: ./.github/actions/push_to_test_optim
+        with:
+          datadog_api_key: ${{ inputs.test_optimization_api_key }}

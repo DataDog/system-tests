@@ -95,6 +95,8 @@ jobs:
       _system_tests_library_target_branch: ${{ needs.impacted_libraries.outputs.target-branch }}
       artifact_retention_days: 3
       display_summary: true
+      push_to_test_optimization: true
+      test_optimization_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY}}
 
   exotics:
     name: Exotics scenarios
