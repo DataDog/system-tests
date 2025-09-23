@@ -159,11 +159,11 @@ def parse_artifact_data(path_data_opt: str, libraries) -> dict[str, dict[str, di
                     test_data[library][test_path][test_class] = {}
 
                 if not test_data[library][test_path][test_class].get(variant):
-                    test_data[library][test_path][test_class][variant] = TestClassStatus.parse(test["outcome"])
+                    test_data[library][test_path][test_class][variant] = [TestClassStatus.parse(test["outcome"]), test["metadata"]["owners"]]
                 else:
                     outcome = TestClassStatus.parse(test["outcome"])
-                    previous_outcome = test_data[library][test_path][test_class][variant]
-                    test_data[library][test_path][test_class][variant] = merge_update_status(outcome, previous_outcome)
+                    previous_outcome = test_data[library][test_path][test_class][variant][0]
+                    test_data[library][test_path][test_class][variant] = [merge_update_status(outcome, previous_outcome), test["metadata"]["owners"]]
 
     return test_data
 
@@ -191,15 +191,16 @@ def build_search(path: list[str]) -> list[str | None]:
     return ret
 
 
-def get_global_update_status(root: Any, current: TestClassStatus) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
+def get_global_update_status(root: Any, current: TestClassStatus, owners) -> TestClassStatus:  # type: ignore[misc]  # noqa: ANN401
     if current == TestClassStatus.NOEDIT:
-        return TestClassStatus.NOEDIT
+        return TestClassStatus.NOEDIT, set
     if isinstance(root, dict):
         for branch in root.values():
-            current = merge_update_status(current, get_global_update_status(branch, current))
+            current = merge_update_status(current, get_global_update_status(branch, current, owners)[0])
     else:
-        current = merge_update_status(current, root)
-    return current
+        current = merge_update_status(current, root[0])
+        owners |= set(root[1])
+    return current, owners
 
 
 def build_updated_subtree(
@@ -268,7 +269,8 @@ def update_entry(
     root_path: list[str],
     ancestor: ruamel.yaml.CommentedMap,  # type: ignore[type-arg]
     versions: dict[str, str],
-) -> str | None:
+    excluded_owners: set[str],
+) -> tuple[str, set[str]] | None:
     try:
         if search[2] and isinstance(search[0], str) and isinstance(search[1], str):
             test_data_root = test_data[language][search[0]][search[1]][search[2]]
@@ -278,15 +280,15 @@ def update_entry(
             test_data_root: Any = test_data[language][search[0]]  # type: ignore[misc]
         else:
             return None
-        update_status = get_global_update_status(test_data_root, TestClassStatus.ACTIVATE)
+        update_status, owners = get_global_update_status(test_data_root, TestClassStatus.ACTIVATE, set())
 
         current_value = ancestor[root_path[-1]]
         should_activate = (
             "bug" in current_value or "missing_feature" in current_value or "incomplete_test_app" in current_value
         )
 
-        if should_activate and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
-            ret = ancestor[root_path[-1]]
+        if should_activate and update_status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE) and not owners & excluded_owners:
+            ret = (ancestor[root_path[-1]], owners)
 
             # Determine if this is a file-level entry (search[1] is None) or test class-level (search[1] is set)
             is_file_level = search[1] is None
@@ -323,17 +325,19 @@ def update_tree(
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],
     root_path: list[str],
     versions: dict[str, str],
-) -> list[tuple[list[str], str, str]]:
+    excluded_owners: set[str],
+) -> list[tuple[list[str], str, str, set[str]]]:
     updates = []
     if isinstance(root, ruamel.yaml.comments.CommentedMap):
         for branch_path, branch in root.items():
-            ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions)
+            ret = update_tree(branch, root, language, manifest, test_data, [*root_path, branch_path], versions, excluded_owners)
             updates += ret
     else:
         search = build_search(root_path)
-        old_status = update_entry(language, manifest, test_data, search, root_path, ancestor, versions)
-        if old_status:
-            updates.append((root_path, old_status, versions[language]))
+        result = update_entry(language, manifest, test_data, search, root_path, ancestor, versions, excluded_owners)
+        if result:
+            old_status, owners = result
+            updates.append((root_path, old_status, versions[language], owners))
     return updates
 
 
@@ -342,8 +346,9 @@ def update_manifest(
     manifest: ruamel.yaml.CommentedMap,
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]],  # type: ignore[type-arg]
     versions: dict[str, str],
-) -> list[tuple[list[str], str, str]]:
-    return update_tree(manifest, manifest, language, manifest, test_data, [], versions)
+    excluded_owners: set[str],
+) -> list[tuple[list[str], str, str, set[str]]]:
+    return update_tree(manifest, manifest, language, manifest, test_data, [], versions, excluded_owners)
 
 
 def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
@@ -404,6 +409,7 @@ def main() -> None:
     parser.add_argument("--data-path", type=str, help="Custom path to store test data")
     parser.add_argument("--dry-run", action="store_true", help="Show what would be updated without writing to files")
     parser.add_argument("--summary-only", action="store_true", help="Show only the final summary")
+    parser.add_argument("--exclude", nargs="*", default=[], help="List of owners to exclude from activation")
 
     args = parser.parse_args()
 
@@ -431,12 +437,13 @@ def main() -> None:
     if args.dry_run and not args.summary_only:
         print("🔍 DRY RUN MODE - No files will be modified\n")
 
+    excluded_owners = set(args.exclude)
     total_updates = 0
     library_counts = {}
 
     for library in args.libraries:
         manifest = parse_manifest(library, path_root, yaml)
-        updates = update_manifest(library, manifest, test_data, versions)
+        updates = update_manifest(library, manifest, test_data, versions, excluded_owners)
         library_counts[library] = len(updates)
 
         if not args.summary_only:
@@ -446,11 +453,13 @@ def main() -> None:
             if updates:
                 verb = "Would update" if args.dry_run else "Found"
                 print(f"✅ {verb} {len(updates)} updates:")
-                for path, old_status, new_version in updates:
+                for path, old_status, new_version, owners in updates:
                     search_result = build_search(path)
                     test_path = f"{search_result[0]}::{search_result[1]}" if search_result[1] else search_result[0]
+                    owners_str = ", ".join(sorted(owners)) if owners else "No owners"
                     print(f"   • {test_path}")
                     print(f"     {old_status} → {new_version}")
+                    print(f"     Owners: {owners_str}")
             else:
                 message = "No updates would be needed" if args.dry_run else "No updates needed"
                 print(f"   {message}")
