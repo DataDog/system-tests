@@ -180,16 +180,19 @@ class Test_Otel_Metrics_Api:
     def assert_histogram_aggregation(self, histogram_aggregation, aggregation_temporality, count, sum_value, min_value, max_value, bucket_boundaries, bucket_counts, attributes):
         assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
 
-        histogram_data_point = histogram_aggregation["data_points"][0]
-        assert int(histogram_data_point["count"]) == count
-        assert histogram_data_point["sum"] == sum_value
-        assert histogram_data_point["min"] == min_value
-        assert histogram_data_point["max"] == max_value
+        for histogram_data_point in histogram_aggregation["data_points"]:
+            if attributes == {item['key']:item['value']['string_value'] for item in histogram_data_point["attributes"]}:
+                assert int(histogram_data_point["count"]) == count
+                assert histogram_data_point["sum"] == sum_value
+                assert histogram_data_point["min"] == min_value
+                assert histogram_data_point["max"] == max_value
 
-        assert histogram_data_point["explicit_bounds"] == bucket_boundaries
-        assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
-        assert set(attributes) == set({item['key']:item['value']['string_value'] for item in histogram_data_point["attributes"]})
-        assert "time_unix_nano" in histogram_data_point
+                assert histogram_data_point["explicit_bounds"] == bucket_boundaries
+                assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
+                assert "time_unix_nano" in histogram_data_point
+                return
+
+        assert False, f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}"
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -599,6 +602,42 @@ class Test_Otel_Metrics_Api:
         self.assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
         self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_histogram_add_non_negative_values_with_different_tags(self, test_agent, test_library, non_negative_value1, non_negative_value2):
+        name = f"histogram-{non_negative_value1}-{non_negative_value2}-different-tags"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value1, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value2, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+        histogram = find_metric_by_name(scope_metrics, name)
+        self.assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        # Negative values are ignored by the Histogram Record API, so we only have 2 data points
+        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value2, min_value=non_negative_value2, max_value=non_negative_value2, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
