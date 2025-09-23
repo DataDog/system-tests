@@ -31,6 +31,7 @@ DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [0.0, 5.0, 10.0, 25.0, 50.0, 75.0, 100.0, 2
 
 DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
 DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
+NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
 
 # Define common default environment variables to support the OpenTelemetry Metrics API feature:
 #   DD_METRICS_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
@@ -158,10 +159,14 @@ class Test_Otel_Metrics_Api:
         assert sum_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
         assert sum_aggregation["is_monotonic"] if is_monotonic else not sum_aggregation.get("is_monotonic")
 
-        sum_data_point = sum_aggregation["data_points"][0]
-        assert sum_data_point["as_double"] == value
-        assert set(attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
-        assert "time_unix_nano" in sum_data_point
+        for sum_data_point in sum_aggregation["data_points"]:
+            if attributes == {item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]}:
+                assert sum_data_point["as_double"] == value
+                assert set(attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+                assert "time_unix_nano" in sum_data_point
+                return
+        
+        assert False, f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}"
 
     def assert_gauge_aggregation(self, gauge_aggregation, value, attributes):
         gauge_data_point = gauge_aggregation["data_points"][0]
@@ -283,6 +288,41 @@ class Test_Otel_Metrics_Api:
         counter = scope_metrics[0]["metrics"][0]
         self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value + second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_counter_add_non_negative_values_with_different_tags(self, test_agent, test_library, non_negative_value, second_non_negative_value):
+        name = f"counter1-{non_negative_value}-{second_non_negative_value}-different-tags"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        pprint.pprint(scope_metrics)
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+        counter = scope_metrics[0]["metrics"][0]
+        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
