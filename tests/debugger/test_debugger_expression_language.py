@@ -20,6 +20,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_snapshot_received()
 
     ############ assert ############
     def _assert(self, expected_response: int):

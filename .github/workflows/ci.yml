@@ -96,18 +96,6 @@ jobs:
       artifact_retention_days: 3
       display_summary: true
 
-  system_tests_docker_mode:
-    name: Ruby Docker Mode
-    needs:
-    - lint
-    - test_the_test
-    - impacted_libraries
-    if: contains(needs.impacted_libraries.outputs.library_matrix, 'ruby')
-    uses: ./.github/workflows/run-docker-mode.yml
-    permissions:
-      packages: write
-    secrets: inherit
-
   exotics:
     name: Exotics scenarios
     needs:
@@ -134,6 +122,9 @@ jobs:
         max-retries: '120'
         # Ignore gitlab jobs that are not K8S_LIB* (K8s lib injection) or *DOC (docker ssi) or *DO5A (docker ssi crashtracking)
         # https://regex101.com/r/Bo5Kpn/1
+        # Also ignore the job that waits for the tests to succeed before adding
+        # to the merge queue.
 
         ignored-name-patterns: |
           dd-gitlab/(?!K8S_LIB).*$(?<!DOC)(?<!DO5A)
+          devflow/merge

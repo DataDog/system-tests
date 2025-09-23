@@ -60,6 +60,7 @@ class DockerScenario(Scenario):
         scenario_groups: list[ScenarioGroup] | None = None,
         enable_ipv6: bool = False,
         use_proxy: bool = True,
+        mocked_backend: bool = True,
         rc_api_enabled: bool = False,
         meta_structs_disabled: bool = False,
         span_events: bool = True,
@@ -89,41 +90,41 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
-                host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
                 enable_ipv6=enable_ipv6,
+                mocked_backend=mocked_backend,
             )
 
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(PostgresContainer())
 
         if include_mongo_db:
-            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MongoContainer())
 
         if include_cassandra_db:
-            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(CassandraContainer())
 
         if include_kafka:
-            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(KafkaContainer())
 
         if include_rabbitmq:
-            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(RabbitMqContainer())
 
         if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MySqlContainer())
 
         if include_sqlserver:
-            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MsSqlServerContainer())
 
         if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(LocalstackContainer())
 
         if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ElasticMQContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -140,7 +141,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(replay=self.replay)
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -305,9 +306,7 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
-        )
+        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -327,7 +326,6 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.weblog_container = WeblogContainer(
-            self.host_log_folder,
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
@@ -343,8 +341,6 @@ class EndToEndScenario(DockerScenario):
 
         if use_proxy_for_weblog:
             self.weblog_container.depends_on.append(self.proxy_container)
-
-        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
@@ -371,7 +367,6 @@ class EndToEndScenario(DockerScenario):
                 BuddyContainer(
                     f"{language}_buddy",
                     image_name,
-                    self.host_log_folder,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
@@ -391,6 +386,8 @@ class EndToEndScenario(DockerScenario):
 
     def configure(self, config: pytest.Config):
         super().configure(config)
+
+        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
@@ -661,7 +658,7 @@ class EndToEndScenario(DockerScenario):
                 data_path=None,
                 condition=self.library
                 in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
-                and self.name == "TRACE_STATS_COMPUTATION",
+                and self.name in ("TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
                 ticket="APMSP-2158",
             ),
         ]
@@ -791,14 +788,13 @@ class EndToEndScenario(DockerScenario):
     def telemetry_heartbeat_interval(self):
         return self.weblog_container.telemetry_heartbeat_interval
 
-    def get_junit_properties(self):
+    def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
 
         result["dd_tags[systest.suite.context.agent]"] = self.agent_version
         result["dd_tags[systest.suite.context.library.name]"] = self.library.name
         result["dd_tags[systest.suite.context.library.version]"] = self.library.version
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
-        result["dd_tags[systest.suite.context.sampling_rate]"] = self.weblog_container.tracer_sampling_rate
-        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file
+        result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result

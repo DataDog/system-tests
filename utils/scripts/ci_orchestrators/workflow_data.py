@@ -511,7 +511,6 @@ if __name__ == "__main__":
             "APPSEC_RASP",
             "APPSEC_RASP_NON_BLOCKING",
             "APPSEC_RATE_LIMITER",
-            "APPSEC_REQUEST_BLOCKING",
             "APPSEC_RULES_MONITORING_WITH_ERRORS",
             "APPSEC_RUNTIME_ACTIVATION",
             "APPSEC_STANDALONE",
@@ -552,7 +551,6 @@ if __name__ == "__main__":
             "TELEMETRY_METRIC_GENERATION_DISABLED",
             "TELEMETRY_METRIC_GENERATION_ENABLED",
             "TRACE_PROPAGATION_STYLE_W3C",
-            "TRACE_PROPAGATION_STYLE_DEFAULT",
             "TRACING_CONFIG_EMPTY",
             "TRACING_CONFIG_NONDEFAULT",
             "TRACING_CONFIG_NONDEFAULT_2",
@@ -561,6 +559,7 @@ if __name__ == "__main__":
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
         "externalprocessing": [],
+        "streamprocessingoffload": [],
         "graphql": ["GRAPHQL_APPSEC"],
         "libinjection": [
             "K8S_LIB_INJECTION",

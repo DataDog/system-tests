@@ -22,7 +22,11 @@ default_libraries = [
 ]
 
 lambda_libraries = ["python_lambda"]
-libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
+otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
+
+# nodejs_otel is broken: dependancy needs to be pinned
+# libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
+libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|python_lambda|rust"
 
 
 def get_impacted_libraries(modified_file: str) -> list[str]:
@@ -35,6 +39,7 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
         "utils/scripts/activate-easy-wins.py",
         "utils/scripts/compute-impacted-libraries.py",
         ".github/workflows/compute-impacted-libraries.yml",
+        ".github/workflows/debug-harness.yml",
     ]
     if modified_file in files_with_no_impact:
         return []
@@ -46,6 +51,9 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
     for pattern in lambda_proxy_patterns:
         if re.match(pattern, modified_file):
             return lambda_libraries
+
+    if modified_file in ("utils/_context/_scenarios/open_telemetry.py",):
+        return otel_libraries
 
     patterns = [
         rf"^manifests/({libraries})\.",

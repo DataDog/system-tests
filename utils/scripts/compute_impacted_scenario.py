@@ -134,6 +134,7 @@ def main() -> None:
                     r"\.vscode/.*": None,
                     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
                     r"\.github/CODEOWNERS": None,
+                    r"\.github/workflows/daily-tag\.yml": None,
                     r"\.github/workflows/debug-harness\.yml": None,
                     r"\.github/workflows/run-docker-ssi\.yml": scenario_groups.docker_ssi,
                     r"\.github/workflows/run-end-to-end\.yml": scenario_groups.end_to_end,
@@ -165,6 +166,7 @@ def main() -> None:
                     r"utils/_context/_scenarios/open_telemetry\.py": scenario_groups.open_telemetry,
                     r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
                     r"utils/_context/_scenarios/profiling\.py": scenario_groups.profiling,
+                    r"utils/_context/_scenarios/stream_processing_offload\.py": scenario_groups.stream_processing_offload,  # noqa: E501
                     r"utils/_context/virtual_machine\.py": scenario_groups.onboarding,
                     r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
                     r"utils/build/docker/lambda_proxy/.*": scenario_groups.lambda_end_to_end,
@@ -189,6 +191,7 @@ def main() -> None:
                         scenario_groups.end_to_end,
                         scenario_groups.open_telemetry,
                         scenario_groups.external_processing,
+                        scenario_groups.stream_processing_offload,
                     ],
                     r"utils/scripts/activate-easy-wins\.py": None,
                     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,

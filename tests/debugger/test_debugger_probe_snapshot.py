@@ -50,6 +50,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         self.total_request_time = end_time - start_time
 
         self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_snapshot_received()
 
     def _assert(self):
         self.collect()
@@ -80,6 +81,9 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(
+    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
+)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -96,6 +100,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -109,6 +114,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             lines=None,
         )
 
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -118,6 +124,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -128,6 +135,9 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(
+    context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
+)
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -144,6 +154,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
     def setup_span_method_snapshot(self):
         self._setup("probe_snapshot_span_method", "/debugger/span", "span", lines=None)
 
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -157,6 +168,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
             lines=None,
         )
 
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_method_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -166,6 +178,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
         self._setup("probe_snapshot_log_mixed", "/debugger/mix/asd/1", "log", lines=None)
 
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_mix_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -186,6 +199,7 @@ class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest)
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for line-level probe snapshots"""
 
@@ -231,6 +245,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()
@@ -262,6 +277,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @features.debugger_line_probe
 @scenarios.debugger_probes_snapshot_with_scm
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for line-level probe snapshots"""
 
@@ -284,6 +300,7 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
 
     @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+    @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
     def test_span_decoration_line_snapshot(self):
         self._assert()
         self._validate_spans()

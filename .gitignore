@@ -32,7 +32,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
-reportJunit.xml
 .report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin
@@ -67,7 +66,7 @@ node_modules/
 utils/build/docker/*/parametric/Dockerfile
 
 # debugger
-/tests/debugger/approvals/*received*
+/tests/debugger/approvals/**/*received*
 .aider*
 
 # version check
