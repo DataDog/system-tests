@@ -10,6 +10,7 @@ from typing import Any
 
 import requests
 import ruamel.yaml
+from tqdm import tqdm
 
 
 class UnexpectedStatusError(Exception):
@@ -70,10 +71,14 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
 
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
+        total_size = int(r.headers.get('content-length', 0))
+
         with open(f"{path_root}/data.zip", "wb") as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+            with tqdm(total=total_size, unit='B', unit_scale=True, desc="Downloading artifact") as pbar:
+                for chunk in r.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        pbar.update(len(chunk))
 
     # Extract the downloaded zip file
     with zipfile.ZipFile(f"{path_root}/data.zip") as z:
