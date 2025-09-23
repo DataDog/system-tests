@@ -50,11 +50,11 @@ def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_na
     else:
         library_env[endpoint_env] = prev_value
 
-def assert_scope_metrics(scope_metrics, meter_name, meter_version, schema_url, expected_scope_attributes):
-    assert scope_metrics[0]["scope"]["name"] == meter_name
-    assert scope_metrics[0]["scope"]["version"] == meter_version
-    assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
-    assert scope_metrics[0]["schema_url"] == schema_url
+def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, expected_scope_attributes):
+    assert scope_metric["scope"]["name"] == meter_name
+    assert scope_metric["scope"]["version"] == meter_version
+    assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metric["scope"]["attributes"]})
+    assert scope_metric["schema_url"] == schema_url
 
 def assert_metric_info(metric, name, unit, description):
     assert metric["name"] == name
@@ -100,11 +100,10 @@ def assert_histogram_aggregation(histogram_aggregation, aggregation_temporality,
 
     assert False, f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}"
 
-def find_metric_by_name(scope_metrics: list[dict], name: str):
-    for scope_metric in scope_metrics:
-        for metric in scope_metric["metrics"]:
-            if metric["name"] == name:
-                return metric
+def find_metric_by_name(scope_metric: dict, name: str):
+    for metric in scope_metric["metrics"]:
+        if metric["name"] == name:
+            return metric
     raise ValueError(f"Metric with name {name} not found")
 
 def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float]) -> list[int]:
@@ -218,9 +217,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics, name)
+        counter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -252,7 +251,7 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -286,7 +285,7 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -320,7 +319,7 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
@@ -354,9 +353,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics, name)
+        updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -388,9 +387,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics, name)
+        updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value + second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -422,9 +421,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics, name)
+        updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
         assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -456,9 +455,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics, name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -490,9 +489,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics, name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(gauge["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -524,9 +523,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics, name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(gauge["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
         assert_gauge_aggregation(gauge["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -558,9 +557,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics, name)
+        histogram = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=n, min_value=n, max_value=n, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -593,9 +592,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics, name)
+        histogram = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
         assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -628,9 +627,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics, name)
+        histogram = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
         assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -661,9 +660,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics, name)
+        counter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -692,9 +691,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics, name)
+        counter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -723,9 +722,9 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics, name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
@@ -766,7 +765,7 @@ class Test_Metrics_Temporality_Preference:
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
 
-        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -802,7 +801,7 @@ class Test_Metrics_Temporality_Preference:
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
 
-        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -839,7 +838,7 @@ class Test_Metrics_Temporality_Preference:
         pprint.pprint(first_metrics_data)
 
         # Note: Temporality does not affect the OTLP metric for Gauges
-        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -875,7 +874,7 @@ class Test_Metrics_Temporality_Preference:
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
 
-        histogram = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        histogram = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_histogram_aggregation(histogram["histogram"], expected_aggregation_temporality, count=1, sum_value=42, min_value=42, max_value=42, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([42], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -910,7 +909,7 @@ class Test_Metrics_Temporality_Preference:
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
 
-        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -945,7 +944,7 @@ class Test_Metrics_Temporality_Preference:
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         pprint.pprint(first_metrics_data)
 
-        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -980,7 +979,7 @@ class Test_Metrics_Temporality_Preference:
         pprint.pprint(first_metrics_data)
 
         # Note: Temporality does not affect the OTLP metric for Gauges
-        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
 
