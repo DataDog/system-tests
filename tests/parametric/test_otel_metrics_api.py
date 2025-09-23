@@ -169,10 +169,13 @@ class Test_Otel_Metrics_Api:
         assert False, f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}"
 
     def assert_gauge_aggregation(self, gauge_aggregation, value, attributes):
-        gauge_data_point = gauge_aggregation["data_points"][0]
-        assert gauge_data_point["as_double"] == value
-        assert set(attributes) == set({item['key']:item['value']['string_value'] for item in gauge_data_point["attributes"]})
-        assert "time_unix_nano" in gauge_data_point
+        for gauge_data_point in gauge_aggregation["data_points"]:
+            if attributes == {item['key']:item['value']['string_value'] for item in gauge_data_point["attributes"]}:
+                assert gauge_data_point["as_double"] == value
+                assert "time_unix_nano" in gauge_data_point
+                return
+
+        assert False, f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}"
 
     def assert_histogram_aggregation(self, histogram_aggregation, aggregation_temporality, count, sum_value, min_value, max_value, bucket_boundaries, bucket_counts, attributes):
         assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
@@ -492,6 +495,41 @@ class Test_Otel_Metrics_Api:
         gauge = find_metric_by_name(scope_metrics, name)
         self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         self.assert_gauge_aggregation(gauge["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    # This test takes upwards of 25 seconds to run
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    @given(st.integers(min_value=-2**32, max_value=2**32), st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
+    @settings(suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20) # Limit the number of examples to speed up the test
+    def test_otel_gauge_record_multiple_values_with_different_tags(self, test_agent, test_library, first_value, second_value):
+        name = f"gauge-{first_value}-{second_value}-different-tags"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+        gauge = find_metric_by_name(scope_metrics, name)
+        self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        self.assert_gauge_aggregation(gauge["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        self.assert_gauge_aggregation(gauge["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
