@@ -1323,3 +1323,129 @@ class Test_FR08_Custom_Headers:
         assert (
             metrics_requests[0]["headers"].get("other-config-value") == "value"
         ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_Metrics_Host_Name:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": "true",
+            },
+        ],
+    )
+    def test_hostname_from_dd_hostname(self, test_agent, test_library, library_env):
+        """host.name is set from DD_HOSTNAME."""
+        name = "test_hostname_from_dd_hostname"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
+            t.otel_metrics_force_flush()
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
+
+        assert actual_attributes.get("host.name") == "ddhostname"
+
+    @pytest.mark.parametrize(
+        ("library_env", "host_attribute"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_RESOURCE_ATTRIBUTES": "host=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                },
+                "host",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_RESOURCE_ATTRIBUTES": "datadog.host.name=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                },
+                "datadog.host.name",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_RESOURCE_ATTRIBUTES": "host.name=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                },
+                "host.name",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_RESOURCE_ATTRIBUTES": "host.id=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                },
+                "host.id",
+            ),
+        ],
+        ids=["host", "datadog.host.name", "host.name", "host.id"],
+    )
+    def test_hostname_from_otel_resources(self, test_agent, test_library, library_env, host_attribute):
+        """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
+        name = "test_hostname_from_otel_resources"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
+            t.otel_metrics_force_flush()
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
+
+        assert actual_attributes.get(host_attribute) == "otelenv-host"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": "false",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": None,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TRACE_REPORT_HOSTNAME": None,
+            },
+        ],
+        ids=["disabled", "hostname_set_via_dd_hostname", "default"],
+    )
+    def test_hostname_omitted(self, test_agent, test_library, library_env):
+        """host.name is omitted when not configured."""
+        name = "test_hostname_omitted"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
+            t.otel_metrics_force_flush()
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
+
+        assert "host.name" not in actual_attributes

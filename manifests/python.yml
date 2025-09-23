@@ -1098,7 +1098,7 @@ tests/:
     test_otel_metrics_api.py:
       Test_Custom_Endpoints: v3.13.0.dev
       Test_FR01_Enable_OTLP_Metrics_Collection: v3.13.0.dev
-      Test_FR08_Custom_Headers: v3.13.0.dev
+      Test_Metrics_Host_Name: v3.13.0.dev
       Test_Metrics_Temporality_Preference: v3.13.0.dev
       Test_Otel_Metrics_Api: v3.11.0
       Test_OTLP_Protocols: v3.13.0.dev
