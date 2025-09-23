@@ -16,9 +16,6 @@ from utils.parametric.spec.trace import find_first_span_in_trace_payload
 from utils import bug, features, missing_feature, irrelevant, context, scenarios
 from urllib.parse import urlparse
 
-EXPECTED_SERVICE_NAME = "test2"
-EXPECTED_ENV = "test1"
-EXPECTED_VERSION = "5"
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
 DEFAULT_METER_NAME = "parametric-api"
