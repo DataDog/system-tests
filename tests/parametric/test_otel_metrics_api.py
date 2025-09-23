@@ -732,6 +732,261 @@ class Test_Otel_Metrics_Api:
         assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
+
+@scenarios.parametric
+@features.otel_metrics_api
+class Test_Metrics_Temporality_Preference:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_counter(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_counter-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE" if temporality_preference == "CUMULATIVE" else "AGGREGATION_TEMPORALITY_DELTA"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_updowncounter(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_updowncounter-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_gauge(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_gauge-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Note: Temporality does not affect the OTLP metric for Gauges
+        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_histogram(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_histogram-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE" if temporality_preference == "CUMULATIVE" else "AGGREGATION_TEMPORALITY_DELTA"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        histogram = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_histogram_aggregation(histogram["histogram"], expected_aggregation_temporality, count=1, sum_value=42, min_value=42, max_value=42, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([42], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_asynchronous_counter(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_asynchronous_counter-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_DELTA" if temporality_preference == "DELTA" or temporality_preference == "default" else "AGGREGATION_TEMPORALITY_CUMULATIVE"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_asynchronous_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_asynchronous_updowncounter(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_asynchronous_updowncounter-{temporality_preference.lower()}"
+        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_asynchronous_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"
+            }
+        ],
+        ids=["default", "delta", "cumulative"]
+    )
+    def test_otel_aggregation_temporality_asynchronous_gauge(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+        name = f"test_otel_aggregation_temporality_asynchronous_gauge-{temporality_preference.lower()}"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+            t.otel_create_asynchronous_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        pprint.pprint(first_metrics_data)
+
+        # Note: Temporality does not affect the OTLP metric for Gauges
+        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"], name)
+        assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_Resource_Attributes:
