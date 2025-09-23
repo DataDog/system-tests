@@ -53,6 +53,56 @@ def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_na
     else:
         library_env[endpoint_env] = prev_value
 
+def assert_scope_metrics(scope_metrics, meter_name, meter_version, schema_url, expected_scope_attributes):
+    assert scope_metrics[0]["scope"]["name"] == meter_name
+    assert scope_metrics[0]["scope"]["version"] == meter_version
+    assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
+    assert scope_metrics[0]["schema_url"] == schema_url
+
+def assert_metric_info(metric, name, unit, description):
+    assert metric["name"] == name
+    assert metric["unit"] == unit
+    assert metric["description"] == description
+
+def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotonic, value, attributes):
+    assert sum_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
+    assert sum_aggregation["is_monotonic"] if is_monotonic else not sum_aggregation.get("is_monotonic")
+
+    for sum_data_point in sum_aggregation["data_points"]:
+        if attributes == {item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]}:
+            assert sum_data_point["as_double"] == value
+            assert set(attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+            assert "time_unix_nano" in sum_data_point
+            return
+    
+    assert False, f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}"
+
+def assert_gauge_aggregation(gauge_aggregation, value, attributes):
+    for gauge_data_point in gauge_aggregation["data_points"]:
+        if attributes == {item['key']:item['value']['string_value'] for item in gauge_data_point["attributes"]}:
+            assert gauge_data_point["as_double"] == value
+            assert "time_unix_nano" in gauge_data_point
+            return
+
+    assert False, f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}"
+
+def assert_histogram_aggregation(histogram_aggregation, aggregation_temporality, count, sum_value, min_value, max_value, bucket_boundaries, bucket_counts, attributes):
+    assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
+
+    for histogram_data_point in histogram_aggregation["data_points"]:
+        if attributes == {item['key']:item['value']['string_value'] for item in histogram_data_point["attributes"]}:
+            assert int(histogram_data_point["count"]) == count
+            assert histogram_data_point["sum"] == sum_value
+            assert histogram_data_point["min"] == min_value
+            assert histogram_data_point["max"] == max_value
+
+            assert histogram_data_point["explicit_bounds"] == bucket_boundaries
+            assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
+            assert "time_unix_nano" in histogram_data_point
+            return
+
+    assert False, f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}"
+
 def find_metric_by_name(scope_metrics: list[dict], name: str):
     for scope_metric in scope_metrics:
         for metric in scope_metric["metrics"]:
@@ -144,56 +194,6 @@ class Test_FR01_Enable_OTLP_Metrics_Collection:
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api:
-    def assert_scope_metrics(self, scope_metrics, meter_name, meter_version, schema_url, expected_scope_attributes):
-        assert scope_metrics[0]["scope"]["name"] == meter_name
-        assert scope_metrics[0]["scope"]["version"] == meter_version
-        assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metrics[0]["scope"]["attributes"]})
-        assert scope_metrics[0]["schema_url"] == schema_url
-
-    def assert_metric_info(self, metric, name, unit, description):
-        assert metric["name"] == name
-        assert metric["unit"] == unit
-        assert metric["description"] == description
-
-    def assert_sum_aggregation(self, sum_aggregation, aggregation_temporality, is_monotonic, value, attributes):
-        assert sum_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
-        assert sum_aggregation["is_monotonic"] if is_monotonic else not sum_aggregation.get("is_monotonic")
-
-        for sum_data_point in sum_aggregation["data_points"]:
-            if attributes == {item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]}:
-                assert sum_data_point["as_double"] == value
-                assert set(attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
-                assert "time_unix_nano" in sum_data_point
-                return
-        
-        assert False, f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}"
-
-    def assert_gauge_aggregation(self, gauge_aggregation, value, attributes):
-        for gauge_data_point in gauge_aggregation["data_points"]:
-            if attributes == {item['key']:item['value']['string_value'] for item in gauge_data_point["attributes"]}:
-                assert gauge_data_point["as_double"] == value
-                assert "time_unix_nano" in gauge_data_point
-                return
-
-        assert False, f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}"
-
-    def assert_histogram_aggregation(self, histogram_aggregation, aggregation_temporality, count, sum_value, min_value, max_value, bucket_boundaries, bucket_counts, attributes):
-        assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
-
-        for histogram_data_point in histogram_aggregation["data_points"]:
-            if attributes == {item['key']:item['value']['string_value'] for item in histogram_data_point["attributes"]}:
-                assert int(histogram_data_point["count"]) == count
-                assert histogram_data_point["sum"] == sum_value
-                assert histogram_data_point["min"] == min_value
-                assert histogram_data_point["max"] == max_value
-
-                assert histogram_data_point["explicit_bounds"] == bucket_boundaries
-                assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
-                assert "time_unix_nano" in histogram_data_point
-                return
-
-        assert False, f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}"
-
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -221,11 +221,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -255,11 +255,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -289,11 +289,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value + second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value + second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -323,12 +323,12 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = scope_metrics[0]["metrics"][0]
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -357,11 +357,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         updowncounter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -391,11 +391,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         updowncounter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value + second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value + second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -425,12 +425,12 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         updowncounter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        self.assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -459,11 +459,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         gauge = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -493,11 +493,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         gauge = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_gauge_aggregation(gauge["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(gauge["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -527,12 +527,12 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         gauge = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_gauge_aggregation(gauge["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        self.assert_gauge_aggregation(gauge["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(gauge["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_gauge_aggregation(gauge["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -561,11 +561,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         histogram = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=n, min_value=n, max_value=n, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=n, min_value=n, max_value=n, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -596,12 +596,12 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         histogram = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
-        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -631,13 +631,13 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         histogram = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
-        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
-        self.assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value2, min_value=non_negative_value2, max_value=non_negative_value2, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value2, min_value=non_negative_value2, max_value=non_negative_value2, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -664,11 +664,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -695,11 +695,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         counter = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -726,11 +726,11 @@ class Test_Otel_Metrics_Api:
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        self.assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+        assert_scope_metrics(scope_metrics, DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
         gauge = find_metric_by_name(scope_metrics, name)
-        self.assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        self.assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
 @scenarios.parametric
 @features.otel_metrics_api
