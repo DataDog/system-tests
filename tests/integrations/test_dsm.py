@@ -8,7 +8,7 @@ import os
 
 from tests.integrations.utils import compute_dsm_hash
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
+from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger, context
 
 
 # Kafka specific
@@ -301,6 +301,7 @@ class Test_DsmSQS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
+    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -341,6 +342,7 @@ class Test_DsmSNS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
+    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
