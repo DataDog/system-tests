@@ -1,6 +1,11 @@
 import pytest
 
-from utils._context.containers import DummyServerContainer, ExternalProcessingContainer, EnvoyContainer, AgentContainer
+from utils._context.containers import (
+    DummyServerContainer,
+    StreamProcessingOffloadContainer,
+    HAProxyContainer,
+    AgentContainer,
+)
 from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 
@@ -10,39 +15,46 @@ from .core import scenario_groups
 from .endtoend import DockerScenario
 
 
-class ExternalProcessingScenario(DockerScenario):
+class StreamProcessingOffloadScenario(DockerScenario):
     def __init__(
         self,
         name: str,
         doc: str,
         *,
-        extproc_env: dict[str, str | None] | None = None,
-        extproc_volumes: dict[str, dict[str, str]] | None = None,
+        stream_processing_offload_env: dict[str, str | None] | None = None,
+        stream_processing_offload_volumes: dict[str, dict[str, str]] | None = None,
         rc_api_enabled: bool = False,
     ) -> None:
         super().__init__(
             name,
             doc=doc,
-            github_workflow="externalprocessing",
-            scenario_groups=[scenario_groups.end_to_end, scenario_groups.external_processing, scenario_groups.all],
+            github_workflow="streamprocessingoffload",
+            scenario_groups=[
+                scenario_groups.end_to_end,
+                scenario_groups.stream_processing_offload,
+                scenario_groups.all,
+            ],
             use_proxy=True,
             rc_api_enabled=rc_api_enabled,
         )
 
         self._agent_container = AgentContainer()
-        self._external_processing_container = ExternalProcessingContainer(
-            env=extproc_env,
-            volumes=extproc_volumes,
+        self._stream_processing_offload_container = StreamProcessingOffloadContainer(
+            env=stream_processing_offload_env,
+            volumes=stream_processing_offload_volumes,
         )
-        self._envoy_container = EnvoyContainer()
+        self._haproxy_container = HAProxyContainer()
         self._http_app_container = DummyServerContainer()
 
         self._agent_container.depends_on.append(self.proxy_container)
-        self._external_processing_container.depends_on.append(self.proxy_container)
+        self._stream_processing_offload_container.depends_on.append(self.proxy_container)
+        # Ensure HAProxy starts after SPOE agent and the HTTP app so DNS resolves
+        self._haproxy_container.depends_on.append(self._stream_processing_offload_container)
+        self._haproxy_container.depends_on.append(self._http_app_container)
 
         self._required_containers.append(self._agent_container)
-        self._required_containers.append(self._external_processing_container)
-        self._required_containers.append(self._envoy_container)
+        self._required_containers.append(self._stream_processing_offload_container)
+        self._required_containers.append(self._haproxy_container)
         self._required_containers.append(self._http_app_container)
 
     def configure(self, config: pytest.Config):
@@ -58,7 +70,7 @@ class ExternalProcessingScenario(DockerScenario):
         logger.debug("Wait for app readiness")
 
         if not interfaces.library.ready.wait(40):
-            pytest.exit("Nothing received from external processing", 1)
+            pytest.exit("Nothing received from the SPOE Agent", 1)
         logger.debug("Library ready")
 
         if not interfaces.agent.ready.wait(40):
@@ -95,8 +107,8 @@ class ExternalProcessingScenario(DockerScenario):
             self._wait_interface(interfaces.library, 5)
 
             self._http_app_container.stop()
-            self._envoy_container.stop()
-            self._external_processing_container.stop()
+            self._haproxy_container.stop()
+            self._stream_processing_offload_container.stop()
 
             interfaces.library.check_deserialization_errors()
 
@@ -111,8 +123,8 @@ class ExternalProcessingScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "gcp-service-extension"
+        return "haproxy-spoe"
 
     @property
     def library(self):
-        return self._external_processing_container.library
+        return self._stream_processing_offload_container.library

@@ -569,10 +569,10 @@ tests/:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
-      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v2.4.0-dev
+      TestServiceActivationEnvVarMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0-dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -786,7 +786,7 @@ tests/:
       Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v2.1.0-dev.2
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
       Test_TelemetrySSIConfigs: missing_feature

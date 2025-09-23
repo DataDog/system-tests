@@ -527,8 +527,8 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-        uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        flask-poc: bug (APPSEC-59081)
+        uds-flask: bug (APPSEC-59081)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
       Test_UserEventsStandalone_SDK_V1: v3.9.0
@@ -666,7 +666,7 @@ tests/:
       Test_ConfigurationVariables_New_Obfuscation: v3.9.0.dev
     test_customconf.py:
       Test_ConfRuleSet: v1.1.0-rc2
-      Test_CorruptedRules_Telemetry: v3.10.0.dev
+      Test_CorruptedRules_Telemetry: v3.15.0.dev
       Test_NoLimitOnWafRules: v1.1.0-rc2
     test_event_tracking.py:
       Test_CustomEvent:
