@@ -34,7 +34,7 @@ fi
 
 # Environment variables for the installer
 export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
-export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
+#export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
 if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
    export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
