@@ -471,7 +471,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
 # XXX: This test can run in any scenario with rc_api_enabled=True. Default will not work, as /v0.7/config is not reported by the agent,
 # which will make some tracers (e.g. Ruby) not use RC.
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.remote_config_semantic_versioning
 class Test_RemoteConfigurationSemVer:
     """Tests that semantic versioning is reported in remote config"""
