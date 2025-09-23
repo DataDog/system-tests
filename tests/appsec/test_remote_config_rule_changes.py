@@ -579,6 +579,7 @@ class Test_Invalid_Config:
         self.config_state_3 = rc.rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
+    @bug(context.library < "nodejs@5.68.0", reason="action tag is not reported for waf.config_errors")
     def test_invalid_config(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
