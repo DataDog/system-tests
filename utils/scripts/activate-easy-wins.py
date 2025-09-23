@@ -58,7 +58,6 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
     page = 0
     while not download_url:
         page += 1
-        # Get artifacts from the 5th workflow run
         artifacts_url = runs_data["workflow_runs"][0]["artifacts_url"] + f"?page={page}"
         with requests.get(artifacts_url, headers=headers, timeout=60) as resp_artifacts:
             resp_artifacts.raise_for_status()
@@ -125,26 +124,33 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
             raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def parse_artifact_data(path_data_opt: str) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
+def find_library(libraries, file_name):
+    libraries.sort(key=len, reverse=True)
+    for library in libraries:
+        if library in file_name:
+            return library
+
+
+def parse_artifact_data(path_data_opt: str, libraries) -> dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, TestClassStatus]]]] = {}
 
     for directory in os.listdir(path_data_opt):
-        if "dev" in directory:
+        library = find_library(libraries, directory)
+        if "dev" in directory or not library in libraries:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
-            with open(f"{path_data_opt}/{directory}/{scenario}/feature_parity.json", encoding="utf-8") as file:
+            with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
                 scenario_data = json.load(file)
 
-            library = scenario_data["language"]
-            variant = scenario_data["variant"]
+            variant = scenario_data["context"]["weblog_variant"]
 
             if not test_data.get(library):
                 test_data[library] = {}
 
             for test in scenario_data["tests"]:
-                test_path = test["path"].split("::")[0]
-                test_class = test["path"].split("::")[1]
+                test_path = test["nodeid"].split("::")[0]
+                test_class = test["nodeid"].split("::")[1]
 
                 if not test_data[library].get(test_path):
                     test_data[library][test_path] = {}
@@ -355,13 +361,11 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                 if found_version:
                     break
 
-                with open(f"{path_data_opt}/{variant}/{scenario}/feature_parity.json", encoding="utf-8") as file:
+                with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
                     data = json.load(file)
 
-                for dep in data["testedDependencies"]:
-                    if dep["name"] == "library":
-                        versions[library] = f"v{dep['version']}"
-                        found_version = True
+                versions[library] = f"v{data['context']['library']}"
+                found_version = True
 
         if library == "cpp_httpd" and versions[library] == "v99.99.99":
             with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
@@ -421,7 +425,7 @@ def main() -> None:
         pull_artifact(ARTIFACT_URL, token, path_root, path_data_root)
 
     print("Parsing test results")
-    test_data = parse_artifact_data(path_data_opt)
+    test_data = parse_artifact_data(path_data_opt, args.libraries)
     versions = get_versions(path_data_opt, args.libraries)
 
     if args.dry_run and not args.summary_only:
