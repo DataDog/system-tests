@@ -302,9 +302,6 @@ jobs:
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
-    - name: Run APPSEC_REQUEST_BLOCKING scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_REQUEST_BLOCKING"')
-      run: ./run.sh APPSEC_REQUEST_BLOCKING
     - name: Run APPSEC_AND_RC_ENABLED scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
       run: ./run.sh APPSEC_AND_RC_ENABLED
