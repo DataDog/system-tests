@@ -155,7 +155,7 @@ def main() -> None:
     outputs = {
         "library_matrix": populated_result,
         "libraries_with_dev": libraries_with_dev,
-        "desired_execution_time": 600 if len(result) == 1 else 3600,
+        "desired_execution_time": 600 if len(result) == 1 else 1800,
         "rebuild_lambda_proxy": rebuild_lambda_proxy,
     }
 
