@@ -121,16 +121,20 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @scenarios.parametric
 @features.otel_metrics_api
 class Test_FR01_Enable_OTLP_Metrics_Collection:
-    """FR01: OTLP Metrics Collection Enable/Disable Tests"""
+    """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
+    - DD_METRICS_OTEL_ENABLED
+    - OTEL_METRICS_EXPORTER
+    """
     
     @pytest.mark.parametrize(
         "library_env",
         [
             {"DD_METRICS_OTEL_ENABLED": "true", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
+            {"DD_METRICS_OTEL_ENABLED": "true", "OTEL_METRICS_EXPORTER": "otlp", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
         ],
     )
     def test_otlp_metrics_enabled(self, test_agent, test_library, library_env):
-        """OTLP metrics are emitted when enabled."""
+        """Ensure that OTLP metrics are emitted."""
 
         name = "enabled-counter"
         with test_library as t:
@@ -148,10 +152,11 @@ class Test_FR01_Enable_OTLP_Metrics_Collection:
         "library_env",
         [
             {"DD_METRICS_OTEL_ENABLED": "false", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
+            {"DD_METRICS_OTEL_ENABLED": "true", "OTEL_METRICS_EXPORTER": "none", "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
         ],
     )
     def test_otlp_metrics_disabled(self, test_agent, test_library, library_env):
-        """OTLP metrics are emitted when enabled."""
+        """Ensure that OTLP metrics are not emitted."""
         name = "disabled-counter"
 
         with test_library as t:
