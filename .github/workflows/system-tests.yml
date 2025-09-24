@@ -115,21 +115,18 @@ on:
         required: false
         type: boolean
       push_to_test_optimization:
-        description: "Push test result to DataDog Test Optimization"
+        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
         default: false
         required: false
         type: boolean
-      test_optimization_api_key:
-        description: "If push_to_test_optimization, the DD_API_KEY to be used"
-        default: ""
-        required: false
-        type: string
 
     secrets:
       DOCKERHUB_USERNAME:
         required: false
       DOCKERHUB_TOKEN:
         required: false
+      TEST_OPTIMIZATION_API_KEY:
+        required: true
       CIRCLECI_TOKEN:
         required: false
       DD_API_KEY:
@@ -179,7 +176,6 @@ jobs:
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})
@@ -271,7 +267,6 @@ jobs:
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   external_processing:
     needs:
@@ -287,7 +282,6 @@ jobs:
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   run_stream_processing_offload:
     needs:
@@ -303,7 +297,6 @@ jobs:
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-      test_optimization_api_key: ${{ inputs.test_optimization_api_key }}
 
   display_summary:
     name: Report failures

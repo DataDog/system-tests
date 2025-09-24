@@ -36,11 +36,6 @@ on:
         default: false
         required: false
         type: boolean
-      test_optimization_api_key:
-        description: "If push_to_test_optimization, the DD_API_KEY to be used"
-        default: ""
-        required: false
-        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -117,4 +112,4 @@ jobs:
         if: ${{ inputs.push_to_test_optimization }}
         uses: ./.github/actions/push_to_test_optim
         with:
-          datadog_api_key: ${{ inputs.test_optimization_api_key }}
+          datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
