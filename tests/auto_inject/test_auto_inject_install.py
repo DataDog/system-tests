@@ -61,7 +61,7 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(context.virtual_machine)
 
 
-@features.container_auto_installation_script_origin_detection
+@features.origin_detection
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScriptOriginDetection(base.AutoInjectBaseTest):
     def test_install(self):
