@@ -688,9 +688,9 @@ tests/:
   test_protobuf.py: missing_feature
   test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
-    Test_SampleRateFunction: bug (APMAPI-736)
+    Test_SampleRateFunction: v1.11.0
     Test_SamplingDecisionAdded: v1.7.2  # real version unknown
-    Test_SamplingDecisions: bug (APMAPI-736)
+    Test_SamplingDecisions: v1.11.0
     Test_SamplingDeterminism: v1.7.2  # real version unknown
     Test_SamplingRates: v1.7.2  # real version unknown
   test_scrubbing.py:
