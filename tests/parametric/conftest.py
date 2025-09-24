@@ -142,20 +142,20 @@ class _TestAgentAPI:
             log.write(json.dumps(json_trace))
 
     def traces(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
-        resp = self._session.get(self._otlp_url("/test/session/traces"), **kwargs)
+        resp = self._session.get(self._url("/test/session/traces"), **kwargs)
         if clear:
             self.clear()
         resp_json = resp.json()
         self._write_log("traces", resp_json)
         return resp_json
 
-    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
-        resp = self._session.get(self._otlp_http_url("/test/session/metrics"), **kwargs)
+    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
+        resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:
             self.clear()
         resp_json = resp.json()
         self._write_log("metrics", resp_json)
-        return resp_json
+        return cast(list[Any], resp_json)
 
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
@@ -872,7 +872,6 @@ def test_library(
     worker_id: str,
     docker_network: str,
     test_agent_port: str,
-    test_agent_otlp_http_port: str,
     test_agent_container_name: str,
     apm_test_server: APMLibraryTestServer,
     test_server_log_file: TextIO,
@@ -895,7 +894,6 @@ def test_library(
             del env[k]
 
     apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
-    ports = {f"{apm_test_server.container_port}/tcp": apm_test_server.host_port}
 
     with scenarios.parametric.docker_run(
         image=apm_test_server.container_tag,

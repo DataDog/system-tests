@@ -72,9 +72,7 @@ class APMLibraryTestServer:
     container_build_context: str = "."
 
     container_port: int = 8080
-    container_otlp_http_port: int = 8081 # This doesn't have an OTLP port but whatever, refactor later
     host_port: int | None = None  # Will be assigned by get_host_port()
-    host_otlp_http_port: int | None = None  # Will be assigned by get_host_port() # This doesn't have an OTLP port but whatever, refactor later
 
     env: dict[str, str] = dataclasses.field(default_factory=dict)
     volumes: dict[str, str] = dataclasses.field(default_factory=dict)
