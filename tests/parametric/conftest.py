@@ -880,7 +880,6 @@ def test_library(
         "DD_TRACE_DEBUG": "true",
         "DD_TRACE_AGENT_URL": f"http://{test_agent_container_name}:{test_agent_port}",
         "DD_AGENT_HOST": test_agent_container_name,
-        "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "delta",
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
