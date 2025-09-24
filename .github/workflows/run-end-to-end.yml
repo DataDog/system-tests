@@ -83,6 +83,11 @@ on:
         default: 14
         required: false
         type: number
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -472,3 +477,9 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
+    - name: Push results to Test Optimization
+      if: always() && inputs.push_to_test_optimization
+      uses: ./.github/actions/push_to_test_optim
+      with:
+        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}
