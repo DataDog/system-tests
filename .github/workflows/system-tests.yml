@@ -126,7 +126,7 @@ on:
       DOCKERHUB_TOKEN:
         required: false
       TEST_OPTIMIZATION_API_KEY:
-        required: true
+        required: false
       CIRCLECI_TOKEN:
         required: false
       DD_API_KEY:
