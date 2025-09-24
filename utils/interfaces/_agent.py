@@ -170,6 +170,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                     for span in chunk["spans"]:
                         logger.debug(f"Looking at agent span {span}")
                         if rid is None or get_rid_from_span(span) == rid:
+                            logger.debug(f"Found a span in {data['log_filename']}")
                             yield data, chunk
                             break
 
