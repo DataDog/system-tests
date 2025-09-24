@@ -44,28 +44,23 @@ on:
         default: 'custom'
         required: false
         type: string
-      build_python_base_images:
+      _build_python_base_images:
         description: "Shall we build python base images for tests on python tracer"
         default: false
         required: false
         type: boolean
-      build_buddies_images:
+      _build_buddies_images:
         description: "Shall we build buddies images"
         default: false
         required: false
         type: boolean
-      build_proxy_image:
+      _build_proxy_image:
         description: "Shall we build proxy image"
         default: false
         required: false
         type: boolean
-      build_lambda_proxy_image:
+      _build_lambda_proxy_image:
         description: "Shall we build the lambda-proxy image"
-        default: false
-        required: false
-        type: boolean
-      build_lib_injection_app_images:
-        description: "Shall we build and push k8s lib injection weblog images"
         default: false
         required: false
         type: boolean
@@ -89,7 +84,7 @@ on:
         default: "-1"
         required: false
         type: string
-      enable_replay_scenarios:
+      _enable_replay_scenarios:
         description: "Enable replay scenarios, should only used in system-tests CI"
         default: false
         required: false
@@ -119,6 +114,25 @@ on:
         default: false
         required: false
         type: boolean
+    secrets:
+      DOCKERHUB_USERNAME:
+        required: false
+      DOCKERHUB_TOKEN:
+        required: false
+      CIRCLECI_TOKEN:
+        required: false
+      DD_API_KEY:
+        required: false
+      DD_APPLICATION_KEY:
+        required: false
+      DD_API_KEY_2:
+        required: false
+      DD_APP_KEY_2:
+        required: false
+      DD_API_KEY_3:
+        required: false
+      DD_APP_KEY_3:
+        required: false
 
 jobs:
   compute_parameters:
@@ -153,22 +167,6 @@ jobs:
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
-
-  lib_injection:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
-    uses: ./.github/workflows/run-lib-injection.yml
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-    with:
-      build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
-      library: ${{ inputs.library }}
-      ref: ${{ inputs.ref }}
-      version: ${{ needs.compute_parameters.outputs.ci_environment }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
   build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})
@@ -208,7 +206,7 @@ jobs:
       - name: Export github token to a file
         run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Build weblog base images
-        if: inputs.library == 'python' && inputs.build_python_base_images
+        if: inputs.library == 'python' && inputs._build_python_base_images
         run: |
           ./utils/build/build_python_base_images.sh
       - name: Build weblog
@@ -250,13 +248,13 @@ jobs:
       weblog_instance: ${{ matrix.job.weblog_instance }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       force_execute: ${{ inputs.force_execute }}
-      build_buddies_images: ${{ inputs.build_buddies_images }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
-      build_lambda_proxy_image: ${{ inputs.build_lambda_proxy_image }}
+      _build_buddies_images: ${{ inputs._build_buddies_images }}
+      _build_proxy_image: ${{ inputs._build_proxy_image }}
+      _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
       binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      enable_replay_scenarios: ${{ inputs.enable_replay_scenarios }}
+      _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
@@ -268,7 +266,7 @@ jobs:
     secrets: inherit
     with:
       ref: ${{ inputs.ref }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
+      _build_proxy_image: ${{ inputs._build_proxy_image }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
@@ -282,7 +280,7 @@ jobs:
     secrets: inherit
     with:
       ref: ${{ inputs.ref }}
-      build_proxy_image: ${{ inputs.build_proxy_image }}
+      _build_proxy_image: ${{ inputs._build_proxy_image }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}

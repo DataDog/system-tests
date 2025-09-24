@@ -236,6 +236,7 @@ def main() -> None:
 
                 files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = get_scenarios()
 
+
                 for pattern, scenario_requirement in files_map.items():
                     if re.fullmatch(pattern, file):
                         result.add_scenario_requirement(scenario_requirement)
