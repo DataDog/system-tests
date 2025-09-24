@@ -49,7 +49,6 @@ jobs:
 | `build_proxy_image`                   | Shall we build proxy image                                                                      | boolean | false    | false      |
 | `build_lambda_proxy_image`            | Shall we build the lambda-proxy image                                                           | boolean | false    | false      |
 | `build_python_base_images`            | Shall we build python base images for tests on python tracer                                    | boolean | false    | false      |
-| `build_lib_injection_app_images`      | Shall we build and push k8s lib injection weblog images                                         | boolean | false    | false      |
 | `desired_execution_time`              | In seconds, system-tests will try to respect this time budget.                                  | number  | false    |            |
 | `enable_replay_scenarios`             | Enable replay scenarios, should only be used in system-tests CI                                 | boolean | false    | false      |
 | `excluded_scenarios`                  | Comma-separated list of scenarios not to run                                                    | string  | false    |            |
