@@ -376,9 +376,9 @@ class _Features:
     def structured_log_injection(test_object):
         """DD_LOGS_INJECTION
 
-        https://feature-parity.us1.prod.dog/#/?feature=42
+        https://feature-parity.us1.prod.dog/#/?feature=5
         """
-        return _mark_test_object(test_object, feature_id=42, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=5, owner=_Owner.tracer)
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
