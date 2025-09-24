@@ -1106,7 +1106,7 @@ tests/:
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py: v3.3.0.dev
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
