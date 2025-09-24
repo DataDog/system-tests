@@ -16,7 +16,7 @@ on:
         default: 'custom'
         required: false
         type: string
-      build_proxy_image:
+      _build_proxy_image:
         description: "Shall we build proxy image"
         default: false
         required: false
@@ -83,7 +83,7 @@ jobs:
           scenarios: '["STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING"]'
 
       - name: Build proxy image
-        if: inputs.build_proxy_image
+        if: inputs._build_proxy_image
         run: ./build.sh -i proxy
 
       - name: Run STREAM_PROCESSING_OFFLOAD scenario
