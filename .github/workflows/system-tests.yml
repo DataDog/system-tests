@@ -64,11 +64,6 @@ on:
         default: false
         required: false
         type: boolean
-      build_lib_injection_app_images:
-        description: "Shall we build and push k8s lib injection weblog images"
-        default: false
-        required: false
-        type: boolean
       push_to_feature_parity_dashbaord:
         description: "Shall we push results to Feature Parity Dashbaord"
         default: false
@@ -153,22 +148,6 @@ jobs:
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
-
-  lib_injection:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.libinjection_enable == 'true' }}
-    uses: ./.github/workflows/run-lib-injection.yml
-    permissions:
-      contents: read
-      packages: write
-    secrets: inherit
-    with:
-      build_lib_injection_app_images: ${{ inputs.build_lib_injection_app_images }}
-      library: ${{ inputs.library }}
-      ref: ${{ inputs.ref }}
-      version: ${{ needs.compute_parameters.outputs.ci_environment }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
 
   build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})

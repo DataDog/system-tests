@@ -64,9 +64,6 @@ on:
       libinjection_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.libinjection_scenarios }}
-      libinjection_enable:
-        description: ""
-        value: ${{ jobs.main.outputs.libinjection_enable }}
       parametric_enable:
         description: ""
         value: ${{ jobs.main.outputs.parametric_enable }}
@@ -109,7 +106,6 @@ jobs:
       externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       streamprocessingoffload_scenarios: ${{ steps.main.outputs.streamprocessingoffload_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
-      libinjection_enable: ${{ steps.main.outputs.libinjection_enable }}
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
       parametric_job_count: ${{ steps.main.outputs.parametric_job_count }}
