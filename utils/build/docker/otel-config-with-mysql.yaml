@@ -1,0 +1,75 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+
+  mysql:
+    endpoint: mysqldb:3306
+    username: mysqldb
+    password: mysqldb
+    database: mysql_dbname
+    collection_interval: 10s
+    tls:
+      insecure: true
+
+exporters:
+  datadog:
+    api:
+      key: ${DD_API_KEY}
+      site: ${DD_SITE}
+      fail_on_invalid_key: true
+    metrics:
+      instrumentation_scope_metadata_as_tags: true
+
+  debug:
+    verbosity: detailed
+
+  file/traces:
+    path: /tmp/traces.json
+    format: json
+
+  file/metrics:
+    path: /tmp/metrics.json
+    format: json
+
+  file/logs:
+    path: /tmp/logs.json
+    format: json
+
+processors:
+  batch:
+
+  # TODO: Check if rid needs to be a static value or if it should be dynamic
+  attributes/add_rid:
+    actions:
+      - key: rid
+        value: "otel-mysql-metrics"
+        action: upsert
+
+extensions:
+  health_check:
+    endpoint: "0.0.0.0:13133"
+
+service:
+  extensions: [health_check]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/traces]
+    
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/metrics]
+
+    metrics/mysql:
+      receivers: [mysql]
+      processors: [attributes/add_rid, batch]
+      exporters: [datadog, debug, file/metrics]
+    
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [datadog, file/logs]
