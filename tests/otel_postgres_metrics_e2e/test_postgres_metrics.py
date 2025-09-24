@@ -50,6 +50,63 @@ POSTGRESQL_METRICS = {
 @scenarios.otel_postgres_metrics_e2e
 class Test_PostgreSQLMetricsCollection:
 
+    def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
+        if "resourceMetrics" not in data:
+            return
+            
+        for resource_metric in data["resourceMetrics"]:
+            self._process_resource_metric(resource_metric, found_metrics, metrics_dont_match_spec)
+    
+    def _process_resource_metric(self, resource_metric: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
+        if "scopeMetrics" not in resource_metric:
+            return
+            
+        for scope_metric in resource_metric["scopeMetrics"]:
+            self._process_scope_metric(scope_metric, found_metrics, metrics_dont_match_spec)
+    
+    def _process_scope_metric(self, scope_metric: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
+        if "metrics" not in scope_metric:
+            return
+            
+        for metric in scope_metric["metrics"]:
+            self._process_individual_metric(metric, found_metrics, metrics_dont_match_spec)
+    
+    def _process_individual_metric(self, metric: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
+        if "name" not in metric:
+            return
+            
+        metric_name = metric["name"]
+        found_metrics.add(metric_name)
+        
+        # Skip validation if metric is not in our expected list
+        if metric_name not in POSTGRESQL_METRICS:
+            return
+            
+        self._validate_metric_specification(metric, metrics_dont_match_spec)
+    
+    def _validate_metric_specification(self, metric: dict, metrics_dont_match_spec: set[str]) -> None:
+        """Validate that a metric matches its expected specification."""
+        metric_name = metric["name"]
+        description = metric["description"]
+        gauge_type = 'gauge' in metric.keys()
+        sum_type = 'sum' in metric.keys()
+        
+        expected_spec = POSTGRESQL_METRICS[metric_name]
+        expected_type = expected_spec['data_type'].lower()
+        expected_description = expected_spec['description']
+        
+        # Validate metric type
+        if expected_type == 'sum' and not sum_type:
+            metrics_dont_match_spec.add(f"{metric_name}: Expected Sum type but got Gauge")
+        elif expected_type == 'gauge' and not gauge_type:
+            metrics_dont_match_spec.add(f"{metric_name}: Expected Gauge type but got Sum")
+        
+        # Validate description (sometimes the spec has a period, but the actual logs don't)
+        if description.rstrip('.') != expected_description.rstrip('.'):
+            metrics_dont_match_spec.add(
+                f"{metric_name}: Description mismatch - Expected: '{expected_description}', Got: '{description}'"
+            )
+
     def test_postgresql_metrics_received_by_collector(self):
         """
         The goal of this test is to validate that the metrics appear in the Otel Collector logs.
@@ -64,37 +121,11 @@ class Test_PostgreSQLMetricsCollection:
                 if row.strip():
                     metrics_batch.append(json.loads(row.strip()))
 
-        found_metrics = set()
-        metrics_dont_match_spec = set()
+        found_metrics: set[str] = set()
+        metrics_dont_match_spec: set[str] = set()
+        
         for data in metrics_batch:
-            if "resourceMetrics" in data:
-                for resource_metric in data["resourceMetrics"]:
-                    if "scopeMetrics" in resource_metric:
-                        for scope_metric in resource_metric["scopeMetrics"]:
-                            if "metrics" in scope_metric:
-                                for metric in scope_metric["metrics"]:
-                                    if "name" in metric:
-                                        found_metrics.add(metric["name"])
-
-
-                                        # For metrics we do find, check payload is expected
-                                        description = metric["description"]
-                                        gauge_type = 'gauge' in metric.keys()
-                                        sum_type = 'sum' in metric.keys()
-
-                                        expected_type = POSTGRESQL_METRICS[metric["name"]]['data_type'].lower()
-                                        expected_description = POSTGRESQL_METRICS[metric["name"]]['description']
-
-                                        if expected_type == 'sum':
-                                            if not sum_type:
-                                                metrics_dont_match_spec.add(f"{metric['name']}: Expected Sum type but got Gauge")
-                                        elif expected_type == 'gauge':
-                                            if not gauge_type:
-                                                metrics_dont_match_spec.add(f"{metric['name']}: Expected Gauge type but got Sum")
-
-                                        # Sometimes the spec has a period, but the actual logs don't.
-                                        if description.rstrip('.') != expected_description.rstrip('.'):
-                                            metrics_dont_match_spec.add(f"{metric['name']}: Description mismatch - Expected: '{expected_description}', Got: '{description}'")
+            self._process_metrics_data(data, found_metrics, metrics_dont_match_spec)
 
 
 
