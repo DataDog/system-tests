@@ -46,6 +46,7 @@ class BaseDbIntegrationsTestClass:
             )
 
     # Setup methods. We set here to avoid duplication in child classes, even if some test metohs doesn't exists
+    setup_attributes = _setup
     setup_properties = _setup
     setup_sql_traces = _setup
     setup_resource = _setup

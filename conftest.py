@@ -579,6 +579,7 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         try:
             data = session.config._json_report.report  # noqa: SLF001
             export_feature_parity_dashboard(session, data)
+            merge_compliance_reports(session, data)
         except Exception:
             logger.exception("Fail to export reports", exc_info=True)
 
@@ -617,6 +618,41 @@ def convert_test_to_feature_parity_model(test: dict) -> dict | None:
 
     # exclude features.not_reported
     return result if -1 not in result["features"] else None
+
+
+def merge_compliance_reports(session: pytest.Session, data: dict) -> None:
+    """Merge all individual compliance reports into a single aggregated report."""
+    compliance_dir = Path(context.scenario.host_log_folder) / "compliance_reports"
+    if not compliance_dir.exists():
+        return
+
+    merged_report = {
+        "runUrl": session.config.option.report_run_url or "https://github.com/DataDog/system-tests",
+        "runDate": data["created"],
+        "environment": session.config.option.report_environment or "local",
+        "testSource": "systemtests",
+        "language": context.library.name,
+        "variant": context.weblog_variant,
+        "reports": [],
+    }
+
+    # Collect all individual reports
+    for report_file in compliance_dir.glob("*.json"):
+        try:
+            with open(report_file, "r") as f:
+                report = json.load(f)
+                report.pop("language", None)
+                merged_report["reports"].append(report)
+        except Exception as e:
+            logger.error(f"Failed to read compliance report {report_file}: {e}")
+
+    # Sort reports by framework name for consistency
+    merged_report["reports"].sort(key=lambda x: x.get("integration", ""))
+
+    # Write the merged report
+    output_path = Path(context.scenario.host_log_folder) / "compliance.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(merged_report, f, indent=2)
 
 
 ## Fixtures corners

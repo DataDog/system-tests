@@ -170,6 +170,8 @@ tests/:
       Test_Events: v1.2.0
   debugger/: irrelevant
   integrations/:
+    compliance/:
+      test_databases.py: missing_feature
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature

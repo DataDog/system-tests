@@ -487,6 +487,9 @@ tests/:
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: missing_feature
   integrations/:
+    compliance/:
+      test_databases.py: missing_feature
+      test_web_frameworks.py: missing_feature
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka: missing_feature

@@ -625,6 +625,8 @@ tests/:
         rails80: v2.16.0
         uds-rails: v2.16.0
   integrations/:
+    compliance/:
+      test_databases.py: missing_feature
     crossed_integrations/:
       test_kafka.py:
         Test_Kafka:
