@@ -192,6 +192,7 @@ def main() -> None:
                         scenario_groups.external_processing,
                         scenario_groups.stream_processing_offload,
                     ],
+                    r"utils/scripts/activate-easy-wins\.py": None,
                     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,
                     r"utils/scripts/ai/.*": None,
                     r"utils/scripts/check_version\.sh": None,
