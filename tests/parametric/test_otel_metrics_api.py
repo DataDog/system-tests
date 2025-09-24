@@ -1332,6 +1332,84 @@ class Test_FR08_Custom_Headers:
 
 @features.otel_metrics_api
 @scenarios.parametric
+class Test_Metric_Export_Interval:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", "DD_TRACE_DEBUG": None, "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
+        ],
+    )
+    def test_default_interval(self, test_agent, test_library, library_env):
+        """SDK uses default interval when no interval env vars are set."""
+        name = "test_default_interval"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        # Wait for telemetry configurations and verify the timeout has the default value of 10s
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        # Find default configurations (since no env vars are set, these should have default origin)
+        metrics_export_interval = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_METRIC_EXPORT_INTERVAL", "default", fallback_to_first=True
+        )
+
+        assert metrics_export_interval is not None, "OTEL_METRIC_EXPORT_INTERVAL should be set"
+
+        assert (
+            metrics_export_interval.get("value") == 10000
+        ), f"OTEL_METRIC_EXPORT_INTERVAL should be 10000, metrics_export_interval: {metrics_export_interval}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_Metric_Export_Timeout:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", "DD_TRACE_DEBUG": None, "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
+        ],
+    )
+    def test_default_timeout(self, test_agent, test_library, library_env):
+        """SDK uses a non-standard default timeout when no timeout env vars are set."""
+        name = "test_default_timeout"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        # Wait for telemetry configurations and verify the timeout has the default value of 10s
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        # Find default configurations (since no env vars are set, these should have default origin)
+        metrics_export_timeout = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_METRIC_EXPORT_TIMEOUT", "default", fallback_to_first=True
+        )
+
+        assert metrics_export_timeout is not None, "OTEL_METRIC_EXPORT_TIMEOUT should be set"
+
+        assert (
+            metrics_export_timeout.get("value") == 7500
+        ), f"OTEL_METRIC_EXPORT_TIMEOUT should be 7500, metrics_export_timeout: {metrics_export_timeout}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
 class Test_Metrics_Host_Name:
     @pytest.mark.parametrize(
         "library_env",
@@ -1454,3 +1532,201 @@ class Test_Metrics_Host_Name:
         actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
 
         assert "host.name" not in actual_attributes
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_OTLP_Exporter_Metrics_Timeout:
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {"DD_METRICS_OTEL_ENABLED": "true", "CORECLR_ENABLE_PROFILING": "1", "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1"},
+        ],
+    )
+    def test_default_timeout(self, test_agent, test_library, library_env):
+        """SDK uses default timeout when no timeout env vars are set."""
+        name = "test_default_timeout"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        # Wait for telemetry configurations and verify the timeout has the default value of 10s
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        # Find default configurations (since no env vars are set, these should have default origin)
+        exporter_timeout = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_EXPORTER_OTLP_TIMEOUT", "default", fallback_to_first=True
+        )
+        exporter_metrics_timeout = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "default", fallback_to_first=True
+        )
+
+        assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
+        assert exporter_metrics_timeout is not None, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be set"
+
+        assert (
+            exporter_timeout.get("value") == 10000
+        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
+        assert (
+            exporter_metrics_timeout.get("value") == 10000
+        ), f"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be 10000, exporter_metrics_timeout: {exporter_metrics_timeout}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+class Test_FR11_Telemetry:
+    """Test OTLP Logs generated via OpenTelemetry API generate telemetry configurations and metrics."""
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
+                    "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_telemetry_exporter_configurations(
+        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    ):
+        """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_exporter_configurations"
+        
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
+            ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {
+                    "DD_METRICS_OTEL_ENABLED": "true",
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "30000",
+                    "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4325,
+            ),
+        ],
+    )
+    def test_telemetry_exporter_metrics_configurations(
+        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    ):
+        """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_METRICS_ are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_exporter_metrics_configurations"
+        
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
+            ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
+        ("library_env", "protocol"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "grpc",
+            ),
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
+                "http/protobuf",
+            )
+        ],
+        ids=["grpc", "http/protobuf"],
+    )
+    def test_telemetry_metrics(self, library_env, test_agent, test_library, protocol):
+        """Test telemetry metrics are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_metrics"
+        
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(DEFAULT_METER_NAME)
+            t.otel_metrics_force_flush()
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
+        assert first_metrics_data is not None
+
+        metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
+        assert metrics, f"Expected metrics, got {metrics}"
+        for metric in metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert f"protocol:{protocol}" in metric.get("tags")

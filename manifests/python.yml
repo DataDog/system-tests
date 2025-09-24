@@ -1098,9 +1098,13 @@ tests/:
     test_otel_metrics_api.py:
       Test_Custom_Endpoints: v3.13.0.dev
       Test_FR01_Enable_OTLP_Metrics_Collection: v3.13.0.dev
+      Test_FR11_Telemetry: v3.13.0.dev
+      Test_Metric_Export_Interval: v3.13.0.dev
+      Test_Metric_Export_Timeout: v3.13.0.dev
       Test_Metrics_Host_Name: v3.13.0.dev
       Test_Metrics_Temporality_Preference: v3.13.0.dev
       Test_Otel_Metrics_Api: v3.11.0
+      Test_OTLP_Exporter_Metrics_Timeout: v3.13.0.dev
       Test_OTLP_Protocols: v3.13.0.dev
       Test_Resource_Attributes: v3.13.0.dev
     test_otel_span_methods.py:
