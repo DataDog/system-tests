@@ -16,7 +16,7 @@ on:
         default: 'custom'
         required: false
         type: string
-      build_proxy_image:
+      _build_proxy_image:
         description: "Shall we build proxy image"
         default: false
         required: false
@@ -92,7 +92,7 @@ jobs:
           scenarios: '["EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"]'
 
       - name: Build proxy image
-        if: inputs.build_proxy_image
+        if: inputs._build_proxy_image
         run: ./build.sh -i proxy
 
       - name: Run EXTERNAL_PROCESSING scenario
