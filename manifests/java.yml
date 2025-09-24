@@ -2152,6 +2152,7 @@ tests/:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       akka-http: v1.53.0
       play: v1.53.0 
+      ratpack: v1.53.0 
       spring-boot: v1.50.0
       spring-boot-payara: v1.53.0
       uds-spring-boot: v1.53.0
@@ -2161,6 +2162,7 @@ tests/:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       akka-http: v1.53.0
       play: v1.53.0 
+      ratpack: v1.53.0 
       spring-boot: v1.50.0
       spring-boot-payara: v1.53.0
       vertx3: v1.53.0
