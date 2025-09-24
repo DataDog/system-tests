@@ -92,7 +92,6 @@ select = ["ALL"]
 
 ignore = [
     ### TODO : remove those ignores
-    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
     "C901",     # complex-structure: TODO (52 occurences)
     "E722",     # bare-except: TODO big project to enable this (15 occurences)
@@ -175,6 +174,7 @@ ignore = [
     "ANN001",    # missing-type-function-argument: TODO (TBD)
 ]
 "tests/*" = [
+    "ANN202",    # missing-return-type-private-function: TODO (877 occurences)
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
     "TRY301",    # raise-within-try: TODO
@@ -237,6 +237,12 @@ ignore = [
     "SIM210",   # if-expr-with-true-false: TODO
     "PLR2004",  # magic-value-comparison: TODO
 ]
+"utils/{_context/*,_decorators.py,parametric/*,_remote_config.py,_features.py,_weblog.py,interfaces/*,proxy/*,telemetry/*}" = [
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
+]
+"manifests/*" = [
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
+]
 "utils/_features.py" = [
     "ANN001", # missing-type-function-argument: obvious decorators
     "ANN205"  # missing-return-type-static-method: obvious decorators
@@ -252,6 +258,7 @@ ignore = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "B006",     # mutable-argument-default: TODO
     "B007",     # unused-loop-control-variable: TODO
     "B904",     # raise-without-from-inside-except: TODO
@@ -279,6 +286,7 @@ ignore = [
 "utils/onboarding/*" = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "DTZ005",  # call-datetime-now-without-tzinfo: TODO
     "DTZ006",  # call-datetime-fromtimestamp: TODO
     "E501",    # line-too-long: TODO
@@ -298,7 +306,10 @@ ignore = [
     "PLR2004",  # magic-value-comparison: TODO
 ]
      
-"utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
+"utils/scripts/ci_orchestrators/gitlab_exporter.py" = [
+    "ANN001",   # missing-type-function-argument: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
+]    
 "utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
     "INP001",  # implicit-namespace-package: this is not a package
@@ -308,6 +319,7 @@ ignore = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN003",   # missing-type-kwargs: TODO
     "ANN201",   # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "ARG002",   # unused-method-argument: TODO
     "FBT002",   # boolean-default-value-positional-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO
@@ -316,6 +328,7 @@ ignore = [
 "utils/virtual_machine/aws_provider.py" = [
     "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
     "RET504",  # unnecessary-assign: TODO
@@ -339,6 +352,7 @@ ignore = [
     "ANN002",  # missing-type-args: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "E501",    # line-too-long: TODO
     "F401",    # unused-import: TODO
     "F811",    # redefined-while-unused: TODO
@@ -366,6 +380,7 @@ ignore = [
     "ANN001",  # missing-type-function-argument: TODO
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "ARG002",  # unused-method-argument: TODO
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
@@ -381,6 +396,7 @@ ignore = [
     "A002",    # builtin-argument-shadowing: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
     "ARG002",  # unused-method-argument: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "E501",    # line-too-long: TODO
     "E731",    # lambda-assignment: TODO
     "F541",    # f-string-missing-placeholders: TODO
@@ -392,6 +408,7 @@ ignore = [
 "utils/virtual_machine/virtual_machine_provisioner.py" = [
     "ANN001",   # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
+    "ANN202",   # missing-return-type-private-function: TODO (877 occurences)
     "S506",    # unsafe-yaml-load: TODO
 ]
 "utils/waf_rules.py" = ["N801"]  # generated file
