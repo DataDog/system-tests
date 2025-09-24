@@ -2144,21 +2144,27 @@ tests/:
     Test_Baggage_Headers_Basic:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
     Test_Baggage_Headers_Malformed:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
     Test_Baggage_Headers_Malformed2:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
     Test_Baggage_Headers_Max_Bytes:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
     Test_Baggage_Headers_Max_Items:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
     Test_Only_Baggage_Header:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
+      uds-spring-boot: v1.53.0
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0
