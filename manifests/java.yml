@@ -2341,8 +2341,8 @@ tests/:
       '*': v0.108.1
       spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetryEnhancedConfigReporting: v1.53.0-SNAPSHOT
-      # '*': irrelevant
-      # spring-boot: v1.53.0-SNAPSHOT
+    # '*': irrelevant
+    # spring-boot: v1.53.0-SNAPSHOT
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
   test_v1_payloads.py: missing_feature
