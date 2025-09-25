@@ -543,7 +543,7 @@ tests/:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_Empty_Config: missing_feature
-      Test_Invalid_Config: missing_feature
+      Test_Invalid_Config: v2.2.3
       Test_Multiple_Actions: v1.69.0
       Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
@@ -818,8 +818,8 @@ tests/:
           Test_PutObject: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed: v2.2.3
+    Test_Baggage_Headers_Malformed2: v2.2.3
     Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -853,7 +853,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: v2.2.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_graphql.py:
