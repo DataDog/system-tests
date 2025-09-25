@@ -83,6 +83,11 @@ on:
         default: 14
         required: false
         type: number
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -440,7 +445,12 @@ jobs:
     - name: Compress logs
       id: compress_logs
       if: always() && steps.build.outcome == 'success'
-      run: tar -czvf artifact.tar.gz $(ls | grep logs)
+      run: |
+        if compgen -G "logs*/" > /dev/null; then
+          tar -czvf artifact.tar.gz logs*/
+        else
+          echo "No logs*/ found; skipping tar."
+        fi
     - name: Upload artifact
       if: always() && steps.compress_logs.outcome == 'success'
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -464,3 +474,9 @@ jobs:
       env:
         FP_API_KEY: ${{ secrets.FP_API_KEY }}
         FP_IMPORT_URL: ${{ secrets.FP_IMPORT_URL }}
+
+    - name: Push results to Test Optimization
+      if: always() && inputs.push_to_test_optimization
+      uses: ./.github/actions/push_to_test_optim
+      with:
+        datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}

@@ -312,7 +312,6 @@ class Test_DsmSQS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
-    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -353,7 +352,6 @@ class Test_DsmSNS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
-    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
