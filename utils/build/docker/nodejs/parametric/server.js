@@ -1,5 +1,36 @@
 'use strict'
 
+// This should not be merged in and should be fixed in the upstream package
+// Remove this workaround once @datadog/flagging-core upstream publishes with proper exports field
+// Fix upstream package.json exports issue before loading SDK
+try {
+  const fs = require('fs')
+  const path = require('path')
+  const flaggingCorePkgPath = '/usr/app/node_modules/@datadog/flagging-core/package.json'
+  const pkg = JSON.parse(fs.readFileSync(flaggingCorePkgPath, 'utf8'))
+
+  if (!pkg.exports) {
+    pkg.exports = {
+      '.': {
+        types: './cjs/index.d.ts',
+        import: './esm/index.js',
+        require: './cjs/index.js'
+      },
+      './src/configuration/exposureEvent': {
+        types: './cjs/configuration/exposureEvent.d.ts',
+        import: './esm/configuration/exposureEvent.js',
+        require: './cjs/configuration/exposureEvent.js'
+      },
+      './src/configuration/exposureEvent.types': {
+        types: './cjs/configuration/exposureEvent.types.d.ts',
+        import: './esm/configuration/exposureEvent.types.js',
+        require: './cjs/configuration/exposureEvent.types.js'
+      }
+    }
+    fs.writeFileSync(flaggingCorePkgPath, JSON.stringify(pkg, null, 2))
+  }
+} catch {}
+
 const tracer = require('dd-trace').init()
 tracer.use('express', false)
 tracer.use('http', false)
@@ -10,6 +41,9 @@ const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/sp
 
 const { trace, ROOT_CONTEXT, SpanKind, propagation } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
+
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
 
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
@@ -369,6 +403,110 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
   const context = propagation.setBaggage(ROOT_CONTEXT, bag)
   const value = propagation.getBaggage(context).getEntry(req.body.key).value
   res.json({ value });
+});
+
+app.post('/ffe/start', async (req, res) => {
+  const { flaggingProvider } = tracer
+  OpenFeature.setProvider(flaggingProvider)
+  openFeatureClient = OpenFeature.getClient()
+
+  // Wait for provider to receive remote config and have configuration available
+  let attempts = 0;
+  const maxAttempts = 50; // 5 seconds total
+  while (attempts < maxAttempts) {
+    if (flaggingProvider._configuration || flaggingProvider.configuration) {
+      console.log(`[FFE] Provider configuration ready after ${attempts * 100}ms`)
+      // Additional wait for internal processing
+      await new Promise(resolve => setTimeout(resolve, 500));
+      break;
+    }
+    await new Promise(resolve => setTimeout(resolve, 100));
+    attempts++;
+  }
+
+  if (attempts >= maxAttempts) {
+    console.log('[FFE] WARNING: Timeout waiting for provider configuration')
+  }
+
+  // Debug: Log the current configuration
+  console.log('[FFE] Provider object keys:', Object.keys(flaggingProvider))
+  console.log('[FFE] Provider._configuration:', flaggingProvider._configuration)
+  console.log('[FFE] Provider.configuration:', flaggingProvider.configuration)
+  if (flaggingProvider._configuration) {
+    console.log('[FFE] Provider has _configuration:', Object.keys(flaggingProvider._configuration.flags || {}))
+  } else if (flaggingProvider.configuration) {
+    if (flaggingProvider.configuration.ufc && flaggingProvider.configuration.ufc.flags) {
+      console.log('[FFE] Provider has configuration:', Object.keys(flaggingProvider.configuration.ufc.flags))
+    } else {
+      console.log('[FFE] Provider configuration structure:', Object.keys(flaggingProvider.configuration))
+    }
+  } else {
+    console.log('[FFE] Provider has no configuration')
+  }
+
+  res.json({})
+})
+
+// Feature Flag & Experimentation endpoint
+app.post('/ffe/evaluate', async (req, res) => {
+  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  let value, reason;
+  const context = { targetingKey, ...attributes }
+
+  console.log(`[FFE] Evaluating flag: ${flag}`)
+  console.log(`[FFE] Context:`, JSON.stringify(context, null, 2))
+  console.log(`[FFE] Default value:`, defaultValue)
+
+  // Debug: Show current provider configuration
+  const { flaggingProvider } = tracer
+  console.log(`[FFE] Provider._configuration:`, flaggingProvider._configuration)
+  console.log(`[FFE] Provider.configuration:`, flaggingProvider.configuration)
+  if (flaggingProvider._configuration && flaggingProvider._configuration.flags) {
+    console.log(`[FFE] Available flags:`, Object.keys(flaggingProvider._configuration.flags))
+    console.log(`[FFE] Looking for flag: ${flag}`)
+  } else if (flaggingProvider.configuration && flaggingProvider.configuration.ufc && flaggingProvider.configuration.ufc.flags) {
+    console.log(`[FFE] Available flags:`, Object.keys(flaggingProvider.configuration.ufc.flags))
+    console.log(`[FFE] Looking for flag: ${flag}`)
+    const targetFlag = flaggingProvider.configuration.ufc.flags[flag]
+    console.log(`[FFE] Target flag config:`, targetFlag ? 'Found' : 'Not found')
+  } else {
+    console.log(`[FFE] Provider has no configuration or flags`)
+  }
+
+  try {
+    // Mock OpenFeature evaluation based on variationType
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break;
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break;
+      case 'INTEGER':
+        value = await openFeatureClient.getIntegerValue(flag, defaultValue, context)
+        break;
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break;
+      default:
+        value = defaultValue;
+    }
+
+    console.log(`[FFE] Evaluation result: ${value}`)
+    reason = 'DEFAULT';
+  } catch (error) {
+    console.log('Error evaluating flag', { error });
+    value = defaultValue;
+    reason = 'ERROR';
+  }
+
+  res.json({
+    value: value,
+    reason: reason
+  });
 });
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
