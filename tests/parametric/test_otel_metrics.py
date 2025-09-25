@@ -469,22 +469,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -502,22 +495,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = scope_metrics[0]["metrics"][0]
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = scope_metrics[0]["metrics"][0]
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -535,22 +521,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = scope_metrics[0]["metrics"][0]
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value + second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = scope_metrics[0]["metrics"][0]
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value + second_non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -567,23 +546,16 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = scope_metrics[0]["metrics"][0]
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = scope_metrics[0]["metrics"][0]
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, second_non_negative_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -600,22 +572,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -633,22 +598,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value + second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value + second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -666,23 +624,16 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        updowncounter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(updowncounter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        assert_sum_aggregation(updowncounter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -699,22 +650,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -732,22 +676,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_gauge_aggregation(gauge["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -765,23 +702,16 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_gauge_aggregation(gauge["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-        assert_gauge_aggregation(gauge["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -798,22 +728,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=n, min_value=n, max_value=n, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_histogram_aggregation(metric["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=n, min_value=n, max_value=n, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -832,23 +755,16 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, negative_value1, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
-        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(metric["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=2, sum_value=non_negative_value1 + non_negative_value2, min_value=min(non_negative_value1, non_negative_value2), max_value=max(non_negative_value1, non_negative_value2), bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -866,24 +782,17 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, non_negative_value2, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        histogram = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(histogram, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         # Negative values are ignored by the Histogram Record API, so we only have 2 data points
-        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
-        assert_histogram_aggregation(histogram["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value2, min_value=non_negative_value2, max_value=non_negative_value2, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(metric["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value1, min_value=non_negative_value1, max_value=non_negative_value1, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_histogram_aggregation(metric["histogram"], "AGGREGATION_TEMPORALITY_DELTA", count=1, sum_value=non_negative_value2, min_value=non_negative_value2, max_value=non_negative_value2, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -898,22 +807,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_create_asynchronous_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -928,22 +830,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_create_asynchronous_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        counter = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=-2**32, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -958,22 +853,15 @@ class Test_Otel_Metrics_Api_Instrument:
             t.otel_create_asynchronous_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-        gauge = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(gauge, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_gauge_aggregation(gauge["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
 
 @features.otel_metrics_api
