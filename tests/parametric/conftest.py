@@ -405,8 +405,7 @@ class _TestAgentAPI:
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
     def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
-        """Wait for `num` metrics to be received from the test agent.
-        """
+        """Wait for `num` metrics to be received from the test agent."""
         metrics = []
         for _ in range(wait_loops):
             try:
