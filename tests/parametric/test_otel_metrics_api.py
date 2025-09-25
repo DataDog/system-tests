@@ -2,18 +2,10 @@ import time
 
 import json
 import pytest
-import pprint
 
 from hypothesis import given, settings, HealthCheck, strategies as st
 
-from utils.parametric._library_client import Link
-from opentelemetry.trace import StatusCode
-from opentelemetry.trace import SpanKind
-from utils.parametric.spec.trace import find_span
-from utils.parametric.spec.trace import find_trace
-from utils.parametric.spec.trace import retrieve_span_links
-from utils.parametric.spec.trace import find_first_span_in_trace_payload
-from utils import bug, features, missing_feature, irrelevant, context, scenarios
+from utils import features, scenarios
 from urllib.parse import urlparse
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
@@ -211,7 +203,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -245,7 +236,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -279,7 +269,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -312,7 +301,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -320,7 +308,6 @@ class Test_Otel_Metrics_Api:
 
         # Assert that the ResourceMetrics has the expected ScopeMetrics
         scope_metrics = resource_metrics[0]["scope_metrics"]
-        pprint.pprint(scope_metrics)
         assert len(scope_metrics) == 1
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
@@ -347,7 +334,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -381,7 +367,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -415,7 +400,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -449,7 +433,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -483,7 +466,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -517,7 +499,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -551,7 +532,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -586,7 +566,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -621,7 +600,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -654,7 +632,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -685,7 +662,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -716,7 +692,6 @@ class Test_Otel_Metrics_Api:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         resource_metrics = first_metrics_data["resource_metrics"]
@@ -768,7 +743,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -804,7 +778,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -840,7 +813,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Note: Temporality does not affect the OTLP metric for Gauges
         gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
@@ -877,7 +849,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         histogram = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_histogram_aggregation(histogram["histogram"], expected_aggregation_temporality, count=1, sum_value=42, min_value=42, max_value=42, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([42], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -912,7 +883,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -947,7 +917,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
@@ -981,7 +950,6 @@ class Test_Metrics_Temporality_Preference:
             t.otel_metrics_force_flush()
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        pprint.pprint(first_metrics_data)
 
         # Note: Temporality does not affect the OTLP metric for Gauges
         gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
@@ -1018,7 +986,6 @@ class Test_Resource_Attributes:
             t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
-        pprint.pprint(metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         assert len(metrics_data) == 1
@@ -1090,7 +1057,6 @@ class Test_Resource_Attributes:
             t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
-        pprint.pprint(metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         assert len(metrics_data) == 1
@@ -1135,7 +1101,6 @@ class Test_Resource_Attributes:
             t.otel_metrics_force_flush()
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
-        pprint.pprint(metrics_data)
 
         # Assert that there is only one item in ResourceMetrics
         assert len(metrics_data) == 1
