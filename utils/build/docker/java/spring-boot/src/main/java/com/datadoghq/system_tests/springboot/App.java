@@ -279,7 +279,7 @@ public class App {
         return body.toString();
     }
 
-    @PostMapping(value = "/waf", consumes = MediaType.APPLICATION_XML_VALUE)
+    @PostMapping(value = "/waf", consumes = {MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE})
     String postWafXml(@RequestBody XmlObject object) {
         return object.toString();
     }
