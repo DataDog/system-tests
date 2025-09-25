@@ -192,7 +192,7 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 
 # called when each test item is collected
-def _collect_item_metadata(item: pytest.Item):
+def _collect_item_metadata(item: pytest.Item) -> dict:
     details: str | None = None
     test_declaration_legacy: str | None = None
     test_declaration: str | None = None
@@ -335,7 +335,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
     all_declared_scenarios = {}
 
-    def iter_markers(self: pytest.Item, name: str | None = None):
+    def iter_markers(self: pytest.Item, name: str | None = None) -> Generator[Any, None, None]:
         return (x[1] for x in self.iter_markers_with_node(name=name) if x[1].name not in ("skip", "skipif", "xfail"))
 
     must_pass_item_count = 0
@@ -408,7 +408,7 @@ def _item_must_pass(item: pytest.Item) -> bool:
     return True
 
 
-def _item_is_skipped(item: pytest.Item):
+def _item_is_skipped(item: pytest.Item) -> bool:
     return any(item.iter_markers("skip"))
 
 
