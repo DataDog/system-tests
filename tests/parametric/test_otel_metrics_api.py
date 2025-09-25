@@ -112,7 +112,7 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 
 @scenarios.parametric
 @features.otel_metrics_api
-class Test_FR01_Enable_OTLP_Metrics_Collection:
+class Test_Otel_Metrics_Configuration_Enabled:
     """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
     - DD_METRICS_OTEL_ENABLED
     - OTEL_METRICS_EXPORTER
@@ -503,7 +503,7 @@ class Test_Otel_Metrics_Api_Meter:
 
 @scenarios.parametric
 @features.otel_metrics_api
-class Test_Otel_Metrics_Api:
+class Test_Otel_Metrics_Api_Instrument:
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32)) # Limit the range of integers to avoid int/float equality issues
@@ -1028,7 +1028,7 @@ class Test_Otel_Metrics_Api:
 
 @scenarios.parametric
 @features.otel_metrics_api
-class Test_Metrics_Temporality_Preference:
+class Test_Otel_Metrics_Configuration_Temporality_Preference:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1275,7 +1275,7 @@ class Test_Metrics_Temporality_Preference:
 
 @scenarios.parametric
 @features.otel_metrics_api
-class Test_Resource_Attributes:
+class Test_Otel_Metrics_Resource_Attributes:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1434,7 +1434,7 @@ class Test_Resource_Attributes:
 
 @scenarios.parametric
 @features.otel_metrics_api
-class Test_Custom_Endpoints:
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """FR05: Custom OTLP Endpoint Tests"""
 
     @pytest.mark.parametrize(
@@ -1500,7 +1500,7 @@ class Test_Custom_Endpoints:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_OTLP_Protocols:
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1541,7 +1541,7 @@ class Test_OTLP_Protocols:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_FR08_Custom_Headers:
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1614,7 +1614,7 @@ class Test_FR08_Custom_Headers:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_Metric_Export_Interval:
+class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1653,7 +1653,7 @@ class Test_Metric_Export_Interval:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_Metric_Export_Timeout:
+class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1692,7 +1692,7 @@ class Test_Metric_Export_Timeout:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_Metrics_Host_Name:
+class Test_Otel_Metrics_Host_Name:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1818,7 +1818,7 @@ class Test_Metrics_Host_Name:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_OTLP_Exporter_Metrics_Timeout:
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1864,7 +1864,7 @@ class Test_OTLP_Exporter_Metrics_Timeout:
 
 @features.otel_metrics_api
 @scenarios.parametric
-class Test_FR11_Telemetry:
+class Test_Otel_Metrics_Telemetry:
     """Test OTLP Logs generated via OpenTelemetry API generate telemetry configurations and metrics."""
 
     @pytest.mark.parametrize(
