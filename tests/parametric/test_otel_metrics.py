@@ -53,7 +53,7 @@ def generate_default_counter_data_point(test_library, instrument_name):
 def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, expected_scope_attributes):
     assert scope_metric["scope"]["name"] == meter_name
     assert scope_metric["scope"]["version"] == meter_version
-    assert set(expected_scope_attributes) == set({item['key']:item['value']['string_value'] for item in scope_metric["scope"]["attributes"]})
+    assert expected_scope_attributes.items() == {item['key']:item['value']['string_value'] for item in scope_metric["scope"]["attributes"]}.items()
     assert scope_metric["schema_url"] == schema_url
 
 def assert_metric_info(metric, name, unit, description):
@@ -68,7 +68,7 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
     for sum_data_point in sum_aggregation["data_points"]:
         if attributes == {item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]}:
             assert sum_data_point["as_double"] == value
-            assert set(attributes) == set({item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]})
+            assert attributes.items() == {item['key']:item['value']['string_value'] for item in sum_data_point["attributes"]}.items()
             assert "time_unix_nano" in sum_data_point
             return
     
@@ -199,13 +199,16 @@ class Test_Otel_Metrics_Api_MeterProvider:
             t.otel_counter_add(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
 
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
+        # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
+        assert len(metrics) == 1
+
+        # Assert that there is only one item in ResourceMetrics (one per tracer)
+        resource_metrics = metrics[0]["resource_metrics"]
         assert len(resource_metrics) == 1
 
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        # Assert that we get one ScopeMetrics per configured Meter
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 1
 
@@ -235,13 +238,16 @@ class Test_Otel_Metrics_Api_MeterProvider:
             t.otel_counter_add(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
 
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
+        # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
+        assert len(metrics) == 1
+
+        # Assert that there is only one item in ResourceMetrics (one per tracer)
+        resource_metrics = metrics[0]["resource_metrics"]
         assert len(resource_metrics) == 1
 
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        # Assert that we get one ScopeMetrics per configured Meter
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 2
 
@@ -274,15 +280,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_counter_add(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -308,15 +307,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_updowncounter_add(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -342,15 +334,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_gauge_record(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -376,15 +361,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_histogram_record(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -409,15 +387,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_create_asynchronous_counter(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -442,15 +413,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_create_asynchronous_updowncounter(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -475,15 +439,8 @@ class Test_Otel_Metrics_Api_Meter:
                 t.otel_create_asynchronous_gauge(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-
-        # Assert that there is only one item in ResourceMetrics
-        resource_metrics = first_metrics_data["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that the ResourceMetrics has the expected ScopeMetrics
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -1422,7 +1379,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         [
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=5,foo=bar1,baz=qux1",
                 "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
@@ -1644,7 +1600,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         [
             {
                 **DEFAULT_ENVVARS,
-                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=5,foo=bar1,baz=qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
             },
         ],
     )
@@ -1662,14 +1618,10 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
-        # Assert that there is only one item in ResourceMetrics
-        assert len(metrics_data) == 1
-
         # Assert that the ResourceMetrics has the expected resources
-        resource_metrics = metrics_data[0]["resource_metrics"]
-        resource = resource_metrics[0]["resource"]
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
         actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
-        assert set(expected_attributes) <= set(actual_attributes)
+        assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "otelenv" or actual_attributes.get("deployment.environment.name") == "otelenv"
@@ -1728,14 +1680,10 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
-        # Assert that there is only one item in ResourceMetrics
-        assert len(metrics_data) == 1
-
         # Assert that the ResourceMetrics has the expected resources
-        resource_metrics = metrics_data[0]["resource_metrics"]
-        resource = resource_metrics[0]["resource"]
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
         actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
-        assert set(expected_attributes) <= set(actual_attributes)
+        assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "otelenv" or actual_attributes.get("deployment.environment.name") == "otelenv"
@@ -1767,14 +1715,10 @@ class Test_Otel_Metrics_Resource_Attributes:
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
-        # Assert that there is only one item in ResourceMetrics
-        assert len(metrics_data) == 1
-
         # Assert that the ResourceMetrics has the expected resources
-        resource_metrics = metrics_data[0]["resource_metrics"]
-        resource = resource_metrics[0]["resource"]
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
         actual_attributes = {item['key']:item['value']['string_value'] for item in resource["attributes"]}
-        assert set(expected_attributes) <= set(actual_attributes)
+        assert expected_attributes.items() <= actual_attributes.items()
 
         # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
         assert actual_attributes.get("deployment.environment") == "otelenv" or actual_attributes.get("deployment.environment.name") == "otelenv"

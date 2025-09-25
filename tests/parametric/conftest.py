@@ -404,16 +404,9 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
-    def wait_for_num_otlp_metrics(
-        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> list[Trace]:
+    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` metrics to be received from the test agent.
-
-        Returns after the number of metrics has been received or raises otherwise after 2 seconds of polling.
-
-        When sort_by_start=True returned metrics are sorted by the request start time to simplify assertions by knowing that returned metrics are in the same order as they have been created.
         """
-        num_received = None
         metrics = []
         for _ in range(wait_loops):
             try:
@@ -421,22 +414,15 @@ class _TestAgentAPI:
             except requests.exceptions.RequestException:
                 pass
             else:
-                num_received = len(metrics)
-                if num_received == num:
-                    if clear:
-                        self.clear()
+                if len(metrics) >= num:
                     return metrics
             time.sleep(0.1)
-        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}:\n{metrics}")
+        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}")
 
     def wait_for_first_otlp_metric(
-        self, *, metric_name: str | None = None, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
+        self, *, metric_name: str | None = None, clear: bool = False, wait_loops: int = 30
     ) -> list[Trace]:
         """Wait for the metrics with the given name to be received from the test agent.
-
-        Returns after the metric has been received or raises otherwise after 2 seconds of polling.
-
-        When sort_by_start=True returned metrics are sorted by the request start time to simplify assertions by knowing that returned metrics are in the same order as they have been created.
         """
         num_received = None
         metrics = []
