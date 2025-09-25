@@ -2556,9 +2556,9 @@ class _Features:
     def appsec_extended_data_collection(test_object):
         """AppSec supports extended data collection including headers and body
 
-        https://feature-parity.us1.prod.dog/#/?feature=484
+        https://feature-parity.us1.prod.dog/#/?feature=492
         """
-        return _mark_test_object(test_object, feature_id=484, owner=_Owner.asm)
+        return _mark_test_object(test_object, feature_id=492, owner=_Owner.asm)
 
 
 features = _Features()

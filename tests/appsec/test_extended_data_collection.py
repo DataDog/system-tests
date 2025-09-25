@@ -107,7 +107,7 @@ class Test_ExtendedRequestHeadersDataCollection:
 
     def setup_no_extended_data_collection_without_event(self):
         """Setup test with remote config for extended data collection with headers redaction enabled"""
-        # Configure remote config with extended data collection action (with redaction) and rule
+        # Configure remote config with extended data collection action and rule
         self.config_state = (
             rc.rc_state.reset()
             .set_config(*EXTENDED_DATA_COLLECTION_ACTION)
@@ -115,7 +115,7 @@ class Test_ExtendedRequestHeadersDataCollection:
             .apply()
         )
 
-        # Make a request that triggers the extended data collection rule
+        # Make a request that does not trigger the extended data collection rule
         self.response = weblog.get(
             "/headers",
             headers={
@@ -135,15 +135,16 @@ class Test_ExtendedRequestHeadersDataCollection:
         # Verify the request was processed
         assert self.response.status_code == 200
 
-        # Verify extended data collection with redaction is working by checking span metadata
+        # Verify extended data collection is ignored by checking span metadata
         span = interfaces.library.get_root_span(request=self.response)
         meta = span.get("meta", {})
 
-        # Check that extended headers are NOT collected when redaction is enabled
+        # Check that extended headers are NOT collected when there is no event
         assert meta.get("http.request.headers.x-my-header-1") is None
         assert meta.get("http.request.headers.x-my-header-2") is None
         assert meta.get("http.request.headers.x-my-header-3") is None
         assert meta.get("http.request.headers.x-my-header-4") is None
+
         # Standard headers should still be collected
         assert meta.get("http.request.headers.content-type") == "text/html"
 
@@ -161,7 +162,7 @@ class Test_ExtendedRequestHeadersDataCollection:
             .apply()
         )
 
-        # Generate 100 headers with the pattern "X-My-Header-<n>": "value<n>"
+        # Generate 51 headers with the pattern "X-My-Header-<n>": "value<n>"
         headers = {f"X-My-Header-{i}": f"value{i}" for i in range(1, 51)}
         headers = {
             **headers,
@@ -191,6 +192,7 @@ class Test_ExtendedRequestHeadersDataCollection:
         assert meta.get("http.request.headers.content-type") == "text/html"
 
         metrics = span.get("metrics", {})
+
         # Confirm _dd.appsec.request.header_collection.discarded exists and is > 0
         discarded = metrics.get("_dd.appsec.request.header_collection.discarded")
         assert discarded is not None
@@ -327,6 +329,7 @@ class Test_ExtendedResponseHeadersDataCollection:
         assert meta.get("http.response.headers.x-test-header-2") is None
         assert meta.get("http.response.headers.x-test-header-3") is None
         assert meta.get("http.response.headers.x-test-header-4") is None
+
         # response headers are not collected by default
         assert meta.get("http.response.headers.content-language") is None
 
@@ -344,7 +347,7 @@ class Test_ExtendedResponseHeadersDataCollection:
             .apply()
         )
 
-        # Generate 50 headers with the pattern "X-Test-Header-<n>": "value<n>"
+        # Generate 50 response headers with the pattern "X-Test-Header-<n>": "value<n>"
         self.response = weblog.get(
             "/exceedResponseHeaders",
             params={"param": "collect"},
@@ -518,5 +521,6 @@ class Test_ExtendedRequestBodyCollection:
         assert body.get("param") == "collect"
         assert body.get("body_key") == "A" * 4096
 
+        # Verify the body size exceed tag is set
         meta = span.get("meta", {})
         assert meta.get("_dd.appsec.request_body_size.exceeded") == "true"
