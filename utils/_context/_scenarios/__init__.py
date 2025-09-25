@@ -624,6 +624,27 @@ class _Scenarios:
         doc="OpenTelemetry E2E testing with PostgreSQL metrics collection via OTEL collector",
     )
 
+    otel_backend_validity = OpenTelemetryScenario(
+        "OTEL_BACKEND_VALIDITY",
+        require_api_key=True,
+        include_postgres_db=True,
+        include_agent=False,
+        collector_config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+        doc="""The purpose of this scenario is to validate that the backend is able to ingest data from OpenTelemetry
+        libraries. It will be executed against the last released version of otel libraries.""",
+    )
+
+    otel_libraries_validity = OpenTelemetryScenario(
+        "OTEL_BACKEND_VALIDITY",
+        require_api_key=True,
+        include_postgres_db=True,
+        include_agent=False,
+        collector_config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+        doc="""
+        The purpose of this scenario is to validate that the latest dev
+        OpenTelemetry libraries exposes data compatible with our backend.""",
+    )
+
     library_conf_custom_header_tags = EndToEndScenario(
         "LIBRARY_CONF_CUSTOM_HEADER_TAGS",
         additional_trace_header_tags=(VALID_CONFIGS),

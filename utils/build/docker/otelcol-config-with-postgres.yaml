@@ -27,15 +27,15 @@ exporters:
     verbosity: detailed
 
   file/traces:
-    path: /tmp/traces.json
+    path: /var/log/system-tests/traces.json
     format: json
 
   file/metrics:
-    path: /tmp/metrics.json
+    path: /var/log/system-tests/metrics.json
     format: json
 
   file/logs:
-    path: /tmp/logs.json
+    path: /var/log/system-tests/logs.json
     format: json
 
 processors:
@@ -59,7 +59,7 @@ service:
       receivers: [otlp]
       processors: [batch]
       exporters: [datadog, file/traces]
-    
+
     metrics:
       receivers: [otlp]
       processors: [batch]
@@ -69,7 +69,7 @@ service:
       receivers: [postgresql]
       processors: [attributes/add_rid, batch]
       exporters: [datadog, debug, file/metrics]
-    
+
     logs:
       receivers: [otlp]
       processors: [batch]
