@@ -417,38 +417,7 @@ class _TestAgentAPI:
                 if len(metrics) >= num:
                     return metrics
             time.sleep(0.1)
-        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {num_received}")
-
-    def wait_for_first_otlp_metric(
-        self, *, metric_name: str | None = None, clear: bool = False, wait_loops: int = 30
-    ) -> list[Trace]:
-        """Wait for the metrics with the given name to be received from the test agent.
-        """
-        num_received = None
-        metrics = []
-        for _ in range(wait_loops):
-            try:
-                metrics = self.metrics()
-            except requests.exceptions.RequestException:
-                pass
-            else:
-                num_received = len(metrics)
-                if num_received >= 1:
-                    ret_value = None
-                    if metric_name:
-                        for metrics_data in metrics:
-                            for resource_metric in metrics_data["resource_metrics"]:
-                                for scope_metric in resource_metric["scope_metrics"]:
-                                    for metric in scope_metric["metrics"]:
-                                        if metric["name"] == metric_name:
-                                            ret_value = metrics_data
-                    else:
-                        ret_value = metrics[0]
-                    if clear:
-                        self.clear()
-                    return ret_value
-            time.sleep(0.1)
-        raise ValueError(f"Metric with name (\"{metric_name}\") of metrics not available from test agent, got metrics:\n{metrics}")
+        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
 
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""

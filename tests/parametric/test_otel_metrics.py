@@ -140,8 +140,9 @@ class Test_Otel_Metrics_Configuration_Enabled:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
     @pytest.mark.parametrize(
         "library_env",
@@ -158,7 +159,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
-            test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+            test_agent.wait_for_num_otlp_metrics(num=1)
 
     @pytest.mark.parametrize(
         "library_env",
@@ -174,7 +175,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
             generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
-            test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+            test_agent.wait_for_num_otlp_metrics(num=1)
 
 
 @scenarios.parametric
@@ -880,8 +881,9 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         # Wait for telemetry configurations and verify the timeout has the default value of 10s
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
@@ -914,8 +916,9 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         # Wait for telemetry configurations and verify the timeout has the default value of 10s
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
@@ -960,9 +963,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        counter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -995,9 +1000,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_updowncounter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -1030,10 +1037,12 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_gauge_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         # Note: Temporality does not affect the OTLP metric for Gauges
-        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -1066,9 +1075,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_histogram_record(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        histogram = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        histogram = find_metric_by_name(scope_metrics[0], name)
         assert_histogram_aggregation(histogram["histogram"], expected_aggregation_temporality, count=1, sum_value=42, min_value=42, max_value=42, bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES, bucket_counts=get_expected_bucket_counts([42], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES), attributes=DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -1100,9 +1111,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_create_asynchronous_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        counter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        counter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -1134,9 +1147,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_create_asynchronous_updowncounter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        updowncounter = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize(
@@ -1167,10 +1182,12 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
             t.otel_create_asynchronous_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
             t.otel_metrics_force_flush()
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         # Note: Temporality does not affect the OTLP metric for Gauges
-        gauge = find_metric_by_name(first_metrics_data["resource_metrics"][0]["scope_metrics"][0], name)
+        gauge = find_metric_by_name(scope_metrics[0], name)
         assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
 
@@ -1201,8 +1218,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             urlparse(library_env[endpoint_env]).port == 4320
         ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
@@ -1226,8 +1244,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
             urlparse(library_env[endpoint_env]).port == 4321
         ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
 
 @features.otel_metrics_api
@@ -1250,8 +1269,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         requests = test_agent.requests()
         test_agent.clear()
@@ -1279,8 +1299,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         requests = test_agent.requests()
         test_agent.clear()
@@ -1316,8 +1337,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         requests = test_agent.requests()
         test_agent.clear()
@@ -1344,8 +1366,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         # Wait for telemetry configurations and verify the timeout has the default value of 10s
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
@@ -1642,8 +1665,9 @@ class Test_Otel_Metrics_Telemetry:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
@@ -1687,8 +1711,9 @@ class Test_Otel_Metrics_Telemetry:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
@@ -1736,12 +1761,13 @@ class Test_Otel_Metrics_Telemetry:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
-        assert first_metrics_data is not None
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
 
-        metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
-        assert metrics, f"Expected metrics, got {metrics}"
-        for metric in metrics:
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
             assert metric.get("type") == "count", f"Expected count, got {metric}"
             assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
             assert metric.get("common") is True, f"Expected common, got {metric}"
