@@ -16,7 +16,7 @@ class _Owner(StrEnum):
     remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
     serverless = "@DataDog/serverless"
-    sdk_capabilities = "@DataDog/apm-sdk-api"
+    sdk_capabilities = "@DataDog/apm-sdk-capabilities"
     tracer = "n/a"  # legacy client libraries from feature parity dashboard, need to be adressed to good teams
 
 
