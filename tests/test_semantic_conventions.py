@@ -153,7 +153,6 @@ optional_uds_feature = (
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
 @scenarios.external_processing
-@scenarios.stream_processing_offload
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -345,7 +344,6 @@ class Test_MetaDatadogTags:
 @features.envoy_external_processing
 @features.data_integrity
 @scenarios.external_processing
-@scenarios.stream_processing_offload
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
