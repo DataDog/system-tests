@@ -18,10 +18,10 @@ tests/:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
         Test_API_Security_Sampling_Different_Status: missing_feature
-        Test_API_Security_Sampling_Rate:
+        Test_API_Security_Sampling_Rate: 
           '*': v1.60.0
-          net-http: irrelevant (net-http doesn't handle path params)
-          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
+          net-http: v2.3.0-dev
+          net-http-orchestrion: missing_feature
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
@@ -33,8 +33,8 @@ tests/:
         Test_Schema_Request_Json_Body: v1.60.0
         Test_Schema_Request_Path_Parameters:
           '*': v1.60.0
-          net-http: irrelevant (net-http cannot list path params)
-          net-http-orchestrion: irrelevant (net-http cannot list path params)
+          net-http: v2.3.0-dev
+          net-http-orchestrion: missing_feature
         Test_Schema_Request_Query_Parameters: v1.60.0
         Test_Schema_Response_Body: missing_feature
         Test_Schema_Response_Body_env_var: v2.0.0
@@ -321,8 +321,8 @@ tests/:
         Test_PathParams:
           '*': v1.36.0
           gin: v1.37.0
-          net-http: irrelevant (net-http doesn't handle path params)
-          net-http-orchestrion: irrelevant (net-http doesn't handle path params)
+          net-http: v2.3.0-dev
+          net-http-orchestrion: missing_feature
         Test_ResponseStatus:
           '*': v1.36.0
           gin: v1.37.0
@@ -475,7 +475,7 @@ tests/:
       Test_Blocking_user_id: v1.51.0
       Test_Suspicious_Request_Blocking:
         '*': v2.3.0-dev
-        net-http-orchestrion: missing_feature (path params are not supported)
+        net-http-orchestrion: missing_feature
     test_client_ip.py:
       Test_StandardTagsClientIp: v1.44.1
     test_conf.py:
