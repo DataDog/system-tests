@@ -20,6 +20,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
@@ -145,12 +146,6 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
-    telemetry_metric_generation_enabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
-        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
@@ -268,14 +263,6 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_request_blocking = EndToEndScenario(
-        "APPSEC_REQUEST_BLOCKING",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -979,6 +966,13 @@ class _Scenarios:
         doc="Validates the installer and the ssi service naming features on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
+    docker_ssi_appsec = DockerSSIScenario(
+        "DOCKER_SSI_APPSEC",
+        doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
+        appsec_enabled="true",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
@@ -1024,10 +1018,10 @@ class _Scenarios:
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations],
+        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
@@ -1049,6 +1043,21 @@ class _Scenarios:
         doc="Envoy + external processing + blocking rule file",
         extproc_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
         extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
+    )
+
+    stream_processing_offload = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD",
+        doc="HAProxy + stream processing offload agent",
+        rc_api_enabled=True,
+    )
+
+    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
+        doc="HAProxy + stream processing offload agent + blocking rule file",
+        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        stream_processing_offload_volumes={
+            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
+        },
     )
 
     ipv6 = IPV6Scenario("IPV6")

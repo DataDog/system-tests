@@ -36,7 +36,8 @@ while [ $retry_count -lt $max_retries ]; do
 done
 
 if [ -f docker-compose-agent-prod.yml ]; then
-    # Agent may be installed in a different way
+    # Agent may be installed in a different way
+    echo "DD_API_KEY=${DD_API_KEY}" > .env
     sudo -E docker-compose -f docker-compose-agent-prod.yml up -d --remove-orphans datadog --wait --wait-timeout 120
 fi
 #Env variables set on the scenario definition. Write to file and load  

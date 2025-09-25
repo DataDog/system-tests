@@ -527,8 +527,8 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
-        uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        flask-poc: bug (APPSEC-59081)
+        uds-flask: bug (APPSEC-59081)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
       Test_UserEventsStandalone_SDK_V1: v3.9.0
@@ -1106,7 +1106,8 @@ tests/:
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v3.15.0+dev36.gb57f15308
     test_sampling_delegation.py:
       Test_Decisionless_Extraction: v2.8.0
     test_sampling_span_tags.py:
@@ -1196,7 +1197,7 @@ tests/:
     Test_Config_ClientTagQueryString_Configured: v2.15.0
     Test_Config_ClientTagQueryString_Empty: v2.12.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature (xpassing but should fail, this environment variable is not supported)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v3.15.0+dev36.gb57f15308
     Test_Config_HttpServerErrorStatuses_Default: v2.12.0
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.15.0
     Test_Config_IntegrationEnabled_False:
@@ -1255,11 +1256,11 @@ tests/:
     Test_HeaderTags_Colon_Trailing: v2.8.0
     Test_HeaderTags_DynamicConfig: flaky (APMAPI-734)
     Test_HeaderTags_Long: v1.2.1
-    Test_HeaderTags_Short: missing_feature
-    Test_HeaderTags_Whitespace_Header: missing_feature
-    Test_HeaderTags_Whitespace_Tag: bug (AIT-8549)
+    Test_HeaderTags_Short: v3.15.0+dev36.gb57f15308
+    Test_HeaderTags_Whitespace_Header: v3.15.0+dev36.gb57f15308
+    Test_HeaderTags_Whitespace_Tag: v3.15.0+dev36.gb57f15308
     Test_HeaderTags_Whitespace_Val_Long: v1.2.1
-    Test_HeaderTags_Whitespace_Val_Short: missing_feature
+    Test_HeaderTags_Whitespace_Val_Short: v3.15.0+dev36.gb57f15308
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
@@ -1313,6 +1314,6 @@ tests/:
     Test_TelemetryEnhancedConfigReporting:
       '*': irrelevant
       flask-poc: v3.13.0rc1
-    Test_TelemetrySCAEnvVar: missing_feature
+    Test_TelemetrySCAEnvVar: v3.15.0+dev36.gb57f15308
     Test_TelemetryV2: v1.17.3
   test_v1_payloads.py: missing_feature
