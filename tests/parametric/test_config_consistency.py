@@ -401,7 +401,9 @@ SDK_DEFAULT_STABLE_CONFIG = {
         "golang": None,
         "python": "true",
         "nodejs": "true",
-    }.get(context.library.name, "false"),  # Enabled by default in ruby
+        "dotnet": "true",
+        "cpp": None,
+    }.get(context.library.name),
 }
 
 
