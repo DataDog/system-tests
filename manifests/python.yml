@@ -1095,7 +1095,7 @@ tests/:
       Test_FR09_Log_Injection: v3.13.0.dev
       Test_FR10_Timeout_Configuration: v3.14.0.dev
       Test_FR11_Telemetry: v3.14.0.dev
-    test_otel_metrics_api.py:
+    test_otel_metrics.py:
       Test_Otel_Metrics_Api_Instrument: v3.11.0
       Test_Otel_Metrics_Api_Meter: v3.11.0
       Test_Otel_Metrics_Api_MeterProvider: v3.11.0
