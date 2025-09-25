@@ -186,6 +186,84 @@ class Test_FR01_Enable_OTLP_Metrics_Collection:
 
 @scenarios.parametric
 @features.otel_metrics_api
+class Test_Otel_Metrics_Api_MeterProvider:
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_same_parameters(self, test_agent, test_library, library_env):
+        name = f"counter-test_get_meter_same_parameters"
+        first_meter_name = DEFAULT_METER_NAME
+        second_meter_name = DEFAULT_METER_NAME
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+            t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+            t.otel_create_counter(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 1
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+        counter = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, 84, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_different_parameters(self, test_agent, test_library, library_env):
+        name = f"counter-test_get_meter_different_parameters"
+        first_meter_name = DEFAULT_METER_NAME
+        second_meter_name = DEFAULT_METER_NAME + "-different"
+
+        with test_library as t:
+            t.disable_traces_flush()
+            t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+            t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+            t.otel_create_counter(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+            t.otel_metrics_force_flush()
+
+        first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
+
+        # Assert that there is only one item in ResourceMetrics
+        resource_metrics = first_metrics_data["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that the ResourceMetrics has the expected ScopeMetrics
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 2
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        for scope_metric in scope_metrics:
+            assert scope_metric["scope"]["name"] == first_meter_name or scope_metric["scope"]["name"] == second_meter_name
+            assert_scope_metric(scope_metric, scope_metric["scope"]["name"], DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+            counter = find_metric_by_name(scope_metric, name)
+            assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
 class Test_Otel_Metrics_Api:
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
