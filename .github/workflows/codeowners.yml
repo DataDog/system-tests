@@ -20,7 +20,7 @@ jobs:
       - name: Setup go
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5.5.0
       - name: Install codeowners
-        run: go install github.com/hmarr/codeowners/cmd/codeowners@latest
+        run: go install github.com/hmarr/codeowners/cmd/codeowners@b0f609d21eb672b5cb2973f47a80210185102504
       - name: List owners of all changed files
         id: codeowners_resolved
         run: |
