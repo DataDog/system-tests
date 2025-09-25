@@ -1,0 +1,79 @@
+# Optional: Load the environment variables
+init-environment: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-environment.yml
+
+# Mandatory: Scripts to extract the installed/tested components (json {component1:version, component2:version})
+tested_components:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-tested_components.yml
+
+#Optional: Extract the logs from the VM
+vm_logs:
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
+
+# Mandatory: Steps to provision VM
+provision_steps:
+  - init-config # Init the VM configuration
+  - install-claude
+  - install-docker
+  - install-ruby
+  - install-ssi
+  - install-ruby-weblog
+
+init-config:
+  cache: true
+  populate_env: false
+  install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject_init_vm_config.yml
+
+install-claude:
+  cache: true
+  install: !include utils/build/virtual_machine/provisions/auto-inject-ai/auto-inject_install_claude.yml
+
+install-docker:
+  cache: true
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "Install docker engine on this machine. Don't ask to the user for any approval during the installation process. When you finish please report the version and status of the docker that you installed. Print all bash commands that you execute in the file (append mode) /var/log/datadog_weblog/provision_install.script" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+install-nodejs:
+  cache: true
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "install nodejs 20. Print all bash commands that you execute in the file (append mode) /var/log/datadog_weblog/provision_install.script" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+install-ruby:
+  cache: true
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "install ruby 3.0.2. Print all bash commands that you execute in the file (append mode) /var/log/datadog_weblog/provision_install.script" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+install-ssi:
+  cache: false
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "Exporting these two variables: DD_APM_INSTRUMENTATION_LIBRARIES=ruby and DD_APM_INSTRUMENTATION_ENABLED=host use the following installation script https://install.datadoghq.com/scripts/install_script_agent7.sh to install datadog agent and single step instrumentation. Use the current environment variables and populate them to the installation script. Please show in the standard output the logs of the installation script. Print all bash commands that you execute to run the installation script in the file (append mode) /var/log/datadog_weblog/provision_install.script" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+install-nodejs-weblog:
+  cache: false
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "Use the nodejs application located on system-tests folder in the relative path 'lib-injection/build/docker/nodejs/sample-app/index.js' to run it as system service. The system service must be called test-app and pass the following environment variables: DD_APM_INSTRUMENTATION_DEBUG=TRUE and DD_TRACE_DEBUG=true. Perform the changes in the code that you need to make this app listen on port 5985.The application should print the stdout and stderr to the file /var/log/datadog_weblog/app.log. Perform a wget or curl call to check that app is ready. Print all bash commands that you execute in the file (append mode) /var/log/datadog_weblog/provision_install.script" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+
+install-ruby-weblog:
+  cache: false
+  install:
+    - os_type: linux
+      remote-command: |
+        export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}"
+        ~/.local/bin/claude --verbose -p "Create a simple ruby application that listen on port 5985 and exposes an endpoint that returns 'Hello, World!'. Run it as system service. The system service must be called test-app and pass the following environment variables: DD_APM_INSTRUMENTATION_DEBUG=TRUE and DD_TRACE_DEBUG=true. The application should print the stdout and stderr to the file /var/log/datadog_weblog/app.log. Perform a wget or curl call to check that app is ready. Print all bash commands that you execute in the file (append mode) /var/log/datadog_weblog/provision_install.script. Also include the script (in the file provision_install.script) to create the application and the script that runs the system service" --permission-mode bypassPermissions --dangerously-skip-permissions
+
+        

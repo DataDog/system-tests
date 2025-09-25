@@ -2,56 +2,12 @@ lang_variant:
     name: Ruby_3_0_2
     version: 3.0.2
     cache: true
-    install:
+    install: 
       - os_type: linux
-        os_distro: deb
-        remote-command: |
-          sudo apt update
-          sudo apt install -y git curl libssl-dev libreadline-dev zlib1g-dev autoconf bison build-essential libyaml-dev libreadline-dev libncurses5-dev libffi-dev libgdbm-dev
-          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
-          export PATH=~/.rbenv/bin/:~/.rbenv/shims:$PATH
-          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
-          rbenv install 3.0.2 --verbose
-          rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
-
-      - os_type: linux
-        os_distro: rpm
-        remote-command: |
-          sudo yum remove rubygem-bundler || true
-          sudo yum install -y gcc libyaml-devel curl
-          sudo yum install openssl-devel -y
-          if ! command -v amazon-linux-extras 2>&1 >/dev/null
-          then
-              echo "Installing perl and deps"
-              sudo dnf install -y gpg gcc gcc-c++ make rust patch make bzip2 libffi-devel readline-devel zlib-devel ncurses-devel
-              sudo dnf -y install gdbm-devel || true
-              sudo dnf -y install perl
-          fi
-          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
-          export PATH=~/.rbenv/bin/:~/.rbenv/shims:$PATH
-          curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-doctor | bash
-          rbenv install 3.0.2 --verbose
-          rbenv global 3.0.2
-          DD_INSTRUMENT_SERVICE_WITH_APM=false gem install bundler -v '~> 2.3.27'
-
+        remote-command: echo "ruby is already installed"
 
 weblog:
     name: test-app-ruby
-    install:
+    install: 
       - os_type: linux
-
-        copy_files:
-          - name: copy-ruby-app
-            local_path: lib-injection/build/docker/ruby/lib_injection_rails_app
-
-          - name: copy-service
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app.service
-
-          - name: copy-service-run-script
-            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_service.sh
-
-          - name: copy-run-weblog-script-ruby
-            local_path: utils/build/virtual_machine/weblogs/ruby/test-app-ruby/test-app-ruby_run.sh
-
-        remote-command: sh test-app-ruby_run.sh
+        remote-command: echo "ruby app is already installed"

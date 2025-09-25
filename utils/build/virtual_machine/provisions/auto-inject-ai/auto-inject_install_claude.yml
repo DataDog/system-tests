@@ -1,0 +1,5 @@
+    - os_type: linux
+      remote-command: |
+        curl -fsSL https://claude.ai/install.sh | bash
+    - os_type: windows
+      remote_command: echo "Unsupported OS"

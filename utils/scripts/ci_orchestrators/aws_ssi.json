@@ -220,6 +220,22 @@
         },
         {
             "scenarios": [
+                "SIMPLE_AI_INSTALLER_AUTO_INJECTION"
+            ],
+            "weblogs": [
+                {
+                    "nodejs": [
+                         "test-app-nodejs"
+                    ],
+                    "ruby": [
+                        "test-app-ruby"
+                    ]
+
+                }
+            ]
+        },
+        {
+            "scenarios": [
                 "SIMPLE_INSTALLER_AUTO_INJECTION"
             ],
             "weblogs": [
