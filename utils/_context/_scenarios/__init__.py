@@ -1021,7 +1021,7 @@ class _Scenarios:
         weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations],
+        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
