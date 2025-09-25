@@ -150,7 +150,6 @@ optional_uds_feature = (
 
 
 @features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
 @scenarios.external_processing
@@ -344,7 +343,6 @@ class Test_MetaDatadogTags:
 
 
 @features.envoy_external_processing
-@features.haproxy_stream_processing_offload
 @features.data_integrity
 @scenarios.external_processing
 @scenarios.stream_processing_offload
