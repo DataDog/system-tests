@@ -42,6 +42,14 @@ def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_na
     else:
         library_env[endpoint_env] = prev_value
 
+def generate_default_counter_data_point(test_library, instrument_name):
+    test_library.disable_traces_flush()
+    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+    test_library.otel_metrics_force_flush()
+    test_library.otel_create_counter(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+    test_library.otel_counter_add(DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+    test_library.otel_metrics_force_flush()
+
 def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, expected_scope_attributes):
     assert scope_metric["scope"]["name"] == meter_name
     assert scope_metric["scope"]["version"] == meter_version
@@ -130,12 +138,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
 
         name = "enabled-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
         assert first_metrics_data is not None
@@ -152,12 +155,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
         name = "disabled-counter"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
             test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
@@ -173,12 +171,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
         name = "disabled-by-default-counter"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         with pytest.raises(ValueError):
             test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
@@ -1040,12 +1033,7 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
         name = "test_default_interval"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
@@ -1079,12 +1067,7 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
         name = "test_default_timeout"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
@@ -1130,12 +1113,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE" if temporality_preference == "CUMULATIVE" else "AGGREGATION_TEMPORALITY_DELTA"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=True)
 
@@ -1372,12 +1350,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         """Metrics are exported to custom OTLP endpoint."""
         name = f"test_otlp_custom_endpoint-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         assert (
             urlparse(library_env[endpoint_env]).port == 4320
@@ -1402,12 +1375,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         """Metrics are exported to custom OTLP endpoint."""
         name = f"test_otlp_metrics_custom_endpoint-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         assert (
             urlparse(library_env[endpoint_env]).port == 4321
@@ -1435,12 +1403,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 
         name = "test_custom_http_headers_included_in_otlp_export-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
         assert first_metrics_data is not None
@@ -1470,12 +1433,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 
         name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
         assert first_metrics_data is not None
@@ -1512,12 +1470,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
         protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
         name = f"test_otlp_protocols-{protocol}-counter"
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name)
         assert first_metrics_data is not None
@@ -1545,12 +1498,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
         name = "test_default_timeout"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
@@ -1595,12 +1543,7 @@ class Test_Otel_Metrics_Host_Name:
         name = "test_hostname_from_dd_hostname"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
@@ -1651,12 +1594,7 @@ class Test_Otel_Metrics_Host_Name:
         name = "test_hostname_from_otel_resources"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
@@ -1689,12 +1627,7 @@ class Test_Otel_Metrics_Host_Name:
         name = "test_hostname_omitted"
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
         resource = metrics_data[0]["resource_metrics"][0]["resource"]
@@ -1725,12 +1658,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         }
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
@@ -1796,12 +1724,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         }
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
@@ -1840,12 +1763,7 @@ class Test_Otel_Metrics_Resource_Attributes:
         }
 
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 2, {"test_attr": "test_value"})
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
 
@@ -1890,12 +1808,7 @@ class Test_Otel_Metrics_Telemetry:
         name = "test_telemetry_exporter_configurations"
         
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
@@ -1940,12 +1853,7 @@ class Test_Otel_Metrics_Telemetry:
         name = "test_telemetry_exporter_metrics_configurations"
         
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
@@ -1994,12 +1902,7 @@ class Test_Otel_Metrics_Telemetry:
         name = "test_telemetry_metrics"
         
         with test_library as t:
-            t.disable_traces_flush()
-            t.otel_get_meter(DEFAULT_METER_NAME)
-            t.otel_metrics_force_flush()
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION, 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
-            t.otel_metrics_force_flush()
+            generate_default_counter_data_point(t, name)
 
         first_metrics_data = test_agent.wait_for_first_otlp_metric(metric_name=name, clear=False)
         assert first_metrics_data is not None
