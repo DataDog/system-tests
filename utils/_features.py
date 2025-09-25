@@ -15,6 +15,7 @@ class _Owner(StrEnum):
     profiler = "@DataDog/profiling"  # it does not exists
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
     sdk_capabilities = "@DataDog/apm-sdk-api"
+    feature_flag_exposure = "@DataDog/feature-flagging-and-experimentation-sdk"
     tracer = "n/a"  # legacy client libraries from feature parity dashboard, need to be adressed to good teams
 
 
@@ -2551,6 +2552,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=491
         """
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
+    
+    @staticmethod
+    def feature_flag_exposure(test_object):
+        """Feature Flag Exposure
+
+        https://feature-parity.us1.prod.dog/#/?feature=492
+        """
+        return _mark_test_object(test_object, feature_id=492, owner=_Owner.feature_flag_exposure)
 
 
 features = _Features()
