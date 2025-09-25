@@ -324,12 +324,12 @@ class WeblogInjectionScenario(Scenario):
     def __init__(self, name, doc, github_workflow=None, scenario_groups=None) -> None:
         super().__init__(name, doc=doc, github_workflow=github_workflow, scenario_groups=scenario_groups)
 
-        self._mount_injection_volume = MountInjectionVolume(name="volume-injector")
-        self._weblog_injection = WeblogInjectionInitContainer()
+        self._mount_injection_volume = MountInjectionVolume(self.host_log_folder, name="volume-injector")
+        self._weblog_injection = WeblogInjectionInitContainer(self.host_log_folder)
 
         self._required_containers: list[TestedContainer] = []
         self._required_containers.append(self._mount_injection_volume)
-        self._required_containers.append(APMTestAgentContainer())
+        self._required_containers.append(APMTestAgentContainer(self.host_log_folder))
         self._required_containers.append(self._weblog_injection)
 
     def configure(self, config: pytest.Config):  # noqa: ARG002
@@ -343,7 +343,7 @@ class WeblogInjectionScenario(Scenario):
         self._weblog_injection.set_environment_for_library(self.library)
 
         for container in self._required_containers:
-            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
+            container.configure(replay=self.replay)
 
     def _create_network(self):
         self._network = create_network()

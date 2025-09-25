@@ -27,7 +27,7 @@ class AppsecRaspScenario(EndToEndScenario):
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_rasp],
         )
-        self._internal_server = InternalServerContainer()
+        self._internal_server = InternalServerContainer(self.host_log_folder)
         self.weblog_container.depends_on.append(self._internal_server)
         self._required_containers.append(self._internal_server)
 
