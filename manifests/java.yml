@@ -1590,15 +1590,9 @@ tests/:
       Test_ExtendedRequestHeadersDataCollection: missing_feature
       Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
-      Test_ExtendedHeaderCollection:
-        '*': v1.50.0-SNAPSHOT
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_ExtendedHeaderCollection: irrelevant (covered by v2 test_extended_data_collection.py)
     test_extended_request_body_collection.py:
-      Test_ExtendedRequestBodyCollection:
-        '*': v1.50.0-SNAPSHOT
-        akka-http: missing_feature (APPSEC-56196)
-        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-        spring-boot-payara: missing_feature (APPSEC-54966)
+      Test_ExtendedRequestBodyCollection: irrelevant (covered by v2 test_extended_data_collection.py)
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint:
         '*': v1.39.0
