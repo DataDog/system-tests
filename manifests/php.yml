@@ -564,7 +564,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
     test_otel_logs.py: missing_feature
-    test_otel_metrics_api.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
