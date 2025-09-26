@@ -30,7 +30,7 @@ def _load_ufc_fixture() -> Dict[str, Any]:
 
     # Extract the complete UFC attributes (matches UniversalFlagConfigurationV1 interface)
     # Return format: {"createdAt": "...", "format": "SERVER", "environment": {...}, "flags": {...}}
-    return ufc_payload["data"]["attributes"]
+    return ufc_payload["data"]['attributes']
 
 def _get_test_case_files() -> List[str]:
     """Get all test case files from the fixtures directory."""
@@ -58,12 +58,12 @@ def _create_ffe_rc_config(ufc_data: Dict[str, Any], config_id: str = None) -> Di
     if not config_id:
         config_id = str(hash(json.dumps(ufc_data, sort_keys=True)))
 
-    return {
-        "id": config_id,
-        "action": "upsert",
-        "revision": 1,
+    config = { 
+        "action": "apply",
         "ufc": ufc_data
     }
+    config["id"] = config_id
+    return config
 
 
 def _set_ffe_rc(test_agent: _TestAgentAPI, ufc_data: Dict[str, Any], config_id: str = None) -> str:
