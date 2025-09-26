@@ -1,0 +1,30 @@
+# if a file modified matches a pattern in this following list, then
+# the subset will be applied
+#
+# Valid scenario names can be found in ./utils/_context/_scenarios/core.py:26
+
+refs:
+  - &lamda_libraries
+
+patterns:
+    # - r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
+    # - r"\.github/.*": None,
+
+    # - ".github/workflows/daily-tag.yml"
+    - .github/*:
+        libraries: &all_libraries
+        scenarios: [end_to_end, debugger]
+
+    - "doc/*":
+        libraries: null
+
+    - utils/build/python:
+        libraries: [golang, cpp] 
+        scenarios: end_to_end
+
+    - manifest/python.yml:
+        libraries: python
+
+    - "*":     # keep this in late: by default everything is executed
+        scenarios: ALL
+        libraries: ALL
