@@ -1,16 +1,19 @@
-version: '3'
 services:
   datadog:
     container_name: dd-agent
     image: gcr.io/datadoghq/agent:7
     environment:
       - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.com
       - DD_APM_ENABLED=true
       - DD_LOG_LEVEL=TRACE
       - DD_APM_NON_LOCAL_TRAFFIC=true
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
-    env_file: /var/run/datadog-installer/environment
+      - DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket
+      - DD_DOGSTATSD_SOCKET=/var/run/datadog/dsd.socket
     volumes:
-      - /opt/datadog/apm:/opt/datadog/apm
-      - /var/run/datadog-installer:/var/run/datadog-installer
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/datadog:/var/run/datadog
