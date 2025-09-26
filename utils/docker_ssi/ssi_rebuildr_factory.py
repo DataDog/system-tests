@@ -141,3 +141,50 @@ class SSIRebuildrFactory:
                 "DD_APPSEC_ENABLED": dd_appsec_enabled,
             },
         )
+
+    @staticmethod
+    def create_base_runtime_config(
+        image_repository: str,
+        base_image: str,
+        dd_lang: str,
+        runtime_versions: str = "",
+        additional_env_vars: dict[str, str] | None = None,
+    ) -> RebuildrConfig:
+        """Create a configuration for building base runtime images.
+
+        This configuration is used for images that install language runtimes
+        on top of a base image, preparing it for application deployment.
+
+        Args:
+            image_repository: The image repository name to use
+            base_image: The base image to build from
+            dd_lang: The language runtime to install (e.g., "java", "python", "js", "dotnet", "php")
+            runtime_versions: Specific runtime versions to install (optional)
+            additional_env_vars: Additional environment variables to set
+
+        Returns:
+            RebuildrConfig configured for base runtime installation
+
+        Example:
+            >>> config = SSIRebuildrFactory.create_base_runtime_config(
+            ...     image_repository="my-java-runtime",
+            ...     base_image="my-deps:latest",
+            ...     dd_lang="java",
+            ...     runtime_versions="8,11,17"
+            ... )
+
+        """
+        env_vars = additional_env_vars or {}
+        # Set DD_LANG in environment vars for the dynamic file path resolution
+        env_vars["DD_LANG"] = dd_lang
+
+        return RebuildrConfig(
+            config_file="base/base_runtime.rebuildr.py",
+            image_repository=image_repository,
+            environment_vars=env_vars,
+            args={
+                "BASE_IMAGE": base_image,
+                "DD_LANG": dd_lang,
+                "RUNTIME_VERSIONS": runtime_versions,
+            },
+        )

@@ -246,7 +246,7 @@ class RebuildrManager:
         # Add arguments if provided
         if config.args:
             for key, value in config.args.items():
-                cmd_parts.append(f'{key}="{value}"')
+                cmd_parts.append(f"{key}={value}")
 
         # Add operation-specific command
         if operation == RebuildrOperation.GET_SHA256:

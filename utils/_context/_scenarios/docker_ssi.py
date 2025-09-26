@@ -17,7 +17,7 @@ from utils._context.containers import (
     _get_client as get_docker_client,
 )
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
-from utils.docker_ssi.rebuildr_manager import RebuildrManager
+from utils.docker_ssi.rebuildr_manager import RebuildrManager, RebuildrConfig
 from utils.docker_ssi.ssi_rebuildr_factory import SSIRebuildrFactory
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger
@@ -336,8 +336,10 @@ class DockerSSIImageBuilder:
         logger.stdout("🔧 ========================================")
 
         # Generate base docker tags
-        self.language_dependencies_image_tag = self.get_base_docker_tag()
-        logger.stdout(f"📦 Base docker tag: {self.language_dependencies_image_tag}")
+        self.base_dependencies_image_tag = self.get_base_dependencies_docker_tag()
+        logger.stdout(f"📦 Base dependencies docker tag: {self.base_dependencies_image_tag}")
+        self.base_runtime_image_tag = self.get_base_runtime_docker_tag()
+        logger.stdout(f"📦 Base runtime docker tag: {self.base_runtime_image_tag}")
 
         # Setup registry and image tags
         self.docker_registry_base_url = os.getenv("PRIVATE_DOCKER_REGISTRY", "")
@@ -348,12 +350,12 @@ class DockerSSIImageBuilder:
 
         # Set registry tag based on whether registry is configured
         if self.docker_registry_base_url:
-            self._docker_registry_tag = (
-                f"{self.docker_registry_base_url}/system-tests-v2/ssi_installer_{self.language_dependencies_image_tag}"
-            )
+            self._docker_registry_tag = f"{self.docker_registry_base_url}/system-tests-v2/ssi_installer_{self.base_runtime_image_tag if self._installable_runtime else self.base_dependencies_image_tag}"
         else:
-            self._docker_registry_tag = f"ssi_installer_{self.language_dependencies_image_tag}"
-        self.ssi_full_image_tag = f"ssi_full_{self.language_dependencies_image_tag}"
+            self._docker_registry_tag = f"ssi_installer_{self.base_runtime_image_tag if self._installable_runtime else self.base_dependencies_image_tag}"
+        self.ssi_full_image_tag = (
+            f"ssi_full_{self.base_runtime_image_tag if self._installable_runtime else self.base_dependencies_image_tag}"
+        )
 
         logger.stdout(f"🔗 SSI installer tag: {self._docker_registry_tag}")
         logger.stdout(f"🔗 SSI full tag: {self.ssi_full_image_tag}")
@@ -376,38 +378,54 @@ class DockerSSIImageBuilder:
         logger.stdout("📋 CONFIGURING DOCKER IMAGES")
         logger.stdout("📋 ──────────────────────────────────────")
 
-        # 1. Configure lang_deps_image (base dependencies or language runtime + dependencies)
-        logger.stdout("🔨 [1/3] Configuring Language Dependencies Image...")
+        # 1. Configure base_deps_image (base dependencies)
+        logger.stdout("🔨 [1/4] Configuring Dependencies Image...")
+        logger.stdout(f"⚙️  Base image: {self._base_image}")
+        logger.stdout("⚙️  Type: Base dependencies only (no runtime)")
+        # Configure base dependencies image using SSI factory
+        self.base_deps_config = SSIRebuildrFactory.create_base_deps_config(
+            image_repository=self.base_dependencies_image_tag,
+            base_image=self._base_image,
+            additional_env_vars={},
+        )
+        logger.stdout("🔍 Calculating SHA256 signature for base deps...")
+        self.base_dependencies_image_id = "src-id-" + self.rebuildr_client.get_sha256_signature(self.base_deps_config)
+        logger.stdout(f"🔑 Base dependencies image ID: {self.base_dependencies_image_id}")
+        logger.stdout("✅ Base dependencies configuration created")
+
+        # 2. Configure base_runtime_image (language runtime )
+        logger.stdout("🔨 [2/4] Configuring language runtime Image...")
+
+        # Initialize optional runtime variables with proper type annotations
+        self.base_runtime_config: RebuildrConfig | None = None
+        self.base_runtime_image_id: str | None = None
+
         if self._installable_runtime:
+            logger.stdout(f"⚙️  Base image: {self.base_runtime_image_tag}")
+            logger.stdout("⚙️  Type: Language runtime only")
             logger.stdout(f"⚙️  Runtime: {self._installable_runtime} (using Docker client)")
-            logger.stdout("Info: Language runtime images use Docker client (rebuildr not yet supported)")
-            # For now, lang image building with rebuildr is not implemented
-            # Keep using Docker client for language runtime images
-            self.lang_deps_config = None
-        else:
-            logger.stdout(f"⚙️  Base image: {self._base_image}")
-            logger.stdout("⚙️  Type: Base dependencies only (no runtime)")
-            # Configure base dependencies image using SSI factory
-            self.lang_deps_config = SSIRebuildrFactory.create_base_deps_config(
-                image_repository=self.language_dependencies_image_tag,
-                base_image=self._base_image,
-                additional_env_vars={},
+            self.base_runtime_config = SSIRebuildrFactory.create_base_runtime_config(
+                image_repository=self.base_runtime_image_tag,
+                base_image=self.base_dependencies_image_tag + ":" + self.base_dependencies_image_id,
+                dd_lang=self.dd_lang,
+                runtime_versions=self._installable_runtime,
             )
-            logger.stdout("✅ Base dependencies configuration created")
-
-        logger.stdout("🔍 Calculating SHA256 signature for lang deps...")
-        if self.lang_deps_config is not None:
-            self.language_dependencies_image_id = "src-id-" + self.rebuildr_client.get_sha256_signature(
-                self.lang_deps_config
-            )
+            logger.stdout("🔍 Calculating SHA256 signature for base runtime...")
+            self.base_runtime_image_id = "src-id-" + self.rebuildr_client.get_sha256_signature(self.base_runtime_config)
+            logger.stdout(f"🔑 Base runtime image ID: {self.base_runtime_image_id}")
+            logger.stdout("✅ Base runtime configuration created")
         else:
-            # For runtime images using Docker client, generate a placeholder ID
-            self.language_dependencies_image_id = "src-id-runtime-image"
-        logger.stdout(f"🔑 Lang deps image ID: {self.language_dependencies_image_id}")
+            logger.stdout("🔨 Skipping language runtime Image...")
+            self.base_runtime_config = None
+            self.base_runtime_image_id = None
 
-        # 2. Configure ssi_installer_image
-        logger.stdout("🔨 [2/3] Configuring SSI Installer Image...")
-        base_with_tag = self.language_dependencies_image_tag + ":" + self.language_dependencies_image_id
+        # 3. Configure ssi_installer_image
+        logger.stdout("🔨 [3/4] Configuring SSI Installer Image...")
+        base_with_tag = (
+            self.base_dependencies_image_tag + ":" + self.base_dependencies_image_id
+            if not self._installable_runtime
+            else self.base_runtime_image_tag + ":" + self.base_runtime_image_id
+        )
         logger.stdout(f"⚙️  Base image: {base_with_tag}")
         logger.stdout(f"⚙️  Registry: {self._docker_registry_tag}")
 
@@ -417,11 +435,10 @@ class DockerSSIImageBuilder:
             dd_api_key="xxxxxxxxxx",  # Default API key as used in original implementation
             additional_env_vars={},
         )
-        logger.stdout("✅ SSI installer configuration created")
-
         logger.stdout("🔍 Calculating SHA256 signature for SSI installer...")
         self.ssi_installer_image_id = "src-id-" + self.rebuildr_client.get_sha256_signature(self.ssi_installer_config)
         logger.stdout(f"🔑 SSI installer image ID: {self.ssi_installer_image_id}")
+        logger.stdout("✅ SSI installer configuration created")
 
         # Check if the SSI installer image exists in registry
         installer_image_with_tag = self._docker_registry_tag + ":" + self.ssi_installer_image_id
@@ -471,7 +488,8 @@ class DockerSSIImageBuilder:
         if not self.ssi_installer_image_exists or self._push_base_images or self._force_build:
             logger.stdout("🏗️ Building base images (lang deps + SSI installer)...")
             # Build the base image
-            self.build_lang_deps_image()
+            self.build_deps_image()
+            self.build_runtime_image()
             self.build_ssi_installer_image()
         else:
             logger.stdout("✅ Using existing base images from registry")
@@ -493,7 +511,18 @@ class DockerSSIImageBuilder:
             logger.stdout(f"❌ SSI installer image not found in registry: {image_tag}")
             return False
 
-    def get_base_docker_tag(self):
+    def get_base_dependencies_docker_tag(self):
+        """Resolves and format the docker tag for the base image"""
+
+        return (
+            f"{self._base_image}_deps_{self._arch}".replace(".", "_")
+            .replace("-", "-")
+            .replace(":", "-")
+            .replace("/", "-")
+            .lower()
+        )
+
+    def get_base_runtime_docker_tag(self):
         """Resolves and format the docker tag for the base image"""
         runtime = (
             resolve_runtime_version(self._library, self._installable_runtime) + "_" if self._installable_runtime else ""
@@ -506,47 +535,61 @@ class DockerSSIImageBuilder:
             .lower()
         )
 
-    def build_lang_deps_image(self):
-        """Build the lang image. Install the language runtime on the base image.
-        We also install some linux deps for the ssi installer
-        If there is not runtime installation requirement, we install only the linux deps
-        Base lang contains the scrit to install the runtime and the script to install dependencies
+    def build_deps_image(self):
+        """Build the base dependencies image. Install only basic system dependencies.
+        This image contains the system-level dependencies required for SSI installation
+        but does not include any language runtime components.
         """
         logger.stdout("🔨 ──────────────────────────────────────")
-        logger.stdout("🔨 BUILDING LANGUAGE DEPENDENCIES IMAGE")
+        logger.stdout("🔨 BUILDING BASE DEPENDENCIES IMAGE")
         logger.stdout("🔨 ──────────────────────────────────────")
 
         build_result = None
         try:
-            if self._installable_runtime:
-                logger.stdout("🏗️  Building language runtime image...")
-                logger.stdout(f"📦 Target tag: {self.language_dependencies_image_tag}")
-                logger.stdout(f"⚙️  Runtime: {self._installable_runtime}")
-                logger.stdout(f"⚙️  Base image: {self._base_image}")
-                logger.stdout(f"⚙️  Architecture: {self._arch}")
-                logger.stdout("Info: Using Docker client (rebuildr not yet supported for language runtimes)")
-                # For language runtime images, continue using Docker client for now
-                # as rebuildr support for language images is not yet implemented
-                # TODO: Implement actual Docker client build logic here
-                logger.stdout("⚠️  Language runtime build logic not yet implemented")
-            else:
-                logger.stdout("🏗️  Building base dependencies image...")
-                if self.lang_deps_config is not None:
-                    logger.stdout(f"📦 Target tag: {self.lang_deps_config.image_repository}")
-                    logger.stdout(f"⚙️  Base image: {self.lang_deps_config.args['BASE_IMAGE']}")
-                    logger.stdout("⚙️  Type: Base dependencies only (no language runtime)")
-                    logger.stdout("🔧 Using RebuildrManager for build process")
-                    build_result = self.rebuildr_client.build_image(self.lang_deps_config)
-                else:
-                    logger.stdout("❌ ERROR: No language dependencies configuration available")
-                    self._raise_config_error()
+            logger.stdout("🏗️  Building base dependencies image...")
+            logger.stdout(f"📦 Target tag: {self.base_deps_config.image_repository}")
+            logger.stdout(f"⚙️  Base image: {self.base_deps_config.args['BASE_IMAGE']}")
+            logger.stdout("⚙️  Type: Base dependencies only (no language runtime)")
+            logger.stdout("🔧 Using RebuildrManager for build process")
+            build_result = self.rebuildr_client.build_image(self.base_deps_config)
 
             if build_result is not None and build_result.stdout:
                 logger.stdout(f"📄 Build output: {build_result.stdout[:200]}...")  # Truncate long output
-            logger.stdout("✅ Language/Dependencies image build completed successfully!")
+            logger.stdout("✅ Base dependencies image build completed successfully!")
 
         except Exception as e:
-            logger.stdout(f"❌ ERROR: Unexpected failure during language dependencies build: {e}")
+            logger.stdout(f"❌ ERROR: Unexpected failure during base dependencies build: {e}")
+            raise
+
+    def build_runtime_image(self):
+        """Build the runtime image. Install the language runtime on the base dependencies image."""
+        logger.stdout("🔨 ──────────────────────────────────────")
+        logger.stdout("🔨 BUILDING LANGUAGE RUNTIME IMAGE")
+        logger.stdout("🔨 ──────────────────────────────────────")
+
+        build_result = None
+        try:
+            if self._installable_runtime and self.base_runtime_config is not None:
+                logger.stdout("🏗️  Building language runtime image...")
+                logger.stdout(f"📦 Target tag: {self.base_runtime_config.image_repository}")
+                logger.stdout(f"⚙️  Base image: {self.base_runtime_config.args['BASE_IMAGE']}")
+                logger.stdout(f"⚙️  Runtime: {self._installable_runtime}")
+                logger.stdout(f"⚙️  DD_LANG: {self.base_runtime_config.args['DD_LANG']}")
+                logger.stdout(f"⚙️  Architecture: {self._arch}")
+                logger.stdout("🔧 Using RebuildrManager for build process")
+
+                logger.stdout("⏳ Starting Rebuildr build process...")
+                build_result = self.rebuildr_client.build_image(self.base_runtime_config)
+            else:
+                logger.stdout("⚠️  Skipping runtime image build - no installable runtime configured")
+                return
+
+            if build_result is not None and build_result.stdout:
+                logger.stdout(f"📄 Build output: {build_result.stdout[:200]}...")  # Truncate long output
+            logger.stdout("✅ Language runtime image build completed successfully!")
+
+        except Exception as e:
+            logger.stdout(f"❌ ERROR: Unexpected failure during runtime image build: {e}")
             raise
 
     def build_ssi_installer_image(self):
