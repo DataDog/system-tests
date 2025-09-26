@@ -39,7 +39,7 @@ elif [ "$OS" = "RedHat_Centos_7_8" ]; then
     yum install -y which zip unzip wget
 elif [ "$OS" = "RedHat" ]; then
     # Update the repo URLs, since July 2024 we need to use vault for CentOS 7
-    if [ "${ARCH}" != "amd64" ]; then
+    if [ "${ARCH}" != "linux/amd64" ]; then
         repo_version="altarch/7.9.2009"
     else
         repo_version="7.9.2009"
@@ -75,6 +75,6 @@ elif [ "$OS" = "Debian" ]; then
 elif [ "$OS" =  "Alpine" ]; then
     apk add -U curl bash
 else
-    echo "Unknown OS"
+    echo "Unknown OS...."
     exit 1
 fi
