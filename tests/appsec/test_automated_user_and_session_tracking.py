@@ -138,7 +138,7 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.rc_state.reset().apply()
@@ -228,7 +228,7 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.rc_state.reset().apply()

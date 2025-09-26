@@ -266,21 +266,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_and_rc_enabled = EndToEndScenario(
-        "APPSEC_AND_RC_ENABLED",
-        rc_api_enabled=True,
-        appsec_enabled=True,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="""
-            A scenario with AppSec and Remote Config enabled. In addition WAF and
-            tracer are configured to have bigger threshold.
-            This scenario should be used in most of the cases if you need
-            Remote Config and AppSec working for all libraries.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
@@ -317,6 +302,8 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
         },
         rc_api_enabled=True,
         doc="""
