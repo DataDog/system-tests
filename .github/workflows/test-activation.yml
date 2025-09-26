@@ -64,6 +64,8 @@ jobs:
         uses: ./.github/actions/install_runner
 
       - name: Run activation script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           chmod +x utils/scripts/activate-easy-wins.sh
           source venv/bin/activate
