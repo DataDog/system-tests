@@ -193,44 +193,23 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 # called when each test item is collected
 def _collect_item_metadata(item: pytest.Item):
+    declaration: str | None = None
     details: str | None = None
-    test_declaration_legacy: str | None = None
-    test_declaration: str | None = None
 
-    # get the reason form skip before xfail
-    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-    for marker in markers:
-        skip_reason = _get_skip_reason_from_marker(marker)
+    for marker in reversed(list(item.iter_markers("declaration"))):
+        declaration = marker.kwargs["declaration"]
+        details = marker.kwargs["details"]
 
-        if skip_reason is not None:
+        if declaration == "irrelevant":
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant") or details is None:
-                details = skip_reason
+            break
 
-    if details is not None:
-        logger.debug(f"{item.nodeid} => {details} => skipped")
-
-        if details.startswith("irrelevant"):
-            test_declaration = test_declaration_legacy = "irrelevant"
-        elif details.startswith("flaky"):
-            test_declaration = test_declaration_legacy = "flaky"
-        elif details.startswith("bug"):
-            test_declaration = test_declaration_legacy = "bug"
-        elif details.startswith("incomplete_test_app"):
-            test_declaration_legacy = "incompleteTestApp"
-            test_declaration = "incomplete_test_app"
-        elif details.startswith("missing_feature"):
-            test_declaration_legacy = "notImplemented"
-            test_declaration = "missing_feature"
-        elif "got empty parameter set" in details:
-            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
-            logger.info(f"No parameters found for ${item.nodeid}")
-        else:
-            pytest.exit(f"Unexpected test declaration for {item.nodeid} : {details}", 1)
+    if declaration is not None:
+        logger.debug(f"{item.nodeid} => {declaration} => skipped")
 
     metadata = {
-        "details": details,
-        "testDeclaration": test_declaration_legacy,
+        "details": declaration if details is None else f"{declaration} ({details})",
+        "testDeclaration": declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
         "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
@@ -241,27 +220,13 @@ def _collect_item_metadata(item: pytest.Item):
     # for feature_id in metadata["features"]:
     #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
 
-    if test_declaration:
-        item.user_properties.append(("dd_tags[systest.case.declaration]", test_declaration))
+    if declaration:
+        item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
 
     if details:
         item.user_properties.append(("dd_tags[systest.case.declarationDetails]", details))
 
     return metadata
-
-
-def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "xfail"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-
-        # otherwise, search in named arguments
-        return marker.kwargs.get("reason", "")
-
-    return None
 
 
 def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
@@ -322,7 +287,7 @@ def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str
             try:
                 released(**declaration)(obj)
             except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}.") from e
+                raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
