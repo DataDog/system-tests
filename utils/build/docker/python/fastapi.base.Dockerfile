@@ -1,9 +1,14 @@
 FROM python:3.14.0rc3-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update
+RUN apt-get install -y curl git libpq-dev gcc
+RUN curl -fsSL https://pyenv.run | bash
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="$PYENV_ROOT/bin:$PATH"
 
 # print versions
+RUN pyenv global system
 RUN python --version && curl --version
 
 # install python deps
@@ -17,7 +22,7 @@ RUN pip install cryptography==42.0.8
 RUN pip install pycryptodome
 RUN pip install python-multipart
 RUN pip install jinja2
-RUN pip install psycopg
+RUN pip install psycopg2
 RUN pip install itsdangerous
 RUN pip install xmltodict==0.14.2
 
