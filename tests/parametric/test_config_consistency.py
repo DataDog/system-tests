@@ -404,6 +404,10 @@ SDK_DEFAULT_STABLE_CONFIG = {
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
+SDK_EXTENDED_STABLE_CONFIG = {
+    "dd_tags": "[tag1:value1,tag2:value2]",
+}
+
 
 class QuotedStr(str):
     __slots__ = ()
@@ -502,7 +506,43 @@ class Test_Stable_Config_Default(StableConfigWriter):
             config = test_library.config()
             assert expected.items() <= config.items()
 
-    # @pytest.mark.parametrize("library_env", [{}])
+    @pytest.mark.parametrize("library_env", [{}])
+    @pytest.mark.parametrize(
+        ("name", "apm_configuration_default", "expected"),
+        [
+            (
+                "tags",
+                {"DD_TAGS": ["tag1:value1", "tag2:value2"]},
+                {**SDK_EXTENDED_STABLE_CONFIG},
+            ),
+        ],
+    )
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+            "/etc/datadog-agent/application_monitoring.yaml",
+        ],
+    )
+    def test_extended_configs(
+        self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
+    ):
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": apm_configuration_default,
+                },
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert expected.items() <= config.items()
+
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        reason="extended configs are not supported",
+    )
     @pytest.mark.parametrize(
         "test",
         [
@@ -629,7 +669,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
         reason="UST stable config is phase 2",
     )
-    def test_config_stable(self, library_env, test_agent, test_library):
+    def test_targeting_rules(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             self.write_stable_config(
