@@ -80,9 +80,6 @@ def _add_pytest_marker(
     if declaration in (_TestDeclaration.BUG, _TestDeclaration.FLAKY):
         _ensure_jira_ticket_as_reason(item, declaration_details)
 
-    if not hasattr(item, "pytestmark"):
-        item.pytestmark = []  # type: ignore[attr-defined]
-
     if force_skip or declaration in (_TestDeclaration.IRRELEVANT, _TestDeclaration.FLAKY):
         marker = pytest.mark.skip
     else:
@@ -90,8 +87,11 @@ def _add_pytest_marker(
 
     reason = declaration if declaration_details is None else f"{declaration} ({declaration_details})"
 
+    if not hasattr(item, "pytestmark"):
+        item.pytestmark = []  # type: ignore[attr-defined]
+
     item.pytestmark.append(marker(reason=reason))  # type: ignore[union-attr]
-    item.pytestmark.append(pytest.mark.declaration(declaration=declaration, details=declaration_details))  # type: ignore[union-attr]
+    item.pytestmark.append(pytest.mark.declaration(declaration=declaration.value, details=declaration_details))  # type: ignore[union-attr]
 
     return item
 
