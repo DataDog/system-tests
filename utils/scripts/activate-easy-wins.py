@@ -68,6 +68,10 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
             if artifact["name"] == "test-report":
                 download_url = artifact["archive_download_url"]
 
+        # If we've checked all pages and found no test-report artifact, error
+        if not download_url and len(artifacts_data["artifacts"]) == 0:
+            raise RuntimeError("test-report not found in the last nightly run")
+
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
         total_size = int(r.headers.get("content-length", 0))
@@ -126,27 +130,25 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
             raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def find_library(libraries: list[str], file_name: str) -> str | None:
-    libraries.sort(key=len, reverse=True)
-    for library in libraries:
-        if library in file_name:
-            return library
-    return None
-
-
 def parse_artifact_data(
     path_data_opt: str, libraries: list[str]
 ) -> dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]] = {}
 
     for directory in os.listdir(path_data_opt):
-        library = find_library(libraries, directory)
-        if "dev" in directory or library not in libraries:
+        if "dev" in directory:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
-            with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
-                scenario_data = json.load(file)
+            try:
+                with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
+                    scenario_data = json.load(file)
+            except FileNotFoundError:
+                continue
+
+            library = scenario_data["context"]["library_name"]
+            if library not in libraries:
+                break
 
             variant = scenario_data["context"]["weblog_variant"]
 
@@ -383,11 +385,14 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                 if found_version:
                     break
 
-                with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
-                    data = json.load(file)
-
-                versions[library] = f"v{data['context']['library']}"
-                found_version = True
+                try:
+                    with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
+                        data = json.load(file)
+                    if data["context"]["library_name"] == library:
+                        versions[library] = f"v{data['context']['library']}"
+                        found_version = True
+                except (FileNotFoundError, KeyError):
+                    continue
 
         if library == "cpp_httpd" and versions[library] == "v99.99.99":
             with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
