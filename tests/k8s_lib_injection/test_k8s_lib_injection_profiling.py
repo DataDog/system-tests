@@ -1,7 +1,7 @@
 import time
 import requests
 
-from utils import scenarios, features, bug, context
+from utils import scenarios, features
 from tests.k8s_lib_injection.utils import get_cluster_info
 
 
