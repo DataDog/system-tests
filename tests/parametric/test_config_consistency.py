@@ -524,6 +524,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
             "/etc/datadog-agent/application_monitoring.yaml",
         ],
     )
+    @missing_feature(
+        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        reason="extended configs are not supported",
+    )
     def test_extended_configs(
         self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
     ):
@@ -539,10 +543,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
             config = test_library.config()
             assert expected.items() <= config.items()
 
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
-        reason="extended configs are not supported",
-    )
     @pytest.mark.parametrize(
         "test",
         [
