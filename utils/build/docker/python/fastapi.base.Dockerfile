@@ -1,4 +1,4 @@
-FROM python:3.14.0rc3-slim
+FROM python:3.14.0rc1-slim
 
 # install bin dependancies
 RUN apt-get update
