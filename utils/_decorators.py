@@ -85,7 +85,7 @@ def _add_pytest_marker(
     else:
         marker = pytest.mark.xfail
 
-    reason = declaration if declaration_details is None else f"{declaration} ({declaration_details})"
+    reason = declaration.value if declaration_details is None else f"{declaration.value} ({declaration_details})"
 
     if not hasattr(item, "pytestmark"):
         item.pytestmark = []  # type: ignore[attr-defined]
@@ -131,7 +131,7 @@ def _expected_to_fail(condition: bool | None = None, library: str | None = None,
 
 def _decorator(
     function_or_class: type[Any] | FunctionType | MethodType,
-    decorator_type: _TestDeclaration,
+    declaration: _TestDeclaration,
     condition: bool | None,
     library: str | None,
     weblog_variant: str | None,
@@ -148,7 +148,7 @@ def _decorator(
         return function_or_class
 
     return _add_pytest_marker(
-        function_or_class, declaration=decorator_type, declaration_details=declaration_details, force_skip=force_skip
+        function_or_class, declaration=declaration, declaration_details=declaration_details, force_skip=force_skip
     )
 
 
@@ -163,7 +163,7 @@ def missing_feature(
     """decorator, allow to mark a test function/class as missing"""
     return partial(
         _decorator,
-        decorator_type=_TestDeclaration.MISSING_FEATURE,
+        declaration=_TestDeclaration.MISSING_FEATURE,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -181,7 +181,7 @@ def incomplete_test_app(
     """Decorator, allow to mark a test function/class as not compatible with the tested application"""
     return partial(
         _decorator,
-        decorator_type=_TestDeclaration.INCOMPLETE_TEST_APP,
+        declaration=_TestDeclaration.INCOMPLETE_TEST_APP,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -198,7 +198,7 @@ def irrelevant(
     """decorator, allow to mark a test function/class as not relevant"""
     return partial(
         _decorator,
-        decorator_type=_TestDeclaration.IRRELEVANT,
+        declaration=_TestDeclaration.IRRELEVANT,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -219,7 +219,7 @@ def bug(
     """
     return partial(
         _decorator,
-        decorator_type=_TestDeclaration.BUG,
+        declaration=_TestDeclaration.BUG,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
@@ -232,7 +232,7 @@ def flaky(condition: bool | None = None, library: str | None = None, weblog_vari
     """Decorator, allow to mark a test function/class as a known bug, and skip it"""
     return partial(
         _decorator,
-        decorator_type=_TestDeclaration.FLAKY,
+        declaration=_TestDeclaration.FLAKY,
         condition=condition,
         library=library,
         weblog_variant=weblog_variant,
