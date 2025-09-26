@@ -92,7 +92,7 @@ def test_version_range():
             markers = decorated_class.pytestmark
             assert (
                 markers[0].kwargs["reason"]
-                == f"missing_feature for agent: declared released version is {declaration}, tested version is {tested_version}"
+                == f"missing_feature (declared version for agent is {declaration}, tested version is {tested_version})"
             )
         else:
             assert not hasattr(decorated_class, "pytestmark")

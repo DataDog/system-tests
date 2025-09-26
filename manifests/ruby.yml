@@ -205,7 +205,7 @@ tests/:
       test_security_controls.py:
         TestSecurityControls: missing_feature
       test_vulnerability_schema.py:
-        TestIastVulnerabilitySchema: missing_feature
+        TestIastVulnerabilitySchema: v2.22.1-dev
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
@@ -473,6 +473,11 @@ tests/:
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.19.0
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.19.0
+    test_extended_data_collection.py:
+      Test_ExtendedDataCollectionCapability: missing_feature
+      Test_ExtendedRequestBodyCollection: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: missing_feature
+      Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -726,7 +731,7 @@ tests/:
       TestDynamicConfigV2: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
-      Test_Headers_Baggage_Span_Tags: missing_feature
+      Test_Headers_Baggage_Span_Tags: v2.22.1-dev
     test_otel_api_interoperability.py: missing_feature
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
@@ -835,14 +840,14 @@ tests/:
     Test_Config_UnifiedServiceTagging_CustomService: v2.0.0
     Test_Config_UnifiedServiceTagging_Default: v2.0.0
   test_distributed.py:
-    Test_DistributedHttp: missing_feature
+    Test_DistributedHttp: v2.22.1-dev
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature
-      graphql23: missing_feature
+      graphql23: v2.22.1-dev
     Test_GraphQLOperationErrorTracking:
       '*': missing_feature
       graphql23: missing_feature

@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 from tests.appsec.utils import find_series
-from utils import weblog, context, interfaces, scenarios, features
+from utils import weblog, context, interfaces, scenarios, features, bug
 
 
 # get the default log output
@@ -35,6 +35,7 @@ class Test_CorruptedRules_Telemetry:
         self.r_1 = weblog.get("/", headers={"User-Agent": "Arachni/v1"})
         self.r_2 = weblog.get("/waf", params={"attack": "<script>"})
 
+    @bug(context.library < "nodejs@5.68.0", reason="APPSEC-59077")
     def test_waf_init_and_config_errors_tags(self):
         waf_init_series = find_series("appsec", ["waf.init"])
         waf_init_metric = [
