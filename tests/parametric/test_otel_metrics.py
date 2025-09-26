@@ -1,4 +1,3 @@
-
 import pytest
 
 from hypothesis import given, settings, HealthCheck, strategies as st
@@ -105,7 +104,7 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
             assert "time_unix_nano" in sum_data_point
             return
 
-    assert False, f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}"
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}")
 
 
 def assert_gauge_aggregation(gauge_aggregation, value, attributes):
@@ -115,7 +114,7 @@ def assert_gauge_aggregation(gauge_aggregation, value, attributes):
             assert "time_unix_nano" in gauge_data_point
             return
 
-    assert False, f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}"
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}")
 
 
 def assert_histogram_aggregation(
@@ -143,7 +142,7 @@ def assert_histogram_aggregation(
             assert "time_unix_nano" in histogram_data_point
             return
 
-    assert False, f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}"
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}")
 
 
 def find_metric_by_name(scope_metric: dict, name: str):
@@ -299,7 +298,11 @@ class Test_Otel_Metrics_Api_MeterProvider:
         counter = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, 84, DEFAULT_MEASUREMENT_ATTRIBUTES
+            counter["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=84,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -363,7 +366,11 @@ class Test_Otel_Metrics_Api_MeterProvider:
             counter = find_metric_by_name(scope_metric, name)
             assert_metric_info(counter, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
-                counter["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES
+                counter["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=42,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
 
@@ -406,7 +413,11 @@ class Test_Otel_Metrics_Api_Meter:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
-                metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, value, DEFAULT_MEASUREMENT_ATTRIBUTES
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -445,7 +456,11 @@ class Test_Otel_Metrics_Api_Meter:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
-                metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, value, DEFAULT_MEASUREMENT_ATTRIBUTES
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -565,7 +580,11 @@ class Test_Otel_Metrics_Api_Meter:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
-                metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, value, DEFAULT_MEASUREMENT_ATTRIBUTES
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -601,7 +620,11 @@ class Test_Otel_Metrics_Api_Meter:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
-                metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, value, DEFAULT_MEASUREMENT_ATTRIBUTES
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -675,7 +698,13 @@ class Test_Otel_Metrics_Api_Instrument:
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
 
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -723,7 +752,11 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=non_negative_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     # This test takes upwards of 25 seconds to run
@@ -774,9 +807,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_sum_aggregation(
             metric["sum"],
             "AGGREGATION_TEMPORALITY_DELTA",
-            True,
-            non_negative_value + second_non_negative_value,
-            DEFAULT_MEASUREMENT_ATTRIBUTES,
+            is_monotonic=True,
+            value=non_negative_value + second_non_negative_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -824,14 +857,18 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = scope_metrics[0]["metrics"][0]
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, non_negative_value, DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=non_negative_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
         assert_sum_aggregation(
             metric["sum"],
             "AGGREGATION_TEMPORALITY_DELTA",
-            True,
-            second_non_negative_value,
-            NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+            is_monotonic=True,
+            value=second_non_negative_value,
+            attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     # This test takes upwards of 25 seconds to run
@@ -872,7 +909,11 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     # This test takes upwards of 25 seconds to run
@@ -923,9 +964,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_sum_aggregation(
             metric["sum"],
             "AGGREGATION_TEMPORALITY_CUMULATIVE",
-            False,
-            first_value + second_value,
-            DEFAULT_MEASUREMENT_ATTRIBUTES,
+            is_monotonic=False,
+            value=first_value + second_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     # This test takes upwards of 25 seconds to run
@@ -976,10 +1017,18 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, first_value, DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=first_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=second_value,
+            attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     # This test takes upwards of 25 seconds to run
@@ -1329,7 +1378,13 @@ class Test_Otel_Metrics_Api_Instrument:
 
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(metric["sum"], "AGGREGATION_TEMPORALITY_DELTA", True, n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
@@ -1365,7 +1420,11 @@ class Test_Otel_Metrics_Api_Instrument:
         metric = find_metric_by_name(scope_metrics[0], name)
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_sum_aggregation(
-            metric["sum"], "AGGREGATION_TEMPORALITY_CUMULATIVE", False, n, DEFAULT_MEASUREMENT_ATTRIBUTES
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -1516,7 +1575,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         counter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(
-            counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES
+            counter["sum"],
+            expected_aggregation_temporality,
+            is_monotonic=True,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize(
@@ -1533,7 +1596,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
     def test_otel_aggregation_temporality_updowncounter(self, library_env, test_agent, test_library):
         temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
         name = f"test_otel_aggregation_temporality_updowncounter-{temporality_preference.lower()}"
-        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -1557,7 +1619,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(
-            updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES
+            updowncounter["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize(
@@ -1574,7 +1640,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
     def test_otel_aggregation_temporality_gauge(self, library_env, test_agent, test_library):
         temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
         name = f"test_otel_aggregation_temporality_gauge-{temporality_preference.lower()}"
-        expected_aggregation_temporality = "AGGREGATION_TEMPORALITY_CUMULATIVE"
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -1665,7 +1730,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
         name = f"test_otel_aggregation_temporality_asynchronous_counter-{temporality_preference.lower()}"
         expected_aggregation_temporality = (
             "AGGREGATION_TEMPORALITY_DELTA"
-            if temporality_preference == "DELTA" or temporality_preference == "default"
+            if temporality_preference in ("DELTA", "default")
             else "AGGREGATION_TEMPORALITY_CUMULATIVE"
         )
 
@@ -1688,7 +1753,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         counter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(
-            counter["sum"], expected_aggregation_temporality, True, 42, DEFAULT_MEASUREMENT_ATTRIBUTES
+            counter["sum"],
+            expected_aggregation_temporality,
+            is_monotonic=True,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize(
@@ -1726,7 +1795,11 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         updowncounter = find_metric_by_name(scope_metrics[0], name)
         assert_sum_aggregation(
-            updowncounter["sum"], expected_aggregation_temporality, False, 42, DEFAULT_MEASUREMENT_ATTRIBUTES
+            updowncounter["sum"],
+            expected_aggregation_temporality,
+            is_monotonic=False,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize(
@@ -2150,12 +2223,6 @@ class Test_Otel_Metrics_Resource_Attributes:
                 "DD_ENV": "otelenv",
                 "DD_VERSION": "2.0",
                 "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,foo=bar1,baz=qux1",
-            },
-            {
-                **DEFAULT_ENVVARS,
-                "DD_ENV": "otelenv",
-                "DD_SERVICE": "service",
-                "OTEL_RESOURCE_ATTRIBUTES": "service.version=2.0,foo=bar1,baz=qux1",
             },
             {
                 **DEFAULT_ENVVARS,
