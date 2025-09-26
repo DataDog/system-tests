@@ -685,7 +685,6 @@ class APMLibrary:
     def __init__(self, client: APMLibraryClient, lang: str):
         self._client = client
         self.lang = lang
-        self.flush_traces = True
 
     def __enter__(self) -> "APMLibrary":
         return self
@@ -694,7 +693,7 @@ class APMLibrary:
         self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None
     ) -> bool | None:
         # Only attempt a flush if there was no exception raised.
-        if exc_type is None and self.flush_traces:
+        if exc_type is None:
             self.dd_flush()
             if self.lang != "cpp":
                 # C++ does not have an otel/flush endpoint
@@ -704,9 +703,6 @@ class APMLibrary:
                 self.otel_logs_flush()
 
         return None
-
-    def disable_traces_flush(self):
-        self.flush_traces = False
 
     def crash(self) -> None:
         self._client.crash()
