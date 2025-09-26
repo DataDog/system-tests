@@ -348,6 +348,15 @@ class ParametricScenario(Scenario):
             log_file.flush()
             container.remove(force=True)
 
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+
+        return result
+
 
 def _get_base_directory() -> str:
     return str(Path.cwd())

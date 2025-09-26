@@ -960,7 +960,7 @@ class Test_Metric_Generation_Disabled:
 
 
 @features.telemetry_metrics_collected
-@scenarios.telemetry_metric_generation_enabled
+@scenarios.agent_supporting_span_events
 class Test_Metric_Generation_Enabled:
     """Assert that metrics are reported when metric generation is enabled in telemetry"""
 

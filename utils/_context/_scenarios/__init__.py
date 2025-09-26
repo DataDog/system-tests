@@ -146,12 +146,6 @@ class _Scenarios:
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
         scenario_groups=[scenario_groups.telemetry],
     )
-    telemetry_metric_generation_enabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
-        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
 
     # ASM scenarios
     appsec_missing_rules = EndToEndScenario(
@@ -269,14 +263,6 @@ class _Scenarios:
             remote config. And it's okay not testing custom rule set for dev mode, as in this scenario, rules
             are always coming from remote config.
         """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_request_blocking = EndToEndScenario(
-        "APPSEC_REQUEST_BLOCKING",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
         scenario_groups=[scenario_groups.appsec],
     )
 
@@ -1032,10 +1018,10 @@ class _Scenarios:
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations],
+        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(

@@ -50,6 +50,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         self.total_request_time = end_time - start_time
 
         self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_snapshot_received()
 
     def _assert(self):
         self.collect()

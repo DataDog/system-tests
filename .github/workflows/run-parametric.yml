@@ -66,6 +66,11 @@ on:
         default: "1"
         required: false
         type: string
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization"
+        default: false
+        required: false
+        type: boolean
 
 env:
   REGISTRY: ghcr.io
@@ -112,7 +117,12 @@ jobs:
       - name: Compress logs
         id: compress_logs
         if: always()
-        run: tar -czvf artifact.tar.gz $(ls | grep logs)
+        run: |
+          if compgen -G "logs*/" > /dev/null; then
+            tar -czvf artifact.tar.gz logs*/
+          else
+            echo "No logs*/ found; skipping tar."
+          fi
       - name: Upload artifact
         if: always() && steps.compress_logs.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -120,8 +130,9 @@ jobs:
           name: logs_parametric_${{ inputs.library}}_parametric_${{ inputs.ci_environment }}_${{ matrix.job_instance }}_${{ inputs.unique_id }}
           path: artifact.tar.gz
           retention-days: ${{ inputs.artifact_retention_days }}
-      # - name: Upload results CI Visibility
-      #   if: ${{ always() }}
-      #   run: ./utils/scripts/upload_results_CI_visibility.sh ${{ inputs.ci_environment }} system-tests ${{ github.run_id }}-${{ github.run_attempt }}
-      #   env:
-      #     DD_API_KEY: ${{ secrets.DD_CI_API_KEY }}
+
+      - name: Push results to Test Optimization
+        if: always() && inputs.push_to_test_optimization
+        uses: ./.github/actions/push_to_test_optim
+        with:
+          datadog_api_key: ${{ secrets.TEST_OPTIMIZATION_API_KEY }}

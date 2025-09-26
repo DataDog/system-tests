@@ -13,8 +13,10 @@ class _Owner(StrEnum):
     idm = "@DataDog/apm-idm"
     language_platform = "@DataDog/apm-lang-platform"
     profiler = "@DataDog/profiling"  # it does not exists
+    remote_config = "@DataDog/remote-config"
     rp = "@DataDog/apm-reliability-and-performance"  # reliability & performance
-    sdk_capabilities = "@DataDog/apm-sdk-api"
+    serverless = "@DataDog/serverless"
+    sdk_capabilities = "@DataDog/apm-sdk-capabilities"
     tracer = "n/a"  # legacy client libraries from feature parity dashboard, need to be adressed to good teams
 
 
@@ -376,9 +378,9 @@ class _Features:
     def structured_log_injection(test_object):
         """DD_LOGS_INJECTION
 
-        https://feature-parity.us1.prod.dog/#/?feature=42
+        https://feature-parity.us1.prod.dog/#/?feature=5
         """
-        return _mark_test_object(test_object, feature_id=42, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=5, owner=_Owner.tracer)
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
@@ -2072,7 +2074,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=328
         """
-        return _mark_test_object(test_object, feature_id=328, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=328, owner=_Owner.serverless)
 
     @staticmethod
     def aws_api_gateway_inferred_span_creation(test_object):
@@ -2436,7 +2438,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=472
         """
-        return _mark_test_object(test_object, feature_id=472, owner=_Owner.tracer)  # library/config
+        return _mark_test_object(test_object, feature_id=472, owner=_Owner.remote_config)  # library/config
 
     @staticmethod
     def process_tags(test_object):
@@ -2444,9 +2446,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=475
         """
-        return _mark_test_object(
-            test_object, feature_id=475, owner=_Owner.tracer
-        )  # library/telemetry, tracing/apm-stats, apm/dbm, apm/dsm, profiler, tracing
+        return _mark_test_object(test_object, feature_id=475, owner=_Owner.language_platform)
 
     @staticmethod
     def appsec_rc_asm_dd_multiconfig(test_object):
@@ -2551,6 +2551,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=491
         """
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
+
+    @staticmethod
+    def appsec_extended_data_collection(test_object):
+        """AppSec supports extended data collection including headers and body
+
+        https://feature-parity.us1.prod.dog/#/?feature=492
+        """
+        return _mark_test_object(test_object, feature_id=492, owner=_Owner.asm)
 
 
 features = _Features()

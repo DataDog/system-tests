@@ -137,6 +137,7 @@ tests/:
       Test_NoLimitOnWafRules: v1.2.0
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking_v2.py: irrelevant (ASM is not implemented in C++)
+    test_extended_data_collection.py: irrelevant (ASM is not implemented in C++)
     test_extended_header_collection.py: irrelevant (ASM is not implemented in C++)
     test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
     test_fingerprinting.py: irrelevant (ASM is not implemented in C++)

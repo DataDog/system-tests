@@ -339,16 +339,24 @@ class BaseDebuggerTest:
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_exception_snapshot_received(self, exception_message: str, timeout: int) -> bool:
-        self._exception_message = exception_message
+    def wait_for_snapshot_received(self, exception_message: str = "", timeout: int = 30) -> bool:
+        exception_snapshot = False
+        if exception_message:
+            self._exception_message = exception_message
+            exception_snapshot = True
+
         self._snapshot_found = False
 
-        interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_snapshot_received(data, exception_snapshot=exception_snapshot), timeout=timeout
+        )
         return self._snapshot_found
 
-    def _wait_for_snapshot_received(self, data: dict):
+    def _wait_for_snapshot_received(self, data: dict, *, exception_snapshot: bool = False):
         if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
-            logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
+            if exception_snapshot:
+                logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
+
             contents = data["request"].get("content", []) or []
 
             for content in contents:
@@ -361,6 +369,9 @@ class BaseDebuggerTest:
 
                 if not snapshot or "probe" not in snapshot:
                     continue
+
+                if not exception_snapshot:
+                    return True
 
                 if "exceptionId" not in snapshot:
                     continue

@@ -88,7 +88,7 @@ class Test_Debugger_InProduct_Enablement_Exception_Replay(debugger.BaseDebuggerT
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_exception_snapshot_received(exception_message, TIMEOUT)
+            snapshot_found = self.wait_for_snapshot_received(exception_message, TIMEOUT)
 
             retries += 1
 

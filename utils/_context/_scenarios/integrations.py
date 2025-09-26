@@ -82,6 +82,7 @@ class AWSIntegrationsScenario(EndToEndScenario):
                 "AWS_ACCESS_KEY_ID": "my-access-key",
                 "AWS_SECRET_ACCESS_KEY": "my-access-key",
                 "SYSTEM_TESTS_AWS_URL": "http://localstack-main:4566",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
             },
             doc=doc,
             include_kafka=include_kafka,
