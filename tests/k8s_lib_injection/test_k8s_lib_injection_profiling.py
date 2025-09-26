@@ -41,7 +41,6 @@ class TestK8sLibInjectioProfilingDisabledByDefault(_TestK8sLibInjectionProfiling
 class TestK8sLibInjectioProfilingClusterEnabled(_TestK8sLibInjectionProfiling):
     """Test K8s lib injection with profiling enabled."""
 
-    @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_admission_controller(self):
         profiling_request_found = self._check_profiling_request_sent(get_cluster_info())
         assert profiling_request_found, "No profiling request found"
@@ -52,7 +51,6 @@ class TestK8sLibInjectioProfilingClusterEnabled(_TestK8sLibInjectionProfiling):
 class TestK8sLibInjectioProfilingClusterOverride(_TestK8sLibInjectionProfiling):
     """Test K8s lib injection with profiling enabled, overriting cluster agent config."""
 
-    @bug(context.library > "python@2.12.2", reason="APMON-1496")
     def test_profiling_override_cluster_env(self):
         profiling_request_found = self._check_profiling_request_sent(get_cluster_info())
         assert profiling_request_found, "No profiling request found"
