@@ -53,9 +53,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+
       - name: Run activation script
         run: |
           chmod +x utils/scripts/activate-easy-wins.sh
+          source venv/bin/activate
           if [[ -n "${{ matrix.exclude_owners }}" ]]; then
             ./utils/scripts/activate-easy-wins.sh --libraries ${{ matrix.library }} --exclude ${{ matrix.exclude_owners }}
           else
