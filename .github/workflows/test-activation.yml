@@ -1,6 +1,13 @@
 name: Test activation
 
 on:
+  pull_request:
+    branches:
+    - '**'
+    types:
+    - opened
+    - synchronize
+    - reopened
   workflow_dispatch: {}
   schedule:
     - cron:  '00 06 * * 1'  # Weekly activation on Mondays at 6 AM UTC
