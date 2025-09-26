@@ -2434,3 +2434,12 @@ class Test_Otel_Metrics_Telemetry:
             assert metric.get("common") is True, f"Expected common, got {metric}"
             assert metric.get("tags") is not None, f"Expected tags, got {metric}"
             assert f"protocol:{protocol}" in metric.get("tags")
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_successes")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert f"protocol:{protocol}" in metric.get("tags")
