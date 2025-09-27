@@ -207,6 +207,7 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
             f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
 
+
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):
