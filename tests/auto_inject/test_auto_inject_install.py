@@ -193,6 +193,20 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         )
 
 
+@features.origin_detection
+@scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
+class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    def test_origin_detection(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_origin_detection for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+        self._test_install(virtual_machine, origin_detection=True)
+        logger.info(
+            f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
+
 @features.auto_instrumentation_appsec
 @scenarios.simple_auto_injection_appsec
 class TestSimpleInstallerAutoInjectManualAppsec(base.AutoInjectBaseTest):

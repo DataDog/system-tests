@@ -15,6 +15,11 @@
 
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
+    
+    # Add dd-agent user to docker group for docker socket access (if docker is available)
+    if command -v docker >/dev/null 2>&1; then
+        sudo usermod -aG docker dd-agent || echo "Warning: Could not add dd-agent to docker group"
+    fi
 
 - os_type: windows
   remote-command: |
