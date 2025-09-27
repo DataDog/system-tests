@@ -61,6 +61,13 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
         self._test_install(context.virtual_machine)
 
 
+@features.origin_detection
+@scenarios.container_auto_injection_install_script
+class TestContainerAutoInjectInstallScriptOriginDetection(base.AutoInjectBaseTest):
+    def test_install(self):
+        self._test_install(context.virtual_machine, origin_detection=True)
+
+
 @features.container_auto_installation_script_profiling
 @scenarios.container_auto_injection_install_script_profiling
 class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
@@ -183,6 +190,21 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
+
+
+@features.origin_detection
+@scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
+class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    def test_origin_detection(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_origin_detection for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+        self._test_install(virtual_machine, origin_detection=True)
+        logger.info(
+            f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
 
 
