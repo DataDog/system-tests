@@ -6,7 +6,7 @@ claim_pattern:
   event_name: workflow_dispatch
   ref: refs/heads/main
   ref_protected: "true"
-  job_workflow_ref: DataDog/system-tests-dashboard/\.github/workflows/nightly\.yml@refs/heads/main
+  job_workflow_ref: DataDog/system-tests-dashboard/\.github/workflows/test-activation-tmp\.yml@refs/heads/main
 
 permissions:
   contents: write
