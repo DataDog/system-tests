@@ -80,8 +80,8 @@ jobs:
     secrets: inherit
     with:
       library: ${{ matrix.library }}
-      scenarios: 'APPSEC_API_SECURITY_RC'
-#      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
+      scenarios: ${{ needs.scenarios.outputs.scenarios }}
+      scenarios_groups: ${{ needs.scenarios.outputs.scenarios_groups }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       display_summary: true

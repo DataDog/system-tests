@@ -498,13 +498,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
     )
 
-    # remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
-    #     "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-    #     rc_api_enabled=True,
-    #     doc="",
-    #     scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
-    # )
-
     # APM tracing end-to-end scenarios
     apm_tracing_e2e_otel = EndToEndScenario(
         "APM_TRACING_E2E_OTEL",
