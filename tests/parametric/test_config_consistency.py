@@ -525,7 +525,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         ],
     )
     @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
+        context.library in ["ruby", "cpp", "golang", "nodejs", "php"],
         reason="extended configs are not supported",
     )
     def test_extended_configs(
@@ -541,6 +541,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
+            print("TESTING: CONFIG IS", config)
             assert expected.items() <= config.items()
 
     @pytest.mark.parametrize(
