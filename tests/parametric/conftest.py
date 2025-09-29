@@ -10,7 +10,7 @@ import time
 import datetime
 import hashlib
 from pathlib import Path
-from typing import TextIO, TypedDict, Any
+from typing import TextIO, TypedDict, Any, cast
 import urllib.parse
 
 import requests
@@ -115,22 +115,26 @@ def test_server_log_file(
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
-        f.seek(0)
-        request.node._report_sections.append(  # noqa: SLF001
-            ("teardown", f"{apm_test_server.lang.capitalize()} Library Output", "".join(f.readlines()))
-        )
+    request.node.add_report_section(
+        "teardown", f"{apm_test_server.lang.capitalize()} Library Output", f"Log file:\n./{log_path}"
+    )
 
 
 class _TestAgentAPI:
-    def __init__(self, base_url: str, pytest_request: pytest.FixtureRequest):
-        self._base_url = base_url
+    def __init__(self, host: str, agent_port: int, otlp_port: int, pytest_request: pytest.FixtureRequest):
+        self.host = host
+        self.agent_port = agent_port
+        self.otlp_port = otlp_port
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = f"{context.scenario.host_log_folder}/outputs/{pytest_request.cls.__name__}/{pytest_request.node.name}/agent_api.log"
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
-        return urllib.parse.urljoin(self._base_url, path)
+        return urllib.parse.urljoin(f"http://{self.host}:{self.agent_port}", path)
+
+    def _otlp_url(self, path: str) -> str:
+        return urllib.parse.urljoin(f"http://{self.host}:{self.otlp_port}", path)
 
     def _write_log(self, log_type: str, json_trace: Any):  # noqa: ANN401
         with open(self.log_path, "a") as log:
@@ -297,6 +301,7 @@ class _TestAgentAPI:
 
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
+        self._session.get(self._otlp_url("/test/session/clear"))
 
     def info(self):
         resp = self._session.get(self._url("/info"))
@@ -408,24 +413,30 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
-        """Waits for and returns the latest configurations captured in telemetry events.
+    def wait_for_telemetry_configurations(
+        self, *, service: str | None = None, clear: bool = False
+    ) -> dict[str, list[dict]]:
+        """Waits for and returns configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
         The function ensures that at least one telemetry event is captured before processing.
+        Returns a dictionary where keys are configuration names and values are lists of
+        configuration dictionaries, allowing for multiple entries per configuration name
+        with different origins.
         """
         events = []
-        configurations = {}
+        configurations: dict[str, list[dict]] = {}
         # Allow time for telemetry events to be captured
         time.sleep(1)
         # Attempt to retrieve telemetry events, suppressing request-related exceptions
         with contextlib.suppress(requests.exceptions.RequestException):
-            events += self.telemetry(clear=False)
+            events = self.telemetry(clear=False)
         if not events:
             raise AssertionError("No telemetry events were found. Ensure the application is sending telemetry events.")
 
         # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
+
         # Extract configuration data from relevant telemetry events
         for event in events:
             if service is not None and event["application"]["service_name"] != service:
@@ -434,12 +445,73 @@ class _TestAgentAPI:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store only the latest configuration for each name. This is the configuration
-                        # that should be used by the application.
-                        configurations[config["name"]] = config
+                        # Store all configurations, allowing multiple entries per name with different origins
+                        config_name = config["name"]
+                        if config_name not in configurations:
+                            configurations[config_name] = []
+                        configurations[config_name].append(config)
         if clear:
             self.clear()
         return configurations
+
+    def get_telemetry_config_by_origin(
+        self,
+        configurations: dict[str, list[dict]],
+        config_name: str,
+        origin: str,
+        *,
+        fallback_to_first: bool = False,
+        return_value_only: bool = False,
+    ) -> dict | str | int | bool | None:
+        """Get a telemetry configuration by name and origin.
+
+        Args:
+            configurations: The dict returned by wait_for_telemetry_configurations()
+            config_name: The configuration name to look for
+            origin: The origin to look for (e.g., "default", "env_var", "fleet_stable_config")
+            fallback_to_first: If True, return the first config if no config with the specified origin is found
+            return_value_only: If True, return only the "value" field, otherwise return the full config dict
+
+        Returns:
+            The configuration dict, the value, or None depending on parameters
+
+        """
+        config_list = configurations.get(config_name, [])
+        if not config_list:
+            return None
+
+        # Try to find config with the specified origin
+        config = next((cfg for cfg in config_list if cfg.get("origin") == origin), None)
+
+        # Fallback to first config if requested and no origin match found
+        if config is None and fallback_to_first and config_list:
+            config = config_list[0]
+
+        if config is None:
+            return None
+
+        return config.get("value") if return_value_only else config
+
+    def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
+        """Get the telemetry metrics from the test agent."""
+        metrics = []
+
+        for _ in range(wait_loops):
+            for event in self.telemetry(clear=False):
+                telemetry_event = self._get_telemetry_event(event, "generate-metrics")
+                logger.debug("Found telemetry event: %s", telemetry_event)
+                if telemetry_event is None:
+                    continue
+                for series in telemetry_event["payload"]["series"]:
+                    if metric_name is None or series["metric"] == metric_name:
+                        metrics.append(series)
+                        break
+            metrics.sort(key=lambda x: (x["metric"], x["tags"]))
+            time.sleep(0.01)
+
+        if clear:
+            self.clear()
+        return metrics
 
     def _get_telemetry_event(self, event: dict, request_type: str):
         """Extracts telemetry events from a message batch or returns the telemetry event if it
@@ -566,6 +638,24 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError("No tracer-flare received")
 
+    def logs(self) -> list[Any]:
+        url = self._otlp_url("/test/session/logs")
+        resp = self._session.get(url)
+        return cast(list[Any], resp.json())
+
+    def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:
+        """Wait for `num` logs to be received from the test agent."""
+        for _ in range(wait_loops):
+            logs = self.logs()
+            if len(logs) >= num:
+                return logs
+            time.sleep(0.1)
+        raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
+
+    def metrics(self) -> list[Any]:
+        resp = self._session.get(self._otlp_url("/test/session/metrics"))
+        return cast(list[Any], resp.json())
+
 
 @pytest.fixture(scope="session")
 def docker() -> str | None:
@@ -614,20 +704,7 @@ def test_agent_log_file(request: pytest.FixtureRequest) -> Generator[TextIO, Non
     Path(log_path).parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w+", encoding="utf-8") as f:
         yield f
-        f.seek(0)
-        agent_output = ""
-        for line in f:
-            # Remove log lines that are not relevant to the test
-            if "GET /test/session/traces" in line:
-                continue
-            if "GET /test/session/requests" in line:
-                continue
-            if "GET /test/session/clear" in line:
-                continue
-            if "GET /test/session/apmtelemetry" in line:
-                continue
-            agent_output += line
-        request.node._report_sections.append(("teardown", "Test Agent Output", agent_output))  # noqa: SLF001
+    request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
 
 
 @pytest.fixture
@@ -641,12 +718,24 @@ def test_agent_hostname(test_agent_container_name: str) -> str:
 
 
 @pytest.fixture
+def test_agent_otlp_http_port() -> int:
+    return 4318
+
+
+@pytest.fixture
+def test_agent_otlp_grpc_port() -> int:
+    return 4317
+
+
+@pytest.fixture
 def test_agent(
     worker_id: str,
     docker_network: str,
     request: pytest.FixtureRequest,
     test_agent_container_name: str,
     test_agent_port: int,
+    test_agent_otlp_http_port: int,
+    test_agent_otlp_grpc_port: int,
     test_agent_log_file: TextIO,
 ) -> Generator[_TestAgentAPI, None, None]:
     env = {}
@@ -656,8 +745,17 @@ def test_agent(
     # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
     # (trace_content_length) go client doesn't submit content length header
     env["ENABLED_CHECKS"] = "trace_count_header"
+    env["OTLP_HTTP_PORT"] = str(test_agent_otlp_http_port)
+    env["OTLP_GRPC_PORT"] = str(test_agent_otlp_grpc_port)
 
-    host_port = scenarios.parametric.get_host_port(worker_id, 4600)
+    core_host_port = scenarios.parametric.get_host_port(worker_id, 4600)
+    otlp_http_host_port = scenarios.parametric.get_host_port(worker_id, 4701)
+    otlp_grpc_host_port = scenarios.parametric.get_host_port(worker_id, 4802)
+    ports = {
+        f"{test_agent_port}/tcp": core_host_port,
+        f"{test_agent_otlp_http_port}/tcp": otlp_http_host_port,
+        f"{test_agent_otlp_grpc_port}/tcp": otlp_grpc_host_port,
+    }
 
     with scenarios.parametric.docker_run(
         image=scenarios.parametric.TEST_AGENT_IMAGE,
@@ -665,12 +763,11 @@ def test_agent(
         command=[],
         env=env,
         volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
-        host_port=host_port,
-        container_port=test_agent_port,
+        ports=ports,
         log_file=test_agent_log_file,
         network=docker_network,
     ):
-        client = _TestAgentAPI(base_url=f"http://localhost:{host_port}", pytest_request=request)
+        client = _TestAgentAPI("localhost", core_host_port, otlp_http_host_port, pytest_request=request)
         time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
         for _ in range(100):
             try:
@@ -723,6 +820,7 @@ def test_library(
         "APM_TEST_CLIENT_SERVER_PORT": str(apm_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
     }
+
     for k, v in apm_test_server.env.items():
         # Don't set env vars with a value of None
         if v is not None:
@@ -737,8 +835,7 @@ def test_library(
         name=apm_test_server.container_name,
         command=apm_test_server.container_cmd,
         env=env,
-        host_port=apm_test_server.host_port,
-        container_port=apm_test_server.container_port,
+        ports={f"{apm_test_server.container_port}/tcp": apm_test_server.host_port},
         volumes=apm_test_server.volumes,
         log_file=test_server_log_file,
         network=docker_network,

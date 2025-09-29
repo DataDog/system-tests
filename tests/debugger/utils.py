@@ -8,17 +8,36 @@ import os
 import os.path
 from pathlib import Path
 import uuid
+from urllib.parse import parse_qs
+from typing import TypedDict, Literal, Any
 
 from utils import interfaces, remote_config, weblog, context, logger
 from utils.dd_constants import RemoteConfigApplyState as ApplyState
 
-
+# Agent paths
 _CONFIG_PATH = "/v0.7/config"
 _DEBUGGER_PATH = "/api/v2/debugger"
 _LOGS_PATH = "/api/v2/logs"
 _TRACES_PATH = "/api/v0.2/traces"
 _SYMBOLS_PATH = "/symdb/v1/input"
 _TELEMETRY_PATH = "/api/v2/apmtelemetry"
+
+# Library paths
+_DEBUGGER_V2_INPUT_PATH = "/debugger/v2/input"
+
+# Type definitions
+ProbeStatus = Literal["RECEIVED", "INSTALLED", "EMITTING", "ERROR"]
+
+
+class ProbeDiagnosticsData(TypedDict):
+    """Type definition for probe diagnostics data structure."""
+
+    probeId: str
+    status: ProbeStatus
+    query: dict[str, list[str]]  # Result of parse_qs()
+
+
+ProbeDiagnosticsCollection = dict[str, ProbeDiagnosticsData]
 
 _CUR_DIR = str(Path(__file__).resolve().parent)
 
@@ -47,18 +66,24 @@ def extract_probe_ids(probes: dict | list) -> list:
     return [probe["id"] for probe in probes]
 
 
-def _get_path(test_name: str, suffix: str) -> str:
-    filename = test_name + "_" + BaseDebuggerTest.tracer["language"] + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", filename)
+def _get_path(test_name: str, suffix: str, version: str) -> str:
+    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+
+    language = BaseDebuggerTest.tracer["language"]
+    filename = test_name + "_" + suffix + ".json"
+    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
 
 
-def write_approval(data: list, test_name: str, suffix: str) -> None:
-    with open(_get_path(test_name, suffix), "w", encoding="utf-8") as f:
+def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
+    path = _get_path(test_name, suffix, version)
+    Path(path).parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
 
-def read_approval(test_name: str, suffix: str) -> dict:
-    with open(_get_path(test_name, suffix), "r", encoding="utf-8") as f:
+def read_approval(test_name: str, suffix: str, version: str) -> dict:
+    path = _get_path(test_name, suffix, version)
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -70,19 +95,23 @@ def get_env_bool(env_var_name: str, *, default: bool = False) -> bool:
 class BaseDebuggerTest:
     tracer: dict[str, str] = {}
 
-    probe_definitions: list[dict] = []
-    probe_ids: list = []
+    probe_definitions: list[dict[str, Any]] = []
+    probe_ids: list[str] = []
 
-    probe_diagnostics: dict = {}
-    probe_snapshots: dict = {}
-    probe_spans: dict = {}
-    all_spans: list = []
-    symbols: list = []
+    probe_diagnostics: ProbeDiagnosticsCollection = {}
+    probe_snapshots: dict[str, list[dict[str, Any]]] = {}
+    probe_spans: dict[str, list[dict[str, Any]]] = {}
+    all_spans: list[dict[str, Any]] = []
+    symbols: list[dict[str, Any]] = []
+
+    start_time: int | None = None
 
     rc_states: list[remote_config.RemoteConfigStateResults] = []
     weblog_responses: list = []
 
     setup_failures: list = []
+
+    use_debugger_endpoint: bool = False
 
     def initialize_weblog_remote_config(self) -> None:
         if self.get_tracer()["language"] in ["ruby"]:
@@ -158,6 +187,11 @@ class BaseDebuggerTest:
                         ).lower()
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
+                    elif language == "golang":
+                        probe["where"]["typeName"] = "-"  # Ignored
+                        method = probe["where"]["methodName"]
+                        method = method[0].lower() + method[1:] if method else ""
+                        probe["where"]["methodName"] = "main." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -211,6 +245,8 @@ class BaseDebuggerTest:
         live_debugging_enabled: bool | None = None,
         code_origin_enabled: bool | None = None,
         dynamic_sampling_enabled: bool | None = None,
+        service_name: str | None = "weblog",
+        env: str | None = "system-tests",
         *,
         reset: bool = True,
     ) -> None:
@@ -227,6 +263,8 @@ class BaseDebuggerTest:
                 code_origin_enabled=code_origin_enabled,
                 dynamic_sampling_enabled=dynamic_sampling_enabled,
                 version=BaseDebuggerTest._rc_version,
+                service_name=service_name,
+                env=env,
             )
         )
 
@@ -246,15 +284,15 @@ class BaseDebuggerTest:
     ###### wait for #####
     _last_read = 0
 
-    def wait_for_all_probes(self, statuses: list[str], timeout: int = 30) -> bool:
+    def wait_for_all_probes(self, statuses: list[ProbeStatus], timeout: int = 30) -> bool:
         self._wait_successful = False
         interfaces.agent.wait_for(lambda data: self._wait_for_all_probes(data, statuses=statuses), timeout=timeout)
         return self._wait_successful
 
-    def _wait_for_all_probes(self, data: dict, statuses: list[str]):
+    def _wait_for_all_probes(self, data: dict[str, Any], statuses: list[ProbeStatus]):
         found_ids = set()
 
-        def _check_all_probes_status(probe_diagnostics: dict, statuses: list[str]):
+        def _check_all_probes_status(probe_diagnostics: ProbeDiagnosticsCollection, statuses: list[ProbeStatus]):
             statuses = statuses + ["ERROR"]
             logger.debug(f"Waiting for these probes to be in {statuses}: {self.probe_ids}")
 
@@ -301,27 +339,41 @@ class BaseDebuggerTest:
     _exception_message = None
     _snapshot_found = False
 
-    def wait_for_exception_snapshot_received(self, exception_message: str, timeout: int) -> bool:
-        self._exception_message = exception_message
+    def wait_for_snapshot_received(self, exception_message: str = "", timeout: int = 30) -> bool:
+        exception_snapshot = False
+        if exception_message:
+            self._exception_message = exception_message
+            exception_snapshot = True
+
         self._snapshot_found = False
 
-        interfaces.agent.wait_for(self._wait_for_snapshot_received, timeout=timeout)
+        interfaces.agent.wait_for(
+            lambda data: self._wait_for_snapshot_received(data, exception_snapshot=exception_snapshot), timeout=timeout
+        )
         return self._snapshot_found
 
-    def _wait_for_snapshot_received(self, data: dict):
-        if data["path"] == _LOGS_PATH:
-            logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
+    def _wait_for_snapshot_received(self, data: dict, *, exception_snapshot: bool = False):
+        if data["path"] in [_LOGS_PATH, _DEBUGGER_PATH]:
+            if exception_snapshot:
+                logger.debug("Reading " + data["log_filename"] + ", looking for '" + self._exception_message + "'")
+
             contents = data["request"].get("content", []) or []
 
             for content in contents:
+                # Filter out snapshots from before the test start time for multiple tests using the same file.
+                if "timestamp" in content and self.start_time is not None:
+                    if content["timestamp"] < self.start_time:
+                        continue
+
                 snapshot = content.get("debugger", {}).get("snapshot") or content.get("debugger.snapshot")
 
                 if not snapshot or "probe" not in snapshot:
-                    logger.debug("Snapshot doesn't have pobe")
                     continue
 
+                if not exception_snapshot:
+                    return True
+
                 if "exceptionId" not in snapshot:
-                    logger.debug("Snapshot doesnt't have exception")
                     continue
 
                 exception_message = self.get_exception_message(snapshot)
@@ -459,7 +511,7 @@ class BaseDebuggerTest:
                     path = _DEBUGGER_PATH
                 else:
                     path = _LOGS_PATH
-            elif context.library in ("python", "ruby", "nodejs", "php"):
+            elif context.library in ("python", "ruby", "nodejs", "php", "golang"):
                 path = _DEBUGGER_PATH
             else:
                 path = _LOGS_PATH  # TODO: Should the default not be _DEBUGGER_PATH?
@@ -470,8 +522,8 @@ class BaseDebuggerTest:
         all_data = _read_data()
         self.probe_diagnostics = self._process_diagnostics_data(all_data)
 
-    def _process_diagnostics_data(self, datas: list[dict]):
-        probe_diagnostics: dict = {}
+    def _process_diagnostics_data(self, datas: list[dict[str, Any]]) -> ProbeDiagnosticsCollection:
+        probe_diagnostics: ProbeDiagnosticsCollection = {}
 
         def _should_update_status(current_status: str, new_status: str):
             transitions = {
@@ -481,7 +533,7 @@ class BaseDebuggerTest:
             }
             return transitions.get(current_status, False)
 
-        def _process_debugger(debugger: dict):
+        def _process_debugger(debugger: dict[str, Any], query: str) -> None:
             if "diagnostics" in debugger:
                 diagnostics = debugger["diagnostics"]
                 probe_id = diagnostics["probeId"]
@@ -493,7 +545,9 @@ class BaseDebuggerTest:
                     if _should_update_status(current_status, status):
                         probe_diagnostics[probe_id]["status"] = status
                 else:
-                    probe_diagnostics[probe_id] = diagnostics
+                    probe_diagnostics[probe_id] = diagnostics.copy()
+
+                probe_diagnostics[probe_id]["query"] = parse_qs(query)
 
         for data in datas:
             logger.debug(f"Processing data: {data['log_filename']}")
@@ -504,18 +558,24 @@ class BaseDebuggerTest:
                     # content["content"] may be a dict, and not a list ?
                     for d_content in content["content"]:
                         assert isinstance(d_content, dict), f"Unexpected content: {json.dumps(content, indent=2)}"
-                        _process_debugger(d_content["debugger"])
+                        _process_debugger(d_content["debugger"], data["query"])
                 elif "debugger" in content:
-                    _process_debugger(content["debugger"])
+                    _process_debugger(content["debugger"], data["query"])
 
         return probe_diagnostics
 
     def _collect_snapshots(self):
         def _get_snapshot_hash():
+            agent_logs_endpoint_requests = []
+
             # Collect snapshots from both the logs and debugger endpoints for compatibility for when we switched
             # snapshots to the debugger endpoint.
-            agent_logs_endpoint_requests = list(interfaces.agent.get_data(_LOGS_PATH))
-            agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+            if not self.use_debugger_endpoint:
+                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_LOGS_PATH))
+                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+            else:
+                agent_logs_endpoint_requests += list(interfaces.agent.get_data(_DEBUGGER_PATH))
+
             snapshot_hash: dict = {}
 
             for request in agent_logs_endpoint_requests:
@@ -523,6 +583,7 @@ class BaseDebuggerTest:
                 if content:
                     for item in content:
                         snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                        item["query"] = parse_qs(request["query"])
                         if snapshot:
                             probe_id = snapshot["probe"]["id"]
                             if probe_id in snapshot_hash:
@@ -533,6 +594,18 @@ class BaseDebuggerTest:
             return snapshot_hash
 
         self.probe_snapshots = _get_snapshot_hash()
+
+    def _debugger_v2_input_snapshots_received(self):
+        """Test that the library sends snapshots to the debugger/v2/input endpoint"""
+        tracer_requests = interfaces.library.get_data(_DEBUGGER_V2_INPUT_PATH)
+        for request in tracer_requests:
+            content = request["request"]["content"]
+            if content:
+                for item in content:
+                    snapshot = item.get("debugger", {}).get("snapshot") or item.get("debugger.snapshot")
+                    if snapshot:
+                        return True
+        return False
 
     def _collect_spans(self):
         def _get_spans_hash():
@@ -703,8 +776,8 @@ class BaseDebuggerTest:
     def assert_all_weblog_responses_ok(self, expected_code: int = 200) -> None:
         assert len(self.weblog_responses) > 0, "No responses available."
 
-        for respone in self.weblog_responses:
-            assert respone.status_code == expected_code
+        for response in self.weblog_responses:
+            assert response.status_code == expected_code
 
     ###### assert #####
 

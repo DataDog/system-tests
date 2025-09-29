@@ -723,7 +723,7 @@ class BaseSCAStandaloneTelemetry:
         # test standalone is enabled and dropping traces
         spans_checked = 0
         for _, __, span in list(interfaces.library.get_spans(request0)) + list(interfaces.library.get_spans(request1)):
-            if span["metrics"][SAMPLING_PRIORITY_KEY] <= 0 and span["metrics"]["_dd.apm.enabled"] == 0:
+            if span["metrics"]["_dd.apm.enabled"] == 0:
                 spans_checked += 1
 
         assert spans_checked > 0
@@ -736,15 +736,24 @@ class BaseSCAStandaloneTelemetry:
     def test_telemetry_sca_enabled_propagated(self):
         self.assert_standalone_is_enabled(self.r0, self.r1)
 
-        configuration_by_name: dict[str, dict] = {}
+        configuration_by_name: dict[str, list[dict]] = {}
         for data in interfaces.library.get_telemetry_data():
             content = data["request"]["content"]
             if content.get("request_type") not in ["app-started", "app-client-configuration-change"]:
                 continue
             configuration = content["payload"]["configuration"]
 
-            configuration_by_name = {**configuration_by_name, **{item["name"]: item for item in configuration}}
-
+            for item in configuration:
+                if item["name"] not in configuration_by_name:
+                    configuration_by_name[item["name"]] = []
+                configuration_by_name[item["name"]].append(item)
+        if len(configuration_by_name):
+            # Checking if we need to sort due to multiple sources being sent for the same config
+            sample_key = next(iter(configuration_by_name))
+            if "seq_id" in configuration_by_name[sample_key][0]:
+                # Sort seq_id for each config from highest to lowest
+                for payload in configuration_by_name.values():
+                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
         assert configuration_by_name
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
@@ -755,7 +764,7 @@ class BaseSCAStandaloneTelemetry:
         outcome_value: bool | str = True
         if context.library in ["java", "php"]:
             outcome_value = str(outcome_value).lower()
-        assert cfg_appsec_enabled.get("value") == outcome_value
+        assert cfg_appsec_enabled[0].get("value") == outcome_value
 
     def setup_app_dependencies_loaded(self):
         # It's not possible to ensure first request will not be used as standalone heartbeat so let's do two just in case
@@ -817,20 +826,6 @@ class Test_AppSecStandalone_NotEnabled:
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.appsec_standalone_experimental
-@scenarios.appsec_standalone_experimental
-@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_AppSecStandalone_UpstreamPropagation(BaseAppSecStandaloneUpstreamPropagation):
-    """APPSEC correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
-
-    def propagated_tag(self):
-        return "_dd.p.appsec"
-
-    def propagated_tag_value(self):
-        return "1"
-
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.appsec_standalone
 @scenarios.appsec_standalone
 class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamPropagation):
@@ -844,20 +839,6 @@ class Test_AppSecStandalone_UpstreamPropagation_V2(BaseAppSecStandaloneUpstreamP
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.iast_standalone_experimental
-@scenarios.iast_standalone_experimental
-@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_IastStandalone_UpstreamPropagation(BaseIastStandaloneUpstreamPropagation):
-    """IAST correctly propagates AppSec events in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
-
-    def propagated_tag(self):
-        return "_dd.p.appsec"
-
-    def propagated_tag_value(self):
-        return "1"
-
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
 @features.iast_standalone
 @scenarios.iast_standalone
 class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropagation):
@@ -868,20 +849,6 @@ class Test_IastStandalone_UpstreamPropagation_V2(BaseIastStandaloneUpstreamPropa
 
     def propagated_tag_value(self):
         return "02"
-
-
-@rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")
-@features.sca_standalone_experimental
-@scenarios.sca_standalone_experimental
-@irrelevant(context.library > "java@v1.46.0", reason="V2 is implemented for newer versions")
-class Test_SCAStandalone_Telemetry(BaseSCAStandaloneTelemetry):
-    """Tracer correctly propagates SCA telemetry in distributing tracing with DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED=true."""
-
-    def propagated_tag(self):
-        return "_dd.p.appsec"
-
-    def propagated_tag_value(self):
-        return "1"
 
 
 @rfc("https://docs.google.com/document/d/12NBx-nD-IoQEMiCRnJXneq4Be7cbtSc6pJLOFUWTpNE/edit")

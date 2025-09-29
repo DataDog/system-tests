@@ -1,6 +1,4 @@
 from enum import IntEnum
-from opentelemetry.trace import SpanKind  # noqa: F401
-from opentelemetry.trace import StatusCode  # noqa: F401
 
 
 # Key used in the metrics map to indicate tracer sampling priority
@@ -81,6 +79,8 @@ class Capabilities(IntEnum):
     APM_TRACING_ENABLE_LIVE_DEBUGGING = 41
     ASM_DD_MULTICONFIG = 42
     ASM_TRACE_TAGGING_RULES = 43
+    ASM_EXTENDED_DATA_COLLECTION = 44
+    APM_TRACING_MULTICONFIG = 45
 
 
 class SamplingPriority(IntEnum):

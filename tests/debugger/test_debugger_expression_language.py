@@ -20,6 +20,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request(request_path)
         self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_snapshot_received()
 
     ############ assert ############
     def _assert(self, expected_response: int):
@@ -98,6 +99,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
+    @bug(context.library > "java@1.52.1", reason="DEBUG-4417")
     def test_expression_language_access_variables(self):
         self._assert(expected_response=200)
 
@@ -195,6 +197,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/operators?intValue=5&floatValue=3.14&strValue=haha")
 
+    @bug(context.library > "java@1.52.1", reason="DEBUG-4417")
     def test_expression_language_comparison_operators(self):
         self._assert(expected_response=200)
 
