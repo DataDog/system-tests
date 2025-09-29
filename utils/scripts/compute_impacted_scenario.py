@@ -142,6 +142,7 @@ def main() -> None:
                     r"\.github/workflows/run-open-telemetry\.yml": scenario_groups.open_telemetry,
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
+                    r"\.github/workflows/run-stream-processing-offload\.yml": scenario_groups.stream_processing_offload,
                     r"\.github/.*": None,
                     r"\.gitlab/ssi_gitlab-ci.yml": [
                         scenario_groups.onboarding,
