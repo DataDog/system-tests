@@ -10,6 +10,7 @@ def run_system_tests(
     *,
     verbose=False,
     forced_test=None,
+    use_xdist: bool = False,
     xfail_strict=False,
     env: dict[str, str] | None = None,
     expected_return_code: int = 0,
@@ -26,6 +27,8 @@ def run_system_tests(
         cmd_parts.extend(["-F", forced_test])
     if xfail_strict:
         cmd_parts.extend(["-o", "xfail_strict=True"])
+    if use_xdist:
+        cmd_parts.extend(["-n=4"])
 
     logger.info(" ".join(cmd_parts))
     result = subprocess.run(cmd_parts, capture_output=True, text=True, check=False, env=env)

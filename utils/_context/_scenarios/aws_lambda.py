@@ -163,3 +163,12 @@ class LambdaScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.lambda_weblog.weblog_variant
+
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+
+        return result
