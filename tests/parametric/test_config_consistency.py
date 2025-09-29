@@ -541,8 +541,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            print("TESTING: CONFIG IS", config)
-            assert expected.items() <= config.items()
+            assert expected.items() <= config.items(), f"Expected config items not found. Actual config is: {config}"
 
     @pytest.mark.parametrize(
         "test",
