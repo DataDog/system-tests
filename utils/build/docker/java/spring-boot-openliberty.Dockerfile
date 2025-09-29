@@ -20,14 +20,14 @@ COPY --from=build /binaries/SYSTEM_TESTS_LIBRARY_VERSION SYSTEM_TESTS_LIBRARY_VE
 
 COPY --from=build /app/target/myproject-0.0.1-SNAPSHOT.jar /app/app.jar
 COPY --from=build /dd-tracer/dd-java-agent.jar .
-COPY ./utils/build/docker/java/ConfigChaining.properties /app/ConfigChaining.properties
 
 ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # FIXME: Fails on APPSEC_BLOCKING, see APPSEC-51405
 # ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
-ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar'
+# JVM_ARGS should reflect the ConfigChaining.properties file
+ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar -Ddd.logs.injection=true -Dlogs.injection=true'
 
-RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/app.jar" > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m \$JVM_ARGS -jar /app/app.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "/app/app.sh" ]
