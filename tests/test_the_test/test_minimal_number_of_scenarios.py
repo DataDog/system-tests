@@ -12,8 +12,14 @@ from utils import logger
 # You don't need to add B/A if A/B exists
 # Structure: {("SCENARIO_A", "SCENARIO_B"): "reason"}
 SKIP_MERGE_SCENARIOS: dict[tuple[str, str], str] = {
-    ("APPSEC_API_SECURITY_RC", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
-    ("APPSEC_API_SECURITY_RC", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
+    ("APPSEC_API_SECURITY_RC", "APPSEC_RUNTIME_ACTIVATION"): """ Can't merge because:
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action::test_unknown_action
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions::test_multiple_actions
+FAILED tests/appsec/test_runtime_activation.py::Test_RuntimeActivation::test_asm_features
+FAILED tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation::test_asm_features
+FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker""",
+    # ("APPSEC_API_SECURITY_RC", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
     ("APPSEC_AUTO_EVENTS_RC", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     ("APPSEC_AUTO_EVENTS_RC", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
     ("APPSEC_BLOCKING", "GRAPHQL_APPSEC"): "TODO",
