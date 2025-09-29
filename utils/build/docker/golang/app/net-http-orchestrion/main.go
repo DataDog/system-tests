@@ -602,8 +602,9 @@ func main() {
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
-	mux.HandleFunc("/debugger/log", logProbe)
-	mux.HandleFunc("/debugger/mix", mixProbe)
+	var d DebuggerController
+	mux.HandleFunc("/debugger/log", d.logProbe)
+	mux.HandleFunc("/debugger/mix", d.mixProbe)
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -717,10 +718,12 @@ func kafkaConsume(topic string, timeout int64) (string, int, error) {
 	}
 }
 
-func logProbe(w http.ResponseWriter, r *http.Request) {
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Log probe"))
 }
 
-func mixProbe(w http.ResponseWriter, r *http.Request) {
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mix probe"))
 }
