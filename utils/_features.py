@@ -1229,7 +1229,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=209
         """
-        return _mark_test_object(test_object, feature_id=209, owner=_Owner.tracer)  # tracing/correlation, apm/dbm
+        return _mark_test_object(test_object, feature_id=209, owner=_Owner.idm)
 
     @staticmethod
     def datastreams_monitoring_support_for_http(test_object):
@@ -1658,9 +1658,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=271
         """
-        return _mark_test_object(
-            test_object, feature_id=271, owner=_Owner.tracer
-        )  # tracing/context-propagation, idm-sugar
+        return _mark_test_object(test_object, feature_id=271, owner=_Owner.idm)
 
     @staticmethod
     def datastreams_monitoring_support_for_sns(test_object):
@@ -1950,9 +1948,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=327
         """
-        return _mark_test_object(
-            test_object, feature_id=327, owner=_Owner.tracer
-        )  # library/telemetry, tracing/configuration, ssi
+        return _mark_test_object(test_object, feature_id=327, owner=_Owner.idm)
 
     @staticmethod
     def suspicious_attacker_blocking(test_object):
@@ -2138,7 +2134,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=389
         """
-        return _mark_test_object(test_object, feature_id=389, owner=_Owner.tracer)  # tracing
+        return _mark_test_object(test_object, feature_id=389, owner=_Owner.sdk_capabilities)  # tracing
 
     @staticmethod
     def iast_security_controls(test_object):
@@ -2430,7 +2426,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=470
         """
-        return _mark_test_object(test_object, feature_id=470, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=470, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def remote_config_semantic_versioning(test_object):

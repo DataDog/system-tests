@@ -661,7 +661,20 @@ class EndToEndScenario(DockerScenario):
                 and self.name in ("TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
                 ticket="APMSP-2158",
             ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path="$[].content.scopes[].scopes[].symbols[]",
+                condition=self.library >= "golang@2.4.0-dev" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-4541",
+            ),
+            _SchemaBug(
+                endpoint="/symdb/v1/input",
+                data_path="$[].content",
+                condition=self.library >= "golang@2.4.0-dev" and self.name == "DEBUGGER_SYMDB",
+                ticket="DEBUG-4541",
+            ),
         ]
+
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
