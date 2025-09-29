@@ -131,6 +131,7 @@ def main() -> None:
                 files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
                     r"\.cursor/rules/.*": None,
                     r"\.circleci/.*": None,
+                    r"chainguard/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
                     r"\.github/CODEOWNERS": None,
