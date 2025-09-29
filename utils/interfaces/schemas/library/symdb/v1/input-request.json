@@ -29,6 +29,7 @@
         }
       },
       "then": {
+        "$comment": "For Go, the debug info doesn't contain the declaration line for fields",
         "required": ["name", "symbol_type", "type"]
       },
       "else": {
