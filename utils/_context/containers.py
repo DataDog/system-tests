@@ -1522,3 +1522,83 @@ class ExternalProcessingContainer(TestedContainer):
 
         logger.stdout(f"Library: {self.library}")
         logger.stdout(f"Image: {self.image.name}")
+
+
+class HAProxyContainer(TestedContainer):
+    def __init__(self) -> None:
+        from utils import weblog
+
+        super().__init__(
+            image_name="haproxy:3.2",
+            name="haproxy",
+            volumes={
+                "./utils/build/docker/haproxy/haproxy.cfg": {
+                    "bind": "/usr/local/etc/haproxy/haproxy.cfg",
+                    "mode": "ro",
+                },
+                "./utils/build/docker/haproxy/spoe.cfg": {"bind": "/usr/local/etc/haproxy/spoe.cfg", "mode": "ro"},
+                "./utils/build/docker/haproxy/datadog_aap_blocking_response.lua": {
+                    "bind": "/etc/haproxy/lua/datadog_aap_blocking_response.lua",
+                    "mode": "ro",
+                },
+            },
+            ports={"80": ("127.0.0.1", weblog.port)},
+            healthcheck={
+                "test": "/bin/bash -c \"\
+                    exec 3<>/dev/tcp/127.0.0.1/80 || exit 1;\
+                    echo -e 'GET / HTTP/1.1\nHost: system-tests\r\n\r\n' >&3;\
+                    cat <&3 | grep -q '200'\"",
+                "retries": 10,
+            },
+        )
+
+
+class StreamProcessingOffloadContainer(TestedContainer):
+    library: ComponentVersion
+
+    def __init__(
+        self,
+        env: dict[str, str | None] | None,
+        volumes: dict[str, dict[str, str]] | None,
+    ) -> None:
+        try:
+            with open("binaries/golang-haproxy-spoa-image", encoding="utf-8") as f:
+                image = f.read().strip()
+        except FileNotFoundError:
+            image = "ghcr.io/datadog/dd-trace-go/haproxy-spoa:dev"
+
+        environment: dict[str, str | None] = {
+            "DD_SERVICE": "service_test",
+            "DD_AGENT_HOST": "proxy",
+            "DD_TRACE_AGENT_PORT": str(ProxyPorts.weblog),
+        }
+
+        if env:
+            environment.update(env)
+
+        if volumes is None:
+            volumes = {}
+
+        super().__init__(
+            image_name=image,
+            name="stream-processing-offload",
+            volumes=volumes,
+            environment=environment,
+            healthcheck={
+                "test": "wget -qO- http://localhost:3080/",
+                "retries": 10,
+            },
+        )
+
+    def post_start(self):
+        with open(self.healthcheck_log_file, encoding="utf-8") as f:
+            data = json.load(f)
+            lib = data["library"]
+
+        if "language" in lib:
+            self.library = ComponentVersion(lib["language"], lib["version"])
+        else:
+            self.library = ComponentVersion(lib["name"], lib["version"])
+
+        logger.stdout(f"Library: {self.library}")
+        logger.stdout(f"Image: {self.image.name}")
