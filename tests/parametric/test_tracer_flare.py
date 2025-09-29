@@ -219,7 +219,8 @@ class TestTracerFlareV1:
 
     @missing_feature(library="nodejs", reason="Only plaintext files are sent presently")
     @missing_feature(
-        context.library < "java@1.54.0", reason="before this version, tracer flare required tracing to be enabled "
+        context.library < "java@v1.54.0-SNAPSHOT",
+        reason="before this version, tracer flare required tracing to be enabled ",
     )
     @parametrize("library_env", [{**PROFILING_NOTRACING_ENVVARS}])
     def test_tracer_profiling_notracing_flare_content(self, library_env, test_agent, test_library):
