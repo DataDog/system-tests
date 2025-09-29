@@ -51,11 +51,11 @@ post '/' do
   'Hello, world!'
 end
 
-get '/waf' do
+get %r{/waf/?} do
   'Hello, world!'
 end
 
-post '/waf' do
+post %r{/waf/?} do
   'Hello, world!'
 end
 
