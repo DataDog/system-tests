@@ -2142,46 +2142,32 @@ tests/:
       Test_NotReleased: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic:
-      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      '*': v1.53.0
+      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-jetty: v1.53.0
-      spring-boot-openliberty: v1.53.0
-      spring-boot-payara: v1.53.0
-      spring-boot-undertow: v1.53.0
-      spring-boot-wildfly: v1.53.0
-      uds-spring-boot: v1.53.0
-      vertx3: v1.53.0
-      vertx4: v1.53.0
+      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Malformed:
-      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      akka-http: v1.53.0
-      play: v1.53.0
-      ratpack: v1.53.0
+      '*': v1.53.0
+      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-3-native: v1.53.0
-      spring-boot-jetty: v1.53.0
-      spring-boot-openliberty: v1.53.0
-      spring-boot-payara: v1.53.0
-      spring-boot-undertow: v1.53.0
-      spring-boot-wildfly: v1.53.0
-      uds-spring-boot: v1.53.0
-      vertx3: v1.53.0
-      vertx4: v1.53.0
+      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Malformed2:
-      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      akka-http: v1.53.0
-      play: v1.53.0
-      ratpack: v1.53.0
+      '*': v1.53.0
+      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-3-native: v1.53.0
-      spring-boot-jetty: v1.53.0
-      spring-boot-openliberty: v1.53.0
-      spring-boot-payara: v1.53.0
-      spring-boot-undertow: v1.53.0
-      spring-boot-wildfly: v1.53.0
-      uds-spring-boot: v1.53.0
-      vertx3: v1.53.0
-      vertx4: v1.53.0
+      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Max_Bytes:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
@@ -2191,27 +2177,23 @@ tests/:
       spring-boot-wildfly: v1.53.0
       uds-spring-boot: v1.53.0
     Test_Baggage_Headers_Max_Items:
-      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      '*': v1.53.0
+      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-jetty: v1.53.0
-      spring-boot-openliberty: v1.53.0
-      spring-boot-payara: v1.53.0
-      spring-boot-undertow: v1.53.0
-      spring-boot-wildfly: v1.53.0
-      uds-spring-boot: v1.53.0
-      vertx3: v1.53.0
-      vertx4: v1.53.0
+      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Only_Baggage_Header:
-      '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      '*': v1.53.0
+      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-jetty: v1.53.0
-      spring-boot-openliberty: v1.53.0
-      spring-boot-payara: v1.53.0
-      spring-boot-undertow: v1.53.0
-      spring-boot-wildfly: v1.53.0
-      uds-spring-boot: v1.53.0
-      vertx3: v1.53.0
-      vertx4: v1.53.0
+      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
   test_config_consistency.py:
     Test_Config_ClientIPHeaderEnabled_False: v1.43.0
     Test_Config_ClientIPHeader_Configured: v1.43.0
