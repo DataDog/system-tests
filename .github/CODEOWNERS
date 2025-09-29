@@ -34,4 +34,4 @@
 /manifests/ruby.yml @DataDog/ruby-guild @DataDog/asm-ruby
 /manifests/rust.yml @DataDog/apm-rust
 
-/chainguard/** @DataDog/system-tests-core # Security sensitive
+/.github/chainguard/** @DataDog/system-tests-core # Security sensitive
