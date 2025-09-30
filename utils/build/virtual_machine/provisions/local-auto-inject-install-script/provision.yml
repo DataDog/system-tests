@@ -9,7 +9,7 @@ tested_components:
 vm_logs:
   install: !include utils/build/virtual_machine/provisions/auto-inject/auto-inject-vm_logs.yml
 
-#Mandatory: Steps to install provision 
+#Mandatory: Steps to install provision
 provision_steps:
   - init-config #Very first machine actions, like disable auto updates
   - install-agent #Install the agent (allways latest release)
@@ -25,7 +25,7 @@ install-agent:
   install:
     - os_type: linux
       remote-command: |
-        REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+        REPO_URL=$DD_agent_repo_url DD_AGENT_DIST_CHANNEL=$DD_agent_dist_channel DD_AGENT_MAJOR_VERSION=$DD_agent_major_version bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh?versionId=wGX9PBJbKTepGT5lqqccic4kCg8DPzJ1)"
 
 autoinjection_install_script:
   install: !include utils/build/virtual_machine/provisions/host-auto-inject-install-script/auto-inject_host_script.yml
