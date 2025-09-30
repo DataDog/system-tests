@@ -404,10 +404,6 @@ SDK_DEFAULT_STABLE_CONFIG = {
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
-SDK_EXTENDED_STABLE_CONFIG = {
-    "dd_tags": "[tag1:value1,tag2:value2]",
-}
-
 
 class QuotedStr(str):
     __slots__ = ()
@@ -513,9 +509,15 @@ class Test_Stable_Config_Default(StableConfigWriter):
             (
                 "tags",
                 {"DD_TAGS": ["tag1:value1", "tag2:value2"]},
-                {**SDK_EXTENDED_STABLE_CONFIG},
+                {"dd_tags": "[tag1:value1,tag2:value2]"},
+            ),
+            (
+                "128bit_traceids",
+                {"DD_TRACE_PROPAGATION_STYLE": "tracecontext"},
+                {"dd_trace_propagation_style": "tracecontext"},
             ),
         ],
+        ids=lambda name: name,
     )
     @pytest.mark.parametrize(
         "path",
@@ -525,7 +527,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         ],
     )
     @missing_feature(
-        context.library in ["ruby", "cpp", "golang", "nodejs", "php"],
+        context.library in ["cpp", "golang", "nodejs"],
         reason="extended configs are not supported",
     )
     def test_extended_configs(
