@@ -506,6 +506,11 @@ tests/:
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v2.1.0-dev
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.1.0-dev
+    test_extended_data_collection.py:
+      Test_ExtendedDataCollectionCapability: missing_feature
+      Test_ExtendedRequestBodyCollection: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: missing_feature
+      Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -538,7 +543,7 @@ tests/:
       Test_AsmDdMultiConfiguration: v2.1.0-dev
       Test_BlockingActionChangesWithRemoteConfig: v1.69.0
       Test_Empty_Config: missing_feature
-      Test_Invalid_Config: missing_feature
+      Test_Invalid_Config: v2.2.3
       Test_Multiple_Actions: v1.69.0
       Test_Unknown_Action: v1.69.0
       Test_UpdateRuleFileWithRemoteConfig: v2.0.0
@@ -564,10 +569,10 @@ tests/:
       Test_RuntimeActivation: v1.69.0
       Test_RuntimeDeactivation: v1.69.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
-      TestServiceActivationEnvVarMetric: missing_feature
-      TestServiceActivationRemoteConfigMetric: missing_feature
-      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v2.4.0-dev
+      TestServiceActivationEnvVarMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigMetric: v2.4.0-dev
+      TestServiceActivationRemoteConfigurationConfigMetric: v2.4.0-dev
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -782,7 +787,7 @@ tests/:
       Test_Consistent_Configs: missing_feature (APMAPI-745)
       Test_Defaults: missing_feature
       Test_Environment: missing_feature
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v2.1.0-dev.2
       Test_TelemetryInstallSignature: missing_feature
       Test_TelemetrySCAEnvVar: v1.63.0-rc.1
       Test_TelemetrySSIConfigs: missing_feature
@@ -814,8 +819,8 @@ tests/:
           Test_PutObject: missing_feature
   test_baggage.py:
     Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
-    Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
+    Test_Baggage_Headers_Malformed: v2.2.3
+    Test_Baggage_Headers_Malformed2: v2.2.3
     Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
     Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not correctly implemented)
@@ -849,7 +854,7 @@ tests/:
   test_distributed.py:
     Test_DistributedHttp: missing_feature
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature
+    Test_Span_Links_From_Conflicting_Contexts: v2.2.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
   test_graphql.py:

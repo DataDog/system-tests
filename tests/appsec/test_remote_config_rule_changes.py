@@ -319,7 +319,7 @@ RULES_COMPAT_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.appsec_rc_asm_dd_multiconfig
 @features.appsec_trace_tagging_rules
 class Test_AsmDdMultiConfiguration:
@@ -579,6 +579,7 @@ class Test_Invalid_Config:
         self.config_state_3 = rc.rc_state.reset().apply()
         self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
 
+    @bug(context.library < "nodejs@5.68.0", reason="APPSEC-59077")
     def test_invalid_config(self):
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
@@ -588,6 +589,13 @@ class Test_Invalid_Config:
         waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
         waf_config_errors_values = [point[1] for p in waf_config_errors_series for point in p["points"]]
         assert any(val >= 1.0 for val in waf_config_errors_values)
+
+        for p in waf_config_errors_series:
+            tags = dict(tag.split(":") for tag in p["tags"])
+            assert "waf_version" in tags
+            assert "event_rules_version" in tags
+            assert "action" in tags
+            assert tags["action"] == "update"
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200

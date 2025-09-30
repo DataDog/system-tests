@@ -27,7 +27,9 @@
         "python_build_gnu_type": "python_build_gnu_type",
         "python_host_gnu_type": "python_host_gnu_type",
         "python_soabi": "python_soabi",
-        "trace_report_handled_exceptions": "trace_report_handled_exceptions"
+        "trace_report_handled_exceptions": "trace_report_handled_exceptions",
+        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_FLUSH_INTERVAL": "trace_experimental_long_running_flush_interval",
+        "DD_TRACE_EXPERIMENTAL_LONG_RUNNING_INITIAL_FLUSH_INTERVAL": "trace_experimental_long_running_initial_flush_interval"
     },
     "prefix_block_list": [],
     "redaction_list": [],

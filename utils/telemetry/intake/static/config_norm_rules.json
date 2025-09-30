@@ -304,6 +304,8 @@
     "DD_TRACE_WCF_RESOURCE_OBFUSCATION_ENABLED": "trace_wcf_obfuscation_enabled",
     "DD_TRACE_WCF_WEB_HTTP_RESOURCE_NAMES_ENABLED": "trace_wcf_web_http_resource_names_enabled",
     "DD_TRACE_X_DATADOG_TAGS_MAX_LENGTH": "trace_x_datadog_tags_max_length",
+    "DD_TRACE_RESOURCE_RENAMING_ENABLED": "trace_resource_renaming_enabled",
+    "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "trace_resource_renaming_always_simplified_endpoint",
     "DD_VERSION": "application_version",
     "FUNCTIONS_EXTENSION_VERSION": "aas_functions_runtime_version",
     "FUNCTIONS_WORKER_RUNTIME": "aas_functions_worker_runtime",

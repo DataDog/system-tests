@@ -2,7 +2,7 @@
     "scenario_matrix": [
         {
             "scenarios": [
-                "DOCKER_SSI"
+                "DOCKER_SSI", "DOCKER_SSI_APPSEC"
             ],
             "weblogs": [
                 {
@@ -18,6 +18,9 @@
                     ],
                     "php": [
                         "php-app"
+                    ],
+                    "dotnet": [
+                        "dotnet-app"
                     ]
                 }
             ]
@@ -193,6 +196,25 @@
         "php": [
             {
                 "name": "php-app",
+                "supported_images": [
+                    {
+                        "name": "Ubuntu_22_amd64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    },
+                    {
+                        "name": "Ubuntu_22_arm64",
+                        "allowed_runtime_versions": [
+                            "*"
+                        ]
+                    }
+                ]
+            }
+        ],
+        "dotnet": [
+            {
+                "name": "dotnet-app",
                 "supported_images": [
                     {
                         "name": "Ubuntu_22_amd64",

@@ -36,8 +36,10 @@ def get_impacted_libraries(modified_file: str) -> list[str]:
         return []
 
     files_with_no_impact = [
+        "utils/scripts/activate-easy-wins.py",
         "utils/scripts/compute-impacted-libraries.py",
         ".github/workflows/compute-impacted-libraries.yml",
+        ".github/workflows/debug-harness.yml",
     ]
     if modified_file in files_with_no_impact:
         return []
