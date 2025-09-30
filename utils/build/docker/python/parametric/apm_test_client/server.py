@@ -77,6 +77,10 @@ Implement the API specified below to enable your library to run all of the share
 opentelemetry.trace.set_tracer_provider(TracerProvider())
 
 
+def create_instrument_key(meter_name: str, name: str, kind: str, unit: str, description: str) -> Instrument:
+    return ",".join([meter_name, name.strip().lower(), kind, unit, description])
+
+
 try:
     # ddtrace.internal.agent.config is only available in ddtrace>=3.3.0
     from ddtrace.internal.agent import config as agent_config
@@ -776,7 +780,7 @@ def otel_create_counter(args: OtelCreateCounterArgs):
     meter = otel_meters[args.meter_name]
     counter = meter.create_counter(args.name, args.unit, args.description)
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "counter", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
     otel_meter_instruments[instrument_key] = counter
     return OtelCreateCounterReturn()
 
@@ -799,7 +803,7 @@ def otel_counter_add(args: OtelCounterAddArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "counter", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(
@@ -830,9 +834,7 @@ def otel_create_updowncounter(args: OtelCreateUpDownCounterArgs):
     meter = otel_meters[args.meter_name]
     counter = meter.create_up_down_counter(args.name, args.unit, args.description)
 
-    instrument_key = ",".join(
-        [args.meter_name, args.name.strip().lower(), "updowncounter", args.unit, args.description]
-    )
+    instrument_key = create_instrument_key(args.meter_name, args.name, "updowncounter", args.unit, args.description)
     otel_meter_instruments[instrument_key] = counter
     return OtelCreateUpDownCounterReturn()
 
@@ -855,9 +857,7 @@ def otel_updowncounter_add(args: OtelUpDownCounterAddArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
-    instrument_key = ",".join(
-        [args.meter_name, args.name.strip().lower(), "updowncounter", args.unit, args.description]
-    )
+    instrument_key = create_instrument_key(args.meter_name, args.name, "updowncounter", args.unit, args.description)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(
@@ -888,7 +888,7 @@ def otel_create_gauge(args: OtelCreateGaugeArgs):
     meter = otel_meters[args.meter_name]
     gauge = meter.create_gauge(args.name, args.unit, args.description)
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "gauge", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "gauge", args.unit, args.description)
     otel_meter_instruments[instrument_key] = gauge
     return OtelCreateGaugeReturn()
 
@@ -911,7 +911,7 @@ def otel_gauge_record(args: OtelGaugeRecordArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "gauge", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "gauge", args.unit, args.description)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(
@@ -942,7 +942,7 @@ def otel_create_histogram(args: OtelCreateHistogramArgs):
     meter = otel_meters[args.meter_name]
     histogram = meter.create_histogram(args.name, args.unit, args.description, explicit_bucket_boundaries_advisory=None)
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "histogram", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "histogram", args.unit, args.description)
     otel_meter_instruments[instrument_key] = histogram
     return OtelCreateHistogramReturn()
 
@@ -965,7 +965,7 @@ def otel_histogram_record(args: OtelHistogramRecordArgs):
     if args.meter_name not in otel_meters:
         raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
 
-    instrument_key = ",".join([args.meter_name, args.name.strip().lower(), "histogram", args.unit, args.description])
+    instrument_key = create_instrument_key(args.meter_name, args.name, "histogram", args.unit, args.description)
 
     if instrument_key not in otel_meter_instruments:
         raise ValueError(
@@ -1007,8 +1007,8 @@ def otel_create_asynchronous_counter(args: OtelCreateAsynchronousCounterArgs):
         args.name, [create_constant_observable_counter_func(args.value, args.attributes)], args.unit, args.description
     )
 
-    instrument_key = ",".join(
-        [args.meter_name, args.name.strip().lower(), "observable_counter", args.unit, args.description]
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, "observable_counter", args.unit, args.description
     )
     otel_meter_instruments[instrument_key] = observable_counter
     return OtelCreateAsynchronousCounterReturn()
@@ -1047,8 +1047,8 @@ def otel_create_asynchronous_updowncounter(args: OtelCreateAsynchronousUpDownCou
         args.description,
     )
 
-    instrument_key = ",".join(
-        [args.meter_name, args.name.strip().lower(), "observable_updowncounter", args.unit, args.description]
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, "observable_updowncounter", args.unit, args.description
     )
     otel_meter_instruments[instrument_key] = observable_updowncounter
     return OtelCreateAsynchronousUpDownCounterReturn()
@@ -1084,9 +1084,7 @@ def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
         args.name, [create_constant_observable_gauge_func(args.value, args.attributes)], args.unit, args.description
     )
 
-    instrument_key = ",".join(
-        [args.meter_name, args.name.strip().lower(), "observable_gauge", args.unit, args.description]
-    )
+    instrument_key = create_instrument_key(args.meter_name, args.name, "observable_gauge", args.unit, args.description)
     otel_meter_instruments[instrument_key] = observable_gauge
     return OtelCreateAsynchronousGaugeReturn()
 
