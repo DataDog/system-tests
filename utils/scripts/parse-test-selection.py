@@ -1,9 +1,12 @@
 from ruamel.yaml import YAML
+from typing import Any, TextIO
 from utils._context._scenarios import scenario_groups
 from manifests.parser.core import load as load_manifests
 from functools import reduce
 from collections import defaultdict
 import os
+import sys
+import argparse
 import re
 import json
 
@@ -184,9 +187,25 @@ def user_library_choice(detected_libraries):
 
     return libraries, set()
 
+def process_rebuild_lambda_proxy(modified_files):
+    for file in modified_files:
+        if file in ("utils/build/docker/lambda_proxy/pyproject.toml", "utils/build/docker/lambda-proxy.Dockerfile"):
+            return True
+    return False
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="",
+        help="Output file. If not provided, output to stdout",
+    )
+
+    args = parser.parse_args()
+
     ret = []
 
     if "GITLAB_CI" in os.environ:
@@ -212,15 +231,50 @@ def main() -> None:
         ret.append(process_general_files(modified_files))
         ret.append(user_library_choice(ret[0]))
 
+        rebuild_lambda_proxy = process_rebuild_lambda_proxy(modified_files)
+
         # print(ret)
 
         libraries, scenarios = reduce(
             lambda acc, r: [acc[0]|r[0], acc[1]|r[1]], ret, [set(), set()]
         )
 
-    print("libraries=" + ",".join(libraries))
+    populated_libraries = [
+        {
+            "library": library,
+            "version": "prod",
+        }
+        for library in sorted(libraries)
+    ] + [
+        {
+            "library": library,
+            "version": "dev",
+        }
+        for library in sorted(libraries)
+        if "otel" not in library
+    ]
+
+    libraries_with_dev = [item["library"] for item in populated_libraries if item["version"] == "dev"]
+    outputs = {
+        "library_matrix": populated_libraries,
+        "libraries_with_dev": libraries_with_dev,
+        "desired_execution_time": 600 if len(libraries) == 1 else 3600,
+        "rebuild_lambda_proxy": rebuild_lambda_proxy,
+    }
+
+    if args.output:
+        with open(args.output, "w", encoding="utf-8") as f:
+            print_library_outputs(outputs, f)
+    else:
+        print_library_outputs(outputs, sys.stdout)
+
     print("scenario_groups=" + ",".join(scenarios))
-    print("desired_execution_time=" + 600 if len(libraries) == 1 else 3600)
+
+
+def print_library_outputs(outputs: dict[str, Any], f: TextIO) -> None:
+    for name, value in outputs.items():
+        print(f"{name}={json.dumps(value)}", file=f)
+
 
 
 
