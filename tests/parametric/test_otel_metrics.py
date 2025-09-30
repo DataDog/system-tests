@@ -246,7 +246,7 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api_MeterProvider:
     """Tests the OpenTelemetry MeterProvider API functionality.
-    
+
     This class validates the behavior of the MeterProvider, which is responsible for:
     - Creating and managing Meter instances
     - Producing one Instrumentation Scope per unique Meter
@@ -254,6 +254,7 @@ class Test_Otel_Metrics_Api_MeterProvider:
     Note: This class doesn't exhaustively test every combination of mismatching fields.
     Note: It is unspecified whether the Meter name is case-insensitive or case-sensitive when determining uniqueness.
     """
+
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_get_meter_same_parameters(self, test_agent, test_library, library_env):
         name = "counter-test_get_meter_same_parameters"
@@ -304,7 +305,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
             scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
         )
 
-        counter = find_metric_by_name(scope_metrics[0], name)
         assert len(scope_metrics[0]["metrics"]) == 1
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -365,7 +365,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
                 DEFAULT_SCOPE_ATTRIBUTES,
             )
 
-            counter = find_metric_by_name(scope_metric, name)
             assert len(scope_metric["metrics"]) == 1
 
 
@@ -373,13 +372,14 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api_Meter:
     """Tests the OpenTelemetry Meter API functionality.
-    
+
     This class validates the behavior of the Meter, which is responsible for:
     - Creating each type of synchronous and asynchronous instruments through the Meter API
     - Handling instrument creation based on identifying fields (only name is case-insensitive)
 
     Note: This class doesn't exhaustively test every combination of mismatching fields.
     """
+
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_create_counter(self, test_agent, test_library, library_env):
         name = "test_otel_create_counter"
@@ -683,7 +683,7 @@ class Test_Otel_Metrics_Api_Meter:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Api_Instrument:
     """Tests the OpenTelemetry Instrument API functionality.
-    
+
     This class validates the behavior of individual instruments, including:
     - Counter operations with both non-negative values and negative (invalid) values
     - Gauge operations
@@ -691,6 +691,7 @@ class Test_Otel_Metrics_Api_Instrument:
     - UpDownCounter operations
     - Within an Instrument/time-series, generating unique data points per set of measurement attributees
     """
+
     # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32))  # Limit the range of integers to avoid int/float equality issues
@@ -1493,12 +1494,13 @@ class Test_Otel_Metrics_Api_Instrument:
 @scenarios.parametric
 class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
     """Tests the OpenTelemetry metrics export interval configuration.
-    
+
     This class validates the behavior of metric export interval configuration:
     - Default interval values when no configuration is provided
     - Export interval configuration through environment variable OTEL_METRIC_EXPORT_INTERVAL
     - Telemetry configuration reporting
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1543,7 +1545,7 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
                 "CORECLR_ENABLE_PROFILING": "1",
                 "DD_TRACE_DEBUG": None,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_METRIC_EXPORT_INTERVAL": "5000", # This value can be adjusted if the test becomes flaky
+                "OTEL_METRIC_EXPORT_INTERVAL": "5000",  # This value can be adjusted if the test becomes flaky
             },
         ],
     )
@@ -1577,12 +1579,13 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
 @scenarios.parametric
 class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
     """Tests the OpenTelemetry metrics export timeout configuration.
-    
+
     This class validates the behavior of the metric export timeout configuration:
     - Default timeout values when no configuration is provided
     - Export timeout configuration through environment variable OTEL_METRIC_EXPORT_TIMEOUT
     - Telemetry configuration reporting
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1627,7 +1630,7 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
                 "CORECLR_ENABLE_PROFILING": "1",
                 "DD_TRACE_DEBUG": None,
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_METRIC_EXPORT_TIMEOUT": "5000", # This value can be adjusted if the test becomes flaky
+                "OTEL_METRIC_EXPORT_TIMEOUT": "5000",  # This value can be adjusted if the test becomes flaky
             },
         ],
     )
@@ -1661,12 +1664,13 @@ class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Configuration_Temporality_Preference:
     """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
-    
+
     This class validates the behavior of temporality preference configuration:
     - Default temporality behavior is set to DELTA
     - Configuration of temporality preference through the OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE environment variable
     - Proper instrument-specific aggregation temporality in exported metrics
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1964,7 +1968,7 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
-    
+
     This class validates the behavior of OTLP endpoint settings:
     - Custom endpoint configuration through environment variables OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
     """
@@ -2026,10 +2030,11 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @scenarios.parametric
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
     """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
-    
+
     This class validates the behavior of OTLP header configuration:
     - Custom headers configuration through environment variables OTEL_EXPORTER_OTLP_HEADERS and OTEL_EXPORTER_OTLP_METRICS_HEADERS
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2097,11 +2102,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @scenarios.parametric
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
     """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
-    
+
     This class validates the behavior of OTLP protocol configuration:
     - Protocol configuration through environment variable OTEL_EXPORTER_OTLP_PROTOCOL
     - Tests the following protocols: http/protobuf, grpc
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2141,12 +2147,13 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @scenarios.parametric
 class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
     """Tests the OpenTelemetry OTLP exporter metrics timeout configuration.
-    
+
     This class validates the behavior of OTLP timeout configuration:
     - Default timeout values when no configuration is provided
     - Timeout configuration through environment variables OTEL_EXPORTER_OTLP_TIMEOUT and OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
     - Telemetry configuration reporting
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2196,8 +2203,8 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
                 "DD_METRICS_OTEL_ENABLED": "true",
                 "CORECLR_ENABLE_PROFILING": "1",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_EXPORTER_OTLP_TIMEOUT": "1000", # This value can be adjusted if the test becomes flaky
-                "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "5000", # This value can be adjusted if the test becomes flaky
+                "OTEL_EXPORTER_OTLP_TIMEOUT": "1000",  # This value can be adjusted if the test becomes flaky
+                "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "5000",  # This value can be adjusted if the test becomes flaky
             },
         ],
     )
@@ -2238,11 +2245,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
 @scenarios.parametric
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
-    
+
     This class validates the behavior of host name configuration:
     - Host name configuration when both environment variables DD_HOSTNAME and DD_TRACE_REPORT_HOSTNAME are set
     - Resource attributes set through environment variable OTEL_RESOURCE_ATTRIBUTES are preserved
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2355,12 +2363,13 @@ class Test_Otel_Metrics_Host_Name:
 @features.otel_metrics_api
 class Test_Otel_Metrics_Resource_Attributes:
     """Tests the OpenTelemetry metrics resource attributes configuration.
-    
+
     This class validates the behavior of resource attribute configuration:
     - Resource attributes configuration through environment variable OTEL_RESOURCE_ATTRIBUTES
     - Datadog environment variable mapping (DD_ENV, DD_SERVICE, DD_VERSION, DD_TAGS) to resource attributes
     - The expected OpenTelemetry vs Datadog precedence is observed
     """
+
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -2497,7 +2506,7 @@ class Test_Otel_Metrics_Resource_Attributes:
 @scenarios.parametric
 class Test_Otel_Metrics_Telemetry:
     """Tests the OpenTelemetry metrics telemetry configuration reporting.
-    
+
     This class validates the behavior of telemetry configuration reporting:
     - Telemetry configuration reporting for OTLP metrics exporter settings
     - Telemetry metrics reporting for OTLP metrics exporter operations
