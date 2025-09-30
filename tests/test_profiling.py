@@ -13,23 +13,25 @@ from utils.interfaces._library.miscs import validate_process_tags
 TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?Z")
 
 
-@features.profiling
-@features.dd_profiling_enabled
-@scenarios.profiling
-class Test_Profile:
-    """Basic testing of profiling"""
-
+class _BaseProfile:
     _is_set_up = False  # used to do the setup only once
 
     @staticmethod
     def _common_setup() -> None:
-        if Test_Profile._is_set_up:
+        if _BaseProfile._is_set_up:
             return
 
-        Test_Profile._is_set_up = True
+        _BaseProfile._is_set_up = True
 
         for _ in range(100):
             weblog.get("/make_distant_call", params={"url": "http://weblog:7777"})
+
+
+@features.profiling
+@features.dd_profiling_enabled
+@scenarios.profiling
+class Test_Profile(_BaseProfile):
+    """Basic testing of profiling"""
 
     def setup_library(self):
         self._common_setup()
@@ -44,22 +46,6 @@ class Test_Profile:
     def test_agent(self):
         """All profiling agent payload have recording-start and recording-end fields"""
         interfaces.agent.validate_profiling(self._validate_data)
-
-    def setup_process_tags(self):
-        self._common_setup()
-
-    @features.process_tags
-    @missing_feature(
-        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
-        reason="Not yet implemented",
-    )
-    def test_process_tags(self):
-        """All profiling libraries payload have process tags field"""
-        profiling_data_list = list(interfaces.agent.get_profiling_data())
-        for data in profiling_data_list:
-            for content in data["request"]["content"]:
-                if "content" in content:
-                    validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
     def _validate_data(data) -> bool:
@@ -78,3 +64,22 @@ class Test_Profile:
                 return True
 
         raise ValueError("No profiling event requests")
+
+
+@features.process_tags
+@scenarios.profiling
+class Test_ProcessTags(_BaseProfile):
+    def setup_process_tags(self):
+        self._common_setup()
+
+    @missing_feature(
+        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        reason="Not yet implemented",
+    )
+    def test_process_tags(self):
+        """All profiling libraries payload have process tags field"""
+        profiling_data_list = list(interfaces.agent.get_profiling_data())
+        for data in profiling_data_list:
+            for content in data["request"]["content"]:
+                if "content" in content:
+                    validate_process_tags(content["content"]["process_tags"])
