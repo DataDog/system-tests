@@ -1096,7 +1096,7 @@ class OtelMetricsForceFlushArgs(BaseModel):
 
 
 class OtelMetricsForceFlushReturn(BaseModel):
-    success: bool = 1
+    success: bool
 
 
 @app.post("/metrics/otel/force_flush")
