@@ -27,9 +27,6 @@ def _load_ufc_fixture() -> Dict[str, Any]:
 
     with open(fixture_path) as f:
         ufc_payload = json.load(f)
-
-    # Extract the complete UFC attributes (matches UniversalFlagConfigurationV1 interface)
-    # Return format: {"createdAt": "...", "format": "SERVER", "environment": {...}, "flags": {...}}
     return ufc_payload["data"]['attributes']
 
 def _get_test_case_files() -> List[str]:
@@ -60,7 +57,9 @@ def _create_ffe_rc_config(ufc_data: Dict[str, Any], config_id: str = None) -> Di
 
     config = { 
         "action": "apply",
-        "ufc": ufc_data
+        "flag_configuration": ufc_data,
+        "flag_environment": "foo",
+
     }
     config["id"] = config_id
     return config

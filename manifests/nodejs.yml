@@ -1407,6 +1407,8 @@ tests/:
     Test_Config_UnifiedServiceTagging_Default: *ref_5_25_0
   test_data_integrity.py:
     Test_LibraryHeaders: *ref_5_47_0
+  test_feature_flag_exposure.py:
+    TestFeatureFlagExposure: *ref_5_66_0
   test_distributed.py:
     Test_DistributedHttp: *ref_3_0_0
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)

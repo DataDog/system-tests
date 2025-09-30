@@ -756,6 +756,23 @@ class _Scenarios:
         scenario_groups=[scenario_groups.debugger, scenario_groups.telemetry],
     )
 
+    # Feature Flag Exposure scenarios
+    feature_flag_exposure = EndToEndScenario(
+        "FEATURE_FLAG_EXPOSURE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_REMOTE_CONFIG_ENABLED": "1",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_FLAGGING_PROVIDER_ENABLED": "true",
+            "_DD_FFE_FLUSH_INTERVAL": "1000",
+            "_DD_FFE_TIMEOUT": "5000",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        },
+        library_interface_timeout=5,
+        doc="Test scenario for checking feature flag exposure",
+        scenario_groups=[scenario_groups.feature_flag_exposure],
+    )
+
     fuzzer = DockerScenario(
         "FUZZER",
         doc="Fake scenario for fuzzing (launch without pytest)",
