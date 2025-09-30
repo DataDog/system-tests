@@ -60,7 +60,9 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=2
         """
         return _mark_test_object(
-            test_object, feature_id=2, owner=_Owner.sdk_capabilities
+            test_object,
+            feature_id=2,
+            owner=_Owner.tracer,  # See with @ekump
         )  # library/config, tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -191,7 +193,9 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=17
         """
         return _mark_test_object(
-            test_object, feature_id=17, owner=_Owner.sdk_capabilities
+            test_object,
+            feature_id=17,
+            owner=_Owner.tracer,  # See with @ekump
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
