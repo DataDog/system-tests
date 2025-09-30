@@ -513,7 +513,8 @@ def scenario_processing(impacts: dict[str, Param]) -> None:
 
 def main() -> None:
     impacts = parse()
-    library_processing(impacts)
+    if "GITLAB_CI" not in os.environ:
+        library_processing(impacts)
     scenario_processing(impacts)
 
 
