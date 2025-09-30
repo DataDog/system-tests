@@ -20,6 +20,8 @@ end
 require 'rack/contrib/json_body_parser'
 use Rack::JSONBodyParser
 
+set :strict_paths, false
+
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
@@ -51,11 +53,11 @@ post '/' do
   'Hello, world!'
 end
 
-get %r{/waf/?} do
+get '/waf' do
   'Hello, world!'
 end
 
-post %r{/waf/?} do
+post '/waf' do
   'Hello, world!'
 end
 
