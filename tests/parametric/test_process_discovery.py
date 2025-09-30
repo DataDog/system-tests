@@ -64,13 +64,15 @@ def assert_v1(tracer_metadata, test_library, library_env):
 
     version = Version(tracer_metadata["tracer_version"])
     assert version == get_context_tracer_version()
-    pass
 
 
 def assert_v2(tracer_metadata, test_library, library_env):
     assert_v1(tracer_metadata, test_library, library_env)
-    assert tracer_metadata["process-tags"] == ""
-    assert tracer_metadata["container-id"] == ""
+    if library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "true":
+        assert "entrypoint.name" in tracer_metadata["process_tags"]
+    elif library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "false":
+        assert tracer_metadata["process_tags"] == ""
+    assert tracer_metadata["container_id"] == ""
 
 
 asserters = {1: assert_v1, 2: assert_v2}
@@ -82,8 +84,21 @@ class Test_ProcessDiscovery:
     @pytest.mark.parametrize(
         "library_env",
         [
-            {"DD_SERVICE": "a", "DD_ENV": "test", "DD_VERSION": "0.1.0"},
-            {"DD_SERVICE": "b", "DD_ENV": "second-test", "DD_VERSION": "0.2.0"},
+            {
+                "DD_SERVICE": "a",
+                "DD_ENV": "test",
+                "DD_VERSION": "0.1.0",
+                # DD_AGENT_HOST set to localhost as dd-trace-go tracer fails to init if agent is set on another host and the tracer can't connect
+                "DD_AGENT_HOST": "localhost",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
+            },
+            {
+                "DD_SERVICE": "b",
+                "DD_ENV": "second-test",
+                "DD_VERSION": "0.2.0",
+                "DD_AGENT_HOST": "localhost",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
+            },
         ],
     )
     def test_metadata_content(self, test_library, library_env):
@@ -100,7 +115,7 @@ class Test_ProcessDiscovery:
             assert validate_schema(tracer_metadata)
 
             schema_version = tracer_metadata["schema_version"]
-            assert_func = asserters.get(schema_version, None)
+            assert_func = asserters.get(schema_version)
             assert assert_func, f"unsupported version {schema_version}"
 
             assert_func(tracer_metadata, test_library, library_env)
