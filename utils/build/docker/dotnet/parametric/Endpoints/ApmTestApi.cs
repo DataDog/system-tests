@@ -40,6 +40,8 @@ public abstract class ApmTestApi
     private static readonly Type GlobalSettingsType = GetType("Datadog.Trace.Configuration.GlobalSettings");
     private static readonly Type AgentWriterType = GetType("Datadog.Trace.Agent.AgentWriter");
     private static readonly Type StatsAggregatorType = GetType("Datadog.Trace.Agent.StatsAggregator");
+    private static readonly Type ProfilerType = GetType("Datadog.Trace.ContinuousProfiler.Profiler");
+    private static readonly Type IProfilerStatusType = GetType("Datadog.Trace.ContinuousProfiler.IProfilerStatus");
 
     // ImmutableTracerSettings was removed in 3.7.0
     private static readonly Type TracerSettingsType = DatadogTraceAssembly.GetName().Version <= new Version(3, 6, 1, 0) ?
@@ -54,9 +56,13 @@ public abstract class ApmTestApi
     private static readonly PropertyInfo PropagationStyleInject = TracerSettingsType.GetProperty("PropagationStyleInject", CommonBindingFlags)!;
     private static readonly PropertyInfo RuntimeMetricsEnabled = TracerSettingsType.GetProperty("RuntimeMetricsEnabled", CommonBindingFlags)!;
     private static readonly PropertyInfo IsActivityListenerEnabled = TracerSettingsType.GetProperty("IsActivityListenerEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo IsDataStreamsEnabled = TracerSettingsType.GetProperty("IsDataStreamsMonitoringEnabled", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerInstance = TracerType.GetProperty("Instance", CommonBindingFlags)!;
     private static readonly PropertyInfo GetTracerSettings = TracerType.GetProperty("Settings", CommonBindingFlags)!;
     private static readonly PropertyInfo GetDebugEnabled = GlobalSettingsType.GetProperty("DebugEnabled", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetProfilerInstance = ProfilerType.GetProperty("Instance", CommonBindingFlags)!;
+    private static readonly PropertyInfo GetProfilerStatus = ProfilerType.GetProperty("Status", CommonBindingFlags)!;
+    private static readonly PropertyInfo IsProfilerReady = IProfilerStatusType.GetProperty("IsProfilerReady", CommonBindingFlags)!;
     private static readonly MethodInfo StatsAggregatorDisposeAsync = StatsAggregatorType.GetMethod("DisposeAsync", CommonBindingFlags)!;
     private static readonly MethodInfo StatsAggregatorFlush = StatsAggregatorType.GetMethod("Flush", CommonBindingFlags)!;
 
@@ -259,6 +265,13 @@ public abstract class ApmTestApi
         var runtimeMetricsEnabled = (bool)RuntimeMetricsEnabled.GetValue(internalTracerSettings)!;
         var isOtelEnabled = (bool)IsActivityListenerEnabled.GetValue(internalTracerSettings)!;
 
+        var profiler = GetProfilerInstance.GetValue(null);
+        var profilerStatus = GetProfilerStatus.GetValue(profiler);
+        var isProfilingEnabled = (bool)IsProfilerReady.GetValue(profilerStatus)!;
+
+        var isDataStreamsEnabled = (bool)IsDataStreamsEnabled.GetValue(internalTracerSettings)!;
+
+
         Dictionary<string, object?> config = new()
         {
             { "dd_service", tracerSettings.ServiceName },
@@ -274,6 +287,8 @@ public abstract class ApmTestApi
             { "dd_log_level", null },
             { "dd_trace_agent_url", tracerSettings.AgentUri },
             { "dd_trace_rate_limit", tracerSettings.MaxTracesSubmittedPerSecond.ToString() },
+            { "dd_profiling_enabled", isProfilingEnabled.ToString().ToLowerInvariant() },
+            { "dd_data_streams_enabled", isDataStreamsEnabled.ToString().ToLowerInvariant() },
             // { "dd_trace_sample_ignore_parent", "null" }, // Not supported
         };
 
