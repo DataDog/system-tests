@@ -86,3 +86,19 @@ class Capabilities(IntEnum):
 class SamplingPriority(IntEnum):
     AUTO_KEEP = 1
     USER_KEEP = 2
+
+
+class SamplingMechanism(IntEnum):
+    UNKNOWN = -1
+    DEFAULT = 0
+    AGENT_RATE = 1
+    REMOTE_RATE = 2
+    RULE_RATE = 3
+    MANUAL = 4
+    APPSEC = 5
+    REMOTE_USER_RATE = 6
+    SINGLE_SPAN = 8
+    RESERVED_9 = 9
+    RESERVED_10 = 10
+    REMOTE_USER_RULE = 11
+    REMOTE_DYNAMIC_RULE = 12
