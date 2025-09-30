@@ -5,7 +5,7 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence, Callable, Generator
+from collections.abc import Sequence, Generator
 import json
 import os
 from pathlib import Path
@@ -15,6 +15,7 @@ from typing import Any
 import xml.etree.ElementTree as ET
 
 import pytest
+from _pytest.junitxml import xml_key
 from pytest_jsonreport.plugin import JSONReport
 from pluggy._result import _Result as Result
 
@@ -184,6 +185,15 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     # if only collect tests, do not start the scenario
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
+
+    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # Workaround to tackle this issue
+    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
+    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
+    if xml:
+        properties = context.scenario.get_junit_properties()
+        for key, value in properties.items():
+            xml.add_global_property(key, value or "")
 
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
@@ -498,14 +508,6 @@ def pytest_json_modifyreport(json_report: dict) -> None:
 
     except:
         logger.error("Fail to modify json report", exc_info=True)
-
-
-### decorate junit export
-@pytest.fixture(scope="session", autouse=True)
-def log_global_env_facts(record_testsuite_property: Callable) -> None:
-    properties = context.scenario.get_junit_properties()
-    for key, value in properties.items():
-        record_testsuite_property(key, value or "")
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

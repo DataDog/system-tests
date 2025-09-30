@@ -82,7 +82,6 @@ jobs:
       - name: Pull images
         uses: ./.github/actions/pull_images
         with:
-          cleanup: "false"
           library: golang
           weblog: golang-dummy
           scenarios: '["STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING"]'
