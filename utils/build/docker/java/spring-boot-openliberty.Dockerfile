@@ -28,6 +28,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # JVM_ARGS should reflect the ConfigChaining.properties file
 ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar -Ddd.logs.injection=true -Dlogs.injection=true'
 
-RUN echo "#!/bin/bash\njava -Xmx362m \$JVM_ARGS -jar /app/app.jar" > app.sh
+RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/app.jar" > app.sh
 RUN chmod +x app.sh
 CMD [ "/app/app.sh" ]
