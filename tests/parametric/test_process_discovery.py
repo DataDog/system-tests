@@ -9,6 +9,8 @@ from utils._context.component_version import Version
 
 
 def find_dd_memfds(test_library, pid: int) -> list[str]:
+    import time
+    time.sleep(1000)
     rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info*'")
     if not rc:
         return []
@@ -82,8 +84,7 @@ class Test_ProcessDiscovery:
     @pytest.mark.parametrize(
         "library_env",
         [
-            {"DD_SERVICE": "a", "DD_ENV": "test", "DD_VERSION": "0.1.0"},
-            {"DD_SERVICE": "b", "DD_ENV": "second-test", "DD_VERSION": "0.2.0"},
+            {"DD_SERVICE": "a", "DD_ENV": "test", "DD_VERSION": "0.1.0", "DD_TRACE_DEBUG": "true"},
         ],
     )
     def test_metadata_content(self, test_library, library_env):

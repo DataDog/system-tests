@@ -65,6 +65,7 @@ func main() {
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/trace/start_dd", s.startTracerHandler)
 
 	// otel-api endpoints:
 	http.HandleFunc("/trace/otel/start_span", s.otelStartSpanHandler)

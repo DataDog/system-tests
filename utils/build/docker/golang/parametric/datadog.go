@@ -359,3 +359,9 @@ func (s *apmClientServer) getTraceConfigHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
+
+func (s *apmClientServer) startTracerHandler(w http.ResponseWriter, r *http.Request) {
+	var log = &CustomLogger{Logger: logrus.New(), tracerConfig: make(map[string]string), profilerConfig: make(map[string]string)}
+	tracer.Start(tracer.WithLogger(log))
+	w.Header().Set("Content-Type", "application/json")
+}
