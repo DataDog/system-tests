@@ -2,7 +2,6 @@ from ruamel.yaml import YAML
 from typing import Any, TextIO
 from utils._context._scenarios import scenario_groups
 from manifests.parser.core import load as load_manifests
-from functools import reduce
 from collections import defaultdict
 import os
 import sys
@@ -28,45 +27,46 @@ LIBRARIES = {
 }
 
 
+def transform_pattern(pattern: str) -> str:
+    return pattern.replace(".", r"\.").replace("*", ".*")
 
-def transform_pattern(pattern: str):
-    pattern = pattern.replace(".", r"\.")
-    pattern = pattern.replace("*", ".*")
-    return pattern
 
-def check_scenario(val):
+def check_scenario(val: Any) -> bool:  # noqa: ANN401
     match val:
         case set():
             return True
         case str():
             return hasattr(scenario_groups, val)
         case list():
-            return all([hasattr(scenario_groups, scenario) for scenario in val])
+            return all(hasattr(scenario_groups, scenario) for scenario in val)
         case _:
             return False
 
-def check_libraries(val):
+
+def check_libraries(val: Any) -> bool:  # noqa: ANN401
     match val:
         case set():
             return True
         case str():
             return val in LIBRARIES
         case list():
-            return all([library in LIBRARIES for library in val])
+            return all(library in LIBRARIES for library in val)
         case _:
             return False
 
+
 class Param:
     def __init__(self):
-        self.libraries = LIBRARIES
-        self.scenarios = {scenario_groups.all.name}
+        self.libraries: set[str] = LIBRARIES
+        self.scenarios: set[str] = {scenario_groups.all.name}
 
-def parse():
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    yml_path = os.path.join(root_dir, 'test-selection.yml')
+
+def parse() -> dict[str, Param]:
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
+    yml_path = os.path.join(root_dir, "test-selection.yml")
 
     yaml = YAML()
-    with open(yml_path, 'r') as file:
+    with open(yml_path, "r") as file:
         data = yaml.load(file)["patterns"]
 
     try:
@@ -84,36 +84,33 @@ def parse():
                 if check_libraries(libraries):
                     ret[pattern].libraries = set(libraries)
                 else:
-                    raise Exception(f"One or more of the libraries does not exist: {libraries}")
+                    raise Exception(f"One or more of the libraries does not exist: {libraries}")  # noqa: TRY002
 
             if scenarios != "ALL":
                 if check_scenario(scenarios):
                     ret[pattern].scenarios = set(scenarios)
                 else:
-                    raise Exception(f"One or more of the scenario groups does not exist: {scenarios}")
+                    raise Exception(f"One or more of the scenario groups does not exist: {scenarios}")  # noqa: TRY002
 
         return ret
 
     except AttributeError:
-        raise Exception("Error in the test selection file")
+        raise Exception("Error in the test selection file") from None  # noqa: TRY002
 
-def library_processing(impacts):
-    import argparse
+
+def library_processing(impacts: dict[str, Param]) -> None:
     import json
     import os
     import re
-    import sys
-    from typing import Any, TextIO
 
     lambda_libraries = ["python_lambda"]
     otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
 
     # nodejs_otel is broken: dependancy needs to be pinned
     # libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
-    libraries = "|".join(LIBRARIES+lambda_libraries+otel_libraries)
+    libraries = "|".join(list(LIBRARIES) + lambda_libraries + otel_libraries)
 
-
-    def get_impacted_libraries(modified_file: str, impacts) -> list[str]:
+    def get_impacted_libraries(modified_file: str, impacts: dict[str, Param]) -> list[str]:
         # """Return the list of impacted libraries by this file"""
         # if modified_file.endswith((".md", ".rdoc", ".txt")):
         #     # modification in documentation file
@@ -150,15 +147,13 @@ def library_processing(impacts):
             if match := re.search(pattern, modified_file):
                 return [match[1]]
 
-        lib = None
         for pattern, requirement in impacts.items():
-            if re.fullmatch(pattern, file):
-                lib = requirement.libraries
+            if re.fullmatch(pattern, modified_file):
+                return list(requirement.libraries)
 
-        return LIBRARIES
+        return list(LIBRARIES)
 
-
-    def main_library_processing(impacts) -> None:
+    def main_library_processing(impacts: dict[str, Param]) -> None:
         parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
         parser.add_argument(
             "--output",
@@ -199,13 +194,16 @@ def library_processing(impacts):
                 modified_files: list[str] = [line.strip() for line in f]
 
             for file in modified_files:
-                impacted_libraries = get_impacted_libraries(file)
+                impacted_libraries = get_impacted_libraries(file, impacts)
 
                 if file.endswith((".md", ".rdoc", ".txt")):
                     # modification in documentation file
                     continue
 
-                if file in ("utils/build/docker/lambda_proxy/pyproject.toml", "utils/build/docker/lambda-proxy.Dockerfile"):
+                if file in (
+                    "utils/build/docker/lambda_proxy/pyproject.toml",
+                    "utils/build/docker/lambda-proxy.Dockerfile",
+                ):
                     rebuild_lambda_proxy = True
 
                 if user_choice is None:
@@ -254,26 +252,21 @@ def library_processing(impacts):
         else:
             print_github_outputs(outputs, sys.stdout)
 
-
     def print_github_outputs(outputs: dict[str, Any], f: TextIO) -> None:
         for name, value in outputs.items():
             print(f"{name}={json.dumps(value)}", file=f)
-    
+
     main_library_processing(impacts)
 
-def scenario_processing(impacts):
-    from collections import defaultdict
-    import json
+
+def scenario_processing(impacts: dict[str, Param]) -> None:
     import os
-    import re
     from typing import TYPE_CHECKING
-    from manifests.parser.core import load as load_manifests
     from utils._context._scenarios import scenarios, Scenario, scenario_groups
     from utils._context._scenarios.core import ScenarioGroup
 
     if TYPE_CHECKING:
         from collections.abc import Iterable
-
 
     class Result:
         def __init__(self) -> None:
@@ -309,8 +302,7 @@ def scenario_processing(impacts):
             for name in scenario_names:
                 self.scenarios.add(name)
 
-
-    def main_scenario_processing(impacts) -> None:
+    def main_scenario_processing(impacts: dict[str, Param]) -> None:
         result = Result()
 
         if "GITLAB_CI" in os.environ:
@@ -499,7 +491,7 @@ def scenario_processing(impacts):
 
                     for pattern, requirement in impacts.items():
                         if re.fullmatch(pattern, file):
-                            result.add_scenario_requirement(requirement.scenarios)
+                            result.add_scenario_names(requirement.scenarios)
                             # on first matching pattern, stop the loop
                             break
                     else:
@@ -516,10 +508,12 @@ def scenario_processing(impacts):
 
     main_scenario_processing(impacts)
 
+
 def main() -> None:
     impacts = parse()
     library_processing(impacts)
     scenario_processing(impacts)
+
 
 if __name__ == "__main__":
     main()
