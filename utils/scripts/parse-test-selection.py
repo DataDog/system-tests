@@ -98,7 +98,7 @@ def parse() -> dict[str, Param]:
         raise Exception("Error in the test selection file") from None  # noqa: TRY002
 
 
-def library_processing(impacts: dict[str, Param]) -> None:
+def library_processing(impacts: dict[str, Param], output) -> None:
     import json
     import os
     import re
@@ -156,18 +156,7 @@ def library_processing(impacts: dict[str, Param]) -> None:
 
         return list(LIBRARIES)
 
-    def main_library_processing(impacts: dict[str, Param]) -> None:
-        parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
-        parser.add_argument(
-            "--output",
-            "-o",
-            type=str,
-            default="",
-            help="Output file. If not provided, output to stdout",
-        )
-
-        args = parser.parse_args()
-
+    def main_library_processing(impacts: dict[str, Param], output) -> None:
         result = set()
 
         if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
@@ -249,8 +238,8 @@ def library_processing(impacts: dict[str, Param]) -> None:
             "rebuild_lambda_proxy": rebuild_lambda_proxy,
         }
 
-        if args.output:
-            with open(args.output, "w", encoding="utf-8") as f:
+        if output:
+            with open(output, "w", encoding="utf-8") as f:
                 print_github_outputs(outputs, f)
         else:
             print_github_outputs(outputs, sys.stdout)
@@ -259,10 +248,10 @@ def library_processing(impacts: dict[str, Param]) -> None:
         for name, value in outputs.items():
             print(f"{name}={json.dumps(value)}", file=f)
 
-    main_library_processing(impacts)
+    main_library_processing(impacts, output)
 
 
-def scenario_processing(impacts: dict[str, Param]) -> None:
+def scenario_processing(impacts: dict[str, Param], output) -> None:
     import os
     from typing import TYPE_CHECKING
     from utils._context._scenarios import scenarios, Scenario, scenario_groups
@@ -305,7 +294,7 @@ def scenario_processing(impacts: dict[str, Param]) -> None:
             for name in scenario_names:
                 self.scenarios.add(name)
 
-    def main_scenario_processing(impacts: dict[str, Param]) -> None:
+    def main_scenario_processing(impacts: dict[str, Param], output) -> None:
         result = Result()
 
         if "GITLAB_CI" in os.environ:
@@ -508,17 +497,34 @@ def scenario_processing(impacts: dict[str, Param]) -> None:
                 if file in scenarios_by_files:
                     result.add_scenario_names(scenarios_by_files[file])
 
-        print("scenarios=" + ",".join(result.scenarios))
-        print("scenarios_groups=" + ",".join(result.scenarios_groups))
+        if output:
+            with open(output, "w", encoding="utf-8") as f:
+                print("scenarios=" + ",".join(result.scenarios), file=f)
+                print("scenarios_groups=" + ",".join(result.scenarios_groups), file=f)
+        else:
+            print("scenarios=" + ",".join(result.scenarios))
+            print("scenarios_groups=" + ",".join(result.scenarios_groups))
 
-    main_scenario_processing(impacts)
+    main_scenario_processing(impacts, output)
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="",
+        help="Output file. If not provided, output to stdout",
+    )
+
+    args = parser.parse_args()
+    output = args.output
+
     impacts = parse()
     if "GITLAB_CI" not in os.environ:
-        library_processing(impacts)
-    scenario_processing(impacts)
+        library_processing(impacts, output)
+    scenario_processing(impacts, output)
 
 
 if __name__ == "__main__":
