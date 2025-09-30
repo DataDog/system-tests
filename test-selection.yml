@@ -2,29 +2,215 @@
 # the subset will be applied
 #
 # Valid scenario names can be found in ./utils/_context/_scenarios/core.py:26
+# Pattern cannot start with a * because it triggers yaml ref mechanism
 
-refs:
-  - &lamda_libraries
+# refs:
+#   - &lamda_libraries [lsi, dkjf]
 
 patterns:
-    # - r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
-    # - r"\.github/.*": None,
+    # - r"\.github/workflows/run-exotics\.yml": exotics,
+    # - r"\.github/.*": null,
 
     # - ".github/workflows/daily-tag.yml"
+
+    - .cursor/rules/*:
+        scenario_groups: null
+    - .circleci/*:
+        scenario_groups: null
+    - .vscode/*:
+        scenario_groups: null
+    - .github/actions/pull_images/action.yml:
+        scenario_groups: end_to_end
+    - .github/CODEOWNERS:
+        scenario_groups: null
+    - .github/workflows/daily-tag.yml:
+        scenario_groups: null
+    - .github/workflows/debug-harness.yml:
+        scenario_groups: null
+    - .github/workflows/run-docker-ssi.yml:
+        scenario_groups: docker_ssi
+    - .github/workflows/run-end-to-end.yml:
+        scenario_groups: end_to_end
+    - .github/workflows/run-graphql.yml:
+        scenario_groups: graphql
+    - .github/workflows/run-lib-injection.yml:
+        scenario_groups: lib_injection
+    - .github/workflows/run-open-telemetry.yml:
+        scenario_groups: open_telemetry
+    # - .github/workflows/run-parametric.yml:
+        # scenario_groups: scenarios.parametric
+    - .github/workflows/run-exotics.yml:
+        scenario_groups: exotics
     - .github/*:
-        libraries: &all_libraries
-        scenarios: [end_to_end, debugger]
+        scenario_groups: null
+    - .gitlab/ssi_gitlab-ci.yml:
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
+    - .promptfoo/*:
+        scenario_groups: null
+    - binaries/*:
+        scenario_groups: null
+    - docs/*:
+        scenario_groups: null
+    - lib-injection/*:
+        scenario_groups: lib_injection
+    - manifests/*:
+        scenario_groups: null  # already handled by the manifest comparison
+    - repository.datadog.yml:
+        scenario_groups: null
+    # - utils/_context/_scenarios/appsec_low_waf_timeout.py:
+        # scenario_groups: scenarios.appsec_low_waf_timeout
+    - utils/_context/_scenarios/aws_lambda.py:
+        scenario_groups: lambda_end_to_end
+    - utils/_context/_scenarios/auto_injection.py:
+        scenario_groups: onboarding
+    # - utils/_context/_scenarios/default.py:
+        # scenario_groups: scenarios.default
+    # - utils/_context/_scenarios/appsec_rasp.py:
+        # scenario_groups: scenarios.appsec_rasp
+    - utils/_context/_scenarios/endtoend.py:
+        scenario_groups: end_to_end
+    - utils/_context/_scenarios/integrations.py:
+        scenario_groups: integrations
+    - utils/_context/_scenarios/ipv6.py:
+        scenario_groups: ipv6
+    - utils/_context/_scenarios/open_telemetry.py:
+        scenario_groups: open_telemetry
+    # - utils/_context/_scenarios/parametric.py:
+        # scenario_groups: scenarios.parametric
+    - utils/_context/_scenarios/profiling.py:
+        scenario_groups: profiling
+    # - utils/_context/_scenarios/stream_processing_offload.py: stream_processing_offload
+    - utils/_context/virtual_machine.py:
+        scenario_groups: onboarding
+    - utils/build/docker/java_otel/*:
+        scenario_groups: open_telemetry
+    - utils/build/docker/lambda_proxy/*:
+        scenario_groups: lambda_end_to_end
+    - utils/build/docker/nodejs_otel/*:
+        scenario_groups: open_telemetry
+    - utils/build/docker/python_otel/*:
+        scenario_groups: open_telemetry
+    - utils/build/docker/python_lambda/*:
+        scenario_groups: appsec_lambda
+    # - utils/build/docker/\w+/parametric/*:
+        # scenario_groups: scenarios.parametric
+    - utils/build/docker/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+    - utils/build/ssi/*:
+        scenario_groups: docker_ssi
+    - utils/build/virtual_machine/*:
+        scenario_groups: onboarding
+    - utils/docker_ssi/*:
+        scenario_groups: docker_ssi
+    # - utils/_features.py:
+        # scenario_groups: scenarios.default
+    - utils/interfaces/schemas*:
+        scenario_groups: end_to_end
+    - utils/k8s_lib_injection*:
+        scenario_groups: lib_injection
+    - utils/onboarding*:
+        scenario_groups: onboarding
+    # - utils/parametric/*:
+        # scenario_groups: scenarios.parametric
+    - utils/telemetry/*:
+        scenario_groups: telemetry
+    - utils/proxy/*:
+        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
+    - utils/scripts/activate-easy-wins.py:
+        scenario_groups: null
+    - utils/scripts/add-system-tests-label-on-known-tickets.py:
+        scenario_groups: null
+    - utils/scripts/ai/*:
+        scenario_groups: null
+    - utils/scripts/check_version.sh:
+        scenario_groups: null
+    - utils/scripts/compute_impacted_scenario.py:
+        scenario_groups: null
+    - utils/scripts/get-nightly-logs.py:
+        scenario_groups: null
+    - utils/scripts/get-workflow-summary.py:
+        scenario_groups: null
+    - utils/scripts/grep-nightly-logs.py.py:
+        scenario_groups: null
+    # - utils/scripts/parametric/*:
+        # scenario_groups: scenarios.parametric
+    - utils/scripts/replay_scenarios.sh:
+        scenario_groups: null
+    - utils/scripts/ssi_wizards/*:
+        scenario_groups: null
+    - utils/scripts/update_protobuf.sh:
+        scenario_groups: null
+    - utils/virtual_machine/*:
+        scenario_groups: onboarding
+    # - utils/*:
+    #     scenario_groups: all
+    - .cursorrules:
+        scenario_groups: null
+    - .dockerignore:
+        scenario_groups: null
+    - .gitattributes:
+        scenario_groups: null
+    - .gitignore:
+        scenario_groups: null
+    - .gitlab-ci.yml:
+        scenario_groups: null
+    - .shellcheck:
+        scenario_groups: null
+    - .shellcheckrc:
+        scenario_groups: null
+    - .yamlfmt:
+        scenario_groups: null
+    - .yamllint:
+        scenario_groups: null
+    # - conftest.py:
+    #     scenario_groups: all
+    - CHANGELOG.md:
+        scenario_groups: null
+    - flake.lock:
+        scenario_groups: null
+    - format.sh:
+        scenario_groups: null
+    - LICENSE:
+        scenario_groups: null
+    - LICENSE-3rdparty.csv:
+        scenario_groups: null
+    - NOTICE:
+        scenario_groups: null
+    - promptfooconfig.yaml:
+        scenario_groups: null
+    - Pulumi.yaml:
+        scenario_groups: null
+    - pyproject.toml:
+        scenario_groups: null
+    - static-analysis.datadog.yml:
+        scenario_groups: null
+    - README.md:
+        scenario_groups: null
+    # - requirements.txt:
+    #     scenario_groups: all
+    # - run.sh:
+    #     scenario_groups: all
+    - ./*.nix:
+        scenario_groups: null
 
-    - "doc/*":
-        libraries: null
-
-    - utils/build/python:
-        libraries: [golang, cpp] 
-        scenarios: end_to_end
-
-    - manifest/python.yml:
-        libraries: python
-
-    - "*":     # keep this in late: by default everything is executed
-        scenarios: ALL
-        libraries: ALL
+    # - .github/*:
+    #     libraries: &all_libraries
+    #     scenario_groups: [end_to_end, debugger]
+    #
+    # - .github/*:
+    #     libraries: &all_libraries
+    #     scenario_groups: [end_to_end, debugger]
+    #
+    # - "doc/*":
+    #     libraries: null
+    #
+    # - utils/build/python:
+    #     libraries: [golang, cpp]
+    #     scenario_groups: end_to_end
+    #
+    # - manifest/python.yml:
+    #     libraries: python
+    #
+    # - "*":     # keep this in late: by default everything is executed
+    #     scenario_groups: ALL
+    #     libraries: ALL
