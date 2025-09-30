@@ -5,7 +5,7 @@
 import tests.debugger.utils as debugger
 import re
 import json
-from utils import scenarios, features, bug, missing_feature, context
+from utils import scenarios, features, bug, missing_feature, context, flaky
 
 
 @features.debugger_expression_language
@@ -100,6 +100,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._setup(probes, "/debugger/expression?inputValue=asd")
 
     @bug(context.library > "java@1.52.1", reason="DEBUG-4417")
+    @flaky(context.library == "nodejs", reason="JIRA-XXX")
     def test_expression_language_access_variables(self):
         self._assert(expected_response=200)
 

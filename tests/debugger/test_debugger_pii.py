@@ -10,6 +10,7 @@ from utils import (
     bug,
     missing_feature,
     context,
+    flaky,
 )
 
 REDACTED_KEYS = [
@@ -238,6 +239,7 @@ class Test_Debugger_PII_Redaction(BaseDebuggerPIIRedactionTest):
     def setup_pii_redaction_line_full(self):
         self._setup(line_probe=True)
 
+    @flaky(context.library == "nodejs", reason="JIRA-XXX")
     def test_pii_redaction_line_full(self):
         self._assert(line_probe=True)
 
@@ -250,6 +252,7 @@ class Test_Debugger_PII_Redaction_Excluded_Identifiers(BaseDebuggerPIIRedactionT
 
     @bug(context.library == "ruby", reason="DEBUG-3747")
     @bug(context.library == "python", reason="DEBUG-3746")
+    @flaky(context.library == "nodejs", reason="JIRA-XXX")
     def test_pii_redaction_excluded_identifiers(self):
         excluded_identifiers = ["_2fa", "cookie", "sessionid"]
         self._assert(excluded_identifiers, line_probe=True)

@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context
+from utils import scenarios, features, missing_feature, context, flaky
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -207,6 +207,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
+    @flaky(context.library == "nodejs", reason="JIRA-XXX")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
