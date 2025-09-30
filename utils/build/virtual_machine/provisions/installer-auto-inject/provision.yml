@@ -15,7 +15,7 @@ provision_steps:
   - prepare-docker # Install docker
   - amazon-ecr-credential-helper # Install AWS ECR helper to download images from ECR
   - patch-docker-daemon #Patch the docker daemon to avoid networking issues/ip conflicts incident-31160
-  # - pre-install-installer # we install only the installer and we cached it. The goal is to force download the required deps for the installer and cache them
+  - pre-install-installer # we install only the installer and we cached it. The goal is to force download the required deps for the installer and cache them
   - install-installer # Install the installer
 
 init-config:
