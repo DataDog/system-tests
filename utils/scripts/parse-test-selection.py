@@ -98,7 +98,7 @@ def parse() -> dict[str, Param]:
         raise Exception("Error in the test selection file") from None  # noqa: TRY002
 
 
-def library_processing(impacts: dict[str, Param], output) -> None:
+def library_processing(impacts: dict[str, Param], output: str) -> None:
     import json
     import os
     import re
@@ -151,12 +151,11 @@ def library_processing(impacts: dict[str, Param], output) -> None:
             if re.fullmatch(pattern, modified_file):
                 if requirement.libraries:
                     return list(requirement.libraries)
-                else:
-                    break
+                break
 
         return list(LIBRARIES)
 
-    def main_library_processing(impacts: dict[str, Param], output) -> None:
+    def main_library_processing(impacts: dict[str, Param], output: str) -> None:
         result = set()
 
         if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
@@ -251,7 +250,7 @@ def library_processing(impacts: dict[str, Param], output) -> None:
     main_library_processing(impacts, output)
 
 
-def scenario_processing(impacts: dict[str, Param], output) -> None:
+def scenario_processing(impacts: dict[str, Param], output: str) -> None:
     import os
     from typing import TYPE_CHECKING
     from utils._context._scenarios import scenarios, Scenario, scenario_groups
@@ -294,7 +293,7 @@ def scenario_processing(impacts: dict[str, Param], output) -> None:
             for name in scenario_names:
                 self.scenarios.add(name)
 
-    def main_scenario_processing(impacts: dict[str, Param], output) -> None:
+    def main_scenario_processing(impacts: dict[str, Param], output: str) -> None:
         result = Result()
 
         if "GITLAB_CI" in os.environ:
@@ -498,7 +497,7 @@ def scenario_processing(impacts: dict[str, Param], output) -> None:
                     result.add_scenario_names(scenarios_by_files[file])
 
         if output:
-            with open(output, "w", encoding="utf-8") as f:
+            with open(output, "a", encoding="utf-8") as f:
                 print("scenarios=" + ",".join(result.scenarios), file=f)
                 print("scenarios_groups=" + ",".join(result.scenarios_groups), file=f)
         else:
