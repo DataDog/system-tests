@@ -149,7 +149,10 @@ def library_processing(impacts: dict[str, Param]) -> None:
 
         for pattern, requirement in impacts.items():
             if re.fullmatch(pattern, modified_file):
-                return list(requirement.libraries)
+                if requirement.libraries:
+                    return list(requirement.libraries)
+                else:
+                    break
 
         return list(LIBRARIES)
 
