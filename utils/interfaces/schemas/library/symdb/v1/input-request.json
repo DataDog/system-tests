@@ -54,7 +54,7 @@
     },
     "gzip_content": {
       "type": "object",
-      "required": ["env", "language", "scopes", "service", "version"],
+      "required": ["language", "scopes", "service", "version"],
       "properties": {
         "env": { "type": "string", "const": "system-tests" },
         "language": { "type": "string" },
