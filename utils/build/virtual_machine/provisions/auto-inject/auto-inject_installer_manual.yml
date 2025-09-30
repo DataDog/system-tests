@@ -111,10 +111,6 @@
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
-
-    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    sudo systemctl restart datadog-agent
-
 - os_type: windows
   remote-command: |
     if ($env:DD_env -eq "dev") {
