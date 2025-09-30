@@ -37,9 +37,7 @@ def test_all_class_has_feature_decorator(session, deselected_items):
         if item.nodeid.startswith("tests/test_the_test/"):
             # special use case of test the test folder
             continue
-
         declared_features = [marker.kwargs["feature_id"] for marker in item.iter_markers("features")]
-
         if len(declared_features) == 0:
             logger.error(f"Missing feature declaration for {reported_node_id}")
             shouldfail = True

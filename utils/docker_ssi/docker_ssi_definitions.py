@@ -146,14 +146,18 @@ class JSRuntimeInstallableVersions:
 
 
 class DotnetRuntimeInstallableVersions:
-    """Python runtime versions that can be installed automatically"""
+    """.NET runtime versions that can be installed automatically"""
 
+    DOTNET80 = RuntimeInstallableVersion("DOTNET80", "8.0.404")
     DOTNET70 = RuntimeInstallableVersion("DOTNET70", "7.0.410")
+    DOTNET60 = RuntimeInstallableVersion("DOTNET60", "6.0.428")
 
     @staticmethod
     def get_all_versions():
         return [
+            DotnetRuntimeInstallableVersions.DOTNET80,
             DotnetRuntimeInstallableVersions.DOTNET70,
+            DotnetRuntimeInstallableVersions.DOTNET60,
         ]
 
     @staticmethod

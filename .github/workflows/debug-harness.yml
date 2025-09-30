@@ -1,0 +1,109 @@
+name: Run multiple times a scenario to trigger a flake
+
+on:
+  workflow_dispatch:
+    inputs:
+      library:
+        description: Which library
+        default: php
+        type: string
+      weblog:
+        description: Which weblog
+        default: apache-mod-8.1
+        type: string
+      agent_image:
+        description: Which agent image? (Use datadog/agent-dev:master-py3 for latest dev)
+        default: datadog/agent:latest
+        type: string
+      scenario:
+        description: Which scenario
+        default: DEBUGGER_EXPRESSION_LANGUAGE
+        type: string
+      job_count:
+        description: How many jobs
+        default: "10"
+        type: string
+
+env:
+  LIBRARY:      ${{ (github.event_name == 'workflow_dispatch' && inputs.library)     || 'php' }}
+  WEBLOG:       ${{ (github.event_name == 'workflow_dispatch' && inputs.weblog)      || 'apache-mod-8.1' }}
+  SCENARIO:     ${{ (github.event_name == 'workflow_dispatch' && inputs.scenario)    || 'DEBUGGER_EXPRESSION_LANGUAGE' }}
+  JOB_COUNT:    ${{ (github.event_name == 'workflow_dispatch' && inputs.job_count)   || '10' }}
+  AGENT_IMAGE:  ${{ (github.event_name == 'workflow_dispatch' && inputs.agent_image) || 'datadog/agent:latest' }}
+
+jobs:
+  generate-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.make.outputs.array }}
+    steps:
+      - id: make
+        run: |
+          seq -s, 1 ${{ env.JOB_COUNT }} | awk '{print "[\"" $0 "\"]"}' | sed 's/,/","/g' > arr.json
+          echo "array=$(cat arr.json)" >> $GITHUB_OUTPUT
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - name: Export github token to a file
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
+      - name: Select agent image
+        run: echo ${{ env.AGENT_IMAGE }} > binaries/agent-image
+      - name: Build weblog
+        id: build
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+      - name: Remove secrets
+        if: always()
+        run: |
+          TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
+          if [ -f "$TOKEN_FILE" ]; then
+            echo "Removing token file at $TOKEN_FILE"
+            rm -f "$TOKEN_FILE"
+          else
+            echo "Token file not found — nothing to clean up"
+          fi
+      - name: Upload artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: weblog
+          path: binaries/
+
+  test:
+    runs-on: ubuntu-latest
+    needs:
+      - generate-matrix
+      - build
+    strategy:
+      matrix:
+        n: ${{ fromJSON(needs.generate-matrix.outputs.matrix) }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install runner
+      uses: ./.github/actions/install_runner
+
+    - name: Get binaries artifact
+      uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+      with:
+        name: weblog
+        path: binaries/
+    - name: Build weblog
+      id: build
+      run: ./build.sh ${{ env.LIBRARY }} -i weblog -w ${{ env.WEBLOG }}
+
+    - run: |
+        set -e
+        for i in {1..100}
+        do
+          echo "Run #$i"
+          ./run.sh ${{ env.SCENARIO }}
+        done
+
+    - name: Upload artifact
+      if: always() && steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: logs_${{ matrix.n }}
+        path: logs_*

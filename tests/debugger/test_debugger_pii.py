@@ -126,6 +126,7 @@ class BaseDebuggerPIIRedactionTest(debugger.BaseDebuggerTest):
         self.wait_for_all_probes(statuses=["INSTALLED"])
         self.send_weblog_request("/debugger/pii")
         self.wait_for_all_probes(statuses=["EMITTING"])
+        self.wait_for_snapshot_received()
 
     ############ assert ############
     def _assert(self, excluded_identifiers=None, *, line_probe=False):

@@ -1,4 +1,4 @@
-Current system-tests implements mostly functional end-to-end scenario. But it an achieve any test paradigm you like. Build uppon pytest, it introduces a simple - an extensible - object: `Scenario`.
+Current system-tests implements mostly functional end-to-end scenario. But it can achieve any test paradigm you like. Build uppon pytest, it introduces a simple - and extensible - object: `Scenario`.
 
 A scenario is the abstraction for a context to test, and anything can be defined inside this context. Here is the most simple context scenario you can imagine :
 

@@ -71,6 +71,45 @@ EOF
         # Remove trailing ')'
         ARCH="${ARCH%)}"
 
+        # Get the current laptop architecture
+        LAPTOP_ARCH=$(uname -m)
+
+        # Normalize architecture names for comparison
+        normalize_arch() {
+            local arch="$1"
+            # Remove linux/ prefix if present
+            arch="${arch#linux/}"
+            case "$arch" in
+                "x86_64"|"amd64") echo "amd64" ;;
+                "arm64"|"aarch64") echo "arm64" ;;
+                *) echo "$arch" ;;
+            esac
+        }
+
+        NORMALIZED_LAPTOP_ARCH=$(normalize_arch "$LAPTOP_ARCH")
+        NORMALIZED_SELECTED_ARCH=$(normalize_arch "$ARCH")
+
+        # Show warning if architectures don't match
+        if [[ "$NORMALIZED_LAPTOP_ARCH" != "$NORMALIZED_SELECTED_ARCH" ]]; then
+            echo ""
+            echo -e "${RED}⚠️  WARNING: Architecture Mismatch Detected! ⚠️${NC}"
+            echo -e "${YELLOW}   Your laptop architecture: $LAPTOP_ARCH ($NORMALIZED_LAPTOP_ARCH)${NC}"
+            echo -e "${YELLOW}   Selected test architecture: $ARCH ($NORMALIZED_SELECTED_ARCH)${NC}"
+            echo ""
+            echo -e "${CYAN}ℹ️  Note: Running tests with different architecture may:${NC}"
+            echo -e "${CYAN}   • Take longer due to emulation${NC}"
+            echo -e "${CYAN}   • Have different performance characteristics${NC}"
+            echo -e "${CYAN}   • Potentially encounter architecture-specific issues${NC}"
+            echo ""
+            read -p "Do you want to continue with this architecture? (y/n): " arch_confirm
+            if [[ "$arch_confirm" != "y" ]]; then
+                echo -e "${RED}❌ Architecture selection canceled. Please choose a different base image.${NC}"
+                select_base_image_and_arch
+                return
+            fi
+            echo -e "${GREEN}✅ Continuing with selected architecture: $ARCH${NC}"
+        fi
+
         echo "✅ Selected base image: $BASE_IMAGE ($ARCH)"
     fi
 
@@ -153,6 +192,14 @@ select_optional_params(){
     spacer
     # 📌 Step : Optional parameters
     echo "🛠️ Optional: Use a custom version of the tracer or injector OCI image."
+    echo ""
+    echo -e "${YELLOW}⚠️  Important Warning About Pipeline IDs:${NC}"
+    echo -e "${CYAN}   If the pipeline-id reference is not correct, you may encounter runtime errors${NC}"
+    echo -e "${CYAN}   related to registry access. However, the real problem is usually that:${NC}"
+    echo -e "${CYAN}   • The pipeline-id doesn't exist${NC}"
+    echo -e "${CYAN}   • The pipeline-id doesn't contain the required OCI images${NC}"
+    echo -e "${CYAN}   Make sure your pipeline-id is valid and contains the built images.${NC}"
+    echo ""
 
         # Ask for DD_INSTALLER_LIBRARY_VERSION
         read -p "Enter a custom tracer OCI image version (pipeline-<your pipeline id>) or press Enter to skip: " SSI_LIBRARY_VERSION

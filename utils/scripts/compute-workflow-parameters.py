@@ -91,6 +91,8 @@ class CiData:
         }
 
         self.data["externalprocessing"] = {"scenarios": scenario_map.get("externalprocessing", [])}
+        self.data["streamprocessingoffload"] = {"scenarios": scenario_map.get("streamprocessingoffload", [])}
+
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),
@@ -238,6 +240,7 @@ if __name__ == "__main__":
             "nodejs_otel",
             "python_otel",
             "python_lambda",
+            "rust",
         ],
     )
 

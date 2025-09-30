@@ -1,0 +1,39 @@
+[package]
+name          = "ddtrace-rs-client"
+version       = "0.0.1"
+description   = "Dockerized Rust/Axum based HTTP server for System tests"
+edition       = "2021"
+license       = "Apache-2.0"
+readme        = "README.md"
+publish       = false
+
+[[bin]]
+name = "ddtrace-rs-client"
+path = "src/main.rs"
+doc = false
+bench = false
+
+[dependencies]
+anyhow                  = { version = "1.0", features = [ "backtrace" ] }
+axum                    = { version = "0.8.4", features = [ "http2", "json" ] }
+configured              = { version = "0.7" }
+humantime-serde         = { version = "1.1" }
+hyper                   = { version = "1.0" }
+hyper-util              = { version = "0.1", features = ["tokio", "server-auto", "http1"] }
+serde                   = { version = "1.0", features = [ "derive" ] }
+serde_json              = { version = "1.0" }
+time                    = { version = "0.3", features = [ "formatting" ] }
+tokio                   = { version = "1", features = [ "macros", "rt-multi-thread", "signal" ] }
+tower                   = { version = "0.5.2", features = [ "timeout" ] }
+tower-http              = { version = "0.6.6", features = [ "trace" ] }
+tracing                 = { version = "0.1", default-features = false }
+tracing-subscriber      = { version = "0.3", default-features = false, features = [ "env-filter", "fmt", "json" ] }
+opentelemetry           = { version = "0.30.0" }
+opentelemetry_sdk       = { version = "0.30.0" }
+opentelemetry-http      = { version = "0.30.0" }
+opentelemetry-stdout    = { version = "0.30.0", features = ["trace", "logs"] }
+opentelemetry-semantic-conventions = { version = "0.30.0" }
+
+
+#datadog-opentelemetry  = { path = "/home/igor/go/src/github.com/DataDog/dd-trace-rs/datadog-opentelemetry" }
+#dd-trace               = { path = "/home/igor/go/src/github.com/DataDog/dd-trace-rs/dd-trace" }

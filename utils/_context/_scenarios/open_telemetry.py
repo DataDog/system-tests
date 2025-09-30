@@ -42,6 +42,7 @@ class OpenTelemetryScenario(DockerScenario):
         include_sqlserver: bool = False,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
+        mocked_backend: bool = True,
     ) -> None:
         super().__init__(
             name,
@@ -49,6 +50,7 @@ class OpenTelemetryScenario(DockerScenario):
             github_workflow="endtoend",
             scenario_groups=[scenario_groups.all, scenario_groups.open_telemetry],
             use_proxy=True,
+            mocked_backend=mocked_backend,
             include_postgres_db=include_postgres_db,
             include_cassandra_db=include_cassandra_db,
             include_mongo_db=include_mongo_db,
@@ -58,12 +60,12 @@ class OpenTelemetryScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
         if include_agent:
-            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self.agent_container = AgentContainer(use_proxy=True)
             self._required_containers.append(self.agent_container)
         if include_collector:
-            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self.collector_container = OpenTelemetryCollectorContainer()
             self._required_containers.append(self.collector_container)
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)
         if include_collector:
@@ -93,6 +95,7 @@ class OpenTelemetryScenario(DockerScenario):
 
         interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         interfaces.open_telemetry.configure(self.host_log_folder, replay=self.replay)
+        interfaces.library_dotnet_managed.configure(self.host_log_folder, replay=self.replay)
 
     def _start_interface_watchdog(self):
         class Event(FileSystemEventHandler):

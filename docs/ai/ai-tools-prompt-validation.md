@@ -1,4 +1,4 @@
-# AI Tools prompt validation guide
+# AI Tools prompt validation guide (beta)
 
 The selected tool for validating and ensuring that our AI assistants correctly execute tasks requested by users is Promptfoo. This framework enables systematic testing, ensuring high-quality responses, prompt accuracy, and consistent performance across various user interactions.
 

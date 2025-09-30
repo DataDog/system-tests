@@ -108,6 +108,31 @@ The response body may contain the following text:
 OK\n
 ```
 
+### GET /external_request
+### POST /external_request
+### TRACE /external_request
+
+This endpoint is used for downstream requests test, using an addtional component hosting a fastapi application defined in `/utils/build/docker/internal_server/app.py`
+
+It must open a request on `http://internal_server:8089/mirror/{status}{url_extra}` with the same method as the method used to call this endpoint (GET, POST or TRACE).
+
+If a body was sent, it must also be sent to `internal_server` with the same content type. (whatever is the method used)
+
+All query parameters received must be sent as headers to the `internal_server` request except for:
+- `status` whose value must be used in the first path parameter (if status is missing, use `200` by default)
+- `url_extra` whose value must be appended to the `internal_server` url (if missing, use an empty string)
+
+It must always return a 200 status code.
+
+if the request to `internal_server` was a success (2xx code), it must return a json body as a map with 3 keys:
+- `status` the status code of the `internal_server` response
+- `payload` the parsed json content of the `internal_server` reponse body (it can be assumed it's always a json body)
+- `headers` the headers of the `internal_server` response as a map
+
+if the request to `internal_server` is a failure, it must return a json body with 2 keys:
+- `status` the status code of the `internal_server` response if available or a null value
+- `error` a string describing the error, for debug purposes
+
 ### GET /spans
 
 The endpoint may accept two query string parameters:
@@ -1070,6 +1095,10 @@ Expected query params:
 Examples:
 
 - `GET`: `/protobuf/deserialize?msg=<base64_encoded_message>`
+
+#### GET /resource_renaming/*
+
+This endpoint will be used for `Resource Renaming` tests, it allows all subpaths.
 
 ## Weblog specification
 

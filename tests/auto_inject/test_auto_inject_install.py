@@ -30,7 +30,6 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
-    @bug(context.weblog_variant == "test-app-python-alpine", reason="PROF-11296")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -68,10 +67,6 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @bug(
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
-    )
-    @bug(
-        context.weblog_variant == "test-app-python-alpine",
-        reason="PROF-11296",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)

@@ -23,7 +23,18 @@
     },
     "symbol": {
       "type": "object",
-      "required": ["line", "name", "symbol_type", "type"],
+      "if": {
+        "properties": {
+          "symbol_type": {"const": "field"}
+        }
+      },
+      "then": {
+        "$comment": "For Go, the debug info doesn't contain the declaration line for fields",
+        "required": ["name", "symbol_type", "type"]
+      },
+      "else": {
+        "required": ["line", "name", "symbol_type", "type"]
+      },
       "properties": {
         "language_specifics": { "type": "object" },
         "line": { "type": "integer" },

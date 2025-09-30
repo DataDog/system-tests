@@ -38,6 +38,7 @@ readonly DEFAULT_cpp=nginx
 readonly DEFAULT_cpp_httpd=httpd
 readonly DEFAULT_cpp_nginx=nginx
 readonly DEFAULT_python_lambda=apigw-rest
+readonly DEFAULT_rust=axum
 
 readonly SCRIPT_NAME="${0}"
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -216,6 +217,31 @@ build() {
                 docker load --input $BINARIES_FILENAME
             else
 
+                # dd-trace-py compilation if required
+                if [[ $TEST_LIBRARY == python ]] && [[ -d "binaries/dd-trace-py" ]]; then
+                    echo "Compiling dd-trace-py"
+
+                    # Choose Python version based on weblog variant
+                    case "$WEBLOG_VARIANT" in
+                        flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
+                            PYTHON_VERSION="3.11"
+                            ;;
+                        django-py3.13)
+                            PYTHON_VERSION="3.13"
+                            ;;
+                        python3.12)
+                            PYTHON_VERSION="3.12"
+                            ;;
+                        *)
+                            echo "Error: Unknown weblog variant, python version could not be determined" >&2
+                            exit 1
+                            ;;
+                    esac
+
+                    echo "Using Python version: $PYTHON_VERSION"
+                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                fi
+
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
 
                 GITHUB_TOKEN_SECRET_ARG=""
@@ -269,7 +295,7 @@ build() {
                 --load \
                 --progress=plain \
                 -f utils/build/docker/lambda-proxy.Dockerfile \
-                -t system_tests/lambda-proxy \
+                -t datadog/system-tests:lambda-proxy-v1 \
                 $EXTRA_DOCKER_ARGS \
                 .
         else
@@ -284,7 +310,7 @@ COMMAND=build
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby) TEST_LIBRARY="$1";;
+        cpp_nginx|cpp_httpd|dotnet|golang|java|java_otel|nodejs|nodejs_otel|php|python|python_lambda|python_otel|ruby|rust) TEST_LIBRARY="$1";;
         -l|--library) TEST_LIBRARY="$2"; shift ;;
         -i|--images) BUILD_IMAGES="$2"; shift ;;
         -d|--docker) DOCKER_MODE=1;;

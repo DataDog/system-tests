@@ -397,6 +397,11 @@ function main() {
                 unset "scenarios[${i}]"
                 ;;
 
+            TELEMETRY_APP_STARTED_CONFIG_CHAINING)
+                scenarios+=(TELEMETRY_ENHANCED_CONFIG_REPORTING)
+                unset "scenarios[${i}]"
+                ;;
+
             IAST_STANDALONE_V2)
                 scenarios+=(IAST_STANDALONE)
                 unset "scenarios[${i}]"
@@ -481,6 +486,14 @@ function main() {
         if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING_NOCACHE ]]; then
             echo "${scenario} was removed, skipping."
             continue
+        fi
+        if [[ "${scenario}" == TELEMETRY_METRIC_GENERATION_ENABLED ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
+        fi
+        if [[ "${scenario}" == APPSEC_REQUEST_BLOCKING ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
         fi
         ####
 

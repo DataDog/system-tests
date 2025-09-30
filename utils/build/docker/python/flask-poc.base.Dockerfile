@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl git gcc g++ make cmake
+RUN apt-get update && apt-get install -y curl gcc
 
 # print versions
 RUN python --version && curl --version
@@ -9,7 +9,7 @@ RUN python --version && curl --version
 #DRIVER MSSQL
 RUN apt-get update \
     && apt-get install -y curl apt-transport-https gnupg2\
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/microsoft.gpg > /dev/null \
     && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev
@@ -27,10 +27,6 @@ RUN pip install 'flask[async]'==2.2.4 flask-login==0.6.3 gunicorn==21.2.0 gevent
 
 RUN pip install boto3==1.34.141 kombu==5.3.7 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19
 
-# Install Rust toolchain
-RUN curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y
-ENV PATH="/root/.cargo/bin:$PATH"
-
-# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v9 .
-# docker push datadog/system-tests:flask-poc.base-v9
+# docker build --progress=plain -f utils/build/docker/python/flask-poc.base.Dockerfile -t datadog/system-tests:flask-poc.base-v11 .
+# docker push datadog/system-tests:flask-poc.base-v11
 

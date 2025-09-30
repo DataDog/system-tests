@@ -319,7 +319,7 @@ RULES_COMPAT_FILE: tuple[str, dict] = (
 @rfc(
     "https://docs.google.com/document/d/1t6U7WXko_QChhoNIApn0-CRNe6SAKuiiAQIyCRPUXP4/edit?tab=t.0#heading=h.uw8qbgyhhb47"
 )
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.appsec_rc_asm_dd_multiconfig
 @features.appsec_trace_tagging_rules
 class Test_AsmDdMultiConfiguration:
@@ -549,6 +549,53 @@ class Test_Empty_Config:
         )  # empty configs should be acknowledged and should not trigger errors
         interfaces.library.assert_waf_attack(self.response_2, rule="ua0-600-56x")
         assert self.response_2.status_code == 403
+
+        assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
+        assert self.response_3.status_code == 200
+        interfaces.library.assert_no_appsec_event(self.response_3)
+
+
+DUPLICATE_ID_CONFIG = (
+    # the rules contains no id
+    "datadog/2/ASM/actions/config",
+    {
+        "actions": [
+            {"id": "block", "parameters": {"status_code": 405, "type": "html"}, "type": "block_request"},
+            {"id": "block", "parameters": {"status_code": 505, "type": "html"}, "type": "block_request"},
+        ]
+    },
+)
+
+
+@scenarios.appsec_runtime_activation
+@features.changing_rules_using_rc
+class Test_Invalid_Config:
+    def setup_invalid_config(self):
+        self.config_state_1 = rc.rc_state.reset().set_config(*CONFIG_ENABLED).apply()
+        self.response_1 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+        self.config_state_2 = rc.rc_state.set_config(*DUPLICATE_ID_CONFIG).apply()
+
+        self.config_state_3 = rc.rc_state.reset().apply()
+        self.response_3 = weblog.get("/waf/", headers={"User-Agent": "dd-test-scanner-log-block"})
+
+    @bug(context.library < "nodejs@5.68.0", reason="APPSEC-59077")
+    def test_invalid_config(self):
+        assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
+        interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
+        assert self.response_1.status_code == 403
+
+        assert self.config_state_2.configs["actions"]["apply_state"] == rc.ApplyState.ACKNOWLEDGED
+        waf_config_errors_series = find_series("appsec", ["waf.config_errors"])
+        waf_config_errors_values = [point[1] for p in waf_config_errors_series for point in p["points"]]
+        assert any(val >= 1.0 for val in waf_config_errors_values)
+
+        for p in waf_config_errors_series:
+            tags = dict(tag.split(":") for tag in p["tags"])
+            assert "waf_version" in tags
+            assert "event_rules_version" in tags
+            assert "action" in tags
+            assert tags["action"] == "update"
 
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
         assert self.response_3.status_code == 200

@@ -153,12 +153,18 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         """Attempts to fetch the metrics the agent will submit to the backend."""
 
         for data in self.get_data(path_filters="/api/v2/series"):
-            if "series" not in data["request"]["content"]:
-                raise ValueError("series property is missing in agent payload")
+            content = data["request"]["content"]
+            assert isinstance(content, dict), f"content is not a dict in {data['log_filename']}"
 
-            content = data["request"]["content"]["series"]
+            if len(content) == 0:
+                continue
 
-            for point in content:
+            if "series" not in content:
+                raise ValueError(f"series property is missing in agent payload in {data['log_filename']}")
+
+            series = data["request"]["content"]["series"]
+
+            for point in series:
                 yield data, point
 
     def get_sketches(self):
