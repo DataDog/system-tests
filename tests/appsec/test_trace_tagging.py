@@ -108,7 +108,7 @@ class Test_TraceTaggingRules:
         interfaces.library.validate_spans(self.r_tt4, validator=validate)
 
 
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.appsec_trace_tagging_rules
 class Test_TraceTaggingRulesRcCapability:
     """A library with support for trace-tagging rules must provide the
