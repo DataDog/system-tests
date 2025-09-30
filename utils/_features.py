@@ -60,7 +60,9 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=2
         """
         return _mark_test_object(
-            test_object, feature_id=2, owner=_Owner.tracer
+            test_object,
+            feature_id=2,
+            owner=_Owner.tracer,  # See with @ekump
         )  # library/config, tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -191,7 +193,9 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=17
         """
         return _mark_test_object(
-            test_object, feature_id=17, owner=_Owner.tracer
+            test_object,
+            feature_id=17,
+            owner=_Owner.tracer,  # See with @ekump
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -201,7 +205,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=18
         """
         return _mark_test_object(
-            test_object, feature_id=18, owner=_Owner.tracer
+            test_object, feature_id=18, owner=_Owner.sdk_capabilities
         )  # tracing/data-collection, tracing/configuration, tracing/data-decoration, tracing/configuration/consistency
 
     @staticmethod
@@ -624,7 +628,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=73
         """
-        return _mark_test_object(test_object, feature_id=73, owner=_Owner.tracer)  # library/telemetry
+        return _mark_test_object(test_object, feature_id=73, owner=_Owner.sdk_capabilities)  # library/telemetry
 
     @staticmethod
     def telemetry_api_v2_implemented(test_object):
@@ -664,7 +668,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=78
         """
-        return _mark_test_object(test_object, feature_id=78, owner=_Owner.tracer)  # library/telemetry
+        return _mark_test_object(test_object, feature_id=78, owner=_Owner.sdk_capabilities)  # library/telemetry
 
     @staticmethod
     def telemetry_app_started_event(test_object):
@@ -1334,7 +1338,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=221
         """
         return _mark_test_object(
-            test_object, feature_id=221, owner=_Owner.tracer
+            test_object, feature_id=221, owner=_Owner.sdk_capabilities
         )  # tracing/context-propagation, apm/dbm
 
     @staticmethod
@@ -1343,7 +1347,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=222
         """
-        return _mark_test_object(test_object, feature_id=222, owner=_Owner.tracer)  # tracing/ingestion-control
+        return _mark_test_object(test_object, feature_id=222, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def tracer_flare(test_object):
@@ -2255,7 +2259,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=365
         """
-        return _mark_test_object(test_object, feature_id=365, owner=_Owner.tracer)  # library/config
+        return _mark_test_object(test_object, feature_id=365, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def single_span_ingestion_control(test_object):
@@ -2296,7 +2300,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=374
         """
         return _mark_test_object(
-            test_object, feature_id=374, owner=_Owner.tracer
+            test_object, feature_id=374, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2306,7 +2310,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=375
         """
         return _mark_test_object(
-            test_object, feature_id=375, owner=_Owner.tracer
+            test_object, feature_id=375, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2326,7 +2330,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=377
         """
         return _mark_test_object(
-            test_object, feature_id=377, owner=_Owner.tracer
+            test_object, feature_id=377, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2366,7 +2370,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=384
         """
         return _mark_test_object(
-            test_object, feature_id=384, owner=_Owner.tracer
+            test_object, feature_id=384, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2427,7 +2431,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=396
         """
-        return _mark_test_object(test_object, feature_id=396, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=396, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def baggage_span_tags(test_object):

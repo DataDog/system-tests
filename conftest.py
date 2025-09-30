@@ -541,6 +541,13 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
 
+                if context.weblog_variant:
+                    name = testcase.attrib["name"]
+                    if name.endswith("]"):
+                        testcase.attrib["name"] = f"{name[:-1]}, {context.weblog_variant}]"
+                    else:
+                        testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
+
             junit_report.write(session.config.option.xmlpath)
 
         try:
