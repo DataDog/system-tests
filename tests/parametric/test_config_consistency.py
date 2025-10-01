@@ -533,6 +533,13 @@ class Test_Stable_Config_Default(StableConfigWriter):
     def test_extended_configs(
         self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
     ):
+        """Test that SDKs support extended configuration options beyond just product enablement.
+
+        This test uses representative configurations (tags, propagation style) to verify that
+        stable config supports more than just the basic product enablement configs tested
+        in test_default_config. It ensures SDKs can handle complex configuration values
+        like tag arrays and propagation style settings through the stable config mechanism.
+        """
         with test_library:
             self.write_stable_config(
                 {
