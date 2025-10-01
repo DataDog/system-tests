@@ -440,7 +440,7 @@ tests/:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v3.27.0
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
       TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
