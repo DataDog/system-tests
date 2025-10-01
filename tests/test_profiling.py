@@ -55,10 +55,11 @@ class Test_Profile:
     )
     def test_process_tags(self):
         """All profiling libraries payload have process tags field"""
-        profiling_data_list = list(interfaces.agent.get_profiling_data())
-        for data in profiling_data_list:
-            for content in data["request"]["content"]:
-                validate_process_tags(content["content"]["process_tags"])
+        with [{"DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true"}]:
+            profiling_data_list = list(interfaces.agent.get_profiling_data())
+            for data in profiling_data_list:
+                for content in data["request"]["content"]:
+                    validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
     def _validate_data(data) -> bool:
