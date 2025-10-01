@@ -18,7 +18,7 @@ tests/:
         Test_API_Security_Sampling_Different_Endpoints: missing_feature
         Test_API_Security_Sampling_Different_Paths: missing_feature
         Test_API_Security_Sampling_Different_Status: missing_feature
-        Test_API_Security_Sampling_Rate: 
+        Test_API_Security_Sampling_Rate:
           '*': v1.60.0
           net-http: v2.3.0-dev
           net-http-orchestrion: missing_feature
