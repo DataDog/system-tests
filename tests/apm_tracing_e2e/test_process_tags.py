@@ -6,7 +6,7 @@ from utils.interfaces._library.miscs import validate_process_tags
 @scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(
-    condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+    condition=context.library.name not in ("java", "golang") or context.weblog_variant == "spring-boot-3-native",
     reason="Not yet implemented",
 )
 class Test_Process_Tags:
