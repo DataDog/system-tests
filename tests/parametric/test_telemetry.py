@@ -699,15 +699,15 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         [
             (
                 {
-                    "DD_TAGS": ["tag1:value1", "tag2:value2"],
+                    "DD_TAGS": "local1:value1,local2:value2",
                     "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
                 },
                 {
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
                 },
-                {"DD_TAGS": ["fleet:tag1", "fleet:tag2"]},
+                {"DD_TAGS": "fleet1:tag1,fleet2:tag2"},
                 {
-                    "tags": "fleet_stable_config",
+                    "tags": "fleet_stable_config", # Note: Java reports it with origin:calculated...
                     "trace_propagation_style": "local_stable_config",
                 },
             )
