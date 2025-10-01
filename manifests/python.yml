@@ -1306,7 +1306,7 @@ tests/:
     Test_DependencyEnable: v2.8.0
     Test_Log_Generation: missing_feature
     Test_MessageBatch: missing_feature
-    Test_Metric_Generation_Disabled: missing_feature
+    Test_Metric_Generation_Disabled: bug
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
     Test_Telemetry: v1.16.0
