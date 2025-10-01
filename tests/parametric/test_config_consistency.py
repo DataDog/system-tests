@@ -394,8 +394,11 @@ SDK_DEFAULT_STABLE_CONFIG = {
     else "true"
     if context.library == "golang"
     else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
-    "dd_data_streams_enabled": "false",
+    "dd_data_streams_enabled": "false"
+    if context.library != "dotnet"
+    else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
     "dd_logs_injection": {
+        "dotnet": "true",
         "ruby": "true",
         "java": "true",
         "golang": None,
