@@ -2,16 +2,16 @@
 #Our goal is to cache the installer and its dependencies, in the next steps (no cached steps) we will get a fresh copy of the installer
 - os_type: linux
   remote-command: |
-    
+
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-    # standard exec: DD_INSTALL_ONLY=true DD_INSTALLER=true bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+    # standard exec: DD_INSTALL_ONLY=true DD_INSTALLER=true bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh?versionId=wGX9PBJbKTepGT5lqqccic4kCg8DPzJ1)"
     MAX_RETRIES=5
     RETRY_DELAY=5
     COUNTER=0
 
     while [ $COUNTER -lt $MAX_RETRIES ]; do
-        curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh -o install_script.sh && break
+        curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh?versionId=wGX9PBJbKTepGT5lqqccic4kCg8DPzJ1 -o install_script.sh && break
         echo "Retrying in $RETRY_DELAY seconds..."
         sleep $RETRY_DELAY
         ((COUNTER++))
