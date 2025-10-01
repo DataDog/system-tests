@@ -309,7 +309,7 @@ class _Scenarios:
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -494,13 +494,6 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
-    )
-
-    remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
     )
