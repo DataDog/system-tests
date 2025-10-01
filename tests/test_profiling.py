@@ -58,8 +58,7 @@ class Test_Profile:
         profiling_data_list = list(interfaces.agent.get_profiling_data())
         for data in profiling_data_list:
             for content in data["request"]["content"]:
-                if "content" in content:
-                    validate_process_tags(content["content"]["process_tags"])
+                validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
     def _validate_data(data) -> bool:
