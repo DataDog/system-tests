@@ -3,10 +3,10 @@ issuer: https://token.actions.githubusercontent.com
 
 subject: repo:DataDog/system-tests-dashboard:ref:refs/heads/main
 claim_pattern:
-  event_name: workflow_dispatch
+  event_name: (workflow_dispatch|schedule)
   ref: refs/heads/main
   ref_protected: "true"
-  job_workflow_ref: DataDog/system-tests-dashboard/\.github/workflows/test-activation-tmp\.yml@refs/heads/main
+  job_workflow_ref: DataDog/system-tests-dashboard/\.github/workflows/nightly\.yml@refs/heads/main
 
 permissions:
   contents: write
