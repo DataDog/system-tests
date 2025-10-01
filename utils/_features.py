@@ -5,6 +5,7 @@ import pytest
 class _Owner(StrEnum):
     # the value of each member must be a valid github team
 
+    agent_apm = "@DataDog/agent-apm"
     apm_serverless = "@DataDog/apm-serverless"
     asm = "@DataDog/asm-libraries"  # application security monitoring
     auto_instrumentation = "@DataDog/unified-instrumentation-setup"
@@ -182,9 +183,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=16
         """
-        return _mark_test_object(
-            test_object, feature_id=16, owner=_Owner.tracer
-        )  # tracing/configuration, tracing/data-decoration
+        return _mark_test_object(test_object, feature_id=16, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def dogstatsd_agent_connection(test_object):
@@ -750,9 +749,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=88
         """
-        return _mark_test_object(
-            test_object, feature_id=88, owner=_Owner.tracer
-        )  # tracing/data-collection, tracing/configuration, tracing/configuration/consistency
+        return _mark_test_object(test_object, feature_id=88, owner=_Owner.asm)
 
     @staticmethod
     def host_auto_instrumentation(test_object):
@@ -1613,7 +1610,7 @@ class _Features:
         )  # tracing/context-propagation, idm-sugar
 
     @staticmethod
-    def data_integrity(test_object):
+    def trace_data_integrity(test_object):
         """Data integrity
 
         https://feature-parity.us1.prod.dog/#/?feature=266
@@ -2266,7 +2263,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=367
         """
-        return _mark_test_object(test_object, feature_id=367, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=367, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def debugger_inproduct_enablement(test_object):
@@ -2340,9 +2337,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=381
         """
-        return _mark_test_object(
-            test_object, feature_id=381, owner=_Owner.tracer
-        )  # tracing/configuration, tracing/configuration/consistency
+        return _mark_test_object(test_object, feature_id=381, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def trace_http_client_tag_query_string(test_object):
@@ -2350,9 +2345,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=382
         """
-        return _mark_test_object(
-            test_object, feature_id=382, owner=_Owner.tracer
-        )  # tracing/configuration, tracing/configuration/consistency
+        return _mark_test_object(test_object, feature_id=382, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def unified_service_tagging(test_object):
@@ -2559,6 +2552,14 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=492
         """
         return _mark_test_object(test_object, feature_id=492, owner=_Owner.asm)
+
+    @staticmethod
+    def agent_data_integrity(test_object):
+        """Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=495
+        """
+        return _mark_test_object(test_object, feature_id=495, owner=_Owner.agent_apm)
 
 
 features = _Features()
