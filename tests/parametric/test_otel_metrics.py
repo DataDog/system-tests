@@ -264,7 +264,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
         with test_library as t:
             t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
             t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
@@ -316,7 +315,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
         with test_library as t:
             t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
             t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
@@ -388,7 +386,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_counter(
@@ -433,7 +430,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_updowncounter(
@@ -478,7 +474,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_gauge(
@@ -517,7 +512,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_histogram(
@@ -566,7 +560,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_asynchronous_counter(
@@ -608,7 +601,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_asynchronous_updowncounter(
@@ -650,7 +642,6 @@ class Test_Otel_Metrics_Api_Meter:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
 
             for instrument_name in [name, name_upper, name_different]:
                 t.otel_create_asynchronous_gauge(
@@ -703,7 +694,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
                 DEFAULT_METER_NAME,
@@ -748,7 +738,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
                 DEFAULT_METER_NAME,
@@ -801,7 +790,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
                 DEFAULT_METER_NAME,
@@ -853,7 +841,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_counter_add(
                 DEFAULT_METER_NAME,
@@ -911,7 +898,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(
                 DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
             )
@@ -956,7 +942,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(
                 DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
             )
@@ -1011,7 +996,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(
                 DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
             )
@@ -1071,7 +1055,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(
                 DEFAULT_METER_NAME,
@@ -1108,7 +1091,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(
                 DEFAULT_METER_NAME,
@@ -1155,7 +1137,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(
                 DEFAULT_METER_NAME,
@@ -1199,7 +1180,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(
                 DEFAULT_METER_NAME,
@@ -1250,7 +1230,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(
                 DEFAULT_METER_NAME,
@@ -1318,7 +1297,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(
                 DEFAULT_METER_NAME,
@@ -1384,7 +1362,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_counter(
                 DEFAULT_METER_NAME,
                 name,
@@ -1425,7 +1402,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_updowncounter(
                 DEFAULT_METER_NAME,
                 name,
@@ -1466,7 +1442,6 @@ class Test_Otel_Metrics_Api_Instrument:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_gauge(
                 DEFAULT_METER_NAME,
                 name,
@@ -1724,7 +1699,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_updowncounter(
                 DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
             )
@@ -1768,7 +1742,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_gauge_record(
                 DEFAULT_METER_NAME,
@@ -1810,7 +1783,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             t.otel_histogram_record(
                 DEFAULT_METER_NAME,
@@ -1861,7 +1833,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_counter(
                 DEFAULT_METER_NAME,
                 name,
@@ -1903,7 +1874,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_updowncounter(
                 DEFAULT_METER_NAME,
                 name,
@@ -1944,7 +1914,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_metrics_force_flush()
             t.otel_create_asynchronous_gauge(
                 DEFAULT_METER_NAME,
                 name,
