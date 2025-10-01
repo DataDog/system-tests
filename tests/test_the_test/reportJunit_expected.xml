@@ -1,17 +1,42 @@
 <testsuites>
-    <testsuite name="system_tests_suite" errors="0" failures="1" skipped="3" tests="6" time="0.747"
-        timestamp="2025-09-12T08:58:47.879135" hostname="COMP-C02FL1L0ML87">
+    <testsuite name="system_tests_suite" errors="1" failures="1" skipped="6" tests="10" time="0.747" timestamp="2025-09-12T08:58:47.879135" hostname="COMP-C02FL1L0ML87">
         <properties>
             <property name="dd_tags[systest.suite.context.scenario]" value="MOCK_THE_TEST" />
         </properties>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_pass">
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_error[spring]" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="error" />
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]" />
             </properties>
+            <error message="failed on setup with &quot;TypeError: nope!&quot;">@pytest.fixture
+    def error_fixture():
+&gt;       raise TypeError("nope!")
+E       TypeError: nope!
+
+tests/test_the_test/test_junit.py:15: TypeError</error>
         </testcase>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_fail" time="0.000">
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_error_on_bug[spring]" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="xfailed" />
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]" />
+                <property name="dd_tags[systest.case.declaration]" value="bug" />
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360" />
+            </properties>
+            <skipped type="pytest.xfail" message="bug (APMRP-360)" />
+        </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_error_on_missing_feature[spring]" time="0.000">
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="xfailed" />
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]" />
+                <property name="dd_tags[systest.case.declaration]" value="missing_feature" />
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360" />
+            </properties>
+            <skipped type="pytest.xfail" message="missing_feature (APMRP-360)" />
+        </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_fail[spring]" time="0.000">
+            <properties>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="failed"/>
             </properties>
             <failure message="Failed: dummy">self = &lt;tests.test_the_test.test_junit.Test_Cases object at 0x10cf01eb0&gt;
     def test_fail(self):
@@ -19,36 +44,54 @@
 E       Failed: dummy
 tests/test_the_test/test_junit.py:20: Failed</failure>
         </testcase>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_skipped" time="0.000">
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_flaky[spring]" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
+                <property name="dd_tags[systest.case.declaration]" value="flaky"/>
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360"/>
+            </properties>
+            <skipped type="pytest.skip" message="flaky (APMRP-360)">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:34: flaky (APMRP-360)</skipped>
+        </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_force_skip[spring]">
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
+                <property name="dd_tags[systest.case.declaration]" value="bug"/>
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360"/>
+            </properties>
+            <skipped message="bug (APMRP-360)" type="pytest.skip">system-tests/tests/test_the_test/test_junit.py:01: bug (APMRP-360)</skipped>
+        </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_pass[spring]">
+            <properties>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
+                <property name="dd_tags[systest.case.outcome]" value="passed"/>
+            </properties>
+        </testcase>
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_skipped[spring]" time="0.000">
+            <properties>
+                <property name="dd_tags[systest.case.outcome]" value="skipped"/>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="irrelevant"/>
-                <property name="dd_tags[systest.case.declarationDetails]" value="irrelevant"/>
             </properties>
             <skipped type="pytest.skip" message="irrelevant">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:22: irrelevant</skipped>
         </testcase>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xfail" time="0.000">
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xfail[spring]" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
-                <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360"/>
+                <property name="dd_tags[systest.case.outcome]" value="xfailed"/>
             </properties>
             <skipped type="pytest.xfail" message="bug (APMRP-360)" />
         </testcase>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xpass" time="0.000">
+        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_xpass[spring]" time="0.000">
             <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
+                <property name="test.codeowners" value="[&quot;@DataDog/apm-sdk-capabilities&quot;]"/>
                 <property name="dd_tags[systest.case.declaration]" value="bug"/>
-                <property name="dd_tags[systest.case.declarationDetails]" value="bug (APMRP-360)"/>
+                <property name="dd_tags[systest.case.declarationDetails]" value="APMRP-360"/>
+                <property name="dd_tags[systest.case.outcome]" value="xpassed"/>
             </properties>
-        </testcase>
-        <testcase name="tests.test_the_test.test_junit.Test_Cases.test_flaky" time="0.000">
-            <properties>
-                <property name="dd_tags[test.codeowners]" value="[&quot;@DataDog/apm-sdk-api&quot;]"/>
-                <property name="dd_tags[systest.case.declaration]" value="flaky"/>
-                <property name="dd_tags[systest.case.declarationDetails]" value="flaky (APMRP-360)"/>
-            </properties>
-            <skipped type="pytest.skip" message="flaky (APMRP-360)">/Users/charles.debeauchesne/repos/system-tests/tests/test_the_test/test_junit.py:34: flaky (APMRP-360)</skipped>
         </testcase>
     </testsuite>
 </testsuites>

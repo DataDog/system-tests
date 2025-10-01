@@ -32,7 +32,6 @@ bld/
 [Oo]bj/
 [Ll]og/
 dist/
-reportJunit.xml
 .report.json
 
 !lib-injection/build/docker/ruby/lib_injection_rails_app/bin

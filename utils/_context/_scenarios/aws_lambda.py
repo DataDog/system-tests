@@ -37,13 +37,11 @@ class LambdaScenario(DockerScenario):
         super().__init__(name, github_workflow=github_workflow, doc=doc, scenario_groups=scenario_groups)
 
         self.lambda_weblog = LambdaWeblogContainer(
-            host_log_folder=self.host_log_folder,
             environment=weblog_env or {},
             volumes=weblog_volumes or {},
         )
 
         self.lambda_proxy_container = LambdaProxyContainer(
-            host_log_folder=self.host_log_folder,
             lambda_weblog_host=self.lambda_weblog.name,
             lambda_weblog_port=str(self.lambda_weblog.container_port),
         )
@@ -165,3 +163,12 @@ class LambdaScenario(DockerScenario):
     @property
     def weblog_variant(self):
         return self.lambda_weblog.weblog_variant
+
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+
+        return result
