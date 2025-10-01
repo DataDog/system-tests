@@ -508,8 +508,8 @@ class Test_Stable_Config_Default(StableConfigWriter):
         [
             (
                 "tags",
-                {"DD_TAGS": ["tag1:value1", "tag2:value2"]},
-                {"dd_tags": "[tag1:value1,tag2:value2]"},
+                {"DD_TAGS": "tag1:value1,tag2:value2"},
+                {"dd_tags": "tag1:value1,tag2:value2"},
             ),
             (
                 "128bit_traceids",
