@@ -37,6 +37,9 @@ func main() {
 	// TODO: Update app to use logrus and create /log/library endpoint
 	mux := http.NewServeMux()
 
+	// Remove manual instrumentation from RASP tests
+	rasp.HTTPClient = http.DefaultClient
+
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// "/" is the default route when the others don't match
 		// cf. documentation at https://pkg.go.dev/net/http#ServeMux
@@ -601,6 +604,8 @@ func main() {
 	mux.HandleFunc("/rasp/multiple", rasp.LFIMultiple)
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
+
+	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 
 	mux.HandleFunc("/debugger/log", logProbe)
 	mux.HandleFunc("/debugger/mix", mixProbe)
