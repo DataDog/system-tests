@@ -1,6 +1,6 @@
 name: Codeowners
 
-on: 
+on:
   pull_request:
   workflow_call:
 
