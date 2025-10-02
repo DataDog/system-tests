@@ -54,16 +54,10 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
+@features.origin_detection
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
-    def test_install(self):
-        self._test_install(context.virtual_machine)
-
-
-@features.origin_detection
-@scenarios.container_auto_injection_install_script
-class TestContainerAutoInjectInstallScriptOriginDetection(base.AutoInjectBaseTest):
     def test_install(self):
         self._test_install(context.virtual_machine, origin_detection=True)
 
