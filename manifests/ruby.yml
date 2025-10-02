@@ -724,6 +724,8 @@ tests/:
       TestDynamicConfigV1_EmptyServiceTargets: v2.8.0  # version unknown
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: missing_feature
+    test_feature_flag_exposure.py:
+      TestFeatureFlagExposure: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
       Test_Headers_Baggage_Span_Tags: missing_feature

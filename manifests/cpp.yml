@@ -24,6 +24,8 @@ tests/:
       TestDynamicConfigV1_EmptyServiceTargets: ">1.0.0"
     test_headers_b3multi.py:
       Test_Headers_B3multi: ">1.0.0"
+    test_feature_flag_exposure.py:
+      TestFeatureFlagExposure: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
       Test_Headers_Baggage_Span_Tags: missing_feature
