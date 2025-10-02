@@ -47,7 +47,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             logger.debug(f"Waiting for snapshot, retry #{retries}")
 
             self.send_weblog_request(request_path, reset=False)
-            snapshot_found = self.wait_for_exception_snapshot_received(exception_message, timeout)
+            snapshot_found = self.wait_for_snapshot_received(exception_message, timeout)
             timeout = _timeout_next
 
             retries += 1
@@ -540,7 +540,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                 logger.debug(f"Waiting for snapshot for shape: {shape}, retry #{retries}")
                 self.send_weblog_request(f"/exceptionreplay/rps?shape={shape}", reset=False)
 
-                shapes[shape] = self.wait_for_exception_snapshot_received(shape, timeout)
+                shapes[shape] = self.wait_for_snapshot_received(shape, timeout)
                 if self.get_tracer()["language"] == "python":
                     time.sleep(1)
 
