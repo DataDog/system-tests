@@ -2,7 +2,8 @@
 # the subset will be applied
 #
 # Valid scenario group names can be found in ./utils/_context/_scenarios/core.py:26
-# Pattern cannot start with a * because it triggers yaml ref mechanism
+# Pattern cannot start with a * because it triggers yaml ref mechanism.
+# You can prefix any pattern with "./" or use quotes
 
 refs:
   - &lambda_libraries [python_lambda]
@@ -48,8 +49,8 @@ patterns:
         scenario_groups: lib_injection
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
-    # .github/workflows/run-parametric.yml:
-        # scenario_groups: scenarios.parametric
+    .github/workflows/run-parametric.yml:
+        scenario_groups: parametric
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
     .github/*:
@@ -68,16 +69,16 @@ patterns:
         scenario_groups: null  # already handled by the manifest comparison
     repository.datadog.yml:
         scenario_groups: null
-    # utils/_context/_scenarios/appsec_low_waf_timeout.py:
-        # scenario_groups: scenarios.appsec_low_waf_timeout
+    utils/_context/_scenarios/appsec_low_waf_timeout.py:
+        scenario_groups: appsec_low_waf_timeout
     utils/_context/_scenarios/aws_lambda.py:
         scenario_groups: lambda_end_to_end
     utils/_context/_scenarios/auto_injection.py:
         scenario_groups: onboarding
-    # utils/_context/_scenarios/default.py:
-        # scenario_groups: scenarios.default
-    # utils/_context/_scenarios/appsec_rasp.py:
-        # scenario_groups: scenarios.appsec_rasp
+    utils/_context/_scenarios/default.py:
+        scenario_groups: default
+    utils/_context/_scenarios/appsec_rasp.py:
+        scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/endtoend.py:
         scenario_groups: end_to_end
     utils/_context/_scenarios/integrations.py:
@@ -87,8 +88,8 @@ patterns:
     utils/_context/_scenarios/open_telemetry.py:
         scenario_groups: open_telemetry
         libraries: *otel_libraries
-    # utils/_context/_scenarios/parametric.py:
-        # scenario_groups: scenarios.parametric
+    utils/_context/_scenarios/parametric.py:
+        scenario_groups: parametric
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
     # utils/_context/_scenarios/stream_processing_offload.py: stream_processing_offload
@@ -107,8 +108,8 @@ patterns:
         scenario_groups: open_telemetry
     utils/build/docker/python_lambda/*:
         scenario_groups: appsec_lambda
-    # utils/build/docker/\w+/parametric/*:
-        # scenario_groups: scenarios.parametric
+    utils/build/docker/\w+/parametric/*:
+        scenario_groups: parametric
     utils/build/docker/*:
         scenario_groups: [ end_to_end, open_telemetry]
     utils/build/ssi/*:
@@ -117,16 +118,16 @@ patterns:
         scenario_groups: onboarding
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
-    # utils/_features.py:
-        # scenario_groups: scenarios.default
+    utils/_features.py:
+        scenario_groups: default
     utils/interfaces/schemas*:
         scenario_groups: end_to_end
     utils/k8s_lib_injection*:
         scenario_groups: lib_injection
     utils/onboarding*:
         scenario_groups: onboarding
-    # utils/parametric/*:
-        # scenario_groups: scenarios.parametric
+    utils/parametric/*:
+        scenario_groups: parametric
     utils/telemetry/*:
         scenario_groups: telemetry
     utils/proxy/*:
@@ -152,8 +153,8 @@ patterns:
         scenario_groups: null
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
-    # utils/scripts/parametric/*:
-        # scenario_groups: scenarios.parametric
+    utils/scripts/parametric/*:
+        scenario_groups: parametric
     utils/scripts/replay_scenarios.sh:
         scenario_groups: null
     utils/scripts/ssi_wizards/*:
