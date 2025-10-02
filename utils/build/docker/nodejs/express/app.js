@@ -43,8 +43,6 @@ const { sqsProduce, sqsConsume } = require('./integrations/messaging/aws/sqs')
 const { kafkaProduce, kafkaConsume } = require('./integrations/messaging/kafka/kafka')
 const { rabbitmqProduce, rabbitmqConsume } = require('./integrations/messaging/rabbitmq/rabbitmq')
 
-let openFeatureClient = null
-
 // Unstructured logging (plain text)
 const plainLogger = console
 
@@ -125,6 +123,21 @@ app.get('/customResponseHeaders', (req, res) => {
     'x-test-header-3': 'value3',
     'x-test-header-4': 'value4',
     'x-test-header-5': 'value5'
+  })
+  res.send('OK')
+})
+
+app.get('/authorization_related_headers', (req, res) => {
+  res.set({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
   })
   res.send('OK')
 })
@@ -483,54 +496,6 @@ app.get('/load_dependency', (req, res) => {
   console.log('Load dependency endpoint')
   require('glob')
   res.send('Loaded a dependency')
-})
-
-app.post('/ffe/start', (req, res) => {
-  console.log('FFE start endpoint')
-  const { OpenFeature } = require('@openfeature/server-sdk')
-  OpenFeature.setProvider(flaggingProvider)
-  openFeatureClient = OpenFeature.getClient()
-  res.send('OK')
-})
-
-app.post('/feature_flag_evaluation', (req, res) => {
-  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
-  let value, reason;
-  const context = { targetingKey, ...attributes }
-
-  try {
-    // Mock OpenFeature evaluation based on variationType
-    switch (variationType) {
-      case 'BOOLEAN':
-        value = openFeatureClient.getBooleanValue(flag, defaultValue, context)
-        break;
-      case 'STRING':
-        value = openFeatureClient.getStringValue(flag, defaultValue, context)
-        break;
-      case 'INTEGER':
-        value = openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'NUMERIC':
-        value = openFeatureClient.getNumberValue(flag, defaultValue, context)
-        break;
-      case 'JSON':
-        value = openFeatureClient.getObjectValue(flag, defaultValue, context)
-        break;
-      default:
-        value = defaultValue;
-    }
-
-    reason = 'DEFAULT';
-  } catch (error) {
-    console.log('Error evaluating flag', { error });
-    value = defaultValue;
-    reason = 'ERROR';
-  }
-
-  res.json({
-    value: value,
-    reason: reason
-  });
 })
 
 app.all('/tag_value/:tag_value/:status_code', (req, res) => {
