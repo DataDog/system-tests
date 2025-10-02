@@ -46,10 +46,22 @@ DEFAULT_ENVVARS = {
 
 
 @pytest.fixture
-def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_name, test_agent_otlp_grpc_port):
+def otlp_metrics_endpoint_library_env(
+    library_env, endpoint_env, test_agent_otlp_http_port, test_agent_otlp_grpc_port, test_agent_container_name
+):
     """Set up a custom endpoint for OTLP metrics."""
     prev_value = library_env.get(endpoint_env)
-    library_env[endpoint_env] = f"http://{test_agent_container_name}:{test_agent_otlp_grpc_port}"
+
+    protocol = library_env.get("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", library_env.get("OTEL_EXPORTER_OTLP_PROTOCOL"))
+    if protocol is None:
+        raise ValueError(
+            "One of the following environment variables must be set in library_env: OTEL_EXPORTER_OTLP_METRICS_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL"
+        )
+
+    port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
+    path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/metrics"
+
+    library_env[endpoint_env] = f"http://{test_agent_container_name}:{port}{path}"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
@@ -1943,17 +1955,26 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
     """
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
-                {**DEFAULT_ENVVARS},
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
                 "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
             ),
         ],
     )
-    def test_otlp_custom_endpoint(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    def test_otlp_custom_endpoint_http_protobuf(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
     ):
         """Metrics are exported to custom OTLP endpoint."""
         name = "test_otlp_custom_endpoint-counter"
@@ -1972,17 +1993,96 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
             (
-                {**DEFAULT_ENVVARS},
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_otlp_custom_endpoint_grpc(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_grpc_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_custom_endpoint-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4320
+        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 4321,
             ),
         ],
     )
-    def test_otlp_metrics_custom_endpoint(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+    def test_otlp_metrics_custom_endpoint_http_protobuf(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
     ):
         """Metrics are exported to custom OTLP endpoint."""
-        name = "test_otlp_metrics_custom_endpoint-counter"
+        name = "test_otlp_metrics_custom_endpoint_http_protobuf-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4321
+        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4321,
+            ),
+        ],
+    )
+    def test_otlp_metrics_custom_endpoint_grpc(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_grpc_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_metrics_custom_endpoint_grpc-counter"
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
@@ -2084,14 +2184,38 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
                 **DEFAULT_ENVVARS,
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
             },
+        ],
+    )
+    def test_otlp_protocol_http_protobuf(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
+        name = f"test_otlp_protocols-{protocol}-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf"
+            if protocol == "http/protobuf"
+            else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
             {
                 **DEFAULT_ENVVARS,
                 "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
             },
         ],
-        ids=["http_protobuf", "grpc"],
     )
-    def test_otlp_protocols(self, test_agent, test_library, library_env):
+    def test_otlp_protocol_grpc(self, test_agent, test_library, library_env):
         """OTLP metrics are emitted in expected format."""
         protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
         name = f"test_otlp_protocols-{protocol}-counter"
@@ -2482,7 +2606,7 @@ class Test_Otel_Metrics_Telemetry:
     """
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -2490,7 +2614,7 @@ class Test_Otel_Metrics_Telemetry:
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
                     "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 },
                 "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
@@ -2498,7 +2622,13 @@ class Test_Otel_Metrics_Telemetry:
         ],
     )
     def test_telemetry_exporter_configurations(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
     ):
         """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_exporter_configurations"
@@ -2515,7 +2645,7 @@ class Test_Otel_Metrics_Telemetry:
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
             ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
-            ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
@@ -2528,7 +2658,7 @@ class Test_Otel_Metrics_Telemetry:
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -2536,7 +2666,7 @@ class Test_Otel_Metrics_Telemetry:
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "30000",
                     "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
-                    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "grpc",
+                    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
                 },
                 "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
                 4325,
@@ -2544,7 +2674,13 @@ class Test_Otel_Metrics_Telemetry:
         ],
     )
     def test_telemetry_exporter_metrics_configurations(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
     ):
         """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_METRICS_ are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_exporter_metrics_configurations"
@@ -2561,7 +2697,7 @@ class Test_Otel_Metrics_Telemetry:
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 30000),
             ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
-            ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
@@ -2574,28 +2710,16 @@ class Test_Otel_Metrics_Telemetry:
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
     @pytest.mark.parametrize(
-        ("library_env", "protocol"),
+        "library_env",
         [
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
-                },
-                "grpc",
-            ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
-                },
-                "http/protobuf",
-            ),
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
         ],
-        ids=["grpc", "http/protobuf"],
     )
-    def test_telemetry_metrics(self, library_env, test_agent, test_library, protocol):
+    def test_telemetry_metrics_http_protobuf(self, library_env, test_agent, test_library):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
 
@@ -2613,7 +2737,8 @@ class Test_Otel_Metrics_Telemetry:
             assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
             assert metric.get("common") is True, f"Expected common, got {metric}"
             assert metric.get("tags") is not None, f"Expected tags, got {metric}"
-            assert f"protocol:{protocol}" in metric.get("tags")
+            assert "protocol:http" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
 
         telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_successes")
         assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
@@ -2622,4 +2747,46 @@ class Test_Otel_Metrics_Telemetry:
             assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
             assert metric.get("common") is True, f"Expected common, got {metric}"
             assert metric.get("tags") is not None, f"Expected tags, got {metric}"
-            assert f"protocol:{protocol}" in metric.get("tags")
+            assert "protocol:http" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+            },
+        ],
+    )
+    def test_telemetry_metrics_grpc(self, library_env, test_agent, test_library):
+        """Test telemetry metrics are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_metrics"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:grpc" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_successes")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:grpc" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
