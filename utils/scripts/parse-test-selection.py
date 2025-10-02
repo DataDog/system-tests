@@ -346,10 +346,6 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                             # on first matching pattern, stop the loop
                             break
                     else:
-                        # raise ValueError(
-                        #     f"Unknown file: {file}. Please add it in this file, with the correct scenario "
-                        #     "requirement."
-                        # )
                         result.add_scenario_group(scenario_groups.all)
 
                 # now get known scenarios executed in this file
