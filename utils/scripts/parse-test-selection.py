@@ -341,7 +341,7 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                 else:
                     for pattern, requirement in impacts.items():
                         if re.fullmatch(pattern, file):
-                            result.scenarios_groups.add(requirement.scenarios)
+                            result.scenarios_groups |= requirement.scenarios
                             # on first matching pattern, stop the loop
                             break
                     else:
