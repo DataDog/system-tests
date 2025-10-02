@@ -4,8 +4,9 @@
 # Valid scenario names can be found in ./utils/_context/_scenarios/core.py:26
 # Pattern cannot start with a * because it triggers yaml ref mechanism
 
-# refs:
-#   - &lamda_libraries [lsi, dkjf]
+refs:
+  - &lambda_libraries [python_lambda]
+  - &otel_libraries [java_otel, python_otel]
 
 patterns:
     # - r"\.github/workflows/run-exotics\.yml": exotics,
@@ -13,6 +14,15 @@ patterns:
 
     # - ".github/workflows/daily-tag.yml"
 
+    - ./*.md:
+        scenario_groups: null
+        libraries: null
+    - ./*.rdoc:
+        scenario_groups: null
+        libraries: null
+    - ./*.txt:
+        scenario_groups: null
+        libraries: null
     - .cursor/rules/*:
         scenario_groups: null
     - .circleci/*:
@@ -27,6 +37,7 @@ patterns:
         scenario_groups: null
     - .github/workflows/debug-harness.yml:
         scenario_groups: null
+        libraries: null
     - .github/workflows/run-docker-ssi.yml:
         scenario_groups: docker_ssi
     - .github/workflows/run-end-to-end.yml:
@@ -75,6 +86,7 @@ patterns:
         scenario_groups: ipv6
     - utils/_context/_scenarios/open_telemetry.py:
         scenario_groups: open_telemetry
+        libraries: *otel_libraries
     # - utils/_context/_scenarios/parametric.py:
         # scenario_groups: scenarios.parametric
     - utils/_context/_scenarios/profiling.py:
@@ -86,6 +98,9 @@ patterns:
         scenario_groups: open_telemetry
     - utils/build/docker/lambda_proxy/*:
         scenario_groups: lambda_end_to_end
+        libraries: *lambda_libraries
+    - utils/build/docker/lambda_proxy.Dockerfile:
+        libraries: *lambda_libraries
     - utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
     - utils/build/docker/python_otel/*:
@@ -118,6 +133,7 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
     - utils/scripts/activate-easy-wins.py:
         scenario_groups: null
+        libraries: null
     - utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     - utils/scripts/ai/*:
@@ -126,6 +142,10 @@ patterns:
         scenario_groups: null
     - utils/scripts/compute_impacted_scenario.py:
         scenario_groups: null
+        libraries: null
+    - utils/scripts/compute-impacted-libraries.py:
+        scenario_groups: null
+        libraries: null
     - utils/scripts/get-nightly-logs.py:
         scenario_groups: null
     - utils/scripts/get-workflow-summary.py:
