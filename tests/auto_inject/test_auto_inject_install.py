@@ -197,7 +197,10 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
-    @irrelevant(condition=context.virtual_machine.get_deployed_weblog().app_type == "host")
+    @irrelevant(
+        condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
+        reason="Origin detection is not supported on host environments",
+    )
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
