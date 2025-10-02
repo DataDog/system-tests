@@ -10,20 +10,6 @@ refs:
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
-    # - r"\.github/workflows/run-exotics\.yml": exotics,
-    # - r"\.github/.*": null,
-
-    # - ".github/workflows/daily-tag.yml"
-
-    ./*.md:
-        scenario_groups: null
-        libraries: null
-    ./*.rdoc:
-        scenario_groups: null
-        libraries: null
-    ./*.txt:
-        scenario_groups: null
-        libraries: null
     .cursor/rules/*:
         scenario_groups: null
     .circleci/*:
@@ -163,8 +149,8 @@ patterns:
         scenario_groups: null
     utils/virtual_machine/*:
         scenario_groups: onboarding
-    # utils/*:
-    #     scenario_groups: all
+    utils/*:
+        scenario_groups: all
     .cursorrules:
         scenario_groups: null
     .dockerignore:
@@ -183,8 +169,8 @@ patterns:
         scenario_groups: null
     .yamllint:
         scenario_groups: null
-    # conftest.py:
-    #     scenario_groups: all
+    conftest.py:
+        scenario_groups: all
     CHANGELOG.md:
         scenario_groups: null
     flake.lock:
@@ -193,6 +179,7 @@ patterns:
         scenario_groups: null
     LICENSE:
         scenario_groups: null
+        libraries: null
     LICENSE-3rdparty.csv:
         scenario_groups: null
     NOTICE:
@@ -207,31 +194,19 @@ patterns:
         scenario_groups: null
     README.md:
         scenario_groups: null
-    # requirements.txt:
-    #     scenario_groups: all
-    # run.sh:
-    #     scenario_groups: all
+    requirements.txt:
+        scenario_groups: all
+    run.sh:
+        scenario_groups: all
+
     ./*.nix:
         scenario_groups: null
-
-    # - .github/*:
-    #     libraries: &all_libraries
-    #     scenario_groups: [end_to_end, debugger]
-    #
-    # - .github/*:
-    #     libraries: &all_libraries
-    #     scenario_groups: [end_to_end, debugger]
-    #
-    # - "doc/*":
-    #     libraries: null
-    #
-    # - utils/build/python:
-    #     libraries: [golang, cpp]
-    #     scenario_groups: end_to_end
-    #
-    # - manifest/python.yml:
-    #     libraries: python
-    #
-    # - "*":     # keep this in late: by default everything is executed
-    #     scenario_groups: ALL
-    #     libraries: ALL
+    ./*.md:
+        scenario_groups: null
+        libraries: null
+    ./*.rdoc:
+        scenario_groups: null
+        libraries: null
+    ./*.txt:
+        scenario_groups: null
+        libraries: null
