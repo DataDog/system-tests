@@ -68,6 +68,7 @@ refs:
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
+  - &ref_5_69_0 '>=5.69.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -988,10 +989,22 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability:
+        '*': *ref_5_69_0
+        fastify: missing_feature
+        nextjs: missing_feature
+      Test_ExtendedRequestBodyCollection:
+        '*': *ref_5_69_0
+        fastify: missing_feature
+        nextjs: missing_feature
+      Test_ExtendedRequestHeadersDataCollection:
+        '*': *ref_5_69_0
+        fastify: missing_feature
+        nextjs: missing_feature
+      Test_ExtendedResponseHeadersDataCollection:
+        '*': *ref_5_69_0
+        fastify: missing_feature
+        nextjs: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
