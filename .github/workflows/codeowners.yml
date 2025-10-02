@@ -2,6 +2,7 @@ name: Codeowners
 
 on: 
   pull_request:
+  workflow_call:
 
 jobs:
   report_codeowners:
