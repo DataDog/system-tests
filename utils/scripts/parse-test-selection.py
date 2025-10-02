@@ -76,8 +76,8 @@ def parse() -> dict[str, Param]:
 
     try:
         ret = {}
-        for entry in data:
-            pattern, param = next(iter(entry.items()))
+        for pattern, param in data.items():
+            # pattern, param = next(iter(entry.items()))
             pattern = transform_pattern(pattern)
             libraries = param.get("libraries", "ALL") or set()
             scenarios = param.get("scenario_groups", "ALL") or set()
