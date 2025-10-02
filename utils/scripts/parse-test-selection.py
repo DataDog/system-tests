@@ -107,35 +107,9 @@ def library_processing(impacts: dict[str, Param], output: str) -> None:
     otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
 
     # nodejs_otel is broken: dependancy needs to be pinned
-    # libraries = "cpp|cpp_httpd|cpp_nginx|dotnet|golang|java|nodejs|php|python|ruby|java_otel|python_otel|nodejs_otel|python_lambda|rust"  # noqa: E501
     libraries = "|".join(list(LIBRARIES) + lambda_libraries + otel_libraries)
 
     def get_impacted_libraries(modified_file: str, impacts: dict[str, Param]) -> list[str]:
-        # """Return the list of impacted libraries by this file"""
-        # if modified_file.endswith((".md", ".rdoc", ".txt")):
-        #     # modification in documentation file
-        #     return []
-        #
-        # files_with_no_impact = [
-        #     "utils/scripts/activate-easy-wins.py",
-        #     "utils/scripts/compute-impacted-libraries.py",
-        #     ".github/workflows/compute-impacted-libraries.yml",
-        #     ".github/workflows/debug-harness.yml",
-        # ]
-        # if modified_file in files_with_no_impact:
-        #     return []
-        #
-        # lambda_proxy_patterns = [
-        #     "utils/build/docker/lambda_proxy/.+",
-        #     "utils/build/docker/lambda-proxy.Dockerfile",
-        # ]
-        # for pattern in lambda_proxy_patterns:
-        #     if re.match(pattern, modified_file):
-        #         return lambda_libraries
-        #
-        # if modified_file in ("utils/_context/_scenarios/open_telemetry.py",):
-        #     return otel_libraries
-        #
         patterns = [
             rf"^manifests/({libraries})\.",
             rf"^utils/build/docker/({libraries})/",
@@ -361,128 +335,9 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                                 result.add_scenario_names(scenario_names)
 
                 else:
-                    # Map of file patterns -> scenario requirement:
-                    #
-                    # * The first matching pattern is applied
-                    # * Others are ignored (so order is important)
-                    # * If no pattern matches -> error
-                    #
-                    # requirement can be:
-                    #
-                    # * None: no scenario will be run
-                    # * a member of ScenarioGroup: the scenario group will be run
-                    # * a Scenario: the scenario will be run
-                    # * a list of ScenarioGroup or Scenario: all elements will be run
-                    #
-                    # please keep this keys sorted as they would have been in a file explorer
-                    # files_map: dict[str, ScenarioGroup | Scenario | list[ScenarioGroup | Scenario] | None] = {
-                    #     r"\.cursor/rules/.*": None,
-                    #     r"\.circleci/.*": None,
-                    #     r"\.vscode/.*": None,
-                    #     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
-                    #     r"\.github/CODEOWNERS": None,
-                    #     r"\.github/workflows/daily-tag\.yml": None,
-                    #     r"\.github/workflows/debug-harness\.yml": None,
-                    #     r"\.github/workflows/run-docker-ssi\.yml": scenario_groups.docker_ssi,
-                    #     r"\.github/workflows/run-end-to-end\.yml": scenario_groups.end_to_end,
-                    #     r"\.github/workflows/run-graphql\.yml": scenario_groups.graphql,
-                    #     r"\.github/workflows/run-lib-injection\.yml": scenario_groups.lib_injection,
-                    #     r"\.github/workflows/run-open-telemetry\.yml": scenario_groups.open_telemetry,
-                    #     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
-                    #     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
-                    #     r"\.github/.*": None,
-                    #     r"\.gitlab/ssi_gitlab-ci.yml": [
-                    #         scenario_groups.onboarding,
-                    #         scenario_groups.lib_injection,
-                    #         scenario_groups.docker_ssi,
-                    #     ],
-                    #     r"\.promptfoo/.*": None,
-                    #     r"binaries/.*": None,
-                    #     r"docs/.*": None,
-                    #     r"lib-injection/.*": scenario_groups.lib_injection,
-                    #     r"manifests/.*": None,  # already handled by the manifest comparison
-                    #     r"repository\.datadog\.yml": None,
-                    #     r"utils/_context/_scenarios/appsec_low_waf_timeout\.py": scenarios.appsec_low_waf_timeout,
-                    #     r"utils/_context/_scenarios/aws_lambda\.py": scenario_groups.lambda_end_to_end,
-                    #     r"utils/_context/_scenarios/auto_injection\.py": scenario_groups.onboarding,
-                    #     r"utils/_context/_scenarios/default\.py": scenarios.default,
-                    #     r"utils/_context/_scenarios/appsec_rasp\.py": scenarios.appsec_rasp,
-                    #     r"utils/_context/_scenarios/endtoend\.py": scenario_groups.end_to_end,
-                    #     r"utils/_context/_scenarios/integrations\.py": scenario_groups.integrations,
-                    #     r"utils/_context/_scenarios/ipv6\.py": scenario_groups.ipv6,
-                    #     r"utils/_context/_scenarios/open_telemetry\.py": scenario_groups.open_telemetry,
-                    #     r"utils/_context/_scenarios/parametric\.py": scenarios.parametric,
-                    #     r"utils/_context/_scenarios/profiling\.py": scenario_groups.profiling,
-                    #     r"utils/_context/_scenarios/stream_processing_offload\.py": scenario_groups.stream_processing_offload,  # noqa: E501
-                    #     r"utils/_context/virtual_machine\.py": scenario_groups.onboarding,
-                    #     r"utils/build/docker/java_otel/.*": scenario_groups.open_telemetry,
-                    #     r"utils/build/docker/lambda_proxy/.*": scenario_groups.lambda_end_to_end,
-                    #     r"utils/build/docker/nodejs_otel/.*": scenario_groups.open_telemetry,
-                    #     r"utils/build/docker/python_otel/.*": scenario_groups.open_telemetry,
-                    #     r"utils/build/docker/python_lambda/.*": scenario_groups.appsec_lambda,
-                    #     r"utils/build/docker/\w+/parametric/.*": scenarios.parametric,
-                    #     r"utils/build/docker/.*": [
-                    #         scenario_groups.end_to_end,
-                    #         scenario_groups.open_telemetry,
-                    #     ],
-                    #     r"utils/build/ssi/.*": scenario_groups.docker_ssi,
-                    #     r"utils/build/virtual_machine/.*": scenario_groups.onboarding,
-                    #     r"utils/docker_ssi/.*": scenario_groups.docker_ssi,
-                    #     r"utils/_features\.py": scenarios.default,
-                    #     r"utils/interfaces/schemas.*": scenario_groups.end_to_end,
-                    #     r"utils/k8s_lib_injection.*": scenario_groups.lib_injection,
-                    #     r"utils/onboarding.*": scenario_groups.onboarding,
-                    #     r"utils/parametric/.*": scenarios.parametric,
-                    #     r"utils/telemetry/.*": scenario_groups.telemetry,
-                    #     r"utils/proxy/.*": [
-                    #         scenario_groups.end_to_end,
-                    #         scenario_groups.open_telemetry,
-                    #         scenario_groups.external_processing,
-                    #         scenario_groups.stream_processing_offload,
-                    #     ],
-                    #     r"utils/scripts/activate-easy-wins\.py": None,
-                    #     r"utils/scripts/add-system-tests-label-on-known-tickets\.py": None,
-                    #     r"utils/scripts/ai/.*": None,
-                    #     r"utils/scripts/check_version\.sh": None,
-                    #     r"utils/scripts/compute_impacted_scenario\.py": None,
-                    #     r"utils/scripts/get-nightly-logs\.py": None,
-                    #     r"utils/scripts/get-workflow-summary\.py": None,
-                    #     r"utils/scripts/grep-nightly-logs.py\.py": None,
-                    #     r"utils/scripts/parametric/.*": scenarios.parametric,
-                    #     r"utils/scripts/replay_scenarios\.sh": None,
-                    #     r"utils/scripts/ssi_wizards/.*": None,
-                    #     r"utils/scripts/update_protobuf\.sh": None,
-                    #     r"utils/virtual_machine/.*": scenario_groups.onboarding,
-                    #     r"utils/.*": scenario_groups.all,
-                    #     r"\.cursorrules": None,
-                    #     r"\.dockerignore": None,
-                    #     r"\.gitattributes": None,
-                    #     r"\.gitignore": None,
-                    #     r"\.gitlab-ci\.yml": None,
-                    #     r"\.shellcheck": None,
-                    #     r"\.shellcheckrc": None,
-                    #     r"\.yamlfmt": None,
-                    #     r"\.yamllint": None,
-                    #     r"conftest\.py": scenario_groups.all,
-                    #     r"CHANGELOG\.md": None,
-                    #     r"flake\.lock": None,
-                    #     r"format\.sh": None,
-                    #     r"LICENSE": None,
-                    #     r"LICENSE-3rdparty\.csv": None,
-                    #     r"NOTICE": None,
-                    #     r"promptfooconfig\.yaml": None,
-                    #     r"Pulumi\.yaml": None,
-                    #     r"pyproject\.toml": None,
-                    #     r"static-analysis\.datadog\.yml": None,
-                    #     r"README\.md": None,
-                    #     r"requirements\.txt": scenario_groups.all,
-                    #     r"run\.sh": scenario_groups.all,
-                    #     r".*\.nix": None,
-                    # }
-
                     for pattern, requirement in impacts.items():
                         if re.fullmatch(pattern, file):
-                            result.add_scenario_names(requirement.scenarios)
+                            result.scenarios_groups.add(requirement.scenarios)
                             # on first matching pattern, stop the loop
                             break
                     else:
