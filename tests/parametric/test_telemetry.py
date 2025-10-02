@@ -707,7 +707,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
                 },
                 {"DD_TAGS": "fleet1:tag1,fleet2:tag2"},
                 {
-                    "tags": "fleet_stable_config", # Note: Java reports it with origin:calculated...
+                    "tags": "fleet_stable_config",  # Note: Java reports it with origin:calculated...
                     "trace_propagation_style": "local_stable_config",
                 },
             )
