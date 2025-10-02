@@ -511,7 +511,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 {"DD_TAGS": "tag1:value1,tag2:value2"},
                 {
                     "dd_tags": ["tag1:value1", "tag2:value2"]
-                    if context.library in ["dotnet"]
+                    if context.library in ["dotnet", "php"]
                     else "tag1:value1,tag2:value2"
                 },
             ),
