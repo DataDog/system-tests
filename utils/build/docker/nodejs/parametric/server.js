@@ -376,7 +376,7 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
 
 app.post('/ffe/start', async (req, res) => {
   const { flaggingProvider } = tracer
-  OpenFeature.setProvider(flaggingProvider)
+  await OpenFeature.setProviderAndWait(flaggingProvider)
   openFeatureClient = OpenFeature.getClient()
   res.json({})
 })

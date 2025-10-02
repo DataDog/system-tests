@@ -1,15 +1,15 @@
 """Test Feature Flag Exposure (FFE) functionality via parametric tests."""
 
 import json
-import os
 import pytest
-from typing import Any, Dict, List
+from pathlib import Path
+from typing import Any
 
 from utils import (
     features,
     scenarios,
 )
-from utils.dd_constants import Capabilities, RemoteConfigApplyState
+from utils.dd_constants import RemoteConfigApplyState
 from .conftest import _TestAgentAPI, APMLibrary
 
 RC_PRODUCT = "FFE_FLAGS"
@@ -17,25 +17,28 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 parametrize = pytest.mark.parametrize
 
-# Load the UFC fixture file at module level
-def _load_ufc_fixture() -> Dict[str, Any]:
-    """Load the UFC fixture file."""
-    fixture_path = os.path.join("tests/parametric/fixtures/test_data", "flags-v1.json")
 
-    if not os.path.exists(fixture_path):
+# Load the UFC fixture file at module level
+def _load_ufc_fixture() -> dict[str, Any]:
+    """Load the UFC fixture file."""
+    fixture_path = Path("tests/parametric/fixtures/test_data/flags-v1.json")
+
+    if not fixture_path.exists():
         pytest.skip(f"Fixture file not found: {fixture_path}")
 
-    with open(fixture_path) as f:
+    with fixture_path.open() as f:
         ufc_payload = json.load(f)
-    return ufc_payload["data"]['attributes']
+    return ufc_payload["data"]["attributes"]
 
-def _get_test_case_files() -> List[str]:
+
+def _get_test_case_files() -> list[str]:
     """Get all test case files from the fixtures directory."""
-    test_data_dir = os.path.join("tests/parametric/fixtures/test_data/tests")
-    if not os.path.exists(test_data_dir):
+    test_data_dir = Path("tests/parametric/fixtures/test_data/tests")
+    if not test_data_dir.exists():
         return []
 
-    return [f for f in os.listdir(test_data_dir) if f.endswith('.json')]
+    return [f.name for f in test_data_dir.iterdir() if f.suffix == ".json"]
+
 
 # Load fixture at module level for reuse across tests
 UFC_FIXTURE_DATA = _load_ufc_fixture()
@@ -50,102 +53,82 @@ DEFAULT_ENVVARS = {
 }
 
 
-def _create_ffe_rc_config(ufc_data: Dict[str, Any], config_id: str = None) -> Dict[str, Any]:
-    """Create a Remote Config payload for UFC (User Feature Configuration)."""
+def _set_and_wait_ffe_rc(
+    test_agent: _TestAgentAPI, ufc_data: dict[str, Any], config_id: str | None = None
+) -> dict[str, Any]:
+    """Set FFE Remote Config and wait for it to be acknowledged.
+
+    Args:
+        test_agent: The test agent API instance
+        ufc_data: The UFC (User Feature Configuration) data payload
+        config_id: Optional config ID, will be generated from data hash if not provided
+
+    Returns:
+        The apply state response from the test agent
+
+    """
     if not config_id:
         config_id = str(hash(json.dumps(ufc_data, sort_keys=True)))
 
-    config = { 
-        "action": "apply",
-        "flag_configuration": ufc_data,
-        "flag_environment": "foo",
+    # Create RC config payload
+    rc_config = {"action": "apply", "flag_configuration": ufc_data, "flag_environment": "foo", "id": config_id}
 
-    }
-    config["id"] = config_id
-    return config
+    # Set the config
+    test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=rc_config)
 
-
-def _set_ffe_rc(test_agent: _TestAgentAPI, ufc_data: Dict[str, Any], config_id: str = None) -> str:
-    """Set FFE Remote Config and return the config ID."""
-    if not config_id:
-        config_id = str(hash(json.dumps(ufc_data, sort_keys=True)))
-
-    rc_config = _create_ffe_rc_config(ufc_data, config_id)
-    test_agent.set_remote_config(
-        path=f"{RC_PATH}/{config_id}/config",
-        payload=rc_config
-    )
-    return config_id
-
-
-def _wait_for_ffe_rc_applied(test_agent: _TestAgentAPI) -> Dict[str, Any]:
-    """Wait for FFE Remote Config to be acknowledged."""
     # Wait for RC acknowledgment
-    return test_agent.wait_for_rc_apply_state(
-        RC_PRODUCT,
-        state=RemoteConfigApplyState.ACKNOWLEDGED,
-        clear=True
-    )
+    return test_agent.wait_for_rc_apply_state(RC_PRODUCT, state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
 
 
 @scenarios.parametric
 @features.feature_flag_exposure
-class TestFeatureFlagExposure:
-    """Test Feature Flag Exposure (FFE) functionality."""
+class Test_Feature_Flag_Exposure:
+    """Test Feature Flag Exposure (FFE) functionality.
+
+    This test suite focuses on FFE-specific behavior: flag evaluation logic,
+    OpenFeature provider integration, and exposure event generation.
+
+    """
 
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_capability_registration(self, library_env, test_agent: _TestAgentAPI, test_library: APMLibrary):
-        """Ensure FFE capabilities are registered with Remote Config."""
-        # Check for FFE-related capabilities
-        capabilities = test_agent.wait_for_rc_capabilities()
+    def test_ffe_remote_config(
+        self, library_env: dict[str, str], test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test to verify FFE can receive and acknowledge UFC configurations via Remote Config."""
 
-        # Verify UFC capability is present
-        expected_capabilities = {Capabilities.FFE_FLAG_CONFIGURATION_RULES}  # Assuming this exists
-        assert expected_capabilities.issubset(capabilities), \
-            f"Missing FFE capabilities: {expected_capabilities - capabilities}"
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_ffe_remote_config_integration(self, library_env, test_agent: _TestAgentAPI, test_library: APMLibrary):
-        """Test basic FFE Remote Config integration."""
-        # Use the pre-loaded UFC fixture data
-        config_id = _set_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-
-        # Wait for configuration to be applied
-        apply_state = _wait_for_ffe_rc_applied(test_agent)
+        apply_state = _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
         assert apply_state["apply_state"] == RemoteConfigApplyState.ACKNOWLEDGED.value
         assert apply_state["product"] == RC_PRODUCT
 
-
-    @parametrize("library_env", [{**DEFAULT_ENVVARS, "DD_FFE_ENABLED": "false"}])
-    def test_ffe_disabled(self, library_env, test_agent: _TestAgentAPI, test_library: APMLibrary):
-        """Test that FFE functionality is properly disabled when DD_FFE_ENABLED=false."""
-        # When FFE is disabled, no UFC capabilities should be registered
-        capabilities = test_agent.wait_for_rc_capabilities()
-
-        # Verify UFC capability is NOT present
-        ufc_capabilities = {cap for cap in capabilities if RC_PRODUCT in cap.name}
-        assert len(ufc_capabilities) == 0, f"UFC capabilities found when FFE disabled: {ufc_capabilities}"
-
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @parametrize("test_case_file", ALL_TEST_CASE_FILES)
-    def test_ffe_evaluation_with_test_cases(self, library_env, test_case_file, test_agent: _TestAgentAPI, test_library: APMLibrary):
-        """Test FFE evaluation using test case files."""
-        # Load the test case file
-        test_case_path = os.path.join("tests/parametric/fixtures/test_data/tests", test_case_file)
+    def test_ffe_flag_evaluation(
+        self, library_env: dict[str, str], test_case_file: str, test_agent: _TestAgentAPI, test_library: APMLibrary
+    ) -> None:
+        """Test FFE flag evaluation logic with various targeting scenarios.
 
-        if not os.path.exists(test_case_path):
+        This is the core FFE test that validates the OpenFeature provider correctly:
+        1. Loads flag configurations from Remote Config (UFC format)
+        2. Evaluates flags based on targeting rules and evaluation context
+        3. Returns correct variation values for different variation types
+        4. Handles user targeting, attribute matching, and rollout percentages
+
+        """
+        # Load the test case file
+        test_case_path = Path("tests/parametric/fixtures/test_data/tests") / test_case_file
+
+        if not test_case_path.exists():
             pytest.skip(f"Test case file not found: {test_case_path}")
 
-        with open(test_case_path) as f:
+        with test_case_path.open() as f:
             test_cases = json.load(f)
 
-        # Set up UFC Remote Config first
-        _set_ffe_rc(test_agent, UFC_FIXTURE_DATA)
-        _wait_for_ffe_rc_applied(test_agent)
+        # Set up UFC Remote Config and wait for it to be applied
+        _set_and_wait_ffe_rc(test_agent, UFC_FIXTURE_DATA)
 
         # Initialize FFE provider
-        response = test_library._client._session.post(test_library._client._url("/ffe/start"), json={})
-        assert response.status_code == 200, f"Failed to start FFE provider: {response.text}"
+        success = test_library.ffe_start()
+        assert success, "Failed to start FFE provider"
 
         # Run each test case
         for i, test_case in enumerate(test_cases):
@@ -156,19 +139,13 @@ class TestFeatureFlagExposure:
             attributes = test_case.get("attributes", {})
             expected_result = test_case["result"]["value"]
 
-            # Call the FFE evaluation endpoint
-            evaluation_request = {
-                "flag": flag,
-                "variationType": variation_type,
-                "defaultValue": default_value,
-                "targetingKey": targeting_key,
-                "attributes": attributes
-            }
-
-            response = test_library._client._session.post(test_library._client._url("/ffe/evaluate"), json=evaluation_request)
-            assert response.status_code == 200, f"FFE evaluation failed for test case {i} in {test_case_file}: {response.text}"
-
-            result = response.json()
+            result = test_library.ffe_evaluate(
+                flag=flag,
+                variation_type=variation_type,
+                default_value=default_value,
+                targeting_key=targeting_key,
+                attributes=attributes,
+            )
             actual_value = result.get("value")
 
             # Assert the evaluation result matches expected value

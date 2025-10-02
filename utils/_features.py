@@ -2545,7 +2545,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=491
         """
         return _mark_test_object(test_object, feature_id=491, owner=_Owner.asm)
-    
+
     @staticmethod
     def feature_flag_exposure(test_object):
         """Feature Flag Exposure

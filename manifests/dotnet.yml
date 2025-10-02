@@ -560,7 +560,7 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature
       TestDynamicConfigV2: v2.44.0
     test_feature_flag_exposure.py:
-      TestFeatureFlagExposure: missing_feature
+      Test_Feature_Flag_Exposure: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
       Test_Headers_Baggage_Span_Tags: missing_feature

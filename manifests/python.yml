@@ -1067,7 +1067,7 @@ tests/:
       TestDynamicConfigV1_ServiceTargets: missing_feature (failure 2.8.0)
       TestDynamicConfigV2: v2.0.0
     test_feature_flag_exposure.py:
-      TestFeatureFlagExposure: missing_feature
+      Test_Feature_Flag_Exposure: missing_feature
     test_headers_b3.py:
       Test_Headers_B3: v2.8.0
     test_headers_b3multi.py:

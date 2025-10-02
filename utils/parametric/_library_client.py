@@ -457,6 +457,51 @@ class APMLibraryClient:
         resp_json = resp.json()
         return SpanResponse(span_id=resp_json["span_id"], trace_id=resp_json["trace_id"])
 
+    def ffe_start(self) -> bool:
+        """Initialize the FFE (Feature Flag Exposure) provider.
+
+        Returns:
+            bool: True if the provider was initialized successfully, False otherwise
+
+        """
+        resp = self._session.post(self._url("/ffe/start"), json={})
+        return HTTPStatus(resp.status_code).is_success
+
+    def ffe_evaluate(
+        self,
+        flag: str,
+        variation_type: str,
+        default_value: bool | str | float | dict,
+        targeting_key: str,
+        attributes: dict | None = None,
+    ) -> dict:
+        """Evaluate a feature flag.
+
+        Args:
+            flag: The flag key to evaluate
+            variation_type: The type of variation (BOOLEAN, STRING, INTEGER, NUMERIC, JSON)
+            default_value: The default value to return if evaluation fails
+            targeting_key: The targeting key (usually user ID) for evaluation context
+            attributes: Optional additional attributes for evaluation context
+
+        Returns:
+            dict: Evaluation result containing 'value' and 'reason'
+
+        """
+        resp = self._session.post(
+            self._url("/ffe/evaluate"),
+            json={
+                "flag": flag,
+                "variationType": variation_type,
+                "defaultValue": default_value,
+                "targetingKey": targeting_key,
+                "attributes": attributes or {},
+            },
+        )
+        if not HTTPStatus(resp.status_code).is_success:
+            raise pytest.fail(f"FFE evaluation failed: {resp.text}", pytrace=False)
+        return resp.json()
+
 
 class _TestSpan:
     def __init__(self, client: APMLibraryClient, span_id: int, trace_id: int):
@@ -679,3 +724,18 @@ class APMLibrary:
         self, message: str, level: LogLevel, logger_name: str = "test_logger", logger_type: int = 0, span_id: int = 0
     ) -> bool:
         return self._client.write_log(message, level, logger_name, logger_type, span_id)
+
+    def ffe_start(self) -> bool:
+        """Initialize the FFE (Feature Flag Exposure) provider."""
+        return self._client.ffe_start()
+
+    def ffe_evaluate(
+        self,
+        flag: str,
+        variation_type: str,
+        default_value: bool | str | float | dict,
+        targeting_key: str,
+        attributes: dict | None = None,
+    ) -> dict:
+        """Evaluate a feature flag."""
+        return self._client.ffe_evaluate(flag, variation_type, default_value, targeting_key, attributes)
