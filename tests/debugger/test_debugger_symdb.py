@@ -4,11 +4,14 @@
 
 import re
 import tests.debugger.utils as debugger
-from utils import features, scenarios, bug, context
+from utils import features, scenarios, bug, context, missing_feature
 
 
 @features.debugger_symdb
 @scenarios.debugger_symdb
+@missing_feature(
+    context.library == "golang" and context.agent_version < "7.71.0", reason="This feature relies on agent code"
+)
 class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
     ############ setup ############
     def _setup(self):
