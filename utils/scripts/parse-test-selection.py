@@ -1,13 +1,18 @@
 from ruamel.yaml import YAML
-from typing import Any, TextIO
-from utils._context._scenarios import scenario_groups
+from typing import Any, TextIO, TYPE_CHECKING
 from manifests.parser.core import load as load_manifests
 from collections import defaultdict
-import os
 import sys
 import argparse
 import re
 import json
+import os
+from utils._context._scenarios import scenarios, Scenario, scenario_groups
+from utils._context._scenarios.core import ScenarioGroup
+if TYPE_CHECKING:
+    from collections.abc import Iterable
+
+
 
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
@@ -110,9 +115,6 @@ def parse() -> dict[str, Param]:
 
 
 def library_processing(impacts: dict[str, Param], output: str) -> None:
-    import json
-    import os
-    import re
 
     lambda_libraries = ["python_lambda"]
     otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
@@ -236,14 +238,6 @@ def library_processing(impacts: dict[str, Param], output: str) -> None:
 
 
 def scenario_processing(impacts: dict[str, Param], output: str) -> None:
-    import os
-    from typing import TYPE_CHECKING
-    from utils._context._scenarios import scenarios, Scenario, scenario_groups
-    from utils._context._scenarios.core import ScenarioGroup
-
-    if TYPE_CHECKING:
-        from collections.abc import Iterable
-
     class Result:
         def __init__(self) -> None:
             self.scenarios: set[str] = {scenarios.default.name}  # always run the default scenario
