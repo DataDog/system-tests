@@ -753,8 +753,12 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
             assert (
                 telemetry_item is not None
-            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'"
-            assert telemetry_item["origin"] == expected_origin, f"wrong origin for {telemetry_item}"
+            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+
+            actual_origin = telemetry_item.get("origin", "<missing>")
+            assert (
+                telemetry_item["origin"] == expected_origin
+            ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
             assert telemetry_item["value"]
 
 
