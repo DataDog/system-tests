@@ -9,6 +9,7 @@ class DebuggerScenario(EndToEndScenario):
         base_weblog_env: dict[str, str | None] = {
             "DD_REMOTE_CONFIG_ENABLED": "1",
             "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "1",
+            "DD_APM_TRACING_ENABLED": "false",
         }
 
         base_weblog_env.update(weblog_env)
