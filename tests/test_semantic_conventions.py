@@ -345,7 +345,7 @@ class Test_MetaDatadogTags:
 
 @features.envoy_external_processing
 @features.haproxy_stream_processing_offload
-@features.data_integrity
+@features.trace_data_integrity
 @scenarios.external_processing
 @scenarios.stream_processing_offload
 @scenarios.default

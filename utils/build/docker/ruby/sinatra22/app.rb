@@ -20,6 +20,8 @@ end
 require 'rack/contrib/json_body_parser'
 use Rack::JSONBodyParser
 
+set :strict_paths, false
+
 # Send non-web init event
 
 if defined?(Datadog::Tracing)
