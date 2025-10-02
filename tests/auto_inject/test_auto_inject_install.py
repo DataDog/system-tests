@@ -201,6 +201,10 @@ class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest
         condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
         reason="Origin detection is not supported on host environments",
     )
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
+        reason="python 3.7 is not supported on ddtrace >= 3.x",
+    )
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
