@@ -76,9 +76,9 @@ def parse() -> dict[str, Param]:
 
     try:
         ret = {}
-        for pattern, param in data.items():
+        for raw_pattern, param in data.items():
             # pattern, param = next(iter(entry.items()))
-            pattern = transform_pattern(pattern)
+            pattern = transform_pattern(raw_pattern)
             libraries = param.get("libraries", "ALL") or set()
             scenarios = param.get("scenario_groups", "ALL") or set()
 
@@ -87,13 +87,19 @@ def parse() -> dict[str, Param]:
 
             if libraries != "ALL":
                 if check_libraries(libraries):
-                    ret[pattern].libraries = set(libraries)
+                    if isinstance(libraries, str):
+                        ret[pattern].libraries = {libraries}
+                    else:
+                        ret[pattern].libraries = set(libraries)
                 else:
                     raise Exception(f"One or more of the libraries does not exist: {libraries}")  # noqa: TRY002
 
             if scenarios != "ALL":
                 if check_scenario(scenarios):
-                    ret[pattern].scenarios = set(scenarios)
+                    if isinstance(scenarios, str):
+                        ret[pattern].scenarios = {scenarios}
+                    else:
+                        ret[pattern].scenarios = set(scenarios)
                 else:
                     raise Exception(f"One or more of the scenario groups does not exist: {scenarios}")  # noqa: TRY002
 
@@ -346,10 +352,6 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                             # on first matching pattern, stop the loop
                             break
                     else:
-                        # raise ValueError(
-                        #     f"Unknown file: {file}. Please add it in this file, with the correct scenario "
-                        #     "requirement."
-                        # )
                         result.add_scenario_group(scenario_groups.all)
 
                 # now get known scenarios executed in this file
