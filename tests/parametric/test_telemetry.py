@@ -713,6 +713,10 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             )
         ],
     )
+    @missing_feature(
+        context.library in ["cpp", "golang", "nodejs"],
+        reason="extended configs are not supported",
+    )
     def test_stable_configuration_origin_extended_configs(
         self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
     ):
