@@ -989,22 +989,13 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability:
-        '*': *ref_5_69_0
-        fastify: missing_feature
-        nextjs: missing_feature
+      Test_ExtendedDataCollectionCapability: *ref_5_69_0
       Test_ExtendedRequestBodyCollection:
         '*': *ref_5_69_0
         fastify: missing_feature
         nextjs: missing_feature
-      Test_ExtendedRequestHeadersDataCollection:
-        '*': *ref_5_69_0
-        fastify: missing_feature
-        nextjs: missing_feature
-      Test_ExtendedResponseHeadersDataCollection:
-        '*': *ref_5_69_0
-        fastify: missing_feature
-        nextjs: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: *ref_5_69_0
+      Test_ExtendedResponseHeadersDataCollection: *ref_5_69_0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
