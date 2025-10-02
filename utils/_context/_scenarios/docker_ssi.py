@@ -36,9 +36,12 @@ class DockerSSIScenario(Scenario):
 
     _network: Network = None
 
-    def __init__(self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None) -> None:
+    def __init__(
+        self, name, doc, extra_env_vars: dict | None = None, scenario_groups=None, appsec_enabled=None
+    ) -> None:
         super().__init__(name, doc=doc, github_workflow="dockerssi", scenario_groups=scenario_groups)
 
+        self._appsec_enabled = appsec_enabled
         self.agent_port = _get_free_port()
         self.agent_host = "localhost"
         self._weblog_injection = DockerSSIContainer(extra_env_vars=extra_env_vars)
@@ -107,6 +110,7 @@ class DockerSSIScenario(Scenario):
             self._env,
             self._custom_library_version,
             self._custom_injector_version,
+            self._appsec_enabled,
         )
         self.ssi_image_builder.configure()
         self.ssi_image_builder.build_weblog()
@@ -300,6 +304,7 @@ class DockerSSIImageBuilder:
         env,
         custom_library_version,
         custom_injector_version,
+        appsec_enabled=None,
     ) -> None:
         self.scenario_name = scenario_name
         self.host_log_folder = host_log_folder
@@ -318,6 +323,7 @@ class DockerSSIImageBuilder:
         self._env = env
         self._custom_library_version = custom_library_version
         self._custom_injector_version = custom_injector_version
+        self._appsec_enabled = appsec_enabled
 
     @property
     def dd_lang(self) -> str:
@@ -432,7 +438,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs(f"Error building docker file [{dockerfile_template}]", e.build_log)
-            raise BuildError("Failed to build docker image") from e
+            raise BuildError("Failed to build docker image", e.build_log) from e
 
     def build_ssi_installer_image(self):
         """Build the ssi installer image. Install only the ssi installer on the image"""
@@ -455,7 +461,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building installer docker file", e.build_log)
-            raise BuildError("Failed to build installer docker image") from e
+            raise BuildError("Failed to build installer docker image", e.build_log) from e
 
     def build_weblog_image(self, ssi_installer_docker_tag):
         """Build the final weblog image. Uses base ssi installer image, install
@@ -482,6 +488,7 @@ class DockerSSIImageBuilder:
                     "SSI_ENV": self._env,
                     "DD_INSTALLER_LIBRARY_VERSION": self._custom_library_version,
                     "DD_INSTALLER_INJECTOR_VERSION": self._custom_injector_version,
+                    "DD_APPSEC_ENABLED": self._appsec_enabled,
                 },
             )
             self.print_docker_build_logs(self.ssi_all_docker_tag, build_logs)
@@ -501,7 +508,7 @@ class DockerSSIImageBuilder:
             logger.stdout("ERROR building docker file. check log file for more details")
             logger.exception(f"Failed to build docker image: {e}")
             self.print_docker_build_logs("Error building weblog", e.build_log)
-            raise BuildError("Failed to build weblog docker image") from e
+            raise BuildError("Failed to build weblog docker image", e.build_log) from e
 
     def tested_components(self):
         """Extract weblog versions of lang runtime, agent, installer, tracer.

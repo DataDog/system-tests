@@ -149,10 +149,12 @@ optional_uds_feature = (
 )
 
 
+@features.envoy_external_processing
+@features.haproxy_stream_processing_offload
 @features.runtime_id_in_span_metadata_for_service_entry_spans
 @optional_uds_feature
-@features.envoy_external_processing
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_Meta:
     """meta object in spans respect all conventions"""
@@ -341,9 +343,11 @@ class Test_MetaDatadogTags:
         interfaces.library.validate_spans(validator=validator)
 
 
-@features.data_integrity
 @features.envoy_external_processing
+@features.haproxy_stream_processing_offload
+@features.trace_data_integrity
 @scenarios.external_processing
+@scenarios.stream_processing_offload
 @scenarios.default
 class Test_MetricsStandardTags:
     """metrics object in spans respect all conventions regarding basic tags"""
