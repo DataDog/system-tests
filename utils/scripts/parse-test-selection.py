@@ -26,6 +26,10 @@ LIBRARIES = {
     "rust",
 }
 
+LAMBDA_LIBRARIES = {"python_lambda"}
+OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
+
+ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
 
 def transform_pattern(pattern: str) -> str:
     return pattern.replace(".", r"\.").replace("*", ".*")
@@ -48,9 +52,9 @@ def check_libraries(val: Any) -> bool:  # noqa: ANN401
         case set():
             return True
         case str():
-            return val in LIBRARIES
+            return val in ALL_LIBRARIES
         case list():
-            return all(library in LIBRARIES for library in val)
+            return all(library in ALL_LIBRARIES for library in val)
         case _:
             return False
 
