@@ -2337,7 +2337,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=379
         """
         return _mark_test_object(
-            test_object, feature_id=379, owner=_Owner.tracer
+            test_object, feature_id=379, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2373,7 +2373,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=385
         """
         return _mark_test_object(
-            test_object, feature_id=385, owner=_Owner.tracer
+            test_object, feature_id=385, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
@@ -2383,7 +2383,7 @@ class _Features:
         https://feature-parity.us1.prod.dog/#/?feature=387
         """
         return _mark_test_object(
-            test_object, feature_id=387, owner=_Owner.tracer
+            test_object, feature_id=387, owner=_Owner.sdk_capabilities
         )  # tracing/configuration, tracing/configuration/consistency
 
     @staticmethod
