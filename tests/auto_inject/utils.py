@@ -105,7 +105,7 @@ class AutoInjectBaseTest:
             logger.info(f"Found container tags: {container_tags}")
             return True
         else:
-            logger.warning(f"No container tags found in trace. Available meta keys: {list(meta.keys())}")
+            logger.error(f"No container tags found in trace. Available meta keys: {list(meta.keys())}")
             return False
 
     def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
