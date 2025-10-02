@@ -471,7 +471,7 @@ tests/:
       Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
       Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
     test_debugger_pii.py:
-      Test_Debugger_PII_Redaction: missing_feature
+      Test_Debugger_PII_Redaction: 1.13.0
       Test_Debugger_PII_Redaction_Excluded_Identifiers: missing_feature
     test_debugger_probe_budgets.py:
       Test_Debugger_Probe_Budgets: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
