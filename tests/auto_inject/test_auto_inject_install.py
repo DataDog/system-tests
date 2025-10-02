@@ -197,6 +197,7 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    @irrelevant(condition=context.virtual_machine.get_deployed_weblog().app_type == "host")
     def test_origin_detection(self):
         virtual_machine = context.virtual_machine
         logger.info(
