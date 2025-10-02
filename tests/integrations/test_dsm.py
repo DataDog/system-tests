@@ -517,6 +517,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
+    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"

@@ -48,7 +48,7 @@ runs:
       with:
         shell: bash
         command: docker compose pull
-        timeout_minutes: 10
+        timeout_minutes: 15
         retry_wait_seconds: 10
         max_attempts: 3
 

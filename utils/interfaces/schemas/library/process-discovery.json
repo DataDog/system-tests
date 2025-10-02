@@ -36,6 +36,14 @@
     "service_version": {
       "type": "string",
       "description": "Version of the service being instrumented"
+    },
+    "process_tags": {
+      "type": "string",
+      "description": "Comma-separated list of tags identifying a process"
+    },
+    "container_id": {
+      "type": "string",
+      "description": "Container ID computed"
     }
   },
   "required": [

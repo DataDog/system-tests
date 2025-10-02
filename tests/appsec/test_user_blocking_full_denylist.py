@@ -34,7 +34,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
     @bug(context.library < "ruby@1.12.1", reason="APMRP-360")
     @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
     @bug(library="java", weblog_variant="spring-boot-payara", reason="APPSEC-56006")
-    @bug(context.library < "ruby@2.11.0-dev", reason="APMRP-56691")
+    @bug(context.library < "ruby@2.11.0-dev", reason="APPSEC-56691")
     def test_blocking_test(self):
         """Test with a denylisted user"""
 

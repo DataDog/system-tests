@@ -52,14 +52,53 @@ def get_context_tracer_version():
         return context.library.version
 
 
+def assert_v1(tracer_metadata, test_library, library_env):
+    assert tracer_metadata["runtime_id"]
+    # assert tracer_metadata["hostname"]
+
+    lang = "go" if test_library.lang == "golang" else test_library.lang
+    assert tracer_metadata["tracer_language"] == lang
+    assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
+    assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
+    assert tracer_metadata["service_env"] == library_env["DD_ENV"]
+
+    version = Version(tracer_metadata["tracer_version"])
+    assert version == get_context_tracer_version()
+
+
+def assert_v2(tracer_metadata, test_library, library_env):
+    assert_v1(tracer_metadata, test_library, library_env)
+    if library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "true":
+        assert "entrypoint.name" in tracer_metadata["process_tags"]
+    elif library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "false":
+        assert tracer_metadata["process_tags"] == ""
+    assert tracer_metadata["container_id"] == ""
+
+
+asserters = {1: assert_v1, 2: assert_v2}
+
+
 @scenarios.parametric
 @features.process_discovery
 class Test_ProcessDiscovery:
     @pytest.mark.parametrize(
         "library_env",
         [
-            {"DD_SERVICE": "a", "DD_ENV": "test", "DD_VERSION": "0.1.0"},
-            {"DD_SERVICE": "b", "DD_ENV": "second-test", "DD_VERSION": "0.2.0"},
+            {
+                "DD_SERVICE": "a",
+                "DD_ENV": "test",
+                "DD_VERSION": "0.1.0",
+                # DD_AGENT_HOST set to localhost as dd-trace-go tracer fails to init if agent is set on another host and the tracer can't connect
+                "DD_AGENT_HOST": "localhost",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "true",
+            },
+            {
+                "DD_SERVICE": "b",
+                "DD_ENV": "second-test",
+                "DD_VERSION": "0.2.0",
+                "DD_AGENT_HOST": "localhost",
+                "DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED": "false",
+            },
         ],
     )
     def test_metadata_content(self, test_library, library_env):
@@ -75,15 +114,8 @@ class Test_ProcessDiscovery:
             assert rc
             assert validate_schema(tracer_metadata)
 
-            assert tracer_metadata["schema_version"] == 1
-            assert tracer_metadata["runtime_id"]
-            # assert tracer_metadata["hostname"]
+            schema_version = tracer_metadata["schema_version"]
+            assert_func = asserters.get(schema_version)
+            assert assert_func, f"unsupported version {schema_version}"
 
-            lang = "go" if test_library.lang == "golang" else test_library.lang
-            assert tracer_metadata["tracer_language"] == lang
-            assert tracer_metadata["service_name"] == library_env["DD_SERVICE"]
-            assert tracer_metadata["service_version"] == library_env["DD_VERSION"]
-            assert tracer_metadata["service_env"] == library_env["DD_ENV"]
-
-            version = Version(tracer_metadata["tracer_version"])
-            assert version == get_context_tracer_version()
+            assert_func(tracer_metadata, test_library, library_env)
