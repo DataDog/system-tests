@@ -31,6 +31,7 @@ OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
 
 ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
 
+
 def transform_pattern(pattern: str) -> str:
     return pattern.replace(".", r"\.").replace("*", ".*")
 
