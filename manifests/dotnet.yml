@@ -29,7 +29,7 @@ tests/:
         Test_Schema_Response_Body: v2.46.0
         Test_Schema_Response_Body_env_var: missing_feature
         Test_Schema_Response_Headers: v2.46.0
-        Test_Schema_Response_on_Block: missing_feature
+        Test_Schema_Response_on_Block: v3.26.3
     iast/:
       sink/:
         test_code_injection.py:
@@ -63,7 +63,7 @@ tests/:
           TestHeaderInjection_StackTrace: irrelevant (not expected to have a stack trace)
         test_hsts_missing_header.py:
           Test_HstsMissingHeader: v2.44.0
-          Test_HstsMissingHeader_ExtendedLocation: missing_feature
+          Test_HstsMissingHeader_ExtendedLocation: v3.26.3
           Test_HstsMissingHeader_StackTrace: irrelevant (not expected to have a stack trace)
         test_insecure_auth_protocol.py:
           Test_InsecureAuthProtocol: v2.49.0
@@ -213,7 +213,7 @@ tests/:
         Test_Cmdi_Rules_Version: v3.7.0
         Test_Cmdi_StackTrace: v3.7.0
         Test_Cmdi_Telemetry: v3.7.0
-        Test_Cmdi_Telemetry_V2: missing_feature
+        Test_Cmdi_Telemetry_V2: v3.26.3
         Test_Cmdi_Telemetry_Variant_Tag: v3.7.0
         Test_Cmdi_UrlQuery: v3.7.0
         Test_Cmdi_Waf_Version: v3.7.0
@@ -229,7 +229,7 @@ tests/:
         Test_Lfi_StackTrace: v2.51.0
         Test_Lfi_Telemetry: v2.51.0
         Test_Lfi_Telemetry_Multiple_Exploits: missing_feature
-        Test_Lfi_Telemetry_V2: missing_feature
+        Test_Lfi_Telemetry_V2: v3.26.3
         Test_Lfi_UrlQuery: v2.51.0
         Test_Lfi_Waf_Version: v3.4.1
       test_shi.py:
@@ -242,7 +242,7 @@ tests/:
         Test_Shi_Rules_Version: v3.5.0
         Test_Shi_StackTrace: v3.2.0
         Test_Shi_Telemetry: v3.3.0
-        Test_Shi_Telemetry_V2: missing_feature
+        Test_Shi_Telemetry_V2: v3.26.3
         Test_Shi_Telemetry_Variant_Tag: v3.7.0
         Test_Shi_UrlQuery: v3.2.0
         Test_Shi_Waf_Version: v3.4.1
@@ -256,7 +256,7 @@ tests/:
         Test_Sqli_Rules_Version: v3.5.0
         Test_Sqli_StackTrace: v2.54.0
         Test_Sqli_Telemetry: v2.54.0
-        Test_Sqli_Telemetry_V2: missing_feature
+        Test_Sqli_Telemetry_V2: v3.26.3
         Test_Sqli_UrlQuery: v2.54.0
         Test_Sqli_Waf_Version: v3.4.1
       test_ssrf.py:
@@ -269,7 +269,7 @@ tests/:
         Test_Ssrf_Rules_Version: v3.5.0
         Test_Ssrf_StackTrace: v2.51.0
         Test_Ssrf_Telemetry: v2.51.0
-        Test_Ssrf_Telemetry_V2: missing_feature
+        Test_Ssrf_Telemetry_V2: v3.26.3
         Test_Ssrf_UrlQuery: v2.51.0
         Test_Ssrf_Waf_Version: v3.4.1
     waf/:
@@ -324,8 +324,8 @@ tests/:
       Test_IastStandalone_UpstreamPropagation_V2: v3.12.0
       Test_SCAStandalone_Telemetry_V2: v3.12.0
       Test_UserEventsStandalone_Automated: v3.12.0
-      Test_UserEventsStandalone_SDK_V1: missing_feature
-      Test_UserEventsStandalone_SDK_V2: missing_feature
+      Test_UserEventsStandalone_SDK_V1: v3.26.3
+      Test_UserEventsStandalone_SDK_V2: v3.26.3
     test_automated_login_events.py:
       Test_Login_Events: irrelevant (was v2.53.0 but will be replaced by V2)
       Test_Login_Events_Extended: irrelevant (was v2.53.0 but will be replaced by V2)
@@ -344,7 +344,7 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip: v2.27.0
-      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
+      Test_Blocking_client_ip_with_K8_private_ip: v3.26.3
       Test_Blocking_client_ip_with_forwarded: missing_feature
       Test_Blocking_request_body: v2.29.0
       Test_Blocking_request_body_multipart: missing_feature
@@ -361,18 +361,18 @@ tests/:
     test_client_ip.py:
       Test_StandardTagsClientIp: v2.20.0
     test_conf.py:
-      Test_ConfigurationVariables: missing_feature (unknown version)
-      Test_ConfigurationVariables_New_Obfuscation: missing_feature
+      Test_ConfigurationVariables: v3.26.3
+      Test_ConfigurationVariables_New_Obfuscation: v3.26.3
     test_customconf.py:
       Test_CorruptedRules_Telemetry: missing_feature
       Test_NoLimitOnWafRules: v2.4.4
     test_event_tracking.py:
       Test_CustomEvent: v2.27.0
-      Test_CustomEvent_Metrics: missing_feature
+      Test_CustomEvent_Metrics: v3.26.3
       Test_UserLoginFailureEvent: v2.27.0
-      Test_UserLoginFailureEvent_Metrics: missing_feature
+      Test_UserLoginFailureEvent_Metrics: v3.26.3
       Test_UserLoginSuccessEvent: v2.27.0
-      Test_UserLoginSuccessEvent_Metrics: missing_feature
+      Test_UserLoginSuccessEvent_Metrics: v3.26.3
     test_event_tracking_v2.py:
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled: v3.15.0
       Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled: v3.15.0
@@ -388,6 +388,11 @@ tests/:
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v3.15.0
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: v3.15.0
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v3.15.0
+    test_extended_data_collection.py:
+      Test_ExtendedDataCollectionCapability: missing_feature
+      Test_ExtendedRequestBodyCollection: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: missing_feature
+      Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -419,7 +424,7 @@ tests/:
     test_remote_config_rule_changes.py:
       Test_AsmDdMultiConfiguration: missing_feature
       Test_BlockingActionChangesWithRemoteConfig: v3.4.0
-      Test_Empty_Config: missing_feature
+      Test_Empty_Config: v3.26.3
       Test_Invalid_Config: missing_feature
       Test_Multiple_Actions: v3.4.0
       Test_Unknown_Action: v3.4.0
@@ -438,7 +443,7 @@ tests/:
       TestServiceActivationEnvVarConfigurationMetric: missing_feature
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
-      TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+      TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
     test_shell_execution.py:
       Test_ShellExecution: missing_feature
     test_suspicious_attacker_blocking.py:
@@ -544,7 +549,7 @@ tests/:
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v3.28.0
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
@@ -583,7 +588,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v3.28.0
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
       Test_TelemetrySSIConfigs: v2.53.0
@@ -635,7 +640,7 @@ tests/:
     Test_Config_IntegrationEnabled_True: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Disabled: v3.5.0
     Test_Config_LogInjection_128Bit_TraceId_Enabled: v3.13.0
-    Test_Config_LogInjection_Default_Structured: missing_feature
+    Test_Config_LogInjection_Default_Structured: v3.26.3
     Test_Config_LogInjection_Default_Unstructured: v3.5.0
     Test_Config_LogInjection_Enabled: v3.5.0
     Test_Config_ObfuscationQueryStringRegexp_Configured: v3.4.1
@@ -649,9 +654,9 @@ tests/:
   test_data_integrity.py:
     Test_LibraryHeaders: v2.46.0
   test_distributed.py:
-    Test_DistributedHttp: missing_feature
+    Test_DistributedHttp: v3.26.3
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-    Test_Span_Links_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+    Test_Span_Links_From_Conflicting_Contexts: v3.26.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:

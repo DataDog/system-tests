@@ -339,6 +339,8 @@ func main() {
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	r.Any("/external_request", ginHandleFunc(rasp.ExternalRequest))
+
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
 
