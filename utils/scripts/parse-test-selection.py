@@ -87,13 +87,19 @@ def parse() -> dict[str, Param]:
 
             if libraries != "ALL":
                 if check_libraries(libraries):
-                    ret[pattern].libraries = set(libraries)
+                    if isinstance(libraries, str):
+                        ret[pattern].libraries = {libraries}
+                    else:
+                        ret[pattern].libraries = set(libraries)
                 else:
                     raise Exception(f"One or more of the libraries does not exist: {libraries}")  # noqa: TRY002
 
             if scenarios != "ALL":
                 if check_scenario(scenarios):
-                    ret[pattern].scenarios = set(scenarios)
+                    if isinstance(scenarios, str):
+                        ret[pattern].scenarios = {scenarios}
+                    else:
+                        ret[pattern].scenarios = set(scenarios)
                 else:
                     raise Exception(f"One or more of the scenario groups does not exist: {scenarios}")  # noqa: TRY002
 
