@@ -63,9 +63,11 @@ class AutoInjectBaseTest:
         validator = None
         if appsec:
             validator = self._appsec_validator
+        if origin_detection:
+            validator = self._container_tags_validator
 
         try:
-            wait_backend_trace_id(request_uuid, profile=profile, validator=validator, origin_detection=origin_detection)
+            wait_backend_trace_id(request_uuid, profile=profile, validator=validator)
         except (TimeoutError, AssertionError) as e:
             self._log_trace_debug_message(e, request_uuid)
             raise
@@ -90,6 +92,21 @@ class AutoInjectBaseTest:
             return False
 
         return True
+
+    def _container_tags_validator(self, _, trace_data):
+        root_id = trace_data["trace"]["root_id"]
+        root_span = trace_data["trace"]["spans"][root_id]
+
+        # Check if container tags exist in the trace metadata
+        meta = root_span.get("meta", {})
+        container_tags = meta.get("_dd.tags.container")
+
+        if container_tags:
+            logger.info(f"Found container tags: {container_tags}")
+            return True
+        else:
+            logger.error(f"No container tags found in trace. Available meta keys: {list(meta.keys())}")
+            return False
 
     def _log_trace_debug_message(self, exc: Exception, request_uuid: str) -> None:
         logger.error(

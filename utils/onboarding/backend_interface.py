@@ -9,15 +9,12 @@ from utils._logger import logger
 API_HOST = "https://dd.datadoghq.com"
 
 
-def wait_backend_trace_id(trace_id, profile: bool = False, validator=None, origin_detection: bool = False):
+def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     runtime_id = _query_for_trace_id(trace_id, validator=validator)
     assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
     if profile:
         _query_for_profile(runtime_id)
-    if origin_detection:
-        container_tags = _query_for_container_tags(trace_id)
-        assert container_tags, f"Origin detection failed: Could not find container tags for trace_id: {trace_id}"
 
 
 def _headers():
@@ -74,24 +71,6 @@ def _query_for_trace_id(trace_id, validator=None):
         return None
 
     return root_span["meta"]["runtime-id"]
-
-
-def _query_for_container_tags(trace_id):
-    url = f"{API_HOST}/api/ui/trace/{trace_id}"
-    trace_data = _make_request(url, headers=_headers())
-    root_id = trace_data["trace"]["root_id"]
-    root_span = trace_data["trace"]["spans"][root_id]
-
-    # Check if container tags exist in the trace metadata
-    meta = root_span.get("meta", {})
-    container_tags = meta.get("_dd.tags.container")
-
-    if container_tags:
-        logger.info(f"Found container tags: {container_tags}")
-        return container_tags
-    else:
-        logger.warning(f"No container tags found in trace {trace_id}. Available meta keys: {list(meta.keys())}")
-        return None
 
 
 def _make_request(
