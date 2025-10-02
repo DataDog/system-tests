@@ -26,6 +26,11 @@ LIBRARIES = {
     "rust",
 }
 
+LAMBDA_LIBRARIES = {"python_lambda"}
+OTEL_LIBRARIES = {"java_otel", "python_otel"}  # , "nodejs_otel"]
+
+ALL_LIBRARIES = LIBRARIES | LAMBDA_LIBRARIES | OTEL_LIBRARIES
+
 
 def transform_pattern(pattern: str) -> str:
     return pattern.replace(".", r"\.").replace("*", ".*")
@@ -48,9 +53,9 @@ def check_libraries(val: Any) -> bool:  # noqa: ANN401
         case set():
             return True
         case str():
-            return val in LIBRARIES
+            return val in ALL_LIBRARIES
         case list():
-            return all(library in LIBRARIES for library in val)
+            return all(library in ALL_LIBRARIES for library in val)
         case _:
             return False
 
@@ -71,8 +76,8 @@ def parse() -> dict[str, Param]:
 
     try:
         ret = {}
-        for entry in data:
-            pattern, param = next(iter(entry.items()))
+        for pattern, param in data.items():
+            # pattern, param = next(iter(entry.items()))
             pattern = transform_pattern(pattern)
             libraries = param.get("libraries", "ALL") or set()
             scenarios = param.get("scenario_groups", "ALL") or set()
@@ -337,7 +342,7 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                 else:
                     for pattern, requirement in impacts.items():
                         if re.fullmatch(pattern, file):
-                            result.scenarios_groups.add(requirement.scenarios)
+                            result.scenarios_groups |= requirement.scenarios
                             # on first matching pattern, stop the loop
                             break
                     else:
