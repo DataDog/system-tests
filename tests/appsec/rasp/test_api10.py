@@ -5,7 +5,7 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, missing_feature
 
 
 API10_TAGS = [
@@ -194,6 +194,7 @@ class Test_API10_all(API10):
             headers={"Content-Type": "application/json"},
         )
 
+    @missing_feature(library="java", reason="TRACE should not have a body: https://datatracker.ietf.org/doc/html/rfc7231#section-4.3.8")
     def test_api10(self):
         assert self.r.status_code == 200
         body = json.loads(self.r.text)
