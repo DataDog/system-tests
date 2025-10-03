@@ -182,22 +182,30 @@ patterns:
         libraries: null
     LICENSE-3rdparty.csv:
         scenario_groups: null
+        libraries: null
     NOTICE:
         scenario_groups: null
+        libraries: null
     promptfooconfig.yaml:
         scenario_groups: null
+        libraries: null
     Pulumi.yaml:
         scenario_groups: null
+        libraries: null
     pyproject.toml:
         scenario_groups: null
     static-analysis.datadog.yml:
         scenario_groups: null
     README.md:
         scenario_groups: null
+        libraries: null
     requirements.txt:
         scenario_groups: all
     run.sh:
         scenario_groups: all
+
+    tests/*:
+        scenario_groups: null # dynamic selection
 
     ./*.nix:
         scenario_groups: null

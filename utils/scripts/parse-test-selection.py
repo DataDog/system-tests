@@ -218,73 +218,89 @@ def extra_gitlab_output(inputs):
             "CI_COMMIT_REF_NAME": inputs.ref
             }
 
-def run_all():
-    pass
+def manifest_scenarios(inputs):
+    scenario_set = set()
+    modified_nodeids = set()
 
+    for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
+        if (
+            nodeid not in inputs.old_manifests
+            or nodeid not in inputs.new_manifests
+            or inputs.new_manifests[nodeid] != inputs.old_manifests[nodeid]
+        ):
+            modified_nodeids.add(nodeid)
+
+    scenario_names: Iterable[str]
+    for nodeid, scenario_names in inputs.scenario_map.items():
+        for modified_nodeid in modified_nodeids:
+            if nodeid.startswith(modified_nodeid):
+                scenario_set |= set(scenario_names)
+                break
+    return scenario_set
+
+def get_scenarios_by_file(inputs):
+    scenarios_by_files: dict[str, set[str]] = defaultdict(set)
+    scenario_names: Iterable[str]
+    for nodeid, scenario_names in inputs.scenario_map.items():
+        file = nodeid.split(":", 1)[0]
+        for scenario_name in scenario_names:
+            scenarios_by_files[file].add(scenario_name)
+    return scenarios_by_files
+
+def test_file_scenarios(file, scenarios_by_files):
+    scenario_set = set()
+    if file.startswith("tests/"):
+        if file.endswith(("/utils.py", "/conftest.py", ".json")):
+            # particular use case for modification in tests/ of a file utils.py or conftest.py
+            # in that situation, takes all scenarios executed in tests/<path>/
+
+            # same for any json file
+
+            folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
+
+            for sub_file, scenario_names in scenarios_by_files.items():
+                if sub_file.startswith(folder):
+                    scenario_set |= scenario_names
+    return scenario_set
+
+def regular_file_scenarios(file, impacts, scenarios_by_files):
+    scenario_group_set = set()
+    scenario_set = set()
+    for pattern, requirement in impacts.items():
+        if re.fullmatch(pattern, file):
+            scenario_group_set |= requirement.scenarios
+            # on first matching pattern, stop the loop
+            break
+    else:
+        scenario_group_set.add(scenario_groups.all.name)
+
+    # now get known scenarios executed in this file
+    if file in scenarios_by_files:
+        scenario_set |= scenarios_by_files[file]
+    return scenario_set, scenario_group_set
 
 def scenario_processing(impacts: dict[str, Param], inputs) -> None:
-        outputs = OrderedDict()
-        scenario_group_list = set()
-        scenario_list = {scenarios.default.name}
+        scenario_group_set = set()
+        scenario_set = {scenarios.default.name}
 
         if inputs.event_name == "schedule" or inputs.ref == "refs/heads/main":
-            scenario_group_list.add(scenario_groups.all.name)
+            scenario_group_set.add(scenario_groups.all.name)
 
         elif inputs.event_name in ("pull_request", "push"):
-            modified_nodeids = set()
-
-            for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
-                if (
-                    nodeid not in inputs.old_manifests
-                    or nodeid not in inputs.new_manifests
-                    or inputs.new_manifests[nodeid] != inputs.old_manifests[nodeid]
-                ):
-                    modified_nodeids.add(nodeid)
-
-            scenarios_by_files: dict[str, set[str]] = defaultdict(set)
-            scenario_names: Iterable[str]
-            for nodeid, scenario_names in inputs.scenario_map.items():
-                file = nodeid.split(":", 1)[0]
-                for scenario_name in scenario_names:
-                    scenarios_by_files[file].add(scenario_name)
-
-                for modified_nodeid in modified_nodeids:
-                    if nodeid.startswith(modified_nodeid):
-                        scenario_list |= set(scenario_names)
-                        break
+            scenario_set |= manifest_scenarios(inputs)
+            scenarios_by_files = get_scenarios_by_file(inputs)
 
             for file in inputs.modified_files:
-                if file.startswith("tests/"):
-                    if file.endswith(("/utils.py", "/conftest.py", ".json")):
-                        # particular use case for modification in tests/ of a file utils.py or conftest.py
-                        # in that situation, takes all scenarios executed in tests/<path>/
 
-                        # same for any json file
+                scenario_set |= test_file_scenarios(file, scenarios_by_files)
+                ret_scenario_set, ret_scenario_group_set = regular_file_scenarios(file, impacts, scenarios_by_files)
+                scenario_set |= ret_scenario_set
+                scenario_group_set |= ret_scenario_group_set
 
-                        folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
-
-                        for sub_file, scenario_names in scenarios_by_files.items():
-                            if sub_file.startswith(folder):
-                                scenario_list.add(scenario_names)
-
-                else:
-                    for pattern, requirement in impacts.items():
-                        if re.fullmatch(pattern, file):
-                            scenario_group_list |= requirement.scenarios
-                            # on first matching pattern, stop the loop
-                            break
-                    else:
-                        scenario_group_list.add(scenario_group.all.name)
-
-                # now get known scenarios executed in this file
-                if file in scenarios_by_files:
-                    scenario_list |= scenarios_by_files[file]
-
-        outputs |= {
-                "scenarios": ",".join(sorted(list(scenario_list))),
-                "scenarios_groups": ",".join(sorted(list(scenario_group_list)))
+        return {
+                "scenarios": ",".join(sorted(list(scenario_set))),
+                "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
                 }
-        return outputs
 
 
 class Inputs:
