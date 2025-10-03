@@ -240,7 +240,7 @@ count_amis:
 check_merge_labels:
   #Build docker images if it's needed. Check if the PR has the labels associated with the image build.
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
-  tags: ["runner:docker"]
+  tags: ["arch:amd64"]
   needs: []
   stage: system-tests-utils
   allow_failure: true
@@ -254,7 +254,7 @@ check_merge_labels:
 
 generate_system_tests_lambda_proxy_image:
   image: registry.ddbuild.io/ci/libdatadog-build/ci_docker_base:67145216
-  tags: ["runner:docker"]
+  tags: ["arch:amd64"]
   needs: []
   stage: system-tests-utils
   allow_failure: false
@@ -263,8 +263,7 @@ generate_system_tests_lambda_proxy_image:
     - export DOCKER_LOGIN_PASS=$(aws ssm get-parameter --region us-east-1 --name ci.system-tests.docker-login-pass-write --with-decryption --query "Parameter.Value" --out text)
     - echo "$DOCKER_LOGIN_PASS" | docker login --username "$DOCKER_LOGIN" --password-stdin
   script:
-      - ./build.sh -i lambda-proxy
-      - docker push datadog/system-tests:lambda-proxy-v1
+      - ./build.sh -i lambda-proxy --extra-docker-args "--platform=linux/amd64" --extra-docker-args "--push"
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == "main"
       changes:
