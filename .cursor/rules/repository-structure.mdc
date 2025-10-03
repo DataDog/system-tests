@@ -77,3 +77,43 @@ system-tests/
 |
 |-- build.sh            # Script to build test environment
 |-- run.sh              # Script to run tests and scenarios
+
+```
+
+# Test Class Rules and Conventions / Test structure
+
+## 1. Feature Association
+- Always link every test class to one or more features using the decorator `@features.my_feature`.
+- If a test class does not need to be linked to a feature, always use `@features.not_reported`.
+- Never use an undefined feature. All valid features are declared in `utils/_features.py`.
+
+## 2. Class Naming
+- Always name test classes with the prefix `Test_`.
+
+## 3. Scenario Association
+- Always associate every test class with a scenario using the `@scenarios` decorator.
+- Example:
+  ```python
+  @scenarios.profiling
+  class Test_Sample:
+      ...
+  ```
+- If no `@scenarios` decorator is present, the class will **always** default to the `default` scenario defined in `utils/_context/_scenarios/__init__.py`.
+
+## 4. Test Methods
+- Always start test method names with the prefix `test_`.
+- A test class must contain one or more `test_` methods.
+- Never define methods without the `test_` prefix if they are intended as test cases.
+
+## 5. Setup Methods
+- Always start setup method names with the prefix `setup_`.
+- A setup method must always correspond to a test method with the same suffix.
+- Example:
+  ```python
+  def setup_XYZ(self):
+      ...
+  
+  def test_XYZ(self):
+      ...
+  ```
+- Never define a setup method without a matching test method.
