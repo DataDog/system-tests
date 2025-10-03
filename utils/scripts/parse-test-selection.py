@@ -213,49 +213,19 @@ def library_processing(impacts: dict[str, Param], inputs) -> None:
 
 
 def scenario_processing(impacts: dict[str, Param], inputs) -> None:
-    class Result:
-        def __init__(self) -> None:
-            self.scenarios: set[str] = {scenarios.default.name}  # always run the default scenario
-            self.scenarios_groups: set[str] = set()
-
-        def add_scenario_requirement(
-            self, scenario_requirement: Scenario | ScenarioGroup | list[Scenario | ScenarioGroup] | None
-        ) -> None:
-            if scenario_requirement is None:
-                pass
-            elif isinstance(scenario_requirement, list):
-                for req in scenario_requirement:
-                    self.add_scenario_requirement(req)
-            elif isinstance(scenario_requirement, Scenario):
-                self.add_scenario(scenario_requirement)
-            elif isinstance(scenario_requirement, ScenarioGroup):
-                self.add_scenario_group(scenario_requirement)
-            else:
-                raise TypeError(f"Unknown scenario requirement: {scenario_requirement}.")
-
-        def add_scenario(self, scenario: Scenario) -> None:
-            self.scenarios.add(scenario.name)
-
-        def add_scenario_group(self, scenario_group: ScenarioGroup) -> None:
-            self.scenarios_groups.add(scenario_group.name)
-
-        def add_scenarios(self, scenarios: set[Scenario] | list[Scenario]) -> None:
-            for scenario in scenarios:
-                self.add_scenario(scenario)
-
-        def add_scenario_names(self, scenario_names: set[str] | list[str]) -> None:
-            for name in scenario_names:
-                self.scenarios.add(name)
-
     def main_scenario_processing(impacts: dict[str, Param], inputs) -> None:
-        result = Result()
+        outputs = OrderedDict()
+        scenario_group_list = set()
+        scenario_list = {scenarios.default.name}
 
         if inputs.is_gitlab:
-            print("CI_PIPELINE_SOURCE=" + inputs.event_name)
-            print("CI_COMMIT_REF_NAME=" + inputs.ref)
+            outputs |= {
+                    "CI_PIPELINE_SOURCE": inputs.event_name,
+                    "CI_COMMIT_REF_NAME": inputs.ref
+                    }
 
         if inputs.event_name == "schedule" or inputs.ref == "refs/heads/main":
-            result.add_scenario_group(scenario_groups.all)
+            scenario_group_list.add(scenario_groups.all.name)
 
         elif inputs.event_name in ("pull_request", "push"):
             modified_nodeids = set()
@@ -277,7 +247,7 @@ def scenario_processing(impacts: dict[str, Param], inputs) -> None:
 
                 for modified_nodeid in modified_nodeids:
                     if nodeid.startswith(modified_nodeid):
-                        result.add_scenario_names(scenario_names)
+                        scenario_list |= set(scenario_names)
                         break
 
             for file in inputs.modified_files:
@@ -292,24 +262,24 @@ def scenario_processing(impacts: dict[str, Param], inputs) -> None:
 
                         for sub_file, scenario_names in scenarios_by_files.items():
                             if sub_file.startswith(folder):
-                                result.add_scenario_names(scenario_names)
+                                scenario_list.add(scenario_names)
 
                 else:
                     for pattern, requirement in impacts.items():
                         if re.fullmatch(pattern, file):
-                            result.scenarios_groups |= requirement.scenarios
+                            scenario_group_list |= requirement.scenarios
                             # on first matching pattern, stop the loop
                             break
                     else:
-                        result.add_scenario_group(scenario_groups.all)
+                        scenario_group_list.add(scenario_group.all.name)
 
                 # now get known scenarios executed in this file
                 if file in scenarios_by_files:
-                    result.add_scenario_names(scenarios_by_files[file])
+                    scenario_list |= scenarios_by_files[file]
 
-        outputs = {
-                "scenarios": ",".join(sorted(list(result.scenarios))),
-                "scenarios_groups": ",".join(sorted(list(result.scenarios_groups)))
+        outputs |= {
+                "scenarios": ",".join(sorted(list(scenario_list))),
+                "scenarios_groups": ",".join(sorted(list(scenario_group_list)))
                 }
         return outputs
 
@@ -713,9 +683,11 @@ class Tests(unittest.TestCase):
 
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
-                'scenarios="DEFAULT"',
-                'scenarios_groups=""',
-                ])
+            'CI_PIPELINE_SOURCE="pull_request"',
+            'CI_COMMIT_REF_NAME="some_branch"',
+            'scenarios="DEFAULT"',
+            'scenarios_groups=""',
+            ])
 
 
 if __name__ == "__main__":
