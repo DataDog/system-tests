@@ -86,6 +86,7 @@ telemetry_name_mapping = {
     },
     "tags": {
         "java": "trace_tags",
+        "dotnet": "DD_TAGS",
     },
 }
 
