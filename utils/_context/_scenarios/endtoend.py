@@ -663,12 +663,6 @@ class EndToEndScenario(DockerScenario):
             ),
             _SchemaBug(
                 endpoint="/symdb/v1/input",
-                data_path="$[].content.scopes[].scopes[].symbols[]",
-                condition=self.library >= "golang@2.4.0-dev" and self.name == "DEBUGGER_SYMDB",
-                ticket="DEBUG-4541",
-            ),
-            _SchemaBug(
-                endpoint="/symdb/v1/input",
                 data_path="$[].content",
                 condition=self.library >= "golang@2.4.0-dev" and self.name == "DEBUGGER_SYMDB",
                 ticket="DEBUG-4541",

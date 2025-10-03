@@ -4,7 +4,6 @@
 
 import re
 import json
-import time
 from utils import (
     weblog,
     interfaces,
@@ -702,9 +701,6 @@ class Test_Config_RuntimeMetrics_Enabled:
     def setup_main(self):
         self.req = weblog.get("/")
 
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
-
     def test_main(self):
         assert self.req.status_code == 200
 
@@ -739,9 +735,6 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def setup_main(self):
         self.req = weblog.get("/")
 
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
-
     def test_main(self):
         assert self.req.status_code == 200
 
@@ -765,9 +758,6 @@ class Test_Config_RuntimeMetrics_Default:
     # test that by default runtime metrics are disabled
     def setup_main(self):
         self.req = weblog.get("/")
-
-        # Wait for 10s to allow the tracer to send runtime metrics on the default 10s interval
-        time.sleep(10)
 
     def test_main(self):
         assert self.req.status_code == 200
