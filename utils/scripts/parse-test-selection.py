@@ -2,7 +2,7 @@ import unittest
 import yaml
 from typing import Any, TextIO, TYPE_CHECKING
 from manifests.parser.core import load as load_manifests
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import sys
 import argparse
 import re
@@ -72,7 +72,7 @@ class Param:
 
 def parse(inputs) -> dict[str, Param]:
     try:
-        ret = {}
+        ret = OrderedDict()
         for raw_pattern, param in inputs.raw_impacts.items():
             # pattern, param = next(iter(entry.items()))
             pattern = transform_pattern(raw_pattern)
@@ -308,8 +308,8 @@ def scenario_processing(impacts: dict[str, Param], inputs) -> None:
                     result.add_scenario_names(scenarios_by_files[file])
 
         outputs = {
-                "scenarios": ",".join(result.scenarios),
-                "scenarios_groups": ",".join(result.scenarios_groups)
+                "scenarios": ",".join(sorted(list(result.scenarios))),
+                "scenarios_groups": ",".join(sorted(list(result.scenarios_groups)))
                 }
         return outputs
 
