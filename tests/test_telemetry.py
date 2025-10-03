@@ -612,7 +612,10 @@ class Test_TelemetryEnhancedConfigReporting:
             "name": "logs_injection_enabled",
             "precedence": [
                 {"origin": "default", "value": "true"},
-                {"origin": "jvm_prop", "value": "true"},
+                {
+                    "origin": "jvm_prop",
+                    "value": "true",
+                },  # File-based properties have a lower precedence than env_var: https://github.com/DataDog/dd-trace-java/blob/5c66a150ff3b16ebf9626c0f0170fc9715461a6b/utils/config-utils/src/main/java/datadog/trace/bootstrap/config/provider/ConfigProvider.java#L507-L514
                 {"origin": "env_var", "value": "false"},
             ],
         },
@@ -644,7 +647,9 @@ class Test_TelemetryEnhancedConfigReporting:
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
         # Sort latest configurations by origin by seq_id to get the effective precedence order
-        sorted_configs: list[dict[str, Any]] = sorted(latest_by_origin.values(), key=lambda x: x["seq_id"])
+        sorted_configs: list[dict[str, Any]] = sorted(
+            latest_by_origin.values(), key=lambda x: x["seq_id"], reverse=True
+        )
 
         # Verify that configurations for the expected number of origins were received
         assert len(sorted_configs) == len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
