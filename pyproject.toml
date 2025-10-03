@@ -31,6 +31,7 @@ markers =[
     "scenario: run a test only for a specified scenario",
     "features: declare the feature id",
     "owners: declare the owner of the test",
+    "declaration: declare the expected outcome of a test",
 ]
 
 python_files = "test_*.py *utils.py"

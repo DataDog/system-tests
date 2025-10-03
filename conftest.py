@@ -5,7 +5,7 @@
 # keep this import at the top of the file
 from utils.proxy import scrubber  # noqa: F401
 
-from collections.abc import Sequence, Callable, Generator
+from collections.abc import Sequence, Generator
 import json
 import os
 from pathlib import Path
@@ -15,6 +15,7 @@ from typing import Any
 import xml.etree.ElementTree as ET
 
 import pytest
+from _pytest.junitxml import xml_key
 from pytest_jsonreport.plugin import JSONReport
 from pluggy._result import _Result as Result
 
@@ -185,6 +186,15 @@ def pytest_sessionstart(session: pytest.Session) -> None:
     if not session.config.option.collectonly:
         context.scenario.pytest_sessionstart(session)
 
+    # The canonical way o adding Junit properties to testsuite is not working with xdist
+    # Workaround to tackle this issue
+    # https://github.com/pytest-dev/pytest/issues/7767#issuecomment-698560400
+    xml = session.config._store.get(xml_key, None)  # noqa: SLF001
+    if xml:
+        properties = context.scenario.get_junit_properties()
+        for key, value in properties.items():
+            xml.add_global_property(key, value or "")
+
     if session.config.option.sleep:
         logger.terminal.write("\n ********************************************************** \n")
         logger.terminal.write(" *** .:: Sleep mode activated. Press Ctrl+C to exit ::. *** ")
@@ -193,44 +203,23 @@ def pytest_sessionstart(session: pytest.Session) -> None:
 
 # called when each test item is collected
 def _collect_item_metadata(item: pytest.Item):
+    declaration: str | None = None
     details: str | None = None
-    test_declaration_legacy: str | None = None
-    test_declaration: str | None = None
 
-    # get the reason form skip before xfail
-    markers = [*item.iter_markers("skip"), *item.iter_markers("skipif"), *item.iter_markers("xfail")]
-    for marker in markers:
-        skip_reason = _get_skip_reason_from_marker(marker)
+    for marker in reversed(list(item.iter_markers("declaration"))):
+        declaration = marker.kwargs["declaration"]
+        details = marker.kwargs["details"]
 
-        if skip_reason is not None:
+        if declaration == "irrelevant":
             # if any irrelevant declaration exists, it is the one we need to expose
-            if skip_reason.startswith("irrelevant") or details is None:
-                details = skip_reason
+            break
 
-    if details is not None:
-        logger.debug(f"{item.nodeid} => {details} => skipped")
-
-        if details.startswith("irrelevant"):
-            test_declaration = test_declaration_legacy = "irrelevant"
-        elif details.startswith("flaky"):
-            test_declaration = test_declaration_legacy = "flaky"
-        elif details.startswith("bug"):
-            test_declaration = test_declaration_legacy = "bug"
-        elif details.startswith("incomplete_test_app"):
-            test_declaration_legacy = "incompleteTestApp"
-            test_declaration = "incomplete_test_app"
-        elif details.startswith("missing_feature"):
-            test_declaration_legacy = "notImplemented"
-            test_declaration = "missing_feature"
-        elif "got empty parameter set" in details:
-            # Case of a test with no parameters. Onboarding: we removed the parameter/machine with excludedBranches
-            logger.info(f"No parameters found for ${item.nodeid}")
-        else:
-            pytest.exit(f"Unexpected test declaration for {item.nodeid} : {details}", 1)
+    if declaration is not None:
+        logger.debug(f"{item.nodeid} => {declaration} => skipped")
 
     metadata = {
-        "details": details,
-        "testDeclaration": test_declaration_legacy,
+        "details": declaration if details is None else f"{declaration} ({details})",
+        "testDeclaration": declaration,
         "features": [marker.kwargs["feature_id"] for marker in item.iter_markers("features")],
         "owners": list({marker.kwargs["owner"] for marker in item.iter_markers("owners")}),
     }
@@ -241,27 +230,13 @@ def _collect_item_metadata(item: pytest.Item):
     # for feature_id in metadata["features"]:
     #     item.user_properties.append(("dd_tags[test.feature_id]", str(feature_id)))
 
-    if test_declaration:
-        item.user_properties.append(("dd_tags[systest.case.declaration]", test_declaration))
+    if declaration:
+        item.user_properties.append(("dd_tags[systest.case.declaration]", declaration))
 
     if details:
         item.user_properties.append(("dd_tags[systest.case.declarationDetails]", details))
 
     return metadata
-
-
-def _get_skip_reason_from_marker(marker: pytest.Mark) -> str | None:
-    if marker.name == "skipif":
-        if all(marker.args):
-            return marker.kwargs.get("reason", "")
-    elif marker.name in ("skip", "xfail"):
-        if len(marker.args):  # if un-named arguments are present, the first one is the reason
-            return marker.args[0]
-
-        # otherwise, search in named arguments
-        return marker.kwargs.get("reason", "")
-
-    return None
 
 
 def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
@@ -322,7 +297,7 @@ def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str
             try:
                 released(**declaration)(obj)
             except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}.") from e
+                raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -535,14 +510,6 @@ def pytest_json_modifyreport(json_report: dict) -> None:
         logger.error("Fail to modify json report", exc_info=True)
 
 
-### decorate junit export
-@pytest.fixture(scope="session", autouse=True)
-def log_global_env_facts(record_testsuite_property: Callable) -> None:
-    properties = context.scenario.get_junit_properties()
-    for key, value in properties.items():
-        record_testsuite_property(key, value or "")
-
-
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     logger.info("Executing pytest_sessionfinish")
 
@@ -573,6 +540,13 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
+
+                if context.weblog_variant:
+                    name = testcase.attrib["name"]
+                    if name.endswith("]"):
+                        testcase.attrib["name"] = f"{name[:-1]}, {context.weblog_variant}]"
+                    else:
+                        testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
 
             junit_report.write(session.config.option.xmlpath)
 

@@ -28,7 +28,7 @@ class Test_AppSecIPBlockingFullDenylist(BaseFullDenyListTest):
 
     @missing_feature(weblog_variant="spring-boot" and context.library < "java@0.111.0")
     @bug(context.library >= "java@1.22.0" and context.library < "java@1.35.0", reason="APMRP-360")
-    @bug(context.library < "ruby@2.11.0-dev", reason="APMRP-56691")
+    @bug(context.library < "ruby@2.11.0-dev", reason="APPSEC-56691")
     def test_blocked_ips(self):
         """Test blocked ips are enforced"""
 

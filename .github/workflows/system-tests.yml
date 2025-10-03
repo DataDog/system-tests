@@ -114,10 +114,18 @@ on:
         default: false
         required: false
         type: boolean
+      push_to_test_optimization:
+        description: "Push test result to DataDog Test Optimization, require TEST_OPTIMIZATION_API_KEY secret"
+        default: false
+        required: false
+        type: boolean
+
     secrets:
       DOCKERHUB_USERNAME:
         required: false
       DOCKERHUB_TOKEN:
+        required: false
+      TEST_OPTIMIZATION_API_KEY:
         required: false
       CIRCLECI_TOKEN:
         required: false
@@ -167,6 +175,7 @@ jobs:
       job_matrix: ${{ needs.compute_parameters.outputs.parametric_job_matrix }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   build_end_to_end:
     name: Build end-to-end (${{ matrix.weblog }})
@@ -257,6 +266,7 @@ jobs:
       _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   external_processing:
     needs:
@@ -271,6 +281,7 @@ jobs:
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   run_stream_processing_offload:
     needs:
@@ -285,6 +296,7 @@ jobs:
       binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
+      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   display_summary:
     name: Report failures

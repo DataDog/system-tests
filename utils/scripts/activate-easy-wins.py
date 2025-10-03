@@ -68,6 +68,10 @@ def pull_artifact(url: str, token: str, path_root: str, path_data_root: str) -> 
             if artifact["name"] == "test-report":
                 download_url = artifact["archive_download_url"]
 
+        # If we've checked all pages and found no test-report artifact, error
+        if not download_url and len(artifacts_data["artifacts"]) == 0:
+            raise RuntimeError("test-report not found in the last nightly run")
+
     with requests.get(download_url, headers=headers, stream=True, timeout=60) as r:
         r.raise_for_status()
         total_size = int(r.headers.get("content-length", 0))
@@ -126,27 +130,25 @@ def merge_update_status(status1: TestClassStatus, status2: TestClassStatus) -> T
             raise UnexpectedStatusError(f"Unexpected status: {status1}, {status2}")
 
 
-def find_library(libraries: list[str], file_name: str) -> str | None:
-    libraries.sort(key=len, reverse=True)
-    for library in libraries:
-        if library in file_name:
-            return library
-    return None
-
-
 def parse_artifact_data(
     path_data_opt: str, libraries: list[str]
 ) -> dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]]:
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]] = {}
 
     for directory in os.listdir(path_data_opt):
-        library = find_library(libraries, directory)
-        if "dev" in directory or library not in libraries:
+        if "dev" in directory:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
-            with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
-                scenario_data = json.load(file)
+            try:
+                with open(f"{path_data_opt}/{directory}/{scenario}/report.json", encoding="utf-8") as file:
+                    scenario_data = json.load(file)
+            except FileNotFoundError:
+                continue
+
+            library = scenario_data["context"]["library_name"]
+            if library not in libraries:
+                break
 
             variant = scenario_data["context"]["weblog_variant"]
 
@@ -223,7 +225,10 @@ def build_updated_subtree(
 ) -> ruamel.yaml.CommentedMap | None:  # type: ignore[type-arg]
     """Build an updated subtree containing both activated and non-activated parts."""
 
-    def _collect_all_paths_with_status(root: Any, path: list[str]) -> list[tuple[list[str], TestClassStatus]]:  # type: ignore[misc]  # noqa: ANN401
+    def _collect_all_paths_with_status(
+        root: Any,  # noqa: ANN401
+        path: list[str],
+    ) -> list[tuple[list[str], tuple[TestClassStatus, set[str]]]]:  # type: ignore[misc]
         all_paths = []
 
         if isinstance(root, dict):
@@ -240,15 +245,15 @@ def build_updated_subtree(
 
     all_paths = _collect_all_paths_with_status(test_data_root, [])
     activable_paths = [
-        path for path, status in all_paths if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
+        path for path, status in all_paths if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
     ]
 
     if not activable_paths:
-        return None
+        return original_value
 
     # For test class-level entries, only build subtree if partial activation is needed
     if len(activable_paths) == len(all_paths) and not is_file_level:
-        return None  # Full activation - let caller handle this
+        return version
 
     # Build subtree structure with both activated and non-activated paths
     # Sort paths to ensure lexicographic key ordering
@@ -264,7 +269,7 @@ def build_updated_subtree(
             current = current[part]
 
         # Set value based on whether this path should be activated
-        if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
+        if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
             current[path[-1]] = version  # New version for activated paths
         else:
             current[path[-1]] = original_value  # Keep original value for non-activated paths
@@ -383,11 +388,14 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                 if found_version:
                     break
 
-                with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
-                    data = json.load(file)
-
-                versions[library] = f"v{data['context']['library']}"
-                found_version = True
+                try:
+                    with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
+                        data = json.load(file)
+                    if data["context"]["library_name"] == library:
+                        versions[library] = f"v{data['context']['library']}"
+                        found_version = True
+                except (FileNotFoundError, KeyError):
+                    continue
 
         if library == "cpp_httpd" and versions[library] == "v99.99.99":
             with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:

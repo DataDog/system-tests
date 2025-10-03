@@ -52,8 +52,9 @@ class Test_Cases:
 
 
 @scenarios.test_the_test
-def test_main():
-    run_system_tests(test_path="tests/test_the_test/test_junit.py", expected_return_code=1)
+@pytest.mark.parametrize("use_xdist", [True, False])
+def test_main(use_xdist: bool):  # noqa: FBT001
+    run_system_tests(test_path="tests/test_the_test/test_junit.py", use_xdist=use_xdist, expected_return_code=1)
 
     observed_file = "logs_mock_the_test/reportJunit.xml"
     expected_file = "tests/test_the_test/reportJunit_expected.xml"
@@ -84,6 +85,19 @@ def _normalize_etree(filename: str, ignore_attrs: Iterable[str] | None = None) -
         # clean values from moving parts
         for attr in ignore_attrs:
             el.attrib.pop(attr, None)
+
+    # sort testcase by name, as the order does not matter
+    for suite in root.findall("testsuite"):
+        # extract and sort by @name
+        testcases = sorted(suite.findall("testcase"), key=lambda tc: tc.get("name"))
+
+        # remove old testcases
+        for tc in suite.findall("testcase"):
+            suite.remove(tc)
+
+        # re-append in sorted order
+        for tc in testcases:
+            suite.append(tc)
 
     # Pretty-print XML for diffing (ElementTree alone doesn't indent)
     rough = ET.tostring(root, encoding="utf-8")

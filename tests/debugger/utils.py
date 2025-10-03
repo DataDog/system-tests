@@ -371,7 +371,8 @@ class BaseDebuggerTest:
                     continue
 
                 if not exception_snapshot:
-                    return True
+                    self._snapshot_found = True
+                    break
 
                 if "exceptionId" not in snapshot:
                     continue

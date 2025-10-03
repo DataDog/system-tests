@@ -394,13 +394,17 @@ SDK_DEFAULT_STABLE_CONFIG = {
     else "true"
     if context.library == "golang"
     else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
-    "dd_data_streams_enabled": "false",
+    "dd_data_streams_enabled": "false"
+    if context.library != "dotnet"
+    else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
     "dd_logs_injection": {
+        "dotnet": "true",
         "ruby": "true",
         "java": "true",
         "golang": None,
         "python": "true",
         "nodejs": "true",
+        "php": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
@@ -423,7 +427,6 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
-@bug(context.library > "php@1.11.0", reason="APMAPI-1568")
 class Test_Stable_Config_Default(StableConfigWriter):
     """Verify that stable config works as intended"""
 

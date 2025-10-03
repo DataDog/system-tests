@@ -312,7 +312,6 @@ class Test_DsmSQS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
-    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sqs(self):
         assert self.r.text == "ok"
 
@@ -353,7 +352,6 @@ class Test_DsmSNS:
         )
 
     @irrelevant(library="nodejs", reason="fixing node hashing")
-    @bug(context.library >= "java@1.54.0-SNAPSHOT", reason="DSMON-1072")
     def test_dsm_sns(self):
         assert self.r.text == "ok"
 
@@ -519,6 +517,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
+    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"
