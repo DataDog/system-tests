@@ -212,17 +212,20 @@ def library_processing(impacts: dict[str, Param], inputs) -> None:
     return main_library_processing(impacts, inputs)
 
 
+def extra_gitlab_output(inputs):
+    return {
+            "CI_PIPELINE_SOURCE": inputs.event_name,
+            "CI_COMMIT_REF_NAME": inputs.ref
+            }
+
+def run_all():
+    pass
+
+
 def scenario_processing(impacts: dict[str, Param], inputs) -> None:
-    def main_scenario_processing(impacts: dict[str, Param], inputs) -> None:
         outputs = OrderedDict()
         scenario_group_list = set()
         scenario_list = {scenarios.default.name}
-
-        if inputs.is_gitlab:
-            outputs |= {
-                    "CI_PIPELINE_SOURCE": inputs.event_name,
-                    "CI_COMMIT_REF_NAME": inputs.ref
-                    }
 
         if inputs.event_name == "schedule" or inputs.ref == "refs/heads/main":
             scenario_group_list.add(scenario_groups.all.name)
@@ -283,7 +286,6 @@ def scenario_processing(impacts: dict[str, Param], inputs) -> None:
                 }
         return outputs
 
-    return main_scenario_processing(impacts, inputs)
 
 class Inputs:
     def __init__(self, mock = False):
@@ -382,7 +384,9 @@ def process(inputs):
     outputs = {}
 
     impacts = parse(inputs)
-    if not inputs.is_gitlab:
+    if inputs.is_gitlab:
+        outputs |= extra_gitlab_output(inputs)
+    else:
         outputs |= library_processing(impacts, inputs)
     outputs |= scenario_processing(impacts, inputs)
 
