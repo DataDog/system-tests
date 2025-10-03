@@ -84,6 +84,15 @@ telemetry_name_mapping = {
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
     },
+    "tags": {
+        "java": "trace_tags",
+        "dotnet": "DD_TAGS",
+        "python": "DD_TAGS",
+    },
+    "trace_propagation_style": {
+        "dotnet": "DD_TRACE_PROPAGATION_STYLE_INJECT",  # Python doesn't emit just DD_TRACE_PROPAGATION_STYLE??
+        "python": "DD_TRACE_PROPAGATION_STYLE",
+    },
 }
 
 
@@ -691,6 +700,75 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ), f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
         assert telemetry_item["origin"] == "local_stable_config"
         assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
+
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origins"),
+        [
+            (
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+                    "DD_TAGS": "tag1:value1,tag2:value2",
+                },
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                },
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "datadog",
+                },
+                {
+                    "tags": "local_stable_config",
+                    "trace_propagation_style": "fleet_stable_config",
+                },
+            )
+        ],
+    )
+    @missing_feature(
+        context.library in ["cpp", "golang", "nodejs"],
+        reason="extended configs are not supported",
+    )
+    def test_stable_configuration_origin_extended_configs(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
+    ):
+        """Test that extended configuration options (tags, propagation style) report their origin correctly.
+
+        This test verifies that complex configuration values like tag arrays and propagation
+        styles are properly tracked with their configuration origin (local vs fleet stable config).
+        """
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
+            # seq_id can't be used to sort because payloads are sent from different tracer sessions.
+            time.sleep(1)
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        for cfg_name, expected_origin in expected_origins.items():
+            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_telemetry_name, expected_origin
+            )
+            assert (
+                telemetry_item is not None
+            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+
+            actual_origin = telemetry_item.get("origin", "<missing>")
+            assert (
+                telemetry_item["origin"] == expected_origin
+            ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+            assert telemetry_item["value"]
 
 
 DEFAULT_ENVVARS = {
