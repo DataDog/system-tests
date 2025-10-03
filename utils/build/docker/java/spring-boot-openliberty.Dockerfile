@@ -26,7 +26,6 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # FIXME: Fails on APPSEC_BLOCKING, see APPSEC-51405
 # ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
-# JVM_ARGS should reflect the ConfigChaining.properties file
 COPY ./utils/build/docker/java/ConfigChaining.properties app/ConfigChaining.properties
 ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar -Ddd.trace.config=/app/ConfigChaining.properties'
 
