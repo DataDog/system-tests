@@ -5,7 +5,11 @@ set -eu
 cd /binaries
 
 export CMAKE_BUILD_PARALLEL_LEVEL=$(nproc)
-PYTHON_VERSION=$(python --version | sed -E 's/Python ([0-9]+)\.([0-9]+)\.[0-9]+/cp\1\2/')
+PYTHON_VERSION=$(python - <<'PY'
+import sys
+print(f"cp{sys.version_info.major}{sys.version_info.minor}")
+PY
+)
 
 if [ "$(ls *.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *.whl))
