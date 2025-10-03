@@ -423,8 +423,45 @@ def main() -> None:
     print_outputs(strings_out, inputs)
 
 
+
+
+
+
+
+
 class Tests(unittest.TestCase):
     maxDiff = None
+    all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
+    all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
+
+    def test_regex(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out, [
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="docker_ssi"',
+                ])
 
     def test_docker_file(self):
         inputs = Inputs(mock=True)
@@ -571,7 +608,7 @@ class Tests(unittest.TestCase):
                 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]',
                 'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
-                'scenarios="INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,DEFAULT"',
+                'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
                 'scenarios_groups=""',
                 ])
         
@@ -644,7 +681,7 @@ class Tests(unittest.TestCase):
                 'libraries_with_dev=["java"]',
                 'desired_execution_time=600',
                 'rebuild_lambda_proxy=false',
-                'scenarios="INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,DEFAULT"',
+                'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
                 'scenarios_groups=""',
                 ])
 
@@ -702,6 +739,31 @@ class Tests(unittest.TestCase):
                 'libraries_with_dev=[]',
                 'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups=""',
+                ])
+
+    def test_gitlab(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = True
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["README.md"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
                 'scenarios="DEFAULT"',
                 'scenarios_groups=""',
                 ])
