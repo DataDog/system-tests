@@ -1,4 +1,5 @@
-from ruamel.yaml import YAML
+import unittest
+import yaml
 from typing import Any, TextIO, TYPE_CHECKING
 from manifests.parser.core import load as load_manifests
 from collections import defaultdict
@@ -11,8 +12,6 @@ from utils._context._scenarios import scenarios, Scenario, scenario_groups
 from utils._context._scenarios.core import ScenarioGroup
 if TYPE_CHECKING:
     from collections.abc import Iterable
-
-
 
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
@@ -71,17 +70,10 @@ class Param:
         self.scenarios: set[str] = {scenario_groups.all.name}
 
 
-def parse() -> dict[str, Param]:
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
-    yml_path = os.path.join(root_dir, "test-selection.yml")
-
-    yaml = YAML()
-    with open(yml_path, "r") as file:
-        data = yaml.load(file)["patterns"]
-
+def parse(inputs) -> dict[str, Param]:
     try:
         ret = {}
-        for raw_pattern, param in data.items():
+        for raw_pattern, param in inputs.raw_impacts.items():
             # pattern, param = next(iter(entry.items()))
             pattern = transform_pattern(raw_pattern)
             libraries = param.get("libraries", "ALL") or set()
@@ -114,13 +106,9 @@ def parse() -> dict[str, Param]:
         raise Exception("Error in the test selection file") from None  # noqa: TRY002
 
 
-def library_processing(impacts: dict[str, Param], output: str) -> None:
+def library_processing(impacts: dict[str, Param], inputs) -> None:
 
-    lambda_libraries = ["python_lambda"]
-    otel_libraries = ["java_otel", "python_otel"]  # , "nodejs_otel"]
-
-    # nodejs_otel is broken: dependancy needs to be pinned
-    libraries = "|".join(list(LIBRARIES) + lambda_libraries + otel_libraries)
+    libraries = "|".join(ALL_LIBRARIES)
 
     def get_impacted_libraries(modified_file: str, impacts: dict[str, Param]) -> list[str]:
         patterns = [
@@ -142,16 +130,15 @@ def library_processing(impacts: dict[str, Param], output: str) -> None:
 
         return list(LIBRARIES)
 
-    def main_library_processing(impacts: dict[str, Param], output: str) -> None:
+    def main_library_processing(impacts: dict[str, Param], inputs) -> None:
         result = set()
 
-        if os.environ.get("GITHUB_EVENT_NAME", "pull_request") != "pull_request":
+        if inputs.event_name != "pull_request":
             print("Not in PR => run all libraries")
             result |= set(LIBRARIES)
 
         else:
-            pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
-            match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", pr_title)
+            match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
             user_choice = None
             branch_selector = None
             prevent_library_selector_mismatch = True
@@ -168,10 +155,7 @@ def library_processing(impacts: dict[str, Param], output: str) -> None:
 
             print("Inspect modified files to determine impacted libraries...")
 
-            with open("modified_files.txt", "r", encoding="utf-8") as f:
-                modified_files: list[str] = [line.strip() for line in f]
-
-            for file in modified_files:
+            for file in inputs.modified_files:
                 impacted_libraries = get_impacted_libraries(file, impacts)
 
                 if file.endswith((".md", ".rdoc", ".txt")):
@@ -224,20 +208,12 @@ def library_processing(impacts: dict[str, Param], output: str) -> None:
             "rebuild_lambda_proxy": rebuild_lambda_proxy,
         }
 
-        if output:
-            with open(output, "w", encoding="utf-8") as f:
-                print_github_outputs(outputs, f)
-        else:
-            print_github_outputs(outputs, sys.stdout)
+        return outputs
 
-    def print_github_outputs(outputs: dict[str, Any], f: TextIO) -> None:
-        for name, value in outputs.items():
-            print(f"{name}={json.dumps(value)}", file=f)
-
-    main_library_processing(impacts, output)
+    return main_library_processing(impacts, inputs)
 
 
-def scenario_processing(impacts: dict[str, Param], output: str) -> None:
+def scenario_processing(impacts: dict[str, Param], inputs) -> None:
     class Result:
         def __init__(self) -> None:
             self.scenarios: set[str] = {scenarios.default.name}  # always run the default scenario
@@ -272,43 +248,30 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
             for name in scenario_names:
                 self.scenarios.add(name)
 
-    def main_scenario_processing(impacts: dict[str, Param], output: str) -> None:
+    def main_scenario_processing(impacts: dict[str, Param], inputs) -> None:
         result = Result()
 
-        if "GITLAB_CI" in os.environ:
-            event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
-            ref = os.environ.get("CI_COMMIT_REF_NAME", "")
-            print("CI_PIPELINE_SOURCE=" + event_name)
-            print("CI_COMMIT_REF_NAME=" + ref)
-        else:
-            event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
-            ref = os.environ.get("GITHUB_REF", "fake-branch-name")
+        if inputs.is_gitlab:
+            print("CI_PIPELINE_SOURCE=" + inputs.event_name)
+            print("CI_COMMIT_REF_NAME=" + inputs.ref)
 
-        if event_name == "schedule" or ref == "refs/heads/main":
+        if inputs.event_name == "schedule" or inputs.ref == "refs/heads/main":
             result.add_scenario_group(scenario_groups.all)
 
-        elif event_name in ("pull_request", "push"):
-            # this file is generated with
-            # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-            with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
-                scenario_map: dict[str, list[str]] = json.load(f)
-
+        elif inputs.event_name in ("pull_request", "push"):
             modified_nodeids = set()
 
-            new_manifests = load_manifests("manifests/")
-            old_manifests = load_manifests("original/manifests/")
-
-            for nodeid in set(list(new_manifests.keys()) + list(old_manifests.keys())):
+            for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
                 if (
-                    nodeid not in old_manifests
-                    or nodeid not in new_manifests
-                    or new_manifests[nodeid] != old_manifests[nodeid]
+                    nodeid not in inputs.old_manifests
+                    or nodeid not in inputs.new_manifests
+                    or inputs.new_manifests[nodeid] != inputs.old_manifests[nodeid]
                 ):
                     modified_nodeids.add(nodeid)
 
             scenarios_by_files: dict[str, set[str]] = defaultdict(set)
             scenario_names: Iterable[str]
-            for nodeid, scenario_names in scenario_map.items():
+            for nodeid, scenario_names in inputs.scenario_map.items():
                 file = nodeid.split(":", 1)[0]
                 for scenario_name in scenario_names:
                     scenarios_by_files[file].add(scenario_name)
@@ -318,14 +281,7 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                         result.add_scenario_names(scenario_names)
                         break
 
-            # this file is generated with
-            #   git fetch origin ${{ github.event.pull_request.base.sha || github.sha }}
-            #   git diff --name-only HEAD ${{ github.event.pull_request.base.sha || github.sha }} >> modified_files.txt
-
-            with open("modified_files.txt", encoding="utf-8") as f:
-                modified_files = [line.strip() for line in f]
-
-            for file in modified_files:
+            for file in inputs.modified_files:
                 if file.startswith("tests/"):
                     if file.endswith(("/utils.py", "/conftest.py", ".json")):
                         # particular use case for modification in tests/ of a file utils.py or conftest.py
@@ -352,35 +308,154 @@ def scenario_processing(impacts: dict[str, Param], output: str) -> None:
                 if file in scenarios_by_files:
                     result.add_scenario_names(scenarios_by_files[file])
 
-        if output:
-            with open(output, "a", encoding="utf-8") as f:
-                print("scenarios=" + ",".join(result.scenarios), file=f)
-                print("scenarios_groups=" + ",".join(result.scenarios_groups), file=f)
-        else:
-            print("scenarios=" + ",".join(result.scenarios))
-            print("scenarios_groups=" + ",".join(result.scenarios_groups))
+        outputs = {
+                "scenarios": ",".join(result.scenarios),
+                "scenarios_groups": ",".join(result.scenarios_groups)
+                }
+        return outputs
 
-    main_scenario_processing(impacts, output)
+    return main_scenario_processing(impacts, inputs)
+
+class Inputs:
+    def __init__(self, mock = False):
+        self.output = None
+        self.event_name = None
+        self.ref = None
+        self.is_gitlab = False
+        self.pr_title = None
+        self.raw_impacts = None
+        self.modified_files = None
+        self.scenario_map = None
+        self.new_manifests = None
+        self.old_manifests = None
+        if not mock:
+            self.populate()
+
+    def populate(self):
+        self.get_output()
+        self.get_git_info()
+        self.get_raw_impacts()
+        self.get_modified_files()
+        self.get_scenario_mappings()
+        self.get_manifests()
+
+    def get_output(self):
+        # Get output file (different for Gitlab and Github)
+        parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
+        parser.add_argument(
+            "--output",
+            "-o",
+            type=str,
+            default="",
+            help="Output file. If not provided, output to stdout",
+        )
+        args = parser.parse_args()
+
+        self.output = args.output
+
+    def get_git_info(self):
+        # Get all relevant environment variables.
+        if "GITLAB_CI" in os.environ:
+            self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
+            self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.is_gitlab = True
+            # print("CI_PIPELINE_SOURCE=" + event_name)
+            # print("CI_COMMIT_REF_NAME=" + ref)
+        else:
+            self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
+            self.ref = os.environ.get("GITHUB_REF", "fake-branch-name")
+            self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
+
+    def get_raw_impacts(self):
+        # Gets the raw pattern matching data that maps file to impacted 
+        # libraries/scenario groups
+        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
+        yml_path = os.path.join(root_dir, "test-selection.yml")
+        with open(yml_path, "r") as file:
+            self.raw_impacts = yaml.safe_load(file)["patterns"]
+
+    def get_modified_files(self):
+        # Gets the modified files. Computed with gh in a previous ci step.
+        with open("modified_files.txt", "r", encoding="utf-8") as f:
+            self.modified_files: list[str] = [line.strip() for line in f]
+
+    def get_scenario_mappings(self):
+        if self.event_name in ("pull_request", "push"):
+            # Get the mappings used to compute impacted scenarios by file, especially
+            # test files
+            # This file is generated with
+            # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
+            with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
+                self.scenario_map: dict[str, list[str]] = json.load(f)
+
+    def get_manifests(self):
+            # Collects old and new manifests, used to make a diff
+            self.new_manifests = load_manifests("manifests/")
+            self.old_manifests = load_manifests("original/manifests/")
+
+def stringify_outputs(outputs: dict[str, Any]) -> None:
+    ret = []
+    for name, value in outputs.items():
+        ret.append(f"{name}={json.dumps(value)}")
+    return ret
+
+def print_outputs(strings_out, inputs):
+    def print_ci_outputs(strings_out, f):
+        for s in strings_out:
+            print(s, file=f)
+    if inputs.output:
+        with open(inputs.output, "w", encoding="utf-8") as f:
+            print_ci_outputs(strings_out, f)
+    else:
+        print_ci_outputs(strings_out, sys.stdout)
+
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
-    parser.add_argument(
-        "--output",
-        "-o",
-        type=str,
-        default="",
-        help="Output file. If not provided, output to stdout",
-    )
+    inputs = Inputs()
+    outputs = {}
 
-    args = parser.parse_args()
-    output = args.output
+    impacts = parse(inputs)
+    if not inputs.is_gitlab:
+        outputs |= library_processing(impacts, inputs)
+    outputs |= scenario_processing(impacts, inputs)
 
-    impacts = parse()
-    if "GITLAB_CI" not in os.environ:
-        library_processing(impacts, output)
-    scenario_processing(impacts, output)
+    strings_out = stringify_outputs(outputs)
+    print_outputs(strings_out, inputs)
+
+
+class Tests(unittest.TestCase):
+
+    def test_upper(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs.scenario_map = {}
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        assert strings_out == [
+                'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
+                'libraries_with_dev=["python"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="open_telemetry,end_to_end"',
+                ]
+        print_outputs(strings_out, inputs)
 
 
 if __name__ == "__main__":
     main()
+
