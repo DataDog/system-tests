@@ -425,8 +425,9 @@ def main() -> None:
 
 
 class Tests(unittest.TestCase):
+    maxDiff = None
 
-    def test_upper(self):
+    def test_docker_file(self):
         inputs = Inputs(mock=True)
         inputs.event_name = "pull_request"
         inputs.ref = "some_branch"
@@ -434,7 +435,7 @@ class Tests(unittest.TestCase):
         inputs.pr_title = "Some title"
         inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
-        inputs.scenario_map = {}
+        inputs.get_scenario_mappings()
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
@@ -445,15 +446,266 @@ class Tests(unittest.TestCase):
         outputs |= scenario_processing(impacts, inputs)
 
         strings_out = stringify_outputs(outputs)
-        assert strings_out == [
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out, [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
                 'libraries_with_dev=["python"]',
                 'desired_execution_time=600',
                 'rebuild_lambda_proxy=false',
                 'scenarios="DEFAULT"',
-                'scenarios_groups="open_telemetry,end_to_end"',
-                ]
-        print_outputs(strings_out, inputs)
+                'scenarios_groups="end_to_end,open_telemetry"',
+                ])
+
+    def test_main(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "refs/heads/main"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
+                'libraries_with_dev=["python"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="all"',
+                ])
+
+    # To setup copy the manifests directory and edit the python manifest, depending
+    # on your edit you may have to change the scenarios line in the output.
+    def test_manifest(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["manifests/python.yml"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = load_manifests("manifests_test/")
+        inputs.old_manifests = load_manifests("manifests/")
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
+                'libraries_with_dev=["python"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups=""',
+                ])
+
+    # To setup copy the manifests directory and edit the agent manifest, depending
+    # on your edit you may have to change the scenarios line in the output.
+    def test_manifest_agent(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["manifests/agent.yml"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = load_manifests("manifests_test1/")
+        inputs.old_manifests = load_manifests("manifests/")
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]',
+                'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]',
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT,OTEL_LOG_E2E"',
+                'scenarios_groups=""',
+                ])
+
+    def test_test_file(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]',
+                'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]',
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,DEFAULT"',
+                'scenarios_groups=""',
+                ])
+        
+    def test_wrong_library_tag(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "[java] Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        impacts = parse(inputs)
+        self.assertRaises(Exception, library_processing, impacts, inputs)
+
+    def test_wrong_library_tag_with_branch(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "[java@main] Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+                'libraries_with_dev=["java"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="end_to_end,open_telemetry"',
+                ])
+
+    def test_wrong_library_tag_with_test_file(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "[java] Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+                'libraries_with_dev=["java"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,DEFAULT"',
+                'scenarios_groups=""',
+                ])
+
+    def test_lambda_proxy(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["utils/build/docker/lambda_proxy/pyproject.toml"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
+                'libraries_with_dev=["python_lambda"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=true',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="lambda_end_to_end"',
+                ])
+
+    def test_doc(self):
+        inputs = Inputs(mock=True)
+        inputs.event_name = "pull_request"
+        inputs.ref = "some_branch"
+        inputs.is_gitlab = False
+        inputs.pr_title = "Some title"
+        inputs.get_raw_impacts()
+        inputs.modified_files = ["README.md"]
+        inputs.get_scenario_mappings()
+        inputs.new_manifests = {}
+        inputs.old_manifests = {}
+
+        outputs = {}
+        impacts = parse(inputs)
+        if not inputs.is_gitlab:
+            outputs |= library_processing(impacts, inputs)
+        outputs |= scenario_processing(impacts, inputs)
+
+        strings_out = stringify_outputs(outputs)
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[]',
+                'libraries_with_dev=[]',
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups=""',
+                ])
 
 
 if __name__ == "__main__":
