@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context
+from utils import scenarios, features, missing_feature, context, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -256,6 +256,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_spans()
 
+    @irrelevant(
+        condition=context.library == "java" and context.weblog_variant != "spring-boot",
+    )
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
