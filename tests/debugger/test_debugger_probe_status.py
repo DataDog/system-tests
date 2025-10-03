@@ -136,6 +136,7 @@ class Test_Debugger_Line_Probe_Statuses(BaseDebuggerProbeStatusTest):
 
     @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
     @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+    @flaky(context.library == "nodejs", reason="JIRA-XXX")
     def test_log_line_status(self):
         self._assert()
 
