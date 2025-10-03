@@ -738,6 +738,8 @@ func main() {
 		w.Write([]byte(`[Event added]`))
 	})
 
+	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+
 	mux.HandleFunc("/debugger/log", logProbe)
 	mux.HandleFunc("/debugger/mix", mixProbe)
 

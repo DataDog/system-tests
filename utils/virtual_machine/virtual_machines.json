@@ -494,7 +494,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "OracleLinux_9_3_arm64",
@@ -508,7 +508,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "OracleLinux_9_2_amd64",
@@ -522,7 +522,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "OracleLinux_9_2_arm64",
@@ -536,7 +536,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "OracleLinux_8_8_amd64",
@@ -550,7 +550,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "OracleLinux_8_8_arm64",
@@ -564,7 +564,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "AlmaLinux_8_amd64",
