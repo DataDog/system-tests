@@ -1053,6 +1053,7 @@ class _Scenarios:
         # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
+        library_interface_timeout=20,
         doc="Test runtime metrics",
     )
 
