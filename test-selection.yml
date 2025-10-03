@@ -10,6 +10,22 @@ refs:
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
+    "*.nix":
+        scenario_groups: null
+        libraries: null
+    "*.md":
+        scenario_groups: null
+        libraries: null
+    "*.rdoc":
+        scenario_groups: null
+        libraries: null
+
+    requirements.txt:
+        scenario_groups: all
+    "*.txt":
+        scenario_groups: null
+        libraries: null
+
     .cursor/rules/*:
         scenario_groups: null
     .circleci/*:
@@ -204,17 +220,17 @@ patterns:
     run.sh:
         scenario_groups: all
 
-    tests/*:
+    tests/**/*:
         scenario_groups: null # dynamic selection
 
-    ./*.nix:
+    "*.nix":
         scenario_groups: null
-    ./*.md:
-        scenario_groups: null
-        libraries: null
-    ./*.rdoc:
+    "*.md":
         scenario_groups: null
         libraries: null
-    ./*.txt:
+    "*.rdoc":
+        scenario_groups: null
+        libraries: null
+    "*.txt":
         scenario_groups: null
         libraries: null

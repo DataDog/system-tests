@@ -178,36 +178,6 @@ def build_outputs(result, rebuild_lambda_proxy):
         "rebuild_lambda_proxy": rebuild_lambda_proxy,
     }
 
-def library_processing(impacts: dict[str, Param], inputs) -> None:
-    result = set()
-
-    if inputs.event_name != "pull_request":
-        print("Not in PR => run all libraries")
-        result |= set(LIBRARIES)
-
-    else:
-        rebuild_lambda_proxy = False
-
-        user_choice, branch_selector = parse_pr_title(inputs)
-        if user_choice: result.add(user_choice)
-
-        print("Inspect modified files to determine impacted libraries...")
-
-        for file in inputs.modified_files:
-            impacted_libraries = get_impacted_libraries(file, impacts)
-
-            if file in (
-                "utils/build/docker/lambda_proxy/pyproject.toml",
-                "utils/build/docker/lambda-proxy.Dockerfile",
-            ):
-                rebuild_lambda_proxy = True
-
-            if not manual_library(file, user_choice, branch_selector, impacted_libraries):
-                result |= set(impacted_libraries)
-
-    return build_outputs(result, rebuild_lambda_proxy)
-
-
 def extra_gitlab_output(inputs):
     return {
             "CI_PIPELINE_SOURCE": inputs.event_name,
@@ -275,16 +245,22 @@ def regular_file_scenarios(file, impacts, scenarios_by_files):
         scenario_set |= scenarios_by_files[file]
     return scenario_set, scenario_group_set
 
-def scenario_processing(impacts: dict[str, Param], inputs) -> None:
+def main_processing(impacts: dict[str, Param], inputs) -> None:
         scenario_group_set = set()
         scenario_set = {scenarios.default.name}
+        library_set = set()
+        rebuild_lambda_proxy = False
 
-        if inputs.event_name == "schedule" or inputs.ref == "refs/heads/main":
+        if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
             scenario_group_set.add(scenario_groups.all.name)
+            library_set |= set(LIBRARIES)
 
-        elif inputs.event_name in ("pull_request", "push"):
+        else:
             scenario_set |= manifest_scenarios(inputs)
             scenarios_by_files = get_scenarios_by_file(inputs)
+
+            user_choice, branch_selector = parse_pr_title(inputs)
+            if user_choice: library_set.add(user_choice)
 
             for file in inputs.modified_files:
 
@@ -293,10 +269,26 @@ def scenario_processing(impacts: dict[str, Param], inputs) -> None:
                 scenario_set |= ret_scenario_set
                 scenario_group_set |= ret_scenario_group_set
 
-        return {
-                "scenarios": ",".join(sorted(list(scenario_set))),
-                "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
-                }
+                impacted_libraries = get_impacted_libraries(file, impacts)
+                if file in (
+                    "utils/build/docker/lambda_proxy/pyproject.toml",
+                    "utils/build/docker/lambda-proxy.Dockerfile",
+                ):
+                    rebuild_lambda_proxy = True
+
+                if not manual_library(file, user_choice, branch_selector, impacted_libraries):
+                    library_set |= set(impacted_libraries)
+
+        if inputs.is_gitlab:
+            return {
+                    "scenarios": ",".join(sorted(list(scenario_set))),
+                    "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
+                    } 
+        else:
+            return build_outputs(library_set, rebuild_lambda_proxy) | {
+                    "scenarios": ",".join(sorted(list(scenario_set))),
+                    "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
+                    } 
 
 
 class Inputs:
@@ -342,8 +334,6 @@ class Inputs:
             self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
             self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
             self.is_gitlab = True
-            # print("CI_PIPELINE_SOURCE=" + event_name)
-            # print("CI_COMMIT_REF_NAME=" + ref)
         else:
             self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
             self.ref = os.environ.get("GITHUB_REF", "fake-branch-name")
@@ -398,9 +388,7 @@ def process(inputs):
     impacts = parse(inputs)
     if inputs.is_gitlab:
         outputs |= extra_gitlab_output(inputs)
-    else:
-        outputs |= library_processing(impacts, inputs)
-    outputs |= scenario_processing(impacts, inputs)
+    outputs |= main_processing(impacts, inputs)
 
     strings_out = stringify_outputs(outputs)
 
@@ -489,9 +477,9 @@ class Tests(unittest.TestCase):
 
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
-                'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
-                'libraries_with_dev=["python"]',
-                'desired_execution_time=600',
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
+                'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
                 'scenarios="DEFAULT"',
                 'scenarios_groups="all"',
@@ -666,7 +654,7 @@ class Tests(unittest.TestCase):
         inputs.is_gitlab = False
         inputs.pr_title = "Some title"
         inputs.get_raw_impacts()
-        inputs.modified_files = ["README.md"]
+        inputs.modified_files = ["binaries/dd-trace-go/_tools/README.md"]
         inputs.get_scenario_mappings()
         inputs.new_manifests = {}
         inputs.old_manifests = {}
