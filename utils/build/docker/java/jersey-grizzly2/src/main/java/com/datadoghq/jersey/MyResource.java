@@ -462,6 +462,22 @@ public class MyResource {
     }
 
     @GET
+    @Path("/authorization_related_headers")
+    public Response authResponseHeaders() {
+        return Response.ok("Response with custom headers")
+                .header("Authorization", "value1")
+                .header("Proxy-Authorization", "value2")
+                .header("WWW-Authenticate", "value3")
+                .header("Proxy-Authenticate", "value4")
+                .header("Authentication-Info", "value5")
+                .header("Proxy-Authentication-Info", "value6")
+                .header("Cookie", "value7")
+                .header("Set-Cookie", "value8")
+                .header("content-type", "text/plain")
+                .build();
+    }
+
+    @GET
     @Path("/exceedResponseHeaders")
     public Response exceedResponseHeaders() {
         Response.ResponseBuilder builder = Response.ok("Response with more than 50 headers")
