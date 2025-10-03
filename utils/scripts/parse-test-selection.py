@@ -179,11 +179,10 @@ def library_processing(impacts: dict[str, Param], inputs) -> None:
                         ...
                     elif impacted_libraries != [user_choice]:
                         # only acceptable use case : impacted library exactly matches user choice
-                        print(
+                        raise Exception(
                             f"""File {file} is modified, and it may impact {', '.join(impacted_libraries)}.
                             Please remove the PR title prefix [{user_choice}]"""
                         )
-                        sys.exit(1)
 
         populated_result = [
             {
