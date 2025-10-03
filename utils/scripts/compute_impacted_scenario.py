@@ -133,6 +133,7 @@ def main() -> None:
                     r"\.circleci/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
+                    r"\.github/chainguard/.*": None,
                     r"\.github/CODEOWNERS": None,
                     r"\.github/workflows/daily-tag\.yml": None,
                     r"\.github/workflows/debug-harness\.yml": None,
@@ -142,6 +143,7 @@ def main() -> None:
                     r"\.github/workflows/run-open-telemetry\.yml": scenario_groups.open_telemetry,
                     r"\.github/workflows/run-parametric\.yml": scenarios.parametric,
                     r"\.github/workflows/run-exotics\.yml": scenario_groups.exotics,
+                    r"\.github/workflows/run-stream-processing-offload\.yml": scenario_groups.stream_processing_offload,
                     r"\.github/.*": None,
                     r"\.gitlab/ssi_gitlab-ci.yml": [
                         scenario_groups.onboarding,

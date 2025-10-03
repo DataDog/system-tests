@@ -256,9 +256,6 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -297,9 +294,6 @@ jobs:
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
-    - name: Run APPSEC_AND_RC_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
-      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION

@@ -266,21 +266,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_and_rc_enabled = EndToEndScenario(
-        "APPSEC_AND_RC_ENABLED",
-        rc_api_enabled=True,
-        appsec_enabled=True,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="""
-            A scenario with AppSec and Remote Config enabled. In addition WAF and
-            tracer are configured to have bigger threshold.
-            This scenario should be used in most of the cases if you need
-            Remote Config and AppSec working for all libraries.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
@@ -317,12 +302,14 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
         },
         rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -507,13 +494,6 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
-    )
-
-    remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
     )
