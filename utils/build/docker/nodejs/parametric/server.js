@@ -11,6 +11,9 @@ const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/sp
 const { trace, ROOT_CONTEXT, SpanKind, propagation } = require('@opentelemetry/api')
 const { millisToHrTime } = require('@opentelemetry/core')
 
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
+
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
 tracerProvider.register()
@@ -369,6 +372,55 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
   const context = propagation.setBaggage(ROOT_CONTEXT, bag)
   const value = propagation.getBaggage(context).getEntry(req.body.key).value
   res.json({ value });
+});
+
+app.post('/ffe/start', async (req, res) => {
+  const { flaggingProvider } = tracer
+  await OpenFeature.setProviderAndWait(flaggingProvider)
+  openFeatureClient = OpenFeature.getClient()
+  res.json({})
+})
+
+// Feature Flag & Experimentation endpoint
+app.post('/ffe/evaluate', async (req, res) => {
+  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  let value, reason;
+  const context = { targetingKey, ...attributes }
+
+  try {
+    // Mock OpenFeature evaluation based on variationType
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break;
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break;
+      case 'INTEGER':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break;
+      default:
+        value = defaultValue;
+    }
+
+    console.log(`[FFE] Evaluation result: ${value}`)
+    reason = 'DEFAULT';
+  } catch (error) {
+    console.log('Error evaluating flag', { error });
+    value = defaultValue;
+    reason = 'ERROR';
+  }
+
+  res.json({
+    value: value,
+    reason: reason
+  });
 });
 
 const port = process.env.APM_TEST_CLIENT_SERVER_PORT;
