@@ -647,9 +647,7 @@ class Test_TelemetryEnhancedConfigReporting:
         latest_by_origin: dict[str, dict[str, Any]] = self._get_latest_configs_by_origin(matching_configs)
 
         # Sort latest configurations by origin by seq_id to get the effective precedence order
-        sorted_configs: list[dict[str, Any]] = sorted(
-            latest_by_origin.values(), key=lambda x: x["seq_id"]
-        )
+        sorted_configs: list[dict[str, Any]] = sorted(latest_by_origin.values(), key=lambda x: x["seq_id"])
 
         # Verify that configurations for the expected number of origins were received
         assert len(sorted_configs) == len(expected_precedence), f"Expected {expected_precedence}, Got: {sorted_configs}"
