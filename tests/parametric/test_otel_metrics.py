@@ -695,7 +695,6 @@ class Test_Otel_Metrics_Api_Instrument:
     - Within an Instrument/time-series, generating unique data points per set of measurement attributees
     """
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32))  # Limit the range of integers to avoid int/float equality issues
     @settings(
@@ -735,7 +734,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=0, max_value=2**32), st.integers(min_value=-(2**32), max_value=-1)
@@ -787,7 +785,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)
@@ -897,7 +894,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32)
@@ -941,7 +937,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
@@ -993,7 +988,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
@@ -1054,7 +1048,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32)
@@ -1090,7 +1083,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
@@ -1134,7 +1126,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(metric["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
@@ -1181,7 +1172,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(st.integers(min_value=0, max_value=2**32))  # Limit the range of integers to avoid int/float equality issues
     @settings(
@@ -1225,7 +1215,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=0, max_value=2**32),
@@ -1294,7 +1283,6 @@ class Test_Otel_Metrics_Api_Instrument:
             attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
-    # This test takes upwards of 25 seconds to run
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @given(
         st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)
