@@ -408,10 +408,7 @@ def print_outputs(strings_out, inputs):
     else:
         print_ci_outputs(strings_out, sys.stdout)
 
-
-
-def main() -> None:
-    inputs = Inputs()
+def process(inputs):
     outputs = {}
 
     impacts = parse(inputs)
@@ -420,6 +417,14 @@ def main() -> None:
     outputs |= scenario_processing(impacts, inputs)
 
     strings_out = stringify_outputs(outputs)
+
+    return strings_out
+
+
+
+def main() -> None:
+    inputs = Inputs()
+    strings_out = process(inputs)
     print_outputs(strings_out, inputs)
 
 
@@ -446,13 +451,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out, [
                 self.all_lib_matrix,
@@ -475,13 +475,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out, [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
@@ -504,13 +499,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
@@ -535,13 +525,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = load_manifests("manifests_test/")
         inputs.old_manifests = load_manifests("manifests/")
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
@@ -566,17 +551,12 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = load_manifests("manifests_test1/")
         inputs.old_manifests = load_manifests("manifests/")
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
-                'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]',
-                'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]',
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
                 'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
                 'scenarios="DEFAULT,OTEL_LOG_E2E"',
@@ -595,17 +575,12 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
-                'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]',
-                'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]',
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
                 'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
                 'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
@@ -624,8 +599,7 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        impacts = parse(inputs)
-        self.assertRaises(Exception, library_processing, impacts, inputs)
+        self.assertRaises(Exception, process, inputs)
 
     def test_wrong_library_tag_with_branch(self):
         inputs = Inputs(mock=True)
@@ -639,13 +613,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -668,13 +637,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -697,13 +661,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
@@ -726,13 +685,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[]',
@@ -755,13 +709,8 @@ class Tests(unittest.TestCase):
         inputs.new_manifests = {}
         inputs.old_manifests = {}
 
-        outputs = {}
-        impacts = parse(inputs)
-        if not inputs.is_gitlab:
-            outputs |= library_processing(impacts, inputs)
-        outputs |= scenario_processing(impacts, inputs)
+        strings_out = process(inputs)
 
-        strings_out = stringify_outputs(outputs)
         # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'scenarios="DEFAULT"',
