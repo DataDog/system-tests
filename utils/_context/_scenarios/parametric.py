@@ -178,9 +178,13 @@ class ParametricScenario(Scenario):
         self._library = ComponentVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
+    def _set_components(self):
+        self.components["library"] = self.library.version
+
     def get_warmups(self):
         result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
+        result.append(self._set_components)
 
         return result
 
