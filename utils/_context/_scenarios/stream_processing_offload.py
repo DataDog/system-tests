@@ -123,7 +123,7 @@ class StreamProcessingOffloadScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "haproxy-spoe"
+        return "haproxy-spoa"
 
     @property
     def library(self):

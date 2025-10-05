@@ -487,10 +487,18 @@ function main() {
             echo "${scenario} was removed, skipping."
             continue
         fi
+        if [[ "${scenario}" == TELEMETRY_METRIC_GENERATION_ENABLED ]]; then
+                    echo "${scenario} was removed, skipping."
+                    continue
+        fi
         if [[ "${scenario}" == APPSEC_REQUEST_BLOCKING ]]; then
                     echo "${scenario} was removed, skipping."
                     continue
-                fi
+        fi
+        if [[ "${scenario}" == REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE ]]; then
+                            echo "${scenario} was removed, skipping."
+                            continue
+        fi
         ####
 
         run_scenario "${dry}" "${run_mode}" "${scenario}" "${pytest_args[@]}"
