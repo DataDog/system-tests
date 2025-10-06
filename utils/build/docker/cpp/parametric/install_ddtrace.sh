@@ -12,7 +12,7 @@ git_clone(){
 }
 
 git_clone_latest_release (){
-   url_to_clone="https://github.com/DataDog/dd-trace-cpp"
+   url_to_clone="https://github.com/DataDog/dd-trace-cpp.git"
    latest_release=$(curl -s  https://api.github.com/repos/DataDog/dd-trace-cpp/releases/latest | jq '.tag_name'| tr -d '"')
    echo "$latest_release" > SYSTEM_TESTS_LIBRARY_VERSION
    git_clone "$url_to_clone" "$latest_release"
