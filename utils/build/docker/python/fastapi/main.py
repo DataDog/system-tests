@@ -1280,6 +1280,7 @@ def return_headers(request: Request):
 @app.get("/external_request", response_class=JSONResponse, status_code=200)
 @app.post("/external_request", response_class=JSONResponse, status_code=200)
 @app.trace("/external_request", response_class=JSONResponse, status_code=200)
+@app.put("/external_request", response_class=JSONResponse, status_code=200)
 async def external_request(request: Request):
     queries = {k: str(v) for k, v in request.query_params.items()}
     status = queries.pop("status", "200")
