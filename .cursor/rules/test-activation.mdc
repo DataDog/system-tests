@@ -16,11 +16,36 @@ Key points to remember to activate or deactivate tests:
 
 1. For test classes/files: Use manifest files in `manifests/` directory
 2. For individual test methods: Use decorators in test files
-3. Always include JIRA references for bugs
+3. Always include JIRA references for bugs using the `reason` parameter
 4. Never assume that not adding a test to a language's manifest will disable it - tests run by default unless explicitly disabled
 5. Entries in the manifest file MUST be sorted in alphabetical order. After edit a manifest file ALWAYS run the scenario "TEST_THE_TEST" and format.sh before committing changes to ensure code follows the manifest rules.
 6. When using @missing_feature/@irrelevant decorators, the condition specifies when to SKIP the test.
 7. For update a manifest yml file, never add fields that don't exist in any other manifests files. Use the documentation [manifests files specification](mdc:docs/edit/manifest.md) to be accurate in your modifications.
+
+## CRITICAL: Decorator Usage Rules
+
+8. **Version Format**: ALWAYS use `library@version` format in version comparisons (e.g., `context.library < "python@2.5.0"`, NOT `context.library < "2.5.0"`). The language specifier is MANDATORY.
+
+9. **Reason Parameter**: ALWAYS include the `reason` parameter for decorators:
+   - `@missing_feature(condition, reason="Feature not implemented yet")`
+   - `@bug(condition, reason="JIRA-1234")`
+   - `@irrelevant(condition, reason="Not applicable to this language")`
+   - `@incomplete_test_app(condition, reason="Weblog endpoint missing")`
+
+10. **Decorator Behavior Differences**:
+    - `@missing_feature` and `@bug`: Test STILL RUNS, results in XPASS (if passes) or XFAIL (if fails)
+    - `@irrelevant`: Test is SKIPPED completely, never runs
+    - `@flaky`: Test is NOT executed by default
+    - Use `force_skip=True` parameter to prevent execution of `@missing_feature` or `@bug` decorated tests
+
+11. **Manifest Disable Markers**: To disable tests in manifest files, use ONLY these valid markers:
+    - `irrelevant` (with optional comment/link)
+    - `bug` (with JIRA reference in comment)
+    - `flaky` 
+    - `missing_feature`
+    - NEVER use `false` or other arbitrary values
+
+12. **Language-Specific Conditions**: When using decorators with version checks, ensure the condition properly targets the intended language. Example: `@missing_feature(context.library < "python@2.5.0")` will NOT skip for other languages like Node.js or Java.
 
 For common test activation patterns and examples of enabling/disabling tests, see:
 

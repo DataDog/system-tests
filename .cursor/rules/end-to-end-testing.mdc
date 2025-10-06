@@ -10,7 +10,7 @@ alwaysApply: true
 * All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](mdc:docs/weblog/README.md).
 * To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](mdc:utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
 * A new end-to-end weblog must be referenced in the document [build script documentation](mdc:docs/execute/build.md).
-* if you create a new end to end weblog, create it always with one example endpoint.
+* if you create a new end to end weblog, create it always with one example endpoint and the MANDATORY endpoint '/healthcheck'. Check other weblogs to know the reponse format for the healthcheck endpoint.
 * if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](mdc:docs/weblog/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
 * After creating a new end to end weblog ALWAYS check the compatible scenarios on [workflow datada](mdc:utils/scripts/ci_orchestrators/workflow_data.py) using the method "_is_supported".
 * The end to end scenario test cases use the "weblog" object defined in the python file [weblog object](mdc:utils/_weblog.py) to make request to the endpoints (weblog.request, weblog.get, weblog.post, etc).
