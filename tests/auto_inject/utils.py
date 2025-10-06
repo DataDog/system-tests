@@ -65,7 +65,7 @@ class AutoInjectBaseTest:
         if appsec:
             validator = self._appsec_validator
         if origin_detection:
-            # TEMPORARY:  a delay see if that helps with container metadata is availability. 
+            # TEMPORARY:  a delay see if that helps with container metadata is availability.
             logger.info("Waiting for container metadata to be available...")
             time.sleep(5)  # Increased from 1 to 5 seconds for container tag detection
             validator = self._container_tags_validator
