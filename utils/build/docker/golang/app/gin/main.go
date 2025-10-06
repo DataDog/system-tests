@@ -339,8 +339,14 @@ func main() {
 	r.Any("/rasp/ssrf", ginHandleFunc(rasp.SSRF))
 	r.Any("/rasp/sqli", ginHandleFunc(rasp.SQLi))
 
+	r.Any("/external_request", ginHandleFunc(rasp.ExternalRequest))
+
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
+
+	var d DebuggerController
+	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
+	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -378,4 +384,14 @@ func headers(ctx *gin.Context) {
 	ctx.Writer.Header().Set("content-length", "42")
 	ctx.Writer.Header().Set("content-language", "en-US")
 	ctx.Writer.Write([]byte("Hello, headers!"))
+}
+
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }

@@ -43,7 +43,7 @@ class _RequestLogger:
         logger.addHandler(handler)
         logger.setLevel(logging.DEBUG)
 
-        self.host_log_folder = os.environ.get("SYSTEM_TESTS_HOST_LOG_FOLDER", "logs")
+        self.host_log_folder = "logs"
 
         self.rc_api_enabled = os.environ.get("SYSTEM_TESTS_RC_API_ENABLED") == "True"
         self.mocked_backend = os.environ.get("SYSTEM_TEST_MOCKED_BACKEND") == "True"

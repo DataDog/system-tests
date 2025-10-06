@@ -62,7 +62,7 @@ class OpenTelemetryScenario(DockerScenario):
             include_sqlserver=include_sqlserver,
         )
         if include_agent:
-            self.agent_container = AgentContainer(host_log_folder=self.host_log_folder, use_proxy=True)
+            self.agent_container = AgentContainer(use_proxy=True)
             self._required_containers.append(self.agent_container)
         if include_collector:
             if collector_config_file is not None:
@@ -78,7 +78,7 @@ class OpenTelemetryScenario(DockerScenario):
             else:
                 self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
             self._required_containers.append(self.collector_container)
-        self.weblog_container = WeblogContainer(self.host_log_folder, environment=weblog_env)
+        self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)
         if include_collector:

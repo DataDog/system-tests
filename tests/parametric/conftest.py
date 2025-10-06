@@ -149,6 +149,14 @@ class _TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
+        resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
+        if clear:
+            self.clear()
+        resp_json = resp.json()
+        self._write_log("metrics", resp_json)
+        return cast(list[Any], resp_json)
+
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
         assert resp.status_code == 202
@@ -396,6 +404,20 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
+    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
+        """Wait for `num` metrics to be received from the test agent."""
+        metrics = []
+        for _ in range(wait_loops):
+            try:
+                metrics = self.metrics()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if len(metrics) >= num:
+                    return metrics
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
+
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for _ in range(wait_loops):
@@ -413,14 +435,19 @@ class _TestAgentAPI:
             time.sleep(0.01)
         raise AssertionError(f"Telemetry event {event_name} not found")
 
-    def wait_for_telemetry_configurations(self, *, service: str | None = None, clear: bool = False) -> dict[str, str]:
-        """Waits for and returns the latest configurations captured in telemetry events.
+    def wait_for_telemetry_configurations(
+        self, *, service: str | None = None, clear: bool = False
+    ) -> dict[str, list[dict]]:
+        """Waits for and returns configurations captured in telemetry events.
 
         Telemetry events can be found in `app-started` or `app-client-configuration-change` events.
         The function ensures that at least one telemetry event is captured before processing.
+        Returns a dictionary where keys are configuration names and values are lists of
+        configuration dictionaries, allowing for multiple entries per configuration name
+        with different origins.
         """
         events = []
-        configurations = {}
+        configurations: dict[str, list[dict]] = {}
         # Allow time for telemetry events to be captured
         time.sleep(1)
         # Attempt to retrieve telemetry events, suppressing request-related exceptions
@@ -431,6 +458,7 @@ class _TestAgentAPI:
 
         # Sort events by tracer_time to ensure configurations are processed in order
         events.sort(key=lambda r: r["tracer_time"])
+
         # Extract configuration data from relevant telemetry events
         for event in events:
             if service is not None and event["application"]["service_name"] != service:
@@ -439,12 +467,52 @@ class _TestAgentAPI:
                 telemetry_event = self._get_telemetry_event(event, event_type)
                 if telemetry_event:
                     for config in telemetry_event.get("payload", {}).get("configuration", []):
-                        # Store only the latest configuration for each name. This is the configuration
-                        # that should be used by the application.
-                        configurations[config["name"]] = config
+                        # Store all configurations, allowing multiple entries per name with different origins
+                        config_name = config["name"]
+                        if config_name not in configurations:
+                            configurations[config_name] = []
+                        configurations[config_name].append(config)
         if clear:
             self.clear()
         return configurations
+
+    def get_telemetry_config_by_origin(
+        self,
+        configurations: dict[str, list[dict]],
+        config_name: str,
+        origin: str,
+        *,
+        fallback_to_first: bool = False,
+        return_value_only: bool = False,
+    ) -> dict | str | int | bool | None:
+        """Get a telemetry configuration by name and origin.
+
+        Args:
+            configurations: The dict returned by wait_for_telemetry_configurations()
+            config_name: The configuration name to look for
+            origin: The origin to look for (e.g., "default", "env_var", "fleet_stable_config")
+            fallback_to_first: If True, return the first config if no config with the specified origin is found
+            return_value_only: If True, return only the "value" field, otherwise return the full config dict
+
+        Returns:
+            The configuration dict, the value, or None depending on parameters
+
+        """
+        config_list = configurations.get(config_name, [])
+        if not config_list:
+            return None
+
+        # Try to find config with the specified origin
+        config = next((cfg for cfg in config_list if cfg.get("origin") == origin), None)
+
+        # Fallback to first config if requested and no origin match found
+        if config is None and fallback_to_first and config_list:
+            config = config_list[0]
+
+        if config is None:
+            return None
+
+        return config.get("value") if return_value_only else config
 
     def wait_for_telemetry_metrics(self, metric_name: str | None = None, *, clear: bool = False, wait_loops: int = 100):
         """Get the telemetry metrics from the test agent."""
@@ -605,10 +673,6 @@ class _TestAgentAPI:
                 return logs
             time.sleep(0.1)
         raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
-
-    def metrics(self) -> list[Any]:
-        resp = self._session.get(self._otlp_url("/test/session/metrics"))
-        return cast(list[Any], resp.json())
 
 
 @pytest.fixture(scope="session")

@@ -8,7 +8,18 @@ import os
 
 from tests.integrations.utils import compute_dsm_hash
 
-from utils import weblog, interfaces, scenarios, irrelevant, context, bug, features, missing_feature, flaky, logger
+from utils import (
+    weblog,
+    interfaces,
+    scenarios,
+    irrelevant,
+    bug,
+    features,
+    missing_feature,
+    flaky,
+    logger,
+    context,
+)
 
 
 # Kafka specific
@@ -506,6 +517,7 @@ class Test_Dsm_Manual_Checkpoint_Intra_Process:
         )
 
     @irrelevant(library="nodejs", reason="Node.js doesn't sort the DSM edge tags and has different hashes.")
+    @flaky(context.weblog_variant == "spring-boot", reason="AIDM-117")
     def test_dsm_manual_checkpoint_intra_process(self):
         assert self.produce.status_code == 200
         assert self.produce.text == "ok"

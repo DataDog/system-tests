@@ -362,6 +362,8 @@ func main() {
 	mux.HandleFunc("/rasp/ssrf", rasp.SSRF)
 	mux.HandleFunc("/rasp/sqli", rasp.SQLi)
 
+	mux.HandleFunc("/external_request", rasp.ExternalRequest)
+
 	mux.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 	})
@@ -397,6 +399,10 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	var d DebuggerController
+	mux.HandleFunc("/debugger/log", d.logProbe)
+	mux.HandleFunc("/debugger/mix", d.mixProbe)
+
 	srv := &http.Server{
 		Addr:    ":7777",
 		Handler: mux,
@@ -427,4 +433,14 @@ func headers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Length", "42")
 	w.Header().Set("Content-Language", "en-US")
 	w.Write([]byte("Hello, headers!"))
+}
+
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Log probe"))
+}
+
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("Mix probe"))
 }

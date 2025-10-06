@@ -21,6 +21,7 @@ from .k8s_lib_injection import WeblogInjectionScenario, K8sScenario, K8sSparkSce
 from .k8s_injector_dev import K8sInjectorDevScenario
 from .docker_ssi import DockerSSIScenario
 from .external_processing import ExternalProcessingScenario
+from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
@@ -103,14 +104,6 @@ class _Scenarios:
         doc="Test W3C trace style",
     )
 
-    trace_propagation_style_default = EndToEndScenario(
-        "TRACE_PROPAGATION_STYLE_DEFAULT",
-        weblog_env={
-            # This scenario is empty since it's testing the default propagation styles
-        },
-        doc="Test Default propagation",
-    )
-
     # Telemetry scenarios
     telemetry_dependency_loaded_test_for_dependency_collection_disabled = EndToEndScenario(
         "TELEMETRY_DEPENDENCY_LOADED_TEST_FOR_DEPENDENCY_COLLECTION_DISABLED",
@@ -152,12 +145,6 @@ class _Scenarios:
         "TELEMETRY_METRIC_GENERATION_DISABLED",
         weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "false"},
         doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=false`",
-        scenario_groups=[scenario_groups.telemetry],
-    )
-    telemetry_metric_generation_enabled = EndToEndScenario(
-        "TELEMETRY_METRIC_GENERATION_ENABLED",
-        weblog_env={"DD_TELEMETRY_METRICS_ENABLED": "true"},
-        doc="Test env var `DD_TELEMETRY_METRICS_ENABLED=true`",
         scenario_groups=[scenario_groups.telemetry],
     )
 
@@ -280,29 +267,6 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec],
     )
 
-    appsec_request_blocking = EndToEndScenario(
-        "APPSEC_REQUEST_BLOCKING",
-        rc_api_enabled=True,
-        weblog_env={"DD_APPSEC_RULES": None},
-        doc="",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    appsec_and_rc_enabled = EndToEndScenario(
-        "APPSEC_AND_RC_ENABLED",
-        rc_api_enabled=True,
-        appsec_enabled=True,
-        iast_enabled=False,
-        weblog_env={"DD_APPSEC_WAF_TIMEOUT": "10000000", "DD_APPSEC_TRACE_RATE_LIMIT": "10000"},  # 10 seconds
-        doc="""
-            A scenario with AppSec and Remote Config enabled. In addition WAF and
-            tracer are configured to have bigger threshold.
-            This scenario should be used in most of the cases if you need
-            Remote Config and AppSec working for all libraries.
-        """,
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     appsec_runtime_activation = EndToEndScenario(
         "APPSEC_RUNTIME_ACTIVATION",
         rc_api_enabled=True,
@@ -339,12 +303,14 @@ class _Scenarios:
             "DD_API_SECURITY_ENABLED": "true",
             "DD_API_SECURITY_REQUEST_SAMPLE_RATE": "1.0",
             "DD_API_SECURITY_SAMPLE_DELAY": "0.0",
+            "DD_APPSEC_WAF_TIMEOUT": "10000000",
+            "DD_APPSEC_TRACE_RATE_LIMIT": "10000",
         },
         rc_api_enabled=True,
         doc="""
             Scenario to test API Security Remote config
         """,
-        scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
+        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config, scenario_groups.essentials],
     )
 
     appsec_api_security_no_response_body = EndToEndScenario(
@@ -432,38 +398,11 @@ class _Scenarios:
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
     )
 
-    appsec_standalone_experimental = EndToEndScenario(
-        "APPSEC_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-        },
-        doc="Appsec standalone mode (APM opt out) V2",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
     iast_standalone = EndToEndScenario(
         "IAST_STANDALONE",
         weblog_env={
             "DD_APPSEC_ENABLED": "false",
             "DD_APM_TRACING_ENABLED": "false",
-            "DD_IAST_ENABLED": "true",
-            "DD_IAST_DETECTION_MODE": "FULL",
-            "DD_IAST_DEDUPLICATION_ENABLED": "false",
-            "DD_IAST_REQUEST_SAMPLING": "100",
-            "DD_IAST_VULNERABILITIES_PER_REQUEST": "10",
-            "DD_IAST_MAX_CONTEXT_OPERATIONS": "10",
-        },
-        doc="Source code vulnerability standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    iast_standalone_experimental = EndToEndScenario(
-        "IAST_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
             "DD_IAST_ENABLED": "true",
             "DD_IAST_DETECTION_MODE": "FULL",
             "DD_IAST_DEDUPLICATION_ENABLED": "false",
@@ -484,19 +423,6 @@ class _Scenarios:
             "DD_IAST_ENABLED": "false",
             "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
             "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
-        },
-        doc="SCA standalone mode (APM opt out)",
-        scenario_groups=[scenario_groups.appsec],
-    )
-
-    sca_standalone_experimental = EndToEndScenario(
-        "SCA_STANDALONE_EXPERIMENTAL",
-        weblog_env={
-            "DD_APPSEC_ENABLED": "false",
-            "DD_APPSEC_SCA_ENABLED": "true",
-            "DD_EXPERIMENTAL_APPSEC_STANDALONE_ENABLED": "true",
-            "DD_IAST_ENABLED": "false",
-            "DD_TELEMETRY_DEPENDENCY_RESOLUTION_PERIOD_MILLIS": "1",
         },
         doc="SCA standalone mode (APM opt out)",
         scenario_groups=[scenario_groups.appsec],
@@ -569,13 +495,6 @@ class _Scenarios:
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
         weblog_env={"DD_APPSEC_ENABLED": "false", "DD_REMOTE_CONFIGURATION_ENABLED": "true"},
-        doc="",
-        scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
-    )
-
-    remote_config_mocked_backend_asm_dd_nocache = EndToEndScenario(
-        "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
-        rc_api_enabled=True,
         doc="",
         scenario_groups=[scenario_groups.appsec, scenario_groups.remote_config],
     )
@@ -1059,12 +978,27 @@ class _Scenarios:
         doc="Validates the installer and the ssi service naming features on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
+    docker_ssi_appsec = DockerSSIScenario(
+        "DOCKER_SSI_APPSEC",
+        doc="Validates the installer and the ssi on a docker environment",
+        extra_env_vars={"DD_SERVICE": "payments-service"},
+        appsec_enabled="true",
+        scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
+    )
     docker_ssi_crashtracking = DockerSSIScenario(
         "DOCKER_SSI_CRASHTRACKING",
         doc="Validates the crashtracking for ssi on a docker environment",
         scenario_groups=[scenario_groups.all, scenario_groups.docker_ssi],
     )
-    appsec_rasp = AppsecRaspScenario()
+
+    appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
+
+    appsec_standalone_rasp = AppsecRaspScenario(
+        "APPSEC_STANDALONE_RASP",
+        weblog_env={
+            "DD_APM_TRACING_ENABLED": "false",
+        },
+    )
 
     appsec_rasp_non_blocking = EndToEndScenario(
         "APPSEC_RASP_NON_BLOCKING",
@@ -1096,10 +1030,10 @@ class _Scenarios:
 
     agent_supporting_span_events = EndToEndScenario(
         "AGENT_SUPPORTING_SPAN_EVENTS",
-        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1"},
+        weblog_env={"DD_TRACE_NATIVE_SPAN_EVENTS": "1", "DD_TELEMETRY_METRICS_ENABLED": "true"},
         span_events=True,
         doc="The trace agent support Span Events and it is enabled through an environment variable",
-        scenario_groups=[scenario_groups.integrations],
+        scenario_groups=[scenario_groups.integrations, scenario_groups.telemetry],
     )
 
     agent_not_supporting_span_events = EndToEndScenario(
@@ -1123,6 +1057,21 @@ class _Scenarios:
         extproc_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
     )
 
+    stream_processing_offload = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD",
+        doc="HAProxy + stream processing offload agent",
+        rc_api_enabled=True,
+    )
+
+    stream_processing_offload_blocking = StreamProcessingOffloadScenario(
+        name="STREAM_PROCESSING_OFFLOAD_BLOCKING",
+        doc="HAProxy + stream processing offload agent + blocking rule file",
+        stream_processing_offload_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        stream_processing_offload_volumes={
+            "./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}
+        },
+    )
+
     ipv6 = IPV6Scenario("IPV6")
 
     runtime_metrics_enabled = EndToEndScenario(
@@ -1136,6 +1085,7 @@ class _Scenarios:
         # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
+        library_interface_timeout=20,
         doc="Test runtime metrics",
     )
 

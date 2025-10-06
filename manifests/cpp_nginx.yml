@@ -90,11 +90,8 @@ tests/:
     test_asm_standalone.py:
       Test_APISecurityStandalone: missing_feature
       Test_AppSecStandalone_NotEnabled: v1.7.0
-      Test_AppSecStandalone_UpstreamPropagation: irrelevant (V2 implemented)
       Test_AppSecStandalone_UpstreamPropagation_V2: v1.7.0
-      Test_IastStandalone_UpstreamPropagation: irrelevant
       Test_IastStandalone_UpstreamPropagation_V2: irrelevant
-      Test_SCAStandalone_Telemetry: irrelevant
       Test_SCAStandalone_Telemetry_V2: missing_feature
       Test_UserEventsStandalone_Automated: missing_feature
       Test_UserEventsStandalone_SDK_V1: missing_feature
@@ -140,6 +137,7 @@ tests/:
       Test_NoLimitOnWafRules: v1.2.0
     test_event_tracking.py: irrelevant (ASM is not implemented in C++)
     test_event_tracking_v2.py: irrelevant (ASM is not implemented in C++)
+    test_extended_data_collection.py: irrelevant (ASM is not implemented in C++)
     test_extended_header_collection.py: irrelevant (ASM is not implemented in C++)
     test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
     test_fingerprinting.py: irrelevant (ASM is not implemented in C++)

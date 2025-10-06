@@ -90,7 +90,6 @@ class DockerScenario(Scenario):
 
         if self.use_proxy:
             self.proxy_container = ProxyContainer(
-                host_log_folder=self.host_log_folder,
                 rc_api_enabled=rc_api_enabled,
                 meta_structs_disabled=meta_structs_disabled,
                 span_events=span_events,
@@ -101,31 +100,31 @@ class DockerScenario(Scenario):
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(PostgresContainer())
 
         if include_mongo_db:
-            self._supporting_containers.append(MongoContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MongoContainer())
 
         if include_cassandra_db:
-            self._supporting_containers.append(CassandraContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(CassandraContainer())
 
         if include_kafka:
-            self._supporting_containers.append(KafkaContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(KafkaContainer())
 
         if include_rabbitmq:
-            self._supporting_containers.append(RabbitMqContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(RabbitMqContainer())
 
         if include_mysql_db:
-            self._supporting_containers.append(MySqlContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MySqlContainer())
 
         if include_sqlserver:
-            self._supporting_containers.append(MsSqlServerContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(MsSqlServerContainer())
 
         if include_localstack:
-            self._supporting_containers.append(LocalstackContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(LocalstackContainer())
 
         if include_elasticmq:
-            self._supporting_containers.append(ElasticMQContainer(host_log_folder=self.host_log_folder))
+            self._supporting_containers.append(ElasticMQContainer())
 
         self._required_containers.extend(self._supporting_containers)
 
@@ -142,7 +141,7 @@ class DockerScenario(Scenario):
             self.components["docker.Cgroup"] = docker_info.get("CgroupVersion", None)
 
         for container in reversed(self._required_containers):
-            container.configure(replay=self.replay)
+            container.configure(host_log_folder=self.host_log_folder, replay=self.replay)
 
     def get_container_by_dd_integration_name(self, name: str):
         for container in self._required_containers:
@@ -307,9 +306,7 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(
-            host_log_folder=self.host_log_folder, use_proxy=use_proxy_for_agent, environment=agent_env
-        )
+        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -329,7 +326,6 @@ class EndToEndScenario(DockerScenario):
         )
 
         self.weblog_container = WeblogContainer(
-            self.host_log_folder,
             environment=weblog_env,
             tracer_sampling_rate=tracer_sampling_rate,
             appsec_enabled=appsec_enabled,
@@ -345,8 +341,6 @@ class EndToEndScenario(DockerScenario):
 
         if use_proxy_for_weblog:
             self.weblog_container.depends_on.append(self.proxy_container)
-
-        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         self._required_containers.append(self.agent_container)
         self._required_containers.append(self.weblog_container)
@@ -373,7 +367,6 @@ class EndToEndScenario(DockerScenario):
                 BuddyContainer(
                     f"{language}_buddy",
                     image_name,
-                    self.host_log_folder,
                     host_port=host_port,
                     trace_agent_port=trace_agent_port,
                     environment=weblog_env,
@@ -393,6 +386,8 @@ class EndToEndScenario(DockerScenario):
 
     def configure(self, config: pytest.Config):
         super().configure(config)
+
+        self.weblog_container.environment["SYSTEMTESTS_SCENARIO"] = self.name
 
         if self._require_api_key and "DD_API_KEY" not in os.environ and not self.replay:
             pytest.exit("DD_API_KEY is required for this scenario", 1)
@@ -667,6 +662,7 @@ class EndToEndScenario(DockerScenario):
                 ticket="APMSP-2158",
             ),
         ]
+
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [

@@ -555,12 +555,17 @@ class Test_FR10_Timeout_Configuration:
         assert find_log_record(log_payloads, "test_logger", "test_default_timeout") is not None
         # Wait for telemetry configurations and verify the timeout has the default value of 10s
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
-        exporter_timeout = configurations_by_name.get("OTEL_EXPORTER_OTLP_TIMEOUT")
-        exporter_logs_timeout = configurations_by_name.get("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT")
-        assert exporter_timeout, f"OTEL_EXPORTER_OTLP_TIMEOUT should be set, configurations: {configurations_by_name}"
-        assert (
-            exporter_logs_timeout
-        ), f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be set, configurations: {configurations_by_name}"
+
+        # Find default configurations (since no env vars are set, these should have default origin)
+        exporter_timeout = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_EXPORTER_OTLP_TIMEOUT", "default", fallback_to_first=True
+        )
+        exporter_logs_timeout = test_agent.get_telemetry_config_by_origin(
+            configurations_by_name, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", "default", fallback_to_first=True
+        )
+
+        assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
+        assert exporter_logs_timeout is not None, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be set"
 
         assert (
             exporter_timeout.get("value") == 10000
@@ -610,8 +615,11 @@ class Test_FR11_Telemetry:
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
         ]:
-            config = configurations_by_name.get(expected_env)
-            assert config, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
@@ -651,8 +659,11 @@ class Test_FR11_Telemetry:
             ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "grpc"),
             ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
         ]:
-            config = configurations_by_name.get(expected_env)
-            assert config, f"Expected {expected_env} to be set, configurations: {configurations_by_name}"
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
             assert (
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"

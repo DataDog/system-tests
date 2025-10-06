@@ -3,7 +3,7 @@
 # This script is needed only for this reason: https://datadoghq.atlassian.net/browse/AP-2165
 
 if [ -z "$INSTALLER_URL" ]; then
-    INSTALLER_URL="https://install.datadoghq.com/scripts/install_script_agent7.sh"
+    INSTALLER_URL="https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh"
 fi
 
 if [ "$DD_APM_INSTRUMENTATION_ENABLED" == "docker" ]; then
@@ -34,7 +34,6 @@ fi
 
 # Environment variables for the installer
 export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
-export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
 if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
    export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
