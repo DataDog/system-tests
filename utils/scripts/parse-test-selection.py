@@ -100,83 +100,96 @@ def parse(inputs) -> dict[str, Param]:
     except AttributeError:
         raise Exception("Error in the test selection file") from None  # noqa: TRY002
 
-def parse_pr_title(inputs):
-    libraries = "|".join(ALL_LIBRARIES)
-    match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
-    user_choice = None
-    branch_selector = None
-    if match:
-        print(f"PR title matchs => run {match[1]}")
-        user_choice = match[1]
+class LibraryProcessor:
 
-        # if users specified a branch, another job will prevent the merge
-        # so let user do what he/she wants :
-        branch_selector = match[2]
-    return user_choice, branch_selector
+    def __init__(self, libraries = None):
+        self.libraries = libraries if libraries else set()
+        self.impacted_libraries = set()
+        self.user_choice = None
+        self.branch_selector = None
+
+    def parse_pr_title(self, inputs):
+        libraries = "|".join(ALL_LIBRARIES)
+        match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
+        if match:
+            print(f"PR title matchs => run {match[1]}")
+            self.user_choice = match[1]
+            self.libraries.add(self.user_choice)
+
+            # if users specified a branch, another job will prevent the merge
+            # so let user do what he/she wants :
+            self.branch_selector = match[2]
 
 
-def get_impacted_libraries(modified_file: str, impacts: dict[str, Param]) -> list[str]:
-    libraries = "|".join(ALL_LIBRARIES)
-    patterns = [
-        rf"^manifests/({libraries})\.",
-        rf"^utils/build/docker/({libraries})/",
-        rf"^lib-injection/build/docker/({libraries})/",
-        rf"^utils/build/build_({libraries})_base_images.sh",
-    ]
+    def get_impacted_libraries(self, modified_file: str, impacts: dict[str, Param]) -> list[str]:
+        libraries = "|".join(ALL_LIBRARIES)
+        patterns = [
+            rf"^manifests/({libraries})\.",
+            rf"^utils/build/docker/({libraries})/",
+            rf"^lib-injection/build/docker/({libraries})/",
+            rf"^utils/build/build_({libraries})_base_images.sh",
+        ]
 
-    for pattern in patterns:
-        if match := re.search(pattern, modified_file):
-            return [match[1]]
+        for pattern in patterns:
+            if match := re.search(pattern, modified_file):
+                self.impacted_libraries.add(match[1])
+                return 
 
-    for pattern, requirement in impacts.items():
-        if fnmatch(modified_file, pattern):
-            return list(requirement.libraries)
-            break
+        for pattern, requirement in impacts.items():
+            if fnmatch(modified_file, pattern):
+                self.impacted_libraries |= requirement.libraries
+                return 
 
-    return list(LIBRARIES)
+        self.impacted_libraries |= LIBRARIES
 
-def manual_library(file, user_choice, branch_selector, impacted_libraries):
-    if user_choice:
-        if branch_selector or len(impacted_libraries) == 0:
-            return True
-        else:
-            # user specified a library in the PR title
-            # and there are some impacted libraries
-            if file.startswith("tests/"):
-                # modification in tests files are complex, trust user
+    def manual_library(self, file):
+        if self.user_choice:
+            if self.branch_selector or len(self.impacted_libraries) == 0:
                 return True
-            elif impacted_libraries != [user_choice]:
-                # only acceptable use case : impacted library exactly matches user choice
-                raise Exception(
-                    f"""File {file} is modified, and it may impact {', '.join(impacted_libraries)}.
-                    Please remove the PR title prefix [{user_choice}]"""
-                )
-    else:
-        return False
+            else:
+                # user specified a library in the PR title
+                # and there are some impacted libraries
+                if file.startswith("tests/"):
+                    # modification in tests files are complex, trust user
+                    return True
+                elif self.impacted_libraries != [user_choice]:
+                    # only acceptable use case : impacted library exactly matches user choice
+                    raise Exception(
+                        f"""File {file} is modified, and it may impact {', '.join(self.impacted_libraries)}.
+                        Please remove the PR title prefix [{user_choice}]"""
+                    )
+        else:
+            return False
 
-def build_library_outputs(result, rebuild_lambda_proxy):
-    populated_result = [
-        {
-            "library": library,
-            "version": "prod",
-        }
-        for library in sorted(result)
-    ] + [
-        {
-            "library": library,
-            "version": "dev",
-        }
-        for library in sorted(result)
-        if "otel" not in library
-    ]
+    def add(self, file, impacts):
+        self.get_impacted_libraries(file, impacts)
+        if not self.manual_library(file):
+            self.libraries |= self.impacted_libraries
 
-    libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
-    return {
-        "library_matrix": populated_result,
-        "libraries_with_dev": libraries_with_dev,
-        "desired_execution_time": 600 if len(result) == 1 else 3600,
-        "rebuild_lambda_proxy": rebuild_lambda_proxy,
-    }
+
+    def build_library_outputs(self, rebuild_lambda_proxy):
+        populated_result = [
+            {
+                "library": library,
+                "version": "prod",
+            }
+            for library in sorted(self.libraries)
+        ] + [
+            {
+                "library": library,
+                "version": "dev",
+            }
+            for library in sorted(self.libraries)
+            if "otel" not in library
+        ]
+
+        libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
+        return {
+            "library_matrix": populated_result,
+            "libraries_with_dev": libraries_with_dev,
+            "desired_execution_time": 600 if len(self.libraries) == 1 else 3600,
+            "rebuild_lambda_proxy": rebuild_lambda_proxy,
+        }
 
 def extra_gitlab_output(inputs):
     return {
@@ -184,6 +197,7 @@ def extra_gitlab_output(inputs):
             "CI_COMMIT_REF_NAME": inputs.ref
             }
 
+# class ScenarioProcessor:
 def manifest_scenarios(inputs):
     scenario_set = set()
     modified_nodeids = set()
@@ -248,19 +262,19 @@ def regular_file_scenarios(file, impacts, scenarios_by_files):
 def main_processing(impacts: dict[str, Param], inputs) -> None:
         scenario_group_set = set()
         scenario_set = {scenarios.default.name}
-        library_set = set()
         rebuild_lambda_proxy = False
 
         if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
             scenario_group_set.add(scenario_groups.all.name)
-            library_set |= set(LIBRARIES)
+            lp = LibraryProcessor(LIBRARIES)
 
         else:
+            # breakpoint()
+            lp = LibraryProcessor()
             scenario_set |= manifest_scenarios(inputs)
             scenarios_by_files = get_scenarios_by_file(inputs)
 
-            user_choice, branch_selector = parse_pr_title(inputs)
-            if user_choice: library_set.add(user_choice)
+            lp.parse_pr_title(inputs)
 
             for file in inputs.modified_files:
 
@@ -269,15 +283,14 @@ def main_processing(impacts: dict[str, Param], inputs) -> None:
                 scenario_set |= ret_scenario_set
                 scenario_group_set |= ret_scenario_group_set
 
-                impacted_libraries = get_impacted_libraries(file, impacts)
                 if file in (
                     "utils/build/docker/lambda_proxy/pyproject.toml",
                     "utils/build/docker/lambda-proxy.Dockerfile",
                 ):
                     rebuild_lambda_proxy = True
 
-                if not manual_library(file, user_choice, branch_selector, impacted_libraries):
-                    library_set |= set(impacted_libraries)
+                lp.add(file, impacts)
+
 
         if inputs.is_gitlab:
             return {
@@ -285,7 +298,7 @@ def main_processing(impacts: dict[str, Param], inputs) -> None:
                     "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
                     } 
         else:
-            return build_library_outputs(library_set, rebuild_lambda_proxy) | {
+            return lp.build_library_outputs(rebuild_lambda_proxy) | {
                     "scenarios": ",".join(sorted(list(scenario_set))),
                     "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
                     } 
@@ -571,7 +584,7 @@ class Tests(unittest.TestCase):
 
         strings_out = process(inputs)
 
-        # print_outputs(strings_out, inputs)
+        print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
                 'libraries_with_dev=["python_lambda"]',
