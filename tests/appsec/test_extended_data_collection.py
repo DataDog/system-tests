@@ -46,10 +46,10 @@ EXTENDED_DATA_COLLECTION_RULE = (
 
 
 def assert_body_property(body, prop, expected_value) -> None:
-    if context.library.name == "nodejs":
-        assert body.get(prop) == expected_value
     if context.library.name == "java":
         assert body.get(prop)[0] == expected_value
+    else:
+        assert body.get(prop) == expected_value
 
 
 @features.appsec_extended_data_collection
