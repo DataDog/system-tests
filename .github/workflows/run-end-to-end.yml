@@ -89,9 +89,6 @@ on:
         required: false
         type: boolean
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
@@ -146,9 +143,6 @@ jobs:
         scenarios: ${{ inputs.scenarios }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to the Container registry
-      if: ${{ inputs.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
