@@ -154,7 +154,7 @@ def manual_library(file, user_choice, branch_selector, impacted_libraries):
     else:
         return False
 
-def build_outputs(result, rebuild_lambda_proxy):
+def build_library_outputs(result, rebuild_lambda_proxy):
     populated_result = [
         {
             "library": library,
@@ -285,26 +285,34 @@ def main_processing(impacts: dict[str, Param], inputs) -> None:
                     "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
                     } 
         else:
-            return build_outputs(library_set, rebuild_lambda_proxy) | {
+            return build_library_outputs(library_set, rebuild_lambda_proxy) | {
                     "scenarios": ",".join(sorted(list(scenario_set))),
                     "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
                     } 
 
 
 class Inputs:
+    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
+
     def __init__(self, mock = False):
         self.output = None
-        self.event_name = None
-        self.ref = None
+        self.event_name = "pull_request"
+        self.ref = ""
         self.is_gitlab = False
-        self.pr_title = None
+        self.pr_title = ""
+        self.mapping_file = os.path.join(self.root_dir, "test-selection.yml")
         self.raw_impacts = None
-        self.modified_files = None
+        self.modified_files = []
         self.scenario_map = None
-        self.new_manifests = None
-        self.old_manifests = None
+        self.new_manifests = {}
+        self.old_manifests = {}
         if not mock:
             self.populate()
+        if not self.raw_impacts:
+            self.get_raw_impacts()
+        if not self.scenario_map:
+            self.get_scenario_mappings()
+
 
     def populate(self):
         self.get_output()
@@ -342,9 +350,7 @@ class Inputs:
     def get_raw_impacts(self):
         # Gets the raw pattern matching data that maps file to impacted 
         # libraries/scenario groups
-        root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
-        yml_path = os.path.join(root_dir, "test-selection.yml")
-        with open(yml_path, "r") as file:
+        with open(self.mapping_file, "r") as file:
             self.raw_impacts = yaml.safe_load(file)["patterns"]
 
     def get_modified_files(self):
@@ -415,15 +421,7 @@ class Tests(unittest.TestCase):
 
     def test_regex(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -439,15 +437,7 @@ class Tests(unittest.TestCase):
 
     def test_docker_file(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -463,15 +453,8 @@ class Tests(unittest.TestCase):
 
     def test_main(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
         inputs.ref = "refs/heads/main"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -489,13 +472,7 @@ class Tests(unittest.TestCase):
     # on your edit you may have to change the scenarios line in the output.
     def test_manifest(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["manifests/python.yml"]
-        inputs.get_scenario_mappings()
         inputs.new_manifests = load_manifests("manifests_test/")
         inputs.old_manifests = load_manifests("manifests/")
 
@@ -515,13 +492,7 @@ class Tests(unittest.TestCase):
     # on your edit you may have to change the scenarios line in the output.
     def test_manifest_agent(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["manifests/agent.yml"]
-        inputs.get_scenario_mappings()
         inputs.new_manifests = load_manifests("manifests_test1/")
         inputs.old_manifests = load_manifests("manifests/")
 
@@ -539,15 +510,7 @@ class Tests(unittest.TestCase):
 
     def test_test_file(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -563,29 +526,15 @@ class Tests(unittest.TestCase):
         
     def test_wrong_library_tag(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
         inputs.pr_title = "[java] Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         self.assertRaises(Exception, process, inputs)
 
     def test_wrong_library_tag_with_branch(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
         inputs.pr_title = "[java@main] Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -601,15 +550,8 @@ class Tests(unittest.TestCase):
 
     def test_wrong_library_tag_with_test_file(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
         inputs.pr_title = "[java] Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -625,15 +567,7 @@ class Tests(unittest.TestCase):
 
     def test_lambda_proxy(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["utils/build/docker/lambda_proxy/pyproject.toml"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -649,15 +583,7 @@ class Tests(unittest.TestCase):
 
     def test_doc(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
-        inputs.is_gitlab = False
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
         inputs.modified_files = ["binaries/dd-trace-go/_tools/README.md"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
@@ -673,15 +599,9 @@ class Tests(unittest.TestCase):
 
     def test_gitlab(self):
         inputs = Inputs(mock=True)
-        inputs.event_name = "pull_request"
-        inputs.ref = "some_branch"
         inputs.is_gitlab = True
-        inputs.pr_title = "Some title"
-        inputs.get_raw_impacts()
+        inputs.ref="some_branch"
         inputs.modified_files = ["README.md"]
-        inputs.get_scenario_mappings()
-        inputs.new_manifests = {}
-        inputs.old_manifests = {}
 
         strings_out = process(inputs)
 
