@@ -1301,7 +1301,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
-            environment=environment or {},
+            environment=environment,
             volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
