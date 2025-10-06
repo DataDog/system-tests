@@ -92,6 +92,7 @@ telemetry_name_mapping = {
     "trace_propagation_style": {
         "python": "DD_TRACE_PROPAGATION_STYLE_INJECT",  # Python doesn't emit just DD_TRACE_PROPAGATION_STYLE??
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
+        "php": "trace.propagation_style",
     },
 }
 
