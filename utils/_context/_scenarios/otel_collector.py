@@ -21,7 +21,7 @@ class OtelCollectorScenario(DockerScenario):
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
         self.collector_container = OpenTelemetryCollectorContainer(
-            self.host_log_folder,
+            config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
             environment={
                 "DD_API_KEY": "fake",
                 "DD_SITE": "datadoghq.com",

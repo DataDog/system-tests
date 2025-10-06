@@ -40,7 +40,6 @@ class OpenTelemetryScenario(DockerScenario):
         include_rabbitmq: bool = False,
         include_mysql_db: bool = False,
         include_sqlserver: bool = False,
-        collector_config_file: str | None = None,
         backend_interface_timeout: int = 20,
         require_api_key: bool = False,
         wait_for_otel_interface: bool = True,
@@ -64,20 +63,11 @@ class OpenTelemetryScenario(DockerScenario):
         if include_agent:
             self.agent_container = AgentContainer(use_proxy=True)
             self._required_containers.append(self.agent_container)
+
         if include_collector:
-            if collector_config_file is not None:
-                original_config = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG")
-                os.environ["SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG"] = collector_config_file
-                try:
-                    self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
-                finally:
-                    if original_config is not None:
-                        os.environ["SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG"] = original_config
-                    else:
-                        os.environ.pop("SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG", None)
-            else:
-                self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
+            self.collector_container = OpenTelemetryCollectorContainer(self.host_log_folder)
             self._required_containers.append(self.collector_container)
+
         self.weblog_container = WeblogContainer(environment=weblog_env)
         if include_agent:
             self.weblog_container.depends_on.append(self.agent_container)

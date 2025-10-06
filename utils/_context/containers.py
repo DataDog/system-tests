@@ -1279,13 +1279,14 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 class OpenTelemetryCollectorContainer(TestedContainer):
     def __init__(
-        self, host_log_folder: str, environment: dict[str, str | None] | None = None, volumes: dict | None = None
+        self,
+        config_file: str = "./utils/build/docker/otelcol-config.yaml",
+        environment: dict[str, str | None] | None = None,
+        volumes: dict | None = None,
     ) -> None:
         image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         # Allow custom config file via environment variable
-        self._otel_config_host_path = os.environ.get(
-            "SYSTEM_TESTS_OTEL_COLLECTOR_CONFIG", "./utils/build/docker/otelcol-config.yaml"
-        )
+        self._otel_config_host_path = config_file
 
         if "DOCKER_HOST" in os.environ:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
@@ -1301,14 +1302,15 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             name="collector",
             command="--config=/etc/otelcol-config.yml",
             environment=environment or {},
-            volumes=(volumes or {})
-            | {
-                self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"},
-                f"./{host_log_folder}/docker/collector/logs": {"bind": "/var/log/system-tests", "mode": "rw"},
-            },
-            host_log_folder=host_log_folder,
+            volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+        self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+        self.volumes[self._otel_config_host_path] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
+
+        super().configure(host_log_folder=host_log_folder, replay=replay)
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
