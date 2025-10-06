@@ -22,7 +22,7 @@ tests/:
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
-          "*": v2.22.0.dev
+          "*": missing_feature
           rack: irrelevant (rack does not have a router)
           rails42: irrelevant
           sinatra14: missing_feature
