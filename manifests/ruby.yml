@@ -21,7 +21,15 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          "*": v2.22.0.dev
+          rack: irrelevant (rack does not have a router)
+          rails42: irrelevant
+          sinatra14: missing_feature
+          sinatra22: missing_feature
+          sinatra32: missing_feature
+          sinatra41: missing_feature
+          uds-sinatra: missing_feature
       test_schemas.py:
         Test_Scanners: v2.19.0
         Test_Schema_Request_Cookies: v1.15.0
@@ -847,10 +855,10 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: v2.22.1-dev
     Test_GraphQLOperationErrorTracking:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
