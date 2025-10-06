@@ -64,36 +64,34 @@ def check_libraries(val: Any) -> bool:  # noqa: ANN401
 class Param:
     def __init__(self):
         self.libraries: set[str] = LIBRARIES
-        self.scenarios: set[str] = {scenario_groups.all.name}
+        self.scenario_groups: set[str] = {scenario_groups.all.name}
 
 
 def parse(inputs) -> dict[str, Param]:
     try:
         ret = OrderedDict()
         for pattern, param in inputs.raw_impacts.items():
-            libraries = param.get("libraries", "ALL") or set()
-            scenarios = param.get("scenario_groups", "ALL") or set()
+            libraries = param.get("libraries", LIBRARIES) or set()
+            scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
 
             if pattern not in ret:
                 ret[pattern] = Param()
 
-            if libraries != "ALL":
-                if check_libraries(libraries):
-                    if isinstance(libraries, str):
-                        ret[pattern].libraries = {libraries}
-                    else:
-                        ret[pattern].libraries = set(libraries)
+            if check_libraries(libraries):
+                if isinstance(libraries, str):
+                    ret[pattern].libraries = {libraries}
                 else:
-                    raise Exception(f"One or more of the libraries does not exist: {libraries}")  # noqa: TRY002
+                    ret[pattern].libraries = set(libraries)
+            else:
+                raise Exception(f"One or more of the libraries for {pattern} does not exist: {libraries}")  # noqa: TRY002
 
-            if scenarios != "ALL":
-                if check_scenario(scenarios):
-                    if isinstance(scenarios, str):
-                        ret[pattern].scenarios = {scenarios}
-                    else:
-                        ret[pattern].scenarios = set(scenarios)
+            if check_scenario(scenario_group_set):
+                if isinstance(scenario_group_set, str):
+                    ret[pattern].scenario_groups = {scenario_group_set}
                 else:
-                    raise Exception(f"One or more of the scenario groups does not exist: {scenarios}")  # noqa: TRY002
+                    ret[pattern].scenario_groups = set(scenario_group_set)
+            else:
+                raise Exception(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")  # noqa: TRY002
 
         return ret
 
@@ -108,7 +106,7 @@ class LibraryProcessor:
         self.user_choice = None
         self.branch_selector = None
 
-    def parse_pr_title(self, inputs):
+    def process_pr_title(self, inputs):
         libraries = "|".join(ALL_LIBRARIES)
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
         if match:
@@ -121,7 +119,7 @@ class LibraryProcessor:
             self.branch_selector = match[2]
 
 
-    def get_impacted_libraries(self, modified_file: str, impacts: dict[str, Param]) -> list[str]:
+    def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> list[str]:
         libraries = "|".join(ALL_LIBRARIES)
         patterns = [
             rf"^manifests/({libraries})\.",
@@ -142,7 +140,7 @@ class LibraryProcessor:
 
         self.impacted_libraries |= LIBRARIES
 
-    def manual_library(self, file):
+    def is_manual(self, file):
         if self.user_choice:
             if self.branch_selector or len(self.impacted_libraries) == 0:
                 return True
@@ -162,12 +160,12 @@ class LibraryProcessor:
             return False
 
     def add(self, file, impacts):
-        self.get_impacted_libraries(file, impacts)
-        if not self.manual_library(file):
+        self.compute_impacted(file, impacts)
+        if not self.is_manual(file):
             self.libraries |= self.impacted_libraries
 
 
-    def build_library_outputs(self, rebuild_lambda_proxy):
+    def get_outputs(self):
         populated_result = [
             {
                 "library": library,
@@ -188,14 +186,7 @@ class LibraryProcessor:
             "library_matrix": populated_result,
             "libraries_with_dev": libraries_with_dev,
             "desired_execution_time": 600 if len(self.libraries) == 1 else 3600,
-            "rebuild_lambda_proxy": rebuild_lambda_proxy,
         }
-
-def extra_gitlab_output(inputs):
-    return {
-            "CI_PIPELINE_SOURCE": inputs.event_name,
-            "CI_COMMIT_REF_NAME": inputs.ref
-            }
 
 class ScenarioProcessor:
 
@@ -204,7 +195,7 @@ class ScenarioProcessor:
         self.scenarios = {scenarios.default.name}
         self.scenarios_by_files = defaultdict(set)
 
-    def manifest_scenarios(self, inputs):
+    def process_manifests(self, inputs):
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -222,14 +213,14 @@ class ScenarioProcessor:
                     self.scenarios |= set(scenario_names)
                     break
 
-    def get_scenarios_by_file(self, inputs):
+    def compute_scenarios_by_files(self, inputs):
         scenario_names: Iterable[str]
         for nodeid, scenario_names in inputs.scenario_map.items():
             file = nodeid.split(":", 1)[0]
             for scenario_name in scenario_names:
                 self.scenarios_by_files[file].add(scenario_name)
 
-    def test_file_scenarios(self, file):
+    def process_test_files(self, file):
         if file.startswith("tests/"):
             if file.endswith(("/utils.py", "/conftest.py", ".json")):
                 # particular use case for modification in tests/ of a file utils.py or conftest.py
@@ -243,10 +234,10 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self.scenarios |= scenario_names
 
-    def regular_file_scenarios(self, file, impacts):
+    def process_regular_file(self, file, impacts):
         for pattern, requirement in impacts.items():
             if fnmatch(file, pattern):
-                self.scenario_groups |= requirement.scenarios
+                self.scenario_groups |= requirement.scenario_groups
                 # on first matching pattern, stop the loop
                 break
         else:
@@ -256,48 +247,15 @@ class ScenarioProcessor:
         if file in self.scenarios_by_files:
             self.scenarios |= self.scenarios_by_files[file]
 
-    def add(file, impacts):
-        self.test_file_scenarios(file)
-        self.regular_file_scenarios(file, impacts)
+    def add(self, file, impacts):
+        self.process_test_files(file)
+        self.process_regular_file(file, impacts)
 
-def main_processing(impacts: dict[str, Param], inputs) -> None:
-        rebuild_lambda_proxy = False
-
-        if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
-            sp = ScenarioProcessor({scenario_groups.all.name})
-            lp = LibraryProcessor(LIBRARIES)
-
-        else:
-            sp = ScenarioProcessor()
-            lp = LibraryProcessor()
-
-            sp.manifest_scenarios(inputs)
-            sp.get_scenarios_by_file(inputs)
-
-            lp.parse_pr_title(inputs)
-
-            for file in inputs.modified_files:
-
-                sp.add(file, impacts)
-                lp.add(file, impacts)
-
-                if file in (
-                    "utils/build/docker/lambda_proxy/pyproject.toml",
-                    "utils/build/docker/lambda-proxy.Dockerfile",
-                ):
-                    rebuild_lambda_proxy = True
-
-
-        if inputs.is_gitlab:
-            return {
-                    "scenarios": ",".join(sorted(list(sp.scenarios))),
-                    "scenarios_groups": ",".join(sorted(list(sp.scenario_groups)))
-                    } 
-        else:
-            return lp.build_library_outputs(rebuild_lambda_proxy) | {
-                    "scenarios": ",".join(sorted(list(sp.scenarios))),
-                    "scenarios_groups": ",".join(sorted(list(sp.scenario_groups)))
-                    } 
+    def get_outputs(self):
+        return {
+                    "scenarios": ",".join(sorted(list(self.scenarios))),
+                    "scenarios_groups": ",".join(sorted(list(self.scenario_groups)))
+                    }
 
 
 class Inputs:
@@ -318,20 +276,20 @@ class Inputs:
         if not mock:
             self.populate()
         if not self.raw_impacts:
-            self.get_raw_impacts()
+            self.load_raw_impacts()
         if not self.scenario_map:
-            self.get_scenario_mappings()
+            self.load_scenario_mappings()
 
 
     def populate(self):
-        self.get_output()
-        self.get_git_info()
-        self.get_raw_impacts()
-        self.get_modified_files()
-        self.get_scenario_mappings()
-        self.get_manifests()
+        self.load_output()
+        self.load_git_info()
+        self.load_raw_impacts()
+        self.load_modified_files()
+        self.load_scenario_mappings()
+        self.load_manifests()
 
-    def get_output(self):
+    def load_output(self):
         # Get output file (different for Gitlab and Github)
         parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
         parser.add_argument(
@@ -345,7 +303,7 @@ class Inputs:
 
         self.output = args.output
 
-    def get_git_info(self):
+    def load_git_info(self):
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
             self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
@@ -356,18 +314,18 @@ class Inputs:
             self.ref = os.environ.get("GITHUB_REF", "fake-branch-name")
             self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
 
-    def get_raw_impacts(self):
+    def load_raw_impacts(self):
         # Gets the raw pattern matching data that maps file to impacted 
         # libraries/scenario groups
         with open(self.mapping_file, "r") as file:
             self.raw_impacts = yaml.safe_load(file)["patterns"]
 
-    def get_modified_files(self):
+    def load_modified_files(self):
         # Gets the modified files. Computed with gh in a previous ci step.
         with open("modified_files.txt", "r", encoding="utf-8") as f:
             self.modified_files: list[str] = [line.strip() for line in f]
 
-    def get_scenario_mappings(self):
+    def load_scenario_mappings(self):
         if self.event_name in ("pull_request", "push"):
             # Get the mappings used to compute impacted scenarios by file, especially
             # test files
@@ -376,10 +334,16 @@ class Inputs:
             with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
                 self.scenario_map: dict[str, list[str]] = json.load(f)
 
-    def get_manifests(self):
+    def load_manifests(self):
             # Collects old and new manifests, used to make a diff
             self.new_manifests = load_manifests("manifests/")
             self.old_manifests = load_manifests("original/manifests/")
+
+def extra_gitlab_output(inputs):
+    return {
+            "CI_PIPELINE_SOURCE": inputs.event_name,
+            "CI_COMMIT_REF_NAME": inputs.ref
+            }
 
 def stringify_outputs(outputs: dict[str, Any]) -> None:
     ret = []
@@ -397,18 +361,47 @@ def print_outputs(strings_out, inputs):
     else:
         print_ci_outputs(strings_out, sys.stdout)
 
-def process(inputs):
+def process(inputs) -> None:
     outputs = {}
-
     impacts = parse(inputs)
     if inputs.is_gitlab:
         outputs |= extra_gitlab_output(inputs)
-    outputs |= main_processing(impacts, inputs)
+
+    rebuild_lambda_proxy = False
+
+    if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
+        sp = ScenarioProcessor({scenario_groups.all.name})
+        lp = LibraryProcessor(LIBRARIES)
+
+    else:
+        sp = ScenarioProcessor()
+        lp = LibraryProcessor()
+
+        sp.process_manifests(inputs)
+        sp.compute_scenarios_by_files(inputs)
+
+        lp.process_pr_title(inputs)
+
+        for file in inputs.modified_files:
+
+            sp.add(file, impacts)
+            lp.add(file, impacts)
+
+            if file in (
+                "utils/build/docker/lambda_proxy/pyproject.toml",
+                "utils/build/docker/lambda-proxy.Dockerfile",
+            ):
+                rebuild_lambda_proxy = True
+
+
+    if inputs.is_gitlab:
+        outputs |= sp.get_outputs() 
+    else:
+        outputs |= lp.get_outputs()| {"rebuild_lambda_proxy": rebuild_lambda_proxy} | sp.get_outputs() 
 
     strings_out = stringify_outputs(outputs)
 
     return strings_out
-
 
 
 def main() -> None:
@@ -507,7 +500,7 @@ class Tests(unittest.TestCase):
 
         strings_out = process(inputs)
 
-        # print_outputs(strings_out, inputs)
+        print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
