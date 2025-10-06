@@ -197,91 +197,89 @@ def extra_gitlab_output(inputs):
             "CI_COMMIT_REF_NAME": inputs.ref
             }
 
-# class ScenarioProcessor:
-def manifest_scenarios(inputs):
-    scenario_set = set()
-    modified_nodeids = set()
+class ScenarioProcessor:
 
-    for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
-        if (
-            nodeid not in inputs.old_manifests
-            or nodeid not in inputs.new_manifests
-            or inputs.new_manifests[nodeid] != inputs.old_manifests[nodeid]
-        ):
-            modified_nodeids.add(nodeid)
+    def __init__(self, scenario_groups = None):
+        self.scenario_groups = scenario_groups if scenario_groups else set()
+        self.scenarios = {scenarios.default.name}
+        self.scenarios_by_files = defaultdict(set)
 
-    scenario_names: Iterable[str]
-    for nodeid, scenario_names in inputs.scenario_map.items():
-        for modified_nodeid in modified_nodeids:
-            if nodeid.startswith(modified_nodeid):
-                scenario_set |= set(scenario_names)
+    def manifest_scenarios(self, inputs):
+        modified_nodeids = set()
+
+        for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
+            if (
+                nodeid not in inputs.old_manifests
+                or nodeid not in inputs.new_manifests
+                or inputs.new_manifests[nodeid] != inputs.old_manifests[nodeid]
+            ):
+                modified_nodeids.add(nodeid)
+
+        scenario_names: Iterable[str]
+        for nodeid, scenario_names in inputs.scenario_map.items():
+            for modified_nodeid in modified_nodeids:
+                if nodeid.startswith(modified_nodeid):
+                    self.scenarios |= set(scenario_names)
+                    break
+
+    def get_scenarios_by_file(self, inputs):
+        scenario_names: Iterable[str]
+        for nodeid, scenario_names in inputs.scenario_map.items():
+            file = nodeid.split(":", 1)[0]
+            for scenario_name in scenario_names:
+                self.scenarios_by_files[file].add(scenario_name)
+
+    def test_file_scenarios(self, file):
+        if file.startswith("tests/"):
+            if file.endswith(("/utils.py", "/conftest.py", ".json")):
+                # particular use case for modification in tests/ of a file utils.py or conftest.py
+                # in that situation, takes all scenarios executed in tests/<path>/
+
+                # same for any json file
+
+                folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
+
+                for sub_file, scenario_names in self.scenarios_by_files.items():
+                    if sub_file.startswith(folder):
+                        self.scenarios |= scenario_names
+
+    def regular_file_scenarios(self, file, impacts):
+        for pattern, requirement in impacts.items():
+            if fnmatch(file, pattern):
+                self.scenario_groups |= requirement.scenarios
+                # on first matching pattern, stop the loop
                 break
-    return scenario_set
+        else:
+            self.scenario_groups.add(scenario_groups.all.name)
 
-def get_scenarios_by_file(inputs):
-    scenarios_by_files: dict[str, set[str]] = defaultdict(set)
-    scenario_names: Iterable[str]
-    for nodeid, scenario_names in inputs.scenario_map.items():
-        file = nodeid.split(":", 1)[0]
-        for scenario_name in scenario_names:
-            scenarios_by_files[file].add(scenario_name)
-    return scenarios_by_files
+        # now get known scenarios executed in this file
+        if file in self.scenarios_by_files:
+            self.scenarios |= self.scenarios_by_files[file]
 
-def test_file_scenarios(file, scenarios_by_files):
-    scenario_set = set()
-    if file.startswith("tests/"):
-        if file.endswith(("/utils.py", "/conftest.py", ".json")):
-            # particular use case for modification in tests/ of a file utils.py or conftest.py
-            # in that situation, takes all scenarios executed in tests/<path>/
-
-            # same for any json file
-
-            folder = "/".join(file.split("/")[:-1]) + "/"  # python trickery to remove last element
-
-            for sub_file, scenario_names in scenarios_by_files.items():
-                if sub_file.startswith(folder):
-                    scenario_set |= scenario_names
-    return scenario_set
-
-def regular_file_scenarios(file, impacts, scenarios_by_files):
-    scenario_group_set = set()
-    scenario_set = set()
-    for pattern, requirement in impacts.items():
-        if fnmatch(file, pattern):
-            scenario_group_set |= requirement.scenarios
-            # on first matching pattern, stop the loop
-            break
-    else:
-        scenario_group_set.add(scenario_groups.all.name)
-
-    # now get known scenarios executed in this file
-    if file in scenarios_by_files:
-        scenario_set |= scenarios_by_files[file]
-    return scenario_set, scenario_group_set
+    def add(file, impacts):
+        self.test_file_scenarios(file)
+        self.regular_file_scenarios(file, impacts)
 
 def main_processing(impacts: dict[str, Param], inputs) -> None:
-        scenario_group_set = set()
-        scenario_set = {scenarios.default.name}
         rebuild_lambda_proxy = False
 
         if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
-            scenario_group_set.add(scenario_groups.all.name)
+            sp = ScenarioProcessor({scenario_groups.all.name})
             lp = LibraryProcessor(LIBRARIES)
 
         else:
-            # breakpoint()
+            sp = ScenarioProcessor()
             lp = LibraryProcessor()
-            scenario_set |= manifest_scenarios(inputs)
-            scenarios_by_files = get_scenarios_by_file(inputs)
+
+            sp.manifest_scenarios(inputs)
+            sp.get_scenarios_by_file(inputs)
 
             lp.parse_pr_title(inputs)
 
             for file in inputs.modified_files:
 
-                scenario_set |= test_file_scenarios(file, scenarios_by_files)
-                ret_scenario_set, ret_scenario_group_set = regular_file_scenarios(file, impacts, scenarios_by_files)
-                scenario_set |= ret_scenario_set
-                scenario_group_set |= ret_scenario_group_set
+                sp.add(file, impacts)
+                lp.add(file, impacts)
 
                 if file in (
                     "utils/build/docker/lambda_proxy/pyproject.toml",
@@ -289,18 +287,16 @@ def main_processing(impacts: dict[str, Param], inputs) -> None:
                 ):
                     rebuild_lambda_proxy = True
 
-                lp.add(file, impacts)
-
 
         if inputs.is_gitlab:
             return {
-                    "scenarios": ",".join(sorted(list(scenario_set))),
-                    "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
+                    "scenarios": ",".join(sorted(list(sp.scenarios))),
+                    "scenarios_groups": ",".join(sorted(list(sp.scenario_groups)))
                     } 
         else:
             return lp.build_library_outputs(rebuild_lambda_proxy) | {
-                    "scenarios": ",".join(sorted(list(scenario_set))),
-                    "scenarios_groups": ",".join(sorted(list(scenario_group_set)))
+                    "scenarios": ",".join(sorted(list(sp.scenarios))),
+                    "scenarios_groups": ",".join(sorted(list(sp.scenario_groups)))
                     } 
 
 
@@ -534,6 +530,22 @@ class Tests(unittest.TestCase):
                 'desired_execution_time=3600',
                 'rebuild_lambda_proxy=false',
                 'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
+                'scenarios_groups=""',
+                ])
+
+    def test_test_file(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["tests/auto_inject/utils.py"]
+
+        strings_out = process(inputs)
+
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
                 'scenarios_groups=""',
                 ])
         
