@@ -626,7 +626,7 @@ tests/:
       Test_Debugger_Line_Probe_Statuses: missing_feature (feature not implemented)
       Test_Debugger_Method_Probe_Statuses: v2.2.3
     test_debugger_symdb.py:
-      Test_Debugger_SymDb: missing_feature (feature not implemented)
+      Test_Debugger_SymDb: v2.2.3
     test_debugger_telemetry.py:
       Test_Debugger_Telemetry: missing_feature
   integrations/:
