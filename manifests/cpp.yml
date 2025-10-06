@@ -41,6 +41,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: missing_feature
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py: irrelevant (library does not implement OpenTelemetry)
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature

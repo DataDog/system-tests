@@ -2515,6 +2515,14 @@ class _Features:
         return _mark_test_object(test_object, feature_id=483, owner=_Owner.asm)
 
     @staticmethod
+    def otel_metrics_api(test_object):
+        """OpenTelemetry Metrics API
+
+        https://feature-parity.us1.prod.dog/#/?feature=484
+        """
+        return _mark_test_object(test_object, feature_id=484, owner=_Owner.sdk_capabilities)
+
+    @staticmethod
     def haproxy_stream_processing_offload(test_object):
         """HAProxy Stream Processing Offload
 
