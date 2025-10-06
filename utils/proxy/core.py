@@ -123,6 +123,9 @@ class _RequestLogger:
 
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
+        elif port == ProxyPorts.otel_collector:
+            flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
+
         elif port in (
             ProxyPorts.python_buddy,
             ProxyPorts.nodejs_buddy,
@@ -157,7 +160,9 @@ class _RequestLogger:
             self._modify_response(flow)
 
             # get the interface name
-            if port == ProxyPorts.open_telemetry_weblog:
+            if port == ProxyPorts.otel_collector:
+                interface = "otel_collector"
+            elif port == ProxyPorts.open_telemetry_weblog:
                 interface = "open_telemetry"
             elif port == ProxyPorts.weblog:
                 interface = "library"
@@ -313,6 +318,7 @@ def start_proxy() -> None:
         f"regular@{ProxyPorts.golang_buddy}",  # golang_buddy
         f"regular@{ProxyPorts.open_telemetry_weblog}",  # Open telemetry weblog
         f"regular@{ProxyPorts.agent}",  # from agent to backend
+        f"regular@{ProxyPorts.otel_collector}",  # from otel collector to backend
     ]
 
     loop = asyncio.new_event_loop()

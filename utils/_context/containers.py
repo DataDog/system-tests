@@ -1298,7 +1298,9 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 
 class OpenTelemetryCollectorContainer(TestedContainer):
-    def __init__(self, host_log_folder: str) -> None:
+    def __init__(
+        self, host_log_folder: str, environment: dict[str, str | None] | None = None, volumes: dict | None = None
+    ) -> None:
         image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         # Allow custom config file via environment variable
         self._otel_config_host_path = os.environ.get(
@@ -1318,10 +1320,11 @@ class OpenTelemetryCollectorContainer(TestedContainer):
             image_name=image,
             name="collector",
             command="--config=/etc/otelcol-config.yml",
-            environment={},
-            volumes={
+            environment=environment or {},
+            volumes=(volumes or {})
+            | {
                 self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"},
-                f"./{host_log_folder}/interfaces/collector/": {"bind": "/var/log/system-tests", "mode": "rw"},
+                f"./{host_log_folder}/docker/collector/logs": {"bind": "/var/log/system-tests", "mode": "rw"},
             },
             host_log_folder=host_log_folder,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
