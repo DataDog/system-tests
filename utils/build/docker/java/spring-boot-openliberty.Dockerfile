@@ -27,7 +27,7 @@ ENV DD_TRACE_HEADER_TAGS='user-agent:http.request.headers.user-agent'
 # ENV DD_TRACE_INTERNAL_EXIT_ON_FAILURE=true
 
 COPY ./utils/build/docker/java/ConfigChaining.properties app/ConfigChaining.properties
-ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar -Ddd.trace.config=/app/ConfigChaining.properties'
+ENV JVM_ARGS='-javaagent:/app/dd-java-agent.jar'
 
 RUN echo "#!/bin/bash\njava -Xmx362m -jar /app/app.jar" > app.sh
 RUN chmod +x app.sh
