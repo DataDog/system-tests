@@ -1,0 +1,263 @@
+from __future__ import annotations
+
+import importlib
+import pytest
+from manifests.parser.core import load as load_manifests
+from utils import scenarios
+
+# Import module with hyphen in name
+parse_test_selection = importlib.import_module("utils.scripts.parse-test-selection")
+Inputs = parse_test_selection.Inputs
+process = parse_test_selection.process
+
+
+all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
+all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
+
+
+@scenarios.test_the_test
+class Test_ComputeLibrariesAndScenarios:
+    def test_complete_file_path(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="docker_ssi"',
+        ]
+
+    def test_unknown_file_path(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["this_does_not_exist"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="all"',
+        ]
+
+    def test_docker_file(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
+            'libraries_with_dev=["python"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="end_to_end,open_telemetry"',
+        ]
+
+    def test_ref_main(self):
+        inputs = Inputs(mock=True)
+        inputs.ref = "refs/heads/main"
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="all"',
+        ]
+
+    # To setup copy the manifests directory and edit the python manifest, depending
+    # on your edit you may have to change the scenarios line in the output.
+    def test_manifest(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["manifests/python.yml"]
+        inputs.new_manifests = load_manifests("manifests_test/")
+        inputs.old_manifests = load_manifests("manifests/")
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
+            'libraries_with_dev=["python"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups=""',
+        ]
+
+    # To setup copy the manifests directory and edit the agent manifest, depending
+    # on your edit you may have to change the scenarios line in the output.
+    def test_manifest_agent(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["manifests/agent.yml"]
+        inputs.new_manifests = load_manifests("manifests_test1/")
+        inputs.old_manifests = load_manifests("manifests/")
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT,OTEL_LOG_E2E"',
+            'scenarios_groups=""',
+        ]
+
+    def test_multiple_pattern_matches(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["requirements.txt"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="all"',
+        ]
+
+    def test_test_file(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
+            'scenarios_groups=""',
+        ]
+
+    def test_test_file_utils(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["tests/auto_inject/utils.py"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
+            'scenarios_groups=""',
+        ]
+
+    def test_library_tag(self):
+        inputs = Inputs(mock=True)
+        inputs.pr_title = "[java] Some title"
+        inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+            'libraries_with_dev=["java"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="end_to_end,open_telemetry"',
+        ]
+
+    def test_wrong_library_tag(self):
+        inputs = Inputs(mock=True)
+        inputs.pr_title = "[java] Some title"
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+
+        with pytest.raises(ValueError):
+            process(inputs)
+
+    def test_wrong_library_tag_with_branch(self):
+        inputs = Inputs(mock=True)
+        inputs.pr_title = "[java@main] Some title"
+        inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+            'libraries_with_dev=["java"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="end_to_end,open_telemetry"',
+        ]
+
+    def test_wrong_library_tag_with_test_file(self):
+        inputs = Inputs(mock=True)
+        inputs.pr_title = "[java] Some title"
+        inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+            'libraries_with_dev=["java"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
+            'scenarios_groups=""',
+        ]
+
+    def test_lambda_proxy(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["utils/build/docker/lambda_proxy/pyproject.toml"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
+            'libraries_with_dev=["python_lambda"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=true",
+            'scenarios="DEFAULT"',
+            'scenarios_groups="lambda_end_to_end"',
+        ]
+
+    def test_doc(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["binaries/dd-trace-go/_tools/README.md"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            "library_matrix=[]",
+            "libraries_with_dev=[]",
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenarios_groups=""',
+        ]
+
+    def test_gitlab(self):
+        inputs = Inputs(mock=True)
+        inputs.is_gitlab = True
+        inputs.ref = "some_branch"
+        inputs.modified_files = ["README.md"]
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            'CI_PIPELINE_SOURCE="pull_request"',
+            'CI_COMMIT_REF_NAME="some_branch"',
+            'scenarios="DEFAULT"',
+            'scenarios_groups=""',
+        ]
