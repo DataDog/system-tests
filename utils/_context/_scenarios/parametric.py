@@ -189,7 +189,7 @@ class ParametricScenario(Scenario):
 
         return result
 
-    @retry(delay=1, tries=5)
+    @retry(delay=10, tries=3)
     def _pull_test_agent_image(self):
         logger.stdout("Pulling test agent image...")
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
