@@ -4,6 +4,7 @@
 
 
 from typing import Any
+from utils import bug
 from utils import context
 from utils import features
 from utils import interfaces
@@ -46,6 +47,7 @@ def login_data(context, user, password):
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
+@bug(context.library >= "python@3.16.0-rc1", reason="APPSEC-59541")
 @features.user_monitoring
 class Test_Automated_User_Tracking:
     def setup_user_tracking_auto(self):
@@ -138,7 +140,7 @@ BLOCK_USER_DATA = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_User_Blocking:
     def setup_user_blocking_auto(self):
         rc.rc_state.reset().apply()
@@ -228,7 +230,7 @@ BLOCK_SESSION_DATA: tuple[str, dict[str, Any]] = (
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
 @features.user_monitoring
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 class Test_Automated_Session_Blocking:
     def setup_session_blocking(self):
         rc.rc_state.reset().apply()
@@ -245,6 +247,7 @@ class Test_Automated_Session_Blocking:
         )
 
     @missing_feature(context.library == "dotnet", reason="Session ids can't be set.")
+    @bug(context.library >= "python@3.16.0-rc1", reason="APPSEC-59541")
     def test_session_blocking(self):
         assert self.r_create_session.status_code == 200
 

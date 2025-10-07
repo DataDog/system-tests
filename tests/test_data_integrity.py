@@ -10,7 +10,7 @@ from utils.dd_constants import SamplingPriority
 from utils.cgroup_info import get_container_id
 
 
-@features.data_integrity
+@features.trace_data_integrity
 class Test_TraceUniqueness:
     """All trace ids are uniques"""
 
@@ -19,7 +19,7 @@ class Test_TraceUniqueness:
 
 
 @rfc("https://github.com/DataDog/architecture/blob/master/rfcs/apm/integrations/submitting-traces-to-agent/rfc.md")
-@features.data_integrity
+@features.trace_data_integrity
 class Test_TraceHeaders:
     """All required headers are present in all traces submitted to the agent"""
 
@@ -129,7 +129,7 @@ class Test_TraceHeaders:
         interfaces.library.add_traces_validation(validator, success_by_default=True)
 
 
-@features.data_integrity
+@features.trace_data_integrity
 class Test_LibraryHeaders:
     """Misc test around headers sent by libraries"""
 
@@ -213,11 +213,6 @@ class Test_LibraryHeaders:
 
         interfaces.library.validate(validator, success_by_default=True)
 
-
-@features.data_integrity
-@scenarios.sampling
-@scenarios.default
-class Test_Agent:
     @missing_feature(library="cpp_nginx", reason="Trace are not reported")
     @missing_feature(library="cpp_httpd")
     # we are not using dev agent, so activate this to see if it fails
@@ -230,6 +225,22 @@ class Test_Agent:
             header_value_pattern="application/json",
         )
 
+    def test_traces_coherence(self):
+        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
+
+        for data, trace in interfaces.library.get_traces():
+            assert data["response"]["status_code"] == 200
+            trace_id = trace[0]["trace_id"]
+            assert isinstance(trace_id, int)
+            assert trace_id > 0
+            for span in trace:
+                assert span["trace_id"] == trace_id
+
+
+@features.agent_data_integrity
+@scenarios.sampling
+@scenarios.default
+class Test_Agent:
     def test_agent_do_not_drop_traces(self):
         """Agent does not drop traces"""
 
@@ -274,17 +285,6 @@ class Test_Agent:
             logger.info(f"Tracer reported {len(trace_ids_reported_by_tracer)} traces")
             logger.info(f"Agent reported {len(trace_ids_reported_by_agent)} traces")
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
-
-    def test_traces_coherence(self):
-        """Agent does not like incoherent data. Check that no incoherent data are coming from the tracer"""
-
-        for data, trace in interfaces.library.get_traces():
-            assert data["response"]["status_code"] == 200
-            trace_id = trace[0]["trace_id"]
-            assert isinstance(trace_id, int)
-            assert trace_id > 0
-            for span in trace:
-                assert span["trace_id"] == trace_id
 
 
 def _empty_request(data):

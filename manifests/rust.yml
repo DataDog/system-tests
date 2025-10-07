@@ -30,6 +30,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: *ref_0_0_1
     test_otel_span_with_baggage.py:

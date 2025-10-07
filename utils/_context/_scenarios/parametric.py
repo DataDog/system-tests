@@ -178,9 +178,13 @@ class ParametricScenario(Scenario):
         self._library = ComponentVersion(library, output.decode("utf-8"))
         logger.debug(f"Library version is {self._library}")
 
+    def _set_components(self):
+        self.components["library"] = self.library.version
+
     def get_warmups(self):
         result = super().get_warmups()
         result.append(lambda: logger.stdout(f"Library: {self.library}"))
+        result.append(self._set_components)
 
         return result
 
@@ -347,6 +351,15 @@ class ParametricScenario(Scenario):
             log_file.write(logs.decode("utf-8"))
             log_file.flush()
             container.remove(force=True)
+
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
+
+        return result
 
 
 def _get_base_directory() -> str:

@@ -662,6 +662,7 @@ class EndToEndScenario(DockerScenario):
                 ticket="APMSP-2158",
             ),
         ]
+
         self._test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
