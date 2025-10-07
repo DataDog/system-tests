@@ -31,6 +31,20 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups="docker_ssi"',
         ]
 
+    def test_multiple_file_changes(self):
+        self.inputs.modified_files = [".github/workflows/run-docker-ssi.yml", "README.md"]
+
+        strings_out = process(self.inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenario_groups="docker_ssi"',
+        ]
+
     def test_unknown_file_path(self):
         self.inputs.modified_files = ["this_does_not_exist"]
 
@@ -74,8 +88,6 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups="all"',
         ]
 
-    # To setup copy the manifests directory and edit the python manifest, depending
-    # on your edit you may have to change the scenarios line in the output.
     def test_manifest(self):
         self.inputs.modified_files = ["manifests/python.yml"]
         self.inputs.new_manifests = load_manifests("./tests/test_the_test/manifests/manifests_python_edit/")
@@ -92,8 +104,6 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups=""',
         ]
 
-    # To setup copy the manifests directory and edit the agent manifest, depending
-    # on your edit you may have to change the scenarios line in the output.
     def test_manifest_agent(self):
         self.inputs.modified_files = ["manifests/agent.yml"]
         self.inputs.new_manifests = load_manifests("./tests/test_the_test/manifests/manifests_agent_edit/")
@@ -244,4 +254,49 @@ class Test_ComputeLibrariesAndScenarios:
             'CI_COMMIT_REF_NAME="some_branch"',
             'scenarios="DEFAULT"',
             'scenario_groups=""',
+        ]
+
+    def test_manifest_no_edit(self):
+        self.inputs.modified_files = ["manifests/java.yml"]
+        self.inputs.new_manifests = load_manifests("./tests/test_the_test/manifests/manifests_ref/")
+        self.inputs.old_manifests = load_manifests("./tests/test_the_test/manifests/manifests_ref/")
+
+        strings_out = process(self.inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+            'libraries_with_dev=["java"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenario_groups=""',
+        ]
+
+    def test_unknown_library_tag(self):
+        self.inputs.pr_title = "[perl] Some title"
+        self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
+
+        strings_out = process(self.inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+            'libraries_with_dev=["java"]',
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenario_groups="end_to_end,open_telemetry"',
+        ]
+
+    def test_otel_library(self):
+        self.inputs.modified_files = ["utils/build/docker/python_otel/test.Dockerfile"]
+
+        strings_out = process(self.inputs)
+
+        assert strings_out == [
+            'library_matrix=[{"library": "python_otel", "version": "prod"}]',
+            "libraries_with_dev=[]",
+            "desired_execution_time=600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEFAULT"',
+            'scenario_groups="open_telemetry"',
         ]
