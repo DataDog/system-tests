@@ -102,3 +102,11 @@ class SamplingMechanism(IntEnum):
     RESERVED_10 = 10
     REMOTE_USER_RULE = 11
     REMOTE_DYNAMIC_RULE = 12
+
+class SpanKind(IntEnum):
+    UNSPECIFIED = 0
+    INTERNAL = 1
+    SERVER = 2
+    CLIENT = 3
+    PRODUCER = 4
+    CONSUMER = 5

@@ -1,6 +1,5 @@
 from utils import weblog, interfaces, scenarios, features
-from utils.dd_constants import SamplingPriority, SamplingMechanism
-from opentelemetry.trace import SpanKind as OTelSpanKind
+from utils.dd_constants import SamplingPriority, SamplingMechanism, SpanKind
 
 
 @scenarios.apm_tracing_efficient_payload
@@ -24,7 +23,7 @@ class Test_V1Payloads:
         assert span["error"], "Error field must be boolean"
         assert span["env"] == "system-tests"
         assert span["component"] == "net/http"
-        assert span["span_kind"] == OTelSpanKind.SERVER
+        assert span["span_kind"] == SpanKind.SERVER
 
         assert len(agent_chunks) == 1
         _, agent_chunk = agent_chunks[0]
