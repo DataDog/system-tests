@@ -9,9 +9,12 @@ import re
 from fnmatch import fnmatch
 import json
 import os
+import logging
 from utils._context._scenarios import scenarios, Scenario, scenario_groups
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+logger = logging.getLogger(__name__)
 
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
@@ -109,7 +112,7 @@ class LibraryProcessor:
         libraries = "|".join(ALL_LIBRARIES)
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
         if match:
-            print(f"PR title matches => run {match[1]}")
+            logger.info(f"PR title matches => run {match[1]}")
             self.user_choice = match[1]
             self.selected.add(self.user_choice)
 
@@ -404,6 +407,7 @@ def process(inputs) -> None:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
     inputs = Inputs()
     strings_out = process(inputs)
     print_outputs(strings_out, inputs)
