@@ -83,8 +83,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest(self):
         inputs = Inputs(mock=True)
         inputs.modified_files = ["manifests/python.yml"]
-        inputs.new_manifests = load_manifests("manifests_test/")
-        inputs.old_manifests = load_manifests("manifests/")
+        inputs.new_manifests = load_manifests("./tests/test_the_test/manifests/manifests_python_edit/")
+        inputs.old_manifests = load_manifests("./tests/test_the_test/manifests/manifests_ref/")
 
         strings_out = process(inputs)
 
@@ -102,8 +102,8 @@ class Test_ComputeLibrariesAndScenarios:
     def test_manifest_agent(self):
         inputs = Inputs(mock=True)
         inputs.modified_files = ["manifests/agent.yml"]
-        inputs.new_manifests = load_manifests("manifests_test1/")
-        inputs.old_manifests = load_manifests("manifests/")
+        inputs.new_manifests = load_manifests("./tests/test_the_test/manifests/manifests_agent_edit/")
+        inputs.old_manifests = load_manifests("./tests/test_the_test/manifests/manifests_ref/")
 
         strings_out = process(inputs)
 

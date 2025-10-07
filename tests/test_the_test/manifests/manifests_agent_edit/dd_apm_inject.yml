@@ -1,0 +1,7 @@
+---
+tests/:
+  docker_ssi/:
+    test_docker_ssi.py:
+      TestDockerSSIFeatures: v0.19.1
+    test_docker_ssi_crash.py:
+      TestDockerSSICrash: v0.19.1
