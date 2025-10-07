@@ -1,4 +1,4 @@
-name: "Compute test selection"
+name: "Compute libraries and scenarios"
 
 on:
   workflow_call:
@@ -63,11 +63,11 @@ jobs:
             --paginate --jq '.[].filename' \
             > modified_files.txt
           cat modified_files.txt
-      - name: Compute test selection
+      - name: Compute libraries and scenarios
         id: compute
         run: |
           source venv/bin/activate
-          python utils/scripts/parse-test-selection.py -o $GITHUB_OUTPUT
+          python utils/scripts/compute_libraries_and_scenarios.py -o $GITHUB_OUTPUT
         env:
           PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}

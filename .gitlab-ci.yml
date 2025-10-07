@@ -36,7 +36,7 @@ compute_pipeline:
         echo "Branch was created from commit--> $BASE_COMMIT"
         git diff --name-only $BASE_COMMIT $CI_COMMIT_SHA  >> modified_files.txt # List modified files
         cat modified_files.txt
-        python utils/scripts/parse-test-selection.py >> impacted_scenarios.txt
+        python utils/scripts/compute_libraries_and_scenarios.py >> impacted_scenarios.txt
         cat impacted_scenarios.txt
         source impacted_scenarios.txt
       else

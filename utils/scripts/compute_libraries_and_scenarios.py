@@ -126,7 +126,10 @@ class LibraryProcessor:
             # so let user do what he/she wants :
             self.branch_selector = match[2]
             if self.branch_selector:
-                logger.info(f"PR title matches branch {self.branch_selector} => user library selection will be enforced without checks")
+                logger.info(
+                    f"PR title matches branch {self.branch_selector} "
+                    "=> user library selection will be enforced without checks"
+                )
 
     def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
         self.impacted = set()
@@ -279,7 +282,7 @@ class Inputs:
         self.ref = ""
         self.is_gitlab = False
         self.pr_title = ""
-        self.mapping_file = os.path.join(self.root_dir, "test-selection.yml")
+        self.mapping_file = os.path.join(self.root_dir, "utils/scripts/libraries_and_scenarios_rules.yml")
         self.raw_impacts: dict[str, Any] | None = None
         self.modified_files: list[str] = []
         self.scenario_map: dict[str, list[str]] | None = None
