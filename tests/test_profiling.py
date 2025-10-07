@@ -50,7 +50,7 @@ class Test_Profile:
 
     @features.process_tags
     @missing_feature(
-        condition=context.library.name != "java" or context.weblog_variant == "spring-boot-3-native",
+        condition=context.library.name != "java",
         reason="Not yet implemented",
     )
     def test_process_tags(self):
