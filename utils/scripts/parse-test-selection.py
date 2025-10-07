@@ -126,7 +126,7 @@ class LibraryProcessor:
             # so let user do what he/she wants :
             self.branch_selector = match[2]
             if self.branch_selector:
-                logger.info(f"PR title matches branch => user selection will be enforced without checks")
+                logger.info(f"PR title matches branch {self.branch_selector} => user library selection will be enforced without checks")
 
     def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
         self.impacted = set()

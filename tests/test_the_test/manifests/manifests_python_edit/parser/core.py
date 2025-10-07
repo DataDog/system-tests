@@ -50,7 +50,7 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     }
     """
 
-    result = defaultdict(dict)
+    result: dict[str, dict[str, str]] = defaultdict(dict)
 
     for component in (
         "agent",
