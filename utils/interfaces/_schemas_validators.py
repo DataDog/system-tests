@@ -17,6 +17,8 @@ from typing import Any
 from jsonschema import Draft7Validator, RefResolver, ValidationError
 from jsonschema.validators import extend
 
+from utils._logger import logger
+
 
 def _is_bytes_or_string(_checker: Any, instance: Any):  # noqa: ANN401
     return Draft7Validator.TYPE_CHECKER.is_type(instance, "string") or isinstance(instance, bytes)
@@ -31,6 +33,7 @@ def _get_schemas_filenames():
         "utils/interfaces/schemas/library/",
         "utils/interfaces/schemas/agent/",
         "utils/interfaces/schemas/miscs/",
+        "utils/interfaces/schemas/otel_collector/",
     ):
         for root, _, files in os.walk(schema_dir):
             for f in files:
@@ -102,6 +105,7 @@ class SchemaValidator:
         schema_id = f"/{self.interface}{path}-request.json"
 
         if schema_id not in _get_schemas_store():
+            logger.info(f"Schema {schema_id} does not exists")
             return []
 
         validator = _get_schema_validator(schema_id)

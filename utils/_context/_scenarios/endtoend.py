@@ -236,6 +236,36 @@ class DockerScenario(Scenario):
             except:
                 logger.exception(f"Failed to remove container {container}")
 
+    def test_schemas(
+        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
+    ) -> None:
+        long_repr = []
+
+        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
+
+        for error in interface.get_schemas_errors():
+            if (error.endpoint, error.data_path) not in excluded_points and (
+                error.endpoint,
+                None,
+            ) not in excluded_points:
+                long_repr.append(f"* {error.message}")
+
+        if len(long_repr) != 0:
+            report = TestReport(
+                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::test_schemas",
+                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
+                {},
+                "failed",
+                "\n".join(long_repr),
+                "call",
+            )
+
+            if "error" not in logger.terminal.stats:
+                logger.terminal.stats["error"] = []
+
+            logger.terminal.stats["error"].append(report)
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
+
 
 class EndToEndScenario(DockerScenario):
     """Scenario that implier an instrumented HTTP application shipping a datadog tracer (weblog) and an datadog agent"""
@@ -666,7 +696,7 @@ class EndToEndScenario(DockerScenario):
             ),
         ]
 
-        self._test_schemas(session, interfaces.library, library_bugs)
+        self.test_schemas(session, interfaces.library, library_bugs)
 
         agent_bugs = [
             _SchemaBug(
@@ -722,39 +752,9 @@ class EndToEndScenario(DockerScenario):
                 ticket="DEBUG-3709",
             ),
         ]
-        self._test_schemas(session, interfaces.agent, agent_bugs)
+        self.test_schemas(session, interfaces.agent, agent_bugs)
 
         return super().pytest_sessionfinish(session, exitstatus)
-
-    def _test_schemas(
-        self, session: pytest.Session, interface: ProxyBasedInterfaceValidator, known_bugs: list[_SchemaBug]
-    ) -> None:
-        long_repr = []
-
-        excluded_points = {(bug.endpoint, bug.data_path) for bug in known_bugs if bug.condition}
-
-        for error in interface.get_schemas_errors():
-            if (error.endpoint, error.data_path) not in excluded_points and (
-                error.endpoint,
-                None,
-            ) not in excluded_points:
-                long_repr.append(f"* {error.message}")
-
-        if len(long_repr) != 0:
-            report = TestReport(
-                f"{os.path.relpath(__file__)}::{self.__class__.__name__}::_test_schemas",
-                (f"{interface.name} Schema Validation", 12, f"{interface.name}'s schema validation"),
-                {},
-                "failed",
-                "\n".join(long_repr),
-                "call",
-            )
-
-            if "error" not in logger.terminal.stats:
-                logger.terminal.stats["error"] = []
-
-            logger.terminal.stats["error"].append(report)
-            session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
     @property
     def dd_site(self):
