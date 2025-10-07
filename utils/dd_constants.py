@@ -104,6 +104,7 @@ class SamplingMechanism(IntEnum):
     REMOTE_USER_RULE = 11
     REMOTE_DYNAMIC_RULE = 12
 
+
 class SpanKind(IntEnum):
     UNSPECIFIED = 0
     INTERNAL = 1
