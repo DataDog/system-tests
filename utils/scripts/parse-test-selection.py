@@ -118,15 +118,18 @@ class LibraryProcessor:
         libraries = "|".join(ALL_LIBRARIES)
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
         if match:
-            logger.info(f"PR title matches => run {match[1]}")
+            logger.info(f"PR title matches library => run {match[1]}")
             self.user_choice = match[1]
             self.selected.add(self.user_choice)
 
             # if users specified a branch, another job will prevent the merge
             # so let user do what he/she wants :
             self.branch_selector = match[2]
+            if self.branch_selector:
+                logger.info(f"PR title matches branch => user selection will be enforced without checks")
 
     def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
+        self.impacted = set()
         libraries = "|".join(ALL_LIBRARIES)
         patterns = [
             rf"^manifests/({libraries})\.",
@@ -145,6 +148,7 @@ class LibraryProcessor:
                 self.impacted |= requirement.libraries
                 return
 
+        logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
 
     def is_manual(self, file: str) -> bool:
@@ -248,6 +252,7 @@ class ScenarioProcessor:
                 # on first matching pattern, stop the loop
                 break
         else:
+            logger.warning(f"Unknown file {file} was detected, activating all scenario groups.")
             self.scenario_groups.add(scenario_groups.all.name)
 
         # now get known scenarios executed in this file
@@ -323,7 +328,7 @@ class Inputs:
     def load_raw_impacts(self) -> None:
         # Gets the raw pattern matching data that maps file to impacted
         # libraries/scenario groups
-        with open(self.mapping_file, "r") as file:
+        with open(self.mapping_file, "r", encoding="utf-8") as file:
             self.raw_impacts = yaml.safe_load(file)["patterns"]
 
     def load_modified_files(self) -> None:
