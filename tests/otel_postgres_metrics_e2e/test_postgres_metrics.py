@@ -1,7 +1,5 @@
-import json
-from pathlib import Path
 import time
-from utils import context, scenarios, interfaces, logger, irrelevant
+from utils import scenarios, interfaces, logger, irrelevant
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
@@ -59,7 +57,6 @@ postgresql_metrics = {
 
 
 @scenarios.otel_collector
-@irrelevant(condition=True, reason="won't look on backend, TODO remove this")
 class Test_PostgreSQLMetricsCollection:
     def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
         if "resourceMetrics" not in data:
@@ -126,21 +123,17 @@ class Test_PostgreSQLMetricsCollection:
 
     def test_postgresql_metrics_received_by_collector(self):
         """The goal of this test is to validate that the metrics appear in the Otel Collector logs."""
-        collector_log_path = f"{context.scenario.host_log_folder}/interfaces/collector/metrics.json"
-        assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
-
-        # Default behaviors is that metrics are batched together in the file exporter
-        metrics_batch = []
-        with open(collector_log_path, "r", encoding="utf-8") as f:
-            for row in f:
-                if row.strip():
-                    metrics_batch.append(json.loads(row.strip()))
 
         found_metrics: set[str] = set()
         metrics_dont_match_spec: set[str] = set()
 
-        for data in metrics_batch:
-            self._process_metrics_data(data, found_metrics, metrics_dont_match_spec)
+        for data in interfaces.otel_collector.get_data("/api/v2/series"):
+            content = data["request"]["content"]
+            for serie in content["series"]:
+                metric = serie["metric"]
+                found_metrics.add(metric)
+
+            # self._process_metrics_data(content, found_metrics, metrics_dont_match_spec)
 
         validation_results = []
         failed_validations = []
@@ -165,6 +158,10 @@ class Test_PostgreSQLMetricsCollection:
             f"\n\nFailed validations:\n" + "\n".join(failed_validations)
         )
 
+
+@scenarios.otel_collector
+@irrelevant(condition=True)
+class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
         """The goal of this test is to validate that the metrics can actually be queried, meaning they
         were actually received by the backend.
@@ -203,18 +200,6 @@ class Test_PostgreSQLMetricsCollection:
 
         if failed_metrics:
             logger.error(f"\n❌ Failed validations: {failed_metrics}")
-
-
-class _BaseOpenTelemetryAssertions:
-    pass
-
-
-@scenarios.otel_collector
-class Test_BackendValidity(_BaseOpenTelemetryAssertions): ...
-
-
-@scenarios.otel_collector
-class Test_LibrariesValidity(_BaseOpenTelemetryAssertions): ...
 
 
 @scenarios.otel_collector
