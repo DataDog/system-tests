@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 logger = logging.getLogger(__name__)
-
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
 LIBRARIES = {
@@ -274,20 +274,42 @@ class ScenarioProcessor:
 
 
 class Inputs:
-    root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
-
-    def __init__(self, mock: bool = False) -> None:  # noqa: FBT001, FBT002
-        self.output: str | None = None
-        self.event_name = "pull_request"
-        self.ref = ""
-        self.is_gitlab = False
-        self.pr_title = ""
-        self.mapping_file = os.path.join(self.root_dir, "utils/scripts/libraries_and_scenarios_rules.yml")
-        self.raw_impacts: dict[str, Any] | None = None
-        self.modified_files: list[str] = []
-        self.scenario_map: dict[str, list[str]] | None = None
-        self.new_manifests: dict[str, Any] = {}
-        self.old_manifests: dict[str, Any] = {}
+    def __init__(
+        self,
+        mock: bool = False,  # noqa: FBT001, FBT002
+        output: str | None = None,
+        event_name: str = "pull_request",
+        ref: str = "",
+        is_gitlab: bool = False,  # noqa: FBT001, FBT002
+        pr_title: str = "",
+        mapping_file: str | None = None,
+        raw_impacts: dict[str, Any] | None = None,
+        modified_files: list[str] | None = None,
+        scenario_map_file: str | None = None,
+        scenario_map: dict[str, list[str]] | None = None,
+        new_manifests: dict[str, Any] | None = None,
+        old_manifests: dict[str, Any] | None = None,
+    ) -> None:
+        self.output = output
+        self.event_name = event_name
+        self.ref = ref
+        self.is_gitlab = is_gitlab
+        self.pr_title = pr_title
+        self.mapping_file = (
+            mapping_file
+            if mapping_file is not None
+            else os.path.join(root_dir, "utils/scripts/libraries_and_scenarios_rules.yml")
+        )
+        self.raw_impacts = raw_impacts
+        self.modified_files = modified_files if modified_files is not None else []
+        self.scenario_map_file = (
+            scenario_map_file
+            if scenario_map_file is not None
+            else os.path.join(root_dir, "logs_mock_the_test/scenarios.json")
+        )
+        self.scenario_map = scenario_map
+        self.new_manifests = new_manifests if new_manifests is not None else {}
+        self.old_manifests = old_manifests if old_manifests is not None else {}
         if not mock:
             self.populate()
         if not self.raw_impacts:
@@ -345,7 +367,7 @@ class Inputs:
             # test files
             # This file is generated with
             # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
-            with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
+            with open(self.scenario_map_file, encoding="utf-8") as f:
                 self.scenario_map = json.load(f)
 
     def load_manifests(self) -> None:
