@@ -565,6 +565,34 @@ class Test_Stable_Config_Default(StableConfigWriter):
             assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
 
     @pytest.mark.parametrize(
+        "path",
+        [
+            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+            "/etc/datadog-agent/application_monitoring.yaml",
+        ],
+    )
+    @missing_feature(
+        context.library in ["ruby", "dotnet", "nodejs", "php", "python", "cpp"],
+        reason="file size limit is not supported",
+    )
+    @missing_feature(
+        context.library in "java",  
+        reason="Java is a special case with a different file size limit",
+    )
+    def test_file_size_limit_exceeded(self, test_agent, test_library, path, library_env):
+        with test_library:
+            # Create a file larger than 4096 bytes (the file size limit)
+            large_content = "x" * 4097
+            self.write_stable_config_content(
+                large_content,
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert SDK_DEFAULT_STABLE_CONFIG.items() <= config.items()
+
+    @pytest.mark.parametrize(
         ("name", "local_cfg", "library_env", "fleet_cfg", "expected"),
         [
             (
