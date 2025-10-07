@@ -202,13 +202,13 @@ def deserialize_http_message(
     if content_type and content_type.startswith("multipart/form-data;"):
         decoded = []
         for part in MultipartDecoder(content, raw_content_type).parts:
-            headers = {k.decode("utf-8"): v.decode("utf-8") for k, v in part.headers.items()}
+            headers: dict[str, str] = {k.decode("utf-8").lower(): v.decode("utf-8") for k, v in part.headers.items()}
             item: dict[str, Any] = {"headers": headers}
 
             content_type_part = ""
 
             for name, value in headers.items():
-                if name.lower() == "content-type":
+                if name == "content-type":
                     content_type_part = value.lower()
                     break
 
@@ -251,10 +251,12 @@ def deserialize_http_message(
 def _deserialize_file_in_multipart_form_data(
     path: str, item: dict, headers: dict, export_content_files_to: str, content: bytes
 ) -> None:
-    content_disposition = headers.get("Content-Disposition", "")
+    content_disposition = headers.get("content-disposition", "<not set>")
 
     if not content_disposition.startswith("form-data"):
-        item["system-tests-error"] = "Unknown content-disposition, please contact #apm-shared-testing"
+        item["system-tests-error"] = (
+            f"Unknown content-disposition: {content_disposition}, please contact #apm-shared-testing"
+        )
         item["content"] = None
 
     else:

@@ -425,7 +425,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
-@scenarios.remote_config_mocked_backend_asm_dd_nocache
+@scenarios.appsec_api_security_rc
 @features.remote_config_object_supported
 class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFieldsBasicTests):
     """Tests that over a sequence of related updates, tracers follow the RFC for the ASM DD product
@@ -471,7 +471,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
 # XXX: This test can run in any scenario with rc_api_enabled=True. Default will not work, as /v0.7/config is not reported by the agent,
 # which will make some tracers (e.g. Ruby) not use RC.
-@scenarios.appsec_and_rc_enabled
+@scenarios.appsec_api_security_rc
 @features.remote_config_semantic_versioning
 class Test_RemoteConfigurationSemVer:
     """Tests that semantic versioning is reported in remote config"""

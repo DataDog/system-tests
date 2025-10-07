@@ -32,10 +32,7 @@
         export tracer_version="${tracer_version%-1}"
       fi
 
-      export installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
-      export installer_path="${installer_path%/}"
-      export installer_version="${installer_path##*/}"
-      export installer_version="${installer_version%-1}"
+      export installer_version="${agent_version}" # Installer is now shipped with the Agent
 
       #Extract glibc
       sudo chmod 755 check_glibc.sh 
@@ -91,10 +88,7 @@
         export tracer_version="${tracer_version%-1}"
       fi
 
-      export installer_path="$(readlink -f /opt/datadog-packages/datadog-installer/stable)"
-      export installer_path="${installer_path%/}"
-      export installer_version="${installer_path##*/}"
-      export installer_version="${installer_version%-1}"
+      installer_version="${agent_version}" # Installer is now shipped with the Agent
       
       #Extract glibc
       sudo chmod 755 check_glibc.sh 

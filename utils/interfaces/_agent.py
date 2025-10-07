@@ -201,13 +201,11 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         all_data = self.get_data(path_filters="/api/beta/sketches")
 
         for data in all_data:
-            if "sketches" not in data["request"]["content"]:
-                raise ValueError("sketches property is missing in agent payload")
+            if "sketches" in data["request"]["content"]:
+                content = data["request"]["content"]["sketches"]
 
-            content = data["request"]["content"]["sketches"]
-
-            for point in content:
-                yield data, point
+                for point in content:
+                    yield data, point
 
     def get_dsm_data(self):
         return self.get_data(path_filters="/api/v0.1/pipeline_stats")

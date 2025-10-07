@@ -21,7 +21,15 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          "*": missing_feature
+          rack: irrelevant (rack does not have a router)
+          rails42: irrelevant
+          sinatra14: missing_feature
+          sinatra22: missing_feature
+          sinatra32: missing_feature
+          sinatra41: missing_feature
+          uds-sinatra: missing_feature
       test_schemas.py:
         Test_Scanners: v2.19.0
         Test_Schema_Request_Cookies: v1.15.0
@@ -473,6 +481,11 @@ tests/:
       Test_UserLoginSuccessEventV2_Metrics_AppsecEnabled: v2.19.0
       Test_UserLoginSuccessEventV2_Tags_AppsecDisabled: missing_feature (no service entry span in tracer)
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled: v2.19.0
+    test_extended_data_collection.py:
+      Test_ExtendedDataCollectionCapability: missing_feature
+      Test_ExtendedRequestBodyCollection: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: missing_feature
+      Test_ExtendedResponseHeadersDataCollection: missing_feature
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -539,7 +552,7 @@ tests/:
     test_suspicious_attacker_blocking.py:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
-      Test_TraceTaggingRules: missing_feature
+      Test_TraceTaggingRules: v2.22.0-dev
       Test_TraceTaggingRulesRcCapability: missing_feature
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
@@ -731,6 +744,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_baggage.py:
@@ -841,10 +855,10 @@ tests/:
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: v2.22.1-dev
     Test_GraphQLOperationErrorTracking:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0
