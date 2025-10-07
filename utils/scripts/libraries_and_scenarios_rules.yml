@@ -10,6 +10,12 @@ refs:
   - &otel_libraries [java_otel, python_otel]
 
 patterns:
+
+######################### High priority file type rules ########################
+# This section should contain rules that apply to files based on extensions as
+# well as a limited number of exceptions if applicable.
+################################################################################
+
     "*.nix":
         scenario_groups: null
         libraries: null
@@ -25,12 +31,10 @@ patterns:
         scenario_groups: null
         libraries: null
 
-    .cursor/rules/*:
-        scenario_groups: null
-    .circleci/*:
-        scenario_groups: null
-    .vscode/*:
-        scenario_groups: null
+################################# Github actions ###############################
+# This section contains the rules to apply to github actions related files
+################################################################################
+
     .github/actions/pull_images/action.yml:
         scenario_groups: end_to_end
     .github/CODEOWNERS:
@@ -56,18 +60,41 @@ patterns:
         scenario_groups: exotics
     .github/*:
         scenario_groups: null
+
     .gitlab/ssi_gitlab-ci.yml:
         scenario_groups: [onboarding, lib_injection, docker_ssi]
+
+#################### High priority top level directory rules ###################
+# This section contains only rules applying to top level directories
+# (ex: directory/*). No exceptions are allowed if some subpaths require specific
+# rules you should create a separate section
+################################################################################
+
+    .cursor/*:
+        scenario_groups: null
+
+    .circleci/*:
+        scenario_groups: null
+
+    .vscode/*:
+        scenario_groups: null
+
+
     .promptfoo/*:
         scenario_groups: null
+
     binaries/*:
         scenario_groups: null
+
     docs/*:
         scenario_groups: null
+
     lib-injection/*:
         scenario_groups: lib_injection
+
     repository.datadog.yml:
         scenario_groups: null
+
     utils/_context/_scenarios/appsec_low_waf_timeout.py:
         scenario_groups: appsec_low_waf_timeout
     utils/_context/_scenarios/aws_lambda.py:
@@ -91,7 +118,8 @@ patterns:
         scenario_groups: parametric
     utils/_context/_scenarios/profiling.py:
         scenario_groups: profiling
-    # utils/_context/_scenarios/stream_processing_offload.py: stream_processing_offload
+    utils/_context/_scenarios/stream_processing_offload.py:
+        scenario_groups: stream_processing_offload
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
     utils/build/ssi/*:
