@@ -572,6 +572,7 @@ tests/:
         'django-poc': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
         'django-py3.13': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
         'python3.12': v3.7.0.dev (is v3.1.0.dev but weblog use new SDK now)
+        'fastapi': bug(APPSEC-59535)
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: missing_feature
       Test_Blocking_client_ip:
