@@ -90,10 +90,10 @@ telemetry_name_mapping = {
         "python": "DD_TAGS",
     },
     "trace_propagation_style": {
-        "python": "DD_TRACE_PROPAGATION_STYLE_INJECT",  # Python doesn't emit just DD_TRACE_PROPAGATION_STYLE??
+        "python": "DD_TRACE_PROPAGATION_STYLE_INJECT",  # Python reports both _INJECT and _EXTRACT keys
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
         "php": "trace.propagation_style",
-        "ruby": "tracing.propagation_style_inject",  # Ruby doesn't emit just tracing.propagation_style??
+        "ruby": "tracing.propagation_style_inject",  # Ruby reports both _inject and _extract keys
     },
 }
 
@@ -116,6 +116,48 @@ def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict 
         if config.get("origin") == origin:
             return config
     return None
+
+
+def _check_propagation_style_with_inject_and_extract(
+    test_agent, configuration_by_name: dict, expected_origin: str, library_name: str
+) -> None:
+    """Check both inject and extract propagation style keys for languages that report them separately.
+
+    Some libraries report propagation style using separate inject and extract keys
+    instead of a single combined key. This function validates that both keys exist with the
+    expected origin and have non-empty values.
+
+    Raises an AssertionError if either key is missing, has wrong origin, or has empty value
+    """
+    # Define the inject and extract key names for each language
+    if library_name == "python":
+        inject_key = "DD_TRACE_PROPAGATION_STYLE_INJECT"
+        extract_key = "DD_TRACE_PROPAGATION_STYLE_EXTRACT"
+    elif library_name == "ruby":
+        inject_key = "tracing.propagation_style_inject"
+        extract_key = "tracing.propagation_style_extract"
+    else:
+        raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
+
+    # Check inject key
+    inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_key, expected_origin)
+    assert (
+        inject_item is not None
+    ), f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert (
+        inject_item["origin"] == expected_origin
+    ), f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
+    assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
+
+    # Check extract key
+    extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, extract_key, expected_origin)
+    assert (
+        extract_item is not None
+    ), f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert (
+        extract_item["origin"] == expected_origin
+    ), f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
+    assert extract_item["value"], f"Expected non-empty value for '{extract_key}'"
 
 
 @scenarios.parametric
@@ -758,19 +800,26 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
-            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
-            telemetry_item = test_agent.get_telemetry_config_by_origin(
-                configuration_by_name, apm_telemetry_name, expected_origin
-            )
-            assert (
-                telemetry_item is not None
-            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+            # Python and Ruby only report inject and extract keys for trace_propagation_style
+            if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby"]:
+                _check_propagation_style_with_inject_and_extract(
+                    test_agent, configuration_by_name, expected_origin, context.library.name
+                )
+            else:
+                # For all other configurations, use the standard mapping
+                apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_telemetry_name, expected_origin
+                )
+                assert (
+                    telemetry_item is not None
+                ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
 
-            actual_origin = telemetry_item.get("origin", "<missing>")
-            assert (
-                telemetry_item["origin"] == expected_origin
-            ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
-            assert telemetry_item["value"]
+                actual_origin = telemetry_item.get("origin", "<missing>")
+                assert (
+                    telemetry_item["origin"] == expected_origin
+                ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+                assert telemetry_item["value"]
 
 
 DEFAULT_ENVVARS = {
