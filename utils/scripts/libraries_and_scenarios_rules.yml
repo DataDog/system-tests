@@ -66,8 +66,6 @@ patterns:
         scenario_groups: null
     lib-injection/*:
         scenario_groups: lib_injection
-    manifests/*:
-        scenario_groups: null  # already handled by the manifest comparison
     repository.datadog.yml:
         scenario_groups: null
     utils/_context/_scenarios/appsec_low_waf_timeout.py:
@@ -96,23 +94,6 @@ patterns:
     # utils/_context/_scenarios/stream_processing_offload.py: stream_processing_offload
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
-    utils/build/docker/java_otel/*:
-        scenario_groups: open_telemetry
-    utils/build/docker/lambda_proxy/*:
-        scenario_groups: lambda_end_to_end
-        libraries: *lambda_libraries
-    utils/build/docker/lambda_proxy.Dockerfile:
-        libraries: *lambda_libraries
-    utils/build/docker/nodejs_otel/*:
-        scenario_groups: open_telemetry
-    utils/build/docker/python_otel/*:
-        scenario_groups: open_telemetry
-    utils/build/docker/python_lambda/*:
-        scenario_groups: appsec_lambda
-    utils/build/docker/\w+/parametric/*:
-        scenario_groups: parametric
-    utils/build/docker/*:
-        scenario_groups: [ end_to_end, open_telemetry]
     utils/build/ssi/*:
         scenario_groups: docker_ssi
     utils/build/virtual_machine/*:
@@ -164,8 +145,175 @@ patterns:
         scenario_groups: null
     utils/virtual_machine/*:
         scenario_groups: onboarding
+
+    utils/build/docker/lambda_proxy/*:
+        scenario_groups: lambda_end_to_end
+        libraries: *lambda_libraries
+    utils/build/docker/nodejs_otel/*:
+        scenario_groups: open_telemetry
+    utils/build/docker/\w+/parametric/*:
+        scenario_groups: parametric
+
+    manifests/cpp.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp
+    utils/build/docker/cpp/*:
+        libraries: cpp
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/cpp/*:
+        libraries: cpp
+    utils/build/build_cpp_base_images.sh:
+        libraries: cpp
+
+    manifests/cpp_httpd.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_httpd
+    utils/build/docker/cpp_httpd/*:
+        libraries: cpp_httpd
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/cpp_httpd/*:
+        libraries: cpp_httpd
+    utils/build/build_cpp_httpd_base_images.sh:
+        libraries: cpp_httpd
+
+    manifests/cpp_nginx.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_nginx
+    utils/build/docker/cpp_nginx/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: cpp_nginx
+    lib-injection/build/docker/cpp_nginx/*:
+        libraries: cpp_nginx
+    utils/build/build_cpp_nginx_base_images.sh:
+        libraries: cpp_nginx
+
+    manifests/dotnet.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: dotnet
+    utils/build/docker/dotnet/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: dotnet
+    lib-injection/build/docker/dotnet/*:
+        libraries: dotnet
+    utils/build/build_dotnet_base_images.sh:
+        libraries: dotnet
+
+    manifests/golang.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: golang
+    utils/build/docker/golang/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: golang
+    lib-injection/build/docker/golang/*:
+        libraries: golang
+    utils/build/build_golang_base_images.sh:
+        libraries: golang
+
+    manifests/java.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: java
+    utils/build/docker/java/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: java
+    lib-injection/build/docker/java/*:
+        libraries: java
+    utils/build/build_java_base_images.sh:
+        libraries: java
+
+    manifests/nodejs.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: nodejs
+    utils/build/docker/nodejs/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: nodejs
+    lib-injection/build/docker/nodejs/*:
+        libraries: nodejs
+    utils/build/build_nodejs_base_images.sh:
+        libraries: nodejs
+
+    manifests/php.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: php
+    utils/build/docker/php/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: php
+    lib-injection/build/docker/php/*:
+        libraries: php
+    utils/build/build_php_base_images.sh:
+        libraries: php
+
+    manifests/python.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python
+    utils/build/docker/python/*:
+        libraries: python
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/python/*:
+        libraries: python
+    utils/build/build_python_base_images.sh:
+        libraries: python
+
+    manifests/ruby.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: ruby
+    utils/build/docker/ruby/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: ruby
+    lib-injection/build/docker/ruby/*:
+        libraries: ruby
+    utils/build/build_ruby_base_images.sh:
+        libraries: ruby
+
+    manifests/python_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python_lambda
+    utils/build/docker/python_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: python_lambda
+    lib-injection/build/docker/python_lambda/*:
+        libraries: python_lambda
+    utils/build/build_python_lambda_base_images.sh:
+        libraries: python_lambda
+
+    manifests/rust.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: rust
+    utils/build/docker/rust/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: rust
+    lib-injection/build/docker/rust/*:
+        libraries: rust
+    utils/build/build_rust_base_images.sh:
+        libraries: rust
+
+    manifests/python_otel.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python_otel
+    utils/build/docker/python_otel/*:
+        scenario_groups: open_telemetry
+        libraries: python_otel
+    lib-injection/build/docker/python_otel/*:
+        libraries: python_otel
+    utils/build/build_python_otel_base_images.sh:
+        libraries: python_otel
+
+    manifests/java_otel.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: java_otel
+    utils/build/docker/java_otel/*:
+        scenario_groups: open_telemetry
+        libraries: java_otel
+    lib-injection/build/docker/java_otel/*:
+        libraries: java_otel
+    utils/build/build_java_otel_base_images.sh:
+        libraries: java_otel
+
+    utils/build/docker/*:
+        scenario_groups: [ end_to_end, open_telemetry]
     utils/*:
         scenario_groups: all
+    manifests/*:
+        scenario_groups: null  # already handled by the manifest comparison
     .cursorrules:
         scenario_groups: null
     .dockerignore:
@@ -222,14 +370,5 @@ patterns:
     tests/**/*:
         scenario_groups: null # dynamic selection
 
-    "*.nix":
-        scenario_groups: null
-    "*.md":
-        scenario_groups: null
-        libraries: null
-    "*.rdoc":
-        scenario_groups: null
-        libraries: null
-    "*.txt":
-        scenario_groups: null
-        libraries: null
+
+

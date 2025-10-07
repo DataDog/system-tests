@@ -133,18 +133,6 @@ class LibraryProcessor:
 
     def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
         self.impacted = set()
-        libraries = "|".join(ALL_LIBRARIES)
-        patterns = [
-            rf"^manifests/({libraries})\.",
-            rf"^utils/build/docker/({libraries})/",
-            rf"^lib-injection/build/docker/({libraries})/",
-            rf"^utils/build/build_({libraries})_base_images.sh",
-        ]
-
-        for pattern in patterns:
-            if match := re.search(pattern, modified_file):
-                self.impacted.add(match[1])
-                return
 
         for pattern, requirement in impacts.items():
             if fnmatch(modified_file, pattern):
