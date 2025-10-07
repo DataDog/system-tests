@@ -21,7 +21,6 @@ patterns:
         libraries: null
 
     requirements.txt:
-        scenario_groups: all
     "*.txt":
         scenario_groups: null
         libraries: null

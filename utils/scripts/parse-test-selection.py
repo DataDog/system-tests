@@ -149,10 +149,10 @@ class LibraryProcessor:
             else:
                 # user specified a library in the PR title
                 # and there are some impacted libraries
-                if file.startswith("tests/"):
+                if file.startswith("tests/") or self.impacted == {self.user_choice}:
                     # modification in tests files are complex, trust user
                     return True
-                elif self.impacted != {self.user_choice}:
+                else:
                     # only acceptable use case : impacted library exactly matches user choice
                     raise ValueError(
                         f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
@@ -513,6 +513,22 @@ class Tests(unittest.TestCase):
                 'scenarios_groups=""',
                 ])
 
+    def test_multiple_pattern_matches(self):
+        inputs = Inputs(mock=True)
+        inputs.modified_files = ["requirements.txt"]
+
+        strings_out = process(inputs)
+
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                self.all_lib_matrix,
+                self.all_lib_with_dev,
+                'desired_execution_time=3600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="all"',
+                ])
+
     def test_test_file(self):
         inputs = Inputs(mock=True)
         inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
@@ -544,6 +560,24 @@ class Tests(unittest.TestCase):
                 'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
                 'scenarios_groups=""',
                 ])
+
+    def test_library_tag(self):
+        inputs = Inputs(mock=True)
+        inputs.pr_title = "[java] Some title"
+        inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
+
+        strings_out = process(inputs)
+
+        # print_outputs(strings_out, inputs)
+        self.assertEqual(strings_out,  [
+                'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
+                'libraries_with_dev=["java"]',
+                'desired_execution_time=600',
+                'rebuild_lambda_proxy=false',
+                'scenarios="DEFAULT"',
+                'scenarios_groups="end_to_end,open_telemetry"',
+                ])
+
         
     def test_wrong_library_tag(self):
         inputs = Inputs(mock=True)
