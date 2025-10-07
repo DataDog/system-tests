@@ -269,7 +269,7 @@ class ScenarioProcessor:
     def get_outputs(self) -> dict[str, str]:
         return {
             "scenarios": ",".join(sorted(self.scenarios)),
-            "scenarios_groups": ",".join(sorted(self.scenario_groups)),
+            "scenario_groups": ",".join(sorted(self.scenario_groups)),
         }
 
 

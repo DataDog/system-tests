@@ -14,7 +14,7 @@ on:
         description: "Comma-separated list of scenarios to run"
         type: string
         default: ""
-      scenarios_groups:
+      scenario_groups:
         description: "Comma-separated list of scenarios groups to run"
         type: string
         default: ""
@@ -139,7 +139,7 @@ jobs:
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -t ${{ inputs.desired_execution_time }} \
           -s "${{ inputs.scenarios }}" \
-          -g "${{ inputs.scenarios_groups }}" \
+          -g "${{ inputs.scenario_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
           --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
@@ -152,7 +152,7 @@ jobs:
         python utils/scripts/compute-workflow-parameters.py ${{ inputs.library }} \
           -t ${{ inputs.desired_execution_time }} \
           -s "${{ inputs.scenarios }}" \
-          -g "${{ inputs.scenarios_groups }}" \
+          -g "${{ inputs.scenario_groups }}" \
           --excluded-scenarios "${{ inputs.excluded_scenarios }}" \
           --weblogs "${{ inputs.weblogs }}" \
           --parametric-job-count ${{ inputs.parametric_job_count }} \
