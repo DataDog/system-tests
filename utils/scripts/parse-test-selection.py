@@ -1,6 +1,6 @@
 import unittest
 import yaml
-from typing import Any, TextIO, TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 from manifests.parser.core import load as load_manifests
 from collections import defaultdict, OrderedDict
 import sys
@@ -10,7 +10,6 @@ from fnmatch import fnmatch
 import json
 import os
 from utils._context._scenarios import scenarios, Scenario, scenario_groups
-from utils._context._scenarios.core import ScenarioGroup
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -83,7 +82,7 @@ def parse(inputs) -> dict[str, Param]:
                 else:
                     ret[pattern].libraries = set(libraries)
             else:
-                raise Exception(f"One or more of the libraries for {pattern} does not exist: {libraries}")  # noqa: TRY002
+                raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")  # noqa: TRY002
 
             if check_scenario(scenario_group_set):
                 if isinstance(scenario_group_set, str):
@@ -91,18 +90,18 @@ def parse(inputs) -> dict[str, Param]:
                 else:
                     ret[pattern].scenario_groups = set(scenario_group_set)
             else:
-                raise Exception(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")  # noqa: TRY002
+                raise ValueError(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")  # noqa: TRY002
 
         return ret
 
     except AttributeError:
-        raise Exception("Error in the test selection file") from None  # noqa: TRY002
+        raise ValueError("Error in the test selection file") from None  # noqa: TRY002
 
 class LibraryProcessor:
 
     def __init__(self, libraries = None):
-        self.libraries = libraries if libraries else set()
-        self.impacted_libraries = set()
+        self.selected = libraries if libraries else set()
+        self.impacted = set()
         self.user_choice = None
         self.branch_selector = None
 
@@ -110,9 +109,9 @@ class LibraryProcessor:
         libraries = "|".join(ALL_LIBRARIES)
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
         if match:
-            print(f"PR title matchs => run {match[1]}")
+            print(f"PR title matches => run {match[1]}")
             self.user_choice = match[1]
-            self.libraries.add(self.user_choice)
+            self.selected.add(self.user_choice)
 
             # if users specified a branch, another job will prevent the merge
             # so let user do what he/she wants :
@@ -130,19 +129,19 @@ class LibraryProcessor:
 
         for pattern in patterns:
             if match := re.search(pattern, modified_file):
-                self.impacted_libraries.add(match[1])
+                self.impacted.add(match[1])
                 return 
 
         for pattern, requirement in impacts.items():
             if fnmatch(modified_file, pattern):
-                self.impacted_libraries |= requirement.libraries
+                self.impacted |= requirement.libraries
                 return 
 
-        self.impacted_libraries |= LIBRARIES
+        self.impacted |= LIBRARIES
 
     def is_manual(self, file):
         if self.user_choice:
-            if self.branch_selector or len(self.impacted_libraries) == 0:
+            if self.branch_selector or len(self.impacted) == 0:
                 return True
             else:
                 # user specified a library in the PR title
@@ -150,11 +149,11 @@ class LibraryProcessor:
                 if file.startswith("tests/"):
                     # modification in tests files are complex, trust user
                     return True
-                elif self.impacted_libraries != [user_choice]:
+                elif self.impacted != {self.user_choice}:
                     # only acceptable use case : impacted library exactly matches user choice
-                    raise Exception(
-                        f"""File {file} is modified, and it may impact {', '.join(self.impacted_libraries)}.
-                        Please remove the PR title prefix [{user_choice}]"""
+                    raise ValueError(
+                        f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
+                        Please remove the PR title prefix [{self.user_choice}]"""
                     )
         else:
             return False
@@ -162,7 +161,7 @@ class LibraryProcessor:
     def add(self, file, impacts):
         self.compute_impacted(file, impacts)
         if not self.is_manual(file):
-            self.libraries |= self.impacted_libraries
+            self.selected |= self.impacted
 
 
     def get_outputs(self):
@@ -171,13 +170,13 @@ class LibraryProcessor:
                 "library": library,
                 "version": "prod",
             }
-            for library in sorted(self.libraries)
+            for library in sorted(self.selected)
         ] + [
             {
                 "library": library,
                 "version": "dev",
             }
-            for library in sorted(self.libraries)
+            for library in sorted(self.selected)
             if "otel" not in library
         ]
 
@@ -185,7 +184,7 @@ class LibraryProcessor:
         return {
             "library_matrix": populated_result,
             "libraries_with_dev": libraries_with_dev,
-            "desired_execution_time": 600 if len(self.libraries) == 1 else 3600,
+            "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
         }
 
 class ScenarioProcessor:
@@ -291,7 +290,7 @@ class Inputs:
 
     def load_output(self):
         # Get output file (different for Gitlab and Github)
-        parser = argparse.ArgumentParser(description="AWS SSI Registration Tool")
+        parser = argparse.ArgumentParser(description="print output")
         parser.add_argument(
             "--output",
             "-o",
@@ -369,7 +368,7 @@ def process(inputs) -> None:
 
     rebuild_lambda_proxy = False
 
-    if not inputs.event_name in ("pull_request", "push") or inputs.ref == "refs/heads/main":
+    if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
         sp = ScenarioProcessor({scenario_groups.all.name})
         lp = LibraryProcessor(LIBRARIES)
 
@@ -421,7 +420,7 @@ class Tests(unittest.TestCase):
     all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
     all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
 
-    def test_regex(self):
+    def test_complete_file_path(self):
         inputs = Inputs(mock=True)
         inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
 
@@ -453,7 +452,7 @@ class Tests(unittest.TestCase):
                 'scenarios_groups="end_to_end,open_telemetry"',
                 ])
 
-    def test_main(self):
+    def test_ref_main(self):
         inputs = Inputs(mock=True)
         inputs.ref = "refs/heads/main"
         inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
@@ -500,7 +499,7 @@ class Tests(unittest.TestCase):
 
         strings_out = process(inputs)
 
-        print_outputs(strings_out, inputs)
+        # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
@@ -526,7 +525,7 @@ class Tests(unittest.TestCase):
                 'scenarios_groups=""',
                 ])
 
-    def test_test_file(self):
+    def test_test_file_utils(self):
         inputs = Inputs(mock=True)
         inputs.modified_files = ["tests/auto_inject/utils.py"]
 
@@ -589,7 +588,7 @@ class Tests(unittest.TestCase):
 
         strings_out = process(inputs)
 
-        print_outputs(strings_out, inputs)
+        # print_outputs(strings_out, inputs)
         self.assertEqual(strings_out,  [
                 'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
                 'libraries_with_dev=["python_lambda"]',
