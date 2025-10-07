@@ -51,6 +51,8 @@ class DockerScenario(Scenario):
 
     _network: Network = None
 
+    postgres_container: PostgresContainer
+
     def __init__(
         self,
         name: str,
@@ -100,7 +102,8 @@ class DockerScenario(Scenario):
             self._required_containers.append(self.proxy_container)
 
         if include_postgres_db:
-            self._supporting_containers.append(PostgresContainer())
+            self.postgres_container = PostgresContainer()
+            self._supporting_containers.append(self.postgres_container)
 
         if include_mongo_db:
             self._supporting_containers.append(MongoContainer())

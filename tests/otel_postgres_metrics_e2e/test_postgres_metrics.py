@@ -215,3 +215,14 @@ class Test_BackendValidity(_BaseOpenTelemetryAssertions): ...
 
 @scenarios.otel_collector
 class Test_LibrariesValidity(_BaseOpenTelemetryAssertions): ...
+
+
+@scenarios.otel_collector
+class Test_Smoke:
+    def setup_main(self):
+        container = scenarios.otel_collector.postgres_container
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT 1;"')
+        logger.info(r.output)
+
+    def test_main(self):
+        pass

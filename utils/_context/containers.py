@@ -159,6 +159,9 @@ class TestedContainer:
         else:
             self.image.load_from_logs(self.log_folder_path)
 
+        if self.stdout_interface:
+            self.stdout_interface.configure(host_log_folder, replay=replay)
+
     @property
     def container_name(self):
         return f"system-tests-{self.name}"
