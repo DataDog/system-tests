@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import unittest
 import yaml
 from typing import Any, TYPE_CHECKING
@@ -10,7 +12,8 @@ from fnmatch import fnmatch
 import json
 import os
 import logging
-from utils._context._scenarios import scenarios, Scenario, scenario_groups
+from utils._context._scenarios import scenarios, scenario_groups
+
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
@@ -69,9 +72,11 @@ class Param:
         self.scenario_groups: set[str] = {scenario_groups.all.name}
 
 
-def parse(inputs) -> dict[str, Param]:
+def parse(inputs: Inputs) -> dict[str, Param]:
     try:
         ret = OrderedDict()
+        if inputs.raw_impacts is None:
+            raise ValueError("raw_impacts is None")
         for pattern, param in inputs.raw_impacts.items():
             libraries = param.get("libraries", LIBRARIES) or set()
             scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
@@ -85,7 +90,7 @@ def parse(inputs) -> dict[str, Param]:
                 else:
                     ret[pattern].libraries = set(libraries)
             else:
-                raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")  # noqa: TRY002
+                raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
 
             if check_scenario(scenario_group_set):
                 if isinstance(scenario_group_set, str):
@@ -93,22 +98,24 @@ def parse(inputs) -> dict[str, Param]:
                 else:
                     ret[pattern].scenario_groups = set(scenario_group_set)
             else:
-                raise ValueError(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")  # noqa: TRY002
+                raise ValueError(
+                    f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}"
+                )
 
         return ret
 
     except AttributeError:
-        raise ValueError("Error in the test selection file") from None  # noqa: TRY002
+        raise ValueError("Error in the test selection file") from None
+
 
 class LibraryProcessor:
-
-    def __init__(self, libraries = None):
+    def __init__(self, libraries: set[str] | None = None):
         self.selected = libraries if libraries else set()
-        self.impacted = set()
-        self.user_choice = None
-        self.branch_selector = None
+        self.impacted: set[str] = set()
+        self.user_choice: str | None = None
+        self.branch_selector: str | None = None
 
-    def process_pr_title(self, inputs):
+    def process_pr_title(self, inputs: Inputs) -> None:
         libraries = "|".join(ALL_LIBRARIES)
         match = re.search(rf"^\[({libraries})(?:@([^\]]+))?\]", inputs.pr_title)
         if match:
@@ -120,8 +127,7 @@ class LibraryProcessor:
             # so let user do what he/she wants :
             self.branch_selector = match[2]
 
-
-    def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> list[str]:
+    def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
         libraries = "|".join(ALL_LIBRARIES)
         patterns = [
             rf"^manifests/({libraries})\.",
@@ -133,41 +139,37 @@ class LibraryProcessor:
         for pattern in patterns:
             if match := re.search(pattern, modified_file):
                 self.impacted.add(match[1])
-                return 
+                return
 
         for pattern, requirement in impacts.items():
             if fnmatch(modified_file, pattern):
                 self.impacted |= requirement.libraries
-                return 
+                return
 
         self.impacted |= LIBRARIES
 
-    def is_manual(self, file):
+    def is_manual(self, file: str) -> bool:
         if self.user_choice:
             if self.branch_selector or len(self.impacted) == 0:
                 return True
-            else:
-                # user specified a library in the PR title
-                # and there are some impacted libraries
-                if file.startswith("tests/") or self.impacted == {self.user_choice}:
-                    # modification in tests files are complex, trust user
-                    return True
-                else:
-                    # only acceptable use case : impacted library exactly matches user choice
-                    raise ValueError(
-                        f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
+            # user specified a library in the PR title
+            # and there are some impacted libraries
+            if file.startswith("tests/") or self.impacted == {self.user_choice}:
+                # modification in tests files are complex, trust user
+                return True
+            # only acceptable use case : impacted library exactly matches user choice
+            raise ValueError(
+                f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
                         Please remove the PR title prefix [{self.user_choice}]"""
-                    )
-        else:
-            return False
+            )
+        return False
 
-    def add(self, file, impacts):
+    def add(self, file: str, impacts: dict[str, Param]) -> None:
         self.compute_impacted(file, impacts)
         if not self.is_manual(file):
             self.selected |= self.impacted
 
-
-    def get_outputs(self):
+    def get_outputs(self) -> dict[str, Any]:
         populated_result = [
             {
                 "library": library,
@@ -190,14 +192,14 @@ class LibraryProcessor:
             "desired_execution_time": 600 if len(self.selected) == 1 else 3600,
         }
 
-class ScenarioProcessor:
 
-    def __init__(self, scenario_groups = None):
+class ScenarioProcessor:
+    def __init__(self, scenario_groups: set[str] | None = None):
         self.scenario_groups = scenario_groups if scenario_groups else set()
         self.scenarios = {scenarios.default.name}
-        self.scenarios_by_files = defaultdict(set)
+        self.scenarios_by_files: dict[str, set[str]] = defaultdict(set)
 
-    def process_manifests(self, inputs):
+    def process_manifests(self, inputs: Inputs) -> None:
         modified_nodeids = set()
 
         for nodeid in set(list(inputs.new_manifests.keys()) + list(inputs.old_manifests.keys())):
@@ -208,6 +210,8 @@ class ScenarioProcessor:
             ):
                 modified_nodeids.add(nodeid)
 
+        if inputs.scenario_map is None:
+            return
         scenario_names: Iterable[str]
         for nodeid, scenario_names in inputs.scenario_map.items():
             for modified_nodeid in modified_nodeids:
@@ -215,14 +219,16 @@ class ScenarioProcessor:
                     self.scenarios |= set(scenario_names)
                     break
 
-    def compute_scenarios_by_files(self, inputs):
+    def compute_scenarios_by_files(self, inputs: Inputs) -> None:
+        if inputs.scenario_map is None:
+            return
         scenario_names: Iterable[str]
         for nodeid, scenario_names in inputs.scenario_map.items():
             file = nodeid.split(":", 1)[0]
             for scenario_name in scenario_names:
                 self.scenarios_by_files[file].add(scenario_name)
 
-    def process_test_files(self, file):
+    def process_test_files(self, file: str) -> None:
         if file.startswith("tests/"):
             if file.endswith(("/utils.py", "/conftest.py", ".json")):
                 # particular use case for modification in tests/ of a file utils.py or conftest.py
@@ -236,7 +242,7 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self.scenarios |= scenario_names
 
-    def process_regular_file(self, file, impacts):
+    def process_regular_file(self, file: str, impacts: dict[str, Param]) -> None:
         for pattern, requirement in impacts.items():
             if fnmatch(file, pattern):
                 self.scenario_groups |= requirement.scenario_groups
@@ -249,32 +255,32 @@ class ScenarioProcessor:
         if file in self.scenarios_by_files:
             self.scenarios |= self.scenarios_by_files[file]
 
-    def add(self, file, impacts):
+    def add(self, file: str, impacts: dict[str, Param]) -> None:
         self.process_test_files(file)
         self.process_regular_file(file, impacts)
 
-    def get_outputs(self):
+    def get_outputs(self) -> dict[str, str]:
         return {
-                    "scenarios": ",".join(sorted(list(self.scenarios))),
-                    "scenarios_groups": ",".join(sorted(list(self.scenario_groups)))
-                    }
+            "scenarios": ",".join(sorted(self.scenarios)),
+            "scenarios_groups": ",".join(sorted(self.scenario_groups)),
+        }
 
 
 class Inputs:
     root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
 
-    def __init__(self, mock = False):
-        self.output = None
+    def __init__(self, mock: bool = False) -> None:  # noqa: FBT001, FBT002
+        self.output: str | None = None
         self.event_name = "pull_request"
         self.ref = ""
         self.is_gitlab = False
         self.pr_title = ""
         self.mapping_file = os.path.join(self.root_dir, "test-selection.yml")
-        self.raw_impacts = None
-        self.modified_files = []
-        self.scenario_map = None
-        self.new_manifests = {}
-        self.old_manifests = {}
+        self.raw_impacts: dict[str, Any] | None = None
+        self.modified_files: list[str] = []
+        self.scenario_map: dict[str, list[str]] | None = None
+        self.new_manifests: dict[str, Any] = {}
+        self.old_manifests: dict[str, Any] = {}
         if not mock:
             self.populate()
         if not self.raw_impacts:
@@ -282,8 +288,7 @@ class Inputs:
         if not self.scenario_map:
             self.load_scenario_mappings()
 
-
-    def populate(self):
+    def populate(self) -> None:
         self.load_output()
         self.load_git_info()
         self.load_raw_impacts()
@@ -291,7 +296,7 @@ class Inputs:
         self.load_scenario_mappings()
         self.load_manifests()
 
-    def load_output(self):
+    def load_output(self) -> None:
         # Get output file (different for Gitlab and Github)
         parser = argparse.ArgumentParser(description="print output")
         parser.add_argument(
@@ -305,7 +310,7 @@ class Inputs:
 
         self.output = args.output
 
-    def load_git_info(self):
+    def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
             self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
@@ -316,55 +321,57 @@ class Inputs:
             self.ref = os.environ.get("GITHUB_REF", "fake-branch-name")
             self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
 
-    def load_raw_impacts(self):
-        # Gets the raw pattern matching data that maps file to impacted 
+    def load_raw_impacts(self) -> None:
+        # Gets the raw pattern matching data that maps file to impacted
         # libraries/scenario groups
         with open(self.mapping_file, "r") as file:
             self.raw_impacts = yaml.safe_load(file)["patterns"]
 
-    def load_modified_files(self):
+    def load_modified_files(self) -> None:
         # Gets the modified files. Computed with gh in a previous ci step.
         with open("modified_files.txt", "r", encoding="utf-8") as f:
-            self.modified_files: list[str] = [line.strip() for line in f]
+            self.modified_files = [line.strip() for line in f]
 
-    def load_scenario_mappings(self):
+    def load_scenario_mappings(self) -> None:
         if self.event_name in ("pull_request", "push"):
             # Get the mappings used to compute impacted scenarios by file, especially
             # test files
             # This file is generated with
             # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
             with open("logs_mock_the_test/scenarios.json", encoding="utf-8") as f:
-                self.scenario_map: dict[str, list[str]] = json.load(f)
+                self.scenario_map = json.load(f)
 
-    def load_manifests(self):
-            # Collects old and new manifests, used to make a diff
-            self.new_manifests = load_manifests("manifests/")
-            self.old_manifests = load_manifests("original/manifests/")
+    def load_manifests(self) -> None:
+        # Collects old and new manifests, used to make a diff
+        self.new_manifests = load_manifests("manifests/")
+        self.old_manifests = load_manifests("original/manifests/")
 
-def extra_gitlab_output(inputs):
-    return {
-            "CI_PIPELINE_SOURCE": inputs.event_name,
-            "CI_COMMIT_REF_NAME": inputs.ref
-            }
 
-def stringify_outputs(outputs: dict[str, Any]) -> None:
+def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
+    return {"CI_PIPELINE_SOURCE": inputs.event_name, "CI_COMMIT_REF_NAME": inputs.ref}
+
+
+def stringify_outputs(outputs: dict[str, Any]) -> list[str]:
     ret = []
     for name, value in outputs.items():
         ret.append(f"{name}={json.dumps(value)}")
     return ret
 
-def print_outputs(strings_out, inputs):
-    def print_ci_outputs(strings_out, f):
+
+def print_outputs(strings_out: list[str], inputs: Inputs) -> None:
+    def print_ci_outputs(strings_out: list[str], f: Any) -> None:  # noqa: ANN401
         for s in strings_out:
             print(s, file=f)
+
     if inputs.output:
         with open(inputs.output, "w", encoding="utf-8") as f:
             print_ci_outputs(strings_out, f)
     else:
         print_ci_outputs(strings_out, sys.stdout)
 
-def process(inputs) -> None:
-    outputs = {}
+
+def process(inputs: Inputs) -> list[str]:
+    outputs: dict[str, Any] = {}
     impacts = parse(inputs)
     if inputs.is_gitlab:
         outputs |= extra_gitlab_output(inputs)
@@ -385,7 +392,6 @@ def process(inputs) -> None:
         lp.process_pr_title(inputs)
 
         for file in inputs.modified_files:
-
             sp.add(file, impacts)
             lp.add(file, impacts)
 
@@ -395,15 +401,12 @@ def process(inputs) -> None:
             ):
                 rebuild_lambda_proxy = True
 
-
     if inputs.is_gitlab:
-        outputs |= sp.get_outputs() 
+        outputs |= sp.get_outputs()
     else:
-        outputs |= lp.get_outputs()| {"rebuild_lambda_proxy": rebuild_lambda_proxy} | sp.get_outputs() 
+        outputs |= lp.get_outputs() | {"rebuild_lambda_proxy": rebuild_lambda_proxy} | sp.get_outputs()
 
-    strings_out = stringify_outputs(outputs)
-
-    return strings_out
+    return stringify_outputs(outputs)
 
 
 def main() -> None:
@@ -431,14 +434,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out, [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="docker_ssi"',
-                ])
+            ],
+        )
 
     def test_docker_file(self):
         inputs = Inputs(mock=True)
@@ -447,14 +453,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out, [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
                 'libraries_with_dev=["python"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="end_to_end,open_telemetry"',
-                ])
+            ],
+        )
 
     def test_ref_main(self):
         inputs = Inputs(mock=True)
@@ -464,14 +473,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="all"',
-                ])
+            ],
+        )
 
     # To setup copy the manifests directory and edit the python manifest, depending
     # on your edit you may have to change the scenarios line in the output.
@@ -484,14 +496,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
                 'libraries_with_dev=["python"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     # To setup copy the manifests directory and edit the agent manifest, depending
     # on your edit you may have to change the scenarios line in the output.
@@ -504,14 +519,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT,OTEL_LOG_E2E"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     def test_multiple_pattern_matches(self):
         inputs = Inputs(mock=True)
@@ -520,14 +538,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="all"',
-                ])
+            ],
+        )
 
     def test_test_file(self):
         inputs = Inputs(mock=True)
@@ -536,14 +557,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     def test_test_file_utils(self):
         inputs = Inputs(mock=True)
@@ -552,14 +576,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 self.all_lib_matrix,
                 self.all_lib_with_dev,
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     def test_library_tag(self):
         inputs = Inputs(mock=True)
@@ -569,16 +596,18 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
                 'libraries_with_dev=["java"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="end_to_end,open_telemetry"',
-                ])
+            ],
+        )
 
-        
     def test_wrong_library_tag(self):
         inputs = Inputs(mock=True)
         inputs.pr_title = "[java] Some title"
@@ -594,14 +623,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
                 'libraries_with_dev=["java"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="end_to_end,open_telemetry"',
-                ])
+            ],
+        )
 
     def test_wrong_library_tag_with_test_file(self):
         inputs = Inputs(mock=True)
@@ -611,14 +643,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
                 'libraries_with_dev=["java"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=false',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     def test_lambda_proxy(self):
         inputs = Inputs(mock=True)
@@ -627,14 +662,17 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
+        self.assertEqual(
+            strings_out,
+            [
                 'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
                 'libraries_with_dev=["python_lambda"]',
-                'desired_execution_time=600',
-                'rebuild_lambda_proxy=true',
+                "desired_execution_time=600",
+                "rebuild_lambda_proxy=true",
                 'scenarios="DEFAULT"',
                 'scenarios_groups="lambda_end_to_end"',
-                ])
+            ],
+        )
 
     def test_doc(self):
         inputs = Inputs(mock=True)
@@ -643,32 +681,37 @@ class Tests(unittest.TestCase):
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
-                'library_matrix=[]',
-                'libraries_with_dev=[]',
-                'desired_execution_time=3600',
-                'rebuild_lambda_proxy=false',
+        self.assertEqual(
+            strings_out,
+            [
+                "library_matrix=[]",
+                "libraries_with_dev=[]",
+                "desired_execution_time=3600",
+                "rebuild_lambda_proxy=false",
                 'scenarios="DEFAULT"',
                 'scenarios_groups=""',
-                ])
+            ],
+        )
 
     def test_gitlab(self):
         inputs = Inputs(mock=True)
         inputs.is_gitlab = True
-        inputs.ref="some_branch"
+        inputs.ref = "some_branch"
         inputs.modified_files = ["README.md"]
 
         strings_out = process(inputs)
 
         # print_outputs(strings_out, inputs)
-        self.assertEqual(strings_out,  [
-            'CI_PIPELINE_SOURCE="pull_request"',
-            'CI_COMMIT_REF_NAME="some_branch"',
-            'scenarios="DEFAULT"',
-            'scenarios_groups=""',
-            ])
+        self.assertEqual(
+            strings_out,
+            [
+                'CI_PIPELINE_SOURCE="pull_request"',
+                'CI_COMMIT_REF_NAME="some_branch"',
+                'scenarios="DEFAULT"',
+                'scenarios_groups=""',
+            ],
+        )
 
 
 if __name__ == "__main__":
     main()
-
