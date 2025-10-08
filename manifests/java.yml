@@ -754,13 +754,27 @@ tests/:
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     rasp/:
       test_api10.py:
-        Test_API10_all: missing_feature
-        Test_API10_request_body: missing_feature
-        Test_API10_request_headers: missing_feature
-        Test_API10_request_method: missing_feature
-        Test_API10_response_body: missing_feature
-        Test_API10_response_headers: missing_feature
-        Test_API10_response_status: missing_feature
+        Test_API10_all:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_method:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_status:
+          '*': missing_feature
+          vertx3: v1.54.0
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': v1.45.0
