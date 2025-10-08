@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-import yaml
-from typing import Any, TYPE_CHECKING
-from manifests.parser.core import load as load_manifests
-from collections import defaultdict, OrderedDict
-import sys
 import argparse
-import re
-from fnmatch import fnmatch
 import json
-import os
 import logging
-from utils._context._scenarios import scenarios, scenario_groups
+import os
+import re
+import sys
+from collections import OrderedDict, defaultdict
+from fnmatch import fnmatch
+from typing import TYPE_CHECKING, Any
+
+import yaml
+
+from manifests.parser.core import load as load_manifests
+from utils._context._scenarios import scenario_groups, scenarios
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
