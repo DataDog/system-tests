@@ -100,7 +100,7 @@ on:
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
