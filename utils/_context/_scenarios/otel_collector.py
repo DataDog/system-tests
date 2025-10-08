@@ -89,3 +89,12 @@ class OtelCollectorScenario(DockerScenario):
     def pytest_sessionfinish(self, session: pytest.Session, exitstatus: int):
         self.test_schemas(session, interfaces.otel_collector, [])
         super().pytest_sessionfinish(session, exitstatus)
+
+    def get_junit_properties(self) -> dict[str, str]:
+        result = super().get_junit_properties()
+
+        result["dd_tags[systest.suite.context.library.name]"] = self.library.name
+        result["dd_tags[systest.suite.context.library.version]"] = self.library.version
+        result["dd_tags[systest.suite.context.weblog_variant]"] = "n/a"
+
+        return result
