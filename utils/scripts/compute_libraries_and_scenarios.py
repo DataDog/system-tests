@@ -74,39 +74,34 @@ class Param:
 
 
 def parse(inputs: Inputs) -> dict[str, Param]:
-    try:
-        ret = OrderedDict()
-        if inputs.raw_impacts is None:
-            raise ValueError("raw_impacts is None")
-        for pattern, param in inputs.raw_impacts.items():
-            libraries = param.get("libraries", LIBRARIES) or set()
-            scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
+    ret = OrderedDict()
+    if inputs.raw_impacts is None:
+        raise ValueError("raw_impacts is None")
+    for pattern, param in inputs.raw_impacts.items():
+        libraries = param.get("libraries", LIBRARIES) or set()
+        scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
 
-            if pattern not in ret:
-                ret[pattern] = Param()
+        if not check_libraries(libraries):
+            raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
+        if not check_scenario(scenario_group_set):
+            raise ValueError(
+                f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}"
+            )
 
-            if check_libraries(libraries):
-                if isinstance(libraries, str):
-                    ret[pattern].libraries = {libraries}
-                else:
-                    ret[pattern].libraries = set(libraries)
-            else:
-                raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
+        if pattern not in ret:
+            ret[pattern] = Param()
 
-            if check_scenario(scenario_group_set):
-                if isinstance(scenario_group_set, str):
-                    ret[pattern].scenario_groups = {scenario_group_set}
-                else:
-                    ret[pattern].scenario_groups = set(scenario_group_set)
-            else:
-                raise ValueError(
-                    f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}"
-                )
+        if isinstance(libraries, str):
+            ret[pattern].libraries = {libraries}
+        else:
+            ret[pattern].libraries = set(libraries)
 
-        return ret
+        if isinstance(scenario_group_set, str):
+            ret[pattern].scenario_groups = {scenario_group_set}
+        else:
+            ret[pattern].scenario_groups = set(scenario_group_set)
 
-    except AttributeError:
-        raise ValueError("Error in the test selection file") from None
+    return ret
 
 
 class LibraryProcessor:
@@ -145,20 +140,21 @@ class LibraryProcessor:
         self.impacted |= LIBRARIES
 
     def is_manual(self, file: str) -> bool:
-        if self.user_choice:
-            if self.branch_selector or len(self.impacted) == 0:
-                return True
-            # user specified a library in the PR title
-            # and there are some impacted libraries
-            if file.startswith("tests/") or self.impacted == {self.user_choice}:
-                # modification in tests files are complex, trust user
-                return True
-            # only acceptable use case : impacted library exactly matches user choice
-            raise ValueError(
-                f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
-                        Please remove the PR title prefix [{self.user_choice}]"""
-            )
-        return False
+        if not self.user_choice:
+            return False
+
+        if self.branch_selector or len(self.impacted) == 0:
+            return True
+        # user specified a library in the PR title
+        # and there are some impacted libraries
+        if file.startswith("tests/") or self.impacted == {self.user_choice}:
+            # modification in tests files are complex, trust user
+            return True
+        # only acceptable use case : impacted library exactly matches user choice
+        raise ValueError(
+            f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
+                    Please remove the PR title prefix [{self.user_choice}]"""
+        )
 
     def add(self, file: str, impacts: dict[str, Param]) -> None:
         self.compute_impacted(file, impacts)
@@ -398,21 +394,21 @@ def process(inputs: Inputs) -> list[str]:
     rebuild_lambda_proxy = False
 
     if inputs.event_name not in ("pull_request", "push") or inputs.ref == "refs/heads/main":
-        sp = ScenarioProcessor({scenario_groups.all.name})
-        lp = LibraryProcessor(LIBRARIES)
+        scenario_processor = ScenarioProcessor({scenario_groups.all.name})
+        library_processor = LibraryProcessor(LIBRARIES)
 
     else:
-        sp = ScenarioProcessor()
-        lp = LibraryProcessor()
+        scenario_processor = ScenarioProcessor()
+        library_processor = LibraryProcessor()
 
-        sp.process_manifests(inputs)
-        sp.compute_scenarios_by_files(inputs)
+        scenario_processor.process_manifests(inputs)
+        scenario_processor.compute_scenarios_by_files(inputs)
 
-        lp.process_pr_title(inputs)
+        library_processor.process_pr_title(inputs)
 
         for file in inputs.modified_files:
-            sp.add(file, impacts)
-            lp.add(file, impacts)
+            scenario_processor.add(file, impacts)
+            library_processor.add(file, impacts)
 
             if file in (
                 "utils/build/docker/lambda_proxy/pyproject.toml",
@@ -421,9 +417,9 @@ def process(inputs: Inputs) -> list[str]:
                 rebuild_lambda_proxy = True
 
     if inputs.is_gitlab:
-        outputs |= sp.get_outputs()
+        outputs |= scenario_processor.get_outputs()
     else:
-        outputs |= lp.get_outputs() | {"rebuild_lambda_proxy": rebuild_lambda_proxy} | sp.get_outputs()
+        outputs |= library_processor.get_outputs() | {"rebuild_lambda_proxy": rebuild_lambda_proxy} | scenario_processor.get_outputs()
 
     return stringify_outputs(outputs)
 
