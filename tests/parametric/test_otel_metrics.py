@@ -198,12 +198,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "OTEL_METRICS_EXPORTER": "otlp",
-                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
-                "CORECLR_ENABLE_PROFILING": "1",
-            },
         ],
     )
     def test_otlp_metrics_enabled(self, test_agent, test_library, library_env):
@@ -231,27 +225,16 @@ class Test_Otel_Metrics_Configuration_Enabled:
                 "OTEL_METRIC_EXPORT_INTERVAL": "60000",
                 "CORECLR_ENABLE_PROFILING": "1",
             },
+            {
+                "DD_METRICS_OTEL_ENABLED": None,
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
         ],
     )
     def test_otlp_metrics_disabled(self, test_agent, test_library, library_env):
         """Ensure that OTLP metrics are not emitted."""
         name = "disabled-counter"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        with pytest.raises(ValueError):
-            test_agent.wait_for_num_otlp_metrics(num=1)
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {"DD_METRICS_OTEL_ENABLED": None, "OTEL_METRIC_EXPORT_INTERVAL": "60000", "CORECLR_ENABLE_PROFILING": "1"},
-        ],
-    )
-    def test_otlp_metrics_disabled_by_default(self, test_agent, test_library, library_env):
-        """OTLP metrics are emitted when enabled."""
-        name = "disabled-by-default-counter"
 
         with test_library as t:
             generate_default_counter_data_point(t, name)
@@ -282,34 +265,25 @@ class Test_Otel_Metrics_Api_MeterProvider:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_get_meter_same_parameters(self, test_agent, test_library, library_env):
+    def test_otel_get_meter_by_distinct(self, test_agent, test_library, library_env):
         name = "counter-test_get_meter_same_parameters"
         first_meter_name = DEFAULT_METER_NAME
-        second_meter_name = DEFAULT_METER_NAME
+        identical_meter_name = DEFAULT_METER_NAME
+        different_meter_name = DEFAULT_METER_NAME + "-different"
 
         with test_library as t:
-            t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            for meter_name in [first_meter_name, identical_meter_name, different_meter_name]:
+                t.otel_get_meter(meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+                t.otel_create_counter(meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+                t.otel_counter_add(
+                    meter_name,
+                    name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
 
-            t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                first_meter_name,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                42,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-
-            t.otel_create_counter(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                second_meter_name,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                42,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
             t.otel_metrics_force_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -321,65 +295,15 @@ class Test_Otel_Metrics_Api_MeterProvider:
         resource_metrics = metrics[0]["resource_metrics"]
         assert len(resource_metrics) == 1
 
-        # Assert that we get one ScopeMetrics per configured Meter
-        scope_metrics = resource_metrics[0]["scope_metrics"]
-        assert len(scope_metrics) == 1
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        assert len(scope_metrics[0]["metrics"]) == 1
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_get_meter_different_parameters(self, test_agent, test_library, library_env):
-        name = "counter-test_get_meter_different_parameters"
-        first_meter_name = DEFAULT_METER_NAME
-        second_meter_name = DEFAULT_METER_NAME + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(first_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_get_meter(second_meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            t.otel_create_counter(first_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                first_meter_name,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                42,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-
-            t.otel_create_counter(second_meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                second_meter_name,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                42,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-
-        # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
-        assert len(metrics) == 1
-
-        # Assert that there is only one item in ResourceMetrics (one per tracer)
-        resource_metrics = metrics[0]["resource_metrics"]
-        assert len(resource_metrics) == 1
-
-        # Assert that we get one ScopeMetrics per configured Meter
+        # Assert that we get one ScopeMetrics per distinct Meter
         scope_metrics = resource_metrics[0]["scope_metrics"]
         assert len(scope_metrics) == 2
 
         # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
         for scope_metric in scope_metrics:
             assert (
-                scope_metric["scope"]["name"] == first_meter_name or scope_metric["scope"]["name"] == second_meter_name
+                scope_metric["scope"]["name"] == first_meter_name
+                or scope_metric["scope"]["name"] == different_meter_name
             )
             assert_scope_metric(
                 scope_metric,
@@ -413,15 +337,19 @@ class Test_Otel_Metrics_Api_Meter:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_counter(self, test_agent, test_library, library_env):
-        name = "test_otel_create_counter"
-        name_upper = name.upper()
-        name_different = name + "-different"
+    def test_otel_create_instruments_by_distinct(self, test_agent, test_library, library_env):
+        counter_name = "test_otel_create_counter"
+        updowncounter_name = "test_otel_create_updowncounter"
+        gauge_name = "test_otel_create_gauge"
+        histogram_name = "test_otel_create_histogram"
+        asynchronous_counter_name = "test_otel_create_asynchronous_counter"
+        asynchronous_updowncounter_name = "test_otel_create_asynchronous_updowncounter"
+        asynchronous_gauge_name = "test_otel_create_asynchronous_gauge"
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
 
-            for instrument_name in [name, name_upper, name_different]:
+            for instrument_name in [counter_name, counter_name.upper(), counter_name + "-different"]:
                 t.otel_create_counter(
                     DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
                 )
@@ -433,39 +361,8 @@ class Test_Otel_Metrics_Api_Meter:
                     42,
                     DEFAULT_MEASUREMENT_ATTRIBUTES,
                 )
-            t.otel_metrics_force_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 84), (name_different, 42)]:
-            metric = find_metric_by_name(scope_metrics[0], instrument_name)
-            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            assert_sum_aggregation(
-                metric["sum"],
-                "AGGREGATION_TEMPORALITY_DELTA",
-                is_monotonic=True,
-                value=value,
-                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_updowncounter(self, test_agent, test_library, library_env):
-        name = "test_otel_create_updowncounter"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
+            for instrument_name in [updowncounter_name, updowncounter_name.upper(), updowncounter_name + "-different"]:
                 t.otel_create_updowncounter(
                     DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
                 )
@@ -477,39 +374,8 @@ class Test_Otel_Metrics_Api_Meter:
                     42,
                     DEFAULT_MEASUREMENT_ATTRIBUTES,
                 )
-            t.otel_metrics_force_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 84), (name_different, 42)]:
-            metric = find_metric_by_name(scope_metrics[0], instrument_name)
-            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            assert_sum_aggregation(
-                metric["sum"],
-                "AGGREGATION_TEMPORALITY_CUMULATIVE",
-                is_monotonic=False,
-                value=value,
-                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_gauge(self, test_agent, test_library, library_env):
-        name = "test_otel_create_gauge"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
+            for instrument_name in [gauge_name, gauge_name.upper(), gauge_name + "-different"]:
                 t.otel_create_gauge(
                     DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
                 )
@@ -521,33 +387,8 @@ class Test_Otel_Metrics_Api_Meter:
                     42,
                     DEFAULT_MEASUREMENT_ATTRIBUTES,
                 )
-            t.otel_metrics_force_flush()
 
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 42), (name_different, 42)]:
-            metric = find_metric_by_name(scope_metrics[0], instrument_name)
-            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_histogram(self, test_agent, test_library, library_env):
-        name = "test_otel_create_histogram"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
+            for instrument_name in [histogram_name, histogram_name.upper(), histogram_name + "-different"]:
                 t.otel_create_histogram(
                     DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
                 )
@@ -559,6 +400,49 @@ class Test_Otel_Metrics_Api_Meter:
                     42,
                     DEFAULT_MEASUREMENT_ATTRIBUTES,
                 )
+
+            for instrument_name in [
+                asynchronous_counter_name,
+                asynchronous_counter_name.upper(),
+                asynchronous_counter_name + "-different",
+            ]:
+                t.otel_create_asynchronous_counter(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [
+                asynchronous_updowncounter_name,
+                asynchronous_updowncounter_name.upper(),
+                asynchronous_updowncounter_name + "-different",
+            ]:
+                t.otel_create_asynchronous_updowncounter(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [
+                asynchronous_gauge_name,
+                asynchronous_gauge_name.upper(),
+                asynchronous_gauge_name + "-different",
+            ]:
+                t.otel_create_asynchronous_gauge(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
             t.otel_metrics_force_flush()
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
@@ -571,7 +455,39 @@ class Test_Otel_Metrics_Api_Meter:
 
         # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
         # and, as a result, will be aggregated together
-        for instrument_name, values in [(name, [42, 42]), (name_different, [42])]:
+
+        # Assert Counter aggregations
+        for instrument_name, value in [(counter_name, 84), (counter_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert UpDownCounter aggregations
+        for instrument_name, value in [(updowncounter_name, 84), (updowncounter_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert Gauge aggregations
+        for instrument_name, value in [(gauge_name, 42), (gauge_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+        # Assert Histogram aggregations
+        for instrument_name, values in [(histogram_name, [42, 42]), (histogram_name + "-different", [42])]:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_histogram_aggregation(
@@ -586,37 +502,8 @@ class Test_Otel_Metrics_Api_Meter:
                 attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_asynchronous_counter(self, test_agent, test_library, library_env):
-        name = "test_otel_create_asynchronous_counter"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
-                t.otel_create_asynchronous_counter(
-                    DEFAULT_METER_NAME,
-                    instrument_name,
-                    DEFAULT_INSTRUMENT_UNIT,
-                    DEFAULT_INSTRUMENT_DESCRIPTION,
-                    42,
-                    DEFAULT_MEASUREMENT_ATTRIBUTES,
-                )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 42), (name_different, 42)]:
+        # Assert Asynchronous Counter aggregations
+        for instrument_name, value in [(asynchronous_counter_name, 42), (asynchronous_counter_name + "-different", 42)]:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
@@ -627,37 +514,11 @@ class Test_Otel_Metrics_Api_Meter:
                 attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_asynchronous_updowncounter(self, test_agent, test_library, library_env):
-        name = "test_otel_create_asynchronous_updowncounter"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
-                t.otel_create_asynchronous_updowncounter(
-                    DEFAULT_METER_NAME,
-                    instrument_name,
-                    DEFAULT_INSTRUMENT_UNIT,
-                    DEFAULT_INSTRUMENT_DESCRIPTION,
-                    42,
-                    DEFAULT_MEASUREMENT_ATTRIBUTES,
-                )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 42), (name_different, 42)]:
+        # Assert Asynchronous UpDownCounter aggregations
+        for instrument_name, value in [
+            (asynchronous_updowncounter_name, 42),
+            (asynchronous_updowncounter_name + "-different", 42),
+        ]:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_sum_aggregation(
@@ -668,37 +529,8 @@ class Test_Otel_Metrics_Api_Meter:
                 attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
 
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_create_asynchronous_gauge(self, test_agent, test_library, library_env):
-        name = "test_otel_create_asynchronous_gauge"
-        name_upper = name.upper()
-        name_different = name + "-different"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-
-            for instrument_name in [name, name_upper, name_different]:
-                t.otel_create_asynchronous_gauge(
-                    DEFAULT_METER_NAME,
-                    instrument_name,
-                    DEFAULT_INSTRUMENT_UNIT,
-                    DEFAULT_INSTRUMENT_DESCRIPTION,
-                    42,
-                    DEFAULT_MEASUREMENT_ATTRIBUTES,
-                )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
-        # and, as a result, will be aggregated together
-        for instrument_name, value in [(name, 42), (name_different, 42)]:
+        # Assert Asynchronous Gauge aggregations
+        for instrument_name, value in [(asynchronous_gauge_name, 42), (asynchronous_gauge_name + "-different", 42)]:
             metric = find_metric_by_name(scope_metrics[0], instrument_name)
             assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
             assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
