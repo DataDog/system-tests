@@ -22,7 +22,7 @@
 #     - Start a pattern with *; it triggers YAML references. Use quotes.
 #     - Think that editing a default rule will apply the modification to all
 #       matching files. Many are probably caught by preceding rules. There is a
-#       debug-level log on pattern match (not displayed by default).
+#       debug-level log on pattern match.
 #
 # TIP: Valid scenario group names can be found in
 #                      utils/_context/_scenarios/core.py:26
@@ -453,7 +453,7 @@ patterns:
         scenario_groups: [ end_to_end, open_telemetry]
     manifests/*:
         scenario_groups: null  # already handled by the manifest comparison
-    tests/**/*:
+    tests/*:
         scenario_groups: null # dynamic selection
 
 
