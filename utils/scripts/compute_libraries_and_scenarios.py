@@ -264,10 +264,7 @@ class Inputs:
         self,
         mock: bool = False,  # noqa: FBT001, FBT002
         output: str | None = None,
-        event_name: str = "pull_request",
-        ref: str = "",
         is_gitlab: bool = False,  # noqa: FBT001, FBT002
-        pr_title: str = "",
         mapping_file: str | None = None,
         raw_impacts: dict[str, Any] | None = None,
         modified_files: list[str] | None = None,
@@ -276,11 +273,9 @@ class Inputs:
         new_manifests: dict[str, Any] | None = None,
         old_manifests: dict[str, Any] | None = None,
     ) -> None:
+        self.load_git_info()
         self.output = output
-        self.event_name = event_name
-        self.ref = ref
         self.is_gitlab = is_gitlab
-        self.pr_title = pr_title
         self.mapping_file = (
             mapping_file
             if mapping_file is not None
@@ -296,34 +291,18 @@ class Inputs:
         self.scenario_map = scenario_map
         self.new_manifests = new_manifests if new_manifests is not None else {}
         self.old_manifests = old_manifests if old_manifests is not None else {}
-        if not mock:
-            self.populate()
+
         if not self.raw_impacts:
             self.load_raw_impacts()
         if not self.scenario_map:
             self.load_scenario_mappings()
+        if self.modified_files is None:
+            self.load_modified_files()
+        if not self.new_manifests:
+            load_manifests("manifests/")
+        if not self.old_manifests:
+            load_manifests("original/manifests/")
 
-    def populate(self) -> None:
-        self.load_output()
-        self.load_git_info()
-        self.load_raw_impacts()
-        self.load_modified_files()
-        self.load_scenario_mappings()
-        self.load_manifests()
-
-    def load_output(self) -> None:
-        # Get output file (different for Gitlab and Github)
-        parser = argparse.ArgumentParser(description="print output")
-        parser.add_argument(
-            "--output",
-            "-o",
-            type=str,
-            default="",
-            help="Output file. If not provided, output to stdout",
-        )
-        args = parser.parse_args()
-
-        self.output = args.output
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
@@ -333,7 +312,7 @@ class Inputs:
             self.is_gitlab = True
         else:
             self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
-            self.ref = os.environ.get("GITHUB_REF", "fake-branch-name")
+            self.ref = os.environ.get("GITHUB_REF", "")
             self.pr_title = os.environ.get("GITHUB_PR_TITLE", "").lower()
 
     def load_raw_impacts(self) -> None:
@@ -355,11 +334,6 @@ class Inputs:
             # ./run.sh MOCK_THE_TEST --collect-only --scenario-report
             with open(self.scenario_map_file, encoding="utf-8") as f:
                 self.scenario_map = json.load(f)
-
-    def load_manifests(self) -> None:
-        # Collects old and new manifests, used to make a diff
-        self.new_manifests = load_manifests("manifests/")
-        self.old_manifests = load_manifests("original/manifests/")
 
 
 def extra_gitlab_output(inputs: Inputs) -> dict[str, str]:
@@ -426,7 +400,19 @@ def process(inputs: Inputs) -> list[str]:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    inputs = Inputs()
+
+    # Get output file (different for Gitlab and Github)
+    parser = argparse.ArgumentParser(description="print output")
+    parser.add_argument(
+        "--output",
+        "-o",
+        type=str,
+        default="",
+        help="Output file. If not provided, output to stdout",
+    )
+    args = parser.parse_args()
+
+    inputs = Inputs(output=args.output)
     strings_out = process(inputs)
     print_outputs(strings_out, inputs)
 
