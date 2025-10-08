@@ -133,6 +133,7 @@ def main() -> None:
                     r"\.circleci/.*": None,
                     r"\.vscode/.*": None,
                     r"\.github/actions/pull_images/action.yml": scenario_groups.end_to_end,
+                    r"\.github/chainguard/.*": None,
                     r"\.github/CODEOWNERS": None,
                     r"\.github/workflows/daily-tag\.yml": None,
                     r"\.github/workflows/debug-harness\.yml": None,

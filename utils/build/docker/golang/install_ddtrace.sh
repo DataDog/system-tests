@@ -28,6 +28,11 @@ elif [ -e "/binaries/golang-load-from-go-get" ]; then
         # Get the correct pseudo-version using go list
         pseudo_version=$(go list -m -json "$path@$commit" | jq -r .Version)
         go mod edit -replace "$path=$path@$pseudo_version"
+        for contrib in $CONTRIBS; do
+            echo "Install contrib $contrib from go get -v $contrib@commit"
+            go mod edit -replace "$contrib=$contrib@$pseudo_version"
+        done
+	break
     done
 else
     echo "Installing production dd-trace-version"

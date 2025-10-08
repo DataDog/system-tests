@@ -58,12 +58,8 @@ The different choices to debug the tests/scenario are documented on these docuem
 * [log folder structure](docs/execute/logs.md): Understand the log folder structure.
 * [pytest logs](docs/internals/pytest.md): Changing the log level output.
 
-
 ### Testing custom version of the tracer (binaries folder)
 * If you need how to test custom version of the tracer or how the binaries folder works read this documentation: [binaries folder](mdc:docs/execute/binaries.md)
 
 ### the chicken or the egg dilemma: Troubleshooting end-to-end tests/scenarios between a branch in the tracer and system-tests (main or specific branch)
 * If the user has a branch in tracer that would break the main system-tests branch, you can use this documentation to guide the user: [enable test](mdc:docs/edit/enable-test.md#alternative-approaches) and [target branch selection](mdc:docs/CI/system-tests-ci.md#target-branch-selection)
-
-
-

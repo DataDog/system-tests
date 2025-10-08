@@ -89,9 +89,6 @@ on:
         required: false
         type: boolean
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
@@ -146,9 +143,6 @@ jobs:
         scenarios: ${{ inputs.scenarios }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to the Container registry
-      if: ${{ inputs.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build weblog
       id: build
       run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
@@ -256,9 +250,6 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
-    - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"')
-      run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -297,9 +288,6 @@ jobs:
     - name: Run APPSEC_BLOCKING_FULL_DENYLIST scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_BLOCKING_FULL_DENYLIST"')
       run: ./run.sh APPSEC_BLOCKING_FULL_DENYLIST
-    - name: Run APPSEC_AND_RC_ENABLED scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_AND_RC_ENABLED"')
-      run: ./run.sh APPSEC_AND_RC_ENABLED
     - name: Run APPSEC_RUNTIME_ACTIVATION scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RUNTIME_ACTIVATION"')
       run: ./run.sh APPSEC_RUNTIME_ACTIVATION

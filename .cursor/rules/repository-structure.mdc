@@ -77,7 +77,6 @@ system-tests/
 |
 |-- build.sh            # Script to build test environment
 |-- run.sh              # Script to run tests and scenarios
-
 ```
 
 # Test Class Rules and Conventions / Test structure
@@ -112,7 +111,7 @@ system-tests/
   ```python
   def setup_XYZ(self):
       ...
-  
+
   def test_XYZ(self):
       ...
   ```

@@ -3,7 +3,7 @@
 # This script is needed only for this reason: https://datadoghq.atlassian.net/browse/AP-2165
 
 if [ -z "$INSTALLER_URL" ]; then
-    INSTALLER_URL="https://install.datadoghq.com/scripts/install_script_agent7.sh"
+    INSTALLER_URL="https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh"
 fi
 
 if [ "$DD_APM_INSTRUMENTATION_ENABLED" == "docker" ]; then
