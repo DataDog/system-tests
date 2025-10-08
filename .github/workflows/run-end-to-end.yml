@@ -445,6 +445,13 @@ jobs:
     - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING_BLOCKING"')
       run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
+    - name: Run STREAM_PROCESSING_OFFLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD
+    - name: Run STREAM_PROCESSING_OFFLOAD_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD_BLOCKING"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD_BLOCKING
+
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh

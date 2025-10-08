@@ -289,7 +289,7 @@ def _get_endtoend_weblogs(
 
     # weblog not related to a docker file
     if library == "golang":
-        result.append(Weblog(name="golang-external-processing", require_build=False, artifact_name=binaries_artifact))
+        result.append(Weblog(name="no-weblog-golang", require_build=False, artifact_name=binaries_artifact))
 
     return sorted(result, key=lambda w: w.name)
 
@@ -520,12 +520,15 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
-    # external processing
-    if weblog == "golang-external-processing":
-        if scenario not in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"):
+    # external processing and streamm processing
+    is_stream_processing_scenario = scenario in ("STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING")
+    is_external_processing_scenario = scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING")
+
+    if weblog == "no-weblog-golang":
+        if not is_stream_processing_scenario and not is_external_processing_scenario:
             return False
-    if scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"):
-        if weblog != "golang-external-processing":
+    if is_stream_processing_scenario or is_external_processing_scenario:
+        if weblog != "no-weblog-golang":
             return False
 
     return True
@@ -599,7 +602,6 @@ if __name__ == "__main__":
         ],
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
-        "streamprocessingoffload": [],
         "graphql": ["GRAPHQL_APPSEC"],
         "libinjection": [
             "K8S_LIB_INJECTION",

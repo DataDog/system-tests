@@ -96,8 +96,6 @@ class CiData:
             and library not in ("cpp_nginx", "cpp_httpd", "python_lambda"),
         }
 
-        self.data["streamprocessingoffload"] = {"scenarios": scenario_map.get("streamprocessingoffload", [])}
-
         self.data["libinjection_scenario_defs"] = get_k8s_matrix(
             "utils/scripts/ci_orchestrators/k8s_ssi.json",
             scenario_map.get("libinjection", []),
