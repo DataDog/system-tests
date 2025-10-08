@@ -1065,192 +1065,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
 
-@features.otel_metrics_api
-@scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
-class Test_Otel_Metrics_Configuration_Metric_Export_Interval:
-    """Tests the OpenTelemetry metrics export interval configuration.
-
-    This class validates the behavior of metric export interval configuration:
-    - Default interval values when no configuration is provided
-    - Export interval configuration through environment variable OTEL_METRIC_EXPORT_INTERVAL
-    - Telemetry configuration reporting
-    """
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TRACE_DEBUG": None,
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-            },
-        ],
-    )
-    def test_default_interval(self, test_agent, test_library, library_env):
-        """SDK uses default interval when no interval env vars are set."""
-        name = "test_default_interval"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        metrics_export_interval = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_METRIC_EXPORT_INTERVAL", "default", fallback_to_first=True
-        )
-
-        assert metrics_export_interval is not None, "OTEL_METRIC_EXPORT_INTERVAL should be set"
-
-        assert (
-            metrics_export_interval.get("value") == 10000
-        ), f"OTEL_METRIC_EXPORT_INTERVAL should be 10000, metrics_export_interval: {metrics_export_interval}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TRACE_DEBUG": None,
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_METRIC_EXPORT_INTERVAL": "5000",  # This value can be adjusted if the test becomes flaky
-            },
-        ],
-    )
-    def test_custom_interval(self, test_agent, test_library, library_env):
-        """SDK uses the provided interval when the env vars are set."""
-        name = "test_custom_interval"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        metrics_export_interval = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_METRIC_EXPORT_INTERVAL", "env_var", fallback_to_first=True
-        )
-
-        assert metrics_export_interval is not None, "OTEL_METRIC_EXPORT_INTERVAL should be set"
-
-        assert (
-            metrics_export_interval.get("value") == 5000
-        ), f"OTEL_METRIC_EXPORT_INTERVAL should be 5000, metrics_export_interval: {metrics_export_interval}"
-
-
-@features.otel_metrics_api
-@scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
-class Test_Otel_Metrics_Configuration_Metric_Export_Timeout:
-    """Tests the OpenTelemetry metrics export timeout configuration.
-
-    This class validates the behavior of the metric export timeout configuration:
-    - Default timeout values when no configuration is provided
-    - Export timeout configuration through environment variable OTEL_METRIC_EXPORT_TIMEOUT
-    - Telemetry configuration reporting
-    """
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TRACE_DEBUG": None,
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-            },
-        ],
-    )
-    def test_default_timeout(self, test_agent, test_library, library_env):
-        """SDK uses a non-standard default timeout when no timeout env vars are set."""
-        name = "test_default_timeout"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        metrics_export_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_METRIC_EXPORT_TIMEOUT", "default", fallback_to_first=True
-        )
-
-        assert metrics_export_timeout is not None, "OTEL_METRIC_EXPORT_TIMEOUT should be set"
-
-        assert (
-            metrics_export_timeout.get("value") == 7500
-        ), f"OTEL_METRIC_EXPORT_TIMEOUT should be 7500, metrics_export_timeout: {metrics_export_timeout}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TRACE_DEBUG": None,
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_METRIC_EXPORT_TIMEOUT": "5000",  # This value can be adjusted if the test becomes flaky
-            },
-        ],
-    )
-    def test_custom_timeout(self, test_agent, test_library, library_env):
-        """SDK uses the provided timeout when the env vars are set."""
-        name = "test_custom_timeout"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        metrics_export_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_METRIC_EXPORT_TIMEOUT", "env_var", fallback_to_first=True
-        )
-
-        assert metrics_export_timeout is not None, "OTEL_METRIC_EXPORT_TIMEOUT should be set"
-
-        assert (
-            metrics_export_timeout.get("value") == 5000
-        ), f"OTEL_METRIC_EXPORT_TIMEOUT should be 5000, metrics_export_timeout: {metrics_export_timeout}"
-
-
 @scenarios.parametric
 @features.otel_metrics_api
 @missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
@@ -1768,112 +1582,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
-class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout:
-    """Tests the OpenTelemetry OTLP exporter metrics timeout configuration.
-
-    This class validates the behavior of OTLP timeout configuration:
-    - Default timeout values when no configuration is provided
-    - Timeout configuration through environment variables OTEL_EXPORTER_OTLP_TIMEOUT and OTEL_EXPORTER_OTLP_METRICS_TIMEOUT
-    - Telemetry configuration reporting
-    """
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-            },
-        ],
-    )
-    def test_default_timeout(self, test_agent, test_library, library_env):
-        """SDK uses default timeout when no timeout env vars are set."""
-        name = "test_default_timeout"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        exporter_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_TIMEOUT", "default", fallback_to_first=True
-        )
-        exporter_metrics_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "default", fallback_to_first=True
-        )
-
-        assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
-        assert exporter_metrics_timeout is not None, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be set"
-
-        assert (
-            exporter_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
-        assert (
-            exporter_metrics_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be 10000, exporter_metrics_timeout: {exporter_metrics_timeout}"
-
-    @pytest.mark.parametrize(
-        "library_env",
-        [
-            {
-                "DD_METRICS_OTEL_ENABLED": "true",
-                "CORECLR_ENABLE_PROFILING": "1",
-                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_EXPORTER_OTLP_TIMEOUT": "1000",  # This value can be adjusted if the test becomes flaky
-                "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "5000",  # This value can be adjusted if the test becomes flaky
-            },
-        ],
-    )
-    def test_custom_timeout(self, test_agent, test_library, library_env):
-        """SDK uses default timeout when no timeout env vars are set."""
-        name = "test_default_timeout"
-
-        with test_library as t:
-            generate_default_counter_data_point(t, name)
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-        assert scope_metrics is not None
-
-        # Wait for telemetry configurations and verify the timeout has the default value of 10s
-        configurations_by_name = test_agent.wait_for_telemetry_configurations()
-
-        # Find default configurations (since no env vars are set, these should have default origin)
-        exporter_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_TIMEOUT", "env_var", fallback_to_first=True
-        )
-        exporter_metrics_timeout = test_agent.get_telemetry_config_by_origin(
-            configurations_by_name, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", "env_var", fallback_to_first=True
-        )
-
-        assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
-        assert exporter_metrics_timeout is not None, "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be set"
-
-        assert (
-            exporter_timeout.get("value") == 1000
-        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be 1000, exporter_timeout: {exporter_timeout}"
-        assert (
-            exporter_metrics_timeout.get("value") == 5000
-        ), f"OTEL_EXPORTER_OTLP_METRICS_TIMEOUT should be 5000, exporter_metrics_timeout: {exporter_metrics_timeout}"
-
-
-@features.otel_metrics_api
-@scenarios.parametric
-@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
 
@@ -2132,6 +1840,44 @@ class Test_Otel_Metrics_Telemetry:
     """
 
     @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "CORECLR_ENABLE_PROFILING": "1",
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+            },
+        ],
+    )
+    def test_telemetry_default_configurations(self, test_agent, test_library, library_env):
+        """Test default configurations values for environment variables associated with the OTel Metrics features."""
+        name = "test_telemetry_exporter_configurations"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", 10000),
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 10000),
+            ("OTEL_METRIC_EXPORT_INTERVAL", 10000),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", 7500),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "default", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
@@ -2141,6 +1887,8 @@ class Test_Otel_Metrics_Telemetry:
                     "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
                     "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
                     "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                    "OTEL_METRIC_EXPORT_INTERVAL": "5000",
+                    "OTEL_METRIC_EXPORT_TIMEOUT": "5000",
                 },
                 "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
@@ -2173,6 +1921,8 @@ class Test_Otel_Metrics_Telemetry:
             ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
             ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+            ("OTEL_METRIC_EXPORT_INTERVAL", 5000),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", 5000),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
