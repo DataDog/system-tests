@@ -71,6 +71,8 @@ class Param:
     def __init__(self):
         self.libraries: set[str] = LIBRARIES
         self.scenario_groups: set[str] = {scenario_groups.all.name}
+    def tup(self):
+        return self.scenario_groups, self.libraries
 
 
 def parse(inputs: Inputs) -> dict[str, Param]:
@@ -78,8 +80,12 @@ def parse(inputs: Inputs) -> dict[str, Param]:
     if inputs.raw_impacts is None:
         raise ValueError("raw_impacts is None")
     for pattern, param in inputs.raw_impacts.items():
-        libraries = param.get("libraries", LIBRARIES) or set()
-        scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
+        if param:
+            libraries = param.get("libraries", LIBRARIES) or set()
+            scenario_group_set = param.get("scenario_groups", scenario_groups.all.name) or set()
+        else:
+            libraries = LIBRARIES
+            scenario_group_set = scenario_groups.all.name
 
         if not check_libraries(libraries):
             raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
@@ -101,6 +107,12 @@ def parse(inputs: Inputs) -> dict[str, Param]:
 
     return ret
 
+def match_patterns(modified_file, impacts):
+    for pattern, requirement in impacts.items():
+        if fnmatch(modified_file, pattern):
+            logger.debug(f"Matched file {modified_file} with pattern {pattern}")
+            return requirement.tup()
+    logger.debug(f"No match found for file {modified_file}")
 
 class LibraryProcessor:
     def __init__(self, libraries: set[str] | None = None):
@@ -126,13 +138,12 @@ class LibraryProcessor:
                     "=> user library selection will be enforced without checks"
                 )
 
-    def compute_impacted(self, modified_file: str, impacts: dict[str, Param]) -> None:
+    def compute_impacted(self, modified_file: str, requirement) -> None:
         self.impacted = set()
 
-        for pattern, requirement in impacts.items():
-            if fnmatch(modified_file, pattern):
-                self.impacted |= requirement.libraries
-                return
+        if requirement is not None:
+            self.impacted |= requirement
+            return
 
         logger.warning(f"Unknown file {modified_file} was detected, activating all libraries.")
         self.impacted |= LIBRARIES
@@ -154,8 +165,8 @@ class LibraryProcessor:
                     Please remove the PR title prefix [{self.user_choice}]"""
         )
 
-    def add(self, file: str, impacts: dict[str, Param]) -> None:
-        self.compute_impacted(file, impacts)
+    def add(self, file: str,  requirement) -> None:
+        self.compute_impacted(file, requirement)
         if not self.is_manual(file):
             self.selected |= self.impacted
 
@@ -232,12 +243,10 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self.scenarios |= scenario_names
 
-    def process_regular_file(self, file: str, impacts: dict[str, Param]) -> None:
-        for pattern, requirement in impacts.items():
-            if fnmatch(file, pattern):
-                self.scenario_groups |= requirement.scenario_groups
-                # on first matching pattern, stop the loop
-                break
+    def process_regular_file(self, file: str, requirement) -> None:
+        if requirement is not None:
+            self.scenario_groups |= requirement
+
         else:
             logger.warning(f"Unknown file {file} was detected, activating all scenario groups.")
             self.scenario_groups.add(scenario_groups.all.name)
@@ -246,9 +255,9 @@ class ScenarioProcessor:
         if file in self.scenarios_by_files:
             self.scenarios |= self.scenarios_by_files[file]
 
-    def add(self, file: str, impacts: dict[str, Param]) -> None:
+    def add(self, file: str, requirement) -> None:
         self.process_test_files(file)
-        self.process_regular_file(file, impacts)
+        self.process_regular_file(file, requirement)
 
     def get_outputs(self) -> dict[str, str]:
         return {
@@ -377,8 +386,9 @@ def process(inputs: Inputs) -> list[str]:
         library_processor.process_pr_title(inputs)
 
         for file in inputs.modified_files:
-            scenario_processor.add(file, impacts)
-            library_processor.add(file, impacts)
+            new_scenario_groups, new_libraries = match_patterns(file, impacts) or (None, None)
+            scenario_processor.add(file, new_scenario_groups)
+            library_processor.add(file, new_libraries)
 
             if file in (
                 "utils/build/docker/lambda_proxy/pyproject.toml",
