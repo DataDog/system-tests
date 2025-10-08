@@ -292,7 +292,7 @@ class Inputs:
             else os.path.join(root_dir, "utils/scripts/libraries_and_scenarios_rules.yml")
         )
         self.raw_impacts = raw_impacts
-        self.modified_files = modified_files if modified_files is not None else []
+        self.modified_files = modified_files
         self.scenario_map_file = (
             scenario_map_file
             if scenario_map_file is not None
