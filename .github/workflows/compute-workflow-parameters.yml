@@ -67,9 +67,6 @@ on:
       parametric_enable:
         description: ""
         value: ${{ jobs.main.outputs.parametric_enable }}
-      externalprocessing_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
       streamprocessingoffload_scenarios:
         description: ""
         value: ${{ jobs.main.outputs.streamprocessingoffload_scenarios }}
@@ -103,7 +100,6 @@ jobs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
       endtoend_defs_parallel_jobs: ${{ steps.main.outputs.endtoend_defs_parallel_jobs }}
-      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
       streamprocessingoffload_scenarios: ${{ steps.main.outputs.streamprocessingoffload_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
