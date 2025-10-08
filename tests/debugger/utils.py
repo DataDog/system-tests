@@ -188,10 +188,10 @@ class BaseDebuggerTest:
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
                     elif language == "golang":
-                        probe["where"]["typeName"] = "-"  # Ignored
+                        probe["where"]["typeName"] = "main.DebuggerController"  # Ignored
                         method = probe["where"]["methodName"]
                         method = method[0].lower() + method[1:] if method else ""
-                        probe["where"]["methodName"] = "main." + method
+                        probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"

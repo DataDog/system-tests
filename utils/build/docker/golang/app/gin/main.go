@@ -344,8 +344,9 @@ func main() {
 	r.Any("/requestdownstream", ginHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", ginHandleFunc(common.Returnheaders))
 
-	r.Any("/debugger/log", ginHandleFunc(logProbe))
-	r.Any("/debugger/mix", ginHandleFunc(mixProbe))
+	var d DebuggerController
+	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
+	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
 
 	srv := &http.Server{
 		Addr:    ":7777",
@@ -385,10 +386,12 @@ func headers(ctx *gin.Context) {
 	ctx.Writer.Write([]byte("Hello, headers!"))
 }
 
-func logProbe(w http.ResponseWriter, r *http.Request) {
+type DebuggerController struct{}
+
+func (d *DebuggerController) logProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Log probe"))
 }
 
-func mixProbe(w http.ResponseWriter, r *http.Request) {
+func (d *DebuggerController) mixProbe(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Mix probe"))
 }
