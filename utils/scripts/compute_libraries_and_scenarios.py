@@ -14,11 +14,11 @@ import yaml
 
 from manifests.parser.core import load as load_manifests
 from utils._context._scenarios import scenario_groups, scenarios
+from utils._logger import logger
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
 
-logger = logging.getLogger(__name__)
 root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # noqa: PTH120, PTH100
 
 # do not include otel in system-tests CI by default, as the staging backend is not stable enough
