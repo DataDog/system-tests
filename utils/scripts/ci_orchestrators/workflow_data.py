@@ -208,10 +208,12 @@ class Job:
 
     def serialize(self) -> dict:
         return {
+            "runs_on": "ubuntu-latest",
             "library": self.library,
             "weblog": self.weblog,
-            "scenarios": sorted(self.scenarios),
+            "weblog_build_required": True,
             "weblog_instance": self.weblog_instance,
+            "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
         }
 

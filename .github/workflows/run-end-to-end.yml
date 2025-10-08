@@ -3,6 +3,10 @@ name: End-to-end tests
 on:
   workflow_call:
     inputs:
+      runs_on:
+        description: "Github runner"
+        required: true
+        type: string
       library:
         description: "Library to test"
         required: true
@@ -19,6 +23,10 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_build_required:
+        description: "Is ./build.sh required?"
+        required: true
+        type: boolean
       weblog_instance:
         description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
         required: false
@@ -145,7 +153,15 @@ jobs:
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      run: |
+        # If not required, skip but succeed so outcome == 'success'
+        if [[ "${{ inputs.weblog_build_required }}" == 'false' ]]; then
+          echo "Skipping build (weblog_build_required=false)"
+          exit 0
+        fi
+        ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      env:
+        SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')

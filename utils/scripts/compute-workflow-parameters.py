@@ -220,7 +220,7 @@ class CiData:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(prog="get-ci-parameters", description="Get scenarios and weblogs to run")
+    parser = argparse.ArgumentParser(prog="compute-workflow-parameters", description="Get scenarios and weblogs to run")
     parser.add_argument(
         "library",
         type=str,
