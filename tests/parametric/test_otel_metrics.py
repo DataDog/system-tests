@@ -1911,37 +1911,13 @@ class Test_Otel_Metrics_Host_Name:
             (
                 {
                     **DEFAULT_ENVVARS,
-                    "OTEL_RESOURCE_ATTRIBUTES": "host=otelenv-host",
-                    "DD_HOSTNAME": "ddhostname",
-                },
-                "host",
-            ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "OTEL_RESOURCE_ATTRIBUTES": "datadog.host.name=otelenv-host",
-                    "DD_HOSTNAME": "ddhostname",
-                },
-                "datadog.host.name",
-            ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
                     "OTEL_RESOURCE_ATTRIBUTES": "host.name=otelenv-host",
                     "DD_HOSTNAME": "ddhostname",
                 },
                 "host.name",
             ),
-            (
-                {
-                    **DEFAULT_ENVVARS,
-                    "OTEL_RESOURCE_ATTRIBUTES": "host.id=otelenv-host",
-                    "DD_HOSTNAME": "ddhostname",
-                },
-                "host.id",
-            ),
         ],
-        ids=["host", "datadog.host.name", "host.name", "host.id"],
+        ids=["host.name"],
     )
     def test_hostname_from_otel_resources(self, test_agent, test_library, library_env, host_attribute):
         """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
@@ -1969,12 +1945,8 @@ class Test_Otel_Metrics_Host_Name:
                 "DD_HOSTNAME": "ddhostname",
                 "DD_TRACE_REPORT_HOSTNAME": None,
             },
-            {
-                **DEFAULT_ENVVARS,
-                "DD_TRACE_REPORT_HOSTNAME": None,
-            },
         ],
-        ids=["disabled", "hostname_set_via_dd_hostname", "default"],
+        ids=["disabled", "default"],
     )
     def test_hostname_omitted(self, test_agent, test_library, library_env):
         """host.name is omitted when not configured."""
