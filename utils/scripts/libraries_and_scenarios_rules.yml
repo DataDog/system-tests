@@ -1,9 +1,37 @@
-# if a file modified matches a pattern in this following list, then
-# the subset will be applied
+#################################### READ ME ###################################
+# Modified files are matched against the following list of expressions. For each
+# expression, you can specify the list of libraries and scenario groups that
+# should be selected in case of a match. The following rules apply:
+#     - The first matching expression (top down) will be applied.
+#     - Sections are only organizational.
+#     - Field missing      → select ALL known values in that category.
+#     - Field = null or [] → select NONE.
+#     - Field = [list]     → select exactly those.
 #
-# Valid scenario group names can be found in ./utils/_context/_scenarios/core.py:26
-# Pattern cannot start with a * because it triggers yaml ref mechanism.
-# You can prefix any pattern with "./" or use quotes
+# The expressions support Unix shell-style wildcards (for reference see Python's
+# fnmatch function).
+# Matching is performed against repo-root-relative paths, case-sensitive.
+#
+################################ HOW TO EDIT ###################################
+# You should:
+#     - Put new rules in the best matching section.
+#     - Inside sections, if rules are permutable, sort them from most specific
+#       to most general and in lexicographic order.
+#
+# You should not:
+#     - Start a pattern with *; it triggers YAML references. Use quotes.
+#     - Think that editing a default rule will apply the modification to all
+#       matching files. Many are probably caught by preceding rules. There is a
+#       debug-level log on pattern match (not displayed by default).
+#
+# TIP: Valid scenario group names can be found in
+#                      utils/_context/_scenarios/core.py:26
+#
+# Notes: - Do not use regex tokens like \w, \d, etc.
+#        - This mechanism is tested in
+#                    tests/test_the_test/test_compute_libraries_and_scenarios.py
+################################################################################
+
 
 refs:
   - &lambda_libraries [python_lambda]
@@ -12,7 +40,7 @@ refs:
 patterns:
 
 ######################### High priority file type rules ########################
-# This section should contain rules that apply to files based on extensions as
+# This section should contain rules that apply to files based on extensions, as
 # well as a limited number of exceptions if applicable.
 ################################################################################
 
@@ -26,13 +54,93 @@ patterns:
         scenario_groups: null
         libraries: null
 
-    requirements.txt:
+    requirements.txt: # run all by default
     "*.txt":
         scenario_groups: null
         libraries: null
 
-################################# Github actions ###############################
-# This section contains the rules to apply to github actions related files
+#################### High priority top-level directory rules ###################
+# This section contains only rules applying to top-level directories
+# (e.g., directory/*). No exceptions are allowed. If some sub-paths require
+# specific rules, you should create a separate section or move the corresponding
+# rule from this section to the default section at the end of the file.
+################################################################################
+
+    .cursor/*:
+        scenario_groups: null
+    .circleci/*:
+        scenario_groups: null
+    .vscode/*:
+        scenario_groups: null
+    .promptfoo/*:
+        scenario_groups: null
+    binaries/*:
+        scenario_groups: null
+    docs/*:
+        scenario_groups: null
+    lib-injection/*:
+        scenario_groups: lib_injection
+
+################################ Single file rules #############################
+# This section contains rules applying to individual files that do not fit other
+# categories.
+################################################################################
+
+    repository.datadog.yml:
+        scenario_groups: null
+    .cursorrules:
+        scenario_groups: null
+    .dockerignore:
+        scenario_groups: null
+    .gitattributes:
+        scenario_groups: null
+    .gitignore:
+        scenario_groups: null
+    .gitlab-ci.yml:
+        scenario_groups: null
+    .shellcheck:
+        scenario_groups: null
+    .shellcheckrc:
+        scenario_groups: null
+    .yamlfmt:
+        scenario_groups: null
+    .yamllint:
+        scenario_groups: null
+    conftest.py: # run all by default
+    CHANGELOG.md:
+        scenario_groups: null
+    flake.lock:
+        scenario_groups: null
+    format.sh:
+        scenario_groups: null
+    LICENSE:
+        scenario_groups: null
+        libraries: null
+    LICENSE-3rdparty.csv:
+        scenario_groups: null
+        libraries: null
+    NOTICE:
+        scenario_groups: null
+        libraries: null
+    promptfooconfig.yaml:
+        scenario_groups: null
+        libraries: null
+    Pulumi.yaml:
+        scenario_groups: null
+        libraries: null
+    pyproject.toml:
+        scenario_groups: null
+    static-analysis.datadog.yml:
+        scenario_groups: null
+    README.md:
+        scenario_groups: null
+        libraries: null
+    run.sh: # run all by default
+    .gitlab/ssi_gitlab-ci.yml:
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
+
+################################ GitHub Actions ################################
+# This section contains rules to apply to files related to GitHub Actions.
 ################################################################################
 
     .github/actions/pull_images/action.yml:
@@ -61,39 +169,9 @@ patterns:
     .github/*:
         scenario_groups: null
 
-    .gitlab/ssi_gitlab-ci.yml:
-        scenario_groups: [onboarding, lib_injection, docker_ssi]
-
-#################### High priority top level directory rules ###################
-# This section contains only rules applying to top level directories
-# (ex: directory/*). No exceptions are allowed if some subpaths require specific
-# rules you should create a separate section
+############################## Scenario file rules #############################
+# This section contains rules to apply to scenario files.
 ################################################################################
-
-    .cursor/*:
-        scenario_groups: null
-
-    .circleci/*:
-        scenario_groups: null
-
-    .vscode/*:
-        scenario_groups: null
-
-
-    .promptfoo/*:
-        scenario_groups: null
-
-    binaries/*:
-        scenario_groups: null
-
-    docs/*:
-        scenario_groups: null
-
-    lib-injection/*:
-        scenario_groups: lib_injection
-
-    repository.datadog.yml:
-        scenario_groups: null
 
     utils/_context/_scenarios/appsec_low_waf_timeout.py:
         scenario_groups: appsec_low_waf_timeout
@@ -120,28 +198,12 @@ patterns:
         scenario_groups: profiling
     utils/_context/_scenarios/stream_processing_offload.py:
         scenario_groups: stream_processing_offload
-    utils/_context/virtual_machine.py:
-        scenario_groups: onboarding
-    utils/build/ssi/*:
-        scenario_groups: docker_ssi
-    utils/build/virtual_machine/*:
-        scenario_groups: onboarding
-    utils/docker_ssi/*:
-        scenario_groups: docker_ssi
-    utils/_features.py:
-        scenario_groups: default
-    utils/interfaces/schemas*:
-        scenario_groups: end_to_end
-    utils/k8s_lib_injection*:
-        scenario_groups: lib_injection
-    utils/onboarding*:
-        scenario_groups: onboarding
-    utils/parametric/*:
-        scenario_groups: parametric
-    utils/telemetry/*:
-        scenario_groups: telemetry
-    utils/proxy/*:
-        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
+
+
+############################### Script file rules ##############################
+# This section contains rules to apply to script files.
+################################################################################
+
     utils/scripts/activate-easy-wins.py:
         scenario_groups: null
         libraries: null
@@ -171,7 +233,36 @@ patterns:
         scenario_groups: null
     utils/scripts/update_protobuf.sh:
         scenario_groups: null
+
+############################# Utils directory rules ############################
+# This section contains rules to apply to files in the utils directory.
+################################################################################
+
+    utils/_context/virtual_machine.py:
+        scenario_groups: onboarding
+
+    utils/docker_ssi/*:
+        scenario_groups: docker_ssi
+    utils/_features.py:
+        scenario_groups: default
+    utils/interfaces/schemas*:
+        scenario_groups: end_to_end
+    utils/k8s_lib_injection*:
+        scenario_groups: lib_injection
+    utils/onboarding*:
+        scenario_groups: onboarding
+    utils/parametric/*:
+        scenario_groups: parametric
+    utils/telemetry/*:
+        scenario_groups: telemetry
+    utils/proxy/*:
+        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
     utils/virtual_machine/*:
+        scenario_groups: onboarding
+
+    utils/build/ssi/*:
+        scenario_groups: docker_ssi
+    utils/build/virtual_machine/*:
         scenario_groups: onboarding
 
     utils/build/docker/lambda_proxy/*:
@@ -179,8 +270,23 @@ patterns:
         libraries: *lambda_libraries
     utils/build/docker/nodejs_otel/*:
         scenario_groups: open_telemetry
-    utils/build/docker/\w+/parametric/*:
+    utils/build/docker/*/parametric/*:
         scenario_groups: parametric
+
+############################ Library-specific rules ############################
+# This section contains rules to apply to library-related files. It follows the
+# template below for each language:
+# manifests/{library}.yml:
+#     scenario_groups: null  # already handled by the manifest comparison
+#     libraries: {library}
+# utils/build/docker/{library}/*:
+#     libraries: {library}
+#     scenario_groups: [ end_to_end, open_telemetry]
+# lib-injection/build/docker/{library}/*:
+#     libraries: {library}
+# utils/build/build_{library}_base_images.sh:
+#     libraries: {library}
+################################################################################
 
     manifests/cpp.yml:
         scenario_groups: null  # already handled by the manifest comparison
@@ -336,65 +442,17 @@ patterns:
     utils/build/build_java_otel_base_images.sh:
         libraries: java_otel
 
+################################# Default rules ################################
+# The rules in this section are only applied if no other rule is applicable.
+# They are considered safe to override in previous rules. They should match a
+# large number of files. If your rule is more specific, please find a more
+# appropriate section.
+################################################################################
+
     utils/build/docker/*:
         scenario_groups: [ end_to_end, open_telemetry]
-    utils/*:
-        scenario_groups: all
     manifests/*:
         scenario_groups: null  # already handled by the manifest comparison
-    .cursorrules:
-        scenario_groups: null
-    .dockerignore:
-        scenario_groups: null
-    .gitattributes:
-        scenario_groups: null
-    .gitignore:
-        scenario_groups: null
-    .gitlab-ci.yml:
-        scenario_groups: null
-    .shellcheck:
-        scenario_groups: null
-    .shellcheckrc:
-        scenario_groups: null
-    .yamlfmt:
-        scenario_groups: null
-    .yamllint:
-        scenario_groups: null
-    conftest.py:
-        scenario_groups: all
-    CHANGELOG.md:
-        scenario_groups: null
-    flake.lock:
-        scenario_groups: null
-    format.sh:
-        scenario_groups: null
-    LICENSE:
-        scenario_groups: null
-        libraries: null
-    LICENSE-3rdparty.csv:
-        scenario_groups: null
-        libraries: null
-    NOTICE:
-        scenario_groups: null
-        libraries: null
-    promptfooconfig.yaml:
-        scenario_groups: null
-        libraries: null
-    Pulumi.yaml:
-        scenario_groups: null
-        libraries: null
-    pyproject.toml:
-        scenario_groups: null
-    static-analysis.datadog.yml:
-        scenario_groups: null
-    README.md:
-        scenario_groups: null
-        libraries: null
-    requirements.txt:
-        scenario_groups: all
-    run.sh:
-        scenario_groups: all
-
     tests/**/*:
         scenario_groups: null # dynamic selection
 
