@@ -71,7 +71,8 @@ class Param:
     def __init__(self):
         self.libraries: set[str] = LIBRARIES
         self.scenario_groups: set[str] = {scenario_groups.all.name}
-    def tup(self):
+
+    def tup(self) -> tuple[set[str], set[str]]:
         return self.scenario_groups, self.libraries
 
 
@@ -107,12 +108,15 @@ def parse(inputs: Inputs) -> dict[str, Param]:
 
     return ret
 
-def match_patterns(modified_file, impacts):
+
+def match_patterns(modified_file: str, impacts: dict[str, Param]) -> tuple[set[str], set[str]] | None:
     for pattern, requirement in impacts.items():
         if fnmatch(modified_file, pattern):
             logger.debug(f"Matched file {modified_file} with pattern {pattern}")
             return requirement.tup()
     logger.debug(f"No match found for file {modified_file}")
+    return None
+
 
 class LibraryProcessor:
     def __init__(self, libraries: set[str] | None = None):
@@ -138,7 +142,7 @@ class LibraryProcessor:
                     "=> user library selection will be enforced without checks"
                 )
 
-    def compute_impacted(self, modified_file: str, requirement) -> None:
+    def compute_impacted(self, modified_file: str, requirement: set[str] | None) -> None:
         self.impacted = set()
 
         if requirement is not None:
@@ -165,7 +169,7 @@ class LibraryProcessor:
                     Please remove the PR title prefix [{self.user_choice}]"""
         )
 
-    def add(self, file: str,  requirement) -> None:
+    def add(self, file: str, requirement: set[str] | None) -> None:
         self.compute_impacted(file, requirement)
         if not self.is_manual(file):
             self.selected |= self.impacted
@@ -243,7 +247,7 @@ class ScenarioProcessor:
                     if sub_file.startswith(folder):
                         self.scenarios |= scenario_names
 
-    def process_regular_file(self, file: str, requirement) -> None:
+    def process_regular_file(self, file: str, requirement: set[str] | None) -> None:
         if requirement is not None:
             self.scenario_groups |= requirement
 
@@ -255,7 +259,7 @@ class ScenarioProcessor:
         if file in self.scenarios_by_files:
             self.scenarios |= self.scenarios_by_files[file]
 
-    def add(self, file: str, requirement) -> None:
+    def add(self, file: str, requirement: set[str] | None) -> None:
         self.process_test_files(file)
         self.process_regular_file(file, requirement)
 
