@@ -190,6 +190,10 @@ def get_docker_ssi_matrix(
 class Weblog:
     name: str
     require_build: bool
+    artifact_name: str
+
+    def serialize(self) -> dict:
+        return {"name": self.name, "artifact_name": self.artifact_name}
 
 
 class Job:
@@ -222,6 +226,7 @@ class Job:
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
+            "binaries_artifact": self.weblog.artifact_name,
         }
 
     @property
@@ -263,7 +268,9 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[Weblog]:
+def _get_endtoend_weblogs(
+    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+) -> list[Weblog]:
     folder = f"utils/build/docker/{library}"
     names = [
         f.replace(".Dockerfile", "")
@@ -275,11 +282,14 @@ def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[Weblo
         # filter weblogs by the weblogs_filter set
         names = [weblog for weblog in names if weblog in weblogs_filter]
 
-    result = [Weblog(name=name, require_build=True) for name in names]
+    result = [
+        Weblog(name=name, require_build=True, artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}")
+        for name in names
+    ]
 
     # weblog not related to a docker file
     if library == "golang":
-        result.append(Weblog(name="golang-external-processing", require_build=False))
+        result.append(Weblog(name="golang-external-processing", require_build=False, artifact_name=binaries_artifact))
 
     return sorted(result, key=lambda w: w.name)
 
@@ -291,6 +301,8 @@ def get_endtoend_definitions(
     ci_environment: str,
     desired_execution_time: int,
     maximum_parallel_jobs: int,
+    unique_id: str,
+    binaries_artifact: str,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -299,7 +311,9 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs: list[Weblog] = _get_endtoend_weblogs(library, weblogs_filter)
+    weblogs: list[Weblog] = _get_endtoend_weblogs(
+        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+    )
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -333,10 +347,13 @@ def get_endtoend_definitions(
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
 
+    weblogs = list({job.weblog.name: job.weblog for job in jobs}.values())
+    weblogs.sort(key=lambda w: w.name)
+
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": sorted({job.weblog.name for job in jobs if job.weblog.require_build}),
+            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_build],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -602,4 +619,13 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, [], "dev", desired_execution_time=400, maximum_parallel_jobs=256)
+    get_endtoend_definitions(
+        "ruby",
+        m,
+        [],
+        "dev",
+        desired_execution_time=400,
+        maximum_parallel_jobs=256,
+        binaries_artifact="",
+        unique_id="000",
+    )

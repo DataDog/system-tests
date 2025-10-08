@@ -178,7 +178,7 @@ jobs:
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   build_end_to_end:
-    name: Build end-to-end (${{ matrix.weblog }})
+    name: Build end-to-end (${{ matrix.weblog.name }})
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
@@ -220,7 +220,7 @@ jobs:
           ./utils/build/build_python_base_images.sh
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
         if: always()
         run: |
@@ -234,7 +234,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+          name: ${{ matrix.weblog.artifact_name }}
           path: binaries/
           retention-days: ${{ inputs.artifact_retention_days }}
 
@@ -259,7 +259,7 @@ jobs:
       weblog_build_required: ${{ matrix.job.weblog_build_required }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       force_execute: ${{ inputs.force_execute }}
-      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+      binaries_artifact: ${{ matrix.job.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
