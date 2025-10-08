@@ -244,6 +244,8 @@ class Test_ComputeLibrariesAndScenarios:
 
     def test_gitlab(self):
         self.inputs.is_gitlab = True
+        self.inputs.ref = ""
+        self.inputs.event_name = "pull_request"
         self.inputs.modified_files = ["README.md"]
 
         strings_out = process(self.inputs)
