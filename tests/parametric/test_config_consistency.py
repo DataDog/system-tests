@@ -428,7 +428,7 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
 class Test_Stable_Config_Default(StableConfigWriter):
-    """Verify that stable config works as intended"""
+    """Verify that stable config works as intended (apm_configuration_default)"""
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
@@ -680,11 +680,14 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 "unexpected values for the following configurations: {}"
             ).format([k for k in config.keys() & expected.keys() if config[k] != expected[k]])
 
+
+@scenarios.parametric
+@features.stable_configuration_support
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+class Test_Stable_Config_Rules(StableConfigWriter):
+    """Verify that stable config targeting rules work as intended (apm_configuration_rules)"""
+
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
-        reason="UST stable config is phase 2",
-    )
     def test_targeting_rules(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
@@ -713,10 +716,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 config["dd_service"] == "my-service"
             ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
 
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
-        reason="UST stable config is phase 2",
-    )
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
         [
