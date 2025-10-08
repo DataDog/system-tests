@@ -45,3 +45,25 @@ class my_test_class:
 * After adding a new scenario on [scenarios](mdc:utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
 * After adding a new end to end scenario ask to the user if needs help to include the scenario in the CI GitHub Workflow.
 * Use [github end to end ci](mdc:.github/workflows/run-end-to-end.yml) and [workflow datada](mdc:utils/scripts/ci_orchestrators/workflow_data.py) to register a new end to end scenario on Github CI.
+
+### Debugging/Troubleshooting end-to-end tests/scenarios
+
+The different choices to debug the tests/scenario are documented on these docuemnts:
+
+* [sleep mode](mdc:docs/execute/run.md): Use the '--sleep' parameter to spawn components (start containers), but do nothing (keep the components alive without launching the tests).
+* [replay mode](mdc:docs/execute/replay.md): The replay mode reuses a previously executed test scenario to skip environment setup and rerun only the test methods, drastically speeding up iterations during system test development.
+* [run individual tests](docs/architecture/overview.md): Run individual tests
+* [user logger](docs/edit/troubleshooting.md): How to add more log traces in your code.
+* [activate tracer debug](docs/execute/dd-trace-debug.md): Activate the tracer debug traces.
+* [log folder structure](docs/execute/logs.md): Understand the log folder structure.
+* [pytest logs](docs/internals/pytest.md): Changing the log level output.
+
+
+### Testing custom version of the tracer (binaries folder)
+* If you need how to test custom version of the tracer or how the binaries folder works read this documentation: [binaries folder](mdc:docs/execute/binaries.md)
+
+### the chicken or the egg dilemma: Troubleshooting end-to-end tests/scenarios between a branch in the tracer and system-tests (main or specific branch)
+* If the user has a branch in tracer that would break the main system-tests branch, you can use this documentation to guide the user: [enable test](mdc:docs/edit/enable-test.md#alternative-approaches) and [target branch selection](mdc:docs/CI/system-tests-ci.md#target-branch-selection)
+
+
+
