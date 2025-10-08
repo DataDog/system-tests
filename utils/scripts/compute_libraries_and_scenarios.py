@@ -390,6 +390,7 @@ def process(inputs: Inputs) -> list[str]:
 
         library_processor.process_pr_title(inputs)
 
+        assert inputs.modified_files is not None
         for file in inputs.modified_files:
             new_scenario_groups, new_libraries = match_patterns(file, impacts) or (None, None)
             scenario_processor.add(file, new_scenario_groups)
