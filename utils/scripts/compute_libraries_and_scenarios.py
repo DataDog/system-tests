@@ -283,9 +283,9 @@ class Inputs:
         new_manifests: dict[str, Any] | None = None,
         old_manifests: dict[str, Any] | None = None,
     ) -> None:
+        self.is_gitlab = is_gitlab
         self.load_git_info()
         self.output = output
-        self.is_gitlab = is_gitlab
         self.mapping_file = (
             mapping_file
             if mapping_file is not None
@@ -374,6 +374,7 @@ def process(inputs: Inputs) -> list[str]:
     impacts = parse(inputs)
     if inputs.is_gitlab:
         outputs |= extra_gitlab_output(inputs)
+        logging.disable()
 
     rebuild_lambda_proxy = False
 
