@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
@@ -185,11 +186,17 @@ def get_docker_ssi_matrix(
 
 
 # End-to-end corner
+@dataclass
+class Weblog:
+    name: str
+    require_build: bool
+
+
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: str, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
     ):
         self.library = library
         self.weblog = weblog
@@ -210,8 +217,8 @@ class Job:
         return {
             "runs_on": "ubuntu-latest",
             "library": self.library,
-            "weblog": self.weblog,
-            "weblog_build_required": True,
+            "weblog": self.weblog.name,
+            "weblog_build_required": self.weblog.require_build,
             "weblog_instance": self.weblog_instance,
             "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
@@ -227,7 +234,7 @@ class Job:
 
     @property
     def sort_key(self) -> tuple:
-        return (self.weblog, self.weblog_instance)
+        return (self.weblog.name, self.weblog_instance)
 
     def get_scenario_time(self, scenario: str) -> float:
         return self._scenarios_times[scenario]
@@ -256,9 +263,9 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
+def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[Weblog]:
     folder = f"utils/build/docker/{library}"
-    result = [
+    names = [
         f.replace(".Dockerfile", "")
         for f in os.listdir(folder)
         if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
@@ -266,9 +273,15 @@ def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
 
     if len(weblogs_filter) != 0:
         # filter weblogs by the weblogs_filter set
-        result = [weblog for weblog in result if weblog in weblogs_filter]
+        names = [weblog for weblog in names if weblog in weblogs_filter]
 
-    return sorted(result)
+    result = [Weblog(name=name, require_build=True) for name in names]
+
+    # weblog not related to a docker file
+    if library == "golang":
+        result.append(Weblog(name="golang-external-processing", require_build=False))
+
+    return sorted(result, key=lambda w: w.name)
 
 
 def get_endtoend_definitions(
@@ -286,7 +299,7 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs = _get_endtoend_weblogs(library, weblogs_filter)
+    weblogs: list[Weblog] = _get_endtoend_weblogs(library, weblogs_filter)
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -294,11 +307,11 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog.name, ci_environment)
 
         if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
             scenarios_times = {
-                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                scenario: _get_execution_time(library, weblog.name, scenario, time_stats["run"])
                 for scenario in supported_scenarios
             }
 
@@ -323,7 +336,7 @@ def get_endtoend_definitions(
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": sorted({job.weblog for job in jobs}),
+            "parallel_weblogs": sorted({job.weblog.name for job in jobs if job.weblog.require_build}),
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -393,14 +406,17 @@ def _split_scenarios_for_parallel_execution(
     return [backpack.scenarios for backpack in backpacks]
 
 
-def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
+def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
+    if not weblog.require_build:
+        return 0.0
+
     if library not in build_stats:
         return build_stats["*"]
 
-    if weblog not in build_stats[library]:
+    if weblog.name not in build_stats[library]:
         return build_stats[library]["*"]
 
-    return build_stats[library][weblog]
+    return build_stats[library][weblog.name]
 
 
 def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int | float:
@@ -485,6 +501,14 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     # open-telemetry-automatic
     if weblog in ["express4-otel", "flask-poc-otel", "spring-boot-otel"]:
         if scenario not in ("OTEL_INTEGRATIONS",):
+            return False
+
+    # external processing
+    if weblog == "golang-external-processing":
+        if scenario not in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"):
+            return False
+    if scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING"):
+        if weblog != "golang-external-processing":
             return False
 
     return True
