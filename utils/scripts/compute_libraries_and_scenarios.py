@@ -84,9 +84,7 @@ def parse(inputs: Inputs) -> dict[str, Param]:
         if not check_libraries(libraries):
             raise ValueError(f"One or more of the libraries for {pattern} does not exist: {libraries}")
         if not check_scenario(scenario_group_set):
-            raise ValueError(
-                f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}"
-            )
+            raise ValueError(f"One or more of the scenario groups for {pattern} does not exist: {scenario_group_set}")
 
         if pattern not in ret:
             ret[pattern] = Param()
@@ -262,7 +260,6 @@ class ScenarioProcessor:
 class Inputs:
     def __init__(
         self,
-        mock: bool = False,  # noqa: FBT001, FBT002
         output: str | None = None,
         is_gitlab: bool = False,  # noqa: FBT001, FBT002
         mapping_file: str | None = None,
@@ -302,7 +299,6 @@ class Inputs:
             load_manifests("manifests/")
         if not self.old_manifests:
             load_manifests("original/manifests/")
-
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
@@ -393,7 +389,11 @@ def process(inputs: Inputs) -> list[str]:
     if inputs.is_gitlab:
         outputs |= scenario_processor.get_outputs()
     else:
-        outputs |= library_processor.get_outputs() | {"rebuild_lambda_proxy": rebuild_lambda_proxy} | scenario_processor.get_outputs()
+        outputs |= (
+            library_processor.get_outputs()
+            | {"rebuild_lambda_proxy": rebuild_lambda_proxy}
+            | scenario_processor.get_outputs()
+        )
 
     return stringify_outputs(outputs)
 

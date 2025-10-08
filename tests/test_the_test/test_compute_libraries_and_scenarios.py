@@ -15,7 +15,7 @@ class Test_ComputeLibrariesAndScenarios:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup method that runs before each test to create a fresh Inputs object."""
-        self.inputs = Inputs(mock=True, scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[])
+        self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[])
 
     def test_complete_file_path(self):
         self.inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
@@ -163,7 +163,7 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_library_tag(self):
-        self.inputs.pr_title =  "[java] Some title"
+        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
 
         strings_out = process(self.inputs)
@@ -178,14 +178,14 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_wrong_library_tag(self):
-        self.inputs.pr_title =  "[java] Some title"
+        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
 
         with pytest.raises(ValueError):
             process(self.inputs)
 
     def test_wrong_library_tag_with_branch(self):
-        self.inputs.pr_title =  "[java@main] Some title"
+        self.inputs.pr_title = "[java@main] Some title"
         self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
 
         strings_out = process(self.inputs)
@@ -200,7 +200,7 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_wrong_library_tag_with_test_file(self):
-        self.inputs.pr_title =  "[java] Some title"
+        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
 
         strings_out = process(self.inputs)
@@ -272,7 +272,7 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_unknown_library_tag(self):
-        self.inputs.pr_title =  "[perl] Some title"
+        self.inputs.pr_title = "[perl] Some title"
         self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
 
         strings_out = process(self.inputs)
