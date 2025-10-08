@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from functools import wraps
+
 import pytest
 from manifests.parser.core import load as load_manifests
 from utils.scripts.compute_libraries_and_scenarios import Inputs, process
@@ -8,6 +10,26 @@ from utils import scenarios
 
 all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"library": "cpp_httpd", "version": "prod"}, {"library": "cpp_nginx", "version": "prod"}, {"library": "dotnet", "version": "prod"}, {"library": "golang", "version": "prod"}, {"library": "java", "version": "prod"}, {"library": "nodejs", "version": "prod"}, {"library": "php", "version": "prod"}, {"library": "python", "version": "prod"}, {"library": "python_lambda", "version": "prod"}, {"library": "ruby", "version": "prod"}, {"library": "rust", "version": "prod"}, {"library": "cpp", "version": "dev"}, {"library": "cpp_httpd", "version": "dev"}, {"library": "cpp_nginx", "version": "dev"}, {"library": "dotnet", "version": "dev"}, {"library": "golang", "version": "dev"}, {"library": "java", "version": "dev"}, {"library": "nodejs", "version": "dev"}, {"library": "php", "version": "dev"}, {"library": "python", "version": "dev"}, {"library": "python_lambda", "version": "dev"}, {"library": "ruby", "version": "dev"}, {"library": "rust", "version": "dev"}]'
 all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
+
+
+def set_env(key, value):
+    """Decorator to set an environment variable before test runs using monkeypatch."""
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self):
+            monkeypatch = pytest.MonkeyPatch()
+            try:
+                monkeypatch.setenv(key, value)
+                # Recreate inputs with the new environment variable
+                self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[])
+                return func(self)
+            finally:
+                monkeypatch.undo()
+
+        return wrapper
+
+    return decorator
 
 
 @scenarios.test_the_test
@@ -73,8 +95,8 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups="end_to_end,open_telemetry"',
         ]
 
+    @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
-        self.inputs.ref = "refs/heads/main"
         self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
 
         strings_out = process(self.inputs)
@@ -162,8 +184,8 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups=""',
         ]
 
+    @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_library_tag(self):
-        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
 
         strings_out = process(self.inputs)
@@ -177,15 +199,15 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups="end_to_end,open_telemetry"',
         ]
 
+    @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag(self):
-        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
 
         with pytest.raises(ValueError):
             process(self.inputs)
 
+    @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
     def test_wrong_library_tag_with_branch(self):
-        self.inputs.pr_title = "[java@main] Some title"
         self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
 
         strings_out = process(self.inputs)
@@ -199,8 +221,8 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups="end_to_end,open_telemetry"',
         ]
 
+    @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag_with_test_file(self):
-        self.inputs.pr_title = "[java] Some title"
         self.inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
 
         strings_out = process(self.inputs)
@@ -242,10 +264,10 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups=""',
         ]
 
+    @set_env("GITLAB_CI", "true")
+    @set_env("CI_PIPELINE_SOURCE", "pull_request")
+    @set_env("CI_COMMIT_REF_NAME", "")
     def test_gitlab(self):
-        self.inputs.is_gitlab = True
-        self.inputs.ref = ""
-        self.inputs.event_name = "pull_request"
         self.inputs.modified_files = ["README.md"]
 
         strings_out = process(self.inputs)
@@ -273,8 +295,8 @@ class Test_ComputeLibrariesAndScenarios:
             'scenario_groups=""',
         ]
 
+    @set_env("GITHUB_PR_TITLE", "[perl] Some title")
     def test_unknown_library_tag(self):
-        self.inputs.pr_title = "[perl] Some title"
         self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
 
         strings_out = process(self.inputs)

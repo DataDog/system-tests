@@ -274,7 +274,6 @@ class Inputs:
     def __init__(
         self,
         output: str | None = None,
-        is_gitlab: bool = False,  # noqa: FBT001, FBT002
         mapping_file: str | None = None,
         raw_impacts: dict[str, Any] | None = None,
         modified_files: list[str] | None = None,
@@ -283,7 +282,7 @@ class Inputs:
         new_manifests: dict[str, Any] | None = None,
         old_manifests: dict[str, Any] | None = None,
     ) -> None:
-        self.is_gitlab = is_gitlab
+        self.is_gitlab = False
         self.load_git_info()
         self.output = output
         self.mapping_file = (
