@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context
+from utils import scenarios, features, missing_feature, context, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -41,7 +41,11 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 
         ### send requests
         self.send_rc_probes()
-        self.wait_for_all_probes(statuses=["INSTALLED"])
+        if not self.wait_for_all_probes(statuses=["INSTALLED"], timeout=60):
+            self.setup_failures.append("Probes did not reach INSTALLED status")
+            # Stop the test if the probes did not reach INSTALLED status since the probe won't exist
+            # to send a snapshot.
+            return
 
         start_time = time.time()
         self.send_weblog_request(request_path)
@@ -50,7 +54,9 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         self.total_request_time = end_time - start_time
 
         self.wait_for_all_probes(statuses=["EMITTING"])
-        self.wait_for_snapshot_received()
+
+        if not self.wait_for_snapshot_received(timeout=60):
+            self.setup_failures.append("Snapshot was not received")
 
     def _assert(self):
         self.collect()
@@ -250,6 +256,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self._assert()
         self._validate_spans()
 
+    @irrelevant(
+        condition=context.library == "java" and context.weblog_variant != "spring-boot",
+    )
     def setup_process_tags_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
