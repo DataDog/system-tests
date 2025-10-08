@@ -87,6 +87,7 @@ class TestedContainer:
         image_name: str,
         *,
         allow_old_container: bool = False,
+        binary_file_name: str | None = None,
         cap_add: list[str] | None = None,
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
@@ -104,7 +105,9 @@ class TestedContainer:
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.allow_old_container = allow_old_container
 
-        self.image = ImageInfo(image_name, local_image_only=local_image_only)
+        self.image = ImageInfo(
+            self._get_image_name(binary_file_name, default_name=image_name), local_image_only=local_image_only
+        )
         self.healthcheck = healthcheck
 
         # healthy values:
@@ -127,6 +130,18 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+
+    def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
+        # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
+        # may exists and contains the name of the image to use for this container
+        if binary_file_name is None:
+            return default_name
+
+        try:
+            with open(f"binaries/{binary_file_name}", encoding="utf-8") as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            return default_name
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -161,6 +176,8 @@ class TestedContainer:
 
         if self.stdout_interface:
             self.stdout_interface.configure(host_log_folder, replay=replay)
+
+        logger.info(f"Using {self.image.name} for container {self.name}")
 
     @property
     def container_name(self):
@@ -669,8 +686,9 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
-            image_name=self._get_image_name(),
             name="agent",
+            image_name="datadog/agent:latest",
+            binary_file_name="agent-image",
             environment=environment,
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
@@ -688,13 +706,6 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version: str | None = ""
-
-    def _get_image_name(self) -> str:
-        try:
-            with open("binaries/agent-image", encoding="utf-8") as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            return "datadog/agent:latest"
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -1287,7 +1298,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
     ) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
         # Allow custom config file via environment variable
         self._otel_config_host_path = config_file
 
@@ -1301,8 +1311,9 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         self._otel_port = 13133
 
         super().__init__(
-            image_name=image,
             name="collector",
+            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            binary_file_name="otel_collector-image",
             command="--config=/etc/otelcol-config.yml",
             environment=environment,
             volumes=volumes,

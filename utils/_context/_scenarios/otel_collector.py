@@ -24,7 +24,7 @@ class OtelCollectorScenario(DockerScenario):
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
             environment={
-                "DD_API_KEY": "fake",
+                "DD_API_KEY": "0123",
                 "DD_SITE": "datadoghq.com",
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
@@ -39,15 +39,23 @@ class OtelCollectorScenario(DockerScenario):
         self._required_containers.append(self.collector_container)
 
     def configure(self, config: pytest.Config) -> None:
-        interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
-
         super().configure(config)
+
+        interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
+        self.library = ComponentVersion(
+            "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
+        )
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])
 
+    def _print_otel_collector_version(self):
+        logger.stdout(f"Otel collector: {self.library}")
+
     def get_warmups(self) -> list:
         warmups = super().get_warmups()
+
+        warmups.append(self._print_otel_collector_version)
 
         if not self.replay:
             warmups.insert(1, self._start_interfaces_watchdog)
