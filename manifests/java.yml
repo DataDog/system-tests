@@ -1745,6 +1745,13 @@ tests/:
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
+    test_xml_instrumentation.py:
+      Test_XmlWafIntegration:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+      Test_XmlJsonParity:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     test_shell_execution.py:
       Test_ShellExecution:
         '*': v1.2.0
