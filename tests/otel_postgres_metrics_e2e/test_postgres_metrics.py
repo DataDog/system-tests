@@ -1,4 +1,7 @@
+import json
+from pathlib import Path
 import time
+
 from utils import scenarios, interfaces, logger, irrelevant
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
@@ -54,6 +57,20 @@ postgresql_metrics = {
     # "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
     # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"}
 }
+
+
+def _get_metrics() -> list[dict]:
+    collector_log_path = f"{scenarios.otel_collector.collector_container.log_folder_path}/logs/metrics.json"
+    assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
+
+    # Default behaviors is that metrics are batched together in the file exporter
+    metrics_batch = []
+    with open(collector_log_path, "r", encoding="utf-8") as f:
+        for row in f:
+            if row.strip():
+                metrics_batch.append(json.loads(row.strip()))
+
+    return metrics_batch
 
 
 @scenarios.otel_collector
@@ -124,16 +141,12 @@ class Test_PostgreSQLMetricsCollection:
     def test_postgresql_metrics_received_by_collector(self):
         """The goal of this test is to validate that the metrics appear in the Otel Collector logs."""
 
+        metrics_batch = _get_metrics()
         found_metrics: set[str] = set()
         metrics_dont_match_spec: set[str] = set()
 
-        for data in interfaces.otel_collector.get_data("/api/v2/series"):
-            content = data["request"]["content"]
-            for serie in content["series"]:
-                metric = serie["metric"]
-                found_metrics.add(metric)
-
-            # self._process_metrics_data(content, found_metrics, metrics_dont_match_spec)
+        for data in metrics_batch:
+            self._process_metrics_data(data, found_metrics, metrics_dont_match_spec)
 
         validation_results = []
         failed_validations = []

@@ -54,29 +54,27 @@ class OtelCollectorScenario(DockerScenario):
 
         return warmups
 
-    def post_setup(self, session: pytest.Session):
+    def post_setup(self, session: pytest.Session):  # noqa: ARG002
         # if no test are run, skip interface timeouts
-        is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
+        # is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
 
         try:
-            self._wait_and_stop_containers(force_interface_timout_to_zero=is_empty_test_run)
+            self._wait_and_stop_containers()
         finally:
             self.close_targets()
 
-    def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
+    def _wait_and_stop_containers(self):
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
 
             interfaces.otel_collector.load_data_from_logs()
         else:
-            logger.terminal.write_sep(
-                "-", f"Wait for {interfaces.otel_collector} ({0 if force_interface_timout_to_zero else 10}s)"
-            )
+            logger.terminal.write_sep("-", f"Wait for {interfaces.otel_collector} (0s)")
             logger.terminal.flush()
 
             self.collector_container.stop()
-            interfaces.otel_collector.wait(10)
+            interfaces.otel_collector.wait(0)
 
         interfaces.otel_collector.check_deserialization_errors()
 
