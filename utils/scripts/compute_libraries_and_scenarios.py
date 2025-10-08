@@ -318,6 +318,7 @@ class Inputs:
         if "GITLAB_CI" in os.environ:
             self.event_name = os.environ.get("CI_PIPELINE_SOURCE", "push")
             self.ref = os.environ.get("CI_COMMIT_REF_NAME", "")
+            self.pr_title = ""
             self.is_gitlab = True
         else:
             self.event_name = os.environ.get("GITHUB_EVENT_NAME", "pull_request")
