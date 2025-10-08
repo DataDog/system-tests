@@ -1088,7 +1088,7 @@ def s3_multipart_upload(request):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "TRACE", "POST"])
+@require_http_methods(["GET", "TRACE", "POST", "PUT"])
 def external_request(request):
     import urllib.request
     import urllib.error
