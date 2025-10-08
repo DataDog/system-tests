@@ -14,7 +14,7 @@ on:
         default: DEFAULT
         required: false
         type: string
-      scenario_groups:
+      scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
         default: ''
         required: false
@@ -150,7 +150,7 @@ jobs:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
       scenarios: ${{ inputs.scenarios }}
-      scenario_groups: ${{ inputs.scenarios_groups }}
+      scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
       weblogs: ${{ inputs.weblogs }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
