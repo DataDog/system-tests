@@ -726,91 +726,11 @@ class Test_Otel_Metrics_Api_Instrument:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_counter_add_non_negative_value(self, test_agent, test_library):
-        n = 42
-        name = f"counter1-{n}"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                n,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        metric = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(
-            metric["sum"],
-            "AGGREGATION_TEMPORALITY_DELTA",
-            is_monotonic=True,
-            value=n,
-            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
-        )
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library):
         non_negative_value = 42
-        negative_value = -21
-        name = f"counter1-{non_negative_value}-{negative_value}"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_counter_add(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                non_negative_value,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_counter_add(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                negative_value,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        metric = scope_metrics[0]["metrics"][0]
-        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(
-            metric["sum"],
-            "AGGREGATION_TEMPORALITY_DELTA",
-            is_monotonic=True,
-            value=non_negative_value,
-            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
-        )
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_counter_add_non_negative_values(self, test_agent, test_library):
-        non_negative_value = 42
         second_non_negative_value = 21
-        name = f"counter1-{non_negative_value}-{second_non_negative_value}"
+        negative_value = -21
+        name = f"counter1-{non_negative_value}-{second_non_negative_value}-{negative_value}"
 
         with test_library as t:
             t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
@@ -829,6 +749,14 @@ class Test_Otel_Metrics_Api_Instrument:
                 DEFAULT_INSTRUMENT_UNIT,
                 DEFAULT_INSTRUMENT_DESCRIPTION,
                 second_non_negative_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                negative_value,
                 DEFAULT_MEASUREMENT_ATTRIBUTES,
             )
             t.otel_metrics_force_flush()
@@ -901,44 +829,6 @@ class Test_Otel_Metrics_Api_Instrument:
             is_monotonic=True,
             value=second_non_negative_value,
             attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
-        )
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_updowncounter_add_value(self, test_agent, test_library):
-        n = 42
-        name = f"updowncounter1-{n}"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_create_updowncounter(
-                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
-            )
-            t.otel_updowncounter_add(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                n,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        metric = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_sum_aggregation(
-            metric["sum"],
-            "AGGREGATION_TEMPORALITY_CUMULATIVE",
-            is_monotonic=False,
-            value=n,
-            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
@@ -1043,36 +933,6 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_gauge_record_value(self, test_agent, test_library):
-        n = 42
-        name = f"gauge-{n}"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_gauge_record(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                n,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        metric = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_gauge_record_multiple_values(self, test_agent, test_library):
         first_value = 42
         second_value = 21
@@ -1150,46 +1010,6 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
         assert_gauge_aggregation(metric["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
-
-    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    def test_otel_histogram_add_non_negative_value(self, test_agent, test_library):
-        n = 42
-        name = f"histogram-{n}"
-
-        with test_library as t:
-            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
-            t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-            t.otel_histogram_record(
-                DEFAULT_METER_NAME,
-                name,
-                DEFAULT_INSTRUMENT_UNIT,
-                DEFAULT_INSTRUMENT_DESCRIPTION,
-                n,
-                DEFAULT_MEASUREMENT_ATTRIBUTES,
-            )
-            t.otel_metrics_force_flush()
-
-        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
-        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
-
-        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
-        assert_scope_metric(
-            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
-        )
-
-        metric = find_metric_by_name(scope_metrics[0], name)
-        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
-        assert_histogram_aggregation(
-            metric["histogram"],
-            "AGGREGATION_TEMPORALITY_DELTA",
-            count=1,
-            sum_value=n,
-            min_value=n,
-            max_value=n,
-            bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
-            bucket_counts=get_expected_bucket_counts([n], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
-            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
-        )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_otel_histogram_add_non_negative_and_negative_values(self, test_agent, test_library):
