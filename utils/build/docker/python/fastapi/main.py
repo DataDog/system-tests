@@ -31,6 +31,7 @@ from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
@@ -56,13 +57,9 @@ except ImportError:
 app = FastAPI()
 
 # Custom middleware
-try:
-    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
-    current_ddtrace_version = (int(maj), int(min), int(patch))
-except Exception:
-    current_ddtrace_version = (0, 0, 0)
+current_ddtrace_version = Version(getattr(ddtrace, "__version__", "0.0.0"))
 
-if current_ddtrace_version >= (3, 1, 0):
+if current_ddtrace_version >= Version("3.1.0"):
     """custom middleware only supported after PR 12413"""
 
     @app.middleware("http")
