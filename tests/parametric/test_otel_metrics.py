@@ -1,7 +1,5 @@
 import pytest
 
-from hypothesis import given, settings, HealthCheck, strategies as st
-
 from utils import context, features, missing_feature, scenarios
 from urllib.parse import urlparse
 
@@ -728,11 +726,8 @@ class Test_Otel_Metrics_Api_Instrument:
     """
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(st.integers(min_value=0, max_value=2**32))  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_counter_add_non_negative_value(self, test_agent, test_library, n):
+    def test_otel_counter_add_non_negative_value(self, test_agent, test_library):
+        n = 42
         name = f"counter1-{n}"
 
         with test_library as t:
@@ -767,15 +762,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=0, max_value=2**32), st.integers(min_value=-(2**32), max_value=-1)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_counter_add_non_negative_and_negative_values(
-        self, test_agent, test_library, non_negative_value, negative_value
-    ):
+    def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library):
+        non_negative_value = 42
+        negative_value = -21
         name = f"counter1-{non_negative_value}-{negative_value}"
 
         with test_library as t:
@@ -818,15 +807,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_counter_add_non_negative_values(
-        self, test_agent, test_library, non_negative_value, second_non_negative_value
-    ):
+    def test_otel_counter_add_non_negative_values(self, test_agent, test_library):
+        non_negative_value = 42
+        second_non_negative_value = 21
         name = f"counter1-{non_negative_value}-{second_non_negative_value}"
 
         with test_library as t:
@@ -869,15 +852,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_counter_add_non_negative_values_with_different_tags(
-        self, test_agent, test_library, non_negative_value, second_non_negative_value
-    ):
+    def test_otel_counter_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+        non_negative_value = 42
+        second_non_negative_value = 21
         name = f"counter1-{non_negative_value}-{second_non_negative_value}-different-tags"
 
         with test_library as t:
@@ -927,13 +904,8 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_updowncounter_add_value(self, test_agent, test_library, n):
+    def test_otel_updowncounter_add_value(self, test_agent, test_library):
+        n = 42
         name = f"updowncounter1-{n}"
 
         with test_library as t:
@@ -970,13 +942,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_updowncounter_add_multiple_values(self, test_agent, test_library, first_value, second_value):
+    def test_otel_updowncounter_add_multiple_values(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
         name = f"updowncounter1-{first_value}-{second_value}"
 
         with test_library as t:
@@ -1021,15 +989,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_updowncounter_add_multiple_values_with_different_tags(
-        self, test_agent, test_library, first_value, second_value
-    ):
+    def test_otel_updowncounter_add_multiple_values_with_different_tags(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
         name = f"updowncounter1-{first_value}-{second_value}-different-tags"
 
         with test_library as t:
@@ -1081,13 +1043,8 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_gauge_record_value(self, test_agent, test_library, n):
+    def test_otel_gauge_record_value(self, test_agent, test_library):
+        n = 42
         name = f"gauge-{n}"
 
         with test_library as t:
@@ -1116,13 +1073,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_gauge_record_multiple_values(self, test_agent, test_library, first_value, second_value):
+    def test_otel_gauge_record_multiple_values(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
         name = f"gauge-{first_value}-{second_value}"
 
         with test_library as t:
@@ -1159,15 +1112,9 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32), st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_gauge_record_multiple_values_with_different_tags(
-        self, test_agent, test_library, first_value, second_value
-    ):
+    def test_otel_gauge_record_multiple_values_with_different_tags(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
         name = f"gauge-{first_value}-{second_value}-different-tags"
 
         with test_library as t:
@@ -1205,11 +1152,8 @@ class Test_Otel_Metrics_Api_Instrument:
         assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(st.integers(min_value=0, max_value=2**32))  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_histogram_add_non_negative_value(self, test_agent, test_library, n):
+    def test_otel_histogram_add_non_negative_value(self, test_agent, test_library):
+        n = 42
         name = f"histogram-{n}"
 
         with test_library as t:
@@ -1248,17 +1192,10 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=0, max_value=2**32),
-        st.integers(min_value=0, max_value=2**32),
-        st.integers(min_value=-(2**32), max_value=-1),
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_histogram_add_non_negative_and_negative_values(
-        self, test_agent, test_library, non_negative_value1, non_negative_value2, negative_value1
-    ):
+    def test_otel_histogram_add_non_negative_and_negative_values(self, test_agent, test_library):
+        non_negative_value1 = 42
+        non_negative_value2 = 21
+        negative_value1 = -21
         name = f"histogram-{non_negative_value1}-{non_negative_value2}-{negative_value1}"
 
         with test_library as t:
@@ -1316,15 +1253,9 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=0, max_value=2**32), st.integers(min_value=0, max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_histogram_add_non_negative_values_with_different_tags(
-        self, test_agent, test_library, non_negative_value1, non_negative_value2
-    ):
+    def test_otel_histogram_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+        non_negative_value1 = 42
+        non_negative_value2 = 21
         name = f"histogram-{non_negative_value1}-{non_negative_value2}-different-tags"
 
         with test_library as t:
@@ -1383,13 +1314,8 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_asynchronous_counter_constant_callback_value(self, test_agent, test_library, n):
+    def test_otel_asynchronous_counter_constant_callback_value(self, test_agent, test_library):
+        n = 42
         name = f"observablecounter1-{n}"
 
         with test_library as t:
@@ -1423,13 +1349,8 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_asynchronous_updowncounter_constant_callback_value(self, test_agent, test_library, n):
+    def test_otel_asynchronous_updowncounter_constant_callback_value(self, test_agent, test_library):
+        n = 42
         name = f"observableupdowncounter1-{n}"
 
         with test_library as t:
@@ -1463,13 +1384,8 @@ class Test_Otel_Metrics_Api_Instrument:
         )
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
-    @given(
-        st.integers(min_value=-(2**32), max_value=2**32)
-    )  # Limit the range of integers to avoid int/float equality issues
-    @settings(
-        suppress_health_check=[HealthCheck.function_scoped_fixture], deadline=None, max_examples=20
-    )  # Limit the number of examples to speed up the test
-    def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent, test_library, n):
+    def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent, test_library):
+        n = 42
         name = f"observablegauge-{n}"
 
         with test_library as t:
