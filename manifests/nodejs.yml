@@ -68,6 +68,7 @@ refs:
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
+  - &ref_5_71_0 '>=5.71.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -988,10 +989,13 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability: *ref_5_71_0
+      Test_ExtendedRequestBodyCollection:
+        '*': *ref_5_71_0
+        fastify: missing_feature
+        nextjs: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: *ref_5_71_0
+      Test_ExtendedResponseHeadersDataCollection: *ref_5_71_0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
@@ -1303,6 +1307,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v5.11.0  #implemented in v5.11.0, v4.35.0, &v3.56.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: *ref_5_32_0
     test_parametric_endpoints.py:
