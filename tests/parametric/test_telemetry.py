@@ -1,10 +1,8 @@
 """Test the telemetry that should be emitted from the library."""
 
 import base64
-import copy
 import json
 import time
-from collections.abc import Generator
 import uuid
 
 import pytest
@@ -12,7 +10,6 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
-from typing import Any
 
 
 telemetry_name_mapping = {
@@ -911,58 +908,6 @@ class Test_TelemetrySSIConfigs:
 class Test_TelemetrySCAEnvVar:
     """This telemetry entry has the value of DD_APPSEC_SCA_ENABLED in the library."""
 
-    @staticmethod
-    def flatten_message_batch(requests) -> Generator[dict, None, None]:
-        for request in requests:
-            body = json.loads(base64.b64decode(request["body"]))
-            if body["request_type"] == "message-batch":
-                for batch_payload in body["payload"]:
-                    # create a fresh copy of the request for each payload in the
-                    # message batch, as though they were all sent independently
-                    copied = copy.deepcopy(body)
-                    copied["request_type"] = batch_payload.get("request_type")
-                    copied["payload"] = batch_payload.get("payload")
-                    yield copied
-            else:
-                yield body
-
-    @staticmethod
-    def get_app_started_configuration_by_name(test_agent, test_library) -> dict | None:
-        with test_library.dd_start_span("first_span"):
-            pass
-
-        test_agent.wait_for_telemetry_event("app-started", wait_loops=400)
-
-        requests = test_agent.raw_telemetry(clear=True)
-        bodies = list(Test_TelemetrySCAEnvVar.flatten_message_batch(requests))
-
-        assert len(bodies) > 0, "There should be at least one telemetry event (app-started)"
-        for body in bodies:
-            if body["request_type"] != "app-started":
-                continue
-
-            assert (
-                "configuration" in body["payload"]
-            ), f"The configuration should be included in the telemetry event, got {body}"
-
-            configuration = body["payload"]["configuration"]
-
-            configuration_by_name: dict[str, list[Any]] = {}
-            for item in configuration:
-                if item["name"] not in configuration_by_name:
-                    configuration_by_name[item["name"]] = []
-                configuration_by_name[item["name"]].append(item)
-
-            if len(configuration_by_name):
-                # Checking if we need to sort due to multiple sources being sent for the same config
-                sample_key = next(iter(configuration_by_name))
-                if "seq_id" in configuration_by_name[sample_key][0]:
-                    # Sort seq_id for each config from highest to lowest
-                    for payload in configuration_by_name.values():
-                        payload.sort(key=lambda item: item["seq_id"], reverse=True)
-            return configuration_by_name
-        return None
-
     @pytest.mark.parametrize(
         ("library_env", "outcome_value"),
         [
@@ -1001,7 +946,8 @@ class Test_TelemetrySCAEnvVar:
     def _assert_telemetry_sca_enabled_propagated(
         self, library_env, test_agent, test_library, *, outcome_value: bool | str
     ):
-        configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        # configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
         logger.info(f"""Check that:
@@ -1022,7 +968,9 @@ class Test_TelemetrySCAEnvVar:
         reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
     )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
-        configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        # configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+
         assert configuration_by_name is not None, "Missing telemetry configuration"
 
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
