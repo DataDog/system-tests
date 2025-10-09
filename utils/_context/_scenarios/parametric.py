@@ -652,7 +652,7 @@ RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
 COPY utils/build/docker/github.sh /binaries/github.sh
-RUN --mount=type=secret,id=github_token sh /binaries/install_ddtrace.sh
+RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 RUN cd /binaries/dd-trace-cpp \
  && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
  && cmake --build .build -j $(nproc) \

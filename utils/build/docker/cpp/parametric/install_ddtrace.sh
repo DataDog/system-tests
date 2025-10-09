@@ -3,7 +3,7 @@
 set -eu
 
 # shellcheck source=/dev/null
-source "$(dirname "$0")/github.sh"
+source "/binaries/github.sh"
 
 git_clone(){
     url_to_clone=$1
