@@ -1989,7 +1989,7 @@ def view_iast_sc_iv_overloaded_insecure():
     return Response("OK")
 
 
-@app.route("/external_request", methods=["GET", "TRACE", "POST"])
+@app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
 def external_request():
     import urllib.request
     import urllib.error
