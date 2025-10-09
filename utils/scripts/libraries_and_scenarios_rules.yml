@@ -215,10 +215,7 @@ patterns:
         scenario_groups: null
     utils/scripts/check_version.sh:
         scenario_groups: null
-    utils/scripts/compute_impacted_scenario.py:
-        scenario_groups: null
-        libraries: null
-    utils/scripts/compute-impacted-libraries.py:
+    utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null
     utils/scripts/get-nightly-logs.py:
@@ -227,6 +224,9 @@ patterns:
         scenario_groups: null
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
+    utils/scripts/libraries_and_scenarios_rules.yml:
+        scenario_groups: null
+        libraries: null
     utils/scripts/parametric/*:
         scenario_groups: parametric
     utils/scripts/replay_scenarios.sh:
