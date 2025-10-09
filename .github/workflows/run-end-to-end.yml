@@ -273,15 +273,13 @@ jobs:
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_NOT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
-      # nginx 1.2.0 refuses to start without a valid rules files
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"') && (inputs.library != 'ruby' || inputs.ci_environment != 'dev')
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
-      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
-      # nginx 1.2.0 refuses to start without a valid rules files
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"') && (inputs.library != 'ruby' || inputs.ci_environment != 'dev')
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')

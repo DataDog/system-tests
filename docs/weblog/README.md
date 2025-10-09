@@ -111,10 +111,11 @@ OK\n
 ### GET /external_request
 ### POST /external_request
 ### TRACE /external_request
+### PUT /external_request
 
 This endpoint is used for downstream requests test, using an addtional component hosting a fastapi application defined in `/utils/build/docker/internal_server/app.py`
 
-It must open a request on `http://internal_server:8089/mirror/{status}{url_extra}` with the same method as the method used to call this endpoint (GET, POST or TRACE).
+It must open a request on `http://internal_server:8089/mirror/{status}{url_extra}` with the same method as the method used to call this endpoint (GET, POST, TRACE or PUT).
 
 If a body was sent, it must also be sent to `internal_server` with the same content type. (whatever is the method used)
 
