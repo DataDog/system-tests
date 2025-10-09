@@ -150,7 +150,7 @@ jobs:
       library: ${{ inputs.library }}
       ref: ${{ inputs.ref }}
       scenarios: ${{ inputs.scenarios }}
-      scenario_groups: ${{ inputs.scenarios_groups }}
+      scenarios_groups: ${{ inputs.scenarios_groups }}
       excluded_scenarios: ${{ inputs.excluded_scenarios }}
       weblogs: ${{ inputs.weblogs }}
       parametric_job_count: ${{ inputs.parametric_job_count }}
@@ -178,7 +178,7 @@ jobs:
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
 
   build_end_to_end:
-    name: Build end-to-end (${{ matrix.weblog }})
+    name: Build end-to-end (${{ matrix.weblog.name }})
     needs:
       - compute_parameters
     if: ${{ needs.compute_parameters.outputs.endtoend_defs_parallel_enable == 'true' }}
@@ -220,7 +220,7 @@ jobs:
           ./utils/build/build_python_base_images.sh
       - name: Build weblog
         id: build
-        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
+        run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ matrix.weblog.name }} -s --github-token-file "$RUNNER_TEMP/github_token.txt"
       - name: Remove secrets
         if: always()
         run: |
@@ -234,7 +234,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+          name: ${{ matrix.weblog.artifact_name }}
           path: binaries/
           retention-days: ${{ inputs.artifact_retention_days }}
 
@@ -251,52 +251,24 @@ jobs:
     uses: ./.github/workflows/run-end-to-end.yml
     secrets: inherit
     with:
+      runs_on: ${{ matrix.job.runs_on }}
       library: ${{ matrix.job.library }}
       ref: ${{ inputs.ref }}
       weblog: ${{ matrix.job.weblog }}
       weblog_instance: ${{ matrix.job.weblog_instance }}
+      weblog_build_required: ${{ matrix.job.weblog_build_required }}
       scenarios: ${{ toJson(matrix.job.scenarios) }}
       force_execute: ${{ inputs.force_execute }}
-      _build_buddies_images: ${{ inputs._build_buddies_images }}
-      _build_proxy_image: ${{ inputs._build_proxy_image }}
-      _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
-      binaries_artifact: binaries_${{ needs.compute_parameters.outputs.ci_environment }}_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.unique_id }}
+      binaries_artifact: ${{ matrix.job.binaries_artifact }}
       ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
       skip_empty_scenarios: ${{ inputs.skip_empty_scenarios }}
-      _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
       logs_artifact_name: logs_endtoend_${{ inputs.library }}_${{ matrix.job.weblog }}_${{ needs.compute_parameters.outputs.ci_environment }}_${{ matrix.job.weblog_instance }}_${{ needs.compute_parameters.outputs.unique_id }}
       artifact_retention_days: ${{ inputs.artifact_retention_days }}
       push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-
-  external_processing:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.externalprocessing_scenarios != '[]' && inputs.library == 'golang'}}
-    uses: ./.github/workflows/run-external-processing.yml
-    secrets: inherit
-    with:
-      ref: ${{ inputs.ref }}
+      _build_buddies_images: ${{ inputs._build_buddies_images }}
       _build_proxy_image: ${{ inputs._build_proxy_image }}
-      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
-      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
-      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
-      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
-
-  run_stream_processing_offload:
-    needs:
-      - compute_parameters
-    if: ${{ needs.compute_parameters.outputs.streamprocessingoffload_scenarios != '[]' && inputs.library == 'golang'}}
-    uses: ./.github/workflows/run-stream-processing-offload.yml
-    secrets: inherit
-    with:
-      ref: ${{ inputs.ref }}
-      _build_proxy_image: ${{ inputs._build_proxy_image }}
-      ci_environment: ${{ needs.compute_parameters.outputs.ci_environment }}
-      binaries_artifact: ${{ needs.compute_parameters.outputs.binaries_artifact }}
-      artifact_retention_days: ${{ inputs.artifact_retention_days }}
-      unique_id: ${{ needs.compute_parameters.outputs.unique_id }}
-      push_to_test_optimization: ${{ inputs.push_to_test_optimization }}
+      _build_lambda_proxy_image: ${{ inputs._build_lambda_proxy_image }}
+      _enable_replay_scenarios: ${{ inputs._enable_replay_scenarios }}
 
   display_summary:
     name: Report failures
@@ -304,7 +276,6 @@ jobs:
       - compute_parameters
       - run_end_to_end
       - parametric
-      - external_processing
     if: always() && inputs.display_summary == true
     runs-on: ubuntu-latest
     steps:
