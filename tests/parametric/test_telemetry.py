@@ -946,7 +946,6 @@ class Test_TelemetrySCAEnvVar:
     def _assert_telemetry_sca_enabled_propagated(
         self, library_env, test_agent, test_library, *, outcome_value: bool | str
     ):
-        # configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
@@ -968,7 +967,6 @@ class Test_TelemetrySCAEnvVar:
         reason="Does not report DD_APPSEC_SCA_ENABLED configuration if the default value is used",
     )
     def test_telemetry_sca_enabled_not_propagated(self, library_env, test_agent, test_library):
-        # configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
 
         assert configuration_by_name is not None, "Missing telemetry configuration"
