@@ -225,7 +225,7 @@ patterns:
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
     utils/scripts/libraries_and_scenarios_rules.yml:
-        scenario_groups: null
+        scenario_groups: all
         libraries: null
     utils/scripts/parametric/*:
         scenario_groups: parametric
