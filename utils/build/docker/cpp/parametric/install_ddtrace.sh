@@ -2,6 +2,7 @@
 
 set -eu
 
+# shellcheck source=/dev/null
 source "$(dirname "$0")/github.sh"
 
 git_clone(){
