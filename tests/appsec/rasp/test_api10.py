@@ -188,7 +188,7 @@ class Test_API10_all(API10):
 
     def setup_api10(self):
         self.r = weblog.request(
-            "TRACE",
+            "PUT",
             "/external_request?" + urllib.parse.urlencode(self.PARAMS),
             data=json.dumps(self.BODY),
             headers={"Content-Type": "application/json"},
