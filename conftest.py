@@ -21,11 +21,12 @@ from pluggy._result import _Result as Result
 
 from manifests.parser.core import load as load_manifests
 from utils import context
+from utils.properties_serialization import SetupProperties
 from utils._context._scenarios import scenarios, Scenario
-from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators
-from utils.properties_serialization import SetupProperties
+from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
+from utils._logger import logger
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
@@ -586,11 +587,11 @@ def convert_test_to_feature_parity_model(test: dict) -> dict | None:
         "outcome": test["outcome"],
         "testDeclaration": test["metadata"]["testDeclaration"],
         "details": test["metadata"]["details"],
-        "features": test["metadata"]["features"],
+        "features": [feature for feature in test["metadata"]["features"] if feature != NOT_REPORTED_FEATURE_ID],
     }
 
-    # exclude features.not_reported
-    return result if -1 not in result["features"] else None
+    # exclude test without a feature (they may have been flagged as not reported)
+    return result if len(result["features"]) != 0 else None
 
 
 ## Fixtures corners

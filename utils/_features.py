@@ -1,6 +1,8 @@
 from enum import StrEnum
 import pytest
 
+NOT_REPORTED_ID = -1
+
 
 class _Owner(StrEnum):
     # the value of each member must be a valid github team
@@ -42,7 +44,7 @@ class _Features:
     @staticmethod
     def not_reported(test_object):
         """Use this fake feature to not report a test to feature parity dashboard"""
-        return _mark_test_object(test_object, feature_id=-1, owner=_Owner.rp)
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.rp)
 
     @staticmethod
     def trace_global_tags(test_object):
@@ -2169,10 +2171,8 @@ class _Features:
         """
         from utils import context
 
-        return (
-            _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
-            if context.library == "golang"
-            else test_object
+        return _mark_test_object(
+            test_object, feature_id=NOT_REPORTED_ID if context.library == "golang" else 350, owner=_Owner.asm
         )
 
     @staticmethod
@@ -2527,10 +2527,8 @@ class _Features:
         """
         from utils import context
 
-        return (
-            _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
-            if context.library == "golang"
-            else test_object
+        return _mark_test_object(
+            test_object, feature_id=NOT_REPORTED_ID if context.library == "golang" else 489, owner=_Owner.asm
         )
 
     @staticmethod
