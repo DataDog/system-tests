@@ -2167,7 +2167,13 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
+        from utils import context
+
+        return (
+            _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
+            if context.library == "golang"
+            else test_object
+        )
 
     @staticmethod
     def context_propagation_extract_behavior(test_object):
@@ -2519,7 +2525,13 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        return _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
+        from utils import context
+
+        return (
+            _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
+            if context.library == "golang"
+            else test_object
+        )
 
     @staticmethod
     def efficient_trace_payload(test_object):
