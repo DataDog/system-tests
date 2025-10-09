@@ -11,32 +11,33 @@ postgresql_metrics = {
         "description": "Configured maximum number of client connections allowed",
     },
     "postgresql.database.count": {"data_type": "Sum", "description": "Number of user databases"},
-    "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},
     "postgresql.commits": {"data_type": "Sum", "description": "The number of commits"},
     "postgresql.rollbacks": {"data_type": "Sum", "description": "The number of rollbacks"},
     "postgresql.db_size": {"data_type": "Sum", "description": "The database disk usage"},
-    "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table"},
     "postgresql.table.count": {"data_type": "Sum", "description": "Number of user tables in a database"},
-    "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
-    "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},
-    "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
-    "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk"},
-    "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
-    "postgresql.table.vacuum.count": {
-        "data_type": "Sum",
-        "description": "Number of times a table has manually been vacuumed",
-    },
-    "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"},
-    "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},
-    "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},
-    "postgresql.bgwriter.duration": {
-        "data_type": "Sum",
-        "description": "Total time spent writing and syncing files to disk by checkpoints",
-    },
-    "postgresql.bgwriter.maxwritten": {
-        "data_type": "Sum",
-        "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
-    },
+    # TODO: Those may have been observed somewhere
+    # "postgresql.backends": {"data_type": "Sum", "description": "The number of backends"},  TODO
+    # "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table"}, TODO
+    # "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},  TODO
+    # "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},  TODO
+    # "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"}, TODO
+    # "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk"}, TODO
+    # "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},  TODO
+    # "postgresql.table.vacuum.count": {
+    #     "data_type": "Sum",
+    #     "description": "Number of times a table has manually been vacuumed",
+    # }, TODO
+    # "postgresql.bgwriter.buffers.allocated": {"data_type": "Sum", "description": "Number of buffers allocated"}, TODO
+    # "postgresql.bgwriter.buffers.writes": {"data_type": "Sum", "description": "Number of buffers written"},TODO
+    # "postgresql.bgwriter.checkpoint.count": {"data_type": "Sum", "description": "The number of checkpoints performed"},TODO
+    # "postgresql.bgwriter.duration": {
+    #     "data_type": "Sum",
+    #     "description": "Total time spent writing and syncing files to disk by checkpoints",
+    # },TODO
+    # "postgresql.bgwriter.maxwritten": {
+    #     "data_type": "Sum",
+    #     "description": "Number of times the background writer stopped a cleaning scan because it had written too many buffers",
+    # }, TODO
     # missing metrics
     # "postgresql.replication.data_delay": {"data_type": "Gauge", "description": "The amount of data delayed in replication"},
     # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
@@ -223,4 +224,29 @@ class Test_Smoke:
         logger.info(r.output)
 
     def test_main(self):
-        pass
+        observed_metrics: set[str] = set()
+
+        expected_metrics = {
+            "postgresql.commits",
+            "postgresql.connection.max",
+            "postgresql.database.count",
+            "postgresql.db_size",
+            "postgresql.rollbacks",
+            "postgresql.table.count",
+        }
+
+        for data in interfaces.otel_collector.get_data("/api/v2/series"):
+            logger.info(f"In request {data['log_filename']}")
+            payload = data["request"]["content"]
+            for serie in payload["series"]:
+                metric = serie["metric"]
+                observed_metrics.add(metric)
+                logger.info(f"    {metric} {serie['points']}")
+
+        all_metric_has_be_seen = True
+        for metric in expected_metrics:
+            if metric not in observed_metrics:
+                logger.error(f"Metric {metric} hasn't be observed")
+                all_metric_has_be_seen = False
+
+        assert all_metric_has_be_seen
