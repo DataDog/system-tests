@@ -23,9 +23,9 @@ on:
       scenarios:
         description: "Comma-separated list of scenarios to run"
         value: ${{ jobs.main.outputs.scenarios }}
-      scenario_groups:
+      scenarios_groups:
         description: "Comma-separated list of scenarios groups to run"
-        value: ${{ jobs.main.outputs.scenario_groups }}
+        value: ${{ jobs.main.outputs.scenarios_groups }}
 
 jobs:
   main:
@@ -37,7 +37,7 @@ jobs:
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
       rebuild_lambda_proxy: ${{ steps.compute.outputs.rebuild_lambda_proxy }}
       scenarios: ${{ steps.compute.outputs.scenarios }}
-      scenario_groups: ${{ steps.compute.outputs.scenario_groups }}
+      scenarios_groups: ${{ steps.compute.outputs.scenarios_groups }}
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
@@ -85,4 +85,4 @@ jobs:
           echo 'Target branch: -> ${{ steps.get-target-branch.outputs.target-branch }}'
           echo 'Rebuild lambda-proxy: -> ${{ steps.compute.outputs.rebuild_lambda_proxy }}'
           echo 'Scenarios: -> ${{ steps.compute.outputs.scenarios }}'
-          echo 'Scenario Groups: -> ${{ steps.compute.outputs.scenario_groups }}'
+          echo 'Scenario Groups: -> ${{ steps.compute.outputs.scenarios_groups }}'

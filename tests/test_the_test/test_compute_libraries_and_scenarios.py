@@ -50,7 +50,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="docker_ssi"',
+            'scenarios_groups="docker_ssi"',
         ]
 
     def test_multiple_file_changes(self):
@@ -64,7 +64,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="docker_ssi"',
+            'scenarios_groups="docker_ssi"',
         ]
 
     def test_unknown_file_path(self):
@@ -78,7 +78,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="all"',
+            'scenarios_groups="all"',
         ]
 
     def test_docker_file(self):
@@ -92,7 +92,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="end_to_end,open_telemetry"',
+            'scenarios_groups="end_to_end,open_telemetry"',
         ]
 
     @set_env("GITHUB_REF", "refs/heads/main")
@@ -107,7 +107,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="all"',
+            'scenarios_groups="all"',
         ]
 
     def test_manifest(self):
@@ -123,7 +123,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     def test_manifest_agent(self):
@@ -139,7 +139,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT,OTEL_LOG_E2E"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     def test_multiple_pattern_matches(self):
@@ -153,7 +153,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="all"',
+            'scenarios_groups="all"',
         ]
 
     def test_test_file(self):
@@ -167,7 +167,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     def test_test_file_utils(self):
@@ -181,7 +181,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="CHAOS_INSTALLER_AUTO_INJECTION,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,CONTAINER_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,DEFAULT,DEMO_AWS,HOST_AUTO_INJECTION_INSTALL_SCRIPT,HOST_AUTO_INJECTION_INSTALL_SCRIPT_APPSEC,HOST_AUTO_INJECTION_INSTALL_SCRIPT_PROFILING,INSTALLER_AUTO_INJECTION,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION,LOCAL_AUTO_INJECTION_INSTALL_SCRIPT,MULTI_INSTALLER_AUTO_INJECTION,SIMPLE_AUTO_INJECTION_APPSEC,SIMPLE_AUTO_INJECTION_PROFILING,SIMPLE_INSTALLER_AUTO_INJECTION"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -196,7 +196,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="end_to_end,open_telemetry"',
+            'scenarios_groups="end_to_end,open_telemetry"',
         ]
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -218,7 +218,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="end_to_end,open_telemetry"',
+            'scenarios_groups="end_to_end,open_telemetry"',
         ]
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
@@ -233,7 +233,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT,INSTALLER_NOT_SUPPORTED_AUTO_INJECTION"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     def test_lambda_proxy(self):
@@ -247,7 +247,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=true",
             'scenarios="DEFAULT"',
-            'scenario_groups="lambda_end_to_end"',
+            'scenarios_groups="lambda_end_to_end"',
         ]
 
     def test_doc(self):
@@ -261,7 +261,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=3600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     @set_env("GITLAB_CI", "true")
@@ -276,7 +276,7 @@ class Test_ComputeLibrariesAndScenarios:
             'CI_PIPELINE_SOURCE="pull_request"',
             'CI_COMMIT_REF_NAME=""',
             'scenarios="DEFAULT"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     def test_manifest_no_edit(self):
@@ -292,7 +292,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups=""',
+            'scenarios_groups=""',
         ]
 
     @set_env("GITHUB_PR_TITLE", "[perl] Some title")
@@ -307,7 +307,7 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="end_to_end,open_telemetry"',
+            'scenarios_groups="end_to_end,open_telemetry"',
         ]
 
     def test_otel_library(self):
@@ -321,5 +321,5 @@ class Test_ComputeLibrariesAndScenarios:
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
             'scenarios="DEFAULT"',
-            'scenario_groups="open_telemetry"',
+            'scenarios_groups="open_telemetry"',
         ]
