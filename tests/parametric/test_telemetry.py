@@ -11,7 +11,7 @@ import pytest
 
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature
+from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
 
 
 telemetry_name_mapping = {
@@ -951,33 +951,56 @@ class Test_TelemetrySCAEnvVar:
         return None
 
     @pytest.mark.parametrize(
-        ("library_env", "specific_libraries_support", "outcome_value"),
+        ("library_env", "outcome_value"),
         [
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true"}, False, True),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"}, ("python", "golang"), True),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1"}, ("python", "golang"), True),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False, False),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False"}, ("python", "golang"), False),
-            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, ("python", "golang"), False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "true"}, True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "false"}, False),
         ],
     )
     @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
-    def test_telemetry_sca_enabled_propagated(
-        self, library_env, specific_libraries_support, outcome_value, test_agent, test_library
+    def test_telemetry_sca_enabled_propagated(self, library_env, outcome_value, test_agent, test_library):
+        self._assert_telemetry_sca_enabled_propagated(
+            library_env,
+            test_agent,
+            test_library,
+            outcome_value=outcome_value if context.library != "java" else str(outcome_value).lower(),
+        )
+
+    @pytest.mark.parametrize(
+        ("library_env", "outcome_value"),
+        [
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "True"}, True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "1"}, True),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "False"}, False),
+            ({**DEFAULT_ENVVARS, "DD_APPSEC_SCA_ENABLED": "0"}, False),
+        ],
+    )
+    @missing_feature(context.library <= "python@2.16.0", reason="Converts boolean values to strings")
+    @irrelevant(context.library not in ("python", "golang"))
+    def test_telemetry_sca_enabled_propagated_specifics(self, library_env, outcome_value, test_agent, test_library):
+        self._assert_telemetry_sca_enabled_propagated(
+            library_env,
+            test_agent,
+            test_library,
+            outcome_value=outcome_value,
+        )
+
+    def _assert_telemetry_sca_enabled_propagated(
+        self, library_env, test_agent, test_library, *, outcome_value: bool | str
     ):
-        if specific_libraries_support and context.library not in specific_libraries_support:
-            pytest.xfail(f"{outcome_value} unsupported value for {context.library}")
-
         configuration_by_name = self.get_app_started_configuration_by_name(test_agent, test_library)
-        assert configuration_by_name is not None, "Missing telemetry configuration"
-
         dd_appsec_sca_enabled = TelemetryUtils.get_dd_appsec_sca_enabled_str(context.library)
 
-        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
-        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
+        logger.info(f"""Check that:
+    * the env var DD_APPSEC_SCA_ENABLED={library_env['DD_APPSEC_SCA_ENABLED']}
+    * is reported in telemetry configuration {dd_appsec_sca_enabled}
+    * as value={outcome_value!r} with type {type(outcome_value)}""")
 
-        if context.library == "java":
-            outcome_value = str(outcome_value).lower()
+        assert configuration_by_name is not None, "Missing telemetry configuration"
+
+        cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
+        logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
+        assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
         assert cfg_appsec_enabled.get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
