@@ -76,7 +76,7 @@ jobs:
     with:
       library: ${{ matrix.library }}
       scenarios: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios }}
-      scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenario_groups }}
+      scenarios_groups: ${{ needs.compute_libraries_and_scenarios.outputs.scenarios_groups }}
       parametric_job_count: ${{ matrix.version == 'dev' && 2 || 1 }}  # test both use cases
       skip_empty_scenarios: true
       display_summary: true
@@ -94,7 +94,7 @@ jobs:
     name: Exotics scenarios
     needs:
       - compute_libraries_and_scenarios
-    if: contains(needs.compute_libraries_and_scenarios.outputs.scenario_groups, 'exotics') || contains(needs.compute_libraries_and_scenarios.outputs.scenario_groups, 'all')
+    if: contains(needs.compute_libraries_and_scenarios.outputs.scenarios_groups, 'exotics') || contains(needs.compute_libraries_and_scenarios.outputs.scenarios_groups, 'all')
     uses: ./.github/workflows/run-exotics.yml
     secrets: inherit
 
