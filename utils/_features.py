@@ -2172,7 +2172,7 @@ class _Features:
         from utils import context
 
         return _mark_test_object(
-            test_object, feature_id=NOT_REPORTED_ID if context.library == "golang" else 350, owner=_Owner.asm
+            test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
         )
 
     @staticmethod
@@ -2528,7 +2528,7 @@ class _Features:
         from utils import context
 
         return _mark_test_object(
-            test_object, feature_id=NOT_REPORTED_ID if context.library == "golang" else 489, owner=_Owner.asm
+            test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
         )
 
     @staticmethod
