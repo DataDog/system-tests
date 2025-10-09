@@ -271,21 +271,26 @@ class Job:
 def _get_endtoend_weblogs(
     library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
 ) -> list[Weblog]:
+    result: list[Weblog] = []
+
     folder = f"utils/build/docker/{library}"
-    names = [
-        f.replace(".Dockerfile", "")
-        for f in os.listdir(folder)
-        if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
-    ]
+    if Path(folder).exists():  # some lib does not have any weblog
+        names = [
+            f.replace(".Dockerfile", "")
+            for f in os.listdir(folder)
+            if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
+        ]
 
-    if len(weblogs_filter) != 0:
-        # filter weblogs by the weblogs_filter set
-        names = [weblog for weblog in names if weblog in weblogs_filter]
+        if len(weblogs_filter) != 0:
+            # filter weblogs by the weblogs_filter set
+            names = [weblog for weblog in names if weblog in weblogs_filter]
 
-    result = [
-        Weblog(name=name, require_build=True, artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}")
-        for name in names
-    ]
+        result += [
+            Weblog(
+                name=name, require_build=True, artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
+            )
+            for name in names
+        ]
 
     # weblog not related to a docker file
     if library == "golang":
