@@ -12,6 +12,7 @@ import pytest
 from .conftest import StableConfigWriter
 from utils.telemetry_utils import TelemetryUtils
 from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
+from typing import Any
 
 
 telemetry_name_mapping = {
@@ -946,8 +947,20 @@ class Test_TelemetrySCAEnvVar:
 
             configuration = body["payload"]["configuration"]
 
-            return {item["name"]: item for item in configuration}
+            configuration_by_name: dict[str, list[Any]] = {}
+            for item in configuration:
+                if item["name"] not in configuration_by_name:
+                    configuration_by_name[item["name"]] = []
+                configuration_by_name[item["name"]].append(item)
 
+            if len(configuration_by_name):
+                # Checking if we need to sort due to multiple sources being sent for the same config
+                sample_key = next(iter(configuration_by_name))
+                if "seq_id" in configuration_by_name[sample_key][0]:
+                    # Sort seq_id for each config from highest to lowest
+                    for payload in configuration_by_name.values():
+                        payload.sort(key=lambda item: item["seq_id"], reverse=True)
+            return configuration_by_name
         return None
 
     @pytest.mark.parametrize(
@@ -1001,7 +1014,7 @@ class Test_TelemetrySCAEnvVar:
         cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
         logger.info(f"Oberved {dd_appsec_sca_enabled}: {cfg_appsec_enabled}")
         assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
-        assert cfg_appsec_enabled.get("value") == outcome_value
+        assert cfg_appsec_enabled[0].get("value") == outcome_value
 
     @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @missing_feature(
@@ -1017,6 +1030,6 @@ class Test_TelemetrySCAEnvVar:
         if context.library in ("java", "nodejs", "python"):
             cfg_appsec_enabled = configuration_by_name.get(dd_appsec_sca_enabled)
             assert cfg_appsec_enabled is not None, f"Missing telemetry config item for '{dd_appsec_sca_enabled}'"
-            assert cfg_appsec_enabled.get("value") is None
+            assert cfg_appsec_enabled[0].get("value") is None
         else:
             assert dd_appsec_sca_enabled not in configuration_by_name
