@@ -145,6 +145,8 @@ patterns:
 
     .github/actions/pull_images/action.yml:
         scenario_groups: end_to_end
+    .github/chainguard/*:
+        scenario_groups: null
     .github/CODEOWNERS:
         scenario_groups: null
     .github/workflows/daily-tag.yml:
@@ -158,14 +160,14 @@ patterns:
         scenario_groups: end_to_end
     .github/workflows/run-graphql.yml:
         scenario_groups: graphql
-    .github/workflows/run-lib-injection.yml:
-        scenario_groups: lib_injection
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
     .github/workflows/run-parametric.yml:
         scenario_groups: parametric
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
+    .github/workflows/run-stream-processing-offload.yml:
+        scenario_groups: stream_processing_offload
     .github/*:
         scenario_groups: null
 
@@ -213,10 +215,7 @@ patterns:
         scenario_groups: null
     utils/scripts/check_version.sh:
         scenario_groups: null
-    utils/scripts/compute_impacted_scenario.py:
-        scenario_groups: null
-        libraries: null
-    utils/scripts/compute-impacted-libraries.py:
+    utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null
     utils/scripts/get-nightly-logs.py:
@@ -225,6 +224,9 @@ patterns:
         scenario_groups: null
     utils/scripts/grep-nightly-logs.py.py:
         scenario_groups: null
+    utils/scripts/libraries_and_scenarios_rules.yml:
+        scenario_groups: null
+        libraries: null
     utils/scripts/parametric/*:
         scenario_groups: parametric
     utils/scripts/replay_scenarios.sh:
