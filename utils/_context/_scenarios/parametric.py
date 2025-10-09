@@ -247,7 +247,7 @@ class ParametricScenario(Scenario):
             ]
 
             if github_token_file.strip():
-                cmd += ["--secret", f"--secret id=github_token,src={github_token_file}"]
+                cmd += ["--secret", f"id=github_token,src={github_token_file}"]
 
             cmd += [
                 "-t",
