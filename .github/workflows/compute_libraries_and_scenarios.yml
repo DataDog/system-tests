@@ -1,8 +1,9 @@
-name: "Compute libraries impacted by the change"
+name: "Compute libraries and scenarios"
 
 on:
   workflow_call:
     outputs:
+      # Library outputs
       libraries_with_dev:
         description: "JSON list of libraries that require a dev run"
         value: ${{ jobs.main.outputs.libraries_with_dev }}
@@ -18,6 +19,13 @@ on:
       rebuild_lambda_proxy:
         description: "Should the lambda-proxy image be rebuilt"
         value: ${{ jobs.main.outputs.rebuild_lambda_proxy }}
+      # Scenario outputs
+      scenarios:
+        description: "Comma-separated list of scenarios to run"
+        value: ${{ jobs.main.outputs.scenarios }}
+      scenario_groups:
+        description: "Comma-separated list of scenarios groups to run"
+        value: ${{ jobs.main.outputs.scenario_groups }}
 
 jobs:
   main:
@@ -28,8 +36,23 @@ jobs:
       desired_execution_time:  ${{ steps.compute.outputs.desired_execution_time }}
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
       rebuild_lambda_proxy: ${{ steps.compute.outputs.rebuild_lambda_proxy }}
+      scenarios: ${{ steps.compute.outputs.scenarios }}
+      scenario_groups: ${{ steps.compute.outputs.scenario_groups }}
     steps:
-      - uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+      - name: Checkout
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: 'DataDog/system-tests'
+      - name: Checkout main branch
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
+        with:
+          repository: 'DataDog/system-tests'
+          ref: 'main'
+          path: 'original'
+      - name: Install runner
+        uses: ./.github/actions/install_runner
+      - name: Get scenario map
+        run: ./run.sh MOCK_THE_TEST --collect-only --scenario-report
       - name: Files changed in PR
         if: github.event_name == 'pull_request'
         env:
@@ -40,15 +63,13 @@ jobs:
             --paginate --jq '.[].filename' \
             > modified_files.txt
           cat modified_files.txt
-
-      - name: Set up Python
-        uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c # v4.9.1
-        with:
-          python-version: '3.12'
-      - name: Compute impacted libraries
+      - name: Compute libraries and scenarios
         id: compute
-        run: python utils/scripts/compute-impacted-libraries.py -o $GITHUB_OUTPUT
+        run: |
+          source venv/bin/activate
+          python utils/scripts/compute_libraries_and_scenarios.py -o $GITHUB_OUTPUT
         env:
+          PYTHONPATH: "."
           GITHUB_REF: ${{ github.ref }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           GITHUB_PR_TITLE: ${{ github.event.pull_request.title }}
@@ -63,3 +84,5 @@ jobs:
           echo 'Desired execution time: -> ${{ steps.compute.outputs.desired_execution_time }}'
           echo 'Target branch: -> ${{ steps.get-target-branch.outputs.target-branch }}'
           echo 'Rebuild lambda-proxy: -> ${{ steps.compute.outputs.rebuild_lambda_proxy }}'
+          echo 'Scenarios: -> ${{ steps.compute.outputs.scenarios }}'
+          echo 'Scenario Groups: -> ${{ steps.compute.outputs.scenario_groups }}'
