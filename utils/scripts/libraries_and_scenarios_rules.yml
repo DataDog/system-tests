@@ -145,6 +145,8 @@ patterns:
 
     .github/actions/pull_images/action.yml:
         scenario_groups: end_to_end
+    .github/chainguard/*:
+        scenario_groups: null
     .github/CODEOWNERS:
         scenario_groups: null
     .github/workflows/daily-tag.yml:
@@ -158,14 +160,14 @@ patterns:
         scenario_groups: end_to_end
     .github/workflows/run-graphql.yml:
         scenario_groups: graphql
-    .github/workflows/run-lib-injection.yml:
-        scenario_groups: lib_injection
     .github/workflows/run-open-telemetry.yml:
         scenario_groups: open_telemetry
     .github/workflows/run-parametric.yml:
         scenario_groups: parametric
     .github/workflows/run-exotics.yml:
         scenario_groups: exotics
+    .github/workflows/run-stream-processing-offload.yml:
+        scenario_groups: stream_processing_offload
     .github/*:
         scenario_groups: null
 
