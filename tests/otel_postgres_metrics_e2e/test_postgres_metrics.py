@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import time
 
-from utils import scenarios, interfaces, logger, irrelevant
+from utils import scenarios, interfaces, logger, irrelevant, features
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
@@ -75,6 +75,7 @@ def _get_metrics() -> list[dict]:
 
 
 @scenarios.otel_collector
+@features.otel_postgres_support
 class Test_PostgreSQLMetricsCollection:
     def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
         if "resourceMetrics" not in data:
@@ -174,6 +175,7 @@ class Test_PostgreSQLMetricsCollection:
 
 
 @scenarios.otel_collector
+@features.otel_postgres_support
 @irrelevant(condition=True)
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
@@ -217,6 +219,7 @@ class Test_BackendValidity:
 
 
 @scenarios.otel_collector
+@features.otel_postgres_support
 class Test_Smoke:
     def setup_main(self):
         container = scenarios.otel_collector.postgres_container
