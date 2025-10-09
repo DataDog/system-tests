@@ -10,6 +10,8 @@
           "dd.trace_id": { "type": "string" },
           "ddsource": { "type": "string" },
           "duration": { "type": "number" },
+          "debugger.product": { "type": "string" },
+          "debugger.type": { "type": "string" },
           "logger.method": { "type": "string" },
           "logger.name": { "type": "string" },
           "logger.thread_id": { "type": "number" },

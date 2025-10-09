@@ -118,6 +118,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Library to test (e.g. 'python', 'ruby')",
         choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
     )
+    parser.addoption(
+        "--github-token-file",
+        type=str,
+        action="store",
+        default="",
+        help="An file containing a valid Github token to perform API calls",
+    )
 
     # report data to feature parity dashboard
     parser.addoption(
