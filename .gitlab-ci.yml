@@ -42,7 +42,7 @@ compute_pipeline:
       else
           echo "✅ SYSTEM_TESTS_SCENARIOS OR SYSTEM_TESTS_SCENARIOS_GROUPS are set."
           export scenarios=$SYSTEM_TESTS_SCENARIOS
-          export scenario_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
+          export scenarios_groups=$SYSTEM_TESTS_SCENARIOS_GROUPS
           cd /system-tests
           git pull
           if [ -n "$SYSTEM_TESTS_REF" ]; then
@@ -53,12 +53,12 @@ compute_pipeline:
           ./build.sh -i runner
           source venv/bin/activate
       fi
-    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
-    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenario_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py nodejs -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py java -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py dotnet -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py python -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py php -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
+    - python utils/scripts/compute-workflow-parameters.py ruby -s "$scenarios" -g "$scenarios_groups" --parametric-job-count 1 --ci-environment "${CI_ENVIRONMENT}" --format gitlab
     - |
       if [ -n "$SYSTEM_TESTS_SCENARIOS" ] || [ -n "$SYSTEM_TESTS_SCENARIOS_GROUPS" ]; then
         cp *.yml "$CI_PROJECT_DIR"
