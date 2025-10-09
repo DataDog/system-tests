@@ -291,6 +291,9 @@ def _get_endtoend_weblogs(
     if library == "golang":
         result.append(Weblog(name="no-weblog-golang", require_build=False, artifact_name=binaries_artifact))
 
+    if library == "otel_collector":
+        result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
+
     return sorted(result, key=lambda w: w.name)
 
 
@@ -530,6 +533,10 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     if is_stream_processing_scenario or is_external_processing_scenario:
         if weblog != "no-weblog-golang":
             return False
+
+    # otel collector
+    if weblog == "otel_collector" or scenario == "OTEL_COLLECTOR":
+        return weblog == "otel_collector" and scenario == "OTEL_COLLECTOR"
 
     return True
 
