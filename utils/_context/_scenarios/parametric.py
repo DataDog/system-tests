@@ -17,6 +17,7 @@ import docker
 from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
+from retry import retry
 
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
@@ -120,7 +121,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release, scenario_groups.parametric],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -188,6 +189,7 @@ class ParametricScenario(Scenario):
 
         return result
 
+    @retry(delay=10, tries=3)
     def _pull_test_agent_image(self):
         logger.stdout("Pulling test agent image...")
         _get_client().images.pull(self.TEST_AGENT_IMAGE)
