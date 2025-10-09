@@ -156,7 +156,7 @@ class ParametricScenario(Scenario):
         if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
-            self._build_apm_test_server_image()
+            self._build_apm_test_server_image(config.option.github_token_file)
             self._pull_test_agent_image()
             self._clean_containers()
             self._clean_networks()
@@ -217,7 +217,7 @@ class ParametricScenario(Scenario):
     def weblog_variant(self):
         return f"parametric-{self.library.name}"
 
-    def _build_apm_test_server_image(self) -> None:
+    def _build_apm_test_server_image(self, github_token_file: str) -> None:
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
@@ -244,6 +244,12 @@ class ParametricScenario(Scenario):
                 docker,
                 "build",
                 "--progress=plain",  # use plain output to assist in debugging
+            ]
+
+            if github_token_file.strip():
+                cmd += ["--secret", f"--secret id=github_token,src={github_token_file}"]
+
+            cmd += [
                 "-t",
                 apm_test_server_definition.container_tag,
                 "-f",
@@ -645,7 +651,8 @@ FROM datadog/docker-library:dd-trace-cpp-ci AS build
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
-RUN sh /binaries/install_ddtrace.sh
+COPY utils/build/docker/github.sh /binaries/github.sh
+RUN --mount=type=secret,id=github_token sh /binaries/install_ddtrace.sh
 RUN cd /binaries/dd-trace-cpp \
  && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
  && cmake --build .build -j $(nproc) \
