@@ -1,0 +1,460 @@
+#################################### READ ME ###################################
+# Modified files are matched against the following list of expressions. For each
+# expression, you can specify the list of libraries and scenario groups that
+# should be selected in case of a match. The following rules apply:
+#     - The first matching expression (top down) will be applied.
+#     - Sections are only organizational.
+#     - Field missing      → select ALL known values in that category.
+#     - Field = null or [] → select NONE.
+#     - Field = [list]     → select exactly those.
+#
+# The expressions support Unix shell-style wildcards (for reference see Python's
+# fnmatch function).
+# Matching is performed against repo-root-relative paths, case-sensitive.
+#
+################################ HOW TO EDIT ###################################
+# You should:
+#     - Put new rules in the best matching section.
+#     - Inside sections, if rules are permutable, sort them from most specific
+#       to most general and in lexicographic order.
+#
+# You should not:
+#     - Start a pattern with *; it triggers YAML references. Use quotes.
+#     - Think that editing a default rule will apply the modification to all
+#       matching files. Many are probably caught by preceding rules. There is a
+#       debug-level log on pattern match.
+#
+# TIP: Valid scenario group names can be found in
+#                      utils/_context/_scenarios/core.py:26
+#
+# Notes: - Do not use regex tokens like \w, \d, etc.
+#        - This mechanism is tested in
+#                    tests/test_the_test/test_compute_libraries_and_scenarios.py
+################################################################################
+
+
+refs:
+  - &lambda_libraries [python_lambda]
+  - &otel_libraries [java_otel, python_otel]
+
+patterns:
+
+######################### High priority file type rules ########################
+# This section should contain rules that apply to files based on extensions, as
+# well as a limited number of exceptions if applicable.
+################################################################################
+
+    "*.nix":
+        scenario_groups: null
+        libraries: null
+    "*.md":
+        scenario_groups: null
+        libraries: null
+    "*.rdoc":
+        scenario_groups: null
+        libraries: null
+
+    requirements.txt: # run all by default
+    "*.txt":
+        scenario_groups: null
+        libraries: null
+
+#################### High priority top-level directory rules ###################
+# This section contains only rules applying to top-level directories
+# (e.g., directory/*). No exceptions are allowed. If some sub-paths require
+# specific rules, you should create a separate section or move the corresponding
+# rule from this section to the default section at the end of the file.
+################################################################################
+
+    .cursor/*:
+        scenario_groups: null
+    .circleci/*:
+        scenario_groups: null
+    .vscode/*:
+        scenario_groups: null
+    .promptfoo/*:
+        scenario_groups: null
+    binaries/*:
+        scenario_groups: null
+    docs/*:
+        scenario_groups: null
+    lib-injection/*:
+        scenario_groups: lib_injection
+
+################################ Single file rules #############################
+# This section contains rules applying to individual files that do not fit other
+# categories.
+################################################################################
+
+    repository.datadog.yml:
+        scenario_groups: null
+    .cursorrules:
+        scenario_groups: null
+    .dockerignore:
+        scenario_groups: null
+    .gitattributes:
+        scenario_groups: null
+    .gitignore:
+        scenario_groups: null
+    .gitlab-ci.yml:
+        scenario_groups: null
+    .shellcheck:
+        scenario_groups: null
+    .shellcheckrc:
+        scenario_groups: null
+    .yamlfmt:
+        scenario_groups: null
+    .yamllint:
+        scenario_groups: null
+    conftest.py: # run all by default
+    CHANGELOG.md:
+        scenario_groups: null
+    flake.lock:
+        scenario_groups: null
+    format.sh:
+        scenario_groups: null
+    LICENSE:
+        scenario_groups: null
+        libraries: null
+    LICENSE-3rdparty.csv:
+        scenario_groups: null
+        libraries: null
+    NOTICE:
+        scenario_groups: null
+        libraries: null
+    promptfooconfig.yaml:
+        scenario_groups: null
+        libraries: null
+    Pulumi.yaml:
+        scenario_groups: null
+        libraries: null
+    pyproject.toml:
+        scenario_groups: null
+    static-analysis.datadog.yml:
+        scenario_groups: null
+    README.md:
+        scenario_groups: null
+        libraries: null
+    run.sh: # run all by default
+    .gitlab/ssi_gitlab-ci.yml:
+        scenario_groups: [onboarding, lib_injection, docker_ssi]
+
+################################ GitHub Actions ################################
+# This section contains rules to apply to files related to GitHub Actions.
+################################################################################
+
+    .github/actions/pull_images/action.yml:
+        scenario_groups: end_to_end
+    .github/CODEOWNERS:
+        scenario_groups: null
+    .github/workflows/daily-tag.yml:
+        scenario_groups: null
+    .github/workflows/debug-harness.yml:
+        scenario_groups: null
+        libraries: null
+    .github/workflows/run-docker-ssi.yml:
+        scenario_groups: docker_ssi
+    .github/workflows/run-end-to-end.yml:
+        scenario_groups: end_to_end
+    .github/workflows/run-graphql.yml:
+        scenario_groups: graphql
+    .github/workflows/run-lib-injection.yml:
+        scenario_groups: lib_injection
+    .github/workflows/run-open-telemetry.yml:
+        scenario_groups: open_telemetry
+    .github/workflows/run-parametric.yml:
+        scenario_groups: parametric
+    .github/workflows/run-exotics.yml:
+        scenario_groups: exotics
+    .github/*:
+        scenario_groups: null
+
+############################## Scenario file rules #############################
+# This section contains rules to apply to scenario files.
+################################################################################
+
+    utils/_context/_scenarios/appsec_low_waf_timeout.py:
+        scenario_groups: appsec_low_waf_timeout
+    utils/_context/_scenarios/aws_lambda.py:
+        scenario_groups: lambda_end_to_end
+    utils/_context/_scenarios/auto_injection.py:
+        scenario_groups: onboarding
+    utils/_context/_scenarios/default.py:
+        scenario_groups: default
+    utils/_context/_scenarios/appsec_rasp.py:
+        scenario_groups: appsec_rasp_scenario
+    utils/_context/_scenarios/endtoend.py:
+        scenario_groups: end_to_end
+    utils/_context/_scenarios/integrations.py:
+        scenario_groups: integrations
+    utils/_context/_scenarios/ipv6.py:
+        scenario_groups: ipv6
+    utils/_context/_scenarios/open_telemetry.py:
+        scenario_groups: open_telemetry
+        libraries: *otel_libraries
+    utils/_context/_scenarios/parametric.py:
+        scenario_groups: parametric
+    utils/_context/_scenarios/profiling.py:
+        scenario_groups: profiling
+    utils/_context/_scenarios/stream_processing_offload.py:
+        scenario_groups: stream_processing_offload
+
+
+############################### Script file rules ##############################
+# This section contains rules to apply to script files.
+################################################################################
+
+    utils/scripts/activate-easy-wins.py:
+        scenario_groups: null
+        libraries: null
+    utils/scripts/add-system-tests-label-on-known-tickets.py:
+        scenario_groups: null
+    utils/scripts/ai/*:
+        scenario_groups: null
+    utils/scripts/check_version.sh:
+        scenario_groups: null
+    utils/scripts/compute_impacted_scenario.py:
+        scenario_groups: null
+        libraries: null
+    utils/scripts/compute-impacted-libraries.py:
+        scenario_groups: null
+        libraries: null
+    utils/scripts/get-nightly-logs.py:
+        scenario_groups: null
+    utils/scripts/get-workflow-summary.py:
+        scenario_groups: null
+    utils/scripts/grep-nightly-logs.py.py:
+        scenario_groups: null
+    utils/scripts/parametric/*:
+        scenario_groups: parametric
+    utils/scripts/replay_scenarios.sh:
+        scenario_groups: null
+    utils/scripts/ssi_wizards/*:
+        scenario_groups: null
+    utils/scripts/update_protobuf.sh:
+        scenario_groups: null
+
+############################# Utils directory rules ############################
+# This section contains rules to apply to files in the utils directory.
+################################################################################
+
+    utils/_context/virtual_machine.py:
+        scenario_groups: onboarding
+
+    utils/docker_ssi/*:
+        scenario_groups: docker_ssi
+    utils/_features.py:
+        scenario_groups: default
+    utils/interfaces/schemas*:
+        scenario_groups: end_to_end
+    utils/k8s_lib_injection*:
+        scenario_groups: lib_injection
+    utils/onboarding*:
+        scenario_groups: onboarding
+    utils/parametric/*:
+        scenario_groups: parametric
+    utils/telemetry/*:
+        scenario_groups: telemetry
+    utils/proxy/*:
+        scenario_groups: [ end_to_end, open_telemetry, external_processing, stream_processing_offload]
+    utils/virtual_machine/*:
+        scenario_groups: onboarding
+
+    utils/build/ssi/*:
+        scenario_groups: docker_ssi
+    utils/build/virtual_machine/*:
+        scenario_groups: onboarding
+
+    utils/build/docker/lambda_proxy/*:
+        scenario_groups: lambda_end_to_end
+        libraries: *lambda_libraries
+    utils/build/docker/nodejs_otel/*:
+        scenario_groups: open_telemetry
+    utils/build/docker/*/parametric/*:
+        scenario_groups: parametric
+
+############################ Library-specific rules ############################
+# This section contains rules to apply to library-related files. It follows the
+# template below for each language:
+# manifests/{library}.yml:
+#     scenario_groups: null  # already handled by the manifest comparison
+#     libraries: {library}
+# utils/build/docker/{library}/*:
+#     libraries: {library}
+#     scenario_groups: [ end_to_end, open_telemetry]
+# lib-injection/build/docker/{library}/*:
+#     libraries: {library}
+# utils/build/build_{library}_base_images.sh:
+#     libraries: {library}
+################################################################################
+
+    manifests/cpp.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp
+    utils/build/docker/cpp/*:
+        libraries: cpp
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/cpp/*:
+        libraries: cpp
+    utils/build/build_cpp_base_images.sh:
+        libraries: cpp
+
+    manifests/cpp_httpd.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_httpd
+    utils/build/docker/cpp_httpd/*:
+        libraries: cpp_httpd
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/cpp_httpd/*:
+        libraries: cpp_httpd
+    utils/build/build_cpp_httpd_base_images.sh:
+        libraries: cpp_httpd
+
+    manifests/cpp_nginx.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: cpp_nginx
+    utils/build/docker/cpp_nginx/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: cpp_nginx
+    lib-injection/build/docker/cpp_nginx/*:
+        libraries: cpp_nginx
+    utils/build/build_cpp_nginx_base_images.sh:
+        libraries: cpp_nginx
+
+    manifests/dotnet.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: dotnet
+    utils/build/docker/dotnet/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: dotnet
+    lib-injection/build/docker/dotnet/*:
+        libraries: dotnet
+    utils/build/build_dotnet_base_images.sh:
+        libraries: dotnet
+
+    manifests/golang.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: golang
+    utils/build/docker/golang/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: golang
+    lib-injection/build/docker/golang/*:
+        libraries: golang
+    utils/build/build_golang_base_images.sh:
+        libraries: golang
+
+    manifests/java.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: java
+    utils/build/docker/java/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: java
+    lib-injection/build/docker/java/*:
+        libraries: java
+    utils/build/build_java_base_images.sh:
+        libraries: java
+
+    manifests/nodejs.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: nodejs
+    utils/build/docker/nodejs/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: nodejs
+    lib-injection/build/docker/nodejs/*:
+        libraries: nodejs
+    utils/build/build_nodejs_base_images.sh:
+        libraries: nodejs
+
+    manifests/php.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: php
+    utils/build/docker/php/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: php
+    lib-injection/build/docker/php/*:
+        libraries: php
+    utils/build/build_php_base_images.sh:
+        libraries: php
+
+    manifests/python.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python
+    utils/build/docker/python/*:
+        libraries: python
+        scenario_groups: [ end_to_end, open_telemetry]
+    lib-injection/build/docker/python/*:
+        libraries: python
+    utils/build/build_python_base_images.sh:
+        libraries: python
+
+    manifests/ruby.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: ruby
+    utils/build/docker/ruby/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: ruby
+    lib-injection/build/docker/ruby/*:
+        libraries: ruby
+    utils/build/build_ruby_base_images.sh:
+        libraries: ruby
+
+    manifests/python_lambda.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python_lambda
+    utils/build/docker/python_lambda/*:
+        scenario_groups: appsec_lambda
+        libraries: python_lambda
+    lib-injection/build/docker/python_lambda/*:
+        libraries: python_lambda
+    utils/build/build_python_lambda_base_images.sh:
+        libraries: python_lambda
+
+    manifests/rust.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: rust
+    utils/build/docker/rust/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+        libraries: rust
+    lib-injection/build/docker/rust/*:
+        libraries: rust
+    utils/build/build_rust_base_images.sh:
+        libraries: rust
+
+    manifests/python_otel.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: python_otel
+    utils/build/docker/python_otel/*:
+        scenario_groups: open_telemetry
+        libraries: python_otel
+    lib-injection/build/docker/python_otel/*:
+        libraries: python_otel
+    utils/build/build_python_otel_base_images.sh:
+        libraries: python_otel
+
+    manifests/java_otel.yml:
+        scenario_groups: null  # already handled by the manifest comparison
+        libraries: java_otel
+    utils/build/docker/java_otel/*:
+        scenario_groups: open_telemetry
+        libraries: java_otel
+    lib-injection/build/docker/java_otel/*:
+        libraries: java_otel
+    utils/build/build_java_otel_base_images.sh:
+        libraries: java_otel
+
+################################# Default rules ################################
+# The rules in this section are only applied if no other rule is applicable.
+# They are considered safe to override in previous rules. They should match a
+# large number of files. If your rule is more specific, please find a more
+# appropriate section.
+################################################################################
+
+    utils/build/docker/*:
+        scenario_groups: [ end_to_end, open_telemetry]
+    manifests/*:
+        scenario_groups: null  # already handled by the manifest comparison
+    tests/*:
+        scenario_groups: null # dynamic selection
+
+
+
