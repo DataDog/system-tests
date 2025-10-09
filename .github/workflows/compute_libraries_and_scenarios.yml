@@ -37,7 +37,7 @@ jobs:
       target-branch: ${{ steps.get-target-branch.outputs.target-branch }}
       rebuild_lambda_proxy: ${{ steps.compute.outputs.rebuild_lambda_proxy }}
       scenarios: ${{ steps.compute.outputs.scenarios }}
-      scenario_groups: ${{ steps.compute.outputs.scenarios_groups }}
+      scenario_groups: ${{ steps.compute.outputs.scenario_groups }}
     steps:
       - name: Checkout
         uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
