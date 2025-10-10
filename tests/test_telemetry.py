@@ -738,7 +738,7 @@ class Test_TelemetryV2:
         reason="Re-enable when this automatically updates the dd-go files.",
     )
     @irrelevant(
-        condition=context.library not in ("python","java"),
+        condition=context.library not in ("python", "java"),
         reason="This test causes to many friction. It has been replaced by alerts on slack channels",
     )
     def test_config_telemetry_completeness(self):
