@@ -21,7 +21,7 @@ def get_schema(request, address):
     return None
 
 
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit")
+@rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Capabilities(BaseAppsecApiSecurityRcTest):
@@ -40,7 +40,7 @@ class Test_API_Security_Custom_Data_Classification_Capabilities(BaseAppsecApiSec
         interfaces.library.assert_rc_capability(Capabilities.ASM_CUSTOM_DATA_SCANNERS)
 
 
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit")
+@rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Processor_Override(BaseAppsecApiSecurityRcTest):
@@ -63,7 +63,7 @@ class Test_API_Security_Custom_Data_Classification_Processor_Override(BaseAppsec
             assert "testcard" in schema[0], "testcard parameter should be in the schema"
 
 
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit")
+@rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Scanner(BaseAppsecApiSecurityRcTest):
@@ -98,7 +98,7 @@ class Test_API_Security_Custom_Data_Classification_Scanner(BaseAppsecApiSecurity
                         assert classification["type"] == "card", "Type should be card"
 
 
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit")
+@rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Multiple_Scanners(BaseAppsecApiSecurityRcTest):
@@ -125,7 +125,7 @@ class Test_API_Security_Custom_Data_Classification_Multiple_Scanners(BaseAppsecA
             assert "testcard" in schema[0], "testcard field should be in the schema"
 
 
-@rfc("https://docs.google.com/document/d/1Ig5lna4l57-tJLMnC76noGFJaIHvudfYXdZYKz6gXUo/edit")
+@rfc("https://docs.google.com/document/d/1wBrd-ShGoA9-aP96o0VIe46eBgw73GL1315R8QjuMoc/edit?tab=t.0")
 @scenarios.appsec_api_security_rc
 @features.api_security_configuration
 class Test_API_Security_Custom_Data_Classification_Negative(BaseAppsecApiSecurityRcTest):
