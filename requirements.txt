@@ -6,7 +6,6 @@ ddapm-test-agent==1.18.0
 dictdiffer==0.9.0  # for parametric tests
 docker==7.1.0
 filelock==3.12.2  # for parametric tests
-hypothesis==6.138.3
 jsonschema==4.16.0
 kubernetes==29.0.0  #lib-injection kubernetes
 matplotlib  # for performance tests
