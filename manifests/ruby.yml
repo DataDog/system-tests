@@ -554,7 +554,7 @@ tests/:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
       Test_TraceTaggingRules: v2.22.0-dev
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRulesRcCapability: v2.22.0-dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
