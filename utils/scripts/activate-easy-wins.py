@@ -402,16 +402,17 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                 except (FileNotFoundError, KeyError):
                     continue
 
+        if not found_version:
+            versions[library] = "xpass"
+            continue
+
         if library == "cpp_httpd" and versions[library] == "99.99.99":
             with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
                 versions[library] = resp_runs.json()[0]["tag_name"]
-        if library == "cpp":
+        elif library == "cpp":
             versions[library] = ">=" + versions[library]
         else:
             versions[library] = "v" + versions[library]
-
-        if not found_version:
-            versions[library] = "xpass"
 
     return versions
 
