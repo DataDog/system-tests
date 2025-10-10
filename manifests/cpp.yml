@@ -19,6 +19,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: ">1.0.0"
       Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1_EmptyServiceTargets: ">1.0.0"
