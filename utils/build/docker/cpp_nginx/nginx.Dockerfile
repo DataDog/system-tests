@@ -105,7 +105,4 @@ RUN ./install_ddtrace.sh
 # Profiling setup
 RUN ./install_ddprof.sh /usr/local/bin
 
-# With or without the native profiler
-ARG DDPROF_ENABLE="yes"
-ENV DDPROF_ENABLE=${DDPROF_ENABLE}
 CMD ["./app.sh"]
