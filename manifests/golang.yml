@@ -23,6 +23,12 @@ tests/:
           net-http: irrelevant (net-http doesn't handle path params)
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:

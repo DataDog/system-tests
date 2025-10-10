@@ -70,6 +70,22 @@ tests/:
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Negative:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Processor_Override:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Scanner:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': missing_feature
