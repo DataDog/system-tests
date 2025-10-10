@@ -74,11 +74,20 @@
     "properties": {
       "headers": {
         "type": "object",
+        "patternProperties": {
+          "[Cc]ontent-[Tt]ype": { "enum": ["application/json", "application/gzip"] }
+        },
         "properties": {
-          "Content-Type": { "enum": ["application/json", "application/gzip"] },
           "Content-Disposition": { "type": "string" }
         },
-        "required": ["Content-Type"]
+        "oneOf":[
+          {
+            "required": ["Content-Type"]
+          },
+          {
+            "required": ["content-type"]
+          }
+        ]
       }
     },
     "allOf": [
@@ -86,7 +95,7 @@
         "if": {
           "properties": {
             "headers": {
-              "properties": { "Content-Type": { "const": "application/json" } }
+              "patternProperties": { "[Cc]ontent-[Tt]ype": { "const": "application/json" } }
             }
           }
         },
@@ -98,7 +107,7 @@
         "if": {
           "properties": {
             "headers": {
-              "properties": { "Content-Type": { "const": "application/gzip" } }
+              "patternProperties": { "[Cc]ontent-[Tt]ype": { "const": "application/gzip" } }
             }
           }
         },

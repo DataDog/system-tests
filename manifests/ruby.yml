@@ -22,7 +22,7 @@ tests/:
         Test_API_Security_Sampling_With_Delay: v2.18.0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
-          "*": missing_feature
+          "*": v2.22.0.dev
           rack: irrelevant (rack does not have a router)
           rails42: irrelevant
           sinatra14: missing_feature
@@ -217,6 +217,7 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -553,7 +554,7 @@ tests/:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
       Test_TraceTaggingRules: v2.22.0-dev
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRulesRcCapability: v2.22.0-dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
