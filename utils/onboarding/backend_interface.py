@@ -13,10 +13,12 @@ def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
     results = _query_for_trace_id(trace_id, validator=validator)
     runtime_id = results["runtime_id"]
-    validator_results = results["validator"]
+    if validator:
+        validator_results = results["validator"]
+        assert validator_results, f"{validator.__name__} failed to validate trace_id: {trace_id}"
 
     assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
-    assert validator_results, f"{validator.__name__} failed to validate trace_id: {trace_id}"
+
     if profile:
         _query_for_profile(runtime_id)
 
