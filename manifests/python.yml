@@ -298,6 +298,7 @@ tests/:
         Test_API10_all:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_downstream_request_tag: missing_feature
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
