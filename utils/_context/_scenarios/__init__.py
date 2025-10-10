@@ -10,6 +10,7 @@ from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
+from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
@@ -1086,6 +1087,8 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+
+    otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
 
 
 scenarios = _Scenarios()

@@ -472,6 +472,13 @@ class _TestAgentAPI:
                         if config_name not in configurations:
                             configurations[config_name] = []
                         configurations[config_name].append(config)
+        if len(configurations):
+            # Checking if we need to sort due to multiple sources being sent for the same config
+            sample_key = next(iter(configurations))
+            if "seq_id" in configurations[sample_key][0]:
+                # Sort seq_id for each config from highest to lowest
+                for payload in configurations.values():
+                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
         if clear:
             self.clear()
         return configurations
