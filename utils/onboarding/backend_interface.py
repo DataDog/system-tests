@@ -11,8 +11,12 @@ API_HOST = "https://dd.datadoghq.com"
 
 def wait_backend_trace_id(trace_id, profile: bool = False, validator=None):
     logger.info(f"Waiting for backend trace with trace_id: {trace_id}")
-    runtime_id = _query_for_trace_id(trace_id, validator=validator)
+    results = _query_for_trace_id(trace_id, validator=validator)
+    runtime_id = results["runtime_id"]
+    validator_results = results["validator"]
+
     assert runtime_id, f"Could not find runtime-id for trace_id: {trace_id}"
+    assert validator_results, f"{validator.__name__} failed to validate trace_id: {trace_id}"
     if profile:
         _query_for_profile(runtime_id)
 
@@ -54,13 +58,14 @@ def _headers():
 def _query_for_trace_id(trace_id, validator=None):
     url = f"{API_HOST}/api/ui/trace/{trace_id}"
 
+    results = {}
+
     trace_data = _make_request(url, headers=_headers())
     if validator:
         logger.info("Validating backend trace...")
-        if not validator(trace_id, trace_data):
-            logger.info("Backend trace is not valid")
-            return None
-        logger.info("Backend trace is valid")
+        results["validator"] = validator(trace_id, trace_data)
+        if not results["validator"]:
+            logger.info("Validator failed")
 
     root_id = trace_data["trace"]["root_id"]
     root_span = trace_data["trace"]["spans"][root_id]
@@ -68,9 +73,10 @@ def _query_for_trace_id(trace_id, validator=None):
     start_date = datetime.fromtimestamp(start_time)
     if (datetime.now() - start_date).days > 1:
         logger.info("Backend trace is too old")
-        return None
-
-    return root_span["meta"]["runtime-id"]
+        results["runtime_id"] = None
+    else:
+        results["runtime_id"] = root_span["meta"]["runtime-id"]
+    return results
 
 
 def _make_request(

@@ -1921,12 +1921,13 @@ class _Features:
 
     @staticmethod
     def origin_detection(test_object):
-        """Container origin detection works automatically in a containerized environment
+        """Origin Detection is a feature that allows the Agent to correctly detect and tag incoming custom
+        metrics or traces with their Origin (AKA container tags).
 
-        https://feature-parity.us1.prod.dog/#/?feature=492
+        https://feature-parity.us1.prod.dog/#/?feature=362
 
         """
-        return _mark_test_object(test_object, feature_id=492, owner=_Owner.language_platform)
+        return _mark_test_object(test_object, feature_id=362, owner=_Owner.language_platform)
 
     @staticmethod
     def container_auto_installation_script_profiling(test_object):
