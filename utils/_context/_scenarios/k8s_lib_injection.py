@@ -49,6 +49,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self.with_datadog_operator = with_datadog_operator
         self.weblog_env = weblog_env
         self.dd_cluster_feature = dd_cluster_feature
+        self._configuration: dict[str, str] = {}
 
     def configure(self, config: pytest.Config):
         # If we are using the datadog operator, we don't need to deploy the test agent
@@ -79,6 +80,7 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
         self._library = ComponentVersion(config.option.k8s_library, self.k8s_lib_init_img.version)
         self.components["library"] = self._library.version
         self.components["cluster_agent"] = self.k8s_cluster_img.version
+        self._configuration["cluster_agent"] = self.k8s_cluster_img.version
         self._datadog_apm_inject_version = f"v{self.k8s_injector_img.version}"
         self.components["datadog-apm-inject"] = self._datadog_apm_inject_version
 
@@ -170,6 +172,10 @@ class K8sScenario(Scenario, K8sScenarioWithClusterProvider):
     @property
     def dd_apm_inject_version(self):
         return self._datadog_apm_inject_version
+
+    @property
+    def configuration(self):
+        return self._configuration
 
 
 class K8sManualInstrumentationScenario(Scenario, K8sScenarioWithClusterProvider):
