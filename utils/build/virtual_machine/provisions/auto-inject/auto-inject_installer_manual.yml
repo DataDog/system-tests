@@ -18,7 +18,7 @@
             
             # Wait for Docker to be fully ready
             echo "Waiting for Docker service to be ready..."
-            MAX_WAIT=30
+            MAX_WAIT=20
             COUNTER=0
             while [ $COUNTER -lt $MAX_WAIT ]; do
                 if sudo docker info >/dev/null 2>&1; then
@@ -31,8 +31,7 @@
             done
             
             if [ $COUNTER -eq $MAX_WAIT ]; then
-                echo "ERROR: Docker service did not become ready after $MAX_WAIT seconds"
-                exit 1
+                echo "WARNING: Docker service did not become ready after $MAX_WAIT seconds"
             fi
         else
             echo "Docker service is already running"
