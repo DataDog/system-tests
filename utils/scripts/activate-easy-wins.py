@@ -271,6 +271,7 @@ def build_updated_subtree(
         # Set value based on whether this path should be activated
         if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
             current[path[-1]] = version  # New version for activated paths
+            current.yaml_add_eol_comment("auto activation: might not be the earliest working version", path[-1])
         else:
             current[path[-1]] = original_value  # Keep original value for non-activated paths
 
@@ -330,6 +331,10 @@ def update_entry(
             # Remove comments from updated entry
             if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
                 del ancestor.ca.items[root_path[-1]]
+
+            # Add comment for activated entries
+            ancestor.yaml_add_eol_comment("auto activation: might not be the earliest working version", root_path[-1])
+
             return ret
 
         return None
@@ -392,14 +397,18 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                     with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
                         data = json.load(file)
                     if data["context"]["library_name"] == library:
-                        versions[library] = f"v{data['context']['library']}"
+                        versions[library] = f"{data['context']['library']}"
                         found_version = True
                 except (FileNotFoundError, KeyError):
                     continue
 
-        if library == "cpp_httpd" and versions[library] == "v99.99.99":
+        if library == "cpp_httpd" and versions[library] == "99.99.99":
             with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
                 versions[library] = resp_runs.json()[0]["tag_name"]
+        if library == "cpp":
+            versions[library] = ">=" + versions[library]
+        else:
+            versions[library] = "v" + versions[library]
 
         if not found_version:
             versions[library] = "xpass"
