@@ -471,15 +471,15 @@ tests/:
       TestSimpleInstallerAutoInjectManualProfiling: bug (PROF-12209)
   debugger/:
     test_debugger_code_origins.py:
-      Test_Debugger_Code_Origins: missing_feature
+      Test_Debugger_Code_Origins: v3.28.0
     test_debugger_exception_replay.py:
       Test_Debugger_Exception_Replay: v2.50.0
     test_debugger_expression_language.py:
       Test_Debugger_Expression_Language: v2.50.0
     test_debugger_inproduct_enablement.py:
-      Test_Debugger_InProduct_Enablement_Code_Origin: missing_feature
-      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: missing_feature
-      Test_Debugger_InProduct_Enablement_Exception_Replay: missing_feature
+      Test_Debugger_InProduct_Enablement_Code_Origin: v3.29.0
+      Test_Debugger_InProduct_Enablement_Dynamic_Instrumentation: v3.29.0
+      Test_Debugger_InProduct_Enablement_Exception_Replay: v3.29.0
     test_debugger_pii.py:
       Test_Debugger_PII_Redaction: v2.50.0
       Test_Debugger_PII_Redaction_Excluded_Identifiers: v2.50.0
