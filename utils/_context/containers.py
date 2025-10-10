@@ -461,6 +461,18 @@ class TestedContainer:
         if self.stdout_interface is not None:
             self.stdout_interface.load_data()
 
+    def _set_aws_auth_environment(self):
+        # Set default AWS values
+        if "AWS_REGION" not in self.environment:
+            self.environment["AWS_REGION"] = "us-east-1"
+            self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
+
+        if "AWS_SECRET_ACCESS_KEY" not in self.environment:
+            self.environment["AWS_SECRET_ACCESS_KEY"] = "not-secret"  # noqa: S105
+
+        if "AWS_ACCESS_KEY_ID" not in self.environment:
+            self.environment["AWS_ACCESS_KEY_ID"] = "not-secret"
+
 
 class SqlDbTestedContainer(TestedContainer):
     def __init__(
@@ -722,6 +734,8 @@ class BuddyContainer(TestedContainer):
             },
         )
 
+        self._set_aws_auth_environment()
+
     @property
     def interface(self) -> LibraryInterfaceValidator:
         result = getattr(interfaces, self.name)
@@ -930,6 +944,8 @@ class WeblogContainer(TestedContainer):
         self.volumes[f"./{self.host_log_folder}/docker/weblog/logs/"] = {"bind": "/var/log/system-tests", "mode": "rw"}
 
         self.weblog_variant = self.image.labels["system-tests-weblog-variant"]
+
+        self._set_aws_auth_environment()
 
         library = self.image.labels["system-tests-library"]
 
