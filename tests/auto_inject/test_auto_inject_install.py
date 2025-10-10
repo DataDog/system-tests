@@ -190,7 +190,6 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @features.origin_detection
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
-@scenarios.installer_auto_injection
 class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
     @irrelevant(
         condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,

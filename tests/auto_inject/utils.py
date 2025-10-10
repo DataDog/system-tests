@@ -233,8 +233,7 @@ class AutoInjectBaseTest:
             stop_weblog_command = "sudo -E docker-compose -f docker-compose.yml down"
             # On older Docker versions, the network recreation can hang. The solution is to restart Docker.
             # https://github.com/docker-archive/classicswarm/issues/1931
-            # Also, we need to restart the agent to make the 'workloadmeta-docker' immediately available (it can cause flakyness on the testsm because the workloadmeta-docker is not available immediately if the docker is not ready)
-            start_weblog_command = "sudo systemctl restart docker && timeout 40 bash -c 'until sudo docker info >/dev/null 2>&1; do sleep 1; done' && sudo systemctl restart datadog-agent && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
+            start_weblog_command = "sudo systemctl restart docker && sudo -E docker-compose -f docker-compose.yml up --wait --wait-timeout 120"
 
         install_command = "sudo datadog-installer apm instrument"
         uninstall_command = "sudo datadog-installer apm uninstrument"
