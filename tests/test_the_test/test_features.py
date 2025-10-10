@@ -56,6 +56,7 @@ def test_feature_are_correctly_declared():
 
         result = feature(TestObject)
         assert result is TestObject, f"Feature {feature.__name__} must return the test object"
+        assert hasattr(TestObject, "pytestmark"), f"Feature {feature.__name__} must mark the test object"
         return TestObject.pytestmark  # type: ignore[attr-defined]
 
     for name in dir(features):
