@@ -1,0 +1,2068 @@
+import pytest
+
+from utils import context, features, missing_feature, scenarios
+from urllib.parse import urlparse
+
+EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
+
+DEFAULT_METER_NAME = "parametric-api"
+DEFAULT_METER_VERSION = "1.0.0"
+DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.27.0"
+
+DEFAULT_INSTRUMENT_UNIT = "triggers"
+DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
+DEFAULT_EXPLICIT_BUCKET_BOUNDARIES = [
+    0.0,
+    5.0,
+    10.0,
+    25.0,
+    50.0,
+    75.0,
+    100.0,
+    250.0,
+    500.0,
+    750.0,
+    1000.0,
+    2500.0,
+    5000.0,
+    7500.0,
+    10000.0,
+]
+
+DEFAULT_SCOPE_ATTRIBUTES = {"scope.attr": "scope.value"}
+DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "test_value"}
+NON_DEFAULT_MEASUREMENT_ATTRIBUTES = {"test_attr": "non_default_value"}
+
+# Define common default environment variables to support the OpenTelemetry Metrics API feature:
+#   DD_METRICS_OTEL_ENABLED=true is required in some tracers (.NET, Python?)
+#   CORECLR_ENABLE_PROFILING=1 is required in .NET to enable auto-instrumentation
+DEFAULT_ENVVARS = {
+    "DD_METRICS_OTEL_ENABLED": "true",
+    "OTEL_METRIC_EXPORT_INTERVAL": "60000",  # Mitigate test flake by increasing the interval so that the only time new metrics are exported are when we manually flush them
+    "CORECLR_ENABLE_PROFILING": "1",
+}
+
+
+@pytest.fixture
+def otlp_metrics_endpoint_library_env(
+    library_env, endpoint_env, test_agent_otlp_http_port, test_agent_otlp_grpc_port, test_agent_container_name
+):
+    """Set up a custom endpoint for OTLP metrics."""
+    prev_value = library_env.get(endpoint_env)
+
+    protocol = library_env.get("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", library_env.get("OTEL_EXPORTER_OTLP_PROTOCOL"))
+    if protocol is None:
+        raise ValueError(
+            "One of the following environment variables must be set in library_env: OTEL_EXPORTER_OTLP_METRICS_PROTOCOL, OTEL_EXPORTER_OTLP_PROTOCOL"
+        )
+
+    port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
+    path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/metrics"
+
+    library_env[endpoint_env] = f"http://{test_agent_container_name}:{port}{path}"
+    yield library_env
+    if prev_value is None:
+        del library_env[endpoint_env]
+    else:
+        library_env[endpoint_env] = prev_value
+
+
+def generate_default_counter_data_point(test_library, instrument_name):
+    test_library.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+    test_library.otel_metrics_force_flush()
+    test_library.otel_create_counter(
+        DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+    )
+    test_library.otel_counter_add(
+        DEFAULT_METER_NAME,
+        instrument_name,
+        DEFAULT_INSTRUMENT_UNIT,
+        DEFAULT_INSTRUMENT_DESCRIPTION,
+        42,
+        DEFAULT_MEASUREMENT_ATTRIBUTES,
+    )
+    test_library.otel_metrics_force_flush()
+
+
+def assert_scope_metric(scope_metric, meter_name, meter_version, schema_url, expected_scope_attributes):
+    assert scope_metric["scope"]["name"] == meter_name
+    assert scope_metric["scope"]["version"] == meter_version
+    assert (
+        expected_scope_attributes.items()
+        == {item["key"]: item["value"]["string_value"] for item in scope_metric["scope"]["attributes"]}.items()
+    )
+    assert scope_metric["schema_url"] == schema_url
+
+
+def assert_metric_info(metric, name, unit, description):
+    assert metric["name"] == name
+    assert metric["unit"] == unit
+    assert metric["description"] == description
+
+
+def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotonic, value, attributes):
+    assert sum_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
+    assert sum_aggregation["is_monotonic"] if is_monotonic else not sum_aggregation.get("is_monotonic")
+
+    for sum_data_point in sum_aggregation["data_points"]:
+        if attributes == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}:
+            assert sum_data_point["as_double"] == value
+            assert (
+                attributes.items()
+                == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}.items()
+            )
+            assert "time_unix_nano" in sum_data_point
+            return
+
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {sum_aggregation['data_points']}")
+
+
+def assert_gauge_aggregation(gauge_aggregation, value, attributes):
+    for gauge_data_point in gauge_aggregation["data_points"]:
+        if attributes == {item["key"]: item["value"]["string_value"] for item in gauge_data_point["attributes"]}:
+            assert gauge_data_point["as_double"] == value
+            assert "time_unix_nano" in gauge_data_point
+            return
+
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {gauge_aggregation['data_points']}")
+
+
+def assert_histogram_aggregation(
+    histogram_aggregation,
+    aggregation_temporality,
+    count,
+    sum_value,
+    min_value,
+    max_value,
+    bucket_boundaries,
+    bucket_counts,
+    attributes,
+):
+    assert histogram_aggregation["aggregation_temporality"].casefold() == aggregation_temporality.casefold()
+
+    for histogram_data_point in histogram_aggregation["data_points"]:
+        if attributes == {item["key"]: item["value"]["string_value"] for item in histogram_data_point["attributes"]}:
+            assert int(histogram_data_point["count"]) == count
+            assert histogram_data_point["sum"] == sum_value
+            assert histogram_data_point["min"] == min_value
+            assert histogram_data_point["max"] == max_value
+
+            assert histogram_data_point["explicit_bounds"] == bucket_boundaries
+            assert list(map(int, histogram_data_point["bucket_counts"])) == bucket_counts
+            assert "time_unix_nano" in histogram_data_point
+            return
+
+    pytest.fail(f"Sum data point with attributes {attributes} not found in {histogram_aggregation['data_points']}")
+
+
+def find_metric_by_name(scope_metric: dict, name: str):
+    for metric in scope_metric["metrics"]:
+        if metric["name"] == name:
+            return metric
+    raise ValueError(f"Metric with name {name} not found")
+
+
+def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float]) -> list[int]:
+    bucket_counts = [0] * (len(bucket_boundaries) + 1)
+    for entry in entries:
+        for i in range(len(bucket_boundaries)):
+            if entry <= bucket_boundaries[i]:
+                bucket_counts[i] += 1
+                break
+        else:
+            bucket_counts[-1] += 1
+    return bucket_counts
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Configuration_Enabled:
+    """Tests the enablement and disablement of the OTel Metrics API through the following configurations:
+    - DD_METRICS_OTEL_ENABLED
+    - OTEL_METRICS_EXPORTER
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
+        ],
+    )
+    def test_otlp_metrics_enabled(self, test_agent, test_library, library_env):
+        """Ensure that OTLP metrics are emitted."""
+
+        name = "enabled-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_METRICS_OTEL_ENABLED": "false",
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
+            {
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "OTEL_METRICS_EXPORTER": "none",
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
+            {
+                "DD_METRICS_OTEL_ENABLED": None,
+                "OTEL_METRIC_EXPORT_INTERVAL": "60000",
+                "CORECLR_ENABLE_PROFILING": "1",
+            },
+        ],
+    )
+    def test_otlp_metrics_disabled(self, test_agent, test_library, library_env):
+        """Ensure that OTLP metrics are not emitted."""
+        name = "disabled-counter"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        with pytest.raises(ValueError):
+            test_agent.wait_for_num_otlp_metrics(num=1)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Api_MeterProvider:
+    """Tests the OpenTelemetry MeterProvider API functionality.
+
+    This class validates the behavior of the MeterProvider, which is responsible for:
+    - Creating and managing Meter instances
+    - Producing one Instrumentation Scope per unique Meter
+
+    Note: This class doesn't exhaustively test every combination of mismatching fields.
+    Note: It is unspecified whether the Meter name is case-insensitive or case-sensitive when determining uniqueness.
+    """
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_get_meter_by_distinct(self, test_agent, test_library, library_env):
+        name = "counter-test_get_meter_same_parameters"
+        first_meter_name = DEFAULT_METER_NAME
+        identical_meter_name = DEFAULT_METER_NAME
+        different_meter_name = DEFAULT_METER_NAME + "-different"
+
+        with test_library as t:
+            for meter_name in [first_meter_name, identical_meter_name, different_meter_name]:
+                t.otel_get_meter(meter_name, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+                t.otel_create_counter(meter_name, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+                t.otel_counter_add(
+                    meter_name,
+                    name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+
+        # Assert that there is only one metrics request per MetricsProvider.ForceFlush() call
+        assert len(metrics) == 1
+
+        # Assert that there is only one item in ResourceMetrics (one per tracer)
+        resource_metrics = metrics[0]["resource_metrics"]
+        assert len(resource_metrics) == 1
+
+        # Assert that we get one ScopeMetrics per distinct Meter
+        scope_metrics = resource_metrics[0]["scope_metrics"]
+        assert len(scope_metrics) == 2
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        for scope_metric in scope_metrics:
+            assert (
+                scope_metric["scope"]["name"] == first_meter_name
+                or scope_metric["scope"]["name"] == different_meter_name
+            )
+            assert_scope_metric(
+                scope_metric,
+                scope_metric["scope"]["name"],
+                DEFAULT_METER_VERSION,
+                DEFAULT_SCHEMA_URL,
+                DEFAULT_SCOPE_ATTRIBUTES,
+            )
+
+            assert len(scope_metric["metrics"]) == 1
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Api_Meter:
+    """Tests the OpenTelemetry Meter API functionality.
+
+    This class validates the behavior of the Meter, which is responsible for:
+    - Creating each type of synchronous and asynchronous instruments through the Meter API
+    - Handling instrument creation based on identifying fields (only name is case-insensitive)
+
+    Note: This class doesn't exhaustively test every combination of mismatching fields.
+    """
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_create_instruments_by_distinct(self, test_agent, test_library, library_env):
+        counter_name = "test_otel_create_counter"
+        updowncounter_name = "test_otel_create_updowncounter"
+        gauge_name = "test_otel_create_gauge"
+        histogram_name = "test_otel_create_histogram"
+        asynchronous_counter_name = "test_otel_create_asynchronous_counter"
+        asynchronous_updowncounter_name = "test_otel_create_asynchronous_updowncounter"
+        asynchronous_gauge_name = "test_otel_create_asynchronous_gauge"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+
+            for instrument_name in [counter_name, counter_name.upper(), counter_name + "-different"]:
+                t.otel_create_counter(
+                    DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+                )
+                t.otel_counter_add(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [updowncounter_name, updowncounter_name.upper(), updowncounter_name + "-different"]:
+                t.otel_create_updowncounter(
+                    DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+                )
+                t.otel_updowncounter_add(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [gauge_name, gauge_name.upper(), gauge_name + "-different"]:
+                t.otel_create_gauge(
+                    DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+                )
+                t.otel_gauge_record(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [histogram_name, histogram_name.upper(), histogram_name + "-different"]:
+                t.otel_create_histogram(
+                    DEFAULT_METER_NAME, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+                )
+                t.otel_histogram_record(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [
+                asynchronous_counter_name,
+                asynchronous_counter_name.upper(),
+                asynchronous_counter_name + "-different",
+            ]:
+                t.otel_create_asynchronous_counter(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [
+                asynchronous_updowncounter_name,
+                asynchronous_updowncounter_name.upper(),
+                asynchronous_updowncounter_name + "-different",
+            ]:
+                t.otel_create_asynchronous_updowncounter(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            for instrument_name in [
+                asynchronous_gauge_name,
+                asynchronous_gauge_name.upper(),
+                asynchronous_gauge_name + "-different",
+            ]:
+                t.otel_create_asynchronous_gauge(
+                    DEFAULT_METER_NAME,
+                    instrument_name,
+                    DEFAULT_INSTRUMENT_UNIT,
+                    DEFAULT_INSTRUMENT_DESCRIPTION,
+                    42,
+                    DEFAULT_MEASUREMENT_ATTRIBUTES,
+                )
+
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        # Instrument names are case-insensitive, so the measurements for 'name' and 'name_upper' will be recorded by the same Instrument,
+        # and, as a result, will be aggregated together
+
+        # Assert Counter aggregations
+        for instrument_name, value in [(counter_name, 84), (counter_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert UpDownCounter aggregations
+        for instrument_name, value in [(updowncounter_name, 84), (updowncounter_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert Gauge aggregations
+        for instrument_name, value in [(gauge_name, 42), (gauge_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+        # Assert Histogram aggregations
+        for instrument_name, values in [(histogram_name, [42, 42]), (histogram_name + "-different", [42])]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_histogram_aggregation(
+                metric["histogram"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                count=len(values),
+                sum_value=sum(values),
+                min_value=min(values),
+                max_value=max(values),
+                bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+                bucket_counts=get_expected_bucket_counts(values, DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert Asynchronous Counter aggregations
+        for instrument_name, value in [(asynchronous_counter_name, 42), (asynchronous_counter_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_DELTA",
+                is_monotonic=True,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert Asynchronous UpDownCounter aggregations
+        for instrument_name, value in [
+            (asynchronous_updowncounter_name, 42),
+            (asynchronous_updowncounter_name + "-different", 42),
+        ]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_sum_aggregation(
+                metric["sum"],
+                "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                is_monotonic=False,
+                value=value,
+                attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+        # Assert Asynchronous Gauge aggregations
+        for instrument_name, value in [(asynchronous_gauge_name, 42), (asynchronous_gauge_name + "-different", 42)]:
+            metric = find_metric_by_name(scope_metrics[0], instrument_name)
+            assert_metric_info(metric, instrument_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            assert_gauge_aggregation(metric["gauge"], value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Api_Instrument:
+    """Tests the OpenTelemetry Instrument API functionality.
+
+    This class validates the behavior of individual instruments, including:
+    - Counter operations with both non-negative values and negative (invalid) values
+    - Gauge operations
+    - Histogram operations with bucket boundaries and counts
+    - UpDownCounter operations
+    - Within an Instrument/time-series, generating unique data points per set of measurement attributees
+    """
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_counter_add_non_negative_and_negative_values(self, test_agent, test_library):
+        non_negative_value = 42
+        second_non_negative_value = 21
+        negative_value = -21
+        name = f"counter1-{non_negative_value}-{second_non_negative_value}-{negative_value}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_non_negative_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                negative_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = scope_metrics[0]["metrics"][0]
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=non_negative_value + second_non_negative_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_counter_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+        non_negative_value = 42
+        second_non_negative_value = 21
+        name = f"counter1-{non_negative_value}-{second_non_negative_value}-different-tags"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_counter(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_non_negative_value,
+                NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = scope_metrics[0]["metrics"][0]
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=non_negative_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=second_non_negative_value,
+            attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_updowncounter_add_multiple_values(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
+        name = f"updowncounter1-{first_value}-{second_value}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_updowncounter(
+                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            t.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                first_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=first_value + second_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_updowncounter_add_multiple_values_with_different_tags(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
+        name = f"updowncounter1-{first_value}-{second_value}-different-tags"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_updowncounter(
+                DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            t.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                first_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_value,
+                NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=first_value,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=second_value,
+            attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_gauge_record_multiple_values(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
+        name = f"gauge-{first_value}-{second_value}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_gauge_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                first_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_gauge_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], second_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_gauge_record_multiple_values_with_different_tags(self, test_agent, test_library):
+        first_value = 42
+        second_value = 21
+        name = f"gauge-{first_value}-{second_value}-different-tags"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_gauge(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_gauge_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                first_value,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_gauge_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                second_value,
+                NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], first_value, DEFAULT_MEASUREMENT_ATTRIBUTES)
+        assert_gauge_aggregation(metric["gauge"], second_value, NON_DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_histogram_add_non_negative_and_negative_values(self, test_agent, test_library):
+        non_negative_value1 = 42
+        non_negative_value2 = 21
+        negative_value1 = -21
+        name = f"histogram-{non_negative_value1}-{non_negative_value2}-{negative_value1}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value1,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value2,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                negative_value1,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        # Negative values are ignored by the Histogram Record API, so we only have 2 data points
+        assert_histogram_aggregation(
+            metric["histogram"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            count=2,
+            sum_value=non_negative_value1 + non_negative_value2,
+            min_value=min(non_negative_value1, non_negative_value2),
+            max_value=max(non_negative_value1, non_negative_value2),
+            bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+            bucket_counts=get_expected_bucket_counts(
+                [non_negative_value1, non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES
+            ),
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_histogram_add_non_negative_values_with_different_tags(self, test_agent, test_library):
+        non_negative_value1 = 42
+        non_negative_value2 = 21
+        name = f"histogram-{non_negative_value1}-{non_negative_value2}-different-tags"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_histogram(DEFAULT_METER_NAME, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value1,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                non_negative_value2,
+                NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        # Negative values are ignored by the Histogram Record API, so we only have 2 data points
+        assert_histogram_aggregation(
+            metric["histogram"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            count=1,
+            sum_value=non_negative_value1,
+            min_value=non_negative_value1,
+            max_value=non_negative_value1,
+            bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+            bucket_counts=get_expected_bucket_counts([non_negative_value1], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+        assert_histogram_aggregation(
+            metric["histogram"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            count=1,
+            sum_value=non_negative_value2,
+            min_value=non_negative_value2,
+            max_value=non_negative_value2,
+            bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+            bucket_counts=get_expected_bucket_counts([non_negative_value2], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
+            attributes=NON_DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_asynchronous_counter_constant_callback_value(self, test_agent, test_library):
+        n = 42
+        name = f"observablecounter1-{n}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_asynchronous_counter(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                n,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_asynchronous_updowncounter_constant_callback_value(self, test_agent, test_library):
+        n = 42
+        name = f"observableupdowncounter1-{n}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_asynchronous_updowncounter(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                n,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_sum_aggregation(
+            metric["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=n,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+    @pytest.mark.parametrize("library_env", [{**DEFAULT_ENVVARS}])
+    def test_otel_asynchronous_gauge_constant_callback_value(self, test_agent, test_library):
+        n = 42
+        name = f"observablegauge-{n}"
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_asynchronous_gauge(
+                DEFAULT_METER_NAME,
+                name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                n,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+
+        # Assert that the ScopeMetrics has the correct Scope, SchemaUrl, and Metrics data
+        assert_scope_metric(
+            scope_metrics[0], DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES
+        )
+
+        metric = find_metric_by_name(scope_metrics[0], name)
+        assert_metric_info(metric, name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+        assert_gauge_aggregation(metric["gauge"], n, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Configuration_Temporality_Preference:
+    """Tests the OpenTelemetry metrics aggregation temporality preference configuration.
+
+    This class validates the behavior of temporality preference configuration:
+    - Default temporality behavior is set to DELTA
+    - Configuration of temporality preference through the OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE environment variable
+    - Proper instrument-specific aggregation temporality in exported metrics
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+            },
+            {**DEFAULT_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "DELTA"},
+            {**DEFAULT_ENVVARS, "OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE": "CUMULATIVE"},
+        ],
+        ids=["default", "delta", "cumulative"],
+    )
+    def test_otel_aggregation_temporality(self, library_env, test_agent, test_library):
+        temporality_preference = library_env.get("OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE", "default")
+
+        counter_name = f"test_otel_aggregation_temporality_counter-{temporality_preference.lower()}"
+        updowncounter_name = f"test_otel_aggregation_temporality_updowncounter-{temporality_preference.lower()}"
+        gauge_name = f"test_otel_aggregation_temporality_gauge-{temporality_preference.lower()}"
+        histogram_name = f"test_otel_aggregation_temporality_histogram-{temporality_preference.lower()}"
+        asynchronous_counter_name = (
+            f"test_otel_aggregation_temporality_asynchronous_counter-{temporality_preference.lower()}"
+        )
+        asynchronous_updowncounter_name = (
+            f"test_otel_aggregation_temporality_asynchronous_updowncounter-{temporality_preference.lower()}"
+        )
+        asynchronous_gauge_name = (
+            f"test_otel_aggregation_temporality_asynchronous_gauge-{temporality_preference.lower()}"
+        )
+
+        with test_library as t:
+            t.otel_get_meter(DEFAULT_METER_NAME, DEFAULT_METER_VERSION, DEFAULT_SCHEMA_URL, DEFAULT_SCOPE_ATTRIBUTES)
+            t.otel_create_counter(
+                DEFAULT_METER_NAME, counter_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            t.otel_counter_add(
+                DEFAULT_METER_NAME,
+                counter_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_updowncounter(
+                DEFAULT_METER_NAME, updowncounter_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            t.otel_updowncounter_add(
+                DEFAULT_METER_NAME,
+                updowncounter_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_gauge(DEFAULT_METER_NAME, gauge_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION)
+            t.otel_gauge_record(
+                DEFAULT_METER_NAME,
+                gauge_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_histogram(
+                DEFAULT_METER_NAME, histogram_name, DEFAULT_INSTRUMENT_UNIT, DEFAULT_INSTRUMENT_DESCRIPTION
+            )
+            t.otel_histogram_record(
+                DEFAULT_METER_NAME,
+                histogram_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_asynchronous_counter(
+                DEFAULT_METER_NAME,
+                asynchronous_counter_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_asynchronous_updowncounter(
+                DEFAULT_METER_NAME,
+                asynchronous_updowncounter_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_create_asynchronous_gauge(
+                DEFAULT_METER_NAME,
+                asynchronous_gauge_name,
+                DEFAULT_INSTRUMENT_UNIT,
+                DEFAULT_INSTRUMENT_DESCRIPTION,
+                42,
+                DEFAULT_MEASUREMENT_ATTRIBUTES,
+            )
+
+            t.otel_metrics_force_flush()
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        counter = find_metric_by_name(scope_metrics[0], counter_name)
+        assert_sum_aggregation(
+            counter["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE"
+            if temporality_preference == "CUMULATIVE"
+            else "AGGREGATION_TEMPORALITY_DELTA",
+            is_monotonic=True,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+        updowncounter = find_metric_by_name(scope_metrics[0], updowncounter_name)
+        assert_sum_aggregation(
+            updowncounter["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+        # Note: Temporality does not affect the OTLP metric for Gauges
+        gauge = find_metric_by_name(scope_metrics[0], gauge_name)
+        assert_gauge_aggregation(gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+        histogram = find_metric_by_name(scope_metrics[0], histogram_name)
+        assert_histogram_aggregation(
+            histogram["histogram"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE"
+            if temporality_preference == "CUMULATIVE"
+            else "AGGREGATION_TEMPORALITY_DELTA",
+            count=1,
+            sum_value=42,
+            min_value=42,
+            max_value=42,
+            bucket_boundaries=DEFAULT_EXPLICIT_BUCKET_BOUNDARIES,
+            bucket_counts=get_expected_bucket_counts([42], DEFAULT_EXPLICIT_BUCKET_BOUNDARIES),
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+        asynchronous_counter = find_metric_by_name(scope_metrics[0], asynchronous_counter_name)
+        assert_sum_aggregation(
+            asynchronous_counter["sum"],
+            "AGGREGATION_TEMPORALITY_DELTA"
+            if temporality_preference in ("DELTA", "default")
+            else "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=True,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+        asynchronous_updowncounter = find_metric_by_name(scope_metrics[0], asynchronous_updowncounter_name)
+        assert_sum_aggregation(
+            asynchronous_updowncounter["sum"],
+            "AGGREGATION_TEMPORALITY_CUMULATIVE",
+            is_monotonic=False,
+            value=42,
+            attributes=DEFAULT_MEASUREMENT_ATTRIBUTES,
+        )
+
+        # Note: Temporality does not affect the OTLP metric for Gauges
+        asynchronous_gauge = find_metric_by_name(scope_metrics[0], asynchronous_gauge_name)
+        assert_gauge_aggregation(asynchronous_gauge["gauge"], 42, DEFAULT_MEASUREMENT_ATTRIBUTES)
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
+    """Tests the OpenTelemetry OTLP exporter metrics endpoint configuration.
+
+    This class validates the behavior of OTLP endpoint settings:
+    - Custom endpoint configuration through environment variables OTEL_EXPORTER_OTLP_ENDPOINT and OTEL_EXPORTER_OTLP_METRICS_ENDPOINT
+    """
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_otlp_custom_endpoint_http_protobuf(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_custom_endpoint-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4320
+        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_otlp_custom_endpoint_grpc(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_grpc_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_custom_endpoint-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4320
+        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4321,
+            ),
+        ],
+    )
+    def test_otlp_metrics_custom_endpoint_http_protobuf(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_metrics_custom_endpoint_http_protobuf-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4321
+        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4321,
+            ),
+        ],
+    )
+    def test_otlp_metrics_custom_endpoint_grpc(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_grpc_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Metrics are exported to custom OTLP endpoint."""
+        name = "test_otlp_metrics_custom_endpoint_grpc-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        assert (
+            urlparse(library_env[endpoint_env]).port == 4321
+        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
+    """Tests the OpenTelemetry OTLP exporter metrics headers configuration.
+
+    This class validates the behavior of OTLP header configuration:
+    - Custom headers configuration through environment variables OTEL_EXPORTER_OTLP_HEADERS and OTEL_EXPORTER_OTLP_METRICS_HEADERS
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+
+        name = "test_custom_http_headers_included_in_otlp_export-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("api-key") == "key"
+        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert (
+            metrics_requests[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_custom_metrics_http_headers_included_in_otlp_export(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted when enabled."""
+
+        name = "test_custom_metrics_http_headers_included_in_otlp_export-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("api-key") == "key"
+        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
+        assert (
+            metrics_requests[0]["headers"].get("other-config-value") == "value"
+        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
+    """Tests the OpenTelemetry OTLP exporter metrics protocol configuration.
+
+    This class validates the behavior of OTLP protocol configuration:
+    - Protocol configuration through environment variable OTEL_EXPORTER_OTLP_PROTOCOL
+    - Tests the following protocols: http/protobuf, grpc
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_otlp_protocol_http_protobuf(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
+        name = f"test_otlp_protocols-{protocol}-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf"
+            if protocol == "http/protobuf"
+            else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+            },
+        ],
+    )
+    def test_otlp_protocol_grpc(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_PROTOCOL"]
+        name = f"test_otlp_protocols-{protocol}-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf"
+            if protocol == "http/protobuf"
+            else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Host_Name:
+    """Tests the OpenTelemetry metrics host name configuration.
+
+    This class validates the behavior of host name configuration:
+    - Host name configuration when both environment variables DD_HOSTNAME and DD_TRACE_REPORT_HOSTNAME are set
+    - Resource attributes set through environment variable OTEL_RESOURCE_ATTRIBUTES are preserved
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": "true",
+            },
+        ],
+    )
+    def test_hostname_from_dd_hostname(self, test_agent, test_library, library_env):
+        """host.name is set from DD_HOSTNAME."""
+        name = "test_hostname_from_dd_hostname"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+
+        assert actual_attributes.get("host.name") == "ddhostname"
+
+    @pytest.mark.parametrize(
+        ("library_env", "host_attribute"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "OTEL_RESOURCE_ATTRIBUTES": "host.name=otelenv-host",
+                    "DD_HOSTNAME": "ddhostname",
+                },
+                "host.name",
+            ),
+        ],
+        ids=["host.name"],
+    )
+    def test_hostname_from_otel_resources(self, test_agent, test_library, library_env, host_attribute):
+        """Hostname attributes in OTEL_RESOURCE_ATTRIBUTES takes precedence over DD_HOSTNAME."""
+        name = "test_hostname_from_otel_resources"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+
+        assert actual_attributes.get(host_attribute) == "otelenv-host"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": "false",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_HOSTNAME": "ddhostname",
+                "DD_TRACE_REPORT_HOSTNAME": None,
+            },
+        ],
+        ids=["disabled", "default"],
+    )
+    def test_hostname_omitted(self, test_agent, test_library, library_env):
+        """host.name is omitted when not configured."""
+        name = "test_hostname_omitted"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+
+        assert "host.name" not in actual_attributes
+
+
+@scenarios.parametric
+@features.otel_metrics_api
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Resource_Attributes:
+    """Tests the OpenTelemetry metrics resource attributes configuration.
+
+    This class validates the behavior of resource attribute configuration:
+    - Resource attributes configuration through environment variable OTEL_RESOURCE_ATTRIBUTES
+    - Datadog environment variable mapping (DD_ENV, DD_SERVICE, DD_VERSION, DD_TAGS) to resource attributes
+    - The expected OpenTelemetry vs Datadog precedence is observed
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+            },
+        ],
+    )
+    def test_otel_resource_attributes(self, test_agent, test_library):
+        name = "counter1"
+        expected_attributes = {
+            "service.name": "service",
+            "service.version": "2.0",
+            "foo": "bar1",
+            "baz": "qux1",
+        }
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+
+        # Assert that the ResourceMetrics has the expected resources
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        assert expected_attributes.items() <= actual_attributes.items()
+
+        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
+        assert (
+            actual_attributes.get("deployment.environment") == "otelenv"
+            or actual_attributes.get("deployment.environment.name") == "otelenv"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_ENV": "otelenv",
+                "DD_SERVICE": "service",
+                "DD_VERSION": "2.0",
+                "DD_TAGS": "foo:bar1,baz:qux1",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,service.name=service,service.version=2.0,foo=bar1,baz=qux1",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_SERVICE": "service",
+                "DD_VERSION": "2.0",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=otelenv,foo=bar1,baz=qux1",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_ENV": "otelenv",
+                "DD_VERSION": "2.0",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.name=service,foo=bar1,baz=qux1",
+            },
+            {
+                **DEFAULT_ENVVARS,
+                "DD_ENV": "otelenv",
+                "DD_SERVICE": "service",
+                "OTEL_RESOURCE_ATTRIBUTES": "service.version=2.0,foo=bar1,baz=qux1",
+            },
+        ],
+    )
+    def test_otel_resource_attributes_populated_by_dd_otel_envs(self, test_agent, test_library):
+        name = "counter1"
+        expected_attributes = {
+            "service.name": "service",
+            "service.version": "2.0",
+            "foo": "bar1",
+            "baz": "qux1",
+        }
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+
+        # Assert that the ResourceMetrics has the expected resources
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        assert expected_attributes.items() <= actual_attributes.items()
+
+        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
+        assert (
+            actual_attributes.get("deployment.environment") == "otelenv"
+            or actual_attributes.get("deployment.environment.name") == "otelenv"
+        )
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_ENV": "otelenv",
+                "DD_SERVICE": "service",
+                "DD_VERSION": "2.0",
+                "DD_TAGS": "foo:bar1,baz:qux1",
+                "OTEL_RESOURCE_ATTRIBUTES": "deployment.environment=ignored_env,service.name=ignored_service,service.version=ignored_version,foo=ignored_bar1,baz=ignored_qux1",
+            },
+        ],
+    )
+    def test_dd_env_vars_override_otel(self, test_agent, test_library):
+        name = "counter1"
+        expected_attributes = {
+            "service.name": "service",
+            "service.version": "2.0",
+            "foo": "bar1",
+            "baz": "qux1",
+        }
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics_data = test_agent.wait_for_num_otlp_metrics(num=1)
+
+        # Assert that the ResourceMetrics has the expected resources
+        resource = metrics_data[0]["resource_metrics"][0]["resource"]
+        actual_attributes = {item["key"]: item["value"]["string_value"] for item in resource["attributes"]}
+        assert expected_attributes.items() <= actual_attributes.items()
+
+        # Add separate assertion for the DD_ENV mapping, whose semantic convention was updated in 1.27.0
+        assert (
+            actual_attributes.get("deployment.environment") == "otelenv"
+            or actual_attributes.get("deployment.environment.name") == "otelenv"
+        )
+
+
+@features.otel_metrics_api
+@scenarios.parametric
+@missing_feature(context.library == "cpp", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
+class Test_Otel_Metrics_Telemetry:
+    """Tests the OpenTelemetry metrics telemetry configuration reporting.
+
+    This class validates the behavior of telemetry configuration reporting:
+    - Telemetry configuration reporting for OTLP metrics exporter settings
+    - Telemetry metrics reporting for OTLP metrics exporter operations
+    """
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                "DD_METRICS_OTEL_ENABLED": "true",
+                "CORECLR_ENABLE_PROFILING": "1",
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+            },
+        ],
+    )
+    def test_telemetry_default_configurations(self, test_agent, test_library, library_env):
+        """Test default configurations values for environment variables associated with the OTel Metrics features."""
+        name = "test_telemetry_exporter_configurations"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", 10000),
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 10000),
+            ("OTEL_METRIC_EXPORT_INTERVAL", 10000),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", 7500),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "default", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    **DEFAULT_ENVVARS,
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
+                    "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+                    "OTEL_METRIC_EXPORT_INTERVAL": "5000",
+                    "OTEL_METRIC_EXPORT_TIMEOUT": "5000",
+                },
+                "OTEL_EXPORTER_OTLP_ENDPOINT",
+                4320,
+            ),
+        ],
+    )
+    def test_telemetry_exporter_configurations(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_exporter_configurations"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
+            ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
+            ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
+            ("OTEL_METRIC_EXPORT_INTERVAL", 5000),
+            ("OTEL_METRIC_EXPORT_TIMEOUT", 5000),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
+        [
+            (
+                {
+                    "DD_METRICS_OTEL_ENABLED": "true",
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                    "OTEL_EXPORTER_OTLP_METRICS_TIMEOUT": "30000",
+                    "OTEL_EXPORTER_OTLP_METRICS_HEADERS": "api-key=key,other-config-value=value",
+                    "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+                },
+                "OTEL_EXPORTER_OTLP_METRICS_ENDPOINT",
+                4325,
+            ),
+        ],
+    )
+    def test_telemetry_exporter_metrics_configurations(
+        self,
+        library_env,
+        endpoint_env,
+        test_agent_otlp_http_port,
+        otlp_metrics_endpoint_library_env,
+        test_agent,
+        test_library,
+    ):
+        """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_METRICS_ are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_exporter_metrics_configurations"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        configurations_by_name = test_agent.wait_for_telemetry_configurations()
+
+        for expected_env, expected_value in [
+            ("OTEL_EXPORTER_OTLP_METRICS_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_METRICS_HEADERS", "api-key=key,other-config-value=value"),
+            ("OTEL_EXPORTER_OTLP_METRICS_PROTOCOL", "http/protobuf"),
+            ("OTEL_EXPORTER_OTLP_METRICS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_METRICS_ENDPOINT"]),
+        ]:
+            # Find configuration with env_var origin (since these are set via environment variables)
+            config = test_agent.get_telemetry_config_by_origin(
+                configurations_by_name, expected_env, "env_var", fallback_to_first=True
+            )
+            assert config is not None, f"No configuration found for '{expected_env}'"
+            assert (
+                config.get("value") == expected_value
+            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_telemetry_metrics_http_protobuf(self, library_env, test_agent, test_library):
+        """Test telemetry metrics are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_metrics"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:http" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_successes")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:http" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
+                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+            },
+        ],
+    )
+    def test_telemetry_metrics_grpc(self, library_env, test_agent, test_library):
+        """Test telemetry metrics are sent to the instrumentation telemetry intake."""
+        name = "test_telemetry_metrics"
+
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_attempts")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:grpc" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")
+
+        telemetry_metrics = test_agent.wait_for_telemetry_metrics("otel.metrics_export_successes")
+        assert telemetry_metrics, f"Expected metrics, got {telemetry_metrics}"
+        for metric in telemetry_metrics:
+            assert metric.get("type") == "count", f"Expected count, got {metric}"
+            assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
+            assert metric.get("common") is True, f"Expected common, got {metric}"
+            assert metric.get("tags") is not None, f"Expected tags, got {metric}"
+            assert "protocol:grpc" in metric.get("tags")
+            assert "encoding:protobuf" in metric.get("tags")

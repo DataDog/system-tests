@@ -58,11 +58,11 @@
 
     # Env variables set on the scenario definition. Write to application_monitoring.yaml
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
-    
+
     # Create the application_monitoring.yaml file with apm_configuration_default section
     sudo mkdir -p /etc/datadog-agent
     echo "apm_configuration_default:" | sudo tee /etc/datadog-agent/application_monitoring.yaml > /dev/null
-    
+
     # Parse SCENARIO_AGENT_ENV (key=value pairs) and write to YAML format
     if [ -n "${SCENARIO_AGENT_ENV}" ]; then
         echo "AGENT VARIABLES CONFIGURED FROM THE SCENARIO:"
@@ -75,23 +75,19 @@
             fi
         done
     fi
-    
+
     echo "APPLICATION MONITORING CONFIG:"
     sudo cat /etc/datadog-agent/application_monitoring.yaml || true
 
-
-    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-    
-    
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh)"
+    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
     MAX_RETRIES=5
     RETRY_DELAY=5
     COUNTER=0
 
     while [ $COUNTER -lt $MAX_RETRIES ]; do
-        curl -L https://install.datadoghq.com/scripts/install_script_agent7.sh -o install_script.sh && break
+        curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
         echo "Retrying in $RETRY_DELAY seconds..."
         sleep $RETRY_DELAY
         ((COUNTER++))
@@ -102,7 +98,10 @@
         exit 1
     fi
 
-     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+
+    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
+    sudo systemctl restart datadog-agent
 
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 
@@ -119,6 +118,7 @@
 
     # Environment variables for the installer
     $env:DD_APM_INSTRUMENTATION_LIBRARIES = $env:DD_LANG;
+    $env:DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT = $true;
 
     if ($env:DD_INSTALLER_LIBRARY_VERSION) {
       $DD_LANG = $env:DD_LANG.ToUpper()

@@ -1,4 +1,5 @@
 from collections import defaultdict
+from dataclasses import dataclass
 import json
 import os
 from pathlib import Path
@@ -185,11 +186,21 @@ def get_docker_ssi_matrix(
 
 
 # End-to-end corner
+@dataclass
+class Weblog:
+    name: str
+    require_build: bool
+    artifact_name: str
+
+    def serialize(self) -> dict:
+        return {"name": self.name, "artifact_name": self.artifact_name}
+
+
 class Job:
     """a job is a couple weblog/scenarios that will be executed in a single runner"""
 
     def __init__(
-        self, library: str, weblog: str, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
+        self, library: str, weblog: Weblog, weblog_instance: int, scenarios_times: dict[str, float], build_time: float
     ):
         self.library = library
         self.weblog = weblog
@@ -208,11 +219,14 @@ class Job:
 
     def serialize(self) -> dict:
         return {
+            "runs_on": "ubuntu-latest",
             "library": self.library,
-            "weblog": self.weblog,
-            "scenarios": sorted(self.scenarios),
+            "weblog": self.weblog.name,
+            "weblog_build_required": self.weblog.require_build,
             "weblog_instance": self.weblog_instance,
+            "scenarios": sorted(self.scenarios),
             "expected_job_time": self.expected_job_time + self.build_time,
+            "binaries_artifact": self.weblog.artifact_name,
         }
 
     @property
@@ -225,7 +239,7 @@ class Job:
 
     @property
     def sort_key(self) -> tuple:
-        return (self.weblog, self.weblog_instance)
+        return (self.weblog.name, self.weblog_instance)
 
     def get_scenario_time(self, scenario: str) -> float:
         return self._scenarios_times[scenario]
@@ -254,19 +268,38 @@ class Job:
         return result
 
 
-def _get_endtoend_weblogs(library: str, weblogs_filter: list[str]) -> list[str]:
+def _get_endtoend_weblogs(
+    library: str, weblogs_filter: list[str], unique_id: str, ci_environment: str, binaries_artifact: str
+) -> list[Weblog]:
+    result: list[Weblog] = []
+
     folder = f"utils/build/docker/{library}"
-    result = [
-        f.replace(".Dockerfile", "")
-        for f in os.listdir(folder)
-        if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
-    ]
+    if Path(folder).exists():  # some lib does not have any weblog
+        names = [
+            f.replace(".Dockerfile", "")
+            for f in os.listdir(folder)
+            if f.endswith(".Dockerfile") and ".base." not in f and Path(os.path.join(folder, f)).is_file()
+        ]
 
-    if len(weblogs_filter) != 0:
-        # filter weblogs by the weblogs_filter set
-        result = [weblog for weblog in result if weblog in weblogs_filter]
+        if len(weblogs_filter) != 0:
+            # filter weblogs by the weblogs_filter set
+            names = [weblog for weblog in names if weblog in weblogs_filter]
 
-    return sorted(result)
+        result += [
+            Weblog(
+                name=name, require_build=True, artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
+            )
+            for name in names
+        ]
+
+    # weblog not related to a docker file
+    if library == "golang":
+        result.append(Weblog(name="no-weblog-golang", require_build=False, artifact_name=binaries_artifact))
+
+    if library == "otel_collector":
+        result.append(Weblog(name="otel_collector", require_build=False, artifact_name=binaries_artifact))
+
+    return sorted(result, key=lambda w: w.name)
 
 
 def get_endtoend_definitions(
@@ -276,6 +309,8 @@ def get_endtoend_definitions(
     ci_environment: str,
     desired_execution_time: int,
     maximum_parallel_jobs: int,
+    unique_id: str,
+    binaries_artifact: str,
 ) -> dict:
     scenarios = scenario_map["endtoend"]
 
@@ -284,7 +319,9 @@ def get_endtoend_definitions(
         time_stats = json.load(file)
 
     # get the list of end-to-end weblogs for the given library
-    weblogs = _get_endtoend_weblogs(library, weblogs_filter)
+    weblogs: list[Weblog] = _get_endtoend_weblogs(
+        library, weblogs_filter, ci_environment=ci_environment, unique_id=unique_id, binaries_artifact=binaries_artifact
+    )
 
     # check that jobs can be splitted
     assert maximum_parallel_jobs >= len(weblogs), "There are more weblogs than maximum_parallel_jobs"
@@ -292,11 +329,11 @@ def get_endtoend_definitions(
     # build a list of {weblog, scenarios} for each weblog, and assign it to a Job
     jobs: list[Job] = []
     for weblog in weblogs:
-        supported_scenarios = _filter_scenarios(scenarios, library, weblog, ci_environment)
+        supported_scenarios = _filter_scenarios(scenarios, library, weblog.name, ci_environment)
 
         if len(supported_scenarios) > 0:  # remove weblogs with no scenarios
             scenarios_times = {
-                scenario: _get_execution_time(library, weblog, scenario, time_stats["run"])
+                scenario: _get_execution_time(library, weblog.name, scenario, time_stats["run"])
                 for scenario in supported_scenarios
             }
 
@@ -318,10 +355,13 @@ def get_endtoend_definitions(
     # sort jobs by weblog name and weblog instance
     jobs.sort(key=lambda job: job.sort_key)
 
+    weblogs = list({job.weblog.name: job.weblog for job in jobs}.values())
+    weblogs.sort(key=lambda w: w.name)
+
     return {
         "endtoend_defs": {
             "parallel_enable": len(jobs) > 0,
-            "parallel_weblogs": sorted({job.weblog for job in jobs}),
+            "parallel_weblogs": [weblog.serialize() for weblog in weblogs if weblog.require_build],
             "parallel_jobs": [job.serialize() for job in jobs],
         }
     }
@@ -391,14 +431,17 @@ def _split_scenarios_for_parallel_execution(
     return [backpack.scenarios for backpack in backpacks]
 
 
-def _get_build_time(library: str, weblog: str, build_stats: dict) -> float:
+def _get_build_time(library: str, weblog: Weblog, build_stats: dict) -> float:
+    if not weblog.require_build:
+        return 0.0
+
     if library not in build_stats:
         return build_stats["*"]
 
-    if weblog not in build_stats[library]:
+    if weblog.name not in build_stats[library]:
         return build_stats[library]["*"]
 
-    return build_stats[library][weblog]
+    return build_stats[library][weblog.name]
 
 
 def _get_execution_time(library: str, weblog: str, scenario: str, run_stats: dict) -> int | float:
@@ -485,6 +528,21 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
         if scenario not in ("OTEL_INTEGRATIONS",):
             return False
 
+    # external processing and streamm processing
+    is_stream_processing_scenario = scenario in ("STREAM_PROCESSING_OFFLOAD", "STREAM_PROCESSING_OFFLOAD_BLOCKING")
+    is_external_processing_scenario = scenario in ("EXTERNAL_PROCESSING", "EXTERNAL_PROCESSING_BLOCKING")
+
+    if weblog == "no-weblog-golang":
+        if not is_stream_processing_scenario and not is_external_processing_scenario:
+            return False
+    if is_stream_processing_scenario or is_external_processing_scenario:
+        if weblog != "no-weblog-golang":
+            return False
+
+    # otel collector
+    if weblog == "otel_collector" or scenario == "OTEL_COLLECTOR":
+        return weblog == "otel_collector" and scenario == "OTEL_COLLECTOR"
+
     return True
 
 
@@ -537,7 +595,6 @@ if __name__ == "__main__":
             "PERFORMANCES",
             "PROFILING",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD",
-            "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES",
             "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
             "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING",
@@ -557,8 +614,6 @@ if __name__ == "__main__":
         ],
         "aws_ssi": [],
         "dockerssi": ["DOCKER_SSI"],
-        "externalprocessing": [],
-        "streamprocessingoffload": [],
         "graphql": ["GRAPHQL_APPSEC"],
         "libinjection": [
             "K8S_LIB_INJECTION",
@@ -578,4 +633,13 @@ if __name__ == "__main__":
         "parametric": ["PARAMETRIC"],
     }
 
-    get_endtoend_definitions("ruby", m, [], "dev", desired_execution_time=400, maximum_parallel_jobs=256)
+    get_endtoend_definitions(
+        "ruby",
+        m,
+        [],
+        "dev",
+        desired_execution_time=400,
+        maximum_parallel_jobs=256,
+        binaries_artifact="",
+        unique_id="000",
+    )

@@ -225,7 +225,10 @@ def build_updated_subtree(
 ) -> ruamel.yaml.CommentedMap | None:  # type: ignore[type-arg]
     """Build an updated subtree containing both activated and non-activated parts."""
 
-    def _collect_all_paths_with_status(root: Any, path: list[str]) -> list[tuple[list[str], TestClassStatus]]:  # type: ignore[misc]  # noqa: ANN401
+    def _collect_all_paths_with_status(
+        root: Any,  # noqa: ANN401
+        path: list[str],
+    ) -> list[tuple[list[str], tuple[TestClassStatus, set[str]]]]:  # type: ignore[misc]
         all_paths = []
 
         if isinstance(root, dict):
@@ -242,15 +245,15 @@ def build_updated_subtree(
 
     all_paths = _collect_all_paths_with_status(test_data_root, [])
     activable_paths = [
-        path for path, status in all_paths if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
+        path for path, status in all_paths if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE)
     ]
 
     if not activable_paths:
-        return None
+        return original_value
 
     # For test class-level entries, only build subtree if partial activation is needed
     if len(activable_paths) == len(all_paths) and not is_file_level:
-        return None  # Full activation - let caller handle this
+        return version
 
     # Build subtree structure with both activated and non-activated paths
     # Sort paths to ensure lexicographic key ordering
@@ -266,8 +269,9 @@ def build_updated_subtree(
             current = current[part]
 
         # Set value based on whether this path should be activated
-        if status in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
+        if status[0] in (TestClassStatus.ACTIVATE, TestClassStatus.CACTIVATE):
             current[path[-1]] = version  # New version for activated paths
+            current.yaml_add_eol_comment("auto activation: might not be the earliest working version", path[-1])
         else:
             current[path[-1]] = original_value  # Keep original value for non-activated paths
 
@@ -327,6 +331,10 @@ def update_entry(
             # Remove comments from updated entry
             if hasattr(ancestor, "ca") and hasattr(ancestor.ca, "items") and root_path[-1] in ancestor.ca.items:
                 del ancestor.ca.items[root_path[-1]]
+
+            # Add comment for activated entries
+            ancestor.yaml_add_eol_comment("auto activation: might not be the earliest working version", root_path[-1])
+
             return ret
 
         return None
@@ -389,17 +397,22 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                     with open(f"{path_data_opt}/{variant}/{scenario}/report.json", encoding="utf-8") as file:
                         data = json.load(file)
                     if data["context"]["library_name"] == library:
-                        versions[library] = f"v{data['context']['library']}"
+                        versions[library] = f"{data['context']['library']}"
                         found_version = True
                 except (FileNotFoundError, KeyError):
                     continue
 
-        if library == "cpp_httpd" and versions[library] == "v99.99.99":
-            with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
-                versions[library] = resp_runs.json()[0]["tag_name"]
-
         if not found_version:
             versions[library] = "xpass"
+            continue
+
+        if library == "cpp_httpd" and versions[library] == "99.99.99":
+            with requests.get("https://api.github.com/repos/DataDog/httpd-datadog/releases", timeout=60) as resp_runs:
+                versions[library] = resp_runs.json()[0]["tag_name"]
+        elif library == "cpp":
+            versions[library] = ">=" + versions[library]
+        else:
+            versions[library] = "v" + versions[library]
 
     return versions
 

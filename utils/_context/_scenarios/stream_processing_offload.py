@@ -28,7 +28,7 @@ class StreamProcessingOffloadScenario(DockerScenario):
         super().__init__(
             name,
             doc=doc,
-            github_workflow="streamprocessingoffload",
+            github_workflow="endtoend",
             scenario_groups=[
                 scenario_groups.end_to_end,
                 scenario_groups.stream_processing_offload,
@@ -123,7 +123,7 @@ class StreamProcessingOffloadScenario(DockerScenario):
 
     @property
     def weblog_variant(self):
-        return "haproxy-spoe"
+        return "haproxy-spoa"
 
     @property
     def library(self):

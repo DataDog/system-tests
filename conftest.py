@@ -118,6 +118,13 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Library to test (e.g. 'python', 'ruby')",
         choices=["cpp", "golang", "dotnet", "java", "nodejs", "php", "python", "ruby", "rust"],
     )
+    parser.addoption(
+        "--github-token-file",
+        type=str,
+        action="store",
+        default="",
+        help="An file containing a valid Github token to perform API calls",
+    )
 
     # report data to feature parity dashboard
     parser.addoption(
@@ -540,6 +547,13 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
                 if "classname" in testcase.attrib:
                     testcase.attrib["name"] = testcase.attrib["classname"] + "." + testcase.attrib["name"]
                     del testcase.attrib["classname"]
+
+                if context.weblog_variant:
+                    name = testcase.attrib["name"]
+                    if name.endswith("]"):
+                        testcase.attrib["name"] = f"{name[:-1]}, {context.weblog_variant}]"
+                    else:
+                        testcase.attrib["name"] = f"{name}[{context.weblog_variant}]"
 
             junit_report.write(session.config.option.xmlpath)
 
