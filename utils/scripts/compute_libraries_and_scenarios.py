@@ -30,6 +30,7 @@ LIBRARIES = {
     "golang",
     "java",
     "nodejs",
+    "otel_collector",
     "php",
     "python",
     "ruby",
@@ -187,7 +188,7 @@ class LibraryProcessor:
                 "version": "dev",
             }
             for library in sorted(self.selected)
-            if "otel" not in library
+            if "otel" not in library and library != "otel_collector"
         ]
 
         libraries_with_dev = [item["library"] for item in populated_result if item["version"] == "dev"]
