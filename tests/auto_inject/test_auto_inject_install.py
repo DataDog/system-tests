@@ -54,11 +54,12 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         logger.info(f"Done test_install for : [{context.vm_name}]")
 
 
+@features.origin_detection
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
     def test_install(self):
-        self._test_install(context.virtual_machine)
+        self._test_install(context.virtual_machine, origin_detection=True)
 
 
 @features.container_auto_installation_script_profiling
@@ -198,6 +199,29 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
         self._test_no_world_writeable(virtual_machine)
         logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
+
+@features.origin_detection
+@scenarios.simple_installer_auto_injection
+@scenarios.multi_installer_auto_injection
+class TestSimpleInstallerAutoInjectManualOriginDetection(base.AutoInjectBaseTest):
+    @irrelevant(
+        condition="container" not in context.weblog_variant and "alpine" not in context.weblog_variant,
+        reason="Origin detection is not supported on host environments",
+    )
+    @irrelevant(
+        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
+        reason="python 3.7 is not supported on ddtrace >= 3.x",
+    )
+    def test_origin_detection(self):
+        virtual_machine = context.virtual_machine
+        logger.info(
+            f"Launching test_origin_detection for : [{virtual_machine.name}] [{virtual_machine.get_deployed_weblog().runtime_version}]..."
+        )
+        self._test_install(virtual_machine, origin_detection=True)
+        logger.info(
+            f"Done test_origin_detection for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
+        )
 
 
 @features.auto_instrumentation_appsec
