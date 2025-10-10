@@ -240,3 +240,29 @@ class AutoInjectBaseTest:
         self._test_uninstall_commands(
             virtual_machine, stop_weblog_command, start_weblog_command, uninstall_command, install_command
         )
+
+    def _test_no_world_writeable(self, virtual_machine):
+        """Checks that there are no world writeable files in /opt/datadog-packages/datadog-apm*"""
+        logger = vm_logger(context.scenario.host_log_folder, virtual_machine.name)
+        logger.info(
+            f"Checking for world writeable files in /opt/datadog-packages/datadog-apm* on VM: {virtual_machine.name}"
+        )
+
+        # Find all files under /opt/datadog-packages/datadog-apm*
+        find_cmd = (
+            r"sudo find /opt/datadog-packages/datadog-apm* \( -type f -o -type d \) -perm -002 -ls 2>/dev/null || true"
+        )
+        result = self.execute_command(virtual_machine, find_cmd)
+        world_writeable_files = result.strip().splitlines() if result else []
+
+        if world_writeable_files:
+            logger.error(
+                "World writeable files found in /opt/datadog-packages/datadog-apm*:\n%s",
+                "\n".join(world_writeable_files),
+            )
+            raise AssertionError(
+                "World writeable files found in /opt/datadog-packages/datadog-apm*:\n"
+                + "\n".join(world_writeable_files)
+            )
+        else:
+            logger.info("No world writeable files found in /opt/datadog-packages/datadog-apm*.")

@@ -17,6 +17,7 @@ async def root():
 @app.get("/mirror/{status}", response_class=fastapi.responses.JSONResponse)
 @app.trace("/mirror/{status}", response_class=fastapi.responses.JSONResponse)
 @app.post("/mirror/{status}", response_class=fastapi.responses.JSONResponse)
+@app.put("/mirror/{status}", response_class=fastapi.responses.JSONResponse)
 async def mirror(status: int, request: fastapi.Request):
     """Mirror GET endpoint
 

@@ -383,7 +383,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=5
         """
-        return _mark_test_object(test_object, feature_id=5, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=5, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def report_tracer_drop_rate_ddtracer_kr(test_object):
@@ -1615,7 +1615,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=266
         """
-        return _mark_test_object(test_object, feature_id=266, owner=_Owner.tracer)
+        return _mark_test_object(test_object, feature_id=266, owner=_Owner.sdk_capabilities)
 
     @staticmethod
     def library_scrubbing(test_object):
@@ -2472,7 +2472,7 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=477
         """
-        return _mark_test_object(test_object, feature_id=477, owner=_Owner.tracer)  # tracing/correlation/logs
+        return _mark_test_object(test_object, feature_id=477, owner=_Owner.sdk_capabilities)  # tracing/correlation/logs
 
     @staticmethod
     def auto_instrumentation_appsec(test_object):

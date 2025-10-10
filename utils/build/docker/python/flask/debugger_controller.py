@@ -141,3 +141,17 @@ def budgets(loops):
     for _ in range(loops):
         pass
     return "Budgets", 200
+
+
+@debugger_blueprint.route("/exceptionreplay/simple", methods=["GET"])
+def exception_replay_simple():
+    raise Exception("simple exception")
+
+
+@debugger_blueprint.route("/exceptionreplay/recursion", methods=["GET"])
+def exception_replay_recursion():
+    depth = request.args.get("depth", type=int)
+    if depth > 0:
+        return exception_replay_recursion(depth - 1)
+    else:
+        raise Exception("recursion exception")
