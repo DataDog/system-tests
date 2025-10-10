@@ -32,6 +32,7 @@ amazon-ecr-credential-helper:
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/amazon-ecr-credential-helper.yml
 
 patch-docker-daemon:
+  cache: true
   install: !include utils/build/virtual_machine/provisions/auto-inject/docker/patch-docker-daemon.yml
 
 install-agent:
