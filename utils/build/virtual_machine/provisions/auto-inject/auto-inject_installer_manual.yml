@@ -7,32 +7,38 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
 
   remote-command: |
-    # Ensure Docker service is enabled and running
-    sudo systemctl enable docker.service docker.socket
-    if ! sudo systemctl is-active --quiet docker.service; then
-        echo "Docker service is not running, starting it..."
-        sudo systemctl start docker.service docker.socket
+    # Check if Docker is installed and ensure it's running
+    if command -v docker >/dev/null 2>&1; then
+        echo "Docker is installed, ensuring service is enabled and running..."
+        sudo systemctl enable docker.service docker.socket
         
-        # Wait for Docker to be fully ready
-        echo "Waiting for Docker service to be ready..."
-        MAX_WAIT=30
-        COUNTER=0
-        while [ $COUNTER -lt $MAX_WAIT ]; do
-            if sudo docker info >/dev/null 2>&1; then
-                echo "Docker service is ready"
-                break
+        if ! sudo systemctl is-active --quiet docker.service; then
+            echo "Docker service is not running, starting it..."
+            sudo systemctl start docker.service docker.socket
+            
+            # Wait for Docker to be fully ready
+            echo "Waiting for Docker service to be ready..."
+            MAX_WAIT=30
+            COUNTER=0
+            while [ $COUNTER -lt $MAX_WAIT ]; do
+                if sudo docker info >/dev/null 2>&1; then
+                    echo "Docker service is ready"
+                    break
+                fi
+                echo "Docker not ready yet, waiting... ($((COUNTER + 1))/$MAX_WAIT)"
+                sleep 1
+                ((COUNTER++))
+            done
+            
+            if [ $COUNTER -eq $MAX_WAIT ]; then
+                echo "ERROR: Docker service did not become ready after $MAX_WAIT seconds"
+                exit 1
             fi
-            echo "Docker not ready yet, waiting... ($((COUNTER + 1))/$MAX_WAIT)"
-            sleep 1
-            ((COUNTER++))
-        done
-        
-        if [ $COUNTER -eq $MAX_WAIT ]; then
-            echo "ERROR: Docker service did not become ready after $MAX_WAIT seconds"
-            exit 1
+        else
+            echo "Docker service is already running"
         fi
     else
-        echo "Docker service is already running"
+        echo "Docker is not installed, skipping Docker service setup"
     fi
 
     if [ "${DD_env}" == "dev" ]; then
