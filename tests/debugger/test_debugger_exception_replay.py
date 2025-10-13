@@ -213,7 +213,17 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
                 scrubbed.append({"<runtime>": "<scrubbed>"})
                 return scrubbed
-            return __scrub(value)
+            
+            # Recursively scrub the value
+            scrubbed_value = __scrub(value)
+            
+            # Remove redundant 'value' field when it matches the 'type' field
+            # This handles cases like {'type': 'Exception', 'value': 'Exception'}
+            if isinstance(scrubbed_value, dict) and "type" in scrubbed_value and "value" in scrubbed_value:
+                if scrubbed_value["value"] == scrubbed_value["type"]:
+                    del scrubbed_value["value"]
+            
+            return scrubbed_value
 
         def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
