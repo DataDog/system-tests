@@ -37,6 +37,15 @@ class API10:
 
         return True
 
+    def validate_metric(self, span):
+        for tag, expected in self.TAGS_EXPECTED:
+            # check also in meta to be safe
+            assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
+            values = span["metrics"] if tag in span["metrics"] else span["meta"]
+            assert str(values[tag]) == expected, f"Wrong value {values[tag]}, expected {expected}"
+
+        return True
+
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
@@ -188,7 +197,7 @@ class Test_API10_all(API10):
 
     def setup_api10(self):
         self.r = weblog.request(
-            "TRACE",
+            "PUT",
             "/external_request?" + urllib.parse.urlencode(self.PARAMS),
             data=json.dumps(self.BODY),
             headers={"Content-Type": "application/json"},
@@ -200,3 +209,24 @@ class Test_API10_all(API10):
         assert "error" not in body
         assert int(body["status"]) == 201
         interfaces.library.validate_spans(self.r, validator=self.validate)
+
+
+@rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
+@features.api10
+@scenarios.appsec_rasp
+@scenarios.appsec_standalone_rasp
+class Test_API10_downstream_request_tag(API10):
+    """API 10 span tag validation"""
+
+    TAGS_EXPECTED = [
+        ("_dd.appsec.downstream_request", "1"),
+    ]
+
+    def setup_api10_req_method(self):
+        self.r = weblog.request("TRACE", "/external_request")
+
+    def test_api10_req_method(self):
+        assert self.r.status_code == 200
+        body = json.loads(self.r.text)
+        assert "error" not in body
+        interfaces.library.validate_spans(self.r, validator=self.validate_metric)

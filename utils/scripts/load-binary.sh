@@ -344,11 +344,20 @@ elif [ "$TARGET" = "waf_rule_set" ]; then
         -H "Authorization: token $GITHUB_TOKEN" \
         -H "Accept: application/vnd.github.v3.raw" \
         https://api.github.com/repos/DataDog/appsec-event-rules/contents/build/recommended.json
+
 elif [ "$TARGET" = "python_lambda" ]; then
     assert_version_is_dev
     assert_target_branch_is_not_set
 
     get_github_action_artifact "DataDog/datadog-lambda-python" "build_layer.yml" "main" "datadog-lambda-python-3.13-amd64" "datadog_lambda_py-amd64-3.13.zip"
+
+elif [ "$TARGET" = "otel_collector" ]; then
+    assert_version_is_dev
+    assert_target_branch_is_not_set
+
+    echo "otel/opentelemetry-collector-contrib:nightly" > otel_collector-image
+    echo "Using $(cat otel_collector-image) image"
+
 else
     echo "Unknown target: $1"
     exit 1

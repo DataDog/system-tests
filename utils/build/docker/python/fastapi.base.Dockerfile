@@ -25,7 +25,7 @@ RUN pip install jinja2
 RUN pip install psycopg2
 RUN pip install itsdangerous
 RUN pip install xmltodict==0.14.2
-
+RUN pip install packaging==25.0
 RUN mkdir app
 WORKDIR /app
 

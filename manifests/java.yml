@@ -754,13 +754,30 @@ tests/:
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     rasp/:
       test_api10.py:
-        Test_API10_all: missing_feature
-        Test_API10_request_body: missing_feature
-        Test_API10_request_headers: missing_feature
-        Test_API10_request_method: missing_feature
-        Test_API10_response_body: missing_feature
-        Test_API10_response_headers: missing_feature
-        Test_API10_response_status: missing_feature
+        Test_API10_all:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_downstream_request_tag:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_method:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_status:
+          '*': missing_feature
+          vertx3: v1.54.0
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': v1.45.0
@@ -1585,10 +1602,18 @@ tests/:
         '*': v1.48.0
         spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_ExtendedRequestBodyCollection:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_ExtendedRequestHeadersDataCollection:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      Test_ExtendedResponseHeadersDataCollection:
+        '*': v1.54.0-SNAPSHOT
+        spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: irrelevant (covered by v2 test_extended_data_collection.py)
     test_extended_request_body_collection.py:
@@ -2074,6 +2099,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.35.2
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_parametric_endpoints.py:
@@ -2389,8 +2415,10 @@ tests/:
       spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     Test_Telemetry:
       '*': v0.108.1
-      spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-    Test_TelemetryEnhancedConfigReporting: missing_feature
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetryEnhancedConfigReporting:
+      '*': v1.54.0-SNAPSHOT
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
   test_v1_payloads.py: missing_feature

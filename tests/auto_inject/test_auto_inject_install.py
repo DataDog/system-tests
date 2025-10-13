@@ -166,6 +166,13 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
         self._test_install(virtual_machine)
         logger.info(f"Done test_install for : [{virtual_machine.name}]...")
 
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
+
 
 @features.installer_auto_instrumentation
 @scenarios.simple_installer_auto_injection
@@ -184,6 +191,13 @@ class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
         logger.info(
             f"Done test_install for : [{virtual_machine.name}][{virtual_machine.get_deployed_weblog().runtime_version}]"
         )
+
+    @irrelevant(condition=context.vm_os_branch == "windows", reason="Irrelevant on Windows")
+    def test_no_world_writeable(self):
+        virtual_machine = context.virtual_machine
+        logger.info(f"Launching test_no_world_writeable for : [{virtual_machine.name}]...")
+        self._test_no_world_writeable(virtual_machine)
+        logger.info(f"Done test_no_world_writeable for : [{virtual_machine.name}]")
 
 
 @features.auto_instrumentation_appsec
