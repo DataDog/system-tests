@@ -1,6 +1,8 @@
 import pytest
 from collections.abc import Callable
 from utils import scenarios, features, logger
+from utils._features import NOT_REPORTED_ID
+
 
 from .utils import run_system_tests
 
@@ -74,7 +76,7 @@ def test_feature_are_correctly_declared():
         assert "owner" in kwargs, f"Feature `{name}` must declare an owner in its marker"
         feature_id = kwargs["feature_id"]
 
-        if feature is not features.not_reported:
+        if feature_id != NOT_REPORTED_ID:
             assert (
                 f"https://feature-parity.us1.prod.dog/#/?feature={feature_id}" in feature.__doc__
             ), f"Feature `{name}` must have a link to the feature parity in its docstring"
