@@ -1,7 +1,7 @@
 {
   "$id": "/library/v0.6/stats-request.json",
   "type": "object",
-  "required": ["Hostname", "Env", "Version", "Stats", "Lang", "TracerVersion", "RuntimeID", "Sequence", "Service", "ProcessTags", "GitCommitSha"],
+  "required": ["Hostname", "Env", "Version", "Stats", "RuntimeID", "Sequence", "Service", "ProcessTags", "GitCommitSha"],
   "properties": {
     "Hostname": { "type": "string", "description": "Tracer hostname from configuration" },
     "Env": { "type": "string", "minLength": 1, "description": "Environment tag (never empty, defaults to 'unknown-env')" },
