@@ -4,8 +4,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -24,7 +23,6 @@
         "locals": {
           "@exception": {
             "type": "ExceptionReplayPaper",
-            "value": "ExceptionReplayPaper",
             "fields": {
               "Message": {
                 "type": "String",
@@ -59,8 +57,7 @@
             "value": "paper"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -104,8 +101,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -124,7 +120,6 @@
         "locals": {
           "@exception": {
             "type": "ExceptionReplayRock",
-            "value": "ExceptionReplayRock",
             "fields": {
               "Message": {
                 "type": "String",
@@ -159,8 +154,7 @@
             "value": "rock"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -204,8 +198,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -224,7 +217,6 @@
         "locals": {
           "@exception": {
             "type": "ExceptionReplayScissors",
-            "value": "ExceptionReplayScissors",
             "fields": {
               "Message": {
                 "type": "String",
@@ -259,8 +251,7 @@
             "value": "scissors"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }

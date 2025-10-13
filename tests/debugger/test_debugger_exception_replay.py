@@ -142,16 +142,6 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         if scrubbed_value is not None:
                             scrubbed_data[key] = scrubbed_value
 
-                # For .NET: Remove redundant 'value' field when it matches 'type'
-                # This handles cases like {'type': 'Exception', 'value': 'Exception'}
-                if (
-                    self.get_tracer()["language"] == "dotnet"
-                    and "type" in scrubbed_data
-                    and "value" in scrubbed_data
-                    and scrubbed_data["value"] == scrubbed_data["type"]
-                ):
-                    del scrubbed_data["value"]
-
                 return scrubbed_data
             elif isinstance(data, list):
                 return [__scrub(item) for item in data]
