@@ -17,7 +17,7 @@
           "logger.thread_id": { "type": "number" },
           "logger.thread_name": { "type": "string" },
           "logger.version": { "type": "number" },
-          "message": { "type": "string" },
+          "message": { "type": ["string", "null"] },
           "service": { "type": "string" },
           "timestamp": { "type": "number" },
           "debugger": {
