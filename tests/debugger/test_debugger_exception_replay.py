@@ -142,6 +142,16 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
                         if scrubbed_value is not None:
                             scrubbed_data[key] = scrubbed_value
 
+                # For .NET: Remove redundant 'value' field when it matches 'type'
+                # This handles cases like {'type': 'Exception', 'value': 'Exception'}
+                if (
+                    self.get_tracer()["language"] == "dotnet"
+                    and "type" in scrubbed_data
+                    and "value" in scrubbed_data
+                    and scrubbed_data["value"] == scrubbed_data["type"]
+                ):
+                    del scrubbed_data["value"]
+
                 return scrubbed_data
             elif isinstance(data, list):
                 return [__scrub(item) for item in data]
@@ -213,17 +223,7 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
                 scrubbed.append({"<runtime>": "<scrubbed>"})
                 return scrubbed
-
-            # Recursively scrub the value
-            scrubbed_value = __scrub(value)
-
-            # Remove redundant 'value' field when it matches the 'type' field
-            # This handles cases like {'type': 'Exception', 'value': 'Exception'}
-            if isinstance(scrubbed_value, dict) and "type" in scrubbed_value and "value" in scrubbed_value:
-                if scrubbed_value["value"] == scrubbed_value["type"]:
-                    del scrubbed_value["value"]
-
-            return scrubbed_value
+            return __scrub(value)
 
         def __scrub_python(key, value, parent):  # noqa: ARG001
             if key == "@exception":
