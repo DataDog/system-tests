@@ -58,6 +58,44 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @features.container_auto_installation_script
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
+    ruby_bug_platforms = [
+        "AlamaLinux_9_amd64",
+        "AlamaLinux_9_arm64",
+        "Amazon_Linux_2022_amd64",
+        "Amazon_Linux_2022_arm64",
+        "Amazon_Linux_2023_amd64",
+        "Amazon_Linux_2023_arm64",
+        "Debian_11_amd64",
+        "Debian_11_arm64",
+        "Debian_12_amd64",
+        "Debian_12_arm64",
+        "OracleLinux_9_2_amd64",
+        "OracleLinux_9_2_arm64",
+        "OracleLinux_9_3_amd64",
+        "OracleLinux_9_3_arm64",
+        "RedHat_9_0_amd64",
+        "RedHat_9_0_arm64",
+        "RockyLinux_9_amd64",
+        "RockyLinux_9_arm64",
+        "Ubuntu_22_amd64",
+        "Ubuntu_22_arm64",
+        "Ubuntu_23_04_arm64",
+        "Ubuntu_23_10_arm64",
+        "Ubuntu_24_10_amd64",
+        "Ubuntu_24_10_arm64",
+        "Ubuntu_24_amd64",
+        "Ubuntu_24_arm64",
+        "Ubuntu_25_04_amd64",
+        "Ubuntu_25_04_arm64",
+    ]
+
+    @missing_feature(
+        context.vm_name in ruby_bug_platforms,
+        library="ruby",
+        reason="""Missing TCP cgroup2 support.
+        See: https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3189670032/Traces+missing+container+tags+with+cgroup+V2#Tracer-Side
+        """,
+    )
     def test_install(self):
         self._test_install(context.virtual_machine, origin_detection=True)
 
