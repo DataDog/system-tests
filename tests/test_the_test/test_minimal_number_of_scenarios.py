@@ -12,28 +12,26 @@ from utils import logger
 # You don't need to add B/A if A/B exists
 # Structure: {("SCENARIO_A", "SCENARIO_B"): "reason"}
 SKIP_MERGE_SCENARIOS: dict[tuple[str, str], str] = {
-    ("APPSEC_API_SECURITY_RC", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
-    ("APPSEC_API_SECURITY_RC", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
+    ("APPSEC_API_SECURITY_RC", "APPSEC_RUNTIME_ACTIVATION"): """ Can't merge because:
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_BlockingActionChangesWithRemoteConfig::test_block_405
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_Unknown_Action::test_unknown_action
+FAILED tests/appsec/test_remote_config_rule_changes.py::Test_Multiple_Actions::test_multiple_actions
+FAILED tests/appsec/test_runtime_activation.py::Test_RuntimeActivation::test_asm_features
+FAILED tests/appsec/test_runtime_activation.py::Test_RuntimeDeactivation::test_asm_features
+FAILED tests/appsec/test_suspicious_attacker_blocking.py::Test_Suspicious_Attacker_Blocking::test_block_suspicious_attacker""",
     ("APPSEC_AUTO_EVENTS_RC", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
-    ("APPSEC_AUTO_EVENTS_RC", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
     ("APPSEC_BLOCKING", "GRAPHQL_APPSEC"): "TODO",
     ("APPSEC_BLOCKING_FULL_DENYLIST", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     # If merge into REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD that is identical to this scenario,
     # test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD::test_tracer_update_sequence will fail
     ("APPSEC_BLOCKING_FULL_DENYLIST", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "Incompatible test sequence",
-    ("APPSEC_BLOCKING_FULL_DENYLIST", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_BLOCKING_FULL_DENYLIST"): "TODO",
     ("APPSEC_REQUEST_BLOCKING", "APPSEC_RUNTIME_ACTIVATION"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD"): "TODO",
-    ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"): "TODO",
     ("APPSEC_RUNTIME_ACTIVATION", "TRACING_CONFIG_NONDEFAULT_4"): "TODO",
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "APPSEC_REQUEST_BLOCKING"): "TODO",
-    ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE"): "TODO",
-    ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE", "APPSEC_REQUEST_BLOCKING"): "TODO",
-    ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE", "REMOTE_CONFIG_MOCKED_BACKEND_LIVE_DEBUGGING"): "TODO",
-    ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_DD_NOCACHE", "TRACING_CONFIG_NONDEFAULT_4"): "TODO",
     ("REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES", "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"): "TODO",
     ("TRACING_CONFIG_EMPTY", "TRACE_PROPAGATION_STYLE_DEFAULT"): "TODO",
 }

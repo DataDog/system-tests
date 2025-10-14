@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v1.11.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -207,6 +213,7 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -569,6 +576,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:

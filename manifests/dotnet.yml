@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.46.0
         Test_API_Security_Sampling_Rate: v2.46.0
         Test_API_Security_Sampling_With_Delay: v2.50.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: v3.24.0
       test_schemas.py:
@@ -197,6 +203,7 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
@@ -549,7 +556,7 @@ tests/:
       Test_Config_TraceEnabled: v3.3.0
       Test_Config_TraceLogDirectory: v3.3.0
       Test_Config_UnifiedServiceTagging: v3.3.0
-      Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Default: v3.28.0
     test_crashtracking.py:
       Test_Crashtracking: v3.2.0
     test_dynamic_configuration.py:
@@ -566,6 +573,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.53.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_otel_tracer.py:
@@ -588,7 +596,7 @@ tests/:
       Test_Consistent_Configs: missing_feature
       Test_Defaults: v2.49.0
       Test_Environment: v2.49.0
-      Test_Stable_Configuration_Origin: missing_feature
+      Test_Stable_Configuration_Origin: v3.28.0
       Test_TelemetryInstallSignature: v2.45.0
       Test_TelemetrySCAEnvVar: v2.50.0
       Test_TelemetrySSIConfigs: v2.53.0

@@ -1,4 +1,4 @@
-from utils import bug, missing_feature, scenarios
+from utils import bug, missing_feature, scenarios, features
 
 from .utils import run_system_tests
 
@@ -15,6 +15,7 @@ class Test_StrictMode:
 
 
 @scenarios.mock_the_test
+@features.adaptive_sampling
 @bug(condition=True, reason="FAKE-001")
 def test_strict_bug():
     assert True, "Bug fixed"
@@ -22,5 +23,6 @@ def test_strict_bug():
 
 @scenarios.mock_the_test
 @missing_feature(condition=True)
+@features.adaptive_sampling
 def test_strict_missing_feature():
     assert True, "I'm a feature implemented"

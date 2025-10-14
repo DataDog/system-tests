@@ -9,6 +9,7 @@ import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSamplingRouteProvider;
+import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
@@ -313,6 +314,23 @@ public class Main {
                     ctx.response().end("Response with custom headers");
                 });
 
+        router.get("/authorization_related_headers")
+                .handler(ctx -> {
+                    // Headers with sensitive or authentication-related information
+                    ctx.response().putHeader("Authorization", "value1");
+                    ctx.response().putHeader("Proxy-Authorization", "value2");
+                    ctx.response().putHeader("WWW-Authenticate", "value3");
+                    ctx.response().putHeader("Proxy-Authenticate", "value4");
+                    ctx.response().putHeader("Authentication-Info", "value5");
+                    ctx.response().putHeader("Proxy-Authentication-Info", "value6");
+                    ctx.response().putHeader("Cookie", "value7");
+                    ctx.response().putHeader("Set-Cookie", "value8");
+
+                    // Additional headers
+                    ctx.response().putHeader("content-type", "text/plain");
+                    ctx.response().end("Response with sensitive headers");
+                });
+
         // Exceed response headers endpoint
         router.get("/exceedResponseHeaders")
                 .handler(ctx -> {
@@ -417,6 +435,7 @@ public class Main {
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
+
         server.requestHandler(router::accept).listen(7777);
     }
 
@@ -429,7 +448,7 @@ public class Main {
     }
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
-        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE), new Api10RouteProvider());
     }
 
     private static Map<String, String> asMetadataMap(final JsonObject metadata) {
