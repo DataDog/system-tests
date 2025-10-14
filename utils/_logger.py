@@ -36,12 +36,18 @@ logging.addLevelName(DEBUG_LEVEL_STDOUT, "STDOUT")
 
 def get_logger(name: str = "tests", *, use_stdout: bool = False) -> Logger:
     result: Logger = logging.getLogger(name)  # type: ignore[assignment]
+    
+    import os
+    if os.environ.get('STR_VERBOSE', '') == '1':
+        use_stdout = True
 
     if use_stdout:
         stdout_handler = logging.StreamHandler(sys.stdout)
         stdout_handler.setLevel(logging.DEBUG)
         stdout_handler.setFormatter(get_log_formatter())
         result.addHandler(stdout_handler)
+        if os.environ.get('STR_VERBOSE', '') == '1':
+            stdout_handler.addFilter(lambda record: not record.getMessage().startswith('Ingesting'))
 
     result.setLevel(logging.DEBUG)
 
