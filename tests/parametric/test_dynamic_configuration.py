@@ -257,8 +257,8 @@ class TestDynamicConfigTracingEnabled:
     @bug(context.library == "java", reason="APMAPI-1225")
     @missing_feature(context.library < "dotnet@3.29.0", reason="Added new capabilities", force_skip=True)
     @missing_feature(
-        context.library == "nodejs",
-        reason="Added new FFE flag capabilities, wait till it lands on v5.72.0 to reenable test",
+        context.library < "nodejs@5.72.0",
+        reason="Added new FFE flag capabilities",
         force_skip=True,
     )
     def test_default_capability_completeness(self, library_env, test_agent, test_library):
