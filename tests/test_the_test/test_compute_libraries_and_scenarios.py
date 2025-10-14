@@ -1,4 +1,5 @@
 from __future__ import annotations
+from pathlib import Path
 
 from functools import wraps
 
@@ -28,15 +29,24 @@ def set_env(key, value):
 
     return decorator
 
-def build_inputs(modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_ref/", old_manifests="./tests/test_the_test/manifests/manifests_ref/"):
+
+def build_inputs(
+    modified_files=None,
+    new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+    old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+):
+    if modified_files is None:
+        modified_files = []
     with open("modified_files.txt", "w") as f:
         for file in modified_files:
             f.write(f"{file}\n")
-    return Inputs(
-            scenario_map_file="tests/test_the_test/scenarios.json",
-            new_manifests=new_manifests,
-            old_manifests=old_manifests,
-            )
+    inputs = Inputs(
+        scenario_map_file="tests/test_the_test/scenarios.json",
+        new_manifests=new_manifests,
+        old_manifests=old_manifests,
+    )
+    Path.unlink(Path("modified_files.txt"))
+    return inputs
 
 
 @scenarios.test_the_test
@@ -113,10 +123,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest(self):
-        inputs = build_inputs(["manifests/python.yml"],
+        inputs = build_inputs(
+            ["manifests/python.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_python_edit/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-)
+        )
         strings_out = process(inputs)
 
         assert strings_out == [
@@ -129,10 +140,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_agent(self):
-        inputs = build_inputs(["manifests/agent.yml"],
+        inputs = build_inputs(
+            ["manifests/agent.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-)
+        )
         strings_out = process(inputs)
 
         assert strings_out == [
@@ -282,10 +294,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_no_edit(self):
-        inputs = build_inputs(["manifests/java.yml"],
+        inputs = build_inputs(
+            ["manifests/java.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_ref/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-)
+        )
         strings_out = process(inputs)
 
         assert strings_out == [
@@ -325,3 +338,19 @@ class Test_ComputeLibrariesAndScenarios:
             'scenarios="DEFAULT"',
             'scenarios_groups="open_telemetry"',
         ]
+
+    def test_missing_modified_files(self):
+        with pytest.raises(FileNotFoundError):
+            Inputs(
+                scenario_map_file="tests/test_the_test/scenarios.json",
+                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            )
+
+    def test_missing_original_manifest(self):
+        with pytest.raises(FileNotFoundError):
+            Inputs(
+                scenario_map_file="tests/test_the_test/scenarios.json",
+                new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                old_manifests="./wrong/path",
+            )
