@@ -20,13 +20,6 @@ def set_env(key, value):
             monkeypatch = pytest.MonkeyPatch()
             try:
                 monkeypatch.setenv(key, value)
-                # Recreate inputs with the new environment variable
-                self.inputs = Inputs(
-                    scenario_map_file="tests/test_the_test/scenarios.json",
-                    modified_files=[],
-                    new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                    old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-                )
                 return func(self)
             finally:
                 monkeypatch.undo()
@@ -35,23 +28,23 @@ def set_env(key, value):
 
     return decorator
 
+def build_inputs(modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_ref/", old_manifests="./tests/test_the_test/manifests/manifests_ref/"):
+    with open("modified_files.txt", "w") as f:
+        for file in modified_files:
+            f.write(f"{file}\n")
+    return Inputs(
+            scenario_map_file="tests/test_the_test/scenarios.json",
+            new_manifests=new_manifests,
+            old_manifests=old_manifests,
+            )
+
 
 @scenarios.test_the_test
 class Test_ComputeLibrariesAndScenarios:
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        """Setup method that runs before each test to create a fresh Inputs object."""
-        self.inputs = Inputs(
-            scenario_map_file="tests/test_the_test/scenarios.json",
-            modified_files=[],
-            new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-        )
-
     def test_complete_file_path(self):
-        self.inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
+        inputs = build_inputs([".github/workflows/run-docker-ssi.yml"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -63,9 +56,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_multiple_file_changes(self):
-        self.inputs.modified_files = [".github/workflows/run-docker-ssi.yml", "README.md"]
+        inputs = build_inputs([".github/workflows/run-docker-ssi.yml", "README.md"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -77,9 +70,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_unknown_file_path(self):
-        self.inputs.modified_files = ["this_does_not_exist"]
+        inputs = build_inputs(["this_does_not_exist"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -91,9 +84,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_docker_file(self):
-        self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
@@ -106,9 +99,9 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_REF", "refs/heads/main")
     def test_ref_main(self):
-        self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -120,15 +113,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest(self):
-        self.inputs = Inputs(
-            scenario_map_file="tests/test_the_test/scenarios.json",
-            modified_files=[],
+        inputs = build_inputs(["manifests/python.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_python_edit/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-        )
-        self.inputs.modified_files = ["manifests/python.yml"]
-
-        strings_out = process(self.inputs)
+)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "python", "version": "prod"}, {"library": "python", "version": "dev"}]',
@@ -140,15 +129,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_agent(self):
-        self.inputs = Inputs(
-            scenario_map_file="tests/test_the_test/scenarios.json",
-            modified_files=[],
+        inputs = build_inputs(["manifests/agent.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-        )
-        self.inputs.modified_files = ["manifests/agent.yml"]
-
-        strings_out = process(self.inputs)
+)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -160,9 +145,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_multiple_pattern_matches(self):
-        self.inputs.modified_files = ["requirements.txt"]
+        inputs = build_inputs(["requirements.txt"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -174,9 +159,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_test_file(self):
-        self.inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+        inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -188,9 +173,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_test_file_utils(self):
-        self.inputs.modified_files = ["tests/auto_inject/utils.py"]
+        inputs = build_inputs(["tests/auto_inject/utils.py"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             all_lib_matrix,
@@ -203,9 +188,9 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_library_tag(self):
-        self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -218,16 +203,16 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag(self):
-        self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
         with pytest.raises(ValueError):
-            process(self.inputs)
+            process(inputs)
 
     @set_env("GITHUB_PR_TITLE", "[java@main] Some title")
     def test_wrong_library_tag_with_branch(self):
-        self.inputs.modified_files = ["utils/build/docker/python/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/python/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -240,9 +225,9 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_PR_TITLE", "[java] Some title")
     def test_wrong_library_tag_with_test_file(self):
-        self.inputs.modified_files = ["tests/auto_inject/test_auto_inject_guardrail.py"]
+        inputs = build_inputs(["tests/auto_inject/test_auto_inject_guardrail.py"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -254,9 +239,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_lambda_proxy(self):
-        self.inputs.modified_files = ["utils/build/docker/lambda_proxy/pyproject.toml"]
+        inputs = build_inputs(["utils/build/docker/lambda_proxy/pyproject.toml"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "python_lambda", "version": "prod"}, {"library": "python_lambda", "version": "dev"}]',
@@ -268,9 +253,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_doc(self):
-        self.inputs.modified_files = ["binaries/dd-trace-go/_tools/README.md"]
+        inputs = build_inputs(["binaries/dd-trace-go/_tools/README.md"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             "library_matrix=[]",
@@ -285,9 +270,9 @@ class Test_ComputeLibrariesAndScenarios:
     @set_env("CI_PIPELINE_SOURCE", "pull_request")
     @set_env("CI_COMMIT_REF_NAME", "")
     def test_gitlab(self):
-        self.inputs.modified_files = ["README.md"]
+        inputs = build_inputs(["README.md"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'CI_PIPELINE_SOURCE="pull_request"',
@@ -297,15 +282,11 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_no_edit(self):
-        self.inputs = Inputs(
-            scenario_map_file="tests/test_the_test/scenarios.json",
-            modified_files=[],
+        inputs = build_inputs(["manifests/java.yml"],
             new_manifests="./tests/test_the_test/manifests/manifests_ref/",
             old_manifests="./tests/test_the_test/manifests/manifests_ref/",
-        )
-        self.inputs.modified_files = ["manifests/java.yml"]
-
-        strings_out = process(self.inputs)
+)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -318,9 +299,9 @@ class Test_ComputeLibrariesAndScenarios:
 
     @set_env("GITHUB_PR_TITLE", "[perl] Some title")
     def test_unknown_library_tag(self):
-        self.inputs.modified_files = ["utils/build/docker/java/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/java/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "java", "version": "prod"}, {"library": "java", "version": "dev"}]',
@@ -332,9 +313,9 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_otel_library(self):
-        self.inputs.modified_files = ["utils/build/docker/python_otel/test.Dockerfile"]
+        inputs = build_inputs(["utils/build/docker/python_otel/test.Dockerfile"])
 
-        strings_out = process(self.inputs)
+        strings_out = process(inputs)
 
         assert strings_out == [
             'library_matrix=[{"library": "python_otel", "version": "prod"}]',

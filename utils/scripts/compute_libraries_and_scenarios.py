@@ -276,7 +276,6 @@ class Inputs:
         self,
         output: str | None = None,
         mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
-        modified_files: list[str] | None = None,
         scenario_map_file: str = "logs_mock_the_test/scenarios.json",
         new_manifests: str = "manifests/",
         old_manifests: str = "original/manifests/",
@@ -285,7 +284,6 @@ class Inputs:
         self.load_git_info()
         self.output = output
         self.mapping_file = os.path.join(root_dir, mapping_file)
-        self.modified_files = modified_files
         self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
         self.new_manifests = load_manifests(new_manifests)
         self.old_manifests = load_manifests(old_manifests)
@@ -298,10 +296,7 @@ class Inputs:
         self.load_raw_impacts()
         self.load_scenario_mappings()
 
-        if self.modified_files is None:
-            self.load_modified_files()
-
-        assert self.modified_files is not None
+        self.load_modified_files()
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
