@@ -289,9 +289,9 @@ class Inputs:
         self.old_manifests = load_manifests(old_manifests)
 
         if not self.new_manifests:
-            raise ValueError(f"Manifest files not found: {new_manifests}")
+            raise FileNotFoundError(f"Manifest files not found: {new_manifests}")
         if not self.old_manifests:
-            raise ValueError(f"Manifest files not found: {old_manifests}")
+            raise FileNotFoundError(f"Manifest files not found: {old_manifests}")
 
         self.load_raw_impacts()
         self.load_scenario_mappings()
