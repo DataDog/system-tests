@@ -646,7 +646,7 @@ def cpp_library_factory() -> APMLibraryTestServer:
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
     cpp_reldir = cpp_appdir.replace("\\", "/")
     dockerfile_content = f"""
-FORM datadog/docker-library:dd-trace-cpp-ci-23768e9-amd64 AS build
+FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-amd64 AS build
 
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
