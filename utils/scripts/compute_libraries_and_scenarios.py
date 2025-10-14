@@ -275,43 +275,33 @@ class Inputs:
     def __init__(
         self,
         output: str | None = None,
-        mapping_file: str | None = None,
-        raw_impacts: dict[str, Any] | None = None,
+        mapping_file: str = "utils/scripts/libraries_and_scenarios_rules.yml",
         modified_files: list[str] | None = None,
-        scenario_map_file: str | None = None,
-        scenario_map: dict[str, list[str]] | None = None,
-        new_manifests: dict[str, Any] | None = None,
-        old_manifests: dict[str, Any] | None = None,
+        scenario_map_file: str = "logs_mock_the_test/scenarios.json",
+        new_manifests: str = "manifests/",
+        old_manifests: str = "original/manifests/",
     ) -> None:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
-        self.mapping_file = (
-            mapping_file
-            if mapping_file is not None
-            else os.path.join(root_dir, "utils/scripts/libraries_and_scenarios_rules.yml")
-        )
-        self.raw_impacts = raw_impacts
+        self.mapping_file = os.path.join(root_dir, mapping_file)
         self.modified_files = modified_files
-        self.scenario_map_file = (
-            scenario_map_file
-            if scenario_map_file is not None
-            else os.path.join(root_dir, "logs_mock_the_test/scenarios.json")
-        )
-        self.scenario_map = scenario_map
-        self.new_manifests = new_manifests if new_manifests is not None else {}
-        self.old_manifests = old_manifests if old_manifests is not None else {}
+        self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
+        self.new_manifests = load_manifests(new_manifests)
+        self.old_manifests = load_manifests(old_manifests)
 
-        if not self.raw_impacts:
-            self.load_raw_impacts()
-        if not self.scenario_map:
-            self.load_scenario_mappings()
+        if not self.new_manifests:
+            raise ValueError(f"Manifest files not found: {new_manifests}")
+        if not self.old_manifests:
+            raise ValueError(f"Manifest files not found: {old_manifests}")
+
+        self.load_raw_impacts()
+        self.load_scenario_mappings()
+
         if self.modified_files is None:
             self.load_modified_files()
-        if not self.new_manifests:
-            load_manifests("manifests/")
-        if not self.old_manifests:
-            load_manifests("original/manifests/")
+
+        assert self.modified_files is not None
 
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
