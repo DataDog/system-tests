@@ -284,9 +284,9 @@ class Inputs:
         self.is_gitlab = False
         self.load_git_info()
         self.output = output
-        self.mapping_file =  os.path.join(root_dir, mapping_file)
+        self.mapping_file = os.path.join(root_dir, mapping_file)
         self.modified_files = modified_files
-        self.scenario_map_file = os.path.join(root_dir,scenario_map_file)
+        self.scenario_map_file = os.path.join(root_dir, scenario_map_file)
         self.new_manifests = load_manifests(new_manifests)
         self.old_manifests = load_manifests(old_manifests)
 

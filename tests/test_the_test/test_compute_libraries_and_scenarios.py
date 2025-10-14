@@ -21,7 +21,12 @@ def set_env(key, value):
             try:
                 monkeypatch.setenv(key, value)
                 # Recreate inputs with the new environment variable
-                self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_ref/", old_manifests="./tests/test_the_test/manifests/manifests_ref/")
+                self.inputs = Inputs(
+                    scenario_map_file="tests/test_the_test/scenarios.json",
+                    modified_files=[],
+                    new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                    old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+                )
                 return func(self)
             finally:
                 monkeypatch.undo()
@@ -36,7 +41,12 @@ class Test_ComputeLibrariesAndScenarios:
     @pytest.fixture(autouse=True)
     def setup(self):
         """Setup method that runs before each test to create a fresh Inputs object."""
-        self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_ref/", old_manifests="./tests/test_the_test/manifests/manifests_ref/")
+        self.inputs = Inputs(
+            scenario_map_file="tests/test_the_test/scenarios.json",
+            modified_files=[],
+            new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+        )
 
     def test_complete_file_path(self):
         self.inputs.modified_files = [".github/workflows/run-docker-ssi.yml"]
@@ -110,7 +120,12 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest(self):
-        self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_python_edit/", old_manifests="./tests/test_the_test/manifests/manifests_ref/")
+        self.inputs = Inputs(
+            scenario_map_file="tests/test_the_test/scenarios.json",
+            modified_files=[],
+            new_manifests="./tests/test_the_test/manifests/manifests_python_edit/",
+            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+        )
         self.inputs.modified_files = ["manifests/python.yml"]
 
         strings_out = process(self.inputs)
@@ -125,7 +140,12 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_agent(self):
-        self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/", old_manifests="./tests/test_the_test/manifests/manifests_ref/")
+        self.inputs = Inputs(
+            scenario_map_file="tests/test_the_test/scenarios.json",
+            modified_files=[],
+            new_manifests="./tests/test_the_test/manifests/manifests_agent_edit/",
+            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+        )
         self.inputs.modified_files = ["manifests/agent.yml"]
 
         strings_out = process(self.inputs)
@@ -277,7 +297,12 @@ class Test_ComputeLibrariesAndScenarios:
         ]
 
     def test_manifest_no_edit(self):
-        self.inputs = Inputs(scenario_map_file="tests/test_the_test/scenarios.json", modified_files=[], new_manifests="./tests/test_the_test/manifests/manifests_ref/", old_manifests="./tests/test_the_test/manifests/manifests_ref/")
+        self.inputs = Inputs(
+            scenario_map_file="tests/test_the_test/scenarios.json",
+            modified_files=[],
+            new_manifests="./tests/test_the_test/manifests/manifests_ref/",
+            old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+        )
         self.inputs.modified_files = ["manifests/java.yml"]
 
         strings_out = process(self.inputs)
