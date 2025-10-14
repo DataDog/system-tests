@@ -121,6 +121,10 @@
 
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
 - os_type: windows
+  copy_files:
+    - name: copy-binaries
+      local_path: binaries/
+
   remote-command: |
     if ($env:DD_env -eq "dev") {
       $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
@@ -155,5 +159,14 @@
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
-    (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    
+    # Check if Install-Datadog.ps1 exists locally in binaries folder
+    if (Test-Path "Install-Datadog.ps1") {
+        Write-Host "*** Execute installation script from provided binaries ***"
+        Copy-Item "Install-Datadog.ps1" -Destination "C:\Windows\SystemTemp\Install-Datadog.ps1" -Force
+    } else {
+        Write-Host "Download installation script from datadoghq.com"
+        (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    }
+    
     C:\Windows\SystemTemp\Install-Datadog.ps1
