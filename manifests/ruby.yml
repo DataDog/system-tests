@@ -20,6 +20,12 @@ tests/:
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           "*": v2.22.0.dev
@@ -434,7 +440,7 @@ tests/:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
       Test_Blocking_client_ip_with_K8_private_ip: missing_feature
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+      Test_Blocking_client_ip_with_forwarded: v2.22.0.dev
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
       Test_Blocking_request_cookies: v1.0.0

@@ -462,20 +462,7 @@ class TestedContainer:
             self.stdout_interface.load_data()
 
     def _set_aws_auth_environment(self):
-        # copy SYSTEM_TESTS_AWS env variables from local env to docker image
-
-        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-            prefix = "SYSTEM_TESTS_AWS"
-            for key, value in os.environ.items():
-                if prefix in key:
-                    self.environment[key.replace("SYSTEM_TESTS_", "")] = value
-        else:
-            prefix = "AWS"
-            for key, value in os.environ.items():
-                if prefix in key:
-                    self.environment[key] = value
-
-        # Set default AWS values if specific keys are not present
+        # Set default AWS values
         if "AWS_REGION" not in self.environment:
             self.environment["AWS_REGION"] = "us-east-1"
             self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
