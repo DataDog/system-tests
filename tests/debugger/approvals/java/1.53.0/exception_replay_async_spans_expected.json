@@ -1,0 +1,34 @@
+{
+  "snapshot_0": {
+    "duration": "<scrubbed>",
+    "error": 1,
+    "meta": {
+      "_dd.debug.error.0.snapshot_id": "<scrubbed>",
+      "_dd.debug.error.exception_hash": "<scrubbed>",
+      "_dd.debug.error.exception_id": "<scrubbed>",
+      "_dd.integration": "spring-web-controller",
+      "_dd.p.tid": "<scrubbed>",
+      "component": "spring-web-controller",
+      "env": "system-tests",
+      "error.debug_info_captured": "true",
+      "error.message": "500 INTERNAL_SERVER_ERROR \"Async exception\"",
+      "error.stack": "org.springframework.web.server.ResponseStatusException: 500 INTERNAL_SERVER_ERROR \"Async exception\"\n\tat com.datadoghq.system_tes<scrubbed>",
+      "error.type": "org.springframework.web.server.ResponseStatusException",
+      "key1": "val1",
+      "key2": "val2",
+      "language": "jvm",
+      "span.kind": "server",
+      "thread.name": "<scrubbed>",
+      "version": "<scrubbed>"
+    },
+    "metrics": "<scrubbed>",
+    "name": "spring.handler",
+    "parentID": "<scrubbed>",
+    "resource": "ExceptionReplayController.exceptionReplayAsync",
+    "service": "weblog",
+    "spanID": "<scrubbed>",
+    "start": "<scrubbed>",
+    "traceID": "<scrubbed>",
+    "type": "web"
+  }
+}
