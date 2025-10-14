@@ -559,6 +559,17 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 instance_type = "debugger.pii.Pii"
             else:
                 instance_type = value_type
+        elif self.get_tracer()["language"] == "ruby":
+            if value_type == "int":
+                instance_type = "Integer"
+            elif value_type == "float":
+                instance_type = "Float"
+            elif value_type == "string":
+                instance_type = "String"
+            elif value_type == "pii":
+                instance_type = "Pii"
+            else:
+                instance_type = value_type
         elif self.get_tracer()["language"] == "nodejs":
             if value_type in ("int", "float"):
                 instance_type = "number"
