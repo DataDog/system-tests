@@ -132,13 +132,13 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "nodejs": [126]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [], "nodejs": [126]},
         }
 
         return definitions.get(method, {}).get(language, [])
