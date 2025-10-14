@@ -132,7 +132,7 @@ class BaseDebuggerTest:
         """method_and_language_to_line_number returns the respective line number given the method and language"""
         definitions: dict[str, dict[str, list[int]]] = {
             "Budgets": {"java": [138], "dotnet": [136], "python": [142]},
-            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [], "nodejs": [82]},
+            "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
             "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [], "nodejs": [90]},
