@@ -209,6 +209,9 @@ patterns:
     utils/scripts/activate-easy-wins.py:
         scenario_groups: null
         libraries: null
+    utils/scripts/activate-easy-wins.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     utils/scripts/ai/*:
