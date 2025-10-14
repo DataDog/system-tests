@@ -301,6 +301,8 @@ class Inputs:
         if self.modified_files is None:
             self.load_modified_files()
 
+        assert self.modified_files is not None
+
     def load_git_info(self) -> None:
         # Get all relevant environment variables.
         if "GITLAB_CI" in os.environ:
