@@ -204,6 +204,7 @@ DEFAULT_SUPPORTED_CAPABILITIES_BY_LANG: dict[str, set[Capabilities]] = {
         Capabilities.APM_TRACING_ENABLED,
         Capabilities.APM_TRACING_SAMPLE_RULES,
         Capabilities.ASM_AUTO_USER_INSTRUM_MODE,
+        Capabilities.FFE_FLAG_CONFIGURATION_RULES,
     },
     "python": {Capabilities.APM_TRACING_ENABLED},
     "dotnet": {
@@ -255,6 +256,11 @@ class TestDynamicConfigTracingEnabled:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     @bug(context.library == "java", reason="APMAPI-1225")
     @missing_feature(context.library < "dotnet@3.29.0", reason="Added new capabilities", force_skip=True)
+    @missing_feature(
+        context.library == "nodejs",
+        reason="Added new FFE flag capabilities, wait till it lands on v5.72.0 to reenable test",
+        force_skip=True,
+    )
     def test_default_capability_completeness(self, library_env, test_agent, test_library):
         """Ensure the RC request contains the expected default capabilities per language, no more and no less."""
         if context.library is not None and context.library.name is not None:
