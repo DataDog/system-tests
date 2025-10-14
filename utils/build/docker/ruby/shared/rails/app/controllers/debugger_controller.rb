@@ -1,7 +1,6 @@
-# Padding
-# Padding
-# Padding
-# Padding
+# IMPORTANT: This file is used as instrumentation target for testing
+# dynamic instrumentation. Line numbers specified in the comments must match
+# the actual line number of the respective lines or the tests will fail.
 
 class DebuggerController < ActionController::Base
   def init
@@ -11,6 +10,7 @@ class DebuggerController < ActionController::Base
     render inline: 'debugger init'
   end
 
+  # Padding
   # Padding
   # Padding
   # Padding
@@ -64,17 +64,78 @@ class DebuggerController < ActionController::Base
     render inline: "PII #{value}. CustomPII #{custom_value}" # must be line 64
   end
 
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+
   def expression
-  end
+    inputValue = params[:inputValue]
+    testStruct = ExpressionTestStruct.new
+    localValue = inputValue.length
+  end # must be line 82
+
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
 
   def expression_operators
   end
 
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+
   def expression_strings
   end
 
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+
   def expression_collections
   end
+
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
+  # Padding
 
   def expression_null
   end
