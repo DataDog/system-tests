@@ -218,7 +218,9 @@ class AutoInjectBaseTest:
         )
 
         # Find all files under /opt/datadog-packages/datadog-apm*
-        find_cmd = "find /opt/datadog-packages/datadog-apm* -type f -perm -0002 -ls 2>/dev/null || true"
+        find_cmd = (
+            r"sudo find /opt/datadog-packages/datadog-apm* \( -type f -o -type d \) -perm -002 -ls 2>/dev/null || true"
+        )
         result = self.execute_command(virtual_machine, find_cmd)
         world_writeable_files = result.strip().splitlines() if result else []
 

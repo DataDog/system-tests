@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.6.0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v2.6.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Scanner: v3.17.0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': v3.13.0.dev
