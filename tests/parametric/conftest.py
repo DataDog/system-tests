@@ -149,6 +149,14 @@ class _TestAgentAPI:
         self._write_log("traces", resp_json)
         return resp_json
 
+    def metrics(self, *, clear: bool = False, **kwargs: Any) -> list[Any]:  # noqa: ANN401
+        resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
+        if clear:
+            self.clear()
+        resp_json = resp.json()
+        self._write_log("metrics", resp_json)
+        return cast(list[Any], resp_json)
+
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
         assert resp.status_code == 202
@@ -396,6 +404,20 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of spans not available from test agent, got {num_received}")
 
+    def wait_for_num_otlp_metrics(self, num: int, *, wait_loops: int = 30) -> list[Any]:
+        """Wait for `num` metrics to be received from the test agent."""
+        metrics = []
+        for _ in range(wait_loops):
+            try:
+                metrics = self.metrics()
+            except requests.exceptions.RequestException:
+                pass
+            else:
+                if len(metrics) >= num:
+                    return metrics
+            time.sleep(0.1)
+        raise ValueError(f"Number ({num}) of metrics not available from test agent, got {len(metrics)}")
+
     def wait_for_telemetry_event(self, event_name: str, *, clear: bool = False, wait_loops: int = 200):
         """Wait for and return the given telemetry event from the test agent."""
         for _ in range(wait_loops):
@@ -450,6 +472,13 @@ class _TestAgentAPI:
                         if config_name not in configurations:
                             configurations[config_name] = []
                         configurations[config_name].append(config)
+        if len(configurations):
+            # Checking if we need to sort due to multiple sources being sent for the same config
+            sample_key = next(iter(configurations))
+            if "seq_id" in configurations[sample_key][0]:
+                # Sort seq_id for each config from highest to lowest
+                for payload in configurations.values():
+                    payload.sort(key=lambda item: item["seq_id"], reverse=True)
         if clear:
             self.clear()
         return configurations
@@ -651,10 +680,6 @@ class _TestAgentAPI:
                 return logs
             time.sleep(0.1)
         raise ValueError(f"Number {num} of logs not available from test agent, got {len(logs)}")
-
-    def metrics(self) -> list[Any]:
-        resp = self._session.get(self._otlp_url("/test/session/metrics"))
-        return cast(list[Any], resp.json())
 
 
 @pytest.fixture(scope="session")

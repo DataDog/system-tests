@@ -1,12 +1,12 @@
 from utils import weblog, interfaces, scenarios, features, context
-from utils._decorators import missing_feature
+from utils._decorators import missing_feature, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
 @scenarios.tracing_config_nondefault
 @features.process_tags
 @missing_feature(
-    condition=context.library.name not in ("java", "golang") or context.weblog_variant == "spring-boot-3-native",
+    condition=context.library.name not in ("java", "golang"),
     reason="Not yet implemented",
 )
 class Test_Process_Tags:
@@ -29,6 +29,9 @@ class Test_Process_Tags:
     def setup_remote_config_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
+    @irrelevant(
+        condition=context.weblog_variant == "spring-boot-3-native",
+    )
     def test_remote_config_process_tags(self):
         found = False
         for data in interfaces.library.get_data(path_filters="/v0.7/config"):
@@ -41,6 +44,9 @@ class Test_Process_Tags:
     def setup_telemetry_process_tags(self):
         self.req = weblog.get("/status?code=200")
 
+    @irrelevant(
+        condition=context.weblog_variant == "spring-boot-3-native",
+    )
     def test_telemetry_process_tags(self):
         found = False
         telemetry_data = list(interfaces.library.get_telemetry_data())

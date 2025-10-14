@@ -4,8 +4,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -28,7 +27,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -60,7 +58,6 @@
         "arguments": {
           "this": {
             "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController",
             "fields": {
               "_tempData": {
                 "type": "ITempDataDictionary",
@@ -72,7 +69,6 @@
               },
               "_viewData": {
                 "type": "ViewDataDictionary",
-                "value": "ViewDataDictionary",
                 "fields": {
                   "_data": {
                     "type": "IDictionary`2",
@@ -80,20 +76,16 @@
                     "entries": []
                   },
                   "_declaredModelType": {
-                    "type": "Type",
-                    "value": "Type"
+                    "type": "Type"
                   },
                   "_metadataProvider": {
-                    "type": "IModelMetadataProvider",
-                    "value": "IModelMetadataProvider"
+                    "type": "IModelMetadataProvider"
                   },
                   "ModelState": {
                     "type": "ModelStateDictionary",
-                    "value": "ModelStateDictionary",
                     "fields": {
                       "_root": {
                         "type": "ModelStateNode",
-                        "value": "ModelStateNode",
                         "notCapturedReason": "depth"
                       },
                       "_maxAllowedErrors": {
@@ -124,11 +116,9 @@
                   },
                   "ModelExplorer": {
                     "type": "ModelExplorer",
-                    "value": "ModelExplorer",
                     "fields": {
                       "_metadataProvider": {
                         "type": "IModelMetadataProvider",
-                        "value": "IModelMetadataProvider",
                         "notCapturedReason": "depth"
                       },
                       "_model": {
@@ -149,19 +139,16 @@
                       },
                       "Metadata": {
                         "type": "ModelMetadata",
-                        "value": "ModelMetadata",
                         "notCapturedReason": "depth"
                       }
                     }
                   },
                   "TemplateInfo": {
                     "type": "TemplateInfo",
-                    "value": "TemplateInfo",
                     "fields": {
                       "_visitedObjects": {},
                       "_formattedModelValue": {
                         "type": "Object",
-                        "value": "Object",
                         "notCapturedReason": "depth"
                       },
                       "_htmlFieldPrefix": {
@@ -174,15 +161,12 @@
               },
               "_controllerContext": {
                 "type": "ControllerContext",
-                "value": "ControllerContext",
                 "fields": {
                   "_valueProviderFactories": {
-                    "type": "IList`1",
-                    "value": "IList`1"
+                    "type": "IList`1"
                   },
                   "ActionDescriptor": {
                     "type": "ActionDescriptor",
-                    "value": "ActionDescriptor",
                     "fields": {
                       "Id": "<scrubbed>",
                       "RouteValues": {
@@ -213,7 +197,6 @@
                       },
                       "AttributeRouteInfo": {
                         "type": "AttributeRouteInfo",
-                        "value": "AttributeRouteInfo",
                         "notCapturedReason": "depth"
                       },
                       "ActionConstraints": {
@@ -222,12 +205,10 @@
                         "elements": [
                           {
                             "type": "ConsumesAttribute",
-                            "value": "ConsumesAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "HttpMethodActionConstraint",
-                            "value": "HttpMethodActionConstraint",
                             "notCapturedReason": "depth"
                           }
                         ]
@@ -238,47 +219,38 @@
                         "elements": [
                           {
                             "type": "NullableContextAttribute",
-                            "value": "NullableContextAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "NullableAttribute",
-                            "value": "NullableAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ApiControllerAttribute",
-                            "value": "ApiControllerAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ControllerAttribute",
-                            "value": "ControllerAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "RouteAttribute",
-                            "value": "RouteAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "AsyncStateMachineAttribute",
-                            "value": "AsyncStateMachineAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ConsumesAttribute",
-                            "value": "ConsumesAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "HttpGetAttribute",
-                            "value": "HttpGetAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "HttpMethodMetadata",
-                            "value": "HttpMethodMetadata",
                             "notCapturedReason": "depth"
                           }
                         ]
@@ -299,42 +271,34 @@
                         "elements": [
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "FilterDescriptor",
-                            "value": "FilterDescriptor",
                             "notCapturedReason": "depth"
                           }
                         ]
@@ -350,24 +314,20 @@
                           [
                             {
                               "type": "Object",
-                              "value": "Object",
                               "notCapturedReason": "depth"
                             },
                             {
                               "type": "Object",
-                              "value": "Object",
                               "notCapturedReason": "depth"
                             }
                           ],
                           [
                             {
                               "type": "Object",
-                              "value": "Object",
                               "notCapturedReason": "depth"
                             },
                             {
                               "type": "Object",
-                              "value": "Object",
                               "notCapturedReason": "depth"
                             }
                           ]
@@ -379,42 +339,34 @@
                         "elements": [
                           {
                             "type": "ControllerActionFilter",
-                            "value": "ControllerActionFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "SaveTempDataFilter",
-                            "value": "SaveTempDataFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "UnsupportedContentTypeFilter",
-                            "value": "UnsupportedContentTypeFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ClientErrorResultFilter",
-                            "value": "ClientErrorResultFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ModelStateInvalidFilter",
-                            "value": "ModelStateInvalidFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ActionResponseFilter",
-                            "value": "ActionResponseFilter",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ApiControllerAttribute",
-                            "value": "ApiControllerAttribute",
                             "notCapturedReason": "depth"
                           },
                           {
                             "type": "ConsumesAttribute",
-                            "value": "ConsumesAttribute",
                             "notCapturedReason": "depth"
                           }
                         ]
@@ -422,16 +374,13 @@
                     }
                   },
                   "HttpContext": {
-                    "type": "HttpContext",
-                    "value": "HttpContext"
+                    "type": "HttpContext"
                   },
                   "ModelState": {
                     "type": "ModelStateDictionary",
-                    "value": "ModelStateDictionary",
                     "fields": {
                       "_root": {
                         "type": "ModelStateNode",
-                        "value": "ModelStateNode",
                         "notCapturedReason": "depth"
                       },
                       "_maxAllowedErrors": {
@@ -462,7 +411,6 @@
                   },
                   "RouteData": {
                     "type": "RouteData",
-                    "value": "RouteData",
                     "fields": {
                       "_dataTokens": {
                         "type": "RouteValueDictionary",
@@ -474,7 +422,6 @@
                       },
                       "_values": {
                         "type": "RouteValueDictionary",
-                        "value": "RouteValueDictionary",
                         "notCapturedReason": "depth"
                       }
                     }
@@ -546,8 +493,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -566,7 +512,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",

@@ -30,7 +30,6 @@
     # Environment variables for the installer
     export DD_APM_INSTRUMENTATION_ENABLED=host
     export DD_APM_INSTRUMENTATION_LIBRARIES="${DD_LANG}"
-    export DD_INSTALLER_DEFAULT_PKG_INSTALL_DATADOG_AGENT=true
 
     if [ -n "${DD_INSTALLER_LIBRARY_VERSION}" ]; then
        export "DD_INSTALLER_REGISTRY_URL_APM_LIBRARY_$(echo "$DD_LANG" | tr "[:lower:]" "[:upper:]")_PACKAGE"='installtesting.datad0g.com'
@@ -80,19 +79,15 @@
     echo "APPLICATION MONITORING CONFIG:"
     sudo cat /etc/datadog-agent/application_monitoring.yaml || true
 
-
-    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
-
-
     # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
     # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh?versionId=wGX9PBJbKTepGT5lqqccic4kCg8DPzJ1)"
+    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
     MAX_RETRIES=5
     RETRY_DELAY=5
     COUNTER=0
 
     while [ $COUNTER -lt $MAX_RETRIES ]; do
-        curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh?versionId=wGX9PBJbKTepGT5lqqccic4kCg8DPzJ1 -o install_script.sh && break
+        curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
         echo "Retrying in $RETRY_DELAY seconds..."
         sleep $RETRY_DELAY
         ((COUNTER++))
@@ -103,7 +98,10 @@
         exit 1
     fi
 
-     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+    DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
+
+    sudo -E sh -c "sudo mkdir -p /etc/datadog-agent && printf \"api_key: ${DD_API_KEY}\nsite: datadoghq.com\n\" > /etc/datadog-agent/datadog.yaml"
+    sudo systemctl restart datadog-agent
 
     sudo cp /tmp/datadog-installer-*.log /var/log/datadog
 

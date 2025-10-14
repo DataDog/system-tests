@@ -33,7 +33,6 @@ from iast import (
 )
 
 import ddtrace
-from ddtrace import patch_all
 
 from ddtrace.appsec import trace_utils as ato_user_sdk_v1
 
@@ -59,7 +58,7 @@ except ImportError:
     from ddtrace import tracer, Pin
 
 
-patch_all(urllib3=True)
+ddtrace.patch_all(urllib3=True)
 
 try:
     from ddtrace.contrib.trace_utils import set_user
@@ -1088,7 +1087,7 @@ def s3_multipart_upload(request):
 
 
 @csrf_exempt
-@require_http_methods(["GET", "TRACE", "POST"])
+@require_http_methods(["GET", "TRACE", "POST", "PUT"])
 def external_request(request):
     import urllib.request
     import urllib.error
