@@ -63,4 +63,19 @@ class DebuggerController < ActionController::Base
     custom_value = customPii.test_value
     render inline: "PII #{value}. CustomPII #{custom_value}" # must be line 64
   end
+
+  def expression
+  end
+
+  def expression_operators
+  end
+
+  def expression_strings
+  end
+
+  def expression_collections
+  end
+
+  def expression_null
+  end
 end
