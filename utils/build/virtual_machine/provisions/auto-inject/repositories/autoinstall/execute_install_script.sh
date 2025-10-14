@@ -68,7 +68,7 @@ if [ -f "install_script_agent7.sh" ]; then
     chmod +x install_script.sh
 else
     echo "Download installation script from S3"
-    curl -L $INSTALLER_URL -o install_script.sh
+    curl -L "$INSTALLER_URL" -o install_script.sh
 fi
 
 # shellcheck disable=SC2154
