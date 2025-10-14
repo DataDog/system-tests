@@ -557,8 +557,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 instance_type = "str"
             elif value_type == "pii":
                 instance_type = "debugger.pii.Pii"
-            elif value_type == "pii":
-                instance_type = "debugger.pii.PiiBase"
             else:
                 instance_type = value_type
         elif self.get_tracer()["language"] == "nodejs":
@@ -568,8 +566,6 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 instance_type = "string"
             elif value_type == "pii":
                 instance_type = "Pii"
-            elif value_type == "pii":
-                instance_type = "PiiBase"
             else:
                 instance_type = value_type
         else:
