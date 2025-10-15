@@ -19,8 +19,8 @@ tests/:
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
         Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: v3.29.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v3.29.0  # auto activation: might not be the earliest working version
         Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: v3.24.0
@@ -447,7 +447,7 @@ tests/:
       Test_RuntimeActivation: v2.16.0
       Test_RuntimeDeactivation: v2.16.0
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v3.29.0  # auto activation: might not be the earliest working version
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
       TestServiceActivationRemoteConfigurationConfigMetric: v3.26.3
