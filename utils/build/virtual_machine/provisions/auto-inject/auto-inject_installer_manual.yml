@@ -5,6 +5,8 @@
       local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
     - name: copy-docker-config
       local_path: utils/build/virtual_machine/provisions/auto-inject/docker/docker_config.yaml
+    - name: copy-binaries
+      local_path: binaries/
 
   remote-command: |
     if [ "${DD_env}" == "dev" ]; then
@@ -79,23 +81,31 @@
     echo "APPLICATION MONITORING CONFIG:"
     sudo cat /etc/datadog-agent/application_monitoring.yaml || true
 
-    # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
-    # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
-    # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
-    MAX_RETRIES=5
-    RETRY_DELAY=5
-    COUNTER=0
+    # Check if install script exists locally in binaries folder
+    if [ -f "install_script_agent7.sh" ]; then
+        echo "*** Execute installation script from provided binaries ***"
+        cp install_script_agent7.sh install_script.sh
+        chmod +x install_script.sh
+    else
+        echo "Download installation script from S3"
+        # dns install.datadoghq.com or the network interfaces are no very steady, so we need to retry
+        # On the old machines the curl command doesn't support the --retry-connrefused flag, we implement the retry policy in a loop
+        # standard exec: DD_REPO_URL=${DD_injection_repo_url} bash -c "$(curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh)"
+        MAX_RETRIES=5
+        RETRY_DELAY=5
+        COUNTER=0
 
-    while [ $COUNTER -lt $MAX_RETRIES ]; do
-        curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
-        echo "Retrying in $RETRY_DELAY seconds..."
-        sleep $RETRY_DELAY
-        ((COUNTER++))
-    done
+        while [ $COUNTER -lt $MAX_RETRIES ]; do
+            curl -L https://dd-agent.s3.amazonaws.com/scripts/install_script_agent7.sh -o install_script.sh && break
+            echo "Retrying in $RETRY_DELAY seconds..."
+            sleep $RETRY_DELAY
+            ((COUNTER++))
+        done
 
-    if [ $COUNTER -eq $MAX_RETRIES ]; then
-        echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
-        exit 1
+        if [ $COUNTER -eq $MAX_RETRIES ]; then
+            echo "Failed to connect to install.datadoghq.com the script after $MAX_RETRIES attempts"
+            exit 1
+        fi
     fi
 
     DD_REPO_URL=${DD_injection_repo_url} bash -c "$(cat install_script.sh)"
@@ -111,6 +121,10 @@
 
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
 - os_type: windows
+  copy_files:
+    - name: copy-binaries
+      local_path: binaries/
+
   remote-command: |
     if ($env:DD_env -eq "dev") {
       $env:DD_INSTALLER_REGISTRY_URL = "install.datad0g.com";
@@ -145,5 +159,14 @@
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;
     $env:DD_SITE = "datadoghq.com";
     $env:DD_APM_INSTRUMENTATION_ENABLED = "iis"
-    (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    
+    # Check if Install-Datadog.ps1 exists locally in binaries folder
+    if (Test-Path "Install-Datadog.ps1") {
+        Write-Host "*** Execute installation script from provided binaries ***"
+        Copy-Item "Install-Datadog.ps1" -Destination "C:\Windows\SystemTemp\Install-Datadog.ps1" -Force
+    } else {
+        Write-Host "Download installation script from datadoghq.com"
+        (New-Object System.Net.WebClient).DownloadFile('https://install.datadoghq.com/Install-Datadog.ps1', 'C:\Windows\SystemTemp\Install-Datadog.ps1');
+    }
+    
     C:\Windows\SystemTemp\Install-Datadog.ps1

@@ -5,6 +5,8 @@
         local_path: utils/build/virtual_machine/provisions/auto-inject/repositories/autoinstall/execute_install_script.sh
       - name: copy-tracer-debug-config
         local_path: utils/build/virtual_machine/provisions/auto-inject/tracer_debug/debug_config.yaml
+      - name: copy-binaries
+        local_path: binaries/
   remote-command: |
     # Env variables set on the scenario definition. Write to file and load  
     SCENARIO_AGENT_ENV="${DD_AGENT_ENV:-''}"
