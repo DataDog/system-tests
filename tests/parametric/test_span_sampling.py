@@ -31,6 +31,7 @@ class Test_Span_Sampling:
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver", "name": "web.request"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -58,6 +59,7 @@ class Test_Span_Sampling:
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webse*", "name": "web.re?uest"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -106,6 +108,7 @@ class Test_Span_Sampling:
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"service": "webserver"}]),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -164,6 +167,7 @@ class Test_Span_Sampling:
                 ),
                 "DD_TRACE_SAMPLE_RATE": 0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -410,6 +414,7 @@ class Test_Span_Sampling:
                 ),
                 "DD_TRACE_SAMPLE_RATE": 1.0,
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":1.0}]',
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
@@ -944,6 +949,7 @@ class Test_Span_Sampling:
                 "DD_TRACE_PROPAGATION_STYLE": "datadog",
                 "DD_SPAN_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
                 "DD_TRACE_SAMPLING_RULES": json.dumps([{"name": "web.request", "sample_rate": 0.0}]),
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
