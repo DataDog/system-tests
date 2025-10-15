@@ -9,6 +9,39 @@
       local_path: binaries/
 
   remote-command: |
+    # Check if Docker is installed and ensure it's running
+    if command -v docker >/dev/null 2>&1; then
+        echo "Docker is installed, ensuring service is enabled and running..."
+        sudo systemctl enable docker.service docker.socket
+        
+        if ! sudo systemctl is-active --quiet docker.service; then
+            echo "Docker service is not running, starting it..."
+            sudo systemctl start docker.service docker.socket
+            
+            # Wait for Docker to be fully ready
+            echo "Waiting for Docker service to be ready..."
+            MAX_WAIT=20
+            COUNTER=0
+            while [ $COUNTER -lt $MAX_WAIT ]; do
+                if sudo docker info >/dev/null 2>&1; then
+                    echo "Docker service is ready"
+                    break
+                fi
+                echo "Docker not ready yet, waiting... ($((COUNTER + 1))/$MAX_WAIT)"
+                sleep 1
+                ((COUNTER++))
+            done
+            
+            if [ $COUNTER -eq $MAX_WAIT ]; then
+                echo "WARNING: Docker service did not become ready after $MAX_WAIT seconds"
+            fi
+        else
+            echo "Docker service is already running"
+        fi
+    else
+        echo "Docker is not installed, skipping Docker service setup"
+    fi
+
     if [ "${DD_env}" == "dev" ]; then
       # To force the installer to pull from dev repositories -- agent config is set manually to datadoghq.com
       export DD_SITE="datad0g.com"
@@ -120,6 +153,12 @@
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
 
     for i in 1 2 3 4 5; do  sudo datadog-installer apm instrument docker && break || sleep 1; done
+    
+    # Add dd-agent user to docker group for docker socket access
+    sudo usermod -aG docker dd-agent || echo "Warning: Could not add dd-agent to docker group"
+    
+    # Restart datadog-agent so the new group membership takes effect
+    sudo systemctl restart datadog-agent || echo "Warning: Could not restart datadog-agent"
 - os_type: windows
   copy_files:
     - name: copy-binaries

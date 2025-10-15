@@ -17,7 +17,7 @@
 
     DD_APM_INSTRUMENTATION_ENABLED=host bash execute_install_script.sh
     sudo cp debug_config.yaml /etc/datadog-agent/inject/debug_config.yaml
-
+    
 - os_type: windows
   remote-command: |
     echo "TODO. Windows is not supported for installation script yet. TODO."
