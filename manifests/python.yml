@@ -1293,7 +1293,23 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:  # auto activation: might not be the earliest working version
+    Test_Resource_Renaming_HTTP_Endpoint_Tag:
+      django-poc: v3.16.0  # auto activation: might not be the earliest working version
+      django-py3.13: v3.16.0  # auto activation: might not be the earliest working version
+      fastapi: v3.16.0  # auto activation: might not be the earliest working version
+      flask-poc: v3.16.0  # auto activation: might not be the earliest working version
+      python3.12: v3.16.0  # auto activation: might not be the earliest working version
+      uds-flask: v3.16.0  # auto activation: might not be the earliest working version
+      uwsgi-poc: v3.16.0  # auto activation: might not be the earliest working version
+    Test_Resource_Renaming_Stats_Aggregation_Keys:
+      django-poc: v3.16.0  # auto activation: might not be the earliest working version
+      django-py3.13: v3.16.0  # auto activation: might not be the earliest working version
+      fastapi: v3.16.0  # auto activation: might not be the earliest working version
+      flask-poc: v3.16.0  # auto activation: might not be the earliest working version
+      python3.12: v3.16.0  # auto activation: might not be the earliest working version
+      uds-flask: v3.16.0  # auto activation: might not be the earliest working version
+      uwsgi-poc: v3.16.0  # auto activation: might not be the earliest working version
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0
@@ -1330,7 +1346,7 @@ tests/:
   test_telemetry.py:
     Test_DependencyEnable: v2.8.0
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch: v3.16.0  # auto activation: might not be the earliest working version
     Test_Metric_Generation_Disabled: missing_feature
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: v3.4.0
