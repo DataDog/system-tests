@@ -161,6 +161,21 @@ You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rb
 ./utils/scripts/watch.sh /path/to/dd-trace-rb
 ```
 
+## Rust library
+
+You have two ways to run system-tests with a custom Rust Tracer version:
+
+1. Create `rust-load-from-git` in `binaries` directory with the name of the branch or the ref you want to test.
+2. Clone the dd-trace-rs repo inside `binaries` and checkout the branch that you want to test against.
+
+*__Note__: You cannot have `rust-load-from-git` and `dd-trace-rs` folder at the same time, else the build will fail with exit code `128`.*
+
+You can also use `utils/scripts/watch.sh` script to sync your local `dd-trace-rs` repo into the `binaries` folder:
+
+```bash
+./utils/scripts/watch.sh /path/to/dd-trace-rs
+```
+
 ## WAF rule set
 
 * copy a file `waf_rule_set` in `binaries/`

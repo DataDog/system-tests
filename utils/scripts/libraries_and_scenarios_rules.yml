@@ -209,6 +209,9 @@ patterns:
     utils/scripts/activate-easy-wins.py:
         scenario_groups: null
         libraries: null
+    utils/scripts/activate-easy-wins.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/add-system-tests-label-on-known-tickets.py:
         scenario_groups: null
     utils/scripts/ai/*:
@@ -443,6 +446,16 @@ patterns:
         libraries: java_otel
     utils/build/build_java_otel_base_images.sh:
         libraries: java_otel
+
+################################### Odd rules ##################################
+# This section contains the rules that don't fit in any other sections. If you
+# notice rules in this section that should be grouped, please create a new
+# section.
+################################################################################
+
+    tests/test_the_test/*:
+        scenario_groups: null
+        libraries: null
 
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
