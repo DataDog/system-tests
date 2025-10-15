@@ -18,72 +18,91 @@ def is_valid_uuid4(uuid_string):
     if not uuid_string or not isinstance(uuid_string, str):
         return False
 
-    uuid_pattern = re.compile(
-        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-        re.IGNORECASE
-    )
+    uuid_pattern = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.IGNORECASE)
     return bool(uuid_pattern.match(uuid_string))
 
 
 def extract_block_id_from_json(response_body):
-    """Extract block_id from JSON blocking response
+    """Extract block_id (as security_response_id) from JSON blocking response
 
-    RFC-1070: Blocking responses include a unique block_id
-    Structure: {"errors": [...], "block_id": "uuid"}
+    RFC-1070: The WAF provides block_id, but libraries emit it as security_response_id
+    Structure: {"errors": [...], "security_response_id": "uuid"}
     """
     try:
         data = json.loads(response_body)
-        return data.get("block_id")
+        return data.get("security_response_id")
     except (json.JSONDecodeError, KeyError, TypeError):
         pass
     return None
 
 
 def extract_block_id_from_html(response_body):
-    """Extract block_id from HTML blocking response
+    """Extract block_id (as security_response_id) from HTML blocking response
 
-    RFC-1070: Blocking responses include a unique block_id
-    Expected format: <p class="block-id">Block ID: {uuid}</p>
+    RFC-1070: The WAF provides block_id, but libraries emit it as security_response_id
+    Expected format: <p class="security-response-id">Security Response ID: {uuid}</p>
 
     Also checks for other common formats:
-    - <meta name="block_id" content="...">
-    - data-block-id="..."
+    - <meta name="security_response_id" content="...">
+    - data-security-response-id="..."
+
+    Note: Supports both "block-id" (old) and "security-response-id" (new) class names.
     """
     if not response_body:
         return None
 
-    # Try paragraph with class "block-id" and "Block ID:" text
+    # Try paragraph with class "security-response-id" and "Security Response ID:" text (new format)
+    security_response_id_pattern = re.compile(
+        r'<p\s+class=["\']security-response-id["\']\s*>Security\s+Response\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
+        re.IGNORECASE,
+    )
+    match = security_response_id_pattern.search(response_body)
+    if match:
+        return match.group(1)
+
+    # Try paragraph with class "block-id" and "Security Response ID:" text (old format for backwards compatibility)
     block_id_pattern = re.compile(
-        r'<p\s+class=["\']block-id["\']\s*>Block\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
-        re.IGNORECASE
+        r'<p\s+class=["\']block-id["\']\s*>Security\s+Response\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
+        re.IGNORECASE,
     )
     match = block_id_pattern.search(response_body)
     if match:
         return match.group(1)
 
-    # Try span with class (alternative format)
-    span_pattern = re.compile(
-        r'<span\s+class=["\']block-id["\']\s*>(?:Block\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
-        re.IGNORECASE
+    # Try span with class "security-response-id" (alternative format, new)
+    span_pattern_new = re.compile(
+        r'<span\s+class=["\']security-response-id["\']\s*>(?:Security\s+Response\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
+        re.IGNORECASE,
     )
-    match = span_pattern.search(response_body)
+    match = span_pattern_new.search(response_body)
+    if match:
+        return match.group(1)
+
+    # Try span with class "block-id" (alternative format, old)
+    span_pattern_old = re.compile(
+        r'<span\s+class=["\']block-id["\']\s*>(?:Security\s+Response\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
+        re.IGNORECASE,
+    )
+    match = span_pattern_old.search(response_body)
     if match:
         return match.group(1)
 
     # Try meta tag
-    meta_pattern = re.compile(r'<meta\s+name=["\']block_id["\']\s+content=["\']([^"\']+)["\']', re.IGNORECASE)
+    meta_pattern = re.compile(
+        r'<meta\s+name=["\']security_response_id["\']\s+content=["\']([^"\']+)["\']', re.IGNORECASE
+    )
     match = meta_pattern.search(response_body)
     if match:
         return match.group(1)
 
     # Try data attribute
-    data_pattern = re.compile(r'data-block-id=["\']([^"\']+)["\']', re.IGNORECASE)
+    data_pattern = re.compile(r'data-security-response-id=["\']([^"\']+)["\']', re.IGNORECASE)
     match = data_pattern.search(response_body)
     if match:
         return match.group(1)
 
     # Try any UUID pattern in the HTML (less reliable but catches various implementations)
-    uuid_pattern = re.compile(r'\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b', re.IGNORECASE)
+    uuid_pattern = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE)
     match = uuid_pattern.search(response_body)
     if match:
         return match.group(0)
@@ -92,10 +111,10 @@ def extract_block_id_from_html(response_body):
 
 
 def extract_block_id_from_redirect_url(location_url):
-    """Extract block_id from custom redirect URL query parameters
+    """Extract block_id (as security_response_id) from custom redirect URL query parameters
 
-    RFC-1070: Custom redirect URLs can optionally include block_id
-    Expected format: http://example.com/redirect?block_id={uuid}
+    RFC-1070: The WAF provides block_id, but libraries emit it as security_response_id
+    Expected format: http://example.com/redirect?security_response_id={uuid}
     """
     if not location_url:
         return None
@@ -103,12 +122,12 @@ def extract_block_id_from_redirect_url(location_url):
     try:
         parsed_url = urlparse(location_url)
         query_params = parse_qs(parsed_url.query)
-        block_id_list = query_params.get('block_id', [])
-        if block_id_list:
-            return block_id_list[0]
+        security_response_id_list = query_params.get("security_response_id", [])
+        if security_response_id_list:
+            return security_response_id_list[0]
+        return None
     except Exception:
-        pass
-    return None
+        return None
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
@@ -195,11 +214,16 @@ class Test_BlockId_Custom_Redirect:
     def test_block_id_in_redirect_url(self):
         """Verify block_id is present in redirect URL and is a valid UUIDv4"""
         # Check if response is a redirect (301, 302, 303, 307, 308)
-        assert self.r_redirect.status_code in [301, 302, 303, 307, 308], \
-            f"Expected redirect status (301-303, 307-308), got {self.r_redirect.status_code}"
+        assert self.r_redirect.status_code in [
+            301,
+            302,
+            303,
+            307,
+            308,
+        ], f"Expected redirect status (301-303, 307-308), got {self.r_redirect.status_code}"
 
         # Extract Location header
-        location = self.r_redirect.headers.get('Location')
+        location = self.r_redirect.headers.get("Location")
         assert location is not None, "Redirect response missing Location header"
 
         # Extract block_id from URL query parameters
@@ -208,5 +232,3 @@ class Test_BlockId_Custom_Redirect:
 
         # Validate UUID format
         assert is_valid_uuid4(block_id), f"block_id is not a valid UUIDv4: {block_id}"
-
-

@@ -890,7 +890,7 @@
       "type": "redirect_request",
       "parameters": {
         "status_code": 301,
-        "location": "/you-have-been-blocked?block_id=[block_id]"
+        "location": "/you-have-been-blocked?security_response_id=[security_response_id]"
       }
     }
   ],
