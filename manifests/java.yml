@@ -1145,6 +1145,16 @@ tests/:
           akka-http: v1.22.0
           play: v1.22.0
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+      test_blocking_block_id.py:
+        Test_BlockId_Custom_Redirect:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_BlockId_HTML_Response:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_BlockId_JSON_Response:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.51.0

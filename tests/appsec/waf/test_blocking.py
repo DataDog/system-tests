@@ -1,4 +1,6 @@
 from pathlib import Path
+import re
+import json
 
 from utils import interfaces, bug, scenarios, weblog, rfc, missing_feature, flaky, features
 from utils._context.core import context
@@ -6,11 +8,61 @@ from utils._context.core import context
 
 BLOCK_TEMPLATE_JSON_MIN_V1 = "blocked.v1.min.json"
 BLOCK_TEMPLATE_HTML_MIN_V2 = "blocked.v2.min.html"
+BLOCK_TEMPLATE_JSON_MIN_V3 = "blocked.v3.min.json"
+BLOCK_TEMPLATE_HTML_MIN_V3 = "blocked.v3.min.html"
 
 
 def _read_file(file_path: str) -> str:
     with Path(__file__).resolve().parent.joinpath(file_path).open() as file:
         return file.read()
+
+
+def _normalize_json_block_id(json_str: str) -> str:
+    """Replace any UUIDv4 in block_id field with a placeholder for comparison
+
+    RFC-1070: Blocking responses include a unique block_id
+    Structure: {"errors": [...], "block_id": "uuid"}
+    """
+    try:
+        data = json.loads(json_str)
+        if "block_id" in data:
+            # Replace the actual UUID with a placeholder
+            data["block_id"] = "00000000-0000-4000-8000-000000000000"
+        return json.dumps(data, separators=(',', ':'))
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return json_str
+
+
+def _normalize_html_block_id(html_str: str) -> str:
+    """Replace any UUIDv4 in HTML with a placeholder for comparison
+
+    RFC-1070: Blocking responses include a unique block_id
+    Expected format: <p class="block-id">Block ID: {uuid}</p>
+
+    Note: Using flexible UUID pattern to accept any hex UUID format
+    """
+    # Replace UUID in paragraph with "Block ID:"
+    html_str = re.sub(
+        r'(<p class="block-id">Block ID: )[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(</p>)',
+        r'\g<1>00000000-0000-4000-8000-000000000000\g<2>',
+        html_str,
+        flags=re.IGNORECASE
+    )
+    # Replace UUID in meta tag (alternative format)
+    html_str = re.sub(
+        r'(<meta name="block_id" content=")[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(")',
+        r'\g<1>00000000-0000-4000-8000-000000000000\g<2>',
+        html_str,
+        flags=re.IGNORECASE
+    )
+    # Replace UUID in span (alternative format)
+    html_str = re.sub(
+        r'(<span class="block-id">(?:Block ID: )?)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(</span>)',
+        r'\g<1>00000000-0000-4000-8000-000000000000\g<2>',
+        html_str,
+        flags=re.IGNORECASE
+    )
+    return html_str
 
 
 def assert_valid_html_blocked_template(body: str) -> None:
@@ -24,7 +76,11 @@ def assert_valid_html_blocked_template(body: str) -> None:
         _read_file(BLOCK_TEMPLATE_HTML_MIN_V2),
     }
 
-    assert body in valid_templates
+    # Check for v3 template with dynamic block_id
+    normalized_body = _normalize_html_block_id(body).rstrip()
+    normalized_v3 = _normalize_html_block_id(_read_file(BLOCK_TEMPLATE_HTML_MIN_V3)).rstrip()
+
+    assert body in valid_templates or normalized_body == normalized_v3
 
 
 def assert_valid_json_blocked_template(body: str) -> None:
@@ -38,7 +94,12 @@ def assert_valid_json_blocked_template(body: str) -> None:
         _read_file(BLOCK_TEMPLATE_JSON_MIN_V1),
         _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip(),
     }
-    assert body in valid_templates
+
+    # Check for v3 template with dynamic block_id
+    normalized_body = _normalize_json_block_id(body.rstrip())
+    normalized_v3 = _normalize_json_block_id(_read_file(BLOCK_TEMPLATE_JSON_MIN_V3).rstrip())
+
+    assert body in valid_templates or normalized_body == normalized_v3
 
 
 HTML_CONTENT_TYPES = {"text/html", "text/html; charset=utf-8", "text/html;charset=utf-8"}
@@ -182,10 +243,22 @@ class Test_Blocking:
     @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_json_template_v1(self):
-        """HTML block template is v1 minified"""
+        """JSON block template is v1 minified (or v3 with block_id)"""
         assert self.r_json_v1.status_code == 403
         assert self.r_json_v1.headers.get("content-type", "").lower() in JSON_CONTENT_TYPES
-        assert self.r_json_v1.text.rstrip() == _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip()
+
+        # Accept v1 template without block_id or v3 template with block_id
+        response_text = self.r_json_v1.text.rstrip()
+        v1_template = _read_file(BLOCK_TEMPLATE_JSON_MIN_V1).rstrip()
+
+        # Check if it's v1 template
+        if response_text == v1_template:
+            return
+
+        # Check if it's v3 template with block_id (normalize and compare)
+        normalized_response = _normalize_json_block_id(response_text)
+        normalized_v3 = _normalize_json_block_id(_read_file(BLOCK_TEMPLATE_JSON_MIN_V3).rstrip())
+        assert normalized_response == normalized_v3, f"Response doesn't match v1 or v3 template"
 
     def setup_html_template_v2(self):
         self.r_html_v2 = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "text/html"})
@@ -197,10 +270,22 @@ class Test_Blocking:
     @missing_feature(context.library < "python@2.11.0.dev")
     @missing_feature(library="ruby")
     def test_html_template_v2(self):
-        """HTML block template is v2 minified"""
+        """HTML block template is v2 minified (or v3 with block_id)"""
         assert self.r_html_v2.status_code == 403
         assert self.r_html_v2.headers.get("content-type", "").lower() in HTML_CONTENT_TYPES
-        assert self.r_html_v2.text == _read_file(BLOCK_TEMPLATE_HTML_MIN_V2)
+
+        # Accept v2 template without block_id or v3 template with block_id
+        response_text = self.r_html_v2.text
+        v2_template = _read_file(BLOCK_TEMPLATE_HTML_MIN_V2)
+
+        # Check if it's v2 template
+        if response_text == v2_template:
+            return
+
+        # Check if it's v3 template with block_id (normalize and compare)
+        normalized_response = _normalize_html_block_id(response_text).rstrip()
+        normalized_v3 = _normalize_html_block_id(_read_file(BLOCK_TEMPLATE_HTML_MIN_V3)).rstrip()
+        assert normalized_response == normalized_v3, f"Response doesn't match v2 or v3 template"
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2705464728/Blocking#Stripping-response-headers")
