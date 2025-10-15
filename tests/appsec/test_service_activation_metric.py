@@ -56,7 +56,7 @@ class BaseServiceActivationConfigurationMetric:
 
     def test_service_activation_metric(self):
         assert any(
-            c["origin"] == self.origin and c["name"] == "DD_APPSEC_ENABLED" and c["value"] in ["1", 1, True]
+            c["origin"] == self.origin and (c["name"] == "DD_APPSEC_ENABLED" or c["name"] == "appsec.enabled") and c["value"] in ["1", 1, True]
             for payload_configuration in find_configuration()
             for c in payload_configuration
         )
