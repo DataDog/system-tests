@@ -64,7 +64,7 @@ tests/:
     Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
     Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-    Test_Config_RuntimeMetrics_Default: missing_feature
+    Test_Config_RuntimeMetrics_Default: v1.0.3  # auto activation: might not be the earliest working version
     Test_Config_RuntimeMetrics_Enabled: missing_feature
     Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
     Test_Config_UnifiedServiceTagging_CustomService: missing_feature
@@ -93,7 +93,7 @@ tests/:
   test_standard_tags.py: irrelevant
   test_telemetry.py:
     Test_Log_Generation: missing_feature
-    Test_MessageBatch: missing_feature
+    Test_MessageBatch: v1.0.3  # auto activation: might not be the earliest working version
     Test_Metric_Generation_Enabled: missing_feature
     Test_ProductsDisabled: irrelevant
     Test_TelemetryEnhancedConfigReporting: missing_feature
