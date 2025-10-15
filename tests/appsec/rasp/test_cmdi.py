@@ -18,6 +18,7 @@ from tests.appsec.rasp.utils import (
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_UrlQuery:
     """Command Injection through query parameters"""
@@ -47,6 +48,7 @@ class Test_Cmdi_UrlQuery:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_BodyUrlEncoded:
     """Command Injection through a url-encoded body parameter"""
@@ -76,6 +78,7 @@ class Test_Cmdi_BodyUrlEncoded:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_BodyXml:
     """Command Injection through an xml body parameter"""
@@ -102,6 +105,7 @@ class Test_Cmdi_BodyXml:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_BodyJson:
     """Command Injection through a json body parameter"""
@@ -133,6 +137,7 @@ class Test_Cmdi_BodyJson:
 @features.rasp_span_tags
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -148,6 +153,7 @@ class Test_Cmdi_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -163,6 +169,7 @@ class Test_Cmdi_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_StackTrace:
     """Validate stack trace generation on exploit attempts"""
@@ -177,6 +184,7 @@ class Test_Cmdi_StackTrace:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
@@ -201,6 +209,7 @@ class Test_Cmdi_Telemetry:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
@@ -229,6 +238,7 @@ class Test_Cmdi_Telemetry_V2:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_command_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Cmdi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""

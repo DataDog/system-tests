@@ -15,6 +15,7 @@ def assert_body_property(body, prop, expected_value) -> None:
 @rfc("https://docs.google.com/document/d/1indvMPy4RSFeEurxssXMHUfmw6BlCexqJD_IVM6Vw9w")
 @features.appsec_collect_request_body
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_ExtendedRequestBodyCollection:
     @staticmethod

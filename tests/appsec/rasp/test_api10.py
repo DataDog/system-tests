@@ -50,6 +50,7 @@ class API10:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_headers(API10):
     """API 10 for request headers"""
@@ -71,6 +72,7 @@ class Test_API10_request_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_method(API10):
     """API 10 for request method"""
@@ -91,6 +93,7 @@ class Test_API10_request_method(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_body(API10):
     """API 10 for request body"""
@@ -114,6 +117,7 @@ class Test_API10_request_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_status(API10):
     """API 10 for response status"""
@@ -135,6 +139,7 @@ class Test_API10_response_status(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_headers(API10):
     """API 10 for response headers."""
@@ -156,6 +161,7 @@ class Test_API10_response_headers(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_body(API10):
     """API 10 for response body."""
@@ -179,6 +185,7 @@ class Test_API10_response_body(API10):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_all(API10):
     """API 10 for all addresses at the same time."""
