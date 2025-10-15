@@ -42,9 +42,11 @@ refs:
   - &ref_5_25_0 '>=5.25.0 || ^4.49.0'
   - &ref_5_26_0 '>=5.26.0 || ^4.50.0'
   - &ref_5_27_0 '>=5.27.0 || ^4.51.0'
-  - &ref_5_29_0 '>=5.29.0 || ^4.53.0'  # express 5 support
+  # express 5 support
+  - &ref_5_29_0 '>=5.29.0 || ^4.53.0'
   - &ref_5_30_0 '>=5.30.0 || ^4.54.0'
-  - &ref_5_32_0 '>=5.32.0'  # keep the anchor as we may backport stuff to v4 later
+  # keep the anchor as we may backport stuff to v4 later
+  - &ref_5_32_0 '>=5.32.0'
   - &ref_5_35_0 '>=5.35.0'
   - &ref_5_37_0 '>=5.37.0'
   - &ref_5_38_0 '>=5.38.0'
@@ -61,13 +63,18 @@ refs:
   - &ref_5_54_0 '>=5.54.0'
   - &ref_5_55_0 '>=5.55.0'
   - &ref_5_56_0 '>=5.56.0'
-  - &ref_5_57_0 '>=5.57.0'  # fastify appsec support
+  # fastify appsec support
+  - &ref_5_57_0 '>=5.57.0'
   - &ref_5_59_0 '>=5.59.0'
   - &ref_5_60_0 '>=5.60.0'
-  - &ref_5_61_0 '>=5.61.0'  # fastify iast support
-  - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
-  - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
-  - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
+  # fastify iast support
+  - &ref_5_61_0 '>=5.61.0'
+  # dsm - new hashing algo
+  - &ref_5_62_0 '>=5.62.0'
+  # Endpoints collection
+  - &ref_5_64_0 '>=5.64.0'
+  # fastify rasp support
+  - &ref_5_66_0 '>=5.66.0'
   - &ref_5_71_0 '>=5.71.0'
 tests/:
   apm_tracing_e2e/:
@@ -92,10 +99,10 @@ tests/:
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v6.0.0-pre  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Negative: v6.0.0-pre  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v6.0.0-pre  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Scanner: v6.0.0-pre  # auto activation: might not be the earliest working version
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': missing_feature
@@ -701,11 +708,13 @@ tests/:
         Test_Ssrf_Rules_Version: *ref_5_25_0
         Test_Ssrf_StackTrace:
           '*': *ref_5_20_0
-          express5: *ref_5_29_0  # test uses querystring
+          # test uses querystring
+          express5: *ref_5_29_0
           fastify: *ref_5_66_0
         Test_Ssrf_Telemetry:
           '*': *ref_5_22_0
-          express5: *ref_5_29_0  # test uses querystring
+          # test uses querystring
+          express5: *ref_5_29_0
           fastify: *ref_5_66_0
         Test_Ssrf_Telemetry_V2:
           '*': *ref_5_46_0
@@ -772,7 +781,8 @@ tests/:
       test_miscs.py:
         Test_404: v2.0.0
         Test_CorrectOptionProcessing:
-          '*': *ref_3_19_0  # probably sooner, but bugged
+          # probably sooner, but bugged
+          '*': *ref_3_19_0
           fastify: *ref_5_57_0
         Test_MultipleAttacks:
           '*': v2.0.0
@@ -920,7 +930,8 @@ tests/:
         nextjs: missing_feature
       Test_Suspicious_Request_Blocking:
         '*': *ref_5_24_0
-        express5: *ref_5_29_0  # test uses querystring and path params
+        # test uses querystring and path params
+        express5: *ref_5_29_0
         fastify: *ref_5_57_0
         nextjs: missing_feature
     test_client_ip.py:
@@ -1065,7 +1076,8 @@ tests/:
     test_request_blocking.py:
       Test_AppSecRequestBlocking:
         '*': *ref_3_19_0
-        express5: *ref_5_29_0  # test uses querystring
+        # test uses querystring
+        express5: *ref_5_29_0
         fastify: *ref_5_57_0
         nextjs: missing_feature (can not block by query param in nextjs yet)
     test_runtime_activation.py:
@@ -1321,11 +1333,11 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
       Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # The resource name of the child span is overidden by the parent span.
       Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
-      Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
+      Test_Parametric_DDTrace_Crash: v6.0.0-pre  # auto activation: might not be the earliest working version
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
-      Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
+      Test_Parametric_Otel_Baggage: v6.0.0-pre  # auto activation: might not be the earliest working version
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current_span endpoint is not supported)
       Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
@@ -1345,12 +1357,15 @@ tests/:
       Test_TelemetrySCAEnvVar: *ref_5_13_0
       Test_TelemetrySSIConfigs: missing_feature
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: *ref_5_16_0  #actual version unknown
-      Test_Trace_Sampling_Globs: *ref_5_16_0  #actual version unknown
+      #actual version unknown
+      Test_Trace_Sampling_Basic: *ref_5_16_0
+      #actual version unknown
+      Test_Trace_Sampling_Globs: *ref_5_16_0
       Test_Trace_Sampling_Globs_Feb2024_Revision: *ref_5_38_0
       Test_Trace_Sampling_Resource: *ref_5_38_0
       Test_Trace_Sampling_Tags: *ref_5_38_0
-      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0  #actual version unknown
+      #actual version unknown
+      Test_Trace_Sampling_Tags_Feb2024_Revision: *ref_5_16_0
       Test_Trace_Sampling_With_W3C: *ref_5_38_0
     test_tracer.py:
       Test_TracerSCITagging: *ref_3_21_0
@@ -1363,7 +1378,8 @@ tests/:
       Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (cache is implemented)
       Test_RemoteConfigurationUpdateSequenceFeatures: *ref_3_9_0
       Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (cache is implemented)
-      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0  #actual version unknown
+      #actual version unknown
+      Test_RemoteConfigurationUpdateSequenceLiveDebugging: *ref_5_16_0
   serverless/:
     span_pointers/:
       aws/:
@@ -1459,15 +1475,18 @@ tests/:
     Test_HeaderTags_Wildcard_Request_Headers: missing_feature
     Test_HeaderTags_Wildcard_Response_Headers: missing_feature
   test_profiling.py:
-    Test_Profile: *ref_5_16_0  #actual version unknown
+    #actual version unknown
+    Test_Profile: *ref_5_16_0
   test_protobuf.py: missing_feature
   test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: *ref_5_54_0
-    Test_SamplingDecisionAdded: *ref_5_17_0  # real version unknown
+    # real version unknown
+    Test_SamplingDecisionAdded: *ref_5_17_0
     Test_SamplingDecisions: *ref_5_54_0
     Test_SamplingDeterminism: *ref_5_54_0
-    Test_SamplingRates: *ref_5_17_0  # real version unknown
+    # real version unknown
+    Test_SamplingRates: *ref_5_17_0
   test_scrubbing.py:
     Test_UrlField: *ref_3_13_1
     Test_UrlQuery:
