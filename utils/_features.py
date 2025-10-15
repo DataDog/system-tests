@@ -2599,5 +2599,13 @@ class _Features:
         """
         return _mark_test_object(test_object, feature_id=497, owner=_Owner.ml_observability)
 
+     @staticmethod
+    def blocking_response_id(test_object):
+        """Data integrity
+
+        https://feature-parity.us1.prod.dog/#/?feature=493
+        """
+        return _mark_test_object(test_object, feature_id=493, owner=_Owner.agent_apm)
+
 
 features = _Features()

@@ -768,6 +768,11 @@ tests/:
         Test_Blocking: *ref_3_19_0
         Test_Blocking_strip_response_headers: *ref_5_17_0
         Test_CustomBlockingResponse: *ref_5_15_0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules:
           '*': *ref_4_1_0
