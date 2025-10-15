@@ -735,6 +735,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
       Test_Stable_Config_Default: v2.18.0
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:

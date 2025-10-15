@@ -9,7 +9,7 @@ import pytest
 
 from .conftest import StableConfigWriter, _TestAgentAPI
 from utils.telemetry_utils import TelemetryUtils
-from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger
+from utils import context, scenarios, rfc, features, missing_feature, irrelevant, logger, bug
 
 
 telemetry_name_mapping = {
@@ -82,6 +82,15 @@ telemetry_name_mapping = {
         "ruby": "DD_TRACE_DEBUG",
         "python": "DD_TRACE_DEBUG",
     },
+    "tags": {
+        "java": "trace_tags",
+        "dotnet": "DD_TAGS",
+        "python": "DD_TAGS",
+    },
+    "trace_propagation_style": {
+        "dotnet": "DD_TRACE_PROPAGATION_STYLE",
+        "php": "trace.propagation_style",
+    },
 }
 
 
@@ -103,6 +112,48 @@ def _find_configuration_by_origin(config_list: list[dict], origin: str) -> dict 
         if config.get("origin") == origin:
             return config
     return None
+
+
+def _check_propagation_style_with_inject_and_extract(
+    test_agent, configuration_by_name: dict, expected_origin: str, library_name: str
+) -> None:
+    """Check both inject and extract propagation style keys for languages that report them separately.
+
+    Some libraries report propagation style using separate inject and extract keys
+    instead of a single combined key. This function validates that both keys exist with the
+    expected origin and have non-empty values.
+
+    Raises an AssertionError if either key is missing, has wrong origin, or has empty value
+    """
+    # Define the inject and extract key names for each language
+    if library_name == "python":
+        inject_key = "DD_TRACE_PROPAGATION_STYLE_INJECT"
+        extract_key = "DD_TRACE_PROPAGATION_STYLE_EXTRACT"
+    elif library_name == "ruby":
+        inject_key = "tracing.propagation_style_inject"
+        extract_key = "tracing.propagation_style_extract"
+    else:
+        raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
+
+    # Check inject key
+    inject_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, inject_key, expected_origin)
+    assert (
+        inject_item is not None
+    ), f"No configuration found for '{inject_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert (
+        inject_item["origin"] == expected_origin
+    ), f"Origin mismatch for {inject_item}. Expected origin: '{expected_origin}', Actual origin: '{inject_item.get('origin', '<missing>')}'"
+    assert inject_item["value"], f"Expected non-empty value for '{inject_key}'"
+
+    # Check extract key
+    extract_item = test_agent.get_telemetry_config_by_origin(configuration_by_name, extract_key, expected_origin)
+    assert (
+        extract_item is not None
+    ), f"No configuration found for '{extract_key}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+    assert (
+        extract_item["origin"] == expected_origin
+    ), f"Origin mismatch for {extract_item}. Expected origin: '{expected_origin}', Actual origin: '{extract_item.get('origin', '<missing>')}'"
+    assert extract_item["value"], f"Expected non-empty value for '{extract_key}'"
 
 
 @scenarios.parametric
@@ -689,6 +740,142 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ), f"No configuration found for '{apm_telemetry_name}' with origin 'local_stable_config'"
         assert telemetry_item["origin"] == "local_stable_config"
         assert "config_id" not in telemetry_item or telemetry_item["config_id"] is None
+
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origins"),
+        [
+            (
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+                    "DD_TAGS": "tag1:value1,tag2:value2",
+                },
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                },
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "datadog",
+                },
+                {
+                    "tags": "local_stable_config",
+                    "trace_propagation_style": "fleet_stable_config",
+                },
+            )
+        ],
+    )
+    @missing_feature(
+        context.library in ["cpp", "golang", "nodejs"],
+        reason="extended configs are not supported",
+    )
+    @bug(context.library == "python", reason="APMAPI-1630")
+    @bug(context.library == "ruby", reason="APMAPI-1631")
+    def test_stable_configuration_origin_extended_configs_good_use_case(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
+    ):
+        """Test that extended configuration options (tags, propagation style) report their origin correctly.
+
+        This test verifies that complex configuration values like tag arrays and propagation
+        styles are properly tracked with their configuration origin (local vs fleet stable config).
+        """
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
+            # seq_id can't be used to sort because payloads are sent from different tracer sessions.
+            time.sleep(1)
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        for cfg_name, expected_origin in expected_origins.items():
+            apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+            telemetry_item = test_agent.get_telemetry_config_by_origin(
+                configuration_by_name, apm_telemetry_name, expected_origin
+            )
+            assert (
+                telemetry_item is not None
+            ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+
+            actual_origin = telemetry_item.get("origin", "<missing>")
+            assert (
+                telemetry_item["origin"] == expected_origin
+            ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+            assert telemetry_item["value"]
+
+    @pytest.mark.parametrize(
+        ("local_cfg", "library_env", "fleet_cfg", "expected_origins"),
+        [
+            (
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "tracecontext",
+                    "DD_TAGS": "tag1:value1,tag2:value2",
+                },
+                {
+                    "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",  # Decrease the heartbeat/poll intervals to speed up the tests
+                },
+                {
+                    "DD_TRACE_PROPAGATION_STYLE": "datadog",
+                },
+                {
+                    "tags": "local_stable_config",
+                    "trace_propagation_style": "fleet_stable_config",
+                },
+            )
+        ],
+    )
+    @missing_feature(
+        context.library in ["cpp", "golang", "nodejs"],
+        reason="extended configs are not supported",
+    )
+    @bug(context.library == "ruby", reason="APMAPI-1650")
+    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python and ruby")
+    def test_stable_configuration_origin_extended_configs_temporary_use_case(
+        self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
+    ):
+        """Test that extended configuration options (tags, propagation style) report their origin correctly.
+
+        This test verifies that complex configuration values like tag arrays and propagation
+        styles are properly tracked with their configuration origin (local vs fleet stable config).
+        """
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": local_cfg,
+                },
+                "/etc/datadog-agent/application_monitoring.yaml",
+                test_library,
+            )
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": fleet_cfg,
+                },
+                "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+                test_library,
+            )
+            # Sleep between telemetry events to ensure they are recorded with different timestamps, to later reorder them.
+            # seq_id can't be used to sort because payloads are sent from different tracer sessions.
+            time.sleep(1)
+            test_library.container_restart()
+            test_library.dd_start_span("test")
+        configuration_by_name = test_agent.wait_for_telemetry_configurations()
+        for cfg_name, expected_origin in expected_origins.items():
+            # Python and Ruby only report inject and extract keys for trace_propagation_style
+            if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby"]:
+                _check_propagation_style_with_inject_and_extract(
+                    test_agent, configuration_by_name, expected_origin, context.library.name
+                )
+            if cfg_name == "tags" and context.library.name in ["ruby"]:
+                continue
 
 
 DEFAULT_ENVVARS = {
