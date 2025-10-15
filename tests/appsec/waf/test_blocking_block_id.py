@@ -6,7 +6,7 @@ import json
 import re
 from urllib.parse import urlparse, parse_qs
 
-from utils import scenarios, weblog, rfc
+from utils import scenarios, weblog, rfc, features
 
 
 def is_valid_uuid4(uuid_string):
@@ -131,6 +131,7 @@ def extract_block_id_from_redirect_url(location_url):
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
+@features.blocking_response_id
 @scenarios.appsec_blocking
 class Test_BlockId_JSON_Response:
     """Test that block_id is present in JSON blocking responses"""
@@ -177,6 +178,7 @@ class Test_BlockId_JSON_Response:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
+@features.blocking_response_id
 @scenarios.appsec_blocking
 class Test_BlockId_HTML_Response:
     """Test that block_id is present in HTML blocking responses"""
@@ -198,6 +200,7 @@ class Test_BlockId_HTML_Response:
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/4235215165/RFC-1070+Blocking+Response+Unique+Identifier")
+@features.blocking_response_id
 @scenarios.appsec_blocking
 class Test_BlockId_Custom_Redirect:
     """Test that block_id can optionally be present in custom redirect URLs
