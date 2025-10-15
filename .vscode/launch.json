@@ -244,6 +244,16 @@
             "python": "${workspaceFolder}/venv/bin/python"
         },
         {
+            "name": "Replay OTEL_COLLECTOR scenario",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": ["-S", "OTEL_COLLECTOR", "-p", "no:warnings", "--replay"],
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python"
+        },
+        {
             "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",

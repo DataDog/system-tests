@@ -112,7 +112,7 @@ class Test_TraceTaggingRules:
 @features.appsec_trace_tagging_rules
 class Test_TraceTaggingRulesRcCapability:
     """A library with support for trace-tagging rules must provide the
-    ASM_TRACE_TAGGIN_RULES(43) capability
+    ASM_TRACE_TAGGING_RULES(43) capability
     """
 
     def test_trace_tagging_rules_capability(self):

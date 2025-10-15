@@ -612,7 +612,10 @@ class Test_TelemetryEnhancedConfigReporting:
             "name": "logs_injection_enabled",
             "precedence": [
                 {"origin": "default", "value": "true"},
-                {"origin": "jvm_prop", "value": "true"},
+                {
+                    "origin": "jvm_prop",
+                    "value": "true",
+                },  # File-based properties differ from sysprops, but still report with origin:jvm_prop, even though they have a lower precedence than env_var: https://github.com/DataDog/dd-trace-java/blob/5c66a150ff3b16ebf9626c0f0170fc9715461a6b/utils/config-utils/src/main/java/datadog/trace/bootstrap/config/provider/ConfigProvider.java#L507-L514
                 {"origin": "env_var", "value": "false"},
             ],
         },

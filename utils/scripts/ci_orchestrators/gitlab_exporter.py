@@ -193,7 +193,8 @@ def print_docker_ssi_gitlab_pipeline(language, docker_ssi_matrix, ci_environment
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
-
+    if not dd_installer_library_version:
+        dd_installer_library_version = os.getenv(f"DD_INSTALLER_LIBRARY_VERSION_{language.upper()}")
     scenarios_prefix_names = _generate_unique_prefix(docker_ssi_matrix)
     # Create the jobs by scenario.
     for scenario, weblogs in docker_ssi_matrix.items():
@@ -271,6 +272,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
     # Special filters from env variables
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
+    if not dd_installer_library_version:
+        dd_installer_library_version = os.getenv(f"DD_INSTALLER_LIBRARY_VERSION_{language.upper()}")
 
     scenarios_prefix_names = _generate_unique_prefix(aws_matrix)
 

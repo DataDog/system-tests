@@ -9,6 +9,7 @@ alwaysApply: true
 * There are several tracer libraries implemented in different languages: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
 * We use pytest to implement the tests. The same tests should be valid to test all tracer library implementations: Java, Node.js, Python, PHP, Ruby, C++, .NET, Go, and Rust.
 * The main test scenarios are end-to-end, parametric, SSI, and Kubernetes.
+* System-tests is not a performance testing framework.
 
 # Main concepts
 

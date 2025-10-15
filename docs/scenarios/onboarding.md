@@ -1026,4 +1026,232 @@ grep -n "Diagnostics:" [vm_name].log
 
 # Scan for exceptions in the VM log
 grep -n "Exception" [vm_name].log
+```
+
+# Troubleshooting: Quick Fixes for CI SSI Pipeline Issues
+
+This document collects a set of quick fixes and temporary workarounds you can apply when something goes wrong in the CI pipeline.
+**The goal is to unblock developers quickly, not to provide the final or long-term solutions.**
+Whenever possible, please follow up by opening an issue or PR to properly address the root cause.
+
+## 🖥️ A VIRTUAL MACHINE IS NOT WORKING
+
+**Warning:**
+
+Make sure to check the machine logs and confirm that the issue is not caused by your own software (such as the Agent, Installer, Injector, or any of the Tracers).
+You should only apply this workaround if the root cause is one of the following:
+* Issues with the original AMI on AWS.
+* Problems with third-party repositories.
+* Failures when installing a third-party dependency required to run the tests.
+
+**Impact:**
+
+If this kind of problem occurs, it could affect multiple components:
+* System-tests: May cause failures in nightly builds or pull requests.
+* dd-trace-xyz: Could block merges to the main branch or delay releases.
+* auto_inject: Could block merges to the main branch or delay releases.
+
+**Quick Solution:**
+  Open `utils/virtual_machine/virtual_machines.json` and set the `"enabled"` field to `false` for the problematic virtual machine to temporarily exclude it from test runs.
+
+---
+
+## 🧰 PROBLEMS WITH THE INJECTOR
+
+**Warning:**
+
+Ensure that the injector failure is not caused by compatibility issues with your test component (Agent, Installer, or Tracer).
+
+**Impact:**
+
+An injector failure can block CI pipelines, preventing new builds or merges from completing, for:
+  - system-tests
+  - tracers
+  - installer
+
+**Quick Solution:**
+
+Find an older, stable version of the injector.
+You can do this by checking the latest builds of the injector on the main branch:
+🔗 [auto_inject pipelines](https://gitlab.ddbuild.io/DataDog/auto_inject/-/pipelines)
+
+Identify the pipeline you want to use. For example, in the following build:
+`https://gitlab.ddbuild.io/DataDog/auto_inject/-/pipelines/79059602`, the pipeline ID would be **`pipeline-79059602`**.
+
+Next, update your GitLab CI configuration file to include the variable `DD_INSTALLER_INJECTOR_VERSION` with the selected pipeline ID.
+You can see an example in the `dd-trace-java` repository:
+🔗 [GitLab CI example line](https://github.com/DataDog/dd-trace-java/blob/d2f5bb4248ea6ed459374919b357ac93c7d3a810/.gitlab-ci.yml#L961)
+
+Here’s how the modified section would look:
+
+```yaml
+configure_system_tests:
+  variables:
+    SYSTEM_TESTS_SCENARIOS_GROUPS: "simple_onboarding,simple_onboarding_profiling,simple_onboarding_appsec,docker-ssi,lib-injection"
+    DD_INSTALLER_INJECTOR_VERSION: "pipeline-79059602"
+```
+
+---
+
+## 🐶 PROBLEMS WITH THE AGENT
+
+**Warning:**
+
+Ensure that the agent failure is not caused by compatibility issues with your test component ( Installer, Injector or Tracer).
+
+**Impact:**
+
+An agent failure can block CI pipelines, preventing new builds or merges from completing, for:
+  - system-tests
+  - injector
+  - tracers
+  - installer
+
+**Quick Solution:**
+
+In this case the quick solution resides on the system-tests repository and it will impact in all the tracers and injector pipelines.
+We will use these environment variables DD_AGENT_MAJOR_VERSION and DD_AGENT_MINOR_VERSION to point to the exact the agent version.
+First, you should check the latest versions of the agent: https://github.com/DataDog/datadog-agent/releases.
+We’ll pin a specific Agent version from three different points within system-tests:
+  - https://github.com/DataDog/system-tests/blob/a9ebdef3c3593d231616097d13a02a2ecd4037c2/utils/build/virtual_machine/provisions/auto-inject/auto-inject_installer_manual.yml#L10
+```yaml
+  remote-command: |
+    #Pin to 7.69.4 agent release
+    export DD_AGENT_MAJOR_VERSION=7
+    export DD_AGENT_MINOR_VERSION=69.4
+    if [ "${DD_env}" == "dev" ]; then
+```
+ - https://github.com/DataDog/system-tests/blob/045237acae933f6e96d974c55aef1d319cd5a1e6/utils/build/virtual_machine/provisions/auto-inject/docker/docker-compose-agent-prod.yml#L4
+ ```yaml
+  services:
+    datadog:
+      container_name: dd-agent
+      image: gcr.io/datadoghq/agent:7.69.4
+```
+- https://github.com/DataDog/system-tests/blob/045237acae933f6e96d974c55aef1d319cd5a1e6/utils/build/virtual_machine/provisions/host-auto-inject-install-script/auto-inject_host_script.yml#L8
+ ```yaml
+  remote-command: |
+    export DD_AGENT_MAJOR_VERSION=7
+    export DD_AGENT_MINOR_VERSION=69.4
+    # Env variables set on the scenario definition. Write to file and load
+```
+
+---
+
+## 🧩 PROBLEMS WITH THE INSTALER VERSION
+
+**Warning:**
+
+Ensure that the installer failure is not caused by compatibility issues with your test component (Agent, injector, or Tracer).
+
+**Impact:**
+
+An installer failure can block CI pipelines, preventing new builds or merges from completing, for:
+  - system-tests
+  - injector
+  - tracers
+
+**Quick Solution:**
+
+We should update all the references to the installer, using an older and stable version of the installer.
+Check this old system-tests PR that changes temporary the installer references: https://github.com/DataDog/system-tests/pull/5383/files
+To find the correct 'versionId' you should connect to the Datadog AWS account and look into the "dd-agent" bucket, in the folder "scripts/install_script_agent7.sh". Click on "Versions" to show all the available versionIds.
+
+---
+
+## 🧪 PROBLEMS WITH A SPECIFIC TRACER VERSION
+
+**Warning:**
+
+Ensure that the tracer failure is not caused by compatibility issues with your test component ( Agent, Installer, Injector).
+
+**Impact:**
+
+A tracer failure can block CI pipelines, preventing new builds or merges from completing, for:
+  - system-tests
+  - injector
+  - installer
+
+**Quick Solution:**
+
+Find an older, stable version of the tracer.
+You can do this by checking the latest builds of the affected tracer on the main branch. For example if the problem resides on the Java tracer:
+🔗 [Java tracer pipelines](https://gitlab.ddbuild.io/DataDog/dd-trace-java/-/pipelines)
+
+Identify the pipeline you want to use. For example, in the following build:
+`https://gitlab.ddbuild.io/DataDog/apm-reliability/dd-trace-java/-/pipelines/79033926`, the pipeline ID would be **`pipeline-79033926`**.
+
+Next, update your GitLab CI configuration file to include the variable `DD_INSTALLER_LIBRARY_VERSION_JAVA` with the selected pipeline ID.
+You can see an example in the `auto_inject` repository:
+🔗 [GitLab CI example line](https://github.com/DataDog/auto_inject/blob/350e1bfd03e1dd7909d8929f3cd3ecf925c94c21/.gitlab-ci.yml#L145)
+
+Here’s how the modified section would look:
+
+```yaml
+configure_system_tests:
+  variables:
+    SYSTEM_TESTS_SCENARIOS_GROUPS: "onboarding,docker-ssi,lib-injection"
+    DD_INSTALLER_LIBRARY_VERSION_JAVA: "pipeline-79033926"
+```
+You can use these variables, one for each tracer:
+- DD_INSTALLER_LIBRARY_VERSION_NODEJS
+- DD_INSTALLER_LIBRARY_VERSION_JAVA
+- DD_INSTALLER_LIBRARY_VERSION_NODEJS
+- DD_INSTALLER_LIBRARY_VERSION_DOTNET
+- DD_INSTALLER_LIBRARY_VERSION_PYTHON
+- DD_INSTALLER_LIBRARY_VERSION_PHP
+- DD_INSTALLER_LIBRARY_VERSION_RUBY
+
+---
+
+## 🌿 PROBLEMS WITH THE MAIN BRANCH OF SYSTEM-TESTS
+
+**Warning:**
+
+Make sure the issue actually originates from a problem introduced in the main branch of system-tests.
+This workaround does not apply if the failure is caused by new tests recently added to system-tests that your component is not yet passing.
+
+**Impact:**
+
+A failure in the main branch of system-tests will cause issues across all pipelines that run tests from this repository.
+These include:
+- tracers (dd-trace-xyz)
+- installer
+- injector (auto_inject)
+
+
+**Quick Solution:**
+
+The change is straightforward: simply point to a known stable commit in the system-tests repository to ensure consistency and avoid recent regressions.
+For example, if we want to update the dd-trace-js, we will modify the Gitlab descriptor: https://github.com/DataDog/dd-trace-js/blob/3aca43bdb48a13df514058d745b1697c1375e65a/.gitlab-ci.yml#L42
+
+```yaml
+configure_system_tests:
+  variables:
+    SYSTEM_TESTS_SCENARIOS_GROUPS: "simple_onboarding,simple_onboarding_profiling,simple_onboarding_appsec,docker-ssi,lib-injection"
+    SYSTEM_TESTS_REF: 2618589543a4c500c44f7cf95f8762ebca898f61
+```
+
+---
+
+## 🏗️ PROBLEMS WITH THE GITLAB RUNNERS
+
+**Warning:**
+
+Before opening a report about GitLab runner issues, verify that it’s not an isolated or transient failure.
+Re-run the failed jobs to confirm. If the issue keeps happening or shows up too often, report it as a persistent runner problem.
+
+**Impact:**
+
+A failure in the GitLab runners can propagate across all repositories that rely on system-tests SSI within GitLab, potentially impacting multiple pipelines simultaneously:
+- tracers (dd-trace-xyz)
+- installer
+- injector (auto_inject)
+- system-tests
+
+**Quick Solution:**
+
+1. If the problem persists, report it in the #ci-infra-support channel so the CI infrastructure team can investigate and assist.
+2. The runners used for SSI tests in system-tests can be found at: https://github.com/DataDog/libdatadog-build/tree/main/docker
+
 

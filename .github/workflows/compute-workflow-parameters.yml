@@ -67,12 +67,6 @@ on:
       parametric_enable:
         description: ""
         value: ${{ jobs.main.outputs.parametric_enable }}
-      externalprocessing_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.externalprocessing_scenarios }}
-      streamprocessingoffload_scenarios:
-        description: ""
-        value: ${{ jobs.main.outputs.streamprocessingoffload_scenarios }}
       parametric_job_matrix:
         description: ""
         value: ${{ jobs.main.outputs.parametric_job_matrix }}
@@ -103,8 +97,6 @@ jobs:
       endtoend_defs_parallel_enable: ${{ steps.main.outputs.endtoend_defs_parallel_enable }}
       endtoend_defs_parallel_weblogs: ${{ steps.main.outputs.endtoend_defs_parallel_weblogs }}
       endtoend_defs_parallel_jobs: ${{ steps.main.outputs.endtoend_defs_parallel_jobs }}
-      externalprocessing_scenarios: ${{ steps.main.outputs.externalprocessing_scenarios }}
-      streamprocessingoffload_scenarios: ${{ steps.main.outputs.streamprocessingoffload_scenarios }}
       libinjection_scenarios: ${{ steps.main.outputs.libinjection_scenarios }}
       parametric_enable: ${{ steps.main.outputs.parametric_enable }}
       parametric_job_matrix: ${{ steps.main.outputs.parametric_job_matrix }}
@@ -113,7 +105,7 @@ jobs:
       endtoend_weblogs: ${{ steps.main.outputs.endtoend_weblogs }}  # legacy
       ci_environment: ${{ steps.main.outputs.miscs_ci_environment }}
       binaries_artifact: ${{ steps.main.outputs.miscs_binaries_artifact }}
-      unique_id: ${{ steps.unique_id.outputs.value }}
+      unique_id: ${{ steps.main.outputs.unique_id }}
     steps:
     - name: Compute ref
       id: compute_ref
@@ -177,6 +169,3 @@ jobs:
         name: binaries_dev_${{ inputs.library }}
         path: binaries/
         include-hidden-files: ${{ inputs.library == 'python' || inputs.library == 'python_lambda' }}
-    - name: Set unique ID
-      id: unique_id
-      run: echo "value=$(openssl rand -hex 8)" >> $GITHUB_OUTPUT

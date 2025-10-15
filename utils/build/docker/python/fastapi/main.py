@@ -31,6 +31,7 @@ from pydantic import BaseModel
 import requests
 import urllib3
 import xmltodict
+from packaging.version import Version
 from starlette.middleware.sessions import SessionMiddleware
 
 import ddtrace
@@ -56,13 +57,9 @@ except ImportError:
 app = FastAPI()
 
 # Custom middleware
-try:
-    maj, min, patch, *_ = getattr(ddtrace, "__version__", "0.0.0").split(".")
-    current_ddtrace_version = (int(maj), int(min), int(patch))
-except Exception:
-    current_ddtrace_version = (0, 0, 0)
+current_ddtrace_version = Version(getattr(ddtrace, "__version__", "0.0.0"))
 
-if current_ddtrace_version >= (3, 1, 0):
+if current_ddtrace_version >= Version("3.1.0"):
     """custom middleware only supported after PR 12413"""
 
     @app.middleware("http")
@@ -1073,12 +1070,13 @@ async def view_iast_ssrf_secure(url: typing.Annotated[str, Form()]):
 
     # Validate the URL and enforce whitelist
     allowed_domains = ["example.com", "api.example.com", "www.datadoghq.com"]
-    parsed_url = urlparse(str(url))
-
+    if type(url) == bytes:
+        url = url.decode("utf-8")
+    parsed_url = urlparse(url)
     if parsed_url.hostname not in allowed_domains:
         return PlainTextResponse("Forbidden", status_code=403)
     try:
-        result = requests.get(parsed_url.geturl())
+        requests.get(parsed_url.geturl())
     except Exception:
         pass
 
@@ -1280,6 +1278,7 @@ def return_headers(request: Request):
 @app.get("/external_request", response_class=JSONResponse, status_code=200)
 @app.post("/external_request", response_class=JSONResponse, status_code=200)
 @app.trace("/external_request", response_class=JSONResponse, status_code=200)
+@app.put("/external_request", response_class=JSONResponse, status_code=200)
 async def external_request(request: Request):
     queries = {k: str(v) for k, v in request.query_params.items()}
     status = queries.pop("status", "200")

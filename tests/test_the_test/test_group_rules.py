@@ -24,11 +24,12 @@ def test_tracer_release():
         scenarios.mock_the_test_2,
         scenarios.test_the_test,
         scenarios.todo,
-        # Is it targeting tracers ?
+        # targetting OTEL
         scenarios.otel_integrations,
         scenarios.otel_log_e2e,
         scenarios.otel_metric_e2e,
         scenarios.otel_tracing_e2e,
+        scenarios.otel_collector,
         # to be added once stability is proven
         scenarios.chaos_installer_auto_injection,
         scenarios.container_auto_injection_install_script_appsec,

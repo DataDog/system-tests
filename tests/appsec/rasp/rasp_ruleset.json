@@ -371,7 +371,7 @@
               }
             ],
             "list": [
-              "TRACE"
+              "TRACE", "PUT"
             ]
           },
           "operator": "exact_match"

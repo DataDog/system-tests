@@ -31,6 +31,7 @@ _timeout_next = 30
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
+@irrelevant(context.library <= "dotnet@3.28.0", reason="DEBUG-4582")
 class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     snapshots: dict = {}
     spans: dict = {}
