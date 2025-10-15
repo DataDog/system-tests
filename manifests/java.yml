@@ -1035,7 +1035,7 @@ tests/:
         Test_Ssrf_Telemetry:
           '*': v1.39.0
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-          vertx3: missing_feature (APPSEC-55781)
+          vertx3: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
           vertx4: missing_feature (APPSEC-55781)
         Test_Ssrf_Telemetry_V2: missing_feature
         Test_Ssrf_UrlQuery:
@@ -2193,22 +2193,22 @@ tests/:
       spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
     Test_Baggage_Headers_Malformed:
       '*': v1.53.0
-      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      akka-http: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
       jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
+      ratpack: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
       resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot-3-native: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
     Test_Baggage_Headers_Malformed2:
       '*': v1.53.0
-      akka-http: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      akka-http: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
       jersey-grizzly2: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      play: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
-      ratpack: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      play: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
+      ratpack: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
       resteasy-netty3: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
-      spring-boot-3-native: incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
+      spring-boot-3-native: v1.55.0-SNAPSHOT+2a7ceb65fb  # auto activation: might not be the earliest working version
     Test_Baggage_Headers_Max_Bytes:
       '*': incomplete_test_app (endpoint does not support fetching headers injected to downstream call)
       spring-boot: v1.50.0
