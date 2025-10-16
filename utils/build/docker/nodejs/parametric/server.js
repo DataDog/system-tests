@@ -388,7 +388,6 @@ app.post('/ffe/evaluate', async (req, res) => {
   const context = { targetingKey, ...attributes }
 
   try {
-    // Mock OpenFeature evaluation based on variationType
     switch (variationType) {
       case 'BOOLEAN':
         value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
@@ -409,10 +408,8 @@ app.post('/ffe/evaluate', async (req, res) => {
         value = defaultValue;
     }
 
-    console.log(`[FFE] Evaluation result: ${value}`)
     reason = 'DEFAULT';
   } catch (error) {
-    console.log('Error evaluating flag', { error });
     value = defaultValue;
     reason = 'ERROR';
   }
