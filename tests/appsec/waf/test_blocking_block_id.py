@@ -45,13 +45,11 @@ def extract_block_id_from_html(response_body):
     Also checks for other common formats:
     - <meta name="security_response_id" content="...">
     - data-security-response-id="..."
-
-    Note: Supports both "block-id" (old) and "security-response-id" (new) class names.
     """
     if not response_body:
         return None
 
-    # Try paragraph with class "security-response-id" and "Security Response ID:" text (new format)
+    # Try paragraph with class "security-response-id" and "Security Response ID:" text
     security_response_id_pattern = re.compile(
         r'<p\s+class=["\']security-response-id["\']\s*>Security\s+Response\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
         re.IGNORECASE,
@@ -60,30 +58,12 @@ def extract_block_id_from_html(response_body):
     if match:
         return match.group(1)
 
-    # Try paragraph with class "block-id" and "Security Response ID:" text (old format for backwards compatibility)
-    block_id_pattern = re.compile(
-        r'<p\s+class=["\']block-id["\']\s*>Security\s+Response\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
-        re.IGNORECASE,
-    )
-    match = block_id_pattern.search(response_body)
-    if match:
-        return match.group(1)
-
-    # Try span with class "security-response-id" (alternative format, new)
-    span_pattern_new = re.compile(
+    # Try span with class "security-response-id" (alternative format)
+    span_pattern = re.compile(
         r'<span\s+class=["\']security-response-id["\']\s*>(?:Security\s+Response\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
         re.IGNORECASE,
     )
-    match = span_pattern_new.search(response_body)
-    if match:
-        return match.group(1)
-
-    # Try span with class "block-id" (alternative format, old)
-    span_pattern_old = re.compile(
-        r'<span\s+class=["\']block-id["\']\s*>(?:Security\s+Response\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
-        re.IGNORECASE,
-    )
-    match = span_pattern_old.search(response_body)
+    match = span_pattern.search(response_body)
     if match:
         return match.group(1)
 
