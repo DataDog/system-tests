@@ -39,23 +39,8 @@ def _normalize_html_block_id(html_str: str) -> str:
     RFC-1070: The WAF provides block_id, but libraries emit it as security_response_id
     Expected format: <p class="security-response-id">Security Response ID: {uuid}</p>
     """
-    # Replace UUID in paragraph with "Security Response ID:"
-    html_str = re.sub(
-        r'(<p class="security-response-id">Security Response ID: )[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(</p>)',
-        r"\g<1>00000000-0000-4000-8000-000000000000\g<2>",
-        html_str,
-        flags=re.IGNORECASE,
-    )
-    # Replace UUID in meta tag (alternative format)
-    html_str = re.sub(
-        r'(<meta name="security_response_id" content=")[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(")',
-        r"\g<1>00000000-0000-4000-8000-000000000000\g<2>",
-        html_str,
-        flags=re.IGNORECASE,
-    )
-    # Replace UUID in span (alternative format)
     return re.sub(
-        r'(<span class="security-response-id">(?:Security Response ID: )?)[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(</span>)',
+        r'(<p class="security-response-id">Security Response ID: )[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}(</p>)',
         r"\g<1>00000000-0000-4000-8000-000000000000\g<2>",
         html_str,
         flags=re.IGNORECASE,
