@@ -410,6 +410,53 @@ app.get('/set_cookie', (req: Request, res: Response) => {
   res.send('OK')
 })
 
+app.all('/external_request', (req: Request, res: Response) => {
+  const status = req.query.status || '200'
+  const urlExtra = req.query.url_extra || ''
+
+  const headers: any = {}
+  for (const [key, value] of Object.entries(req.query)) {
+    headers[key] = String(value)
+  }
+
+  let body = null
+  if (req.body && Object.keys(req.body).length > 0) {
+    body = JSON.stringify(req.body)
+    headers['Content-Type'] = req.headers['content-type'] || 'application/json'
+  }
+
+  const options = {
+    hostname: 'internal_server',
+    port: 8089,
+    path: `/mirror/${status}${urlExtra}`,
+    method: req.method,
+    headers
+  }
+
+  const request = http.request(options, (response) => {
+    let responseBody = ''
+    response.on('data', (chunk) => {
+      responseBody += chunk
+    })
+
+    response.on('end', () => {
+      const payload = JSON.parse(responseBody)
+      res.status(200).json({
+        status: response.statusCode,
+        payload,
+        headers: response.headers
+      })
+    })
+  })
+
+  // Write body if present
+  if (body) {
+    request.write(body)
+  }
+
+  request.end()
+})
+
 require('./rasp')(app)
 
 require('./graphql')(app).then(() => {
