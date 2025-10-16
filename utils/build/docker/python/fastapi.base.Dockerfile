@@ -1,17 +1,33 @@
-FROM python:3.11-slim
+FROM python:3.14.0rc1-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update
+RUN apt-get install -y curl git libpq-dev gcc
+RUN curl -fsSL https://pyenv.run | bash
+ENV PYENV_ROOT="/root/.pyenv"
+ENV PATH="$PYENV_ROOT/bin:$PATH"
 
 # print versions
+RUN pyenv global system
 RUN python --version && curl --version
 
 # install python deps
 RUN pip install --upgrade pip
-RUN pip install PyYAML fastapi uvicorn requests cryptography==42.0.8 pycryptodome python-multipart jinja2 psycopg2-binary packaging==25.0 itsdangerous xmltodict==0.14.2
-
+RUN pip install PyYAML
+RUN pip install pydantic==2.12.0a1
+RUN pip install fastapi
+RUN pip install uvicorn
+RUN pip install requests
+RUN pip install cryptography==42.0.8
+RUN pip install pycryptodome
+RUN pip install python-multipart
+RUN pip install jinja2
+RUN pip install psycopg2
+RUN pip install itsdangerous
+RUN pip install xmltodict==0.14.2
+RUN pip install packaging==25.0
 RUN mkdir app
 WORKDIR /app
 
-# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v7 .
-# docker push datadog/system-tests:fastapi.base-v7
+# docker build --progress=plain -f utils/build/docker/python/fastapi.base.Dockerfile -t datadog/system-tests:fastapi.base-v8 .
+# docker push datadog/system-tests:fastapi.base-v8
