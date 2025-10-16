@@ -3,6 +3,9 @@ refs:
   - &ref_0_0_1 "0.0.1"
 tests/:
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_0_0_1
     test_config_consistency.py: missing_feature
@@ -88,4 +91,6 @@ tests/:
     test_tracer.py: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_v1_payloads.py: missing_feature

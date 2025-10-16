@@ -748,6 +748,9 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         net-http: v1.70.1
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.50.0
     test_config_consistency.py:
@@ -869,6 +872,8 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.2.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Synthetics_APM_Datadog: bug (APMAPI-901)  # the incoming headers are considered invalid
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant

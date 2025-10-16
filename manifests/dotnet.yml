@@ -549,6 +549,9 @@ tests/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: v3.9.0
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.42.0
     test_config_consistency.py:
@@ -670,6 +673,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v3.26.3
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

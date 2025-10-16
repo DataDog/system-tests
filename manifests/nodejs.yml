@@ -69,6 +69,7 @@ refs:
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
   - &ref_5_71_0 '>=5.71.0'
+  - &ref_5_72_0 '>=5.72.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1290,6 +1291,9 @@ tests/:
         express5: *ref_5_26_0
         fastify: *ref_5_26_0
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: *ref_5_72_0
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_3_0_0
     test_config_consistency.py:
@@ -1434,6 +1438,8 @@ tests/:
     Test_Synthetics_APM_Datadog:
       '*': *ref_5_25_0
       nextjs: bug (APMAPI-939)  # the nextjs weblog application changes the sampling priority from 1.0 to 2.0
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: *ref_5_72_0
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant
