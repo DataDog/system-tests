@@ -69,7 +69,6 @@ refs:
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
   - &ref_5_71_0 '>=5.71.0'
-  - &ref_5_73_0 '>=5.73.0'  # downstream request analysis with http
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -514,16 +513,16 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
-        Test_API10_downstream_request_tag: *ref_5_73_0
-        Test_API10_downstream_ssrf_telemetry: *ref_5_73_0
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: missing_feature
-        Test_API10_request_headers: *ref_5_73_0
-        Test_API10_request_method: *ref_5_73_0
-        Test_API10_response_body: *ref_5_73_0
-        Test_API10_response_headers: *ref_5_73_0
-        Test_API10_response_status: *ref_5_73_0
-        Test_API10_without_downstream_body_analysis_using_max: *ref_5_73_0
-        Test_API10_without_downstream_body_analysis_using_sample_rate: *ref_5_73_0
+        Test_API10_request_headers: missing_feature
+        Test_API10_request_method: missing_feature
+        Test_API10_response_body: missing_feature
+        Test_API10_response_headers: missing_feature
+        Test_API10_response_status: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': *ref_5_30_0

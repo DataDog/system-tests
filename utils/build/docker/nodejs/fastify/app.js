@@ -694,58 +694,6 @@ fastify.get('/add_event', async (request, reply) => {
   return { message: 'Event added' }
 })
 
-fastify.all('/external_request', async (request, reply) => {
-  const status = request.query.status || '200'
-  const urlExtra = request.query.url_extra || ''
-
-  const headers = {}
-  for (const [key, value] of Object.entries(request.query)) {
-    if (key !== 'status' && key !== 'url_extra') {
-      headers[key] = String(value)
-    }
-  }
-
-  let body = null
-  if (request.body && Object.keys(request.body).length > 0) {
-    body = JSON.stringify(request.body)
-    headers['Content-Type'] = request.headers['content-type'] || 'application/json'
-  }
-
-  const options = {
-    hostname: 'internal_server',
-    port: 8089,
-    path: `/mirror/${status}${urlExtra}`,
-    method: request.method,
-    headers
-  }
-
-  return new Promise((resolve, reject) => {
-    const httpRequest = http.request(options, (response) => {
-      let responseBody = ''
-      response.on('data', (chunk) => {
-        responseBody += chunk
-      })
-
-      response.on('end', () => {
-        const payload = JSON.parse(responseBody)
-        reply.status(200)
-        resolve({
-          payload,
-          status: response.statusCode,
-          headers: response.headers
-        })
-      })
-    })
-
-    // Write body if present
-    if (body) {
-      httpRequest.write(body)
-    }
-
-    httpRequest.end()
-  })
-})
-
 require('./rasp')(fastify)
 
 const startServer = async () => {
