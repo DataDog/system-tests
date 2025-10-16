@@ -294,7 +294,7 @@ tests/:
         Test_Ssrf_Waf_Version: v1.7.0
     waf/:
       test_addresses.py:
-        Test_BodyJson: v0.98.1
+        Test_BodyJson: v0.98.1  # TODO what is the earliest version?
         Test_BodyRaw: v0.68.3
         Test_BodyUrlEncoded: v0.68.3
         Test_BodyXml: v0.98.0
@@ -306,7 +306,7 @@ tests/:
         Test_PathParams: v0.71.0
         Test_UrlQuery: v0.68.3
         Test_UrlQueryKey: v0.74.0
-        Test_UrlRaw: v0.68.3
+        Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
       test_blocking.py:
         Test_Blocking: v0.86.0
@@ -441,7 +441,7 @@ tests/:
       Test_UpdateRuleFileWithRemoteConfig: v1.6.2
     test_reports.py:
       Test_ExtraTagsFromRule: v0.88.0
-      Test_Info: v0.68.3
+      Test_Info: v0.68.3  # probably 0.68.2, but was flaky
     test_request_blocking.py:
       Test_AppSecRequestBlocking: v1.6.2
     test_runtime_activation.py:
@@ -493,10 +493,10 @@ tests/:
     test_debugger_probe_status.py:
       Test_Debugger_Line_Probe_Statuses:
         '*': missing_feature
-        apache-mod-8.0: v1.8.3
+        'apache-mod-8.0': v1.8.3
       Test_Debugger_Method_Probe_Statuses:
         '*': missing_feature
-        apache-mod-8.0: v1.8.3
+        'apache-mod-8.0': v1.8.3
     test_debugger_symdb.py:
       Test_Debugger_SymDb: missing_feature
     test_debugger_telemetry.py:
@@ -511,12 +511,12 @@ tests/:
         Test_RabbitMQ_Trace_Context_Propagation: missing_feature
       test_sns_to_sqs.py:
         Test_SNS_Propagation:
-          '*': missing_feature
+          "*": missing_feature
       test_sqs.py:
         Test_SQS_PROPAGATION_VIA_AWS_XRAY_HEADERS:
-          '*': missing_feature (Endpoint not implemented)
+          "*": missing_feature (Endpoint not implemented)
         Test_SQS_PROPAGATION_VIA_MESSAGE_ATTRIBUTES:
-          '*': missing_feature (Endpoint not implemented)
+          "*": missing_feature (Endpoint not implemented)
     test_db_integrations_sql.py:
       Test_MsSql: missing_feature
       Test_MySql: missing_feature
@@ -551,9 +551,6 @@ tests/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
   parametric/:
-    test_feature_flag_exposure/:
-      test_feature_flag_exposure.py:
-        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
@@ -561,7 +558,7 @@ tests/:
       Test_Config_RateLimit: v1.5.0
       Test_Config_Tags: v1.9.0
       Test_Config_TraceAgentURL: v1.4.0
-      Test_Config_TraceEnabled: v1.3.0
+      Test_Config_TraceEnabled: v1.3.0  # Unknown initial version
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.5.0
       Test_Stable_Config_Default: v1.8.0
@@ -594,15 +591,16 @@ tests/:
       Test_Parametric_DDSpan_Add_Link: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
       Test_Parametric_DDSpan_Start: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
-      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)
+      Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
-      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)
+      Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
       Test_Parametric_Write_Log: missing_feature
     test_partial_flushing.py:
       Test_Partial_Flushing: missing_feature
     test_process_discovery.py: missing_feature
     test_sampling_delegation.py:
-      Test_Decisionless_Extraction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
+      Test_Decisionless_Extraction: >-
+        v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
     test_sampling_span_tags.py:
       Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
@@ -613,10 +611,10 @@ tests/:
       Test_Environment: missing_feature
       Test_Stable_Configuration_Origin: v1.9.0
       Test_TelemetryInstallSignature: missing_feature
-      Test_TelemetrySCAEnvVar: missing_feature
-      Test_TelemetrySSIConfigs: missing_feature
+      Test_TelemetrySCAEnvVar: missing_feature  # should be: v0.99.0
+      Test_TelemetrySSIConfigs: missing_feature  # Implemented in v1.11.0, but parametric tests don't use a real SSI environment
     test_trace_sampling.py:
-      Test_Trace_Sampling_Basic: v0.68.3
+      Test_Trace_Sampling_Basic: v0.68.3  # TODO what is the earliest version?
       Test_Trace_Sampling_Globs: v0.96.0
       Test_Trace_Sampling_Globs_Feb2024_Revision: v0.96.0
       Test_Trace_Sampling_Resource: v0.96.0
@@ -655,7 +653,7 @@ tests/:
     Test_Config_ClientTagQueryString_Empty: v1.2.0
     Test_Config_HttpClientErrorStatuses_Default: missing_feature
     Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-    Test_Config_HttpServerErrorStatuses_Default: v1.3.0
+    Test_Config_HttpServerErrorStatuses_Default: v1.3.0  # Unknown initial version
     Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
     Test_Config_IntegrationEnabled_False: v1.4.0
     Test_Config_IntegrationEnabled_True: v1.4.0
@@ -676,8 +674,6 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  test_feature_flag_exposures.py:
-    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature
@@ -710,10 +706,10 @@ tests/:
   test_resource_renaming.py: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-    Test_SamplingDecisionAdded: v1.7.2
+    Test_SamplingDecisionAdded: v1.7.2  # real version unknown
     Test_SamplingDecisions: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
-    Test_SamplingDeterminism: v1.7.2
-    Test_SamplingRates: v1.7.2
+    Test_SamplingDeterminism: v1.7.2  # real version unknown
+    Test_SamplingRates: v1.7.2  # real version unknown
   test_scrubbing.py:
     Test_UrlQuery: v0.76.0
   test_semantic_conventions.py:
