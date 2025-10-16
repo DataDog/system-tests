@@ -1596,7 +1596,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
-
 class Test_Otel_Metrics_Host_Name:
     """Tests the OpenTelemetry metrics host name configuration.
 
@@ -2058,7 +2057,6 @@ class Test_Otel_Metrics_Telemetry:
             },
         ],
     )
-    @missing_feature(context.library == "dotnet", reason="gRPC protocol not supported for OTLP metrics export")
     def test_telemetry_metrics_grpc(self, library_env, test_agent, test_library):
         """Test telemetry metrics are sent to the instrumentation telemetry intake."""
         name = "test_telemetry_metrics"
