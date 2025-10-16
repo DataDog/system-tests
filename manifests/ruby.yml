@@ -385,7 +385,7 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_V3_Login_Events:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -499,12 +499,12 @@ tests/:
       Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.15.0
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Endpoint_Preprocessor: v2.16.0
       Test_Fingerprinting_Header_And_Network: v2.15.0
       Test_Fingerprinting_Header_And_Network_Preprocessor: v2.16.0
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
+      Test_Fingerprinting_Network_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session:
         "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -513,7 +513,7 @@ tests/:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session_Preprocessor:
         "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
