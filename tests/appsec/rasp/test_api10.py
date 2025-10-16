@@ -46,7 +46,7 @@ class API10:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
             values = span["metrics"] if tag in span["metrics"] else span["meta"]
-            
+
             # Try numeric comparison first, fallback to string comparison
             try:
                 assert float(values[tag]) == float(expected), f"Wrong value {values[tag]}, expected {expected}"
@@ -240,6 +240,7 @@ class Test_API10_downstream_request_tag(API10):
         assert "error" not in body
         interfaces.library.validate_spans(self.r, validator=self.validate_metric)
 
+
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
@@ -248,6 +249,7 @@ class Test_API10_downstream_ssrf_telemetry(API10):
     """API 10 span telemetry validation"""
 
     PARAMS = {"url_extra": "?echo-headers=qwoierj12l3", "Witness": "pwq3ojtropiw3hjtowir"}
+
     def setup_api10_req(self):
         self.r = weblog.get("/external_request", params=self.PARAMS)
 
@@ -302,6 +304,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
         assert int(body["status"]) == 200
         interfaces.library.validate_spans(self.r, validator=self.validate_absence)
 
+
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7Cwg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp_without_downstream_body_analysis_using_max
@@ -331,4 +334,3 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
         assert "error" not in body
         assert int(body["status"]) == 200
         interfaces.library.validate_spans(self.r, validator=self.validate_absence)
-
