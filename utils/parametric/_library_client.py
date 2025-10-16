@@ -472,7 +472,7 @@ class APMLibraryClient:
         )
 
     def otel_counter_add(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/counter_add"),
@@ -493,7 +493,7 @@ class APMLibraryClient:
         )
 
     def otel_updowncounter_add(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/updowncounter_add"),
@@ -535,7 +535,7 @@ class APMLibraryClient:
         )
 
     def otel_histogram_record(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/histogram_record"),
@@ -550,7 +550,7 @@ class APMLibraryClient:
         )
 
     def otel_create_asynchronous_counter(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/create_asynchronous_counter"),
@@ -565,7 +565,7 @@ class APMLibraryClient:
         )
 
     def otel_create_asynchronous_updowncounter(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/create_asynchronous_updowncounter"),
@@ -580,7 +580,7 @@ class APMLibraryClient:
         )
 
     def otel_create_asynchronous_gauge(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None
+        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None
     ) -> None:
         self._session.post(
             self._url("/metrics/otel/create_asynchronous_gauge"),
@@ -819,7 +819,13 @@ class APMLibrary:
         self._client.otel_create_counter(meter_name, name, unit, description)
 
     def otel_counter_add(
-        self, meter_name: str, name: str, unit: str, description: str, value: float | int, attributes: dict | None = None
+        self,
+        meter_name: str,
+        name: str,
+        unit: str,
+        description: str,
+        value: float,
+        attributes: dict | None = None,
     ) -> None:
         self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
 

@@ -393,14 +393,14 @@ app.post('/metrics/otel/get_meter', (req, res) => {
 app.post('/metrics/otel/create_counter', (req, res) => {
   const { meter_name, name, description, unit } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const counter = meter.createCounter(name, { unit, description });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'counter', unit, description);
   otelMeterInstruments.set(instrumentKey, counter);
   res.json({});
@@ -409,18 +409,18 @@ app.post('/metrics/otel/create_counter', (req, res) => {
 app.post('/metrics/otel/counter_add', (req, res) => {
   const { meter_name, name, unit, description, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'counter', unit, description);
   if (!otelMeterInstruments.has(instrumentKey)) {
-    return res.status(400).json({ 
-      error: `Instrument with identifying fields Name=${name},Kind=Counter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}` 
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Counter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
     });
   }
-  
+
   const counter = otelMeterInstruments.get(instrumentKey);
   counter.add(value, attributes);
   res.json({});
@@ -429,14 +429,14 @@ app.post('/metrics/otel/counter_add', (req, res) => {
 app.post('/metrics/otel/create_updowncounter', (req, res) => {
   const { meter_name, name, description, unit } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const counter = meter.createUpDownCounter(name, { unit, description });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'updowncounter', unit, description);
   otelMeterInstruments.set(instrumentKey, counter);
   res.json({});
@@ -445,18 +445,18 @@ app.post('/metrics/otel/create_updowncounter', (req, res) => {
 app.post('/metrics/otel/updowncounter_add', (req, res) => {
   const { meter_name, name, unit, description, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'updowncounter', unit, description);
   if (!otelMeterInstruments.has(instrumentKey)) {
-    return res.status(400).json({ 
-      error: `Instrument with identifying fields Name=${name},Kind=UpDownCounter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}` 
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=UpDownCounter,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
     });
   }
-  
+
   const counter = otelMeterInstruments.get(instrumentKey);
   counter.add(value, attributes);
   res.json({});
@@ -465,14 +465,14 @@ app.post('/metrics/otel/updowncounter_add', (req, res) => {
 app.post('/metrics/otel/create_gauge', (req, res) => {
   const { meter_name, name, description, unit } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const gauge = meter.createGauge(name, { unit, description });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'gauge', unit, description);
   otelMeterInstruments.set(instrumentKey, gauge);
   res.json({});
@@ -481,18 +481,18 @@ app.post('/metrics/otel/create_gauge', (req, res) => {
 app.post('/metrics/otel/gauge_record', (req, res) => {
   const { meter_name, name, unit, description, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'gauge', unit, description);
   if (!otelMeterInstruments.has(instrumentKey)) {
-    return res.status(400).json({ 
-      error: `Instrument with identifying fields Name=${name},Kind=Gauge,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}` 
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Gauge,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
     });
   }
-  
+
   const gauge = otelMeterInstruments.get(instrumentKey);
   gauge.record(value, attributes);
   res.json({});
@@ -501,14 +501,14 @@ app.post('/metrics/otel/gauge_record', (req, res) => {
 app.post('/metrics/otel/create_histogram', (req, res) => {
   const { meter_name, name, description, unit } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const histogram = meter.createHistogram(name, { unit, description });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'histogram', unit, description);
   otelMeterInstruments.set(instrumentKey, histogram);
   res.json({});
@@ -517,18 +517,18 @@ app.post('/metrics/otel/create_histogram', (req, res) => {
 app.post('/metrics/otel/histogram_record', (req, res) => {
   const { meter_name, name, unit, description, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'histogram', unit, description);
   if (!otelMeterInstruments.has(instrumentKey)) {
-    return res.status(400).json({ 
-      error: `Instrument with identifying fields Name=${name},Kind=Histogram,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}` 
+    return res.status(400).json({
+      error: `Instrument with identifying fields Name=${name},Kind=Histogram,Unit=${unit},Description=${description} not found in registered instruments for Meter=${meter_name}`
     });
   }
-  
+
   const histogram = otelMeterInstruments.get(instrumentKey);
   histogram.record(value, attributes);
   res.json({});
@@ -537,22 +537,22 @@ app.post('/metrics/otel/histogram_record', (req, res) => {
 app.post('/metrics/otel/create_asynchronous_counter', (req, res) => {
   const { meter_name, name, description, unit, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const observableCounter = meter.createObservableCounter(name, {
     unit,
     description
   });
-  
+
   // Add the callback
   observableCounter.addCallback((observableResult) => {
     observableResult.observe(value, attributes);
   });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'observable_counter', unit, description);
   otelMeterInstruments.set(instrumentKey, observableCounter);
   res.json({});
@@ -561,22 +561,22 @@ app.post('/metrics/otel/create_asynchronous_counter', (req, res) => {
 app.post('/metrics/otel/create_asynchronous_updowncounter', (req, res) => {
   const { meter_name, name, description, unit, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const observableUpDownCounter = meter.createObservableUpDownCounter(name, {
     unit,
     description
   });
-  
+
   // Add the callback
   observableUpDownCounter.addCallback((observableResult) => {
     observableResult.observe(value, attributes);
   });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'observable_updowncounter', unit, description);
   otelMeterInstruments.set(instrumentKey, observableUpDownCounter);
   res.json({});
@@ -585,22 +585,22 @@ app.post('/metrics/otel/create_asynchronous_updowncounter', (req, res) => {
 app.post('/metrics/otel/create_asynchronous_gauge', (req, res) => {
   const { meter_name, name, description, unit, value, attributes } = req.body;
   if (!otelMeters.has(meter_name)) {
-    return res.status(400).json({ 
-      error: `Meter name ${meter_name} not found in registered meters` 
+    return res.status(400).json({
+      error: `Meter name ${meter_name} not found in registered meters`
     });
   }
-  
+
   const meter = otelMeters.get(meter_name);
   const observableGauge = meter.createObservableGauge(name, {
     unit,
     description
   });
-  
+
   // Add the callback
   observableGauge.addCallback((observableResult) => {
     observableResult.observe(value, attributes);
   });
-  
+
   const instrumentKey = createInstrumentKey(meter_name, name, 'observable_gauge', unit, description);
   otelMeterInstruments.set(instrumentKey, observableGauge);
   res.json({});
