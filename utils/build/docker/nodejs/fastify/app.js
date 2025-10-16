@@ -727,32 +727,13 @@ fastify.all('/external_request', async (request, reply) => {
       })
 
       response.on('end', () => {
-        try {
-          if (response.statusCode >= 200 && response.statusCode < 300) {
-            // Success case
-            const payload = JSON.parse(responseBody)
-            reply.status(200)
-            resolve({
-              payload,
-              status: response.statusCode,
-              headers: response.headers
-            })
-          } else {
-            // HTTP error case
-            reply.status(200)
-            resolve({
-              status: response.statusCode,
-              error: `HTTP ${response.statusCode}: ${responseBody}`
-            })
-          }
-        } catch (parseError) {
-          // JSON parse error
-          reply.status(200)
-          resolve({
-            status: response.statusCode,
-            error: `Failed to parse response: ${parseError.message}`
-          })
-        }
+        const payload = JSON.parse(responseBody)
+        reply.status(200)
+        resolve({
+          payload,
+          status: response.statusCode,
+          headers: response.headers
+        })
       })
     })
 
