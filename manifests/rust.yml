@@ -8,10 +8,10 @@ tests/:
     test_config_consistency.py: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py: missing_feature
-    test_headers_b3.py: missing_feature
-    test_headers_b3multi.py: missing_feature
     test_feature_flag_exposure.py:
       Test_Feature_Flag_Exposure: missing_feature
+    test_headers_b3.py: missing_feature
+    test_headers_b3multi.py: missing_feature
     test_headers_baggage.py:
       Test_Headers_Baggage: missing_feature
       Test_Headers_Baggage_Span_Tags: missing_feature
@@ -89,4 +89,6 @@ tests/:
     test_tracer.py: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_v1_payloads.py: missing_feature

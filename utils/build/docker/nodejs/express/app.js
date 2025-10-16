@@ -677,62 +677,49 @@ const startServer = () => {
 }
 
 // apollo-server does not support Express 5 yet https://github.com/apollographql/apollo-server/issues/7928
-// Feature Flag Exposure endpoints
-let ffeProvider = null
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
 
-app.post('/ffe/start', async (req, res) => {
+// Initialize OpenFeature provider if FFE is enabled
+if (process.env.DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED === 'true') {
+  const { openfeature } = tracer
+  OpenFeature.setProvider(openfeature)
+  openFeatureClient = OpenFeature.getClient()
+}
+
+// Single FFE endpoint that evaluates feature flags
+app.post('/ffe', async (req, res) => {
   try {
-    const { setProviderAndWait } = require('@openfeature/server-sdk')
-
-    ffeProvider = tracer.openfeature
-    console.log('[FFE] Setting provider:', ffeProvider.constructor.name)
-    await setProviderAndWait(ffeProvider)
-    console.log('[FFE] Provider set successfully')
-
-    res.status(200).json({ success: true })
-  } catch (error) {
-    console.error('FFE start error:', error)
-    res.status(500).json({ success: false, error: error.message })
-  }
-})
-
-app.post('/ffe/evaluate', async (req, res) => {
-  try {
-    const { OpenFeature } = require('@openfeature/server-sdk')
     const { flag, variationType, defaultValue, targetingKey, attributes } = req.body
 
-    if (!ffeProvider) {
-      return res.status(400).json({ error: 'FFE provider not initialized' })
+    if (!openFeatureClient) {
+      return res.status(500).json({ error: 'FFE provider not initialized' })
     }
 
-    console.log('[FFE] Evaluating flag:', flag, 'with targetingKey:', targetingKey, 'attributes:', attributes)
-
-    const client = OpenFeature.getClient()
-    let result
+    let value
+    const context = { targetingKey, ...attributes }
 
     switch (variationType) {
       case 'BOOLEAN':
-        result = await client.getBooleanDetails(flag, defaultValue, { targetingKey, ...attributes })
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
         break
       case 'STRING':
-        result = await client.getStringDetails(flag, defaultValue, { targetingKey, ...attributes })
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
         break
       case 'INTEGER':
       case 'NUMERIC':
-        result = await client.getNumberDetails(flag, defaultValue, { targetingKey, ...attributes })
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
         break
       case 'JSON':
-        result = await client.getObjectDetails(flag, defaultValue, { targetingKey, ...attributes })
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
         break
       default:
         return res.status(400).json({ error: `Unknown variation type: ${variationType}` })
     }
 
-    console.log('[FFE] Evaluation result:', result.value)
-
-    res.status(200).json(result)
+    res.status(200).json({ value })
   } catch (error) {
-    console.error('FFE evaluate error:', error)
+    console.error('[FFE] Error:', error)
     res.status(500).json({ error: error.message })
   }
 })
