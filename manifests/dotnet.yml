@@ -566,7 +566,21 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.53.0
     test_otel_logs.py: missing_feature
-    test_otel_metrics.py: missing_feature
+    test_otel_metrics.py:
+      Test_Otel_Metrics_Api_Instrument: v3.28.0
+      Test_Otel_Metrics_Api_Meter: v3.28.0
+      Test_Otel_Metrics_Api_MeterProvider: v3.28.0
+      Test_Otel_Metrics_Configuration_Enabled: v3.28.0
+      Test_Otel_Metrics_Configuration_Metric_Export_Interval: v3.28.0
+      Test_Otel_Metrics_Configuration_Metric_Export_Timeout: v3.28.0
+      Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: v3.28.0
+      Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: v3.28.0
+      Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: v3.28.0
+      Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout: v3.28.0
+      Test_Otel_Metrics_Configuration_Temporality_Preference: v3.28.0
+      Test_Otel_Metrics_Host_Name: v3.28.0
+      Test_Otel_Metrics_Resource_Attributes: v3.28.0
+      Test_Otel_Metrics_Telemetry: v3.28.0
     test_otel_span_with_baggage.py:
       Test_Otel_Span_With_Baggage: missing_feature
     test_otel_tracer.py:
