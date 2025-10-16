@@ -10,11 +10,7 @@ from utils import scenarios, weblog, rfc, features
 
 
 def is_valid_uuid4(uuid_string):
-    """Validate UUID format: 8-4-4-4-12 hex digits
-
-    Note: Using flexible pattern to accept any hex UUID format,
-    as different implementations may use different UUID variants
-    """
+    """Validate UUID format: 8-4-4-4-12 hex digits"""
     if not uuid_string or not isinstance(uuid_string, str):
         return False
 
@@ -162,14 +158,7 @@ class Test_BlockId_Custom_Redirect:
 
     def test_block_id_in_redirect_url(self):
         """Verify block_id is present in redirect URL and is a valid UUIDv4"""
-        # Check if response is a redirect (301, 302, 303, 307, 308)
-        assert self.r_redirect.status_code in [
-            301,
-            302,
-            303,
-            307,
-            308,
-        ], f"Expected redirect status (301-303, 307-308), got {self.r_redirect.status_code}"
+        assert self.r_redirect.status_code == 301, f"Expected 301, got {self.r_redirect.status_code}"
 
         # Extract Location header
         location = self.r_redirect.headers.get("Location")
