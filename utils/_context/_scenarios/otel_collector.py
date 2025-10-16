@@ -1,3 +1,5 @@
+import os
+import time
 import pytest
 from utils import interfaces
 from utils._context.component_version import ComponentVersion
@@ -11,24 +13,32 @@ from .endtoend import DockerScenario
 
 class OtelCollectorScenario(DockerScenario):
     def __init__(self, name: str):
+        use_proxy = os.environ.get("OTELCOLLECTOR_PROXY", "true").lower() == "true"
         super().__init__(
             name,
             github_workflow="endtoend",
             doc="TODO",
             scenario_groups=[scenario_groups.end_to_end],
             include_postgres_db=True,
-            use_proxy=True,
+            use_proxy=use_proxy,
+            mocked_backend=use_proxy,  # Link mocked backend to proxy usage
         )
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
-        self.collector_container = OpenTelemetryCollectorContainer(
-            config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
-            environment={
-                "DD_API_KEY": "0123",
-                "DD_SITE": "datadoghq.com",
+        collector_env = {
+            "DD_API_KEY": os.environ.get("DD_API_KEY", "0123"),
+            "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
+        }
+
+        if use_proxy:
+            collector_env.update({
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-            },
+            })
+
+        self.collector_container = OpenTelemetryCollectorContainer(
+            config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+            environment=collector_env,
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
                     "bind": "/etc/ssl/certs/ca-certificates.crt",
@@ -78,9 +88,10 @@ class OtelCollectorScenario(DockerScenario):
 
             interfaces.otel_collector.load_data_from_logs()
         else:
-            logger.terminal.write_sep("-", f"Wait for {interfaces.otel_collector} (0s)")
+            logger.terminal.write_sep("-", f"Wait for {interfaces.otel_collector} (20s)")
             logger.terminal.flush()
 
+            time.sleep(20)
             self.collector_container.stop()
             interfaces.otel_collector.wait(0)
 

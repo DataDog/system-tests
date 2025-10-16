@@ -249,7 +249,9 @@ class Test_Smoke:
         all_metric_has_be_seen = True
         for metric in expected_metrics:
             if metric not in observed_metrics:
-                logger.error(f"Metric {metric} hasn't be observed")
+                logger.error(f"Metric {metric} hasn't been observed")
                 all_metric_has_be_seen = False
+            else:
+                logger.error(f"Metric {metric} has been observed")
 
         assert all_metric_has_be_seen

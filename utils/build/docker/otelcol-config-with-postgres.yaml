@@ -20,6 +20,8 @@ exporters:
       key: ${DD_API_KEY}
       site: ${DD_SITE}
       fail_on_invalid_key: true
+    tls:
+      insecure_skip_verify: true #else it fails the handshake
     metrics:
       instrumentation_scope_metadata_as_tags: true
 
