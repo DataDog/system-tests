@@ -41,15 +41,10 @@ def extract_block_id_from_html(response_body):
 
     RFC-1070: The WAF provides block_id, but libraries emit it as security_response_id
     Expected format: <p class="security-response-id">Security Response ID: {uuid}</p>
-
-    Also checks for other common formats:
-    - <meta name="security_response_id" content="...">
-    - data-security-response-id="..."
     """
     if not response_body:
         return None
 
-    # Try paragraph with class "security-response-id" and "Security Response ID:" text
     security_response_id_pattern = re.compile(
         r'<p\s+class=["\']security-response-id["\']\s*>Security\s+Response\s+ID:\s*([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</p>',
         re.IGNORECASE,
@@ -57,35 +52,6 @@ def extract_block_id_from_html(response_body):
     match = security_response_id_pattern.search(response_body)
     if match:
         return match.group(1)
-
-    # Try span with class "security-response-id" (alternative format)
-    span_pattern = re.compile(
-        r'<span\s+class=["\']security-response-id["\']\s*>(?:Security\s+Response\s+ID:\s*)?([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})</span>',
-        re.IGNORECASE,
-    )
-    match = span_pattern.search(response_body)
-    if match:
-        return match.group(1)
-
-    # Try meta tag
-    meta_pattern = re.compile(
-        r'<meta\s+name=["\']security_response_id["\']\s+content=["\']([^"\']+)["\']', re.IGNORECASE
-    )
-    match = meta_pattern.search(response_body)
-    if match:
-        return match.group(1)
-
-    # Try data attribute
-    data_pattern = re.compile(r'data-security-response-id=["\']([^"\']+)["\']', re.IGNORECASE)
-    match = data_pattern.search(response_body)
-    if match:
-        return match.group(1)
-
-    # Try any UUID pattern in the HTML (less reliable but catches various implementations)
-    uuid_pattern = re.compile(r"\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b", re.IGNORECASE)
-    match = uuid_pattern.search(response_body)
-    if match:
-        return match.group(0)
 
     return None
 
