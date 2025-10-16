@@ -838,12 +838,10 @@ class Test_Span_Sampling:
         with test_library, test_library.dd_start_span(name="parent", service="webserver"):
             pass
 
-        if test_library.lang == "java":
-            # Java Tracer is expected to keep the first trace despite of the active dropping policy because
-            # its resource/operation/error combination hasn't been seen before
+        if context.library.name == "java" and context.library.version <= "1.54":
+            # before 1.55.0 java was keeping the first seen span
             test_agent.wait_for_num_traces(1, clear=True)
-        elif test_library.lang == "golang":
-            # Go Tracer is expected to drop the very fist p0s
+        else:
             test_agent.wait_for_num_traces(0, clear=True)
 
         # the second similar trace is expected to be dropped on the Tracer side
@@ -980,7 +978,9 @@ class Test_Span_Sampling:
 
         test_library.dd_flush()
 
-        traces = test_agent.wait_for_num_traces(2)
+        tracer_sends_p0 = context.library.name != "java" or context.library.version <= "1.54"
+
+        traces = test_agent.wait_for_num_traces(2 if tracer_sends_p0 else 1)
 
         case1 = find_span_in_traces(traces, s1.trace_id, s1.span_id)
         # Assert the RUM origin is set
@@ -995,15 +995,16 @@ class Test_Span_Sampling:
         assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
         assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
 
-        case2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
-        # Assert the RUM origin is set
-        assert case2["meta"]["_dd.origin"] == "rum"
-        # Assert the propagated sampling priority is unaffected
-        assert case2["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
-        # Assert that there is no trace sampling happening
-        assert "_dd.p.dm" not in case2["meta"]
-        assert "_dd.rule_psr" not in case2["meta"]
-        # Assert that there is no single span sampling happening
-        assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
-        assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
-        assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
+        if tracer_sends_p0:
+            case2 = find_span_in_traces(traces, s2.trace_id, s2.span_id)
+            # Assert the RUM origin is set
+            assert case2["meta"]["_dd.origin"] == "rum"
+            # Assert the propagated sampling priority is unaffected
+            assert case2["metrics"].get(SAMPLING_PRIORITY_KEY) == 0
+            # Assert that there is no trace sampling happening
+            assert "_dd.p.dm" not in case2["meta"]
+            assert "_dd.rule_psr" not in case2["meta"]
+            # Assert that there is no single span sampling happening
+            assert SINGLE_SPAN_SAMPLING_MECHANISM not in case1["metrics"]
+            assert SINGLE_SPAN_SAMPLING_RATE not in case1["metrics"]
+            assert SINGLE_SPAN_SAMPLING_MAX_PER_SEC not in case1["metrics"]
