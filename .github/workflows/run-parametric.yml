@@ -137,7 +137,7 @@ jobs:
           if compgen -G "logs*/" > /dev/null; then
             # the script that pushes logs to FPD does not handles folder name collisions.
             # waiting for a proper fix, we add the job instance in the folder name
-            mv logs_parametric logs_parametric_${{ matrix.job_instance }} 
+            mv logs_parametric logs_parametric_${{ matrix.job_instance }}
             tar -czvf artifact.tar.gz logs*/
           else
             echo "No logs*/ found; skipping tar."
