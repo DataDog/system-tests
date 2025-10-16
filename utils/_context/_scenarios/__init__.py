@@ -10,6 +10,7 @@ from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
+from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
@@ -128,7 +129,7 @@ class _Scenarios:
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
-            "DD_TRACE_CONFIG": "ConfigChaining.properties",
+            "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
@@ -1064,6 +1065,7 @@ class _Scenarios:
         # The mitmproxy can only proxy UDP traffic by doing a host-wide transparent proxy, but we currently
         # via specific ports. As a result, with the proxy enabled all UDP traffic is being dropped.
         use_proxy_for_weblog=False,
+        library_interface_timeout=20,
         doc="Test runtime metrics",
     )
 
@@ -1096,6 +1098,8 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+
+    otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
 
 
 scenarios = _Scenarios()

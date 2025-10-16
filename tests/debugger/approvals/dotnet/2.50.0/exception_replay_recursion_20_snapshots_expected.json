@@ -4,8 +4,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -108,7 +107,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -143,8 +141,7 @@
             "value": "20"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -188,8 +185,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -212,7 +208,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -251,8 +246,7 @@
             "value": "0"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -401,8 +395,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -429,7 +422,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -468,8 +460,7 @@
             "value": "1"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -613,8 +604,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -645,7 +635,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -684,8 +673,7 @@
             "value": "2"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -824,8 +812,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -860,7 +847,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -899,8 +885,7 @@
             "value": "3"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -1034,8 +1019,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -1074,7 +1058,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -1113,8 +1096,7 @@
             "value": "4"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -1243,8 +1225,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -1287,7 +1268,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -1326,8 +1306,7 @@
             "value": "5"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -1451,8 +1430,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -1499,7 +1477,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -1538,8 +1515,7 @@
             "value": "6"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -1658,8 +1634,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -1710,7 +1685,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -1749,8 +1723,7 @@
             "value": "7"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -1864,8 +1837,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -1920,7 +1892,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -1959,8 +1930,7 @@
             "value": "8"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }
@@ -2069,8 +2039,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -2129,7 +2098,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -2168,8 +2136,7 @@
             "value": "9"
           },
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }

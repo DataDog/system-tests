@@ -19,6 +19,12 @@ tests/:
         Test_API_Security_RC_ASM_DD_processors: v1.8.0
         Test_API_Security_RC_ASM_DD_scanners: v1.8.0
       test_apisec_sampling.py: "irrelevant (sampling works differently in proxies: RFC 1035)"
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py: irrelevant (not applicable to proxies)
       test_schemas.py:
         Test_Scanners: v1.8.0

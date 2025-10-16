@@ -4,8 +4,7 @@
       "return": {
         "staticFields": {
           "Empty": {
-            "type": "EmptyResult",
-            "value": "EmptyResult"
+            "type": "EmptyResult"
           }
         },
         "throwable": {
@@ -24,7 +23,6 @@
         "locals": {
           "@exception": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -32,7 +30,6 @@
               },
               "InnerException": {
                 "type": "Exception",
-                "value": "Exception",
                 "fields": {
                   "Message": {
                     "type": "String",
@@ -80,7 +77,6 @@
           },
           "ex": {
             "type": "Exception",
-            "value": "Exception",
             "fields": {
               "Message": {
                 "type": "String",
@@ -111,8 +107,7 @@
         },
         "arguments": {
           "this": {
-            "type": "ExceptionReplayController",
-            "value": "ExceptionReplayController"
+            "type": "ExceptionReplayController"
           }
         }
       }

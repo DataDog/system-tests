@@ -394,13 +394,17 @@ SDK_DEFAULT_STABLE_CONFIG = {
     else "true"
     if context.library == "golang"
     else "false",  # Profiling is enabled as "1" by default in PHP if loaded. As for Go, the profiler must be started manually, so it is enabled by default when started
-    "dd_data_streams_enabled": "false",
+    "dd_data_streams_enabled": "false"
+    if context.library != "dotnet"
+    else "true",  # Data streams is now enabled by default in non-serverless environments in dotnet
     "dd_logs_injection": {
+        "dotnet": "true",
         "ruby": "true",
         "java": "true",
         "golang": None,
         "python": "true",
         "nodejs": "true",
+        "php": "true",
     }.get(context.library.name, "false"),  # Enabled by default in ruby
 }
 
@@ -423,9 +427,8 @@ CustomDumper.add_representer(QuotedStr, quoted_presenter)
 @scenarios.parametric
 @features.stable_configuration_support
 @rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
-@bug(context.library > "php@1.11.0", reason="APMAPI-1568")
 class Test_Stable_Config_Default(StableConfigWriter):
-    """Verify that stable config works as intended"""
+    """Verify that stable config works as intended (apm_configuration_default)"""
 
     @pytest.mark.parametrize("library_env", [{}])
     @pytest.mark.parametrize(
@@ -502,7 +505,60 @@ class Test_Stable_Config_Default(StableConfigWriter):
             config = test_library.config()
             assert expected.items() <= config.items()
 
-    # @pytest.mark.parametrize("library_env", [{}])
+    @pytest.mark.parametrize("library_env", [{}])
+    @pytest.mark.parametrize(
+        ("name", "apm_configuration_default", "expected"),
+        [
+            (
+                "tags",
+                {"DD_TAGS": "tag1:value1,tag2:value2"},
+                {
+                    "dd_tags": ["tag1:value1", "tag2:value2"]
+                    if context.library in ["dotnet", "php"]
+                    else "tag1:value1,tag2:value2"
+                },
+            ),
+            (
+                "128bit_traceids",
+                {"DD_TRACE_PROPAGATION_STYLE": "tracecontext"},
+                {"dd_trace_propagation_style": "tracecontext"},
+            ),
+        ],
+        ids=lambda name: name,
+    )
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml",
+            "/etc/datadog-agent/application_monitoring.yaml",
+        ],
+    )
+    @missing_feature(
+        context.library in ["cpp", "golang", "nodejs"],
+        reason="extended configs are not supported",
+    )
+    def test_extended_configs(
+        self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
+    ):
+        """Test that SDKs support extended configuration options beyond just product enablement.
+
+        This test uses representative configurations (tags, propagation style) to verify that
+        stable config supports more than just the basic product enablement configs tested
+        in test_default_config. It ensures SDKs can handle complex configuration values
+        like tag arrays and propagation style settings through the stable config mechanism.
+        """
+        with test_library:
+            self.write_stable_config(
+                {
+                    "apm_configuration_default": apm_configuration_default,
+                },
+                path,
+                test_library,
+            )
+            test_library.container_restart()
+            config = test_library.config()
+            assert expected.items() <= config.items(), f"Expected config items not found. Actual config is: {config}"
+
     @pytest.mark.parametrize(
         "test",
         [
@@ -624,12 +680,15 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 "unexpected values for the following configurations: {}"
             ).format([k for k in config.keys() & expected.keys() if config[k] != expected[k]])
 
+
+@scenarios.parametric
+@features.stable_configuration_support
+@rfc("https://docs.google.com/document/d/1MNI5d3g6R8uU3FEWf2e08aAsFcJDVhweCPMjQatEb0o")
+class Test_Stable_Config_Rules(StableConfigWriter):
+    """Verify that stable config targeting rules work as intended (apm_configuration_rules)"""
+
     @pytest.mark.parametrize("library_env", [{"STABLE_CONFIG_SELECTOR": "true", "DD_SERVICE": "not-my-service"}])
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
-        reason="UST stable config is phase 2",
-    )
-    def test_config_stable(self, library_env, test_agent, test_library):
+    def test_targeting_rules(self, library_env, test_agent, test_library):
         path = "/etc/datadog-agent/managed/datadog-agent/stable/application_monitoring.yaml"
         with test_library:
             self.write_stable_config(
@@ -657,10 +716,6 @@ class Test_Stable_Config_Default(StableConfigWriter):
                 config["dd_service"] == "my-service"
             ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
 
-    @missing_feature(
-        context.library in ["ruby", "cpp", "dotnet", "golang", "nodejs", "php", "python"],
-        reason="UST stable config is phase 2",
-    )
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
         [
