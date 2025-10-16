@@ -18,15 +18,10 @@ async function handleExternalRequest (request) {
   let body = null
   const contentType = request.headers.get('content-type')
   if (contentType && contentType.includes('application/json')) {
-    try {
-      const requestBody = await request.json()
-      if (requestBody && Object.keys(requestBody).length > 0) {
-        body = JSON.stringify(requestBody)
-        headers['Content-Type'] = contentType || 'application/json'
-      }
-    } catch (error) {
-      // If JSON parsing fails (for TRACE requests with no body), continue without body
-      console.warn('Failed to parse request body as JSON:', error.message)
+    const requestBody = await request.json()
+    if (requestBody && Object.keys(requestBody).length > 0) {
+      body = JSON.stringify(requestBody)
+      headers['Content-Type'] = contentType || 'application/json'
     }
   }
 
@@ -73,9 +68,5 @@ export async function POST (request) {
 }
 
 export async function PUT (request) {
-  return handleExternalRequest(request)
-}
-
-export async function TRACE (request) {
   return handleExternalRequest(request)
 }

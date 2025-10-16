@@ -5,7 +5,7 @@
 import json
 import urllib.parse
 
-from utils import features, weblog, interfaces, scenarios, rfc
+from utils import features, weblog, interfaces, scenarios, rfc, context
 
 from tests.appsec.rasp.utils import (
     find_series,
@@ -87,7 +87,8 @@ class Test_API10_request_method(API10):
     TAGS_EXPECTED = [("_dd.appsec.trace.req_method", "TAG_API10_REQ_METHOD")]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
@@ -232,7 +233,8 @@ class Test_API10_downstream_request_tag(API10):
     ]
 
     def setup_api10_req_method(self):
-        self.r = weblog.request("TRACE", "/external_request")
+        method = "PUT" if context.weblog_variant == "nextjs" else "TRACE"  # Next.js doesn't support TRACE method
+        self.r = weblog.request(method, "/external_request")
 
     def test_api10_req_method(self):
         assert self.r.status_code == 200
