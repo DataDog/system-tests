@@ -68,6 +68,7 @@ refs:
   - &ref_5_62_0 '>=5.62.0'  # dsm - new hashing algo
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
+  - &ref_5_71_0 '>=5.71.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -89,6 +90,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: *ref_5_27_0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': missing_feature
@@ -506,12 +513,16 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
         Test_API10_response_body: missing_feature
         Test_API10_response_headers: missing_feature
         Test_API10_response_status: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': *ref_5_30_0
@@ -988,10 +999,13 @@ tests/:
         '*': *ref_5_48_0
         nextjs: missing_feature
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability: *ref_5_71_0
+      Test_ExtendedRequestBodyCollection:
+        '*': *ref_5_71_0
+        fastify: missing_feature
+        nextjs: missing_feature
+      Test_ExtendedRequestHeadersDataCollection: *ref_5_71_0
+      Test_ExtendedResponseHeadersDataCollection: *ref_5_71_0
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: *ref_5_54_0
     test_extended_request_body_collection.py:
@@ -1287,6 +1301,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: *ref_5_25_0
       Test_Stable_Config_Default: *ref_5_62_0
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: *ref_5_27_0
     test_dynamic_configuration.py:

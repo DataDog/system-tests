@@ -107,6 +107,7 @@ class BaseDebuggerTest:
     start_time: int | None = None
 
     rc_states: list[remote_config.RemoteConfigStateResults] = []
+    prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
 
     setup_failures: list = []
@@ -188,10 +189,10 @@ class BaseDebuggerTest:
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
                     elif language == "golang":
-                        probe["where"]["typeName"] = "-"  # Ignored
+                        probe["where"]["typeName"] = "main.DebuggerController"  # Ignored
                         method = probe["where"]["methodName"]
                         method = method[0].lower() + method[1:] if method else ""
-                        probe["where"]["methodName"] = "main." + method
+                        probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -254,9 +255,11 @@ class BaseDebuggerTest:
 
         if reset:
             self.rc_states = []
+            self.prev_payloads = []
 
         self.rc_states.append(
             remote_config.send_apm_tracing_command(
+                prev_payloads=self.prev_payloads,
                 dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
                 exception_replay_enabled=exception_replay_enabled,
                 live_debugging_enabled=live_debugging_enabled,

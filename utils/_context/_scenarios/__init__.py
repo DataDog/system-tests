@@ -10,6 +10,7 @@ from .default import DefaultScenario
 from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
+from .otel_collector import OtelCollectorScenario
 from .parametric import ParametricScenario
 from .performance import PerformanceScenario
 from .profiling import ProfilingScenario
@@ -128,7 +129,7 @@ class _Scenarios:
         weblog_env={
             "DD_LOGS_INJECTION": "false",
             "CONFIG_CHAINING_TEST": "true",
-            "DD_TRACE_CONFIG": "ConfigChaining.properties",
+            "DD_TRACE_CONFIG": "/app/ConfigChaining.properties",
         },
         doc="Test telemetry for environment variable configurations",
         scenario_groups=[scenario_groups.telemetry],
@@ -961,6 +962,20 @@ class _Scenarios:
 
     appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
 
+    appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
+        weblog_env={
+            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+        },
+    )
+
+    appsec_rasp_without_downstream_body_analysis_using_max = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX",
+        weblog_env={
+            "DD_API_SECURITY_MAX_DOWNSTREAM_REQUEST_BODY_ANALYSIS": "0",
+        },
+    )
+
     appsec_standalone_rasp = AppsecRaspScenario(
         "APPSEC_STANDALONE_RASP",
         weblog_env={
@@ -1086,6 +1101,8 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+
+    otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
 
 
 scenarios = _Scenarios()

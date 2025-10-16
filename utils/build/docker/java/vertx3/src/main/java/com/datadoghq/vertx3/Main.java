@@ -9,6 +9,7 @@ import com.datadoghq.system_tests.iast.utils.CryptoExamples;
 import com.datadoghq.vertx3.iast.routes.IastSinkRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSourceRouteProvider;
 import com.datadoghq.vertx3.iast.routes.IastSamplingRouteProvider;
+import com.datadoghq.vertx3.rasp.Api10RouteProvider;
 import com.datadoghq.vertx3.rasp.RaspRouteProvider;
 import datadog.appsec.api.blocking.Blocking;
 import datadog.appsec.api.login.EventTrackerV2;
@@ -434,6 +435,7 @@ public class Main {
 
         iastRouteProviders().forEach(provider -> provider.accept(router));
         raspRouteProviders().forEach(provider -> provider.accept(router));
+
         server.requestHandler(router::accept).listen(7777);
     }
 
@@ -446,7 +448,7 @@ public class Main {
     }
 
     private static Stream<Consumer<Router>> raspRouteProviders() {
-        return Stream.of(new RaspRouteProvider(DATA_SOURCE));
+        return Stream.of(new RaspRouteProvider(DATA_SOURCE), new Api10RouteProvider());
     }
 
     private static Map<String, String> asMetadataMap(final JsonObject metadata) {

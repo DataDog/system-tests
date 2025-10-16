@@ -70,6 +70,22 @@ tests/:
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
           vertx3: v1.51.0
           vertx4: v1.51.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Negative:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Processor_Override:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
+        Test_API_Security_Custom_Data_Classification_Scanner:
+          '*': missing_feature
+          spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': missing_feature
@@ -754,13 +770,33 @@ tests/:
           spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     rasp/:
       test_api10.py:
-        Test_API10_all: missing_feature
-        Test_API10_request_body: missing_feature
-        Test_API10_request_headers: missing_feature
-        Test_API10_request_method: missing_feature
-        Test_API10_response_body: missing_feature
-        Test_API10_response_headers: missing_feature
-        Test_API10_response_status: missing_feature
+        Test_API10_all:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_downstream_request_tag:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_request_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_request_method:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_body:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_headers:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_response_status:
+          '*': missing_feature
+          vertx3: v1.54.0
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson:
           '*': v1.45.0
@@ -2066,6 +2102,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.41.1
       Test_Stable_Config_Default: v1.49.0-SNAPSHOT
+      Test_Stable_Config_Rules: v1.49.0-SNAPSHOT
     test_crashtracking.py:
       Test_Crashtracking: v1.38.0
     test_dynamic_configuration.py:
@@ -2398,8 +2435,10 @@ tests/:
       spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
     Test_Telemetry:
       '*': v0.108.1
-      spring-boot-3-native: irrelevant (GraalVM. Tracing support only)
-    Test_TelemetryEnhancedConfigReporting: missing_feature
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
+    Test_TelemetryEnhancedConfigReporting:
+      '*': v1.54.0-SNAPSHOT
+      spring-boot-3-native: missing_feature (GraalVM. Tracing support only)
     Test_TelemetrySCAEnvVar: missing_feature
     Test_TelemetryV2: v1.23.0
   test_v1_payloads.py: missing_feature

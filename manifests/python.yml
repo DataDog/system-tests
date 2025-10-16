@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v2.6.0
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v2.6.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Negative: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v3.17.0
+        Test_API_Security_Custom_Data_Classification_Scanner: v3.17.0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': v3.13.0.dev
@@ -298,6 +304,8 @@ tests/:
         Test_API10_all:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
@@ -316,6 +324,8 @@ tests/:
         Test_API10_response_status:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
@@ -527,8 +537,8 @@ tests/:
       Test_AppSecStandalone_UpstreamPropagation_V2: v3.2.0.dev
       Test_IastStandalone_UpstreamPropagation_V2:
         '*': v3.2.0.dev
-        flask-poc: bug (APPSEC-59081)
-        uds-flask: bug (APPSEC-59081)
+        flask-poc: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
+        uds-flask: v3.12.0.dev (is v3.2.0.dev but weblog was flaky before fix)
       Test_SCAStandalone_Telemetry_V2: v3.2.0.dev
       Test_UserEventsStandalone_Automated: v3.2.0.dev
       Test_UserEventsStandalone_SDK_V1: v3.9.0
@@ -1057,6 +1067,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.12.2
       Test_Stable_Config_Default: v3.12.0.dev  # default value of log injection changed in v3.12.0
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.11.2
     test_dynamic_configuration.py:
@@ -1105,12 +1116,9 @@ tests/:
       Test_Otel_Metrics_Api_Meter: v3.16.0.dev
       Test_Otel_Metrics_Api_MeterProvider: v3.16.0.dev
       Test_Otel_Metrics_Configuration_Enabled: v3.16.0.dev
-      Test_Otel_Metrics_Configuration_Metric_Export_Interval: v3.16.0.dev
-      Test_Otel_Metrics_Configuration_Metric_Export_Timeout: v3.16.0.dev
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: v3.16.0.dev
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: v3.16.0.dev
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: v3.16.0.dev
-      Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Timeout: v3.16.0.dev
       Test_Otel_Metrics_Configuration_Temporality_Preference: v3.16.0.dev
       Test_Otel_Metrics_Host_Name: v3.16.0.dev
       Test_Otel_Metrics_Resource_Attributes: v3.16.0.dev
