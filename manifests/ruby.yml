@@ -224,12 +224,15 @@ tests/:
       test_api10.py:
         Test_API10_all: missing_feature
         Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
         Test_API10_response_body: missing_feature
         Test_API10_response_headers: missing_feature
         Test_API10_response_status: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
@@ -385,7 +388,7 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_V3_Login_Events:
         '*': v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -499,12 +502,12 @@ tests/:
       Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.15.0
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Endpoint_Preprocessor: v2.16.0
       Test_Fingerprinting_Header_And_Network: v2.15.0
       Test_Fingerprinting_Header_And_Network_Preprocessor: v2.16.0
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
+      Test_Fingerprinting_Network_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session:
         '*': v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -513,7 +516,7 @@ tests/:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session_Preprocessor:
         '*': v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -550,7 +553,7 @@ tests/:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v2.22.0
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
