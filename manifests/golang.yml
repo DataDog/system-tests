@@ -222,8 +222,8 @@ tests/:
         Test_API10_response_body: v2.4.0-dev
         Test_API10_response_headers: v2.4.0-dev
         Test_API10_response_status: v2.4.0-dev
-        Test_API10_without_downstream_body_analysis_using_max: missing_feature
-        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: v2.4.0-dev  # auto activation: might not be the earliest working version
+        Test_API10_without_downstream_body_analysis_using_sample_rate: v2.4.0-dev  # auto activation: might not be the earliest working version
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
