@@ -132,7 +132,6 @@ class OtelCollectorScenario(DockerScenario):
             if "processors" in otel_config:
                 result["configuration"]["processors"] = list(otel_config["processors"].keys())
             
-            # Extract pipelines information
             if "service" in otel_config and "pipelines" in otel_config["service"]:
                 result["configuration"]["pipelines"] = list(otel_config["service"]["pipelines"].keys())
             
