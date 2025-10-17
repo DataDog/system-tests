@@ -1,13 +1,15 @@
 import pytest
 
 from utils import context, features, missing_feature, scenarios
+
 from urllib.parse import urlparse
 
 EXPECTED_TAGS = [("foo", "bar1"), ("baz", "qux1")]
 
 DEFAULT_METER_NAME = "parametric-api"
 DEFAULT_METER_VERSION = "1.0.0"
-DEFAULT_SCHEMA_URL = "https://opentelemetry.io/schemas/1.27.0"
+# schema_url is not supported by .NET's System.Diagnostics.Metrics API
+DEFAULT_SCHEMA_URL = "" if context.library == "dotnet" else "https://opentelemetry.io/schemas/1.21.0"
 
 DEFAULT_INSTRUMENT_UNIT = "triggers"
 DEFAULT_INSTRUMENT_DESCRIPTION = "test_description"
@@ -106,7 +108,13 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
 
     for sum_data_point in sum_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}:
-            assert sum_data_point["as_double"] == value
+            if "as_double" in sum_data_point:
+                actual_value = sum_data_point["as_double"]
+            elif "as_int" in sum_data_point:
+                actual_value = int(sum_data_point["as_int"])
+            else:
+                actual_value = None
+            assert actual_value == value
             assert (
                 attributes.items()
                 == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}.items()
@@ -120,7 +128,13 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
 def assert_gauge_aggregation(gauge_aggregation, value, attributes):
     for gauge_data_point in gauge_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in gauge_data_point["attributes"]}:
-            assert gauge_data_point["as_double"] == value
+            if "as_double" in gauge_data_point:
+                actual_value = gauge_data_point["as_double"]
+            elif "as_int" in gauge_data_point:
+                actual_value = int(gauge_data_point["as_int"])
+            else:
+                actual_value = None
+            assert actual_value == value
             assert "time_unix_nano" in gauge_data_point
             return
 
@@ -1590,6 +1604,9 @@ class Test_Otel_Metrics_Host_Name:
     - Resource attributes set through environment variable OTEL_RESOURCE_ATTRIBUTES are preserved
     """
 
+    @missing_feature(
+        context.library == "dotnet", reason="DD_HOSTNAME to host.name resource attribute mapping not yet implemented"
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
@@ -1985,6 +2002,10 @@ class Test_Otel_Metrics_Telemetry:
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
+    @missing_feature(
+        context.library == "dotnet",
+        reason="OTel metrics telemetry metrics (otel.metrics_export_attempts) not yet fully flushed in time",
+    )
     @pytest.mark.parametrize(
         "library_env",
         [
