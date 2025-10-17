@@ -556,6 +556,7 @@ class Test_Trace_Sampling_Tags_Feb2024_Revision:
         self.assert_matching_span(test_agent, span.trace_id, span.span_id, name="matching-span", service="test")
 
     @pytest.mark.parametrize("library_env", [tag_sampling_env("20"), tag_sampling_env("2*"), tag_sampling_env("2?")])
+    @bug(context.library == "python", reason="APMAPI-1689")
     def test_metric_mismatch_non_integer(self, test_agent, test_library):
         """Tests that any non-integer metrics mismatch patterns -- other than any patterns"""
         with test_library, test_library.dd_start_span(name="mismatching-span", service="test") as span:
