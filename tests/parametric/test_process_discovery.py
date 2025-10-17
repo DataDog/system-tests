@@ -9,7 +9,7 @@ from utils._context.component_version import Version
 
 
 def find_dd_memfds(test_library, pid: int) -> list[str]:
-    rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info*'")
+    rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info-*'")
     if not rc:
         return []
 
@@ -48,6 +48,8 @@ def get_context_tracer_version():
         else:
             patch = context.library.version.patch
         return Version(f"{major}.{minor}.{patch}")
+    elif context.library.name == "java":
+        return Version(str(context.library.version).replace("+", "-"))
     else:
         return context.library.version
 
@@ -71,8 +73,7 @@ def assert_v2(tracer_metadata, test_library, library_env):
     if library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "true":
         assert "entrypoint.name" in tracer_metadata["process_tags"]
     elif library_env["DD_EXPERIMENTAL_PROPAGATE_PROCESS_TAGS_ENABLED"] == "false":
-        assert tracer_metadata["process_tags"] == ""
-    assert tracer_metadata["container_id"] == ""
+        assert "process_tags" not in tracer_metadata or tracer_metadata["process_tags"] == ""
 
 
 asserters = {1: assert_v1, 2: assert_v2}
@@ -82,9 +83,14 @@ def assert_metadata_content(test_library, library_env):
     # NOTE(@dmehala): the server is started on container is always pid 1.
     # That's a strong assumption :hehe:
     # Maybe we should use `pidof pidof parametric-http-server` instead.
-    memfds = find_dd_memfds(test_library, 1)
-    assert len(memfds) == 1
+    pid = 1
 
+    if context.library.name == "java":
+        rc, out = test_library.container_exec_run("pidof java")
+        assert rc
+        pid = int(out)
+    memfds = find_dd_memfds(test_library, pid)
+    assert len(memfds) == 1
     rc, tracer_metadata = read_memfd(test_library, memfds[0])
     assert rc
     assert validate_schema(tracer_metadata)

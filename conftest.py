@@ -24,7 +24,7 @@ from utils import context
 from utils.properties_serialization import SetupProperties
 from utils._context._scenarios import scenarios, Scenario
 from utils._context.component_version import ComponentVersion
-from utils._decorators import released, configure as configure_decorators
+from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
 
@@ -256,7 +256,7 @@ def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> No
 
     path = module_path.relative_to(module_path.cwd())
 
-    declaration: str | None = None
+    full_declaration: str | None = None
     nodeid: str
 
     # look in manifests for any declaration of this file, or on one of its parents
@@ -264,24 +264,21 @@ def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> No
         nodeid = f"{path!s}/" if path.is_dir() else str(path)
 
         if nodeid in manifests and library in manifests[nodeid]:
-            declaration = manifests[nodeid][library]
+            full_declaration = manifests[nodeid][library]
             break
 
         path = path.parent
 
-    if declaration is None:
+    if full_declaration is None:
         return None
 
-    logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+    logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
+
+    declaration, details = parse_skip_declaration(full_declaration)
 
     mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
 
-    if declaration.startswith(("irrelevant", "flaky")):
-        mod.add_marker(pytest.mark.skip(reason=declaration))
-        logger.debug(f"Module {nodeid} is skipped by manifest file because {declaration}")
-    else:
-        mod.add_marker(pytest.mark.xfail(reason=declaration))
-        logger.debug(f"Module {nodeid} is xfailed by manifest file because {declaration}")
+    add_pytest_marker(mod, declaration, details)
 
     return mod
 

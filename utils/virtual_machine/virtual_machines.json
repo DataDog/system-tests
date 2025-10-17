@@ -750,7 +750,7 @@
             "disabled": false
         },
         {
-            "name": "Rocky_Linux_9_amd6",
+            "name": "Rocky_Linux_9_amd64",
             "aws_config": {
                 "ami_id": "ami-0a73e96a849c232cc",
                 "ami_instance_type": "t3.medium",

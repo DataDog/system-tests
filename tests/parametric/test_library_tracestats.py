@@ -154,25 +154,29 @@ class Test_Library_Tracestats:
                 span.set_meta(key="_dd.origin", val=origin)
                 span.set_meta(key="http.status_code", val="400")
 
-        if test_library.lang == "golang":
+        if test_library.lang in ("golang", "java"):
             test_library.dd_flush()
 
         requests = test_agent.get_v06_stats_requests()
-        assert len(requests) == 1, "Exactly one stats request is expected"
-        request = requests[0]["body"]
-        buckets = request["Stats"]
-        assert len(buckets) == 1, "There should be one bucket containing the stats"
+        assert len(requests) >= 1, "At least one stats request"
+        cnt = 0
+        for req in requests:
+            request = req["body"]
+            buckets = request["Stats"]
+            assert len(buckets) == 1, "There should be one bucket containing the stats"
 
-        bucket = buckets[0]
-        stats = bucket["Stats"]
+            bucket = buckets[0]
+            stats = bucket["Stats"]
+            cnt += len(stats)
+
+            for s in stats:
+                assert s["Hits"] == 1
+                assert s["TopLevelHits"] == 1
+                assert s["Duration"] > 0
+
         assert (
-            len(stats) == 7
+            cnt == 7
         ), "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
-
-        for s in stats:
-            assert s["Hits"] == 1
-            assert s["TopLevelHits"] == 1
-            assert s["Duration"] > 0
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
