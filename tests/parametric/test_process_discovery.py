@@ -3,6 +3,7 @@
 import pytest
 import json
 import msgpack
+import re
 from jsonschema import validate as validation_jsonschema
 from utils import features, scenarios, context, missing_feature
 from utils._context.component_version import Version
@@ -12,8 +13,14 @@ def find_dd_memfds(test_library, pid: int) -> list[str]:
     rc, out = test_library.container_exec_run(f"find /proc/{pid}/fd -lname '/memfd:datadog-tracer-info-*'")
     if not rc:
         return []
-
-    return out.split()
+    paths = out.split()
+    for path in paths:
+        rc, out = test_library.container_exec_run(f"readlink {path}")
+        assert rc
+        pattern = r"datadog-tracer-info-[a-zA-Z0-9]{8}"
+        match = re.search(pattern, out)
+        assert match, f"invalid file format: {out}"
+    return paths
 
 
 def validate_schema(payload: str) -> bool:
