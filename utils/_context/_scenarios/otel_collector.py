@@ -102,15 +102,13 @@ class OtelCollectorScenario(DockerScenario):
 
         return result
 
-    def customize_feature_parity_dashboard(self, result: dict) -> None:
-        """Customize feature parity dashboard report to include OTel collector configuration"""
-        
+    def customize_feature_parity_dashboard(self, result: dict) -> None:        
         result["configuration"]["collector_type"] = "opentelemetry"
         result["configuration"]["collector_version"] = str(self.library.version)
         
         if hasattr(self.collector_container, 'image') and self.collector_container.image:
             result["configuration"]["collector_image"] = self.collector_container.image.name
-            
+
             # Extract image commit/revision if available from labels
             if self.collector_container.image.labels:
                 image_labels = self.collector_container.image.labels
@@ -125,15 +123,12 @@ class OtelCollectorScenario(DockerScenario):
             with open(config_file_path, "r", encoding="utf-8") as f:
                 otel_config = yaml.safe_load(f)
             
-            # Extract receivers
             if "receivers" in otel_config:
                 result["configuration"]["receivers"] = list(otel_config["receivers"].keys())
             
-            # Extract exporters
             if "exporters" in otel_config:
                 result["configuration"]["exporters"] = list(otel_config["exporters"].keys())
             
-            # Extract processors
             if "processors" in otel_config:
                 result["configuration"]["processors"] = list(otel_config["processors"].keys())
             
@@ -150,11 +145,11 @@ class OtelCollectorScenario(DockerScenario):
                     "collection_interval": pg_config.get("collection_interval"),
                 }
             
-            # Extract Datadog exporter configuration from YAML
+            # Extract Datadog exporter configuration
             if "exporters" in otel_config and "datadog" in otel_config["exporters"]:
                 dd_exporter_config = otel_config["exporters"]["datadog"]
                 result["configuration"]["datadog_exporter_config"] = {
-                    "site": dd_exporter_config.get("api", {}).get("site"),
+                    "site": dd_exporter_config.get("api", {}).get("site"), # TODO: check if we need this
                     "fail_on_invalid_key": dd_exporter_config.get("api", {}).get("fail_on_invalid_key"),
                     "metrics": dd_exporter_config.get("metrics", {}),
                 }
@@ -172,7 +167,7 @@ class OtelCollectorScenario(DockerScenario):
         if hasattr(self, 'postgres_container') and self.postgres_container:
             postgres_version = "unknown"
             if hasattr(self.postgres_container, 'image') and self.postgres_container.image:
-                # Extract version from image name (e.g., "postgres:alpine" -> "alpine")
+                # Extract version from image name
                 image_name = self.postgres_container.image.name
                 postgres_version = image_name.split(':')[-1].split('-')[0] if ':' in image_name else "alpine"
             
