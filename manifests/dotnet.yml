@@ -582,8 +582,6 @@ tests/:
       Test_Otel_Metrics_Api_Meter: v3.28.0
       Test_Otel_Metrics_Api_MeterProvider: v3.28.0
       Test_Otel_Metrics_Configuration_Enabled: v3.28.0
-      Test_Otel_Metrics_Configuration_Metric_Export_Interval: v3.28.0
-      Test_Otel_Metrics_Configuration_Metric_Export_Timeout: v3.28.0
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint: v3.28.0
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers: v3.28.0
       Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol: v3.28.0
