@@ -5,6 +5,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Any
+from typing import Union
 import logging
 import os
 import enum
@@ -293,7 +294,7 @@ def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBag
 class SpanSetMetricArgs(BaseModel):
     span_id: int
     key: str
-    value: float
+    value: Union[int, float]
 
 
 class SpanSetMetricReturn(BaseModel):
@@ -790,7 +791,7 @@ class OtelCounterAddArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]  # int MUST come first to preserve integer types
     attributes: dict
 
 
@@ -844,7 +845,7 @@ class OtelUpDownCounterAddArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -898,7 +899,7 @@ class OtelGaugeRecordArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -952,7 +953,7 @@ class OtelHistogramRecordArgs(BaseModel):
     name: str
     unit: str
     description: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -982,7 +983,7 @@ class OtelCreateAsynchronousCounterArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -990,7 +991,7 @@ class OtelCreateAsynchronousCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_counter_func(value: float, attributes: dict):
+def create_constant_observable_counter_func(value: Union[int, float], attributes: dict):
     def observable_counter_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
@@ -1019,7 +1020,7 @@ class OtelCreateAsynchronousUpDownCounterArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -1027,7 +1028,7 @@ class OtelCreateAsynchronousUpDownCounterReturn(BaseModel):
     pass
 
 
-def create_constant_observable_updowncounter_func(value: float, attributes: dict):
+def create_constant_observable_updowncounter_func(value: Union[int, float], attributes: dict):
     def observable_updowncounter_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
@@ -1059,7 +1060,7 @@ class OtelCreateAsynchronousGaugeArgs(BaseModel):
     name: str
     description: str
     unit: str
-    value: float
+    value: Union[int, float]
     attributes: dict
 
 
@@ -1067,7 +1068,7 @@ class OtelCreateAsynchronousGaugeReturn(BaseModel):
     pass
 
 
-def create_constant_observable_gauge_func(value: float, attributes: dict):
+def create_constant_observable_gauge_func(value: Union[int, float], attributes: dict):
     def observable_gauge_func(options: CallbackOptions):
         yield Observation(value, attributes)
 
