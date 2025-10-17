@@ -4,13 +4,6 @@ on:
   workflow_dispatch: {}
   schedule:
     - cron:  '00 03 * * 1-5'
-  pull_request:
-    branches:
-    - '**'
-    types:
-    - opened
-    - synchronize
-    - reopened
 
 jobs:
   changelog:
