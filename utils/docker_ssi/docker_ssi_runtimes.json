@@ -82,14 +82,6 @@
         "version": "3.6.15"
       },
       {
-        "version_id": "PY37",
-        "version": "3.7.16"
-      },
-      {
-        "version_id": "PY38",
-        "version": "3.8.20"
-      },
-      {
         "version_id": "PY39",
         "version": "3.9.20"
       },
@@ -104,6 +96,14 @@
       {
         "version_id": "PY312",
         "version": "3.12.7"
+      },
+      {
+        "version_id": "PY313",
+        "version": "3.13.8"
+      },
+      {
+        "version_id": "PY314",
+        "version": "3.14.0"
       }
     ],
     "php": [
