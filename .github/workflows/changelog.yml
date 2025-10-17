@@ -61,7 +61,7 @@ jobs:
       - name: Variables
         id: vars
         run: |
-          BRANCH_NAME="auto-changelog"
+          BRANCH_NAME="auto-changelog-update"
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
           # Check if branch already exists - skip if it does
