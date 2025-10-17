@@ -266,6 +266,9 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+    - name: Run FEATURE_FLAG_EXPOSURE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"FEATURE_FLAG_EXPOSURE"')
+      run: ./run.sh FEATURE_FLAG_EXPOSURE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS

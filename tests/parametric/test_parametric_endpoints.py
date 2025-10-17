@@ -782,3 +782,17 @@ class Test_Parametric_Write_Log:
 
         result = test_library.write_log("Error message", LogLevel.ERROR, "error_logger", span_id=s2.span_id)
         assert result is True
+
+
+@scenarios.parametric
+@features.parametric_endpoint_parity
+class Test_Parametric_FFE_Start:
+    def test_ffe_start(self, test_agent, test_library):
+        """Validates that /ffe/start initializes the feature flag evaluation provider and returns a successful status code.
+
+        Supported Parameters:
+        Supported Return Values:
+        - success: bool
+        """
+        result = test_library.ffe_start()
+        assert result is True
