@@ -73,23 +73,23 @@ class PythonRuntimeInstallableVersions:
     """Python runtime versions that can be installed automatically"""
 
     PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
-    PY37 = RuntimeInstallableVersion("PY37", "3.7.16")
-    PY38 = RuntimeInstallableVersion("PY38", "3.8.20")
     PY39 = RuntimeInstallableVersion("PY39", "3.9.20")
     PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
     PY311 = RuntimeInstallableVersion("PY311", "3.11.10")
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
+    PY313 = RuntimeInstallableVersion("PY312", "3.13.8")
+    PY314 = RuntimeInstallableVersion("PY312", "3.14.0")
 
     @staticmethod
     def get_all_versions():
         return [
             PythonRuntimeInstallableVersions.PY36,
-            PythonRuntimeInstallableVersions.PY37,
-            PythonRuntimeInstallableVersions.PY38,
             PythonRuntimeInstallableVersions.PY39,
             PythonRuntimeInstallableVersions.PY310,
             PythonRuntimeInstallableVersions.PY311,
             PythonRuntimeInstallableVersions.PY312,
+            PythonRuntimeInstallableVersions.PY313,
+            PythonRuntimeInstallableVersions.PY314,
         ]
 
     @staticmethod
