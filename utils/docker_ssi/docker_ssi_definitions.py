@@ -73,8 +73,8 @@ class PythonRuntimeInstallableVersions:
     """Python runtime versions that can be installed automatically"""
 
     PY36 = RuntimeInstallableVersion("PY36", "3.6.15")  # Not supported (EOL runtime)
-    PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
     PY39 = RuntimeInstallableVersion("PY39", "3.9.20")
+    PY310 = RuntimeInstallableVersion("PY310", "3.10.15")
     PY311 = RuntimeInstallableVersion("PY311", "3.11.10")
     PY312 = RuntimeInstallableVersion("PY312", "3.12.7")
     PY313 = RuntimeInstallableVersion("PY312", "3.13.8")
