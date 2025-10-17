@@ -147,6 +147,7 @@ patterns:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null
+        libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
     .github/workflows/changelog.yml:
