@@ -16,7 +16,6 @@ jobs:
   changelog:
     name: Update changelog
     runs-on: ubuntu-latest
-    strategy:
     permissions:
       contents: write
       pull-requests: write
