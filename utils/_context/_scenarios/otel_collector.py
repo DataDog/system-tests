@@ -125,42 +125,29 @@ class OtelCollectorScenario(DockerScenario):
             
             if "receivers" in otel_config:
                 result["configuration"]["receivers"] = list(otel_config["receivers"].keys())
+                if "postgresql" in otel_config["receivers"]:
+                    pg_config = otel_config["receivers"]["postgresql"]
+                    result["configuration"]["postgresql_receiver"] = {
+                        "endpoint": pg_config.get("endpoint"),
+                        "databases": pg_config.get("databases", []),
+                        "collection_interval": pg_config.get("collection_interval"),
+                    }
             
             if "exporters" in otel_config:
                 result["configuration"]["exporters"] = list(otel_config["exporters"].keys())
-            
-            if "processors" in otel_config:
-                result["configuration"]["processors"] = list(otel_config["processors"].keys())
+                if "datadog" in otel_config["exporters"]:
+                    dd_exporter_config = otel_config["exporters"]["datadog"]
+                    result["configuration"]["datadog_exporter_config"] = {
+                        "metrics": dd_exporter_config.get("metrics", {}),
+                    }
+
             
             if "service" in otel_config and "pipelines" in otel_config["service"]:
                 result["configuration"]["pipelines"] = list(otel_config["service"]["pipelines"].keys())
-            
-            # Extract receiver details
-            if "receivers" in otel_config and "postgresql" in otel_config["receivers"]:
-                pg_config = otel_config["receivers"]["postgresql"]
-                result["configuration"]["postgresql_receiver"] = {
-                    "endpoint": pg_config.get("endpoint"),
-                    "databases": pg_config.get("databases", []),
-                    "collection_interval": pg_config.get("collection_interval"),
-                }
-            
-            # Extract Datadog exporter configuration
-            if "exporters" in otel_config and "datadog" in otel_config["exporters"]:
-                dd_exporter_config = otel_config["exporters"]["datadog"]
-                result["configuration"]["datadog_exporter_config"] = {
-                    "site": dd_exporter_config.get("api", {}).get("site"), # TODO: check if we need this
-                    "fail_on_invalid_key": dd_exporter_config.get("api", {}).get("fail_on_invalid_key"),
-                    "metrics": dd_exporter_config.get("metrics", {}),
-                }
         
         except Exception as e:
             logger.warning(f"Failed to parse OTel collector config: {e}")
         
-        # Add Datadog exporter runtime details
-        result["configuration"]["datadog_exporter_runtime"] = {
-            "site": self.collector_container.environment.get("DD_SITE", "datadoghq.com"),
-            "proxy_enabled": True
-        }
         
         # Add PostgreSQL database version dynamically from container
         if hasattr(self, 'postgres_container') and self.postgres_container:
