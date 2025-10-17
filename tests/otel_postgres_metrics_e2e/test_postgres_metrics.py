@@ -204,17 +204,20 @@ class Test_BackendValidity:
                     retries=3,
                     initial_delay_s=15.0,
                 )
-                if (metric_data and
-                    metric_data.get("data") and
-                    len(metric_data["data"]) > 0 and
-                    metric_data["data"][0].get("attributes", {}).get("series")):
 
-                    series_data = metric_data["data"][0]["attributes"]["series"]
-                    results_warning = metric_data["meta"]["responses"][0].get("results_warnings")
+                if metric_data and metric_data.get("data") and len(metric_data["data"]) > 0:
+                    data_item = metric_data["data"][0]
+                    attributes = data_item.get("attributes", {})
+
+                    meta_responses = metric_data.get("meta", {}).get("responses", [])
+                    results_warning = meta_responses[0].get("results_warnings") if meta_responses else None
                     if results_warning:
                         logger.warning(f"Results warning: {results_warning}")
-                    logger.info(f"Series data: {series_data}")
-                    if len(series_data) > 0 and len(series_data[0].get("pointlist", [])) > 0:
+
+                    times = attributes.get("times", [])
+                    values = attributes.get("values", [])
+
+                    if times and values and len(values) > 0 and len(values[0]) > 0:
                         validated_metrics.append(metric_name)
                     else:
                         failed_metrics.append(f"{metric_name}: No data points found")

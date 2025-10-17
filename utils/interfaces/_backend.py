@@ -424,7 +424,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
         query: str,
         start: int,
         end: int,
-        semantic_mode: str = "combined", # "native" or "combined"
+        semantic_mode: str = "combined",  # "native" or "combined"
         interval: int = 5000,
         minimum_interval: int = 1000,
         dd_api_key: str | None = None,
@@ -441,24 +441,23 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 "use_multi_step": True,
                 "use_frontend_step_interval": True,
                 "include_interval_data": True,
-                "enable_incremental_materialized_view": False
+                "enable_incremental_materialized_view": False,
             },
-            "data": [{
-                "type": "timeseries_request",
-                "attributes": {
-                    "queries": [{
-                        "name": "query1",
-                        "data_source": "metrics",
-                        "query": query,
-                        "semantic_mode": semantic_mode
-                    }],
-                    "from": start,
-                    "to": end,
-                    "interval": interval,
-                    "minimum_interval": minimum_interval,
-                    "formulas": [{"formula": "query1"}]
+            "data": [
+                {
+                    "type": "timeseries_request",
+                    "attributes": {
+                        "queries": [
+                            {"name": "query1", "data_source": "metrics", "query": query, "semantic_mode": semantic_mode}
+                        ],
+                        "from": start,
+                        "to": end,
+                        "interval": interval,
+                        "minimum_interval": minimum_interval,
+                        "formulas": [{"formula": "query1"}],
+                    },
                 }
-            }]
+            ],
         }
 
         sleep_interval_s = 1.0
@@ -476,7 +475,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
                 path=path,
                 json_payload=request_payload,
                 dd_api_key=dd_api_key,
-                dd_app_key=dd_app_key
+                dd_app_key=dd_app_key,
             )
 
             # We should retry fetching from the backend as long as the response is 404.
@@ -486,9 +485,11 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
             if status_code != HTTPStatus.NOT_FOUND:
                 resp_content = data["response"]["content"]
-                if (resp_content.get("data") and
-                    len(resp_content["data"]) > 0 and
-                    resp_content["data"][0].get("attributes", {}).get("series")):
+                if (
+                    resp_content.get("data")
+                    and len(resp_content["data"]) > 0
+                    and resp_content["data"][0].get("attributes", {}).get("series")
+                ):
                     return resp_content
 
             time.sleep(sleep_interval_s)
