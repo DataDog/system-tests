@@ -65,6 +65,10 @@ tests/:
         Test_Blocking: v1.2.0
         Test_Blocking_strip_response_headers: irrelevant (no response headers on 1st waf run, which is where blocking is possible)
         Test_CustomBlockingResponse: v1.2.0
+      test_blocking_block_id.py:
+        Test_BlockId_Custom_Redirect: missing_feature
+        Test_BlockId_HTML_Response: missing_feature
+        Test_BlockId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.2.0
       test_exclusions.py:

@@ -345,6 +345,10 @@ tests/:
         Test_Blocking: v1.11.0
         Test_Blocking_strip_response_headers: v1.13.0
         Test_CustomBlockingResponse: v1.15.0
+      test_blocking_block_id.py:
+        Test_BlockId_Custom_Redirect: missing_feature
+        Test_BlockId_HTML_Response: missing_feature
+        Test_BlockId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.12.0
       test_exclusions.py:
