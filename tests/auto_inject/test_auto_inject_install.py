@@ -107,6 +107,10 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
     )
+    @bug(
+        context.weblog_variant == "test-app-nodejs-multicontainer",
+        reason="incident-44480",
+    )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
 
