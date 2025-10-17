@@ -109,7 +109,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     )
     @bug(
         context.weblog_variant == "test-app-nodejs-multicontainer",
-        reason="incident-44480",
+        reason="APMSP-2331",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
