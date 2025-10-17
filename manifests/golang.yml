@@ -787,6 +787,7 @@ tests/:
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: missing_feature (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: missing_feature (spans are stored in a local context, there is no global current span in the go tracer)
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # The set_name endpoint should set the resouce name (not the span name)
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # String attributes are incorrectly stored/serialized in a list
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)

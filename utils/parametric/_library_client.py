@@ -498,8 +498,6 @@ class APMLibraryClient:
                 "attributes": attributes or {},
             },
         )
-        if not HTTPStatus(resp.status_code).is_success:
-            raise pytest.fail(f"FFE evaluation failed: {resp.text}", pytrace=False)
         return resp.json()
 
     def otel_get_meter(

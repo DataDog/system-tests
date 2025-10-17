@@ -1332,6 +1332,7 @@ tests/:
       Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
+      Test_Parametric_FFE_Start: *ref_5_72_0
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
