@@ -52,6 +52,8 @@ class OtelCollectorScenario(DockerScenario):
         super().configure(config)
 
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
+        # Needed to avoid _BackendInterfaceValidator' object has no attribute 'log_folder
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         self.library = ComponentVersion(
             "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
         )

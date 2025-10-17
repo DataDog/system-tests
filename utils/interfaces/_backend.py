@@ -376,7 +376,7 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         return self._request("POST", path, json_payload=request_data)
 
-    # Queries the backend metric timeseries API and returns the matched series.
+    # Queries the backend metric (non UI) timeseries API and returns the matched series.
     def query_timeseries(
         self,
         rid: str,
@@ -416,6 +416,86 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(
             f"Backend did not provide metric series after {retries} retries: {data['path']}. Status is {status_code}."
+        )
+
+    # Queries the backend metric UI timeseries API and returns the matched series.
+    def query_ui_timeseries(
+        self,
+        query: str,
+        start: int,
+        end: int,
+        semantic_mode: str = "combined", # "native" or "combined"
+        interval: int = 5000,
+        minimum_interval: int = 1000,
+        dd_api_key: str | None = None,
+        dd_app_key: str | None = None,
+        retries: int = 12,
+        sleep_interval_multiplier: float = 2.0,
+        initial_delay_s: float = 10.0,
+    ):
+        path = "/api/ui/query/timeseries"
+
+        request_payload = {
+            "meta": {
+                "dd_extra_usage_params": {},
+                "use_multi_step": True,
+                "use_frontend_step_interval": True,
+                "include_interval_data": True,
+                "enable_incremental_materialized_view": False
+            },
+            "data": [{
+                "type": "timeseries_request",
+                "attributes": {
+                    "queries": [{
+                        "name": "query1",
+                        "data_source": "metrics",
+                        "query": query,
+                        "semantic_mode": semantic_mode
+                    }],
+                    "from": start,
+                    "to": end,
+                    "interval": interval,
+                    "minimum_interval": minimum_interval,
+                    "formulas": [{"formula": "query1"}]
+                }
+            }]
+        }
+
+        sleep_interval_s = 1.0
+        current_retry = 1
+        # It takes very long for metric timeseries to be query-able.
+        time.sleep(initial_delay_s)
+
+        while current_retry <= retries:
+            logger.info(f"UI Timeseries Query Retry {current_retry}")
+            current_retry += 1
+
+            data = self._request(
+                "POST",
+                host=self.dd_site_url,
+                path=path,
+                json_payload=request_payload,
+                dd_api_key=dd_api_key,
+                dd_app_key=dd_app_key
+            )
+
+            # We should retry fetching from the backend as long as the response is 404.
+            status_code = data["response"]["status_code"]
+            if status_code not in (HTTPStatus.NOT_FOUND, HTTPStatus.OK):
+                raise ValueError(f"Backend UI timeseries query failed: {data['path']}. Status is {status_code}.")
+
+            if status_code != HTTPStatus.NOT_FOUND:
+                resp_content = data["response"]["content"]
+                if (resp_content.get("data") and
+                    len(resp_content["data"]) > 0 and
+                    resp_content["data"][0].get("attributes", {}).get("series")):
+                    return resp_content
+
+            time.sleep(sleep_interval_s)
+            sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
+
+        raise ValueError(
+            f"Backend UI timeseries did not provide data after {retries} retries: {data['path']}. Status is {status_code}."
         )
 
     # Queries the backend log search API and returns the log matching the given query.
