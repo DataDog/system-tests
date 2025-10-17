@@ -19,6 +19,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+      id-token: write
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -47,6 +48,12 @@ jobs:
           chmod +x utils/scripts/update_change_log.sh
           source venv/bin/activate
           ./utils/scripts/update_change_log.sh
+
+      - uses: DataDog/dd-octo-sts-action@acaa02eee7e3bb0839e4272dacb37b8f3b58ba80 # v1.0.3
+        id: octo-sts
+        with:
+          scope: DataDog/system-tests
+          policy: self.changelog
 
       - name: Configure git
         run: |
@@ -81,18 +88,22 @@ jobs:
 
           echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
           git push -u origin ${{ steps.vars.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
 
       - name: Create commit
         if: steps.vars.outputs.branch_exists == 'false'
         run: |
           echo "Committing..."
           git commit -m "Update changelog" --no-verify
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}
 
       - name: Push signed commits
         if: steps.vars.outputs.branch_exists == 'false'
         uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
         with:
-          github-token: $GITHUB_TOKEN
+          github-token: ${{ steps.octo-sts.outputs.token }}
           repo: DataDog/system-tests
           local_branch_name: ${{ steps.vars.outputs.branch_name }}
           remote_name: origin
@@ -115,3 +126,5 @@ jobs:
               --head "$BRANCH_NAME" \
               --base main
           fi
+        env:
+          GITHUB_TOKEN: ${{ steps.octo-sts.outputs.token }}

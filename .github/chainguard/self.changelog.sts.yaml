@@ -1,0 +1,13 @@
+# Docs: https://datadoghq.atlassian.net/wiki/spaces/SECENG/pages/5138645099/User+guide+dd-octo-sts
+issuer: https://token.actions.githubusercontent.com
+
+subject: repo:DataDog/system-tests-dashboard:ref:refs/heads/main
+claim_pattern:
+  event_name: (workflow_dispatch|schedule)
+  ref: refs/heads/main
+  ref_protected: "true"
+  job_workflow_ref: DataDog/system-tests/\.github/workflows/changelog\.yml@refs/heads/main
+
+permissions:
+  contents: write
+  pull_requests: write
