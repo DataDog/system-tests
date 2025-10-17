@@ -1,0 +1,118 @@
+name: Update changelog
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron:  '00 03 * * 1-5'
+  pull_request:
+    branches:
+    - '**'
+    types:
+    - opened
+    - synchronize
+    - reopened
+
+jobs:
+  changelog:
+    name: Update changelog
+    runs-on: ubuntu-latest
+    strategy:
+    permissions:
+      contents: write
+      pull_requests: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          python -m venv venv --copies
+          source venv/bin/activate
+          python -m pip install --upgrade pip requests
+          python --version
+          pip freeze
+
+      - name: Run script
+        shell: bash
+        run: |
+          chmod +x utils/scripts/update_change_log.sh
+          source venv/bin/activate
+          ./utils/scripts/update_change_log.sh
+
+      - name: Configure git
+        run: |
+          # Set the git user.
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Add files
+        run: |
+          git add "CHANGELOG.md"
+
+      - name: Variables
+        id: vars
+        run: |
+          BRANCH_NAME="auto-changelog"
+          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+          # Check if branch already exists - skip if it does
+          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists, skipping"
+            echo "branch_exists=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "branch_exists=false" >> "$GITHUB_OUTPUT"
+
+      - name: Create branch
+        if: steps.vars.outputs.branch_exists == 'false'
+        run: |
+          echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
+          git checkout -b ${{ steps.vars.outputs.branch_name }}
+
+          echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
+          git push -u origin ${{ steps.vars.outputs.branch_name }}
+
+      - name: Create commit
+        if: steps.vars.outputs.branch_exists == 'false'
+        run: |
+          echo "Committing..."
+          git commit -m "Update changelog" --no-verify
+
+      - name: Push signed commits
+        if: steps.vars.outputs.branch_exists == 'false'
+        uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
+        with:
+          github-token: $GITHUB_TOKEN
+          repo: DataDog/system-tests
+          local_branch_name: ${{ steps.vars.outputs.branch_name }}
+          remote_name: origin
+          remote_branch_name: ${{ steps.vars.outputs.branch_name }}
+
+      - name: Create Pull Request
+        if: steps.vars.outputs.branch_exists == 'false'
+        shell: bash
+        run: |
+          BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
+
+          # Create or reference PR
+          if gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number' | grep -q .; then
+            PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number')
+            echo "PR already exists: #$PR_NUMBER"
+          else
+            gh pr create \
+              --title "Auto-update changelog" \
+              --body "Automated update of CHANGELOG.md" \
+              --head "$BRANCH_NAME" \
+              --base main
+          fi
