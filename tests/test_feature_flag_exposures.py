@@ -70,46 +70,38 @@ class Test_FFE_Exposure_Events:
             },
         )
 
-        # Wait for exposure events to be sent to agent (must be done in setup before agent is stopped)
-        self.exposure_data = None
-
-        def validator(data):
-            """Collect exposure event data for later validation."""
-            if data["path"] == "/api/v2/exposures":
-                self.exposure_data = data["request"]["content"]
-                return True
-            return False
-
-        interfaces.agent.wait_for(validator, timeout=30)
-
     def test_ffe_exposure_event_generation(self):
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        # Validate that exposure data was received
-        assert self.exposure_data is not None, "No exposure events were sent to agent"
+        for data in interfaces.agent.get_data(path_filters="/api/v2/exposures"):
+            # validate data sent to /api/v2/exposures
 
-        # Validate context object
-        assert "context" in self.exposure_data, "Response missing 'context' field"
-        context = self.exposure_data["context"]
-        assert (
-            context["service_name"] == "weblog"
-        ), f"Expected service_name 'weblog', got '{context['service_name']}'"
-        assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
-        assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
+            exposure_data = data["request"]["content"]
+            # Validate that exposure data was received
+            assert exposure_data is not None, "No exposure events were sent to agent"
 
-        # Validate exposures array
-        assert "exposures" in self.exposure_data, "Response missing 'exposures' field"
-        assert isinstance(self.exposure_data["exposures"], list), "Exposures should be a list"
-        assert len(self.exposure_data["exposures"]) > 0, "Expected at least one exposure event"
+            # Validate context object
+            assert "context" in exposure_data, "Response missing 'context' field"
+            context = exposure_data["context"]
+            assert (
+                context["service_name"] == "weblog"
+            ), f"Expected service_name 'weblog', got '{context['service_name']}'"
+            assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
+            assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
 
-        # Validate structure of exposure event
-        event = self.exposure_data["exposures"][0]
-        assert "flag" in event, "Exposure event missing 'flag' field"
-        assert "key" in event["flag"], "Flag missing 'key' field"
-        assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
+            # Validate exposures array
+            assert "exposures" in exposure_data, "Response missing 'exposures' field"
+            assert isinstance(exposure_data["exposures"], list), "Exposures should be a list"
+            assert len(exposure_data["exposures"]) > 0, "Expected at least one exposure event"
 
-        assert "subject" in event, "Exposure event missing 'subject' field"
-        assert (
-            event["subject"]["id"] == self.targeting_key
-        ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            # Validate structure of exposure event
+            event = exposure_data["exposures"][0]
+            assert "flag" in event, "Exposure event missing 'flag' field"
+            assert "key" in event["flag"], "Flag missing 'key' field"
+            assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
+
+            assert "subject" in event, "Exposure event missing 'subject' field"
+            assert (
+                event["subject"]["id"] == self.targeting_key
+            ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
