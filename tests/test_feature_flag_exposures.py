@@ -53,64 +53,63 @@ class Test_FFE_Exposure_Events:
         rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
-        flag = "test-flag"
+        self.flag = "test-flag"
         variation_type = "STRING"
         default_value = "default"
-        targeting_key = "test-user"
+        self.targeting_key = "test-user"
         attributes: dict[str, str] = {}
 
         self.r = weblog.post(
             "/ffe",
             json={
-                "flag": flag,
+                "flag": self.flag,
                 "variationType": variation_type,
                 "defaultValue": default_value,
-                "targetingKey": targeting_key,
+                "targetingKey": self.targeting_key,
                 "attributes": attributes,
             },
         )
+
+        # Wait for exposure events to be sent to agent (must be done in setup before agent is stopped)
+        self.exposure_data = None
+
+        def validator(data):
+            """Collect exposure event data for later validation."""
+            if data["path"] == "/api/v2/exposures":
+                self.exposure_data = data["request"]["content"]
+                return True
+            return False
+
+        interfaces.agent.wait_for(validator, timeout=30)
 
     def test_ffe_exposure_event_generation(self):
         """Test that FFE generates exposure events when flags are evaluated via weblog."""
         assert self.r.status_code == 200, f"Flag evaluation failed: {self.r.text}"
 
-        flag = "test-flag"
-        targeting_key = "test-user"
+        # Validate that exposure data was received
+        assert self.exposure_data is not None, "No exposure events were sent to agent"
 
-        # Wait for exposure events to be sent to agent
-        def validator(data):
-            """Validate exposure events were sent."""
+        # Validate context object
+        assert "context" in self.exposure_data, "Response missing 'context' field"
+        context = self.exposure_data["context"]
+        assert (
+            context["service_name"] == "weblog"
+        ), f"Expected service_name 'weblog', got '{context['service_name']}'"
+        assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
+        assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
 
-            if data["path"] == "/api/v2/exposures":
-                # The body is in request.content for agent interface
-                body = data["request"]["content"]
+        # Validate exposures array
+        assert "exposures" in self.exposure_data, "Response missing 'exposures' field"
+        assert isinstance(self.exposure_data["exposures"], list), "Exposures should be a list"
+        assert len(self.exposure_data["exposures"]) > 0, "Expected at least one exposure event"
 
-                # Validate context object
-                assert "context" in body, "Response missing 'context' field"
-                context = body["context"]
-                assert (
-                    context["service_name"] == "weblog"
-                ), f"Expected service_name 'weblog', got '{context['service_name']}'"
-                assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
-                assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
+        # Validate structure of exposure event
+        event = self.exposure_data["exposures"][0]
+        assert "flag" in event, "Exposure event missing 'flag' field"
+        assert "key" in event["flag"], "Flag missing 'key' field"
+        assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
 
-                # Validate exposures array
-                assert "exposures" in body, "Response missing 'exposures' field"
-                assert isinstance(body["exposures"], list), "Exposures should be a list"
-                assert len(body["exposures"]) > 0, "Expected at least one exposure event"
-
-                # Validate structure of exposure event
-                event = body["exposures"][0]
-                assert "flag" in event, "Exposure event missing 'flag' field"
-                assert "key" in event["flag"], "Flag missing 'key' field"
-                assert event["flag"]["key"] == flag, f"Expected flag '{flag}', got '{event['flag']['key']}'"
-
-                assert "subject" in event, "Exposure event missing 'subject' field"
-                assert (
-                    event["subject"]["id"] == targeting_key
-                ), f"Expected subject '{targeting_key}', got '{event['subject']['id']}'"
-
-                return True
-            return False
-
-        interfaces.agent.wait_for(validator, timeout=30)
+        assert "subject" in event, "Exposure event missing 'subject' field"
+        assert (
+            event["subject"]["id"] == self.targeting_key
+        ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
