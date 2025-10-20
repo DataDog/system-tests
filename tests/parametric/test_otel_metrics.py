@@ -1571,6 +1571,64 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
             else "application/grpc"
         ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
 
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "http/protobuf",
+            },
+        ],
+    )
+    def test_otlp_metrics_protocol_http_protobuf(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"]
+        name = f"test_otlp_metrics_protocols-{protocol}-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf"
+            if protocol == "http/protobuf"
+            else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
+    @pytest.mark.parametrize(
+        "library_env",
+        [
+            {
+                **DEFAULT_ENVVARS,
+                "OTEL_EXPORTER_OTLP_METRICS_PROTOCOL": "grpc",
+            },
+        ],
+    )
+    def test_otlp_metrics_protocol_grpc(self, test_agent, test_library, library_env):
+        """OTLP metrics are emitted in expected format."""
+        protocol = library_env["OTEL_EXPORTER_OTLP_METRICS_PROTOCOL"]
+        name = f"test_otlp_metrics_protocols-{protocol}-counter"
+        with test_library as t:
+            generate_default_counter_data_point(t, name)
+
+        metrics = test_agent.wait_for_num_otlp_metrics(num=1)
+        scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
+        assert scope_metrics is not None
+
+        requests = test_agent.requests()
+        metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
+        assert metrics_requests, f"Expected metrics request, got {requests}"
+        assert (
+            metrics_requests[0]["headers"].get("Content-Type") == "application/x-protobuf"
+            if protocol == "http/protobuf"
+            else "application/grpc"
+        ), f"Expected correct Content-Type, got {metrics_requests[0]['headers']}"
+
 
 @features.otel_metrics_api
 @scenarios.parametric
