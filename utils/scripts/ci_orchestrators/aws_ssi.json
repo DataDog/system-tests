@@ -50,7 +50,8 @@
             "weblogs": [
                 {
                     "nodejs": [
-                        "test-app-nodejs-multicontainer"
+                        "test-app-nodejs-multicontainer",
+                        "test-app-nodejs-container-25"
                     ],
                     "java": [
                         "test-app-java-multicontainer",
@@ -334,6 +335,16 @@
             },
             {
                 "name": "test-app-nodejs-multicontainer",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
+                ]
+            },
+            {
+                "name": "test-app-nodejs-container-25",
                 "exact_os_branches": [
                     "ubuntu24"
                 ],
