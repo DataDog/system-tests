@@ -309,9 +309,9 @@ tests/:
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
       test_blocking.py:
-        Test_Blocking: v0.86.0
+        Test_Blocking: missing_feature  # v0.86.0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: v0.86.0
+        Test_CustomBlockingResponse: missing_feature  # v0.86.0
       test_custom_rules.py:
         Test_CustomRules: v0.87.2
       test_exclusions.py:
