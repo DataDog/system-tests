@@ -59,8 +59,8 @@ class TestHostAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
 @scenarios.container_auto_injection_install_script
 class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
     ruby_bug_platforms = [
-        "AlamaLinux_9_amd64",
-        "AlamaLinux_9_arm64",
+        "AlmaLinux_9_amd64",
+        "AlmaLinux_9_arm64",
         "Amazon_Linux_2022_amd64",
         "Amazon_Linux_2022_arm64",
         "Amazon_Linux_2023_amd64",
@@ -75,8 +75,8 @@ class TestContainerAutoInjectInstallScript(base.AutoInjectBaseTest):
         "OracleLinux_9_3_arm64",
         "RedHat_9_0_amd64",
         "RedHat_9_0_arm64",
-        "RockyLinux_9_amd64",
-        "RockyLinux_9_arm64",
+        "Rocky_Linux_9_amd64",
+        "Rocky_Linux_9_arm64",
         "Ubuntu_22_amd64",
         "Ubuntu_22_arm64",
         "Ubuntu_23_04_arm64",
@@ -106,6 +106,10 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     @bug(
         context.vm_os_cpu == "arm64" and context.weblog_variant == "test-app-dotnet-container",
         reason="PROF-10783",
+    )
+    @bug(
+        context.weblog_variant == "test-app-nodejs-multicontainer",
+        reason="APMSP-2331",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)

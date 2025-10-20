@@ -6,11 +6,12 @@ alwaysApply: true
 # End-to-End
 
 * To run the tests associated to an end to end scenario use the document [run the tests](mdc:docs/execute/run.md).
+* In system-tests scenario lifecycles: once components are ready, the test setup_* methods run to trigger trace generation via the weblog. Traces are captured by validation interfaces. Then containers shut down, and test methods run to validate the captured traces.
 * You can find information about the end-to-end weblogs in the document [end-to-end weblog specification](mdc:docs/weblog/README.md).
 * All new weblog endpoints MUST be listed in the "Endpoints" section of the document [end-to-end weblog specification](mdc:docs/weblog/README.md).
 * To know about all the end-to-end weblogs available on system-tests, list all docker files in the folder [weblog folder](mdc:utils/build/docker). This is the pattern to discover them: "utils/build/docker/<language>/<weblog_name>.Dockerfile".
 * A new end-to-end weblog must be referenced in the document [build script documentation](mdc:docs/execute/build.md).
-* if you create a new end to end weblog, create it always with one example endpoint and the MANDATORY endpoint '/healthcheck'. Check other weblogs to know the reponse format for the healthcheck endpoint.
+* if you create a new end to end weblog, create it always with one example endpoint and the MANDATORY endpoint '/healthcheck'. Check other weblogs to know the reponse format for the healthcheck endpoint. You don't need to validate this endpoint on any tests, the validation is performed by the core, to know if the scenario is ready.
 * if you craete a new end to end weblog you always must to show a list of the end to end endpoints that are registered on system-tests, reading the section "Endpoints" of the document [end-to-end weblog specification](mdc:docs/weblog/README.md). Ask to the user if he wants to implement one or more endpoints of the list in the new weblog.
 * After creating a new end to end weblog ALWAYS check the compatible scenarios on [workflow datada](mdc:utils/scripts/ci_orchestrators/workflow_data.py) using the method "_is_supported".
 * The end to end scenario test cases use the "weblog" object defined in the python file [weblog object](mdc:utils/_weblog.py) to make request to the endpoints (weblog.request, weblog.get, weblog.post, etc).
@@ -41,6 +42,7 @@ class my_test_class:
 ```
 
 * The class "SchemaValidator" from [schema validator](mdc:utils/interfaces/_schemas_validators.py) can help you to validate the messages under the folder "logs_<scenario_name>/interfaces."
+* BEST PRACTICE: When using interface validation methods, store the response object from the setup method (e.g., `self.response = weblog.get("/")`) and pass it as the request parameter (e.g., `interfaces.library.get_traces(request=self.response)`) to filter validation to that specific request, making tests more precise and reliable.
 * if the user wants to create a new scenario, you MUST validate or ask to the user the context if this scenario is for: end to end, parametric, kubernetes or ssi.
 * After adding a new scenario on [scenarios](mdc:utils/_context/_scenarios/__init__.py) NEVER verify that the scenario has been properly added.
 * After adding a new end to end scenario ask to the user if needs help to include the scenario in the CI GitHub Workflow.
@@ -57,6 +59,13 @@ The different choices to debug the tests/scenario are documented on these docuem
 * [activate tracer debug](docs/execute/dd-trace-debug.md): Activate the tracer debug traces.
 * [log folder structure](docs/execute/logs.md): Understand the log folder structure.
 * [pytest logs](docs/internals/pytest.md): Changing the log level output.
+
+#### Common steps to debug a test failure
+1. if failure is in CI, the user should get the log folder and extract it into system-tests root folder (with the name 'logs_<scenario_name>')
+2. Run in 'replay mode': './run.sh <scenario_name> --replay to reproduce locally'
+3. Add more traces, using 'user logger'.
+4. Dig inside the logs folder, check 'log folder structure' 
+5. 'activate tracer debug'
 
 ### Testing custom version of the tracer (binaries folder)
 * If you need how to test custom version of the tracer or how the binaries folder works read this documentation: [binaries folder](mdc:docs/execute/binaries.md)

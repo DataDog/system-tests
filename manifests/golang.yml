@@ -25,10 +25,10 @@ tests/:
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0-dev  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0-dev  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0-dev  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0-dev  # auto activation: might not be the earliest working version
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -215,12 +215,15 @@ tests/:
       test_api10.py:
         Test_API10_all: v2.4.0-dev
         Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: v2.4.0-dev
         Test_API10_request_headers: v2.4.0-dev
         Test_API10_request_method: v2.4.0-dev
         Test_API10_response_body: v2.4.0-dev
         Test_API10_response_headers: v2.4.0-dev
         Test_API10_response_status: v2.4.0-dev
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
