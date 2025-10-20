@@ -83,7 +83,7 @@ def print_pr_data(month: int | None = None) -> None:
 
     start_date, end_date, year, month = last_completed_month_range(month)
     q = f"repo:DataDog/system-tests is:pr merged:{start_date}..{end_date}"
-    target_label = "build-python-base-images"
+    target_label = "changelog"
 
     pr_prints = []
     n_prs = 0
