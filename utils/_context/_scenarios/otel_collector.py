@@ -60,7 +60,6 @@ class OtelCollectorScenario(DockerScenario):
         )
 
     def customize_feature_parity_dashboard(self, result: dict) -> None:        
-        result["configuration"]["collector_type"] = "opentelemetry"
         result["configuration"]["collector_version"] = str(self.library.version)
 
         if hasattr(self.collector_container, 'image') and self.collector_container.image:
@@ -87,7 +86,6 @@ class OtelCollectorScenario(DockerScenario):
                     result["configuration"]["postgresql_receiver"] = {
                         "endpoint": pg_config.get("endpoint"),
                         "databases": pg_config.get("databases", []),
-                        "collection_interval": pg_config.get("collection_interval"),
                     }
 
             if "exporters" in otel_config:
