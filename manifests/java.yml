@@ -2130,7 +2130,8 @@ tests/:
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # Current span endpoint does not return DataDog spans created by the otel api
       Test_Parametric_Write_Log: missing_feature
-    test_process_discovery.py: missing_feature
+    test_process_discovery.py:
+      Test_ProcessDiscovery: v1.55.0-SNAPSHOT
     test_sampling_span_tags.py:
       Test_Knuth_Sample_Rate: missing_feature
     test_span_events.py: missing_feature
