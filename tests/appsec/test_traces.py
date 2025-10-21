@@ -187,7 +187,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_key, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_key, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_key, allow_no_data=True)
 
     def setup_appsec_obfuscator_value(self):
         sensitive_raw_payload = r"""{
@@ -240,7 +240,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.headers.no_cookies")
         interfaces.library.assert_waf_attack(self.r_value, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_value, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_value, allow_no_data=True)
 
     def setup_appsec_obfuscator_key_with_custom_rules(self):
         self.r_custom = weblog.get(
@@ -267,7 +267,7 @@ class Test_AppSecObfuscator:
 
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.cookies")
         interfaces.library.assert_waf_attack(self.r_custom, address="server.request.query")
-        interfaces.library.validate_appsec(self.r_custom, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_custom, allow_no_data=True)
 
     def setup_appsec_obfuscator_cookies_with_custom_rules(self):
         cookies = {
@@ -298,7 +298,7 @@ class Test_AppSecObfuscator:
             ), "Non-sensitive cookie is not reported"
 
         interfaces.library.assert_waf_attack(self.r_cookies_custom, address="server.request.cookies")
-        interfaces.library.validate_appsec(self.r_cookies_custom, validate_appsec_span_tags, success_by_default=True)
+        interfaces.library.validate_all_appsec(validate_appsec_span_tags, self.r_cookies_custom, allow_no_data=True)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")

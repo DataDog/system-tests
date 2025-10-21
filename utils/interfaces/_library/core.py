@@ -266,7 +266,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         request: HttpResponse | None = None,
         validator: Callable | None = None,
         *,
-        success_by_default: bool = False,
         legacy_validator: Callable | None = None,
         full_trace: bool = False,
     ):
@@ -280,7 +279,22 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 if legacy_validator(event):
                     return
 
-        if not success_by_default:
+        raise ValueError("No appsec event has been found")
+
+    def validate_all_appsec(
+        self,
+        validator: Callable[[dict, dict], None],
+        request: HttpResponse | None = None,
+        *,
+        allow_no_data: bool = False,
+        full_trace: bool = False,
+    ):
+        data_is_missing = True
+        for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
+            data_is_missing = False
+            validator(span, appsec_data)
+
+        if not allow_no_data and data_is_missing:
             raise ValueError("No appsec event has been found")
 
     ######################################################
