@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import time
 
-from utils import scenarios, interfaces, logger, irrelevant, features
+from utils import scenarios, interfaces, logger, features, bug
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
@@ -176,7 +176,6 @@ class Test_PostgreSQLMetricsCollection:
 
 @scenarios.otel_collector
 @features.otel_postgres_support
-@irrelevant(condition=True)
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
         """The goal of this test is to validate that the metrics can actually be queried, meaning they
@@ -192,19 +191,33 @@ class Test_BackendValidity:
         failed_metrics = []
 
         for metric_name in metrics_to_validate:
+            logger.info(f"Looking at metric: {metric_name}")
             try:
-                metric_data = interfaces.backend.query_timeseries(
-                    rid="otel-postgres-metrics,host:collector",  # TODO: figure out if this needs to be dynamic
-                    start=start_time,
-                    end=end_time,
-                    metric=metric_name,
+                start_time_ms = start_time * 1000
+                end_time_ms = end_time * 1000
+
+                metric_data = interfaces.backend.query_ui_timeseries(
+                    query=f"avg:{metric_name}{{rid:otel-postgres-metrics,host:collector}}",
+                    start=start_time_ms,
+                    end=end_time_ms,
+                    semantic_mode="combined",
                     retries=3,
                     initial_delay_s=15.0,
                 )
 
-                if metric_data and "series" in metric_data and len(metric_data["series"]) > 0:
-                    series = metric_data["series"][0]
-                    if "pointlist" in series and len(series["pointlist"]) > 0:
+                if metric_data and metric_data.get("data") and len(metric_data["data"]) > 0:
+                    data_item = metric_data["data"][0]
+                    attributes = data_item.get("attributes", {})
+
+                    meta_responses = metric_data.get("meta", {}).get("responses", [])
+                    results_warning = meta_responses[0].get("results_warnings") if meta_responses else None
+                    if results_warning:
+                        logger.warning(f"Results warning: {results_warning}")
+
+                    times = attributes.get("times", [])
+                    values = attributes.get("values", [])
+
+                    if times and values and len(values) > 0 and len(values[0]) > 0:
                         validated_metrics.append(metric_name)
                     else:
                         failed_metrics.append(f"{metric_name}: No data points found")
@@ -218,6 +231,7 @@ class Test_BackendValidity:
             logger.error(f"\n❌ Failed validations: {failed_metrics}")
 
 
+@bug(condition=True, reason="AIDM-147", force_skip=False)
 @scenarios.otel_collector
 @features.otel_postgres_support
 class Test_Smoke:

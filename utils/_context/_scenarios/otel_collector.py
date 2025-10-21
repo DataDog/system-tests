@@ -28,16 +28,18 @@ class OtelCollectorScenario(DockerScenario):
         )
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
-        collector_env = {
+        collector_env: dict[str, str | None] = {
             "DD_API_KEY": os.environ.get("DD_API_KEY", "0123"),
             "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
         }
 
         if use_proxy:
-            collector_env.update({
-                "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-            })
+            collector_env.update(
+                {
+                    "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
+                    "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
+                }
+            )
 
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
@@ -55,6 +57,8 @@ class OtelCollectorScenario(DockerScenario):
         super().configure(config)
 
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
+        # Needed to avoid _BackendInterfaceValidator' object has no attribute 'log_folder
+        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         self.library = ComponentVersion(
             "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
         )
