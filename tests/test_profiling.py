@@ -43,7 +43,7 @@ class Test_Profile:
 
     def test_agent(self):
         """All profiling agent payload have recording-start and recording-end fields"""
-        interfaces.agent.validate_profiling(self._validate_data)
+        interfaces.agent.validate_all(self._validate_data, path_filters="/api/v2/profile")
 
     def setup_process_tags(self):
         self._common_setup()
