@@ -17,8 +17,7 @@ jobs:
     name: Update changelog
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      pull-requests: read
       id-token: write
 
     steps:
