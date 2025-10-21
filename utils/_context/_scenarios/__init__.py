@@ -24,6 +24,7 @@ from .external_processing import ExternalProcessingScenario
 from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
+from .integration_frameworks import IntegrationFrameworksScenario
 from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
 
 update_environ_with_local_env()
@@ -1089,6 +1090,8 @@ class _Scenarios:
     )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
+
+    integration_frameworks = IntegrationFrameworksScenario("INTEGRATION_FRAMEWORKS")
 
 
 scenarios = _Scenarios()
