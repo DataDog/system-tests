@@ -65,7 +65,7 @@ class Test_UserLoginSuccessEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_tags)
 
     def setup_user_login_success_header_collection(self):
         self.r = weblog.get("/user_login_success_event", headers=HEADERS)
@@ -84,7 +84,7 @@ class Test_UserLoginSuccessEvent:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.user_monitoring
@@ -138,7 +138,7 @@ class Test_UserLoginFailureEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_tags)
 
     def setup_user_login_failure_header_collection(self):
         self.r = weblog.get("/user_login_failure_event", headers=HEADERS)
@@ -157,7 +157,7 @@ class Test_UserLoginFailureEvent:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.user_monitoring
@@ -208,7 +208,7 @@ class Test_CustomEvent:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_custom_event_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_custom_event_tags)
 
 
 @features.user_monitoring

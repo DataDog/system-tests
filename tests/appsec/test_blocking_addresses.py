@@ -67,7 +67,7 @@ class Test_Blocking_client_ip:
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @features.appsec_request_blocking
@@ -111,7 +111,7 @@ class Test_Blocking_client_ip_with_forwarded:
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="blk-001-001")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @features.appsec_request_blocking
@@ -202,13 +202,13 @@ class Test_Blocking_request_method:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3876")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-006")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -273,13 +273,13 @@ class Test_Blocking_request_uri:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3877")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-002")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -346,13 +346,13 @@ class Test_Blocking_request_path_params:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3878")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-007")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -409,13 +409,13 @@ class Test_Blocking_request_query:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3879")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-001")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -472,13 +472,13 @@ class Test_Blocking_request_headers:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert "Value tagged" in self.set_req1.text
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3880")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-003")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -535,13 +535,13 @@ class Test_Blocking_request_cookies:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3881")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-008")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2667021177/Suspicious+requests+blocking")
@@ -606,13 +606,13 @@ class Test_Blocking_request_body:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
         # second request should block and must not set the tag in span
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-004")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @scenarios.appsec_blocking
@@ -811,14 +811,14 @@ class Test_Suspicious_Request_Blocking:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
 
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-012")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
     def setup_blocking_without_path_params(self):
         self.rm_req_block = weblog.get(
@@ -849,14 +849,14 @@ class Test_Suspicious_Request_Blocking:
         # first request should not block and must set the tag in span accordingly
         assert self.set_req1.status_code == 200
         assert self.set_req1.text == "Value tagged"
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.set_req1, validator=_assert_custom_event_tag_presence("clean_value_3882")
         )
 
         """Test that blocked requests are blocked before being processed"""
         assert self.block_req2.status_code == 403
         interfaces.library.assert_waf_attack(self.block_req2, rule="tst-037-013")
-        interfaces.library.validate_spans(self.block_req2, validator=_assert_custom_event_tag_absence())
+        interfaces.library.validate_one_span(self.block_req2, validator=_assert_custom_event_tag_absence())
 
 
 @scenarios.graphql_appsec

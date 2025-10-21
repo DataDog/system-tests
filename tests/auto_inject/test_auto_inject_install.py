@@ -108,7 +108,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @bug(
-        context.weblog_variant == "test-app-nodejs-multicontainer",
+        context.weblog_variant == "test-app-nodejs-container-25",
         reason="APMSP-2331",
     )
     def test_profiling(self):

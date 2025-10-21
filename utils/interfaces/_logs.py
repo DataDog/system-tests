@@ -92,25 +92,32 @@ class _LogsInterfaceValidator(InterfaceValidator):
     def get_data(self):
         yield from self._data_list
 
-    def validate(self, validator: Callable, *, success_by_default: bool = False):
+    def validate_one(self, validator: Callable[[dict], bool]):
         for data in self.get_data():
             try:
-                if validator(data) is True:
+                if validator(data):
                     return
             except Exception:
                 logger.error(f"{data} did not validate this test")
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
+        raise ValueError("Test has not been validated by any data")
+
+    def validate_all(self, validator: Callable[[dict], None]):
+        for data in self.get_data():
+            try:
+                validator(data)
+            except Exception:
+                logger.error(f"{data} did not validate this test")
+                raise
 
     def assert_presence(self, pattern: str, **extra_conditions: str):
         validator = _LogPresence(pattern, **extra_conditions)
-        self.validate(validator.check, success_by_default=False)
+        self.validate_one(validator.check)
 
     def assert_absence(self, pattern: str, allowed_patterns: list[str] | tuple[str, ...] = ()):
         validator = _LogAbsence(pattern, allowed_patterns)
-        self.validate(validator.check, success_by_default=True)
+        self.validate_all(validator.check)
 
 
 class _StdoutLogsInterfaceValidator(_LogsInterfaceValidator):

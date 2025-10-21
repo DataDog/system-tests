@@ -56,19 +56,19 @@ class Test_Telemetry:
     library_requests: dict[tuple[str, str], dict] = {}
     agent_requests: dict[tuple[str, str], dict] = {}
 
-    def validate_library_telemetry_data(self, validator, *, success_by_default=False):
+    def validate_library_telemetry_data(self, validator, *, allow_no_data=False):
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
             validator(data)
 
-    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, success_by_default=False):
+    def validate_agent_telemetry_data(self, validator, *, flatten_message_batches=True, allow_no_data=False):
         telemetry_data = list(interfaces.agent.get_telemetry_data(flatten_message_batches=flatten_message_batches))
 
-        if len(telemetry_data) == 0 and not success_by_default:
+        if len(telemetry_data) == 0 and not allow_no_data:
             raise ValueError("No telemetry data to validate on")
 
         for data in telemetry_data:
@@ -238,11 +238,9 @@ class Test_Telemetry:
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
-        self.validate_library_telemetry_data(
-            lambda data: save_data(data, self.library_requests), success_by_default=False
-        )
+        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), allow_no_data=False)
         self.validate_agent_telemetry_data(
-            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, success_by_default=False
+            lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, allow_no_data=False
         )
 
         # At the end, check that all data are consistent
@@ -461,7 +459,7 @@ class Test_Telemetry:
         def validator(data):
             assert is_v1_payload(data)
 
-        self.validate_library_telemetry_data(validator=validator, success_by_default=True)
+        self.validate_library_telemetry_data(validator=validator, allow_no_data=True)
 
     @missing_feature(context.library in ("php",), reason="Telemetry is not implemented yet.")
     @missing_feature(context.library < "ruby@1.22.0", reason="Telemetry V2 is not implemented yet")
@@ -800,7 +798,7 @@ class Test_TelemetryV2:
             assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
             assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator)
 
 
 @features.telemetry_api_v2_implemented
