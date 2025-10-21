@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-08 (120 PR merged)
+
+* 2025-08-28 [Using prebuilt wheel for dd-trace-py](https://github.com/DataDog/system-tests/pull/5146) by @nccatoni
+* 2025-08-25 [Do not run any scenario/libraries if only documentation is modified.](https://github.com/DataDog/system-tests/pull/5121) by @nccatoni
+* 2025-08-28 [Add initial support for v1.0 traces endpoint](https://github.com/DataDog/system-tests/pull/5118) by @ajgajg1134
+* 2025-08-07 [Add the dimension of feature owner](https://github.com/DataDog/system-tests/pull/5039) by @cbeauchesne
+* 2025-08-06 [Add force-execute input in official workflow](https://github.com/DataDog/system-tests/pull/5032) by @cbeauchesne
+* 2025-08-20 [[python_lambda] Add scenario for testing the python tracer for AWS Lambda](https://github.com/DataDog/system-tests/pull/4891) by @florentinl
+
+
 ### 2025-07 (112 PR merged)
 
 * 2025-07-29 [[ruby] Remove excessive Rails versions](https://github.com/DataDog/system-tests/pull/4954) by @Strech
