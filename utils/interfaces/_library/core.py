@@ -412,7 +412,6 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         request: HttpResponse | None = None,
         *,
         validator: Callable,
-        success_by_default: bool = False,
         full_trace: bool = False,
     ):
         for _, _, span in self.get_spans(request=request, full_trace=full_trace):
@@ -423,8 +422,30 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
                 raise
 
-        if not success_by_default:
-            raise ValueError("No span validates this test")
+        raise ValueError("No span validates this test")
+
+    def validate_all_spans(
+        self,
+        request: HttpResponse | None = None,
+        *,
+        validator: Callable[[dict], None],
+        full_trace: bool = False,
+        allow_no_data: bool = False,
+    ):
+        """Will call validator() on all data sent on path_filters
+        If ever a validator raise an exception, the validation will fail
+        """
+        data_is_missing = True
+        for _, _, span in self.get_spans(request=request, full_trace=full_trace):
+            data_is_missing = False
+            try:
+                validator(span)
+            except Exception as e:
+                logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
+                raise
+
+        if not allow_no_data and data_is_missing:
+            raise ValueError("No span has been observed")
 
     def add_span_tag_validation(
         self,

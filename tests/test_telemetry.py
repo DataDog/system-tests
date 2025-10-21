@@ -238,9 +238,7 @@ class Test_Telemetry:
                 key = data["request"]["content"]["seq_id"], data["request"]["content"]["runtime_id"]
                 container[key] = data
 
-        self.validate_library_telemetry_data(
-            lambda data: save_data(data, self.library_requests), allow_no_data=False
-        )
+        self.validate_library_telemetry_data(lambda data: save_data(data, self.library_requests), allow_no_data=False)
         self.validate_agent_telemetry_data(
             lambda data: save_data(data, self.agent_requests), flatten_message_batches=True, allow_no_data=False
         )
