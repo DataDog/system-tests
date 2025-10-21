@@ -147,8 +147,12 @@ patterns:
         scenario_groups: end_to_end
     .github/chainguard/*:
         scenario_groups: null
+        libraries: null
     .github/CODEOWNERS:
         scenario_groups: null
+    .github/workflows/changelog.yml:
+        scenario_groups: null
+        libraries: null
     .github/workflows/daily-tag.yml:
         scenario_groups: null
     .github/workflows/debug-harness.yml:
@@ -221,6 +225,9 @@ patterns:
     utils/scripts/compute_libraries_and_scenarios.py:
         scenario_groups: null
         libraries: null
+    utils/scripts/get-change-log.py:
+        scenario_groups: null
+        libraries: null
     utils/scripts/get-nightly-logs.py:
         scenario_groups: null
     utils/scripts/get-workflow-summary.py:
@@ -236,6 +243,9 @@ patterns:
         scenario_groups: null
     utils/scripts/ssi_wizards/*:
         scenario_groups: null
+    utils/scripts/update_change_log.sh:
+        scenario_groups: null
+        libraries: null
     utils/scripts/update_protobuf.sh:
         scenario_groups: null
 
@@ -455,6 +465,10 @@ patterns:
 
     tests/test_the_test/*:
         scenario_groups: null
+        libraries: null
+
+    tests/fuzzer/*:
+        scenario_groups: exotics
         libraries: null
 
 ################################# Default rules ################################

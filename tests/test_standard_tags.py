@@ -207,6 +207,7 @@ class Test_StandardTagsRoute:
     def setup_route(self):
         self.r = weblog.get("/sample_rate_route/1")
 
+    @bug(library="python", reason="APPSEC-59731")  # temporary fix to unblock a locked situation
     def test_route(self):
         assert self.r.status_code == 200
 

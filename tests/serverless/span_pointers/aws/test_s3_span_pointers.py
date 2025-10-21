@@ -20,7 +20,7 @@ def _validate_s3_object_pointer(r, resource):
 
     logger.info(f"bucket: {bucket}, key: {key}, etag: {etag}")
 
-    interfaces.library.validate_spans(
+    interfaces.library.validate_one_span(
         r,
         validator=make_single_span_link_validator(
             resource=resource,

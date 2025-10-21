@@ -6,18 +6,18 @@ import random
 import os
 from pathlib import Path
 import re
-from typing import Any
 from urllib.parse import quote
+from utils._context.containers import WeblogContainer
 from tests.fuzzer.tools import data
 from tests.fuzzer.tools.random_strings import get_random_unicode as gru, get_random_string, string_lists
 
 
-def _get_data_file(name):
+def _get_data_file(name: str):
     dir_path = Path(os.path.realpath(__file__)).parent
     return open(os.path.join(dir_path, "data", name), "rb").read()
 
 
-def _clean_string(item, allowed=None, forbidden=None):
+def _clean_string(item: str, allowed: list[str] | None = None, forbidden: str | None = None) -> str:
     if allowed is not None:
         item = "".join(c for c in item if c in allowed)
 
@@ -46,10 +46,7 @@ def _random_number():
     return random.choice(_integers)
 
 
-def _mutate_string(item, alphabet=None):
-    if not alphabet:
-        alphabet = string_lists.unicode
-
+def _mutate_string(item: str, alphabet: list[str] | str = string_lists.unicode):
     if len(item) == 0:
         return get_random_string(alphabet)
 
@@ -59,7 +56,7 @@ def _mutate_string(item, alphabet=None):
     return item[:start] + random.choice(alphabet) + item[end:]
 
 
-def _mutate_dict(item):
+def _mutate_dict(item: dict):
     if len(item) != 0:
         key = random.choice(tuple(item))
         item[key] = _mutate_item(item[key])
@@ -67,7 +64,7 @@ def _mutate_dict(item):
     return item
 
 
-def _mutate_list(item):
+def _mutate_list(item: list):
     if len(item) != 0:
         i = random.randint(0, len(item) - 1)
         item[i] = _mutate_item(item[i])
@@ -75,7 +72,7 @@ def _mutate_list(item):
     return item
 
 
-def _mutate_item(item):
+def _mutate_item(item: float | str | list | dict | bool):
     if isinstance(item, (int, float)):
         item = _random_number()
 
@@ -98,8 +95,8 @@ def _mutate_item(item):
     return item
 
 
-def _reduce_item(item):
-    if len(item) == 0:
+def _reduce_item(item: list | dict | str | float | bool):
+    if isinstance(item, (str, float, int, bool)) or len(item) == 0:
         pass
 
     elif isinstance(item, list):
@@ -108,29 +105,26 @@ def _reduce_item(item):
     elif isinstance(item, dict):
         _reduce_dict(item)
 
-    elif isinstance(item, (str, float, int, bool)):
-        pass
-
     else:
         raise ValueError(f"Can't enlarge {type(item)}")
 
 
-def _reduce_list(item):
+def _reduce_list(item: list):
     item.pop(random.randint(0, len(item) - 1))
 
 
-def _reduce_dict(item):
+def _reduce_dict(item: dict):
     item.pop(random.choice(tuple(item)))
 
 
-def _enlarge_item(item, key, value):
+def _enlarge_item(item: dict | list, key: str, value: dict | list):
     if isinstance(item, dict):
         _enlarge_dict(item, key, value)
     elif isinstance(item, list):
         _enlarge_list(item, key, value)
 
 
-def _enlarge_dict(item, key, value):
+def _enlarge_dict(item: dict, key: str, value: dict | list):
     if len(item) == 0:
         item[key] = value
     else:
@@ -144,7 +138,7 @@ def _enlarge_dict(item, key, value):
             item[key] = value
 
 
-def _enlarge_list(item, key, value):
+def _enlarge_list(item: list, key: str, value: dict | list):
     if len(item) == 0:
         item.append(value)
     else:
@@ -155,10 +149,10 @@ def _enlarge_list(item, key, value):
         elif isinstance(sub_item, list):
             _enlarge_list(sub_item, key, value)
         else:
-            [].insert(random.randint(0, len(item) - 1), value)
+            item.insert(random.randint(0, len(item) - 1), value)
 
 
-def _get_string_from_list(items, characters, min_length=0):
+def _get_string_from_list(items: list[str] | tuple[str, ...], characters: list[str] | str, min_length: int = 0):
     result = random.choice(items)
     return result if result else get_random_string(characters, min_length=min_length)
 
@@ -245,7 +239,7 @@ class RequestMutator:
         " havij ",
         " jaascois ",
     )
-    header_characters = string_lists.unicode
+    header_characters: list[str] = string_lists.unicode
 
     charsets: tuple[str, ...] = (
         "utf-8",
@@ -325,7 +319,7 @@ class RequestMutator:
     invalid_methods: tuple[str, ...] = ()
     invalid_header_keys: tuple[str, ...] = ()
 
-    def __init__(self, *, no_mutation=False):
+    def __init__(self, *, no_mutation: bool = False):
         self.methods = tuple(method for method in self.methods if method not in self.invalid_methods)
 
         self.invalid_header_keys = tuple(key.lower() for key in self.invalid_header_keys)
@@ -337,7 +331,7 @@ class RequestMutator:
         self.no_mutation = no_mutation
 
     #############################
-    def mutate(self, request, mutations=3) -> None:
+    def mutate(self, request: dict, mutations: int = 3) -> None:
         if self.no_mutation:
             return
 
@@ -366,15 +360,15 @@ class RequestMutator:
             method(request)
 
     ################################
-    def change_method(self, request) -> None:
+    def change_method(self, request: dict) -> None:
         request["method"] = random.choice(self.methods)
 
-    def set_random_path(self, request) -> None:
+    def set_random_path(self, request: dict) -> None:
         path_length = random.randint(0, 32)
         items = (quote(item) for item in random.choices(data.blns, k=path_length))
         request["path"] = ("/" + "/".join(items))[: self.max_path_length]
 
-    def mutate_path(self, request) -> None:
+    def mutate_path(self, request: dict) -> None:
         path = _mutate_string(request["path"], "/azerty?&=")
 
         if not path.startswith("/"):
@@ -382,37 +376,37 @@ class RequestMutator:
 
         request["path"] = path[: self.max_path_length]
 
-    def add_cookie(self, request) -> None:
+    def add_cookie(self, request: dict) -> None:
         cookies = request.get("cookies", {})
 
         key = self.get_cookie_key()
         cookies[key] = self.get_cookie_value()
 
-    def remove_cookie(self, request) -> None:
-        cookies = request.get("cookies", None)
+    def remove_cookie(self, request: dict) -> None:
+        cookies = request.get("cookies")
 
         if not cookies or len(cookies) == 0:
             return
 
         cookies.pop(random.choice(tuple(cookies)))
 
-    def add_header(self, request) -> None:
+    def add_header(self, request: dict) -> None:
         if "headers" not in request:
             request["headers"] = []
 
         key = self.get_header_key()
         request["headers"].append([key, self.get_header_value(key)])
 
-    def remove_header(self, request) -> None:
-        headers = request.get("headers", None)
+    def remove_header(self, request: dict) -> None:
+        headers = request.get("headers")
 
         if not headers or len(headers) == 0:
             return
 
         headers.pop(random.randint(0, len(headers) - 1))
 
-    def mutate_header_value(self, request) -> None:
-        headers = request.get("headers", None)
+    def mutate_header_value(self, request: dict) -> None:
+        headers = request.get("headers")
 
         if not headers or len(headers) == 0:
             return
@@ -420,7 +414,7 @@ class RequestMutator:
         header = random.choice(headers)
         header[1] = self.get_header_value(header[0], header[1])
 
-    def mutate_ip(self, ip) -> str:
+    def mutate_ip(self, ip: str | None) -> str:
         if ip is None:
             ip = random.choice(
                 tuple(f"{i}.0.0.0" for i in range(100))
@@ -445,25 +439,25 @@ class RequestMutator:
 
         return ip
 
-    def set_random_payload(self, request) -> None:
+    def set_random_payload(self, request: dict) -> None:
         request.pop("data", None)
         request.pop("json", None)
 
         payload_type = random.choice(self.payload_types)
         request[payload_type] = self.get_random_payload(payload_type)
 
-    def mutate_payload(self, request) -> None:
+    def mutate_payload(self, request: dict) -> None:
         for payload_type in ("data", "json"):
             if payload_type in request:
                 request[payload_type] = _mutate_item(request[payload_type])
 
-    def reduce_payload(self, request) -> None:
+    def reduce_payload(self, request: dict) -> None:
         if "json" in request:
             _reduce_item(request["json"])
         elif "data" in request:
             _reduce_item(request["data"])
 
-    def enlarge_payload(self, request) -> None:
+    def enlarge_payload(self, request: dict) -> None:
         for payload_type in ("data", "json"):
             if payload_type in request:
                 key = self.get_payload_key()
@@ -486,7 +480,7 @@ class RequestMutator:
 
         return result
 
-    def get_header_value(self, key, previous_value=None) -> str:
+    def get_header_value(self, key: str, previous_value: str | None = None) -> str:
         if previous_value:
             return _mutate_string(previous_value, self.header_characters)
 
@@ -513,7 +507,7 @@ class RequestMutator:
         # https://w3techs.com/technologies/overview/character_encoding
         return random.choice(self.charsets)
 
-    def get_random_payload(self, payload_type) -> str | dict:
+    def get_random_payload(self, payload_type: str) -> str | dict:
         if payload_type == "json":
             count = random.randint(1, 10)
             return {self.get_payload_key(): self.get_payload_value(allow_nested=True) for _ in range(count)}
@@ -531,7 +525,7 @@ class RequestMutator:
     def get_payload_key(self) -> str:
         return random.choice(data.blns)
 
-    def get_payload_value(self, *, allow_nested=False) -> Any:  # noqa: ANN401
+    def get_payload_value(self, *, allow_nested: bool = False) -> dict | list:
         if not allow_nested:
             return random.choice(self.payload_values)
 
@@ -543,7 +537,7 @@ class RequestMutator:
         )
 
     ################################
-    def clean_request(self, request) -> None:
+    def clean_request(self, request: dict) -> None:
         """The purpose if this function is to clean requests from corpus that may cause a HTTP 500 response"""
 
         # request["path"] = request["path"][:self.max_path_length]
@@ -581,7 +575,7 @@ class RequestMutator:
 
 class FlaskRequestMutator(RequestMutator):
     invalid_methods = ("RR RR",)
-    header_characters = _clean_string(RequestMutator.header_characters, forbidden=" ")
+    header_characters = list(_clean_string("".join(RequestMutator.header_characters), forbidden=" "))
 
 
 class SinatraRequestMutator(RequestMutator):
@@ -621,10 +615,12 @@ class SinatraRequestMutator(RequestMutator):
         "REPORT",
     )
     max_path_length = 2048
-    header_characters = _clean_string(
-        string_lists.latin1,
-        forbidden=(
-            " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+    header_characters = list(
+        _clean_string(
+            string_lists.latin1,
+            forbidden=(
+                " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+            ),
         ),
     )
     allowed_json_payload_types = (dict,)
@@ -632,11 +628,13 @@ class SinatraRequestMutator(RequestMutator):
 
 
 class NodeRequestMutator(RequestMutator):
-    header_characters = _clean_string(
-        string_lists.latin1,
-        forbidden=(
-            " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×"
-            'ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\u00a0,\\;/()"<>?!{}=@'
+    header_characters = list(
+        _clean_string(
+            string_lists.latin1,
+            forbidden=(
+                " [] ¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×"
+                'ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ\u00a0,\\;/()"<>?!{}=@'
+            ),
         ),
     )
     allow_empty_header_key = False
@@ -711,11 +709,13 @@ class JavaRequestMutator(RequestMutator):
 
 
 class PhpRequestMutator(RequestMutator):
-    header_characters = _clean_string(
-        string_lists.latin1,
-        forbidden=(
-            " []\u00c3¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ"
-            "×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ<>\\\u00a0;()={?,@"
+    header_characters = list(
+        _clean_string(
+            string_lists.latin1,
+            forbidden=(
+                " []\u00c3¡¢£¤¥¦§¨©ª«¬­®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ"
+                "×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ<>\\\u00a0;()={?,@"
+            ),
         ),
     )
     allow_empty_header_key = False
@@ -741,7 +741,7 @@ class PhpRequestMutator(RequestMutator):
     invalid_header_keys = ("Content-length",)
 
 
-def get_mutator(no_mutation, weblog) -> RequestMutator:
+def get_mutator(*, no_mutation: bool, weblog: WeblogContainer) -> RequestMutator:
     if weblog.weblog_variant == "basic-sinatra":
         return SinatraRequestMutator(no_mutation=no_mutation)
 

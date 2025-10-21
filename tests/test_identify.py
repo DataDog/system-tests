@@ -41,7 +41,7 @@ class Test_Basic:
     @bug(context.library < "nodejs@2.9.0", reason="APMRP-360")
     @bug(context.library <= "ruby@2.3.0", reason="APMRP-360")
     def test_identify_tags(self):
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
@@ -50,7 +50,7 @@ class Test_Basic:
         self.r_with_attack = weblog.get("/identify", headers={"User-Agent": "Arachni/v1"})
 
     def test_identify_tags_with_attack(self):
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r_with_attack, validator=validate_identify_tags(["id", "name", "email", "session_id", "role", "scope"])
         )
 
@@ -68,7 +68,7 @@ class Test_Propagate_Legacy:
     @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -78,7 +78,7 @@ class Test_Propagate_Legacy:
     def test_identify_tags_incoming(self):
         """With W3C : this test expect to fail with DD_TRACE_PROPAGATION_STYLE_INJECT=W3C"""
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_span(self.r_incoming, validator=validate_identify_tags(tag_table))
 
 
 @rfc("https://docs.google.com/document/d/1T3qAE5nol18psOaHESQ3r-WRiZWss9nyGmroShug8ao/edit#heading=h.3wmduzc8mwe1")
@@ -94,7 +94,7 @@ class Test_Propagate:
     @missing_feature(library="java", reason="only supports incoming tags for now")
     def test_identify_tags_outgoing(self):
         tag_table = {"usr.id": "usr.id", "_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_outgoing, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_span(self.r_outgoing, validator=validate_identify_tags(tag_table))
 
     def setup_identify_tags_incoming(self):
         # Send a request to a generic endpoint, since any endpoint should propagate
@@ -110,5 +110,5 @@ class Test_Propagate:
             return True
 
         tag_table = {"_dd.p.usr.id": "dXNyLmlk"}
-        interfaces.library.validate_spans(self.r_incoming, validator=validate_identify_tags(tag_table))
-        interfaces.library.validate_spans(self.r_incoming, validator=usr_id_not_present)
+        interfaces.library.validate_one_span(self.r_incoming, validator=validate_identify_tags(tag_table))
+        interfaces.library.validate_one_span(self.r_incoming, validator=usr_id_not_present)
