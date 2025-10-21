@@ -124,7 +124,7 @@ class Test_Monitoring:
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
         interfaces.library.assert_waf_attack(self.r_once)
-        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)
+        interfaces.library.validate_one_span(validator=validate_rules_monitoring_span_tags)
 
     def setup_waf_monitoring_once_rfc1025(self):
         self.r_once = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -155,7 +155,7 @@ class Test_Monitoring:
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
         interfaces.library.assert_waf_attack(self.r_once)
-        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)
+        interfaces.library.validate_one_span(validator=validate_rules_monitoring_span_tags)
 
     def setup_waf_monitoring_optional(self):
         self.r_optional = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1"})
@@ -255,4 +255,4 @@ class Test_Monitoring:
         # order to be able to run this test alone. But the validation function
         # is not associated with the attack request.
         interfaces.library.assert_waf_attack(self.r_errors)
-        interfaces.library.validate_spans(validator=validate_rules_monitoring_span_tags)
+        interfaces.library.validate_one_span(validator=validate_rules_monitoring_span_tags)

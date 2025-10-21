@@ -407,16 +407,25 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(f"No trace has been reported for {request.get_rid()}")
 
-    def validate_spans(
+    def validate_one_span(
         self,
         request: HttpResponse | None = None,
         *,
-        validator: Callable,
+        validator: Callable[[dict], bool],
         full_trace: bool = False,
     ):
+        """Will call validator() on all spans (eventually filtered on span trigerred by request).
+
+        validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
+
+        If no payload satisfies validator(), then validate_one will fail
+        """
         for _, _, span in self.get_spans(request=request, full_trace=full_trace):
             try:
-                if validator(span):
+                if validator(span) is True:
                     return
             except Exception as e:
                 logger.error(f"This span is failing validation ({e}): {json.dumps(span, indent=2)}")
@@ -432,7 +441,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         full_trace: bool = False,
         allow_no_data: bool = False,
     ):
-        """Will call validator() on all data sent on path_filters
+        """Will call validator() on all spans (eventually filtered on span trigerred by request)
         If ever a validator raise an exception, the validation will fail
         """
         data_is_missing = True

@@ -20,7 +20,7 @@ class Test_UserBlocking_FullDenylist(BaseFullDenyListTest):
             return True
 
         assert self.r_nonblock.status_code == 200
-        interfaces.library.validate_spans(self.r_nonblock, validator=validate_nonblock_user)
+        interfaces.library.validate_one_span(self.r_nonblock, validator=validate_nonblock_user)
         interfaces.library.assert_no_appsec_event(self.r_nonblock)
 
     def setup_blocking_test(self):

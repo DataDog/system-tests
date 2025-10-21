@@ -566,7 +566,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -590,7 +590,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -1096,7 +1096,7 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1117,7 +1117,7 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 def assert_priority(span, trace):
@@ -1549,7 +1549,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
@@ -1570,7 +1570,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")

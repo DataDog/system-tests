@@ -55,7 +55,7 @@ class Test_RetainTraces:
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_appsec_event_span_tags)
+        interfaces.library.validate_one_span(self.r, validator=validate_appsec_event_span_tags)
 
 
 @features.envoy_external_processing
@@ -330,7 +330,7 @@ class Test_CollectRespondHeaders:
                 assert_header_in_span_meta(span, f"http.response.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_response_headers)
+        interfaces.library.validate_one_span(self.r, validator=validate_response_headers)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")
@@ -414,4 +414,4 @@ class Test_ExternalWafRequestsIdentification:
                 assert_header_in_span_meta(span, f"http.request.headers.{header}")
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_request_headers)
+        interfaces.library.validate_one_span(self.r, validator=validate_request_headers)

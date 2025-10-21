@@ -177,7 +177,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     @bug(library="ruby", reason="APMAPI-922")
@@ -200,7 +200,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
@@ -219,7 +219,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
@@ -254,7 +254,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @bug(library="php", reason="APMAPI-923")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
@@ -340,7 +340,7 @@ class Test_MetaDatadogTags:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
 
 @features.envoy_external_processing
