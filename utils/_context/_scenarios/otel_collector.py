@@ -41,8 +41,9 @@ class OtelCollectorScenario(DockerScenario):
                 }
             )
 
+        self.collector_config_file = "./utils/build/docker/otelcol-config-with-postgres.yaml"
         self.collector_container = OpenTelemetryCollectorContainer(
-            config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
+            config_file=self.collector_config_file,
             environment=collector_env,
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
@@ -63,20 +64,22 @@ class OtelCollectorScenario(DockerScenario):
             "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
         )
 
-    def customize_feature_parity_dashboard(self, result: dict) -> None:        
+    def customize_feature_parity_dashboard(self, result: dict) -> None:
         result["configuration"]["collector_version"] = str(self.library.version)
 
-        if hasattr(self.collector_container, 'image') and self.collector_container.image:
+        if hasattr(self.collector_container, "image") and self.collector_container.image:
             result["configuration"]["collector_image"] = self.collector_container.image.name
 
             # Extract image commit/revision if available from labels
             if self.collector_container.image.labels:
                 image_labels = self.collector_container.image.labels
                 if "org.opencontainers.image.revision" in image_labels:
-                    result["configuration"]["collector_image_commit"] = image_labels["org.opencontainers.image.revision"]
+                    result["configuration"]["collector_image_commit"] = image_labels[
+                        "org.opencontainers.image.revision"
+                    ]
 
         # Parse OTel collector configuration file
-        config_file_path = Path(self.collector_container._otel_config_host_path)
+        config_file_path = Path(self.collector_config_file)
         result["configuration"]["config_file"] = config_file_path.name
 
         try:
@@ -100,26 +103,21 @@ class OtelCollectorScenario(DockerScenario):
                         "metrics": dd_exporter_config.get("metrics", {}),
                     }
 
-
             if "service" in otel_config and "pipelines" in otel_config["service"]:
                 result["configuration"]["pipelines"] = list(otel_config["service"]["pipelines"].keys())
 
         except Exception as e:
             logger.warning(f"Failed to parse OTel collector config: {e}")
 
-
         # Add PostgreSQL database version dynamically from container
-        if hasattr(self, 'postgres_container') and self.postgres_container:
+        if hasattr(self, "postgres_container") and self.postgres_container:
             postgres_version = "unknown"
-            if hasattr(self.postgres_container, 'image') and self.postgres_container.image:
+            if hasattr(self.postgres_container, "image") and self.postgres_container.image:
                 # Extract version from image name
                 image_name = self.postgres_container.image.name
-                postgres_version = image_name.split(':')[-1].split('-')[0] if ':' in image_name else "alpine"
+                postgres_version = image_name.split(":")[-1].split("-")[0] if ":" in image_name else "alpine"
 
-            result["testedDependencies"].append({
-                "name": "postgresql",
-                "version": postgres_version
-            })
+            result["testedDependencies"].append({"name": "postgresql", "version": postgres_version})
 
     def _start_interfaces_watchdog(self):
         super().start_interfaces_watchdog([interfaces.otel_collector])
