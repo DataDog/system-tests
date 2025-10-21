@@ -26,21 +26,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        shell: bash
-        run: |
-          python -m venv venv --copies
-          source venv/bin/activate
-          python -m pip install --upgrade pip requests
-          python --version
-          pip freeze
+      - name: Install runner
+        uses: ./.github/actions/install_runner
 
       - name: Run script
-        shell: bash
         run: |
           chmod +x utils/scripts/update_change_log.sh
           source venv/bin/activate
@@ -64,26 +53,15 @@ jobs:
           BRANCH_NAME="auto-changelog-update"
           echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
 
-          # Check if branch already exists - skip if it does
-          if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-            echo "Branch $BRANCH_NAME already exists, skipping"
-            echo "branch_exists=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "branch_exists=false" >> "$GITHUB_OUTPUT"
-
       - name: Create branch
-        if: steps.vars.outputs.branch_exists == 'false'
         run: |
           echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
-          git checkout -b ${{ steps.vars.outputs.branch_name }}
+          git checkout -B ${{ steps.vars.outputs.branch_name }}
 
           echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
-          git push -u origin ${{ steps.vars.outputs.branch_name }}
+          git push --force-with-lease -u origin ${{ steps.vars.outputs.branch_name }}
 
       - name: Create commit
-        if: steps.vars.outputs.branch_exists == 'false'
         run: |
           echo "Committing..."
           git commit -m "Update changelog" --no-verify
@@ -95,7 +73,6 @@ jobs:
           policy: self.changelog
 
       - name: Push signed commits
-        if: steps.vars.outputs.branch_exists == 'false'
         uses: Asana/push-signed-commits@d615ca88d8e1a946734c24970d1e7a6c56f34897
         with:
           github-token: ${{ steps.octo-sts.outputs.token }}
@@ -105,8 +82,6 @@ jobs:
           remote_branch_name: ${{ steps.vars.outputs.branch_name }}
 
       - name: Create Pull Request
-        if: steps.vars.outputs.branch_exists == 'false'
-        shell: bash
         run: |
           BRANCH_NAME="${{ steps.vars.outputs.branch_name }}"
 
