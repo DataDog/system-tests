@@ -140,9 +140,19 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(
-        self, validator: Callable, path_filters: Iterable[str] | str | None = None, *, success_by_default: bool = False
-    ):
+    def validate_one(
+        self,
+        validator: Callable[[dict], bool],
+        path_filters: Iterable[str] | str | None = None,
+    ) -> None:
+        """Will call validator() on all data sent on path_filters. validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
+
+        If no payload satisfies validator(), then validate_one will fail
+        """
+
         for data in self.get_data(path_filters=path_filters):
             try:
                 if validator(data) is True:
@@ -158,8 +168,38 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
+        raise ValueError(f"No data has been observed on {path_filters}")
+
+    def validate_all(
+        self,
+        validator: Callable[[dict], None],
+        path_filters: Iterable[str] | str | None = None,
+        *,
+        allow_no_data: bool = False,
+    ) -> None:
+        """Will call validator() on all data sent on path_filters
+        If ever a validator raise an exception, the validation will fail
+        """
+
+        data_is_missing = True
+
+        for data in self.get_data(path_filters=path_filters):
+            data_is_missing = False
+            try:
+                validator(data)
+            except Exception as e:
+                logger.error(f"{data['log_filename']} did not validate this test")
+
+                if isinstance(e, ValidationError):
+                    if isinstance(e.extra_info, (dict, list)):
+                        logger.info(json.dumps(e.extra_info, indent=2))
+                    elif isinstance(e.extra_info, (str, int, float)):
+                        logger.info(e.extra_info)
+
+                raise
+
+        if not allow_no_data and data_is_missing:
+            raise ValueError(f"No data has been observed on {path_filters}")
 
     def wait_for(self, wait_for_function: Callable, timeout: int):
         if self.replay:

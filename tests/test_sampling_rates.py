@@ -214,7 +214,7 @@ class Test_SamplingDecisionAdded:
                     f"Message: {data['log_filename']}: sampling priority should be set on span {span['span_id']}",
                 )
 
-        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         if len(spans) != len(traces):
             raise ValueError(f"Didn't see all requests, expecting {len(traces)}, saw {len(spans)}")
@@ -263,7 +263,7 @@ class Test_SamplingDeterminism:
                     sampling_priority is not None
                 ), f"Message: {data['log_filename']}: sampling priority should be set"
 
-        interfaces.library.validate(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], success_by_default=True)
+        interfaces.library.validate_all(validator, path_filters=["/v0.4/traces", "/v0.5/traces"], allow_no_data=True)
 
         for trace_id, decisions in sampling_decisions_per_trace_id.items():
             if len(decisions) < 2:
