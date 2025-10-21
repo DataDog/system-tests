@@ -862,7 +862,13 @@ class APMLibrary:
         self._client.otel_create_counter(meter_name, name, unit, description)
 
     def otel_counter_add(
-        self, meter_name: str, name: str, unit: str, description: str, value: float, attributes: dict | None = None
+        self,
+        meter_name: str,
+        name: str,
+        unit: str,
+        description: str,
+        value: float,
+        attributes: dict | None = None,
     ) -> None:
         self._client.otel_counter_add(meter_name, name, unit, description, value, attributes)
 
