@@ -243,7 +243,7 @@ class PerformanceMetric(Metric):
         self.global_count = 0
         self.global_data = [0 for _ in range(10000)]
 
-    def _format(self, values: list):
+    def _format(self, values: list[str]):
         return " ".join([f"{v: <4}" for v in values])
 
     def update(self, value: float) -> None:  # type: ignore[override]
@@ -284,7 +284,7 @@ class PerformanceMetric(Metric):
 
     @property
     def pretty(self) -> str:
-        return self._format([self.value])
+        return self._format(self.value)
 
     @property
     def raw(self) -> list:
@@ -357,7 +357,7 @@ class Report:
     def value(self, key: str, value: str | float) -> None:
         self.logger.info(f"V {key}: {value}")
 
-    def pulse(self, metrics_getter: Callable, *, force: bool = False) -> None:
+    def pulse(self, metrics_getter: Callable[[], list], *, force: bool = False) -> None:
         if self._is_report_time() or force:
             metrics = metrics_getter()
 
