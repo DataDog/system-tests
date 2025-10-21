@@ -375,16 +375,13 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             request,
             validator=validator.validate,
             legacy_validator=validator.validate_legacy,
-            success_by_default=False,
             full_trace=full_trace,
         )
 
     def add_appsec_reported_header(self, request: HttpResponse, header_name: str):
         validator = _ReportedHeader(header_name)
 
-        self.validate_appsec(
-            request, validator=validator.validate, legacy_validator=validator.validate_legacy, success_by_default=False
-        )
+        self.validate_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
 
     def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
         self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
@@ -569,4 +566,4 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             return True
 
-        self.validate_appsec(request, validator, success_by_default=False)
+        self.validate_appsec(request, validator)
