@@ -1303,7 +1303,9 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
+    Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0

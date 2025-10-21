@@ -1,0 +1,19 @@
+weblog:
+    name: test-app-nodejs-container-25
+    runtime_version: 25
+    install: 
+      - os_type: linux
+        copy_files:
+          - name: copy-container-run-script
+            local_path: utils/build/virtual_machine/weblogs/common/create_and_run_app_container.sh
+
+          - name: copy-docker-compose-file
+            local_path: utils/build/virtual_machine/weblogs/common/docker-compose.yml
+
+          - name: copy-nodejs-app
+            local_path: lib-injection/build/docker/nodejs/sample-app
+
+          - name: copy-nodejs-app-dockerfile
+            local_path: utils/build/virtual_machine/weblogs/nodejs/test-app-nodejs-container-25/Dockerfile.template
+
+        remote-command: sh create_and_run_app_container.sh
