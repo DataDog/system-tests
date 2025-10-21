@@ -3,7 +3,7 @@
 # Copyright 2021 Datadog, Inc.
 
 import base64
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Generator
 import copy
 import json
 import threading
@@ -49,7 +49,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.wait_for(wait_function, timeout)
 
     ############################################################
-    def get_traces(self, request: HttpResponse | GrpcResponse | None = None):
+    def get_traces(
+        self, request: HttpResponse | GrpcResponse | None = None
+    ) -> Generator[tuple[dict, list[dict]], None, None]:
         rid: str | None = None
 
         if request:
@@ -385,13 +387,25 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_all_traces(self, validator: Callable[[dict], None], *, allow_no_trace: bool = False):
         self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v0\.[1-9]+/traces")
 
-    def validate_traces(self, request: HttpResponse, validator: Callable, *, success_by_default: bool = False):
-        for _, trace in self.get_traces(request=request):
-            if validator(trace):
-                return
+    def validate_one_trace(self, request: HttpResponse, validator: Callable[[list[dict]], bool]):
+        """Will call validator() on all traces trigerred by request. validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
 
-        if not success_by_default:
-            raise ValueError("No span validates this test")
+        If no payload satisfies validator(), then validate_one will fail
+        """
+
+        for data, trace in self.get_traces(request=request):
+            try:
+                if validator(trace) is True:
+                    return
+            except Exception:
+                logger.error(f"{data['log_filename']} did not validate this test")
+
+                raise
+
+        raise ValueError(f"No trace has been reported for {request.get_rid()}")
 
     def validate_spans(
         self,

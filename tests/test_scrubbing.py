@@ -90,10 +90,10 @@ class Test_UrlField:
                     logger.info(f"span found: {span}")
                     return "agent:8127" in span["meta"]["http.url"]
 
-            return None
+            return False
 
         # check that the distant call is reported
-        interfaces.library.validate_traces(self.r, validate_report)
+        interfaces.library.validate_one_trace(self.r, validate_report)
 
         # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
