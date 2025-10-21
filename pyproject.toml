@@ -178,9 +178,6 @@ ignore = [
 "tests/{parametric,apm_tracing_e2e,appsec,debugger,serverless,remote_config,k8,integrations}*/test_*.py" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
-"tests/{test_te,test_b,test_c,test_d,test_g,test_i,test_l,test_n,test_p,test_s}*.py" = [
-    "ANN001",    # missing-type-function-argument: TODO
-]
 "tests/*" = [
     "E501",      # line-too-long: TODO
     "TRY002",    # raise-vanilla-class: TODO
