@@ -28,7 +28,7 @@ class Test_Json_Report:
         with open("logs_mock_the_test/tests.log", encoding="utf-8") as f:
             cls.logs = [line.split(" ", 1)[1] for line in f]
 
-    def get_test_fp(self, nodeid):
+    def get_test_fp(self, nodeid: str):
         for test in self.report["tests"]:
             if test["path"] == f"tests/test_the_test/test_json_report.py::{nodeid}":
                 return test

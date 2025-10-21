@@ -1,6 +1,8 @@
 from enum import StrEnum
 import pytest
 
+NOT_REPORTED_ID = -1
+
 
 class _Owner(StrEnum):
     # the value of each member must be a valid github team
@@ -42,7 +44,7 @@ class _Features:
     @staticmethod
     def not_reported(test_object):
         """Use this fake feature to not report a test to feature parity dashboard"""
-        return _mark_test_object(test_object, feature_id=-1, owner=_Owner.rp)
+        return _mark_test_object(test_object, feature_id=NOT_REPORTED_ID, owner=_Owner.rp)
 
     @staticmethod
     def trace_global_tags(test_object):
@@ -1920,6 +1922,16 @@ class _Features:
         return _mark_test_object(test_object, feature_id=306, owner=_Owner.auto_instrumentation)
 
     @staticmethod
+    def origin_detection(test_object):
+        """Origin Detection is a feature that allows the Agent to correctly detect and tag incoming custom
+        metrics or traces with their Origin (AKA container tags).
+
+        https://feature-parity.us1.prod.dog/#/?feature=362
+
+        """
+        return _mark_test_object(test_object, feature_id=362, owner=_Owner.language_platform)
+
+    @staticmethod
     def container_auto_installation_script_profiling(test_object):
         """Profiling works when enabled through the agent installer script in Container environments
 
@@ -2167,7 +2179,11 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=350
         """
-        return _mark_test_object(test_object, feature_id=350, owner=_Owner.asm)
+        from utils import context
+
+        return _mark_test_object(
+            test_object, feature_id=350 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
+        )
 
     @staticmethod
     def context_propagation_extract_behavior(test_object):
@@ -2519,7 +2535,11 @@ class _Features:
 
         https://feature-parity.us1.prod.dog/#/?feature=489
         """
-        return _mark_test_object(test_object, feature_id=489, owner=_Owner.asm)
+        from utils import context
+
+        return _mark_test_object(
+            test_object, feature_id=489 if context.library == "golang" else NOT_REPORTED_ID, owner=_Owner.asm
+        )
 
     @staticmethod
     def efficient_trace_payload(test_object):

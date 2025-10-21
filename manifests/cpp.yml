@@ -13,12 +13,13 @@ tests/:
     test_config_consistency.py:
       Test_Config_Dogstatsd: missing_feature
       Test_Config_RateLimit: ">1.0.0"
-      Test_Config_Tags: missing_feature
+      Test_Config_Tags: '>=2.0.0'  # auto activation: might not be the earliest working version
       Test_Config_TraceAgentURL: ">1.0.0"
       Test_Config_TraceEnabled: ">1.0.0"
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: ">1.0.0"
       Test_Stable_Config_Default: missing_feature
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py: missing_feature
     test_dynamic_configuration.py:
       TestDynamicConfigV1_EmptyServiceTargets: ">1.0.0"
@@ -50,9 +51,9 @@ tests/:
       Test_Parametric_DDSpan_Set_Error: bug (APMAPI-778)  # The expected error status is not set
       Test_Parametric_DDSpan_Set_Metric: missing_feature (Tracer does not provide a public method for directly setting a span metric)
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not implemented)
-      Test_Parametric_DDSpan_Start: bug (APMAPI-778)  # Cpp parametric app does not support creating a child span from a finished span
+      Test_Parametric_DDSpan_Start: '>=2.0.0'  # auto activation: might not be the earliest working version
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
-      Test_Parametric_DDTrace_Config: incomplete_test_app (config endpoint is not implemented)
+      Test_Parametric_DDTrace_Config: '>=2.0.0'  # auto activation: might not be the earliest working version
       Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not implemented)
       Test_Parametric_DDTrace_Extract_Headers: ">1.0.0"

@@ -2,7 +2,6 @@ import os
 
 if os.environ.get("UWSGI_ENABLED", "false") == "false":
     # Patch with gevent but not for uwsgi-poc
-    import ddtrace.auto  # noqa: E402
     import gevent  # noqa: E402
     from gevent import monkey  # noqa: E402
 
@@ -1731,10 +1730,9 @@ def create_extra_service():
 @app.route("/requestdownstream/", methods=["GET", "POST", "OPTIONS"])
 def request_downstream():
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 
@@ -1752,10 +1750,9 @@ def return_headers(*args, **kwargs):
 def vulnerable_request_downstream():
     weak_hash()
     # Propagate the received headers to the downstream service
-    http_poolmanager = urllib3.PoolManager(num_pools=1)
+    http_poolmanager = urllib3.PoolManager()
     # Sending a GET request and getting back response as HTTPResponse object.
     response = http_poolmanager.request("GET", "http://localhost:7777/returnheaders")
-    http_poolmanager.clear()
     return Response(response.data)
 
 

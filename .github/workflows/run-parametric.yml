@@ -110,15 +110,34 @@ jobs:
         with:
           name: ${{ inputs.binaries_artifact }}
           path: binaries/
+      - name: Export github token to a file
+        run: echo "${{ secrets.GITHUB_TOKEN }}" > "$RUNNER_TEMP/github_token.txt"
       - name: Run PARAMETRIC scenario
         run: |
-          ./run.sh PARAMETRIC -L ${{ inputs.library }} --splits=${{ inputs.job_count }} --group=${{ matrix.job_instance }} \
+          ./run.sh PARAMETRIC\
+            -L ${{ inputs.library }}\
+            --splits=${{ inputs.job_count }}\
+            --group=${{ matrix.job_instance }} \
+            --github-token-file="$RUNNER_TEMP/github_token.txt"
             ${{inputs.force_execute_tests != '' && format('-F {0}', join(fromJSON(inputs.force_execute_tests), ' -F ')) || ''}}
+      - name: Remove secrets
+        if: always()
+        run: |
+          TOKEN_FILE="$RUNNER_TEMP/github_token.txt"
+          if [ -f "$TOKEN_FILE" ]; then
+            echo "Removing token file at $TOKEN_FILE"
+            rm -f "$TOKEN_FILE"
+          else
+            echo "Token file not found — nothing to clean up"
+          fi
       - name: Compress logs
         id: compress_logs
         if: always()
         run: |
           if compgen -G "logs*/" > /dev/null; then
+            # the script that pushes logs to FPD does not handles folder name collisions.
+            # waiting for a proper fix, we add the job instance in the folder name
+            mv logs_parametric logs_parametric_${{ matrix.job_instance }}
             tar -czvf artifact.tar.gz logs*/
           else
             echo "No logs*/ found; skipping tar."
