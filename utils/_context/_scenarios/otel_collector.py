@@ -30,6 +30,18 @@ class OtelCollectorScenario(DockerScenario):
             "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
         }
 
+        postgres_image = self.postgres_container.image.name
+        image_parts = postgres_image.split(":")
+        docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
+        docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
+
+        collector_env.update(
+            {
+                "DOCKER_IMAGE_NAME": docker_image_name,
+                "DOCKER_IMAGE_TAG": docker_image_tag,
+            }
+        )
+
         if use_proxy:
             collector_env.update(
                 {

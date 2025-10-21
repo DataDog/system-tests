@@ -50,6 +50,15 @@ processors:
         value: "otel-postgres-metrics"
         action: upsert
 
+  attributes/add_docker_image:
+    actions:
+      - key: docker.image
+        value: ${DOCKER_IMAGE_NAME}
+        action: upsert
+      - key: docker.tag
+        value: ${DOCKER_IMAGE_TAG}
+        action: upsert
+
 extensions:
   health_check:
     endpoint: "0.0.0.0:13133"
@@ -69,7 +78,7 @@ service:
 
     metrics/postgresql:
       receivers: [postgresql]
-      processors: [attributes/add_rid, batch]
+      processors: [attributes/add_rid, attributes/add_docker_image, batch]
       exporters: [datadog, debug, file/metrics]
 
     logs:
