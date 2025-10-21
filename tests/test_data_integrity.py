@@ -53,7 +53,7 @@ class Test_TraceHeaders:
             if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
                 raise ValueError("Tracer sent a dignostic request with traces in it")
 
-        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
 
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
@@ -69,7 +69,7 @@ class Test_TraceHeaders:
                     if trace_count != len(data["request"]["content"]):
                         raise ValueError("x-datadog-trace-count request header didn't match the number of traces")
 
-        interfaces.library.add_traces_validation(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator=validator, allow_no_trace=True)
 
     def setup_trace_header_container_tags(self):
         self.r = weblog.get("/read_file", params={"file": "/proc/self/cgroup"})
@@ -126,7 +126,7 @@ class Test_TraceHeaders:
                         f"in request {data['log_filename']}"
                     )
 
-        interfaces.library.add_traces_validation(validator, success_by_default=True)
+        interfaces.library.validate_all_traces(validator, allow_no_trace=True)
 
 
 @features.trace_data_integrity

@@ -302,7 +302,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         check_condition: Callable | None = None,
     ):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self._validate(validator, path_filters=path_filter, success_by_default=True)
+        self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
     def assert_receive_request_root_trace(self):  # TODO : move this in test class
         """Asserts that a trace for a request has been sent to the agent"""
@@ -383,8 +383,8 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         self.validate_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
 
-    def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
-        self._validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
+    def validate_all_traces(self, validator: Callable[[dict], None], *, allow_no_trace: bool = False):
+        self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v0\.[1-9]+/traces")
 
     def validate_traces(self, request: HttpResponse, validator: Callable, *, success_by_default: bool = False):
         for _, trace in self.get_traces(request=request):
