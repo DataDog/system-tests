@@ -145,8 +145,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         validator: Callable[[dict], bool],
         path_filters: Iterable[str] | str | None = None,
         *,
-        allow_no_data: bool = False,
-        success_by_default: bool = False,
+        allow_no_data: bool = False
     ) -> None:
         """Will call validator() on all data sent on path_filters. validator() returns a boolean :
         * True : the payload satisfies the condition, validate_one returns in success
@@ -176,9 +175,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
-
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
 
     def validate_all(
         self,
