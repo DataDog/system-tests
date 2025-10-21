@@ -11,6 +11,7 @@ import (
 
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
 	"go.opentelemetry.io/otel"
+	"systemtests.weblog/_shared/common"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	otel_trace "go.opentelemetry.io/otel/trace"
@@ -64,6 +65,9 @@ func main() {
 	http.HandleFunc("/trace/span/inject_headers", s.injectHeadersHandler)
 	http.HandleFunc("/trace/span/extract_headers", s.extractHeadersHandler)
 	http.HandleFunc("/trace/span/error", s.spanSetErrorHandler)
+	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
+	http.HandleFunc("/ffe/start", func(http.ResponseWriter, *http.Request) {})
+	http.HandleFunc("/ffe/evaluate", common.FFeEval)
 	http.HandleFunc("/trace/config", s.getTraceConfigHandler)
 
 	// otel-api endpoints:

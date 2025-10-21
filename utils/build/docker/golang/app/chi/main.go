@@ -374,6 +374,7 @@ func main() {
 
 	mux.HandleFunc("/requestdownstream", common.Requestdownstream)
 	mux.HandleFunc("/returnheaders", common.Returnheaders)
+	mux.HandleFunc("/ffe", common.FFeEval)
 
 	mux.HandleFunc("/inferred-proxy/span-creation", func(w http.ResponseWriter, r *http.Request) {
 		statusCodeStr := r.URL.Query().Get("status_code")
