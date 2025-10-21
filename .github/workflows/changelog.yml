@@ -3,14 +3,7 @@ name: Update changelog
 on:
   workflow_dispatch: {}
   schedule:
-    - cron:  '00 03 * * 1-5'
-  pull_request:
-    branches:
-    - '**'
-    types:
-    - opened
-    - synchronize
-    - reopened
+    - cron: '00 03 2 * *'
 
 jobs:
   changelog:
