@@ -11,7 +11,7 @@ import threading
 from utils.tools import get_rid_from_span
 from utils._logger import logger
 from utils.interfaces._core import ProxyBasedInterfaceValidator
-from utils.interfaces._misc_validators import HeadersPresenceValidator, HeadersMatchValidator
+from utils.interfaces._misc_validators import HeadersPresenceValidator
 from utils._weblog import HttpResponse
 
 
@@ -93,35 +93,9 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
         response_headers: Iterable[str] = (),
         check_condition: Callable | None = None,
     ):
+        """Assert that a header is present on all requests"""
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self._validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def assert_headers_match(
-        self,
-        path_filter: list[str] | str | None,
-        request_headers: dict | None = None,
-        response_headers: dict | None = None,
-        check_condition: Callable | None = None,
-    ):
-        validator = HeadersMatchValidator(request_headers, response_headers, check_condition)
-        self._validate(validator, path_filters=path_filter, success_by_default=True)
-
-    def validate_telemetry(self, validator: Callable, *, success_by_default: bool = False):
-        def validator_skip_onboarding_event(data: dict):
-            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
-                return None
-            return validator(data)
-
-        self._validate(
-            validator=validator_skip_onboarding_event,
-            success_by_default=success_by_default,
-            path_filters="/api/v2/apmtelemetry",
-        )
-
-    def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
-        self._validate(
-            validator=validator, success_by_default=success_by_default, path_filters=r"/api/v0\.[1-9]+/traces"
-        )
+        self.validate_all(validator, path_filters=path_filter, allow_no_data=True)
 
     def get_spans(self, request: HttpResponse | None = None):
         """Attempts to fetch the spans the agent will submit to the backend.
