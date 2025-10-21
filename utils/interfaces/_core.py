@@ -199,11 +199,11 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
                 raise
 
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
-
         if not allow_no_data and data_is_missing:
             raise ValueError(f"No data has been observed on {path_filters}")
+
+        if not success_by_default:
+            raise ValueError("Test has not been validated by any data")
 
     def validate_all(
         self,

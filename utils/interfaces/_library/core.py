@@ -448,8 +448,21 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
 
-    def validate_remote_configuration(self, validator: Callable, *, success_by_default: bool = False):
-        self._validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+    def validate_one_remote_configuration(self, validator: Callable[[dict], bool]):
+        """Will call validator() on all data sent on renote config. validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
+
+        If no payload satisfies validator(), then validate_one will fail
+        """
+        self.validate_one(validator, path_filters=r"/v\d+.\d+/config")
+
+    def validate_all_remote_configuration(self, validator: Callable[[dict], None], *, allow_no_data: bool = False):
+        """Will call validator() on all data sent on remote config
+        If ever a validator raise an exception, the validation will fail
+        """
+        self.validate_all(validator, allow_no_data=allow_no_data, path_filters=r"/v\d+.\d+/config")
 
     def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
         """Check that all config_id/product have the expected apply_state returned by the library
