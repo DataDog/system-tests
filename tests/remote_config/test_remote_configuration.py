@@ -37,7 +37,7 @@ class Test_NoError:
                 if error is not None:
                     raise Exception(f"Error in remote config application: {error}")
 
-        interfaces.library.validate_remote_configuration(no_error, success_by_default=True)
+        interfaces.library.validate_all_remote_configuration(no_error, allow_no_data=True)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -65,7 +65,7 @@ class RemoteConfigurationFieldsBasicTests:
                 client["id"] != client_tracer["runtime_id"]
             ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
 
-        interfaces.library.validate_remote_configuration(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_remote_configuration(validator=validator, allow_no_data=True)
 
 
 def dict_is_included(sub_dict: dict, main_dict: dict):
@@ -206,7 +206,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -231,7 +231,7 @@ class Test_RemoteConfigurationUpdateSequenceFeatures(RemoteConfigurationFieldsBa
 
             return False
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @scenarios.remote_config_mocked_backend_asm_features
@@ -308,7 +308,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -325,7 +325,7 @@ class Test_RemoteConfigurationUpdateSequenceLiveDebugging(RemoteConfigurationFie
 
             return False
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -358,7 +358,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data):
+        def validate(data) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -374,7 +374,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDD(RemoteConfigurationFieldsBasic
 
             return False
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -405,7 +405,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
         self.assert_client_fields()
 
-        def validate(data):
+        def validate(data) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -421,7 +421,7 @@ class Test_RemoteConfigurationUpdateSequenceFeaturesNoCache(RemoteConfigurationF
 
             return False
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -450,7 +450,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
         with open("tests/remote_config/rc_expected_requests_asm_dd.json", encoding="utf-8") as f:
             asm_dd_expected_requests = json.load(f)
 
-        def validate(data):
+        def validate(data) -> bool:
             """Helper to validate config request content"""
 
             if not self.response_has_been_overwritten(data):
@@ -466,7 +466,7 @@ class Test_RemoteConfigurationUpdateSequenceASMDDNoCache(RemoteConfigurationFiel
 
             return False
 
-        interfaces.library.validate_remote_configuration(validator=validate)
+        interfaces.library.validate_one_remote_configuration(validator=validate)
 
 
 # XXX: This test can run in any scenario with rc_api_enabled=True. Default will not work, as /v0.7/config is not reported by the agent,

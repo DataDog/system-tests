@@ -94,7 +94,7 @@ class Test_Blocking:
 
             return True
 
-        interfaces.library.validate_spans(self.r_abt, validator=validate_appsec_blocked)
+        interfaces.library.validate_one_span(self.r_abt, validator=validate_appsec_blocked)
 
     def setup_accept_all(self):
         self.r_aa = weblog.get("/waf/", headers={"User-Agent": "Arachni/v1", "Accept": "*/*"})

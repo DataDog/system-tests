@@ -177,7 +177,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     @bug(library="ruby", reason="APMAPI-922")
@@ -200,7 +200,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_status_code(self):
@@ -219,7 +219,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @missing_feature(library="cpp_httpd", reason="For some reason, span type is server i/o web")
     def test_meta_http_method(self):
@@ -254,7 +254,7 @@ class Test_Meta:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
     @bug(library="php", reason="APMAPI-923")
     # TODO: Versions previous to 1.1.0 might be ok, but were not tested so far.
@@ -278,7 +278,7 @@ class Test_Meta:
                 actual_language == expected_language
             ), f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
@@ -307,7 +307,7 @@ class Test_Meta:
                 exception_message = f"Expected span {span['name']} to have component meta tag, {expected_component}, got: {actual_component}."
                 assert actual_component == expected_component, exception_message
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
@@ -320,7 +320,7 @@ class Test_Meta:
 
             assert "runtime-id" in span.get("meta"), "No runtime-id tag found. Expected tag to be present."
 
-        interfaces.library.validate_spans(validator=validator, success_by_default=True)
+        interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
         assert len(list(interfaces.library.get_root_spans())) != 0, "Did not recieve any root spans to validate."
 
@@ -340,7 +340,7 @@ class Test_MetaDatadogTags:
 
             return True
 
-        interfaces.library.validate_spans(validator=validator)
+        interfaces.library.validate_one_span(validator=validator)
 
 
 @features.envoy_external_processing
