@@ -261,17 +261,24 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             allow_no_data=True,
         )
 
-    def validate_appsec(
+    def validate_one_appsec(
         self,
         request: HttpResponse | None = None,
-        validator: Callable | None = None,
+        validator: Callable[[dict, dict], bool] | None = None,
         *,
         legacy_validator: Callable | None = None,
         full_trace: bool = False,
     ):
+        """Will call validator() on all appsec events. validator() returns a boolean :
+        * True : the payload satisfies the condition, validate_one returns in success
+        * False : the payload is ignored
+        * If validator() raise an exception. the validate_one will fail
+
+        If no payload satisfies validator(), then validate_one will fail
+        """
         if validator:
             for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
-                if validator(span, appsec_data):
+                if validator(span, appsec_data) is True:
                     return
 
         if legacy_validator:
@@ -279,7 +286,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 if legacy_validator(event):
                     return
 
-        raise ValueError("No appsec event has been found")
+        raise ValueError("No appsec event validate this condition")
 
     def validate_all_appsec(
         self,
@@ -289,6 +296,9 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         allow_no_data: bool = False,
         full_trace: bool = False,
     ):
+        """Will call validator() on all appsec events
+        If ever a validator raise an exception, the validation will fail
+        """
         data_is_missing = True
         for _, _, span, appsec_data in self.get_appsec_events(request=request, full_trace=full_trace):
             data_is_missing = False
@@ -386,7 +396,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
             span_validator=span_validator,
         )
 
-        self.validate_appsec(
+        self.validate_one_appsec(
             request,
             validator=validator.validate,
             legacy_validator=validator.validate_legacy,
@@ -396,7 +406,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
     def add_appsec_reported_header(self, request: HttpResponse, header_name: str):
         validator = _ReportedHeader(header_name)
 
-        self.validate_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
+        self.validate_one_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
 
     def validate_all_traces(self, validator: Callable[[dict], None], *, allow_no_trace: bool = False):
         self.validate_all(validator=validator, allow_no_data=allow_no_trace, path_filters=r"/v0\.[1-9]+/traces")
@@ -633,4 +643,4 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
             return True
 
-        self.validate_appsec(request, validator)
+        self.validate_one_appsec(request, validator)
