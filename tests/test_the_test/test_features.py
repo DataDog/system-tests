@@ -24,7 +24,7 @@ def test_not_reported():
 
 
 @scenarios.test_the_test
-def test_all_class_has_feature_decorator(session, deselected_items):
+def test_all_class_has_feature_decorator(session: pytest.Session, deselected_items: list[pytest.Item]):
     processed_nodes = set()
     shouldfail = False
 
