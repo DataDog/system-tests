@@ -1,7 +1,7 @@
 # Docs: https://datadoghq.atlassian.net/wiki/spaces/SECENG/pages/5138645099/User+guide+dd-octo-sts
 issuer: https://token.actions.githubusercontent.com
 
-subject: repo:DataDog/system-tests-dashboard:ref:refs/heads/main
+subject: repo:DataDog/system-tests:ref:refs/heads/main
 claim_pattern:
   event_name: (workflow_dispatch|schedule)
   ref: refs/heads/main
