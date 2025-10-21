@@ -2,14 +2,16 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
 
+from collections.abc import Callable
 import re
+
 from utils import bug, context, interfaces, rfc, weblog, missing_feature, features, scenarios, logger
 
 
-def validate_no_leak(needle, whitelist_pattern=None):
+def validate_no_leak(needle, whitelist_pattern=None) -> Callable[[dict], None]:
     whitelist = re.compile(whitelist_pattern) if whitelist_pattern is not None else None
 
-    def crawler(data):
+    def crawler(data) -> None:
         if isinstance(data, str):
             if whitelist is not None and not whitelist.match(data):
                 assert needle not in data
@@ -43,7 +45,7 @@ class Test_UrlQuery:
         weblog.get("/", params={"json": '{"sign":"leak-url-main-v4"}'})
 
     def test_main(self):
-        interfaces.library.validate(validate_no_leak("leak-url-main"), success_by_default=True)
+        interfaces.library.validate_all(validate_no_leak("leak-url-main"), allow_no_data=True)
 
     def setup_multiple_matching_substring(self):
         weblog.get(
@@ -61,7 +63,7 @@ class Test_UrlQuery:
 
     @bug(context.library < "dotnet@2.21.0", reason="APPSEC-5773")
     def test_multiple_matching_substring(self):
-        interfaces.library.validate(validate_no_leak("leak-url-multiple"), success_by_default=True)
+        interfaces.library.validate_all(validate_no_leak("leak-url-multiple"), allow_no_data=True)
 
 
 @features.library_scrubbing
@@ -88,10 +90,10 @@ class Test_UrlField:
                     logger.info(f"span found: {span}")
                     return "agent:8127" in span["meta"]["http.url"]
 
-            return None
+            return False
 
         # check that the distant call is reported
-        interfaces.library.validate_traces(self.r, validate_report)
+        interfaces.library.validate_one_trace(self.r, validate_report)
 
         # the initial request contains leak-password-url is reported, but it's not the issue
         # we whitelist this value
@@ -100,8 +102,8 @@ class Test_UrlField:
             r"url=http%3A%2F%2Fleak-name-url%3Aleak-password-url%40agent%3A8127"
         )
 
-        interfaces.library.validate(validate_no_leak("leak-password-url", whitelist_pattern), success_by_default=True)
-        interfaces.library.validate(validate_no_leak("leak-name-url", whitelist_pattern), success_by_default=True)
+        interfaces.library.validate_all(validate_no_leak("leak-password-url", whitelist_pattern), allow_no_data=True)
+        interfaces.library.validate_all(validate_no_leak("leak-name-url", whitelist_pattern), allow_no_data=True)
 
 
 @features.envoy_external_processing
@@ -115,11 +117,11 @@ class Test_EnvVar:
 
     def test_library(self):
         assert scenarios.default.weblog_container.environment.get("SOME_SECRET_ENV") == "leaked-env-var"
-        interfaces.library.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
+        interfaces.library.validate_all(validate_no_leak("leaked-env-var"), allow_no_data=True)
 
     def test_agent(self):
         assert scenarios.default.agent_container.environment.get("SOME_SECRET_ENV") == "leaked-env-var"
-        interfaces.agent.validate(validate_no_leak("leaked-env-var"), success_by_default=True)
+        interfaces.agent.validate_all(validate_no_leak("leaked-env-var"), allow_no_data=True)
 
     def test_logs(self):
         interfaces.library_stdout.assert_absence("leaked-env-var")
