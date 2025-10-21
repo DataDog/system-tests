@@ -56,13 +56,6 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
     def validate_profiling(self, validator: Callable, *, success_by_default: bool = False):
         self.validate(validator, path_filters="/api/v2/profile", success_by_default=success_by_default)
 
-    def validate_appsec(self, request: HttpResponse, validator: Callable):
-        for data, payload, chunk, span, appsec_data in self.get_appsec_data(request=request):
-            if validator(data, payload, chunk, span, appsec_data):
-                return
-
-        raise ValueError("No data validate this test")
-
     def get_telemetry_data(self, *, flatten_message_batches: bool = True):
         all_data = self.get_data(path_filters="/api/v2/apmtelemetry")
         if flatten_message_batches:
