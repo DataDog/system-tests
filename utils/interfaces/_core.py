@@ -140,31 +140,6 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def _validate(
-        self,
-        validator: Callable[[dict], bool | None],
-        path_filters: Iterable[str] | str | None = None,
-        *,
-        success_by_default: bool = False,
-    ):
-        for data in self.get_data(path_filters=path_filters):
-            try:
-                if validator(data) is True:
-                    return
-            except Exception as e:
-                logger.error(f"{data['log_filename']} did not validate this test")
-
-                if isinstance(e, ValidationError):
-                    if isinstance(e.extra_info, (dict, list)):
-                        logger.info(json.dumps(e.extra_info, indent=2))
-                    elif isinstance(e.extra_info, (str, int, float)):
-                        logger.info(e.extra_info)
-
-                raise
-
-        if not success_by_default:
-            raise ValueError("Test has not been validated by any data")
-
     def validate_one(
         self,
         validator: Callable[[dict], bool],
