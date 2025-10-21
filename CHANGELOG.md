@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+### 2025-09 (171 PR merged)
+
+* 2025-09-15 [Report code owners in junit/test optimization](https://github.com/DataDog/system-tests/pull/5252) by @cbeauchesne
+* 2025-09-23 [Automatic easy win activation script](https://github.com/DataDog/system-tests/pull/5247) by @nccatoni
+* 2025-09-10 [Reduce parametric logs verbosity](https://github.com/DataDog/system-tests/pull/5228) by @nccatoni
+* 2025-09-02 [Add debugger harness to allow on demand flake reproduction](https://github.com/DataDog/system-tests/pull/5183) by @cbeauchesne
+* 2025-09-19 [feat: add haproxy stream_processing_offload system tests](https://github.com/DataDog/system-tests/pull/5125) by @e-n-0
+* 2025-09-22 [Add scenario deduplication validation with test_minimal_number_of_scenarios](https://github.com/DataDog/system-tests/pull/5090) by @jandro996
+
+
 ### 2025-08 (120 PR merged)
 
 * 2025-08-28 [Using prebuilt wheel for dd-trace-py](https://github.com/DataDog/system-tests/pull/5146) by @nccatoni
