@@ -140,7 +140,7 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
             yield data
 
-    def validate(
+    def _validate(
         self,
         validator: Callable[[dict], bool | None],
         path_filters: Iterable[str] | str | None = None,

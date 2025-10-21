@@ -141,7 +141,7 @@ class Test_LibraryHeaders:
                 if header.lower() == "datadog-container-id":
                     assert value, "Datadog-Container-ID header is empty"
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(context.library < "nodejs@5.47.0", reason="not implemented yet")
     @missing_feature(library="ruby", reason="not implemented yet")
@@ -180,7 +180,7 @@ class Test_LibraryHeaders:
                     f"Datadog-Entity-ID header value {val} doesn't start with either 'in-', 'ci-' or 'cid-'"
                 )
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(library="cpp_nginx", reason="not implemented yet")
     @missing_feature(library="cpp_httpd", reason="not implemented yet")
@@ -211,7 +211,7 @@ class Test_LibraryHeaders:
                     item[2] == "-"
                 ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
 
-        interfaces.library.validate(validator, success_by_default=True)
+        interfaces.library.validate_all(validator, allow_no_data=True)
 
     @missing_feature(library="cpp_nginx", reason="Trace are not reported")
     @missing_feature(library="cpp_httpd")

@@ -254,7 +254,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
                 return None
             return validator(data)
 
-        self.validate(
+        self._validate(
             validator_skip_onboarding_event,
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
             success_by_default=success_by_default,
@@ -302,7 +302,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         check_condition: Callable | None = None,
     ):
         validator = HeadersPresenceValidator(request_headers, response_headers, check_condition)
-        self.validate(validator, path_filters=path_filter, success_by_default=True)
+        self._validate(validator, path_filters=path_filter, success_by_default=True)
 
     def assert_receive_request_root_trace(self):  # TODO : move this in test class
         """Asserts that a trace for a request has been sent to the agent"""
@@ -384,7 +384,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         self.validate_appsec(request, validator=validator.validate, legacy_validator=validator.validate_legacy)
 
     def add_traces_validation(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
+        self._validate(validator=validator, success_by_default=success_by_default, path_filters=r"/v0\.[1-9]+/traces")
 
     def validate_traces(self, request: HttpResponse, validator: Callable, *, success_by_default: bool = False):
         for _, trace in self.get_traces(request=request):
@@ -443,7 +443,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         yield from self.get_data(path_filters="/profiling/v1/input")
 
     def validate_profiling(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
+        self._validate(validator, path_filters="/profiling/v1/input", success_by_default=success_by_default)
 
     def assert_trace_exists(self, request: HttpResponse, span_type: str | None = None):
         for _, _, span in self.get_spans(request=request):
@@ -453,7 +453,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         raise ValueError(f"No trace has been found for request {request.get_rid()}")
 
     def validate_remote_configuration(self, validator: Callable, *, success_by_default: bool = False):
-        self.validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
+        self._validate(validator, success_by_default=success_by_default, path_filters=r"/v\d+.\d+/config")
 
     def assert_rc_apply_state(self, product: str, config_id: str, apply_state: RemoteConfigApplyState) -> None:
         """Check that all config_id/product have the expected apply_state returned by the library
