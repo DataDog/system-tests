@@ -17,6 +17,7 @@ jobs:
     name: Update changelog
     runs-on: ubuntu-latest
     permissions:
+      contents: write
       pull-requests: read
       id-token: write
 
@@ -57,8 +58,13 @@ jobs:
           echo "Creating branch ${{ steps.vars.outputs.branch_name }}..."
           git checkout -B ${{ steps.vars.outputs.branch_name }}
 
+          echo "Authenticating with GitHub CLI..."
+          gh auth setup-git
+
           echo "Pushing empty branch ${{ steps.vars.outputs.branch_name }}..."
           git push --force-with-lease -u origin ${{ steps.vars.outputs.branch_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create commit
         run: |
