@@ -800,7 +800,7 @@ class Test_TelemetryV2:
             assert get_header(data, "request", "dd-client-library-language") == application.get("language_name")
             assert get_header(data, "request", "dd-client-library-version") == application.get("tracer_version")
 
-        interfaces.library.validate_telemetry(validator=validator, success_by_default=True)
+        interfaces.library.validate_telemetry(validator=validator)
 
 
 @features.telemetry_api_v2_implemented

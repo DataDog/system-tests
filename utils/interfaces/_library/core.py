@@ -248,16 +248,15 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     ############################################################
 
-    def validate_telemetry(self, validator: Callable, *, success_by_default: bool = False):
-        def validator_skip_onboarding_event(data: dict):
-            if data["request"]["content"].get("request_type") == "apm-onboarding-event":
-                return None
-            return validator(data)
+    def validate_telemetry(self, validator: Callable[[dict], None]):
+        def validator_skip_onboarding_event(data: dict) -> None:
+            if data["request"]["content"].get("request_type") != "apm-onboarding-event":
+                validator(data)
 
-        self._validate(
+        self.validate_all(
             validator_skip_onboarding_event,
             path_filters="/telemetry/proxy/api/v2/apmtelemetry",
-            success_by_default=success_by_default,
+            allow_no_data=True,
         )
 
     def validate_appsec(
@@ -431,11 +430,11 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
 
     def assert_seq_ids_are_roughly_sequential(self):
         validator = _SeqIdLatencyValidation()
-        self.validate_telemetry(validator, success_by_default=True)
+        self.validate_telemetry(validator)
 
     def assert_no_skipped_seq_ids(self):
         validator = _NoSkippedSeqId()
-        self.validate_telemetry(validator, success_by_default=True)
+        self.validate_telemetry(validator)
 
         validator.final_check()
 
