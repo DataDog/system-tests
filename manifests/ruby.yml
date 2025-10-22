@@ -832,10 +832,10 @@ tests/:
     Test_Config_ClientIPHeader_Precedence: v2.3.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (does not support redacting query string via envar)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query string by default)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpClientErrorStatuses_Default: bug (APMAPI-1702)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_HttpServerErrorStatuses_Default: v2.0.0
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_IntegrationEnabled_False:
       "*": irrelevant (endpoint not implemented)
       rails72: v2.0.0
