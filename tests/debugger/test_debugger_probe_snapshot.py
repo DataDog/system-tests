@@ -221,7 +221,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(context.library == "java", reason="APMRP-360")
@@ -234,7 +233,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(context.library == "java", reason="APMRP-360")
