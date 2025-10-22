@@ -11,6 +11,9 @@ const OtelSpanContext = require('dd-trace/packages/dd-trace/src/opentelemetry/sp
 
 const { millisToHrTime } = require('@opentelemetry/core')
 
+const { OpenFeature } = require('@openfeature/server-sdk')
+let openFeatureClient = null
+
 const { TracerProvider } = tracer
 const tracerProvider = new TracerProvider()
 tracerProvider.register()
@@ -376,6 +379,52 @@ app.post("/trace/otel/otel_set_baggage", (req, res) => {
   const context = propagation.setBaggage(ROOT_CONTEXT, bag)
   const value = propagation.getBaggage(context).getEntry(req.body.key).value
   res.json({ value });
+});
+
+// Feature Flag & Experimentation endpoints
+app.post('/ffe/start', async (req, res) => {
+  const { openfeature } = tracer
+  await OpenFeature.setProviderAndWait(openfeature)
+  openFeatureClient = OpenFeature.getClient()
+  res.json({})
+})
+
+app.post('/ffe/evaluate', async (req, res) => {
+  const { flag, variationType, defaultValue, targetingKey, attributes } = req.body;
+  let value, reason;
+  const context = { targetingKey, ...attributes }
+
+  try {
+    switch (variationType) {
+      case 'BOOLEAN':
+        value = await openFeatureClient.getBooleanValue(flag, defaultValue, context)
+        break;
+      case 'STRING':
+        value = await openFeatureClient.getStringValue(flag, defaultValue, context)
+        break;
+      case 'INTEGER':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'NUMERIC':
+        value = await openFeatureClient.getNumberValue(flag, defaultValue, context)
+        break;
+      case 'JSON':
+        value = await openFeatureClient.getObjectValue(flag, defaultValue, context)
+        break;
+      default:
+        value = defaultValue;
+    }
+
+    reason = 'DEFAULT';
+  } catch (error) {
+    value = defaultValue;
+    reason = 'ERROR';
+  }
+
+  res.json({
+    value: value,
+    reason: reason
+  });
 });
 
 // OpenTelemetry Metrics Endpoints
