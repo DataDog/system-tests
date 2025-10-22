@@ -17,6 +17,7 @@
     "@openfeature/server-sdk": "~1.19.0"
   },
   "overrides": {
-    "@opentelemetry/api": "$@opentelemetry/api"
+    "@opentelemetry/api": "$@opentelemetry/api",
+    "@openfeature/server-sdk": "$@openfeature/server-sdk"
   }
 }

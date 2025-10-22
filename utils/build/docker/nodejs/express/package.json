@@ -46,5 +46,8 @@
     "eslint-plugin-mocha": "^10.2.0",
     "eslint-plugin-n": "^16.2.0",
     "eslint-plugin-promise": "^6.1.1"
+  },
+  "overrides": {
+    "@openfeature/server-sdk": "$@openfeature/server-sdk"
   }
 }
