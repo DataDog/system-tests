@@ -7,6 +7,7 @@ from urllib.parse import urlparse
 
 from utils import context, interfaces, bug, missing_feature, features, scenarios
 
+
 RUNTIME_LANGUAGE_MAP = {
     "nodejs": "javascript",
     "golang": "go",
@@ -123,10 +124,12 @@ VARIANT_COMPONENT_MAP = {
 }
 
 
-def get_component_name(weblog_variant, language, span_name):
+def get_component_name(span_name: str):
+    language = context.library.name
+
     if language == "ruby":
         # strip numbers from weblog_variant so rails70 -> rails, sinatra14 -> sinatra
-        weblog_variant_stripped_name = re.sub(r"\d+$", "", weblog_variant)
+        weblog_variant_stripped_name = re.sub(r"\d+$", "", context.weblog_variant)
         expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant_stripped_name, weblog_variant_stripped_name)
     elif language == "dotnet":
         expected_component = "aspnet_core"
@@ -134,7 +137,7 @@ def get_component_name(weblog_variant, language, span_name):
         expected_component = "nginx"
     else:
         # using weblog variant to get name of component that should be on set within each span's metadata
-        expected_component = VARIANT_COMPONENT_MAP.get(weblog_variant, weblog_variant)
+        expected_component = VARIANT_COMPONENT_MAP.get(context.weblog_variant, context.weblog_variant)
 
     # if type of component is a dictionary, get the component tag value by searching dict with current span name
     # try to get component name from name of span, otherwise use beginning of span as expected component, e.g: 'rack' for span name 'rack.request'
@@ -165,7 +168,7 @@ class Test_Meta:
     def test_meta_span_kind(self):
         """Validates that traces from an http framework carry a span.kind meta tag, with value server or client"""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -186,7 +189,7 @@ class Test_Meta:
     def test_meta_http_url(self):
         """Validates that traces from an http framework carry a http.url meta tag, formatted as a URL"""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -206,7 +209,7 @@ class Test_Meta:
     def test_meta_http_status_code(self):
         """Validates that traces from an http framework carry a http.status_code meta tag, formatted as a int"""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -225,7 +228,7 @@ class Test_Meta:
     def test_meta_http_method(self):
         """Validates that traces from an http framework carry a http.method meta tag, with a legal HTTP method"""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return None
 
@@ -264,7 +267,7 @@ class Test_Meta:
     def test_meta_language_tag(self):
         """Assert that all spans have required language tag."""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
@@ -287,16 +290,16 @@ class Test_Meta:
     def test_meta_component_tag(self):
         """Assert that all spans generated from a weblog_variant have component metadata tag matching integration name."""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("type") != "web":  # do nothing if is not web related
                 return
 
-            expected_component = get_component_name(context.weblog_variant, context.library, span.get("name"))
+            expected_component = get_component_name(span["name"])
 
             assert "component" in span.get(
-                "meta"
+                "meta", {}
             ), f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
-            actual_component = span.get("meta")["component"]
+            actual_component = span["meta"]["component"]
 
             if isinstance(expected_component, list):
                 exception_message = f"""Expected span {span['name']} to have component meta tag equal
@@ -314,11 +317,11 @@ class Test_Meta:
     def test_meta_runtime_id_tag(self):
         """Assert that all spans generated from a weblog_variant have runtime-id metadata tag with some value."""
 
-        def validator(span):
+        def validator(span: dict):
             if span.get("parent_id") not in (0, None):  # do nothing if not root span
                 return
 
-            assert "runtime-id" in span.get("meta"), "No runtime-id tag found. Expected tag to be present."
+            assert "runtime-id" in span["meta"], "No runtime-id tag found. Expected tag to be present."
 
         interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
@@ -330,7 +333,7 @@ class Test_MetaDatadogTags:
     """Spans carry meta tags that were set in DD_TAGS tracer environment"""
 
     def test_meta_dd_tags(self):
-        def validator(span):
+        def validator(span: dict):
             assert (
                 span["meta"]["key1"] == "val1"
             ), f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
