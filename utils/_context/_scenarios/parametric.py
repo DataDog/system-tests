@@ -589,7 +589,7 @@ def php_library_factory() -> APMLibraryTestServer:
         container_name="php-test-library",
         container_tag="php-test-library",
         container_img=f"""
-FROM datadog/dd-trace-ci:php-8.2_buster
+FROM datadog/dd-trace-ci:php-8.2_bookworm-5
 RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
