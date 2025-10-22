@@ -380,7 +380,7 @@ class Test_Config_ClientIPHeader_Precedence:
             assert _get_span_by_tags(trace, expected_tags), f"Span with tags {expected_tags} not found in {trace}"
 
 
-def _get_span_by_tags(spans, tags):
+def _get_span_by_tags(spans: list, tags: dict):
     logger.info(f"Try to find span with metag tags {tags}")
 
     for span in spans:
@@ -704,7 +704,7 @@ class Test_Config_RuntimeMetrics_Enabled:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -738,7 +738,7 @@ class Test_Config_RuntimeMetrics_Enabled_WithRuntimeId:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) > 0 or len(runtime_metrics_sketches) > 0
 
@@ -762,22 +762,22 @@ class Test_Config_RuntimeMetrics_Default:
     def test_main(self):
         assert self.req.status_code == 200
 
-        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics(interfaces.agent)
+        runtime_metrics_gauges, runtime_metrics_sketches = get_runtime_metrics()
 
         assert len(runtime_metrics_gauges) == 0
         assert len(runtime_metrics_sketches) == 0
 
 
-def get_runtime_metrics(agent):
+def get_runtime_metrics():
     runtime_metrics_gauges = [
         metric
-        for _, metric in agent.get_metrics()
+        for _, metric in interfaces.agent.get_metrics()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
     runtime_metrics_sketches = [
         metric
-        for _, metric in agent.get_sketches()
+        for _, metric in interfaces.agent.get_sketches()
         if metric["metric"].startswith("runtime.") or metric["metric"].startswith("jvm.")
     ]
 
