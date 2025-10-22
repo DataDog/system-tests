@@ -30,6 +30,10 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
+    @irrelevant(
+        context.vm_name in ["Ubuntu_20_amd64", "Ubuntu_20_arm64"] and context.weblog_variant == "test-app-python",
+        reason="Python version too old",
+    )
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
