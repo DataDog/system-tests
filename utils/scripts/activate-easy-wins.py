@@ -136,7 +136,7 @@ def parse_artifact_data(
     test_data: dict[str, dict[str, dict[str, dict[str, tuple[TestClassStatus, set[str]]]]]] = {}
 
     for directory in os.listdir(path_data_opt):
-        if "dev" in directory:
+        if "_dev_" in directory:
             continue
 
         for scenario in os.listdir(f"{path_data_opt}/{directory}"):
@@ -386,7 +386,7 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
         for variant in os.listdir(path_data_opt):
             if found_version:
                 break
-            if library not in variant:
+            if library not in variant or "_dev_" in variant:
                 continue
 
             for scenario in os.listdir(f"{path_data_opt}/{variant}"):
