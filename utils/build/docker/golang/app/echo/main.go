@@ -360,7 +360,7 @@ func main() {
 
 	r.Any("/requestdownstream", echoHandleFunc(common.Requestdownstream))
 	r.Any("/returnheaders", echoHandleFunc(common.Returnheaders))
-	r.Any("/ffe", echoHandleFunc(common.FFeEval))
+	r.Any("/ffe", echoHandleFunc(common.FFeEval()))
 
 	var d DebuggerController
 	r.Any("/debugger/log", echoHandleFunc(d.logProbe))
