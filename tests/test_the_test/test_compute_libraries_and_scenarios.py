@@ -1,4 +1,4 @@
-from __future__ import annotations
+from collections.abc import Callable
 from pathlib import Path
 
 from functools import wraps
@@ -12,12 +12,12 @@ all_lib_matrix = 'library_matrix=[{"library": "cpp", "version": "prod"}, {"libra
 all_lib_with_dev = 'libraries_with_dev=["cpp", "cpp_httpd", "cpp_nginx", "dotnet", "golang", "java", "nodejs", "php", "python", "python_lambda", "ruby", "rust"]'
 
 
-def set_env(key, value):
+def set_env(key: str, value: str):
     """Decorator to set an environment variable before test runs using monkeypatch."""
 
-    def decorator(func):
+    def decorator(func: Callable):
         @wraps(func)
-        def wrapper(self):
+        def wrapper(self: object):
             monkeypatch = pytest.MonkeyPatch()
             try:
                 monkeypatch.setenv(key, value)
@@ -31,9 +31,9 @@ def set_env(key, value):
 
 
 def build_inputs(
-    modified_files=None,
-    new_manifests="./tests/test_the_test/manifests/manifests_ref/",
-    old_manifests="./tests/test_the_test/manifests/manifests_ref/",
+    modified_files: list | None = None,
+    new_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
+    old_manifests: str = "./tests/test_the_test/manifests/manifests_ref/",
 ):
     if modified_files is None:
         modified_files = []

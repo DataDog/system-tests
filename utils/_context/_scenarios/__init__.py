@@ -173,7 +173,11 @@ class _Scenarios:
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
@@ -961,6 +965,20 @@ class _Scenarios:
     )
 
     appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
+
+    appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
+        weblog_env={
+            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+        },
+    )
+
+    appsec_rasp_without_downstream_body_analysis_using_max = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX",
+        weblog_env={
+            "DD_API_SECURITY_MAX_DOWNSTREAM_REQUEST_BODY_ANALYSIS": "0",
+        },
+    )
 
     appsec_standalone_rasp = AppsecRaspScenario(
         "APPSEC_STANDALONE_RASP",

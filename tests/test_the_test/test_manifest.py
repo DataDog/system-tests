@@ -39,23 +39,11 @@ def test_formats():
 @scenarios.test_the_test
 def test_content():
     @lru_cache
-    def get_file_content(path):
+    def get_file_content(path: str):
         with open(path, "r", encoding="utf-8") as f:
             return f.read()
 
-    def assert_in(elements, module, nodeid):
-        if len(elements) == 0:
-            return
-
-        name = elements.pop(0)
-        if name.endswith(".py"):
-            name = name[:-3]
-
-        assert hasattr(module, name), f"Manifest path {nodeid} does not correspond to any test {dir(module)}"
-
-        assert_in(elements, getattr(module, name), nodeid)
-
-    def assert_valid_declaration(declaration):
+    def assert_valid_declaration(declaration: str):
         assert isinstance(declaration, str)
 
         if re.match(r"^(bug|flaky|irrelevant|missing_feature|incomplete_test_app)( \(.+\))?$", declaration):

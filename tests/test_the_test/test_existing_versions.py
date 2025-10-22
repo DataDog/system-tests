@@ -96,7 +96,7 @@ def all_declared_exist(declared: list[Version], existing: list[Version]) -> bool
     return contains_error
 
 
-def get_github_releases(owner, repo) -> list[Version]:
+def get_github_releases(owner: str, repo: str) -> list[Version]:
     url = f"https://api.github.com/repos/{owner}/{repo}/releases"
     headers = {}
     if "GITHUB_TOKEN" in os.environ:

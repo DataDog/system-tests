@@ -32,4 +32,4 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.validate_spans(request=self.r, validator=validator)
+        interfaces.library.validate_one_span(request=self.r, validator=validator)
