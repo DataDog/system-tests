@@ -13,13 +13,18 @@ def _fail(message: str):
     raise Failed(message, pytrace=False) from None
 
 class FrameworkLibraryClient:
-    def __init__(self, url: str, framework: str, framework_version: str, timeout: int, container: Container):
+    def __init__(self, url: str, timeout: int, container: Container):
         self._base_url = url
         self._session = requests.Session()
         self.container = container
         self.timeout = timeout
-        self.framework = framework
-        self.framework_version = framework_version
+
+        # wait for server to start
+        self._wait(timeout)
+
+    def container_restart(self):
+        self.container.restart()
+        self._wait(self.timeout)
 
     def _wait(self, timeout: float):
         delay = 0.01

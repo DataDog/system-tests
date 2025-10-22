@@ -1,5 +1,7 @@
 import contextlib
 from functools import lru_cache
+import os
+import shutil
 import subprocess
 from typing import Generator, TextIO
 import docker
@@ -8,9 +10,9 @@ from docker.models.networks import Network
 from _pytest.outcomes import Failed
 
 from utils._logger import logger
+from utils._context.component_version import ComponentVersion
 from .core import Scenario
 import pytest
-import os
 import dataclasses
 from docker.models.containers import Container
 from pathlib import Path
@@ -69,8 +71,12 @@ class IntegrationFrameworksScenario(Scenario):
     TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
     framework_test_server_definition: FrameworkTestServer
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, name: str, doc: str) -> None:
+        super().__init__(
+            name,
+            doc=doc,
+            github_workflow="integration_frameworks",
+        )
         self.framework_factory = None
 
     def configure(self, config: pytest.Config):
@@ -92,11 +98,116 @@ class IntegrationFrameworksScenario(Scenario):
             pytest.exit("No framework specified, please set -F option", 1)
         
         self.framework_test_server_definition = factory(framework, framework_version)
+        
+        # Set library version - for now use a placeholder, will be updated after building
+        self._library = ComponentVersion(library, "0.0.0")
+        logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}")
+        
+        if self.is_main_worker:
+            # Build the framework test server image
+            self._build_framework_test_server_image(config.option.github_token_file)
+            self._pull_test_agent_image()
+            self._clean_containers()
+            self._clean_networks()
+
+    def _build_framework_test_server_image(self, github_token_file: str) -> None:
+        logger.stdout("Build framework test container...")
+
+        framework_test_server_definition: FrameworkTestServer = self.framework_test_server_definition
+
+        log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
+        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
+
+        # Write dockerfile to the build directory
+        dockf_path = os.path.join(framework_test_server_definition.container_build_dir, "Dockerfile")
+        with open(dockf_path, "w", encoding="utf-8") as f:
+            f.write(framework_test_server_definition.container_img)
+
+        with open(log_path, "w+", encoding="utf-8") as log_file:
+            docker_bin = shutil.which("docker")
+
+            if docker_bin is None:
+                raise FileNotFoundError("Docker not found in PATH")
+
+            root_path = ".."
+            cmd = [
+                docker_bin,
+                "build",
+                "--progress=plain",
+            ]
+
+            if github_token_file and github_token_file.strip():
+                cmd += ["--secret", f"id=github_token,src={github_token_file}"]
+
+            cmd += [
+                "-t",
+                framework_test_server_definition.container_tag,
+                "-f",
+                dockf_path,
+                framework_test_server_definition.container_build_context,
+            ]
+            log_file.write(f"running {cmd} in {root_path}\n")
+            log_file.flush()
+
+            env = os.environ.copy()
+            env["DOCKER_SCAN_SUGGEST"] = "false"
+
+            timeout = 600  # Python tracer can take a while to build
+
+            p = subprocess.run(
+                cmd,
+                cwd=root_path,
+                text=True,
+                stdout=log_file,
+                stderr=log_file,
+                env=env,
+                timeout=timeout,
+                check=False,
+            )
+
+            if p.returncode != 0:
+                raise RuntimeError(f"Failed to build framework test server image. See {log_path} for details")
+
+        logger.stdout("Build complete")
+
+    def _pull_test_agent_image(self) -> None:
+        logger.stdout(f"Pull test agent image {self.TEST_AGENT_IMAGE}...")
+        _get_client().images.pull(self.TEST_AGENT_IMAGE)
+
+    def _clean_containers(self) -> None:
+        for container in _get_client().containers.list(all=True):
+            if _NETWORK_PREFIX in container.name:
+                logger.info(f"Remove container {container.name}")
+                container.remove(force=True)
+
+    def _clean_networks(self) -> None:
+        for network in _get_client().networks.list():
+            if _NETWORK_PREFIX in network.name:
+                logger.info(f"Remove network {network.name}")
+                network.remove()
+
+    @property
+    def library(self):
+        return self._library
 
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
         return _get_client().networks.create(name=docker_network_name, driver="bridge")
+
+    @staticmethod
+    def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
+        """Convert volumes to the format expected by the docker-py API"""
+        fixed_volumes: dict[str, dict] = {}
+        for key, value in volumes.items():
+            if isinstance(value, dict):
+                fixed_volumes[key] = value
+            elif isinstance(value, str):
+                fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            else:
+                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
+
+        return fixed_volumes
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
@@ -170,13 +281,14 @@ WORKDIR /app
 RUN pyenv global 3.11
 RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
 RUN python3.11 -m pip install {framework}=={framework_version}
-COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
+COPY utils/build/docker/python/integration_frameworks/system_tests_library_version.sh system_tests_library_version.sh
 COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
-RUN mkdir /parametric-tracer-logs
+RUN mkdir /integration-framework-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
         """,
         container_cmd=["ddtrace-run", "python3.11", "-m", "integration_frameworks", framework],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
+        volumes={os.path.join(python_absolute_appdir): "/app/integration_frameworks"},
     )

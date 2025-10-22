@@ -1,0 +1,142 @@
+interactions:
+- request:
+    body: '{"messages":[{"role":"user","content":"Hello OpenAI!"}],"model":"gpt-3.5-turbo","max_tokens":35,"stream":false}'
+    headers:
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept-Encoding
+      : - gzip, deflate
+      ? !!python/object/apply:multidict._multidict.istr
+      - Connection
+      : - keep-alive
+      Content-Length:
+      - '111'
+      ? !!python/object/apply:multidict._multidict.istr
+      - Content-Type
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - User-Agent
+      : - OpenAI/Python 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Arch
+      : - arm64
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Async
+      : - 'false'
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Lang
+      : - python
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-OS
+      : - Linux
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Package-Version
+      : - 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime
+      : - CPython
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime-Version
+      : - 3.11.11
+      ? !!python/object/apply:multidict._multidict.istr
+      - traceparent
+      : - 00-68f8268900000000d6976576f769cb18-e9ec03abe259de68-01
+      ? !!python/object/apply:multidict._multidict.istr
+      - tracestate
+      : - dd=p:e9ec03abe259de68;s:1;t.dm:-0;t.tid:68f8268900000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-parent-id
+      : - '16855851542112755304'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-sampling-priority
+      : - '1'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-tags
+      : - _dd.p.dm=-0,_dd.p.tid=68f8268900000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-trace-id
+      : - '15462939407231339288'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-read-timeout
+      : - '600'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-retry-count
+      : - '0'
+    method: POST
+    uri: https://api.openai.com/v1/chat/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"chatcmpl-CTH5tbSTS8izEu9HMmEL0k6ZC6q95\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1761093257,\n  \"model\": \"gpt-3.5-turbo-0125\",\n
+        \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
+        \"assistant\",\n        \"content\": \"Hello! How can I assist you today?\",\n
+        \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
+        null,\n      \"finish_reason\": \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\":
+        11,\n    \"completion_tokens\": 9,\n    \"total_tokens\": 20,\n    \"prompt_tokens_details\":
+        {\n      \"cached_tokens\": 0,\n      \"audio_tokens\": 0\n    },\n    \"completion_tokens_details\":
+        {\n      \"reasoning_tokens\": 0,\n      \"audio_tokens\": 0,\n      \"accepted_prediction_tokens\":
+        0,\n      \"rejected_prediction_tokens\": 0\n    }\n  },\n  \"service_tier\":
+        \"default\",\n  \"system_fingerprint\": null\n}\n"
+    headers:
+      CF-RAY:
+      - 9924e87afb24c674-EWR
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Wed, 22 Oct 2025 00:34:18 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=HJv4jtgZCeqMscwl40wgg0hZpXPi3TaM2o0gN8GtCLE-1761093258-1.0.1.1-pKX3qfOIhmCc.K7I64V60bTRrlIEXyCb5UambfVY8l2IY5Z44mKl60WtlAhPQHyKqsEu.DWTwt..hoPOoNdHMEsCQu0zajScSZku7UwbUGk;
+        path=/; expires=Wed, 22-Oct-25 01:04:18 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=kHwO5EKzRDdR7wK6Z7Hv0xUA.KSBpM_KxpCOqTj_p3Y-1761093258170-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - datadog-staging
+      openai-processing-ms:
+      - '221'
+      openai-project:
+      - proj_gt6TQZPRbZfoY2J9AQlEJMpd
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '271'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '10000'
+      x-ratelimit-limit-tokens:
+      - '50000000'
+      x-ratelimit-remaining-requests:
+      - '9999'
+      x-ratelimit-remaining-tokens:
+      - '49999994'
+      x-ratelimit-reset-requests:
+      - 6ms
+      x-ratelimit-reset-tokens:
+      - 0s
+      x-request-id:
+      - req_d55b66f3f2f84e1c8bf5293352d54e0d
+    status:
+      code: 200
+      message: OK
+version: 1

@@ -209,7 +209,7 @@ class _TestAgentAPI:
                 raise RuntimeError(resp.text)
 
     @contextlib.contextmanager
-    def vcr_context(self, cassette_prefix: str):
+    def vcr_context(self, cassette_prefix: str = None):
         """
         Starts a VCR context manager, which will prefix all recorded cassettes from the test agent with the given prefix.
         If no prefix is provided, the test name will be used.
@@ -217,13 +217,13 @@ class _TestAgentAPI:
         test_name = cassette_prefix or self._pytest_request.node.name
 
         try:
-            resp = self._session.get(self._url(f"/vcr/test/start"), json={"test_name": test_name})
+            resp = self._session.post(self._url(f"/vcr/test/start"), json={"test_name": test_name})
             resp.raise_for_status()
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
             yield self
-            resp = self._session.get(self._url(f"/vcr/test/stop"))
+            resp = self._session.post(self._url(f"/vcr/test/stop"))
             resp.raise_for_status()
 
     def wait_for_num_traces(
@@ -395,6 +395,9 @@ def test_agent(
     env["OTLP_HTTP_PORT"] = str(test_agent_otlp_http_port)
     env["OTLP_GRPC_PORT"] = str(test_agent_otlp_grpc_port)
 
+    # vcr environment variables
+    env["VCR_CASSETTES_DIRECTORY"] = "/vcr-cassettes"
+
     core_host_port = scenarios.integration_frameworks.get_host_port(worker_id, 4600)
     otlp_http_host_port = scenarios.integration_frameworks.get_host_port(worker_id, 4701)
     otlp_grpc_host_port = scenarios.integration_frameworks.get_host_port(worker_id, 4802)
@@ -409,7 +412,7 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots"},
+        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots", f"{Path.cwd()!s}/vcr-cassettes": "/vcr-cassettes"},
         ports=ports,
         log_file=test_agent_log_file,
         network=docker_network,
@@ -466,6 +469,8 @@ def test_client(
         "DD_TRACE_AGENT_PORT": test_agent_port,
         "FRAMEWORK_TEST_CLIENT_SERVER_PORT": str(framework_test_server.container_port),
         "DD_TRACE_OTEL_ENABLED": "true",
+        # provider api keys
+        "OPENAI_API_KEY": os.getenv("OPENAI_API_KEY", "<not-a-real-key>"),
     }
 
     for k, v in framework_test_server.env.items():

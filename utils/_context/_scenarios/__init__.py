@@ -1091,7 +1091,9 @@ class _Scenarios:
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
 
-    integration_frameworks = IntegrationFrameworksScenario("INTEGRATION_FRAMEWORKS")
+    integration_frameworks = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
 
 
 scenarios = _Scenarios()

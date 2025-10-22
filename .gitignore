@@ -63,7 +63,9 @@ node_modules/
 *.swp
 *.swo
 
+# build Dockerfiles
 utils/build/docker/*/parametric/Dockerfile
+utils/build/docker/*/integration_frameworks/Dockerfile
 
 # debugger
 /tests/debugger/approvals/**/*received*
