@@ -37,7 +37,7 @@ class Test_TraceHeaders:
             "x-datadog-trace-count",
         )
 
-        def check_condition(data):
+        def check_condition(data: dict):
             # if there is not trace, don't check anything
             return len(data["request"]["content"]) != 0
 
@@ -48,7 +48,7 @@ class Test_TraceHeaders:
     def test_trace_header_diagnostic_check(self):
         """x-datadog-diagnostic-check header is present iif content is empty"""
 
-        def validator(data):
+        def validator(data: dict):
             request_headers = {h[0].lower() for h in data["request"]["headers"]}
             if "x-datadog-diagnostic-check" in request_headers and len(data["request"]["content"]) != 0:
                 raise ValueError("Tracer sent a dignostic request with traces in it")
@@ -58,7 +58,7 @@ class Test_TraceHeaders:
     def test_trace_header_count_match(self):
         """X-Datadog-Trace-Count header value is right in all traces submitted to the agent"""
 
-        def validator(data):
+        def validator(data: dict):
             for header, value in data["request"]["headers"]:
                 if header.lower() == "x-datadog-trace-count":
                     try:
@@ -97,7 +97,7 @@ class Test_TraceHeaders:
         weblog_container_id = get_container_id(infos)
         logger.info(f"cgroup: weblog container id is {weblog_container_id}")
 
-        def validator(data):
+        def validator(data: dict):
             if _empty_request(data):
                 # RFC states "Once container ID is stored locally in the tracer,
                 # it must be sent to the Agent every time traces are sent."
@@ -136,7 +136,7 @@ class Test_LibraryHeaders:
     def test_datadog_container_id(self):
         """Datadog-Container-ID header is not empty if present"""
 
-        def validator(data):
+        def validator(data: dict):
             for header, value in data["request"]["headers"]:
                 if header.lower() == "datadog-container-id":
                     assert value, "Datadog-Container-ID header is empty"
@@ -152,7 +152,7 @@ class Test_LibraryHeaders:
     def test_datadog_entity_id(self):
         """Datadog-Entity-ID header is present and respect the in-<digits> format"""
 
-        def validator(data):
+        def validator(data: dict):
             if _empty_request(data):
                 # Go sends an empty request content to /traces endpoint.
                 # This is a non-issue, because there are no traces to which container tags could be attached.
@@ -193,7 +193,7 @@ class Test_LibraryHeaders:
     def test_datadog_external_env(self):
         """Datadog-External-Env header if present is in the {prefix}-{value},... format"""
 
-        def validator(data):
+        def validator(data: dict):
             # Only test this when the path ens in /traces
             if not data["path"].endswith("/traces"):
                 return
@@ -249,7 +249,7 @@ class Test_Agent:
         for _, span in interfaces.agent.get_spans():
             trace_ids_reported_by_agent.add(int(span["traceID"]))
 
-        def get_span_with_sampling_data(trace):
+        def get_span_with_sampling_data(trace: list):
             # The root span is not necessarily the span wherein the sampling priority can be found.
             # If present, the root will take precedence, and otherwise the first span with the
             # sampling priority tag will be returned. This isthe same logic found on the trace-agent.
@@ -287,5 +287,5 @@ class Test_Agent:
             raise ValueError("Some traces have not been reported by the agent. See logs for more details")
 
 
-def _empty_request(data):
+def _empty_request(data: dict):
     return "content" not in data["request"] or not data["request"]["content"]

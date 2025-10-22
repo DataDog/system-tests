@@ -495,6 +495,17 @@ class _Scenarios:
         ],
     )
 
+    feature_flag_exposure = EndToEndScenario(
+        "FEATURE_FLAG_EXPOSURE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        },
+        doc="",
+        scenario_groups=[scenario_groups.feature_flag_exposure],
+    )
+
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,

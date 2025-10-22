@@ -62,7 +62,7 @@ class Test_Profile:
                     validate_process_tags(content["content"]["process_tags"])
 
     @staticmethod
-    def _validate_data(data) -> None:
+    def _validate_data(data: dict) -> None:
         content = data["request"]["content"]
 
         for part in content:

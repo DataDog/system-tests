@@ -339,6 +339,20 @@ class Test_ComputeLibrariesAndScenarios:
             'scenarios_groups="open_telemetry"',
         ]
 
+    def test_json_modification(self):
+        inputs = build_inputs(modified_files=["tests/debugger/utils/probe_snapshot_log_line.json"])
+
+        strings_out = process(inputs)
+
+        assert strings_out == [
+            all_lib_matrix,
+            all_lib_with_dev,
+            "desired_execution_time=3600",
+            "rebuild_lambda_proxy=false",
+            'scenarios="DEBUGGER_EXCEPTION_REPLAY,DEBUGGER_EXPRESSION_LANGUAGE,DEBUGGER_INPRODUCT_ENABLEMENT,DEBUGGER_PII_REDACTION,DEBUGGER_PROBES_SNAPSHOT,DEBUGGER_PROBES_SNAPSHOT_WITH_SCM,DEBUGGER_PROBES_STATUS,DEBUGGER_SYMDB,DEBUGGER_TELEMETRY,DEFAULT,TRACING_CONFIG_NONDEFAULT_4"',
+            'scenarios_groups=""',
+        ]
+
     def test_missing_modified_files(self):
         with pytest.raises(FileNotFoundError):
             Inputs(

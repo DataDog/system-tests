@@ -727,6 +727,9 @@ tests/:
         "*": incomplete_test_app (endpoint not implemented)
         rails72: v2.0.0
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
@@ -764,6 +767,7 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
@@ -828,10 +832,10 @@ tests/:
     Test_Config_ClientIPHeader_Precedence: v2.3.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (does not support redacting query string via envar)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query string by default)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpClientErrorStatuses_Default: bug (APMAPI-1702)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_HttpServerErrorStatuses_Default: v2.0.0
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_IntegrationEnabled_False:
       "*": irrelevant (endpoint not implemented)
       rails72: v2.0.0
@@ -864,6 +868,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       "*": missing_feature
