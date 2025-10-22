@@ -224,6 +224,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
+    @missing_feature(context.library == "java", reason="APMRP-360")
     def test_log_line_snapshot_debug_track(self):
         """Test that the library sends snapshots to the debug track endpoint (fallback or not)"""
         self._assert()
@@ -236,6 +237,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
+    @missing_feature(context.library == "java", reason="APMRP-360")
     def test_log_line_snapshot_new_destination(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
