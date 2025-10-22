@@ -467,6 +467,10 @@ patterns:
         scenario_groups: null
         libraries: null
 
+    tests/fuzzer/*:
+        scenario_groups: exotics
+        libraries: null
+
 ################################# Default rules ################################
 # The rules in this section are only applied if no other rule is applicable.
 # They are considered safe to override in previous rules. They should match a

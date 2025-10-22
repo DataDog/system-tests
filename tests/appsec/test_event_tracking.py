@@ -76,12 +76,13 @@ class Test_UserLoginSuccessEvent:
     def test_user_login_success_header_collection(self):
         # Validate that all relevant headers are included on user login success
 
-        def validate_user_login_success_header_collection(span):
+        def validate_user_login_success_header_collection(span: dict) -> bool:
             if span.get("parent_id") not in (0, None):
-                return None
+                return False
 
             for header in HEADERS:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
+
             return True
 
         interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
