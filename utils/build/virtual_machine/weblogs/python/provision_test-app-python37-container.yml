@@ -1,5 +1,5 @@
 weblog:
-    name: test-app-python-container
+    name: test-app-python37-container
     runtime_version: 3.7
     install: 
       - os_type: linux
