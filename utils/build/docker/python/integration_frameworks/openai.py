@@ -35,4 +35,8 @@ def chat_completions(request: ChatCompletionRequest):
         **request.parameters,
     )
 
-    return {"response": response}
+    if stream:
+        for _ in response:
+            pass
+
+    return {}

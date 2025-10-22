@@ -42,22 +42,22 @@ interactions:
       : - 3.11.11
       ? !!python/object/apply:multidict._multidict.istr
       - traceparent
-      : - 00-68f8268900000000d6976576f769cb18-e9ec03abe259de68-01
+      : - 00-68f82854000000005a03a8ae58726e95-e6896535f60c2b05-01
       ? !!python/object/apply:multidict._multidict.istr
       - tracestate
-      : - dd=p:e9ec03abe259de68;s:1;t.dm:-0;t.tid:68f8268900000000
+      : - dd=p:e6896535f60c2b05;s:1;t.dm:-0;t.tid:68f8285400000000
       ? !!python/object/apply:multidict._multidict.istr
       - x-datadog-parent-id
-      : - '16855851542112755304'
+      : - '16611919982968449797'
       ? !!python/object/apply:multidict._multidict.istr
       - x-datadog-sampling-priority
       : - '1'
       ? !!python/object/apply:multidict._multidict.istr
       - x-datadog-tags
-      : - _dd.p.dm=-0,_dd.p.tid=68f8268900000000
+      : - _dd.p.dm=-0,_dd.p.tid=68f8285400000000
       ? !!python/object/apply:multidict._multidict.istr
       - x-datadog-trace-id
-      : - '15462939407231339288'
+      : - '6486213355105316501'
       ? !!python/object/apply:multidict._multidict.istr
       - x-stainless-read-timeout
       : - '600'
@@ -68,8 +68,8 @@ interactions:
     uri: https://api.openai.com/v1/chat/completions
   response:
     body:
-      string: "{\n  \"id\": \"chatcmpl-CTH5tbSTS8izEu9HMmEL0k6ZC6q95\",\n  \"object\":
-        \"chat.completion\",\n  \"created\": 1761093257,\n  \"model\": \"gpt-3.5-turbo-0125\",\n
+      string: "{\n  \"id\": \"chatcmpl-CTHDJdm9VHbbpNisMGQsTFppbzIzV\",\n  \"object\":
+        \"chat.completion\",\n  \"created\": 1761093717,\n  \"model\": \"gpt-3.5-turbo-0125\",\n
         \ \"choices\": [\n    {\n      \"index\": 0,\n      \"message\": {\n        \"role\":
         \"assistant\",\n        \"content\": \"Hello! How can I assist you today?\",\n
         \       \"refusal\": null,\n        \"annotations\": []\n      },\n      \"logprobs\":
@@ -81,7 +81,7 @@ interactions:
         \"default\",\n  \"system_fingerprint\": null\n}\n"
     headers:
       CF-RAY:
-      - 9924e87afb24c674-EWR
+      - 9924f3b2283642aa-EWR
       Connection:
       - keep-alive
       Content-Encoding:
@@ -89,14 +89,14 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Wed, 22 Oct 2025 00:34:18 GMT
+      - Wed, 22 Oct 2025 00:41:57 GMT
       Server:
       - cloudflare
       Set-Cookie:
-      - __cf_bm=HJv4jtgZCeqMscwl40wgg0hZpXPi3TaM2o0gN8GtCLE-1761093258-1.0.1.1-pKX3qfOIhmCc.K7I64V60bTRrlIEXyCb5UambfVY8l2IY5Z44mKl60WtlAhPQHyKqsEu.DWTwt..hoPOoNdHMEsCQu0zajScSZku7UwbUGk;
-        path=/; expires=Wed, 22-Oct-25 01:04:18 GMT; domain=.api.openai.com; HttpOnly;
+      - __cf_bm=klY8vs0Lx1ngSInqqlGD.dBW7igwA.2V4SzCnhsPGhw-1761093717-1.0.1.1-cAnNflqOYmVztGYy1iU2AzRSraykSDx4LE9_w8fWNmIOk6uGs6su_c5H.86So06LiR.E02dbNOwPpjdV5dvXLpKcjsWMZls6WyIUfkTpPO4;
+        path=/; expires=Wed, 22-Oct-25 01:11:57 GMT; domain=.api.openai.com; HttpOnly;
         Secure; SameSite=None
-      - _cfuvid=kHwO5EKzRDdR7wK6Z7Hv0xUA.KSBpM_KxpCOqTj_p3Y-1761093258170-0.0.1.1-604800000;
+      - _cfuvid=x1tUbE43MKnDYr2Xtq1L11MWJ8tkZOgiqGjsLhdnBgc-1761093717432-0.0.1.1-604800000;
         path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
       Strict-Transport-Security:
       - max-age=31536000; includeSubDomains; preload
@@ -113,13 +113,13 @@ interactions:
       openai-organization:
       - datadog-staging
       openai-processing-ms:
-      - '221'
+      - '312'
       openai-project:
       - proj_gt6TQZPRbZfoY2J9AQlEJMpd
       openai-version:
       - '2020-10-01'
       x-envoy-upstream-service-time:
-      - '271'
+      - '336'
       x-openai-proxy-wasm:
       - v0.1
       x-ratelimit-limit-requests:
@@ -135,7 +135,7 @@ interactions:
       x-ratelimit-reset-tokens:
       - 0s
       x-request-id:
-      - req_d55b66f3f2f84e1c8bf5293352d54e0d
+      - req_c5d496b0ceac42eea539adb53c014f04
     status:
       code: 200
       message: OK

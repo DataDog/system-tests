@@ -25,6 +25,11 @@ from utils import context, scenarios, logger
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
 
+IGNORE_PARAMS_FOR_TEST_NAME = (
+    "test_agent",
+    "test_library",
+)
+
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
@@ -214,7 +219,12 @@ class _TestAgentAPI:
         Starts a VCR context manager, which will prefix all recorded cassettes from the test agent with the given prefix.
         If no prefix is provided, the test name will be used.
         """
-        test_name = cassette_prefix or self._pytest_request.node.name
+        test_name = cassette_prefix or self._pytest_request.node.originalname
+
+        for param in self._pytest_request.node.callspec.params:
+            if param not in IGNORE_PARAMS_FOR_TEST_NAME:
+                param_value = self._pytest_request.node.callspec.params[param]
+                test_name += f"_{param}_{param_value}"
 
         try:
             resp = self._session.post(self._url(f"/vcr/test/start"), json={"test_name": test_name})
