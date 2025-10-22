@@ -107,9 +107,8 @@ class OtelCollectorScenario(DockerScenario):
             logger.terminal.write_sep("-", f"Wait for {interfaces.otel_collector} (20s)")
             logger.terminal.flush()
 
-            time.sleep(20)
+            interfaces.otel_collector.wait(20)
             self.collector_container.stop()
-            interfaces.otel_collector.wait(0)
 
         interfaces.otel_collector.check_deserialization_errors()
 
