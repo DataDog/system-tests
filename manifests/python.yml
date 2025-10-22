@@ -304,8 +304,8 @@ tests/:
         Test_API10_all:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
-        Test_API10_downstream_request_tag: missing_feature
-        Test_API10_downstream_ssrf_telemetry: missing_feature
+        Test_API10_downstream_request_tag: v3.18.0
+        Test_API10_downstream_ssrf_telemetry: v3.18.0
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
@@ -324,8 +324,8 @@ tests/:
         Test_API10_response_status:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
-        Test_API10_without_downstream_body_analysis_using_max: missing_feature
-        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: v3.15.0
+        Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
