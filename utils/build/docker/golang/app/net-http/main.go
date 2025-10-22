@@ -740,7 +740,7 @@ func main() {
 
 	mux.HandleFunc("/external_request", rasp.ExternalRequest)
 
-	mux.HandleFunc("/fee", common.FFeEval)
+	mux.HandleFunc("/ffe", common.FFeEval())
 
 	var d DebuggerController
 	mux.HandleFunc("/debugger/log", d.logProbe)

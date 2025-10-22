@@ -15,7 +15,7 @@ require (
 	github.com/DataDog/dd-trace-go/contrib/labstack/echo.v4/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/contrib/net/http/v2 v2.0.0
 	github.com/DataDog/dd-trace-go/contrib/sirupsen/logrus/v2 v2.0.0
-	github.com/DataDog/dd-trace-go/v2 v2.3.0
+	github.com/DataDog/dd-trace-go/v2 v2.4.0-dev.0.20251021090046-816e960a88de
 	github.com/IBM/sarama v1.46.2
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-chi/chi/v5 v5.2.1
@@ -44,7 +44,7 @@ require (
 	github.com/DataDog/datadog-agent/pkg/util/scrubber v0.67.0 // indirect
 	github.com/DataDog/datadog-agent/pkg/version v0.67.0 // indirect
 	github.com/DataDog/datadog-go/v5 v5.6.0 // indirect
-	github.com/DataDog/go-libddwaf/v4 v4.3.2 // indirect
+	github.com/DataDog/go-libddwaf/v4 v4.5.0 // indirect
 	github.com/DataDog/go-runtime-metrics-internal v0.0.4-0.20250721125240-fdf1ef85b633 // indirect
 	github.com/DataDog/go-sqllexer v0.1.6 // indirect
 	github.com/DataDog/go-tuf v1.1.0-0.5.2 // indirect
