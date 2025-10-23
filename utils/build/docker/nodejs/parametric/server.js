@@ -357,6 +357,51 @@ app.get('/trace/config', (req, res) => {
   });
 });
 
+app.post("/log/write", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  const logger = logs.getLogger(req?.body?.logger_name)
+  const otelSpan = otelSpans[req?.body?.span_id]
+  const ddSpan = spans[req?.body?.span_id]
+  let context = undefined
+  if (otelSpan) {
+    context = trace.setSpan(ROOT_CONTEXT, otelSpan)
+  } else if (ddSpan) {
+    const ddSpanContext = ddSpan.context()
+    const sp = {spanId: ddSpanContext.toSpanId(true), traceId: ddSpanContext.toTraceId(true), flags: ddSpanContext._sampling.priority >= 0 ? 1 : 0}
+    context = trace.setSpanContext(ROOT_CONTEXT, sp)
+  }
+
+  logger.emit({
+    severityText: req.body.level,
+    body: req.body.message,
+    context: context
+  })
+  res.status(200).json({})
+})
+
+app.post("/log/otel/flush", (req, res) => {
+  const { logs } = require('@opentelemetry/api-logs')
+
+  try {
+    // Get the current logs provider
+    const logsProvider = logs.getLoggerProvider()
+    const providerType = logsProvider.constructor.name
+
+    // Force flush all logs with timeout
+    const timeoutMs = (req.body.seconds || 5) * 1000
+    logsProvider.forceFlush(timeoutMs)
+      .then(() => {
+        res.status(200).json({ success: true, message: providerType })
+      })
+      .catch((error) => {
+        res.status(200).json({ success: false, message: `Error: ${error.message}` })
+      })
+  } catch (error) {
+    res.status(200).json({ success: false, message: `Error: ${error.message}` })
+  }
+})
+
 app.post("/trace/otel/add_event", (req, res) => {
   const { span_id, name, timestamp, attributes } = req.body;
   const span = otelSpans[span_id]
