@@ -4,14 +4,14 @@ import re
 import yaml
 
 from utils._context._scenarios import get_all_scenarios, DockerScenario
-from utils._context.containers import _get_client
+from utils._context.docker import get_docker_client
 
 
 def main(scenarios: list[str], library: str, weblog: str) -> None:
     images = set("")
 
     existing_tags = []
-    for image in _get_client().images.list():
+    for image in get_docker_client().images.list():
         existing_tags.extend(image.tags)
 
     for scenario in get_all_scenarios():

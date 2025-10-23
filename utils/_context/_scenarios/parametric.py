@@ -5,7 +5,6 @@ from collections.abc import Generator
 
 import json
 import glob
-from functools import lru_cache
 import os
 from pathlib import Path
 import shutil
@@ -13,8 +12,6 @@ import subprocess
 
 import pytest
 from _pytest.outcomes import Failed
-import docker
-from docker.errors import DockerException
 from docker.models.containers import Container
 from docker.models.networks import Network
 from retry import retry
@@ -22,6 +19,7 @@ from retry import retry
 from utils._context.component_version import ComponentVersion
 from utils._logger import logger
 
+from utils._context.docker import get_docker_client
 from .core import Scenario, scenario_groups
 
 
@@ -35,30 +33,6 @@ def _fail(message: str):
 default_subprocess_run_timeout = 300
 _NETWORK_PREFIX = "apm_shared_tests_network"
 # _TEST_CLIENT_PREFIX = "apm_shared_tests_container"
-
-
-@lru_cache
-def _get_client() -> docker.DockerClient:
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = subprocess.run(
-                ["docker", "context", "show"], capture_output=True, check=True, text=True
-            ).stdout.strip()
-            endpoint = subprocess.run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("No more success with docker contexts")
-
-        raise
 
 
 @dataclasses.dataclass
@@ -163,14 +137,14 @@ class ParametricScenario(Scenario):
 
         # https://github.com/DataDog/system-tests/issues/2799
         if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
-            output = _get_client().containers.run(
+            output = get_docker_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["./system_tests_library_version.sh"],
                 volumes=self.compute_volumes(self.apm_test_server_definition.volumes),
             )
         else:
-            output = _get_client().containers.run(
+            output = get_docker_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
@@ -192,12 +166,12 @@ class ParametricScenario(Scenario):
     @retry(delay=10, tries=3)
     def _pull_test_agent_image(self):
         logger.stdout("Pulling test agent image...")
-        _get_client().images.pull(self.TEST_AGENT_IMAGE)
+        get_docker_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
         """Some containers may still exists from previous unfinished sessions"""
 
-        for container in _get_client().containers.list(all=True):
+        for container in get_docker_client().containers.list(all=True):
             if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
                 logger.info(f"Removing {container}")
 
@@ -206,7 +180,7 @@ class ParametricScenario(Scenario):
     def _clean_networks(self):
         """Some network may still exists from previous unfinished sessions"""
         logger.info("Removing unused network")
-        _get_client().networks.prune()
+        get_docker_client().networks.prune()
         logger.info("Removing unused network done")
 
     @property
@@ -289,7 +263,7 @@ class ParametricScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge")
+        return get_docker_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
@@ -332,7 +306,7 @@ class ParametricScenario(Scenario):
         logger.info(f"Run container {name} from image {image} with ports {ports}")
 
         try:
-            container: Container = _get_client().containers.run(
+            container: Container = get_docker_client().containers.run(
                 image,
                 name=name,
                 environment=env,
@@ -345,7 +319,7 @@ class ParametricScenario(Scenario):
             logger.debug(f"Container {name} successfully started")
         except Exception as e:
             # at this point, even if it failed to start, the container may exists!
-            for container in _get_client().containers.list(filters={"name": name}, all=True):
+            for container in get_docker_client().containers.list(filters={"name": name}, all=True):
                 container.remove(force=True)
 
             _fail(f"Failed to run container {name}: {e}")

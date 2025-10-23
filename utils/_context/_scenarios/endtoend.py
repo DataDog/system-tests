@@ -15,6 +15,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -30,7 +31,6 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
-    _get_client as get_docker_client,
 )
 
 from utils._logger import logger
