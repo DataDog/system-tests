@@ -520,7 +520,7 @@ class EndToEndScenario(DockerScenario):
         return warmups
 
     def _wait_for_app_readiness(self):
-        return
+        if os.environ['ST_REUSE']: return
         if self._use_proxy_for_weblog:
             logger.debug("Wait for app readiness")
 
