@@ -367,7 +367,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
 
         else:
             logger.debug(f"{item.nodeid} is not included in {context.scenario}")
-            deselected.append(item)
+            #deselected.append(item)
 
     if must_pass_item_count == 0 and session.config.option.skip_empty_scenario:
         items[:] = []
