@@ -175,7 +175,7 @@ ignore = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
 
-"tests/{parametric,apm_tracing_e2e,appsec,debugger,serverless,remote_config,k8,integrations}*/test_*.py" = [
+"tests/{parametric,appsec,debugger,remote_config,integrations}*/test_*.py" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
 "tests/*" = [
