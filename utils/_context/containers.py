@@ -444,6 +444,7 @@ class TestedContainer:
                 logger.stdout("")
 
     def remove(self):
+        if os.environ.get('ST_KEEP'): return
         logger.debug(f"Removing container {self.name}")
 
         if self._container:
