@@ -316,6 +316,7 @@ def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str
             except Exception as e:
                 raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
 
+_any = False
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
@@ -373,6 +374,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
         config.hook.pytest_deselected(items=items)
     else:
         items[:] = selected
+        global _any
+        _any = len(selected) > 0
         config.hook.pytest_deselected(items=deselected)
 
     if config.option.scenario_report:
@@ -405,7 +408,9 @@ def _item_is_skipped(item: pytest.Item):
 
 
 def pytest_collection_finish(session: pytest.Session) -> None:
-    if session.testscollected == 0:
+    # This is always zero?
+    #if session.testscollected == 0:
+    if not _any:
         logger.error('collected zero tests, forcing exit')
         import sys,os
         os.kill(os.getpid(),9)
