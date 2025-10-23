@@ -100,7 +100,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -126,7 +126,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata_number": "123", "metadata_boolean": "true"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE, metadata=metadata)
         )
 
@@ -144,7 +144,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_success_tags_validator(LOGIN_SAFE, USER_ID_SAFE)
         )
 
@@ -178,7 +178,7 @@ class BaseUserLoginSuccessEventV2Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r,
             validator=self.get_user_login_success_tags_validator(
                 LOGIN_SAFE, USER_ID_SAFE, metadata, unexpected_metadata
@@ -230,7 +230,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginS
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -252,7 +252,7 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_success_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_success_header_collection)
 
 
 class BaseUserLoginSuccessEventV2Metrics:
@@ -368,7 +368,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=True, metadata=metadata)
         )
 
@@ -390,7 +390,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         metadata = {"metadata0": "value0", "metadata1": "value1"}
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False, metadata=metadata)
         )
 
@@ -408,7 +408,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         assert self.r.status_code == 200
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r, validator=self.get_user_login_failure_tags_validator(LOGIN_SAFE, exists=False)
         )
 
@@ -440,7 +440,7 @@ class BaseUserLoginFailureEventV2Tags:
 
         unexpected_metadata = ["prop1.prop2.prop3.prop4.prop5.prop6"]
 
-        interfaces.library.validate_spans(
+        interfaces.library.validate_one_span(
             self.r,
             validator=self.get_user_login_failure_tags_validator(
                 LOGIN_SAFE, exists=False, metadata=metadata, unexpected_metadata=unexpected_metadata
@@ -490,7 +490,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecEnabled(BaseUserLoginF
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 @features.event_tracking_sdk_v2
@@ -512,7 +512,7 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
 
             return True
 
-        interfaces.library.validate_spans(self.r, validator=validate_user_login_failure_header_collection)
+        interfaces.library.validate_one_span(self.r, validator=validate_user_login_failure_header_collection)
 
 
 class BaseUserLoginFailureEventV2Metrics:

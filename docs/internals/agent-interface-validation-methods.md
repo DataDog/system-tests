@@ -46,9 +46,6 @@ class MyTestClass:
 ### Validation Methods
 - `assert_trace_exists(request)` - Assert at least one trace exists for request
 - `validate_appsec(request, validator)` - Validate AppSec data using custom validator function
-- `validate_telemetry(validator, *, success_by_default=False)` - Validate telemetry data with custom validator
-- `validate_profiling(validator, *, success_by_default=False)` - Validate profiling data with custom validator
-- `add_traces_validation(validator, *, success_by_default=False)` - Add validation applied to all trace data
 
 ### Header Validation Methods
 - `assert_headers_presence(path_filter, request_headers=(), response_headers=(), check_condition=None)` - Validate presence of HTTP headers in agent communications

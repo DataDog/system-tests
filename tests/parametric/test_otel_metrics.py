@@ -106,7 +106,7 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
 
     for sum_data_point in sum_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}:
-            assert sum_data_point["as_double"] == value
+            assert float(sum_data_point.get("as_int", 0)) == value
             assert (
                 attributes.items()
                 == {item["key"]: item["value"]["string_value"] for item in sum_data_point["attributes"]}.items()
@@ -120,7 +120,7 @@ def assert_sum_aggregation(sum_aggregation, aggregation_temporality, is_monotoni
 def assert_gauge_aggregation(gauge_aggregation, value, attributes):
     for gauge_data_point in gauge_aggregation["data_points"]:
         if attributes == {item["key"]: item["value"]["string_value"] for item in gauge_data_point["attributes"]}:
-            assert gauge_data_point["as_double"] == value
+            assert float(gauge_data_point.get("as_int", 0)) == value
             assert "time_unix_nano" in gauge_data_point
             return
 
@@ -180,7 +180,6 @@ def get_expected_bucket_counts(entries: list[int], bucket_boundaries: list[float
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -249,7 +248,6 @@ class Test_Otel_Metrics_Configuration_Enabled:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -322,7 +320,6 @@ class Test_Otel_Metrics_Api_MeterProvider:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -542,7 +539,6 @@ class Test_Otel_Metrics_Api_Meter:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1071,7 +1067,6 @@ class Test_Otel_Metrics_Api_Instrument:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1263,7 +1258,6 @@ class Test_Otel_Metrics_Configuration_Temporality_Preference:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1309,6 +1303,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1379,6 +1374,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
         assert scope_metrics is not None
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc")
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
         [
@@ -1421,7 +1417,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1501,7 +1496,6 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1636,7 +1630,7 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Protocol:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
+@missing_feature(context.library == "nodejs", reason="Does not support DD_HOSTNAME")
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1734,7 +1728,6 @@ class Test_Otel_Metrics_Host_Name:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -1885,7 +1878,6 @@ class Test_Otel_Metrics_Resource_Attributes:
 @missing_feature(context.library == "dotnet", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "golang", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "java", reason="Not yet implemented", force_skip=True)
-@missing_feature(context.library == "nodejs", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "php", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "ruby", reason="Not yet implemented", force_skip=True)
 @missing_feature(context.library == "rust", reason="Not yet implemented", force_skip=True)
@@ -2084,6 +2076,7 @@ class Test_Otel_Metrics_Telemetry:
             assert "protocol:http" in metric.get("tags")
             assert "encoding:protobuf" in metric.get("tags")
 
+    @missing_feature(context.library == "nodejs", reason="Does not support grpc", force_skip=True)
     @pytest.mark.parametrize(
         "library_env",
         [
