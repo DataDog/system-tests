@@ -86,6 +86,7 @@ telemetry_name_mapping = {
         "java": "trace_tags",
         "dotnet": "DD_TAGS",
         "python": "DD_TAGS",
+        "nodejs": "DD_TAGS",
     },
     "trace_propagation_style": {
         "dotnet": "DD_TRACE_PROPAGATION_STYLE",
@@ -763,7 +764,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ],
     )
     @missing_feature(
-        context.library in ["cpp", "golang", "nodejs"],
+        context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
     @bug(context.library == "python", reason="APMAPI-1630")
@@ -837,7 +838,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         context.library in ["cpp", "golang", "nodejs"],
         reason="extended configs are not supported",
     )
-    @bug(context.library == "ruby", reason="APMAPI-1650")
+    # @bug(context.library == "ruby", reason="APMAPI-1650")
     @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python and ruby")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
