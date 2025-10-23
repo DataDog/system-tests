@@ -1,6 +1,7 @@
 import json
 
 from utils import weblog, interfaces, rfc, features, logger
+from utils._weblog import HttpResponse
 from tests.serverless.span_pointers.utils import (
     POINTER_DIRECTION_DOWNSTREAM,
     make_single_span_link_validator,
@@ -8,7 +9,7 @@ from tests.serverless.span_pointers.utils import (
 )
 
 
-def _validate_s3_object_pointer(r, resource):
+def _validate_s3_object_pointer(r: HttpResponse, resource: str):
     assert r.status_code == 200
 
     response_content = json.loads(r.text)
@@ -20,7 +21,7 @@ def _validate_s3_object_pointer(r, resource):
 
     logger.info(f"bucket: {bucket}, key: {key}, etag: {etag}")
 
-    interfaces.library.validate_spans(
+    interfaces.library.validate_one_span(
         r,
         validator=make_single_span_link_validator(
             resource=resource,

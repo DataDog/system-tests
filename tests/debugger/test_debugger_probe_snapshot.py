@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context, irrelevant
+from utils import scenarios, features, missing_feature, context, irrelevant, bug
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -213,6 +213,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
+    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -221,8 +222,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "java", reason="DEBUG-4340")
-    @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     def test_log_line_snapshot_debug_track(self):
@@ -234,10 +233,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         self.use_debugger_endpoint = True
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @missing_feature(context.library == "java", reason="DEBUG-4340")
-    @missing_feature(context.library == "dotnet", reason="DEBUG-4341")
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
+    @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0", force_skip=True)
     def test_log_line_snapshot_new_destination(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
@@ -300,6 +298,7 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
+    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
