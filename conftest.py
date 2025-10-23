@@ -382,7 +382,8 @@ def _item_is_skipped(item: pytest.Item):
 def pytest_collection_finish(session: pytest.Session) -> None:
     if session.testscollected == 0:
         logger.error('collected zero tests, forcing exit')
-        import sys
+        import sys,os
+        os.kill(os.getpid(),9)
         sys.exit(1)
     
     if session.config.option.collectonly:
