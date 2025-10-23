@@ -1141,6 +1141,12 @@ class WeblogContainer(TestedContainer):
 
     def post_start(self):
         logger.debug(f"Docker host is {weblog.domain}")
+        
+        # This sets library name and version by reading it out of
+        # the container. I guess that is necessary for version,
+        # but it is not needed for library name which is given in
+        # ST invocation. In any event, for this code to work
+        # the container must be running and has reported its status.
 
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
