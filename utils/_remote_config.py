@@ -127,9 +127,12 @@ def send_state(
         return True
 
     _post("/unique_command", raw_payload)
-    library.wait_for(remote_config_applied, timeout=30)
+    logger.debug('Waiting for remote config to be applied')
+    rv=library.wait_for(remote_config_applied, timeout=10)
+    print(rv)
+    assert rv, 'remote config was not applied'
     # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(2)
+    #time.sleep(2)
 
     return current_states
 
