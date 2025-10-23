@@ -67,7 +67,7 @@ class Test_SingleSpan:
         _assert_single_span_event(spans[0], "child.span.single_span_submitted", is_root=False)
 
 
-def _assert_single_span_event(event, name, is_root):
+def _assert_single_span_event(event: dict, name: str, *, is_root: bool):
     assert event["operation_name"] == name
     assert event["single_span"] is True
     assert event["ingestion_reason"] == "single_span"
@@ -79,7 +79,7 @@ def _assert_single_span_event(event, name, is_root):
         assert len(parent_id) > 0, f"In a child span the parent_id should be specified. Actual: {parent_id}"
 
 
-def _assert_single_span_metrics(span):
+def _assert_single_span_metrics(span: dict):
     assert span["metrics"][SAMPLING_PRIORITY_KEY] == -1  # due to the global sampling rate = 0
     assert span["metrics"][SINGLE_SPAN_SAMPLING_RATE] == 1.0
     assert span["metrics"][SINGLE_SPAN_SAMPLING_MECHANISM] == SINGLE_SPAN_SAMPLING_MECHANISM_VALUE

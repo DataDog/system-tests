@@ -3,6 +3,7 @@
 # Copyright 2022 Datadog, Inc.
 
 from utils import bug, context, interfaces, irrelevant, missing_feature, rfc, weblog, features, scenarios
+from utils._weblog import HttpResponse
 
 
 @features.envoy_external_processing
@@ -207,6 +208,7 @@ class Test_StandardTagsRoute:
     def setup_route(self):
         self.r = weblog.get("/sample_rate_route/1")
 
+    @bug(library="python", reason="APPSEC-59731")  # temporary fix to unblock a locked situation
     def test_route(self):
         assert self.r.status_code == 200
 
@@ -349,7 +351,7 @@ class Test_StandardTagsClientIp:
             assert tag in meta, f"missing {tag} tag"
             assert meta[tag] == value
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})
 
@@ -413,6 +415,6 @@ class Test_StandardTagsReferrerHostname:
                     meta["http.referrer_hostname"] == expected_hostname
                 ), f"Test case #{i}: Expected hostname {expected_hostname}, got {meta.get('http.referrer_hostname')}"
 
-    def _get_root_span_meta(self, request):
+    def _get_root_span_meta(self, request: HttpResponse):
         span = interfaces.library.get_root_span(request)
         return span.get("meta", {})

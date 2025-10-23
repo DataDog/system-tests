@@ -108,8 +108,8 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
         reason="PROF-10783",
     )
     @bug(
-        context.weblog_variant == "test-app-nodejs-multicontainer",
-        reason="APMSP-2331",
+        context.weblog_variant == "test-app-nodejs-container-25",
+        reason="PROF-12765",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
@@ -221,10 +221,6 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
-        reason="python 3.7 is not supported on ddtrace >= 3.x",
-    )
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(

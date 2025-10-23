@@ -43,7 +43,7 @@ _CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str) -> list:
-    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+    with open(os.path.join(_CUR_DIR, "utils", "probes", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -67,11 +67,11 @@ def extract_probe_ids(probes: dict | list) -> list:
 
 
 def _get_path(test_name: str, suffix: str, version: str) -> str:
-    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+    # system-tests/tests/debugger/utils/approvals/{language}/{version}/{test_name}_{suffix}.json
 
     language = BaseDebuggerTest.tracer["language"]
     filename = test_name + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
+    return os.path.join(_CUR_DIR, "utils", "approvals", language, version, filename)
 
 
 def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
@@ -787,7 +787,7 @@ class BaseDebuggerTest:
 
     def _get_path(self, test_name: str, suffix: str) -> str:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
-        return os.path.join(_CUR_DIR, "approvals", filename)
+        return os.path.join(_CUR_DIR, "utils", "approvals", filename)
 
     def write_approval(self, data: list, test_name: str, suffix: str) -> None:
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:
