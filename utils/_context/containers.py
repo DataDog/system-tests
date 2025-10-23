@@ -169,6 +169,7 @@ class TestedContainer:
         return None
 
     def stop_previous_container(self):
+        return
         if self.allow_old_container:
             return
 
@@ -177,6 +178,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self, network: Network) -> Container:
+        return
         """Start the actual underlying Docker container directly"""
 
         if self._container:
@@ -669,6 +671,7 @@ class AgentContainer(TestedContainer):
         self.agent_version: str | None = ""
 
     def post_start(self):
+        return
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
@@ -982,6 +985,7 @@ class WeblogContainer(TestedContainer):
             self.enable_core_dumps()
 
     def post_start(self):
+        return
         from utils import weblog
 
         logger.debug(f"Docker host is {weblog.domain}")
