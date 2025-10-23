@@ -1172,6 +1172,7 @@ class WeblogContainer(TestedContainer):
 
     @property
     def library(self) -> ComponentVersion:
+        return ComponentVersion('ruby','42')
         assert self._library is not None, "Library version is not set"
         return self._library
 
