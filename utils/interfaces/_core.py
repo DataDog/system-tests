@@ -204,14 +204,15 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
 
     def wait_for(self, wait_for_function: Callable, timeout: int):
         if self.replay:
-            return
+            # We actually don't know if the wait succeeded originally
+            return True
 
         # first, try existing data
         with self._lock:
             for data in self._data_list:
                 if wait_for_function(data):
                     logger.info(f"wait for {wait_for_function} finished in success with existing data")
-                    return
+                    return True
 
             # then set the lock, and wait for append_data to release it
             self._wait_for_event.clear()
@@ -220,10 +221,13 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         # release the main lock, and sleep !
         if self._wait_for_event.wait(timeout):
             logger.info(f"wait for {wait_for_function} finished in success")
+            rv = True
         else:
             logger.error(f"Wait for {wait_for_function} finished in error")
+            rv = False
 
         self._wait_for_function = None
+        return rv
 
     def get_schemas_errors(self) -> list[SchemaError]:
         if self._schema_errors is None:
