@@ -553,6 +553,7 @@ class EndToEndScenario(DockerScenario):
         interfaces.library_dotnet_managed.load_data()
 
     def _wait_and_stop_containers(self, *, force_interface_timout_to_zero: bool):
+        if os.environ.get('ST_KEEP'): return
         if self.replay:
             logger.terminal.write_sep("-", "Load all data from logs")
             logger.terminal.flush()
