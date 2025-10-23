@@ -51,6 +51,7 @@ class _Context:
     @property
     def library(self) -> ComponentVersion:
         result = self._get_scenario_property("library", None)
+        #import pdb;pdb.set_trace()
         assert result is not None
         return result
 

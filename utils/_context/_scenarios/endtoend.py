@@ -204,6 +204,7 @@ class DockerScenario(Scenario):
         warmups = super().get_warmups()
 
         if not self.replay:
+            #import pdb;pdb.set_trace()
             warmups.append(lambda: logger.stdout("Starting containers..."))
             warmups.append(self._create_network)
             warmups.append(self._start_containers)
@@ -312,6 +313,8 @@ class EndToEndScenario(DockerScenario):
             all_scenario_groups.end_to_end,
             all_scenario_groups.tracer_release,
         ] + (scenario_groups or [])
+        
+        #import pdb;pdb.set_trace()
 
         super().__init__(
             name,
@@ -538,6 +541,7 @@ class EndToEndScenario(DockerScenario):
             logger.debug("Agent ready")
 
     def post_setup(self, session: pytest.Session):
+        #import pdb;pdb.set_trace()
         # if no test are run, skip interface tomeouts
         is_empty_test_run = session.config.option.skip_empty_scenario and len(session.items) == 0
 
@@ -763,6 +767,8 @@ class EndToEndScenario(DockerScenario):
 
     @property
     def library(self):
+        print(self)
+        #import pdb;pdb.set_trace()
         return self.weblog_container.library
 
     @property

@@ -1023,6 +1023,9 @@ class WeblogContainer(TestedContainer):
     @property
     def uds_socket(self):
         assert self.image.env is not None, "No env set"
+        #print(self.image.env)
+        #import pdb;pdb.set_trace()
+        #x
         return self.image.env.get("DD_APM_RECEIVER_SOCKET", None)
 
     @property
