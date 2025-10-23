@@ -15,7 +15,9 @@ class _BaseKinesis:
     unique_id: str
 
     @classmethod
-    def get_span(cls, interface, span_kind, stream, operation) -> dict | None:
+    def get_span(
+        cls, interface: interfaces.LibraryInterfaceValidator, span_kind: list[str], stream: str, operation: str
+    ) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and stream: {stream} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -53,7 +55,7 @@ class _BaseKinesis:
         return None
 
     @staticmethod
-    def get_stream(span) -> str | None:
+    def get_stream(span: dict) -> str | None:
         """Extracts the stream from a span by trying various fields"""
         stream = span["meta"].get("streamname", None)  # this is in nodejs, java, python
 
@@ -187,7 +189,12 @@ class _BaseKinesis:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_kinesis_spans(self, producer_interface, consumer_interface, stream):
+    def validate_kinesis_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        stream: str,
+    ):
         """Validates production/consumption of Kinesis message.
         It works the same for both test_produce and test_consume
         """
