@@ -159,6 +159,9 @@ def pytest_configure(config: pytest.Config) -> None:
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
 
+    if not config.option.library and "TEST_LIBRARY" in os.environ:
+        config.option.library = os.environ["TEST_LIBRARY"].strip()
+
     # clean input
     config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]
 
