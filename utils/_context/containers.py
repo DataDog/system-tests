@@ -383,6 +383,7 @@ class TestedContainer:
         self.volumes = result
 
     def stop(self):
+        #import pdb;pdb.set_trace()
         self._starting_thread = None
 
         if self._container:
