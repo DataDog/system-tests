@@ -93,7 +93,8 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
             self._wait_for_event.set()
 
     def wait(self, timeout: int):
-        logger.info(f'unconditionally sleeping for {timeout}')
+        logger.info(f'unconditionally sleeping for {timeout} (not)')
+        return
         time.sleep(timeout)
 
     def check_deserialization_errors(self):
