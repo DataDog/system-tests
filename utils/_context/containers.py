@@ -412,6 +412,7 @@ class TestedContainer:
                 self.healthy = False
                 pytest.exit(f"Container {self.name} is not running ({self._container.status}), please check logs", 1)
 
+            logger.debug(f'stopping container {self}')
             self._container.stop()
 
             if not self.healthy:
