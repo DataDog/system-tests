@@ -133,6 +133,9 @@ def _check_propagation_style_with_inject_and_extract(
     elif library_name == "ruby":
         inject_key = "tracing.propagation_style_inject"
         extract_key = "tracing.propagation_style_extract"
+    elif library_name == "nodejs":
+        inject_key = "tracePropagationStyle.inject"
+        extract_key = "tracePropagationStyle.extract"
     else:
         raise ValueError(f"Unsupported library for inject/extract propagation style: {library_name}")
 
@@ -769,6 +772,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
     )
     @bug(context.library == "python", reason="APMAPI-1630")
     @bug(context.library == "ruby", reason="APMAPI-1631")
+    @bug(context.library == "nodejs", reason="APMAPI-1709")
     def test_stable_configuration_origin_extended_configs_good_use_case(
         self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
     ):
@@ -835,7 +839,7 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         ],
     )
     @missing_feature(
-        context.library in ["cpp", "golang", "nodejs"],
+        context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
     @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python and ruby")
@@ -869,13 +873,27 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
             test_library.dd_start_span("test")
         configuration_by_name = test_agent.wait_for_telemetry_configurations()
         for cfg_name, expected_origin in expected_origins.items():
-            # Python and Ruby only report inject and extract keys for trace_propagation_style
-            if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby"]:
+            # Python, Ruby and Node.js only report inject and extract keys for trace_propagation_style
+            if cfg_name == "trace_propagation_style" and context.library.name in ["python", "ruby", "nodejs"]:
                 _check_propagation_style_with_inject_and_extract(
                     test_agent, configuration_by_name, expected_origin, context.library.name
                 )
-            if cfg_name == "tags" and context.library.name in ["ruby"]:
+            elif cfg_name == "tags" and context.library.name in ["ruby"]:
                 continue
+            else:
+                apm_telemetry_name = _mapped_telemetry_name(context, cfg_name)
+                telemetry_item = test_agent.get_telemetry_config_by_origin(
+                    configuration_by_name, apm_telemetry_name, expected_origin
+                )
+                assert (
+                    telemetry_item is not None
+                ), f"No configuration found for '{apm_telemetry_name}' with origin '{expected_origin}'. Full configuration_by_name: {configuration_by_name}"
+
+                actual_origin = telemetry_item.get("origin", "<missing>")
+                assert (
+                    telemetry_item["origin"] == expected_origin
+                ), f"Origin mismatch for {telemetry_item}. Expected origin: '{expected_origin}', Actual origin: '{actual_origin}'"
+                assert telemetry_item["value"]
 
 
 DEFAULT_ENVVARS = {
