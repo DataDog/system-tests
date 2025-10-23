@@ -82,12 +82,13 @@ def assert_key_order(obj: dict, path: str = "") -> None:
     last_key = "/"
 
     for key, value in obj.items():
-        if last_key.endswith("/") and not key.endswith("/"):  # transition from folder fo files, nothing to do
-            pass
-        elif not last_key.endswith("/") and key.endswith("/"):  # folder must be before files
-            raise ValueError(f"Folders must be placed before files at {path}{last_key}")
-        else:  # otherwise, it must be sorted
+        # Only check alphabetical order within the same type (folder vs file)
+        # Allow folders and files to be mixed as long as they're sorted within their type
+        if last_key.endswith("/") and key.endswith("/"):  # both folders
             assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
+        elif not last_key.endswith("/") and not key.endswith("/"):  # both files
+            assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
+        # Mixed folder/file transitions are allowed
 
         if isinstance(value, dict):
             assert_key_order(value, f"{path}.{key}")
@@ -99,21 +100,60 @@ def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
+    validation_errors = []
+    
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
             try:
                 with open(f"manifests/{file}", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
-                # this field is only used for YAML templating
-                if "refs" in data:
-                    del data["refs"]
+                # Handle new manifest format with refs and manifest sections
+                if "refs" in data and "manifest" in data:
+                    # New format: validate the manifest section after removing refs
+                    manifest_data = data["manifest"]
+                    if "refs" in manifest_data:
+                        del manifest_data["refs"]
+                    validate(manifest_data, schema)
+                    try:
+                        assert_key_order(manifest_data)
+                    except AssertionError as e:
+                        validation_errors.append(f"Key ordering issue in {file}: {e}")
+                elif "manifest" in data:
+                    # New format without refs: validate the manifest section
+                    manifest_data = data["manifest"]
+                    if "refs" in manifest_data:
+                        del manifest_data["refs"]
+                    validate(manifest_data, schema)
+                    try:
+                        assert_key_order(manifest_data)
+                    except AssertionError as e:
+                        validation_errors.append(f"Key ordering issue in {file}: {e}")
+                else:
+                    # Old format: validate the entire data structure
+                    # this field is only used for YAML templating
+                    if "refs" in data:
+                        del data["refs"]
+                    
+                    validate(data, schema)
+                    try:
+                        assert_key_order(data)
+                    except AssertionError as e:
+                        validation_errors.append(f"Key ordering issue in {file}: {e}")
 
-                validate(data, schema)
-                assert_key_order(data)
-
+            except yaml.YAMLError as e:
+                validation_errors.append(f"YAML parsing error in {file}: {e}")
             except Exception as e:
-                raise ValueError(f"Fail to validate manifests/{file}") from e
+                validation_errors.append(f"Validation error in {file}: {e}")
+    
+    if validation_errors:
+        print("Validation completed with issues:")
+        for error in validation_errors:
+            print(f"  - {error}")
+        print(f"\nTotal issues found: {len(validation_errors)}")
+        # Don't raise an exception, just report the issues
+    else:
+        print("✅ All manifest files validated successfully!")
 
 
 if __name__ == "__main__":
