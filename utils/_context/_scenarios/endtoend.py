@@ -373,6 +373,7 @@ class EndToEndScenario(DockerScenario):
         self.components[self.library.name] = self.library.version
 
     def _wait_for_app_readiness(self):
+        if os.environ.get('ST_REUSE'): return
         if self._use_proxy_for_weblog:
             logger.debug("Wait for app readiness")
 

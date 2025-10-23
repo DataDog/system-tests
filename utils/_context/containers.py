@@ -190,6 +190,7 @@ class TestedContainer:
         return None
 
     def stop_previous_container(self):
+        if os.environ.get('ST_REUSE'): return
         if self.allow_old_container:
             return
 
@@ -198,6 +199,7 @@ class TestedContainer:
             old_container.remove(force=True)
 
     def start(self, network: Network) -> Container:
+        if os.environ.get('ST_REUSE'): return
         """Start the actual underlying Docker container directly"""
 
         if self._container:
@@ -781,6 +783,7 @@ class AgentContainer(TestedContainer):
         )
 
     def post_start(self):
+        if os.environ.get('ST_REUSE'): return
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
             data = json.load(f)
 
@@ -1140,6 +1143,7 @@ class WeblogContainer(TestedContainer):
             pytest.exit(f"Unsupported platform {sys.platform} with ipv6 enabled", 1)
 
     def post_start(self):
+        if os.environ.get('ST_REUSE'): return
         logger.debug(f"Docker host is {weblog.domain}")
         
         # This sets library name and version by reading it out of
