@@ -175,7 +175,8 @@
                     ],
                     "python": [
                         "test-app-python-27",
-                        "test-app-python-unsupported-defaults"
+                        "test-app-python-unsupported-defaults",
+                        "test-app-python37-container"
                     ],
                     "dotnet": [
                         "test-app-dotnet-unsupported"
@@ -503,6 +504,16 @@
                 "name": "test-app-python-container",
                 "excluded_os_branches": [
                     "windows"
+                ]
+            },
+            {
+                "name": "test-app-python37-container",
+                "exact_os_branches": [
+                    "ubuntu24"
+                ],
+                "excluded_os_names": [
+                    "Ubuntu_24_10_amd64",
+                    "Ubuntu_24_10_arm64"
                 ]
             },
             {

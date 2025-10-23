@@ -377,7 +377,7 @@ class Test_HeaderTags_DynamicConfig:
         else:
             pytest.fail(f"A span with /status in the resource name was not found {spans}")
 
-    def get_rc_params(self, header_tags, service_name="weblog", env="system-tests"):
+    def get_rc_params(self, header_tags: dict, service_name: str = "weblog", env: str = "system-tests"):
         config = {
             "action": "enable",
             "service_target": {"service": service_name, "env": env},
@@ -429,7 +429,7 @@ class Test_HeaderTags_Wildcard_Response_Headers:
 TRACECONTEXT_FLAGS_SET = 1 << 31
 
 
-def retrieve_span_links(span):
+def retrieve_span_links(span: dict):
     if span.get("spanLinks") is not None:
         return span["spanLinks"]
 
