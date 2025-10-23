@@ -139,9 +139,11 @@ def send_state(
         current_states.state = ApplyState.ACKNOWLEDGED
         return True
 
-    library.wait_for(remote_config_applied, timeout=30)
-    # ensure the library has enough time to apply the config to all subprocesses
-    time.sleep(2)
+    rv = library.wait_for(remote_config_applied, timeout=30)
+    assert rv, 'Remote config was not applied'
+    if context.library == 'python':
+        # ensure the library has enough time to apply the config to all subprocesses
+        time.sleep(2)
 
     return current_states
 
