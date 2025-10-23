@@ -306,6 +306,7 @@ class EndToEndScenario(DockerScenario):
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
+        agent_image: str = "datadog/agent:latest",
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -339,7 +340,9 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
+        self.agent_container = AgentContainer(
+            use_proxy=use_proxy_for_agent, environment=agent_env, agent_image=agent_image
+        )
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
@@ -802,83 +805,3 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result
-
-
-class DevEndToEndScenario(EndToEndScenario):
-    """Use to test scenarios with the dev agent image"""
-
-    AGENT_IMAGE = "datadog/agent-dev:master-py3"
-
-    def __init__(
-        self,
-        name: str,
-        *,
-        doc: str,
-        github_workflow: str = "endtoend",
-        scenario_groups: list[ScenarioGroup] | None = None,
-        weblog_env: dict[str, str | None] | None = None,
-        weblog_volumes: dict | None = None,
-        agent_env: dict[str, str | None] | None = None,
-        enable_ipv6: bool = False,
-        tracer_sampling_rate: float | None = None,
-        appsec_enabled: bool = True,
-        iast_enabled: bool = True,
-        additional_trace_header_tags: tuple[str, ...] = (),
-        library_interface_timeout: int | None = None,
-        agent_interface_timeout: int = 5,
-        use_proxy_for_weblog: bool = True,
-        use_proxy_for_agent: bool = True,
-        rc_api_enabled: bool = False,
-        meta_structs_disabled: bool = False,
-        span_events: bool = True,
-        runtime_metrics_enabled: bool = False,
-        backend_interface_timeout: int = 0,
-        include_postgres_db: bool = False,
-        include_cassandra_db: bool = False,
-        include_mongo_db: bool = False,
-        include_kafka: bool = False,
-        include_rabbitmq: bool = False,
-        include_mysql_db: bool = False,
-        include_sqlserver: bool = False,
-        include_localstack: bool = False,
-        include_elasticmq: bool = False,
-        include_otel_drop_in: bool = False,
-        include_buddies: bool = False,
-        require_api_key: bool = False,
-    ) -> None:
-        super().__init__(
-            name=name,
-            doc=doc,
-            github_workflow=github_workflow,
-            scenario_groups=scenario_groups,
-            weblog_env=weblog_env,
-            weblog_volumes=weblog_volumes,
-            agent_env=agent_env,
-            enable_ipv6=enable_ipv6,
-            tracer_sampling_rate=tracer_sampling_rate,
-            appsec_enabled=appsec_enabled,
-            iast_enabled=iast_enabled,
-            additional_trace_header_tags=additional_trace_header_tags,
-            library_interface_timeout=library_interface_timeout,
-            agent_interface_timeout=agent_interface_timeout,
-            use_proxy_for_weblog=use_proxy_for_weblog,
-            use_proxy_for_agent=use_proxy_for_agent,
-            rc_api_enabled=rc_api_enabled,
-            meta_structs_disabled=meta_structs_disabled,
-            span_events=span_events,
-            runtime_metrics_enabled=runtime_metrics_enabled,
-            backend_interface_timeout=backend_interface_timeout,
-            include_postgres_db=include_postgres_db,
-            include_cassandra_db=include_cassandra_db,
-            include_mongo_db=include_mongo_db,
-            include_kafka=include_kafka,
-            include_rabbitmq=include_rabbitmq,
-            include_mysql_db=include_mysql_db,
-            include_sqlserver=include_sqlserver,
-            include_localstack=include_localstack,
-            include_elasticmq=include_elasticmq,
-            include_otel_drop_in=include_otel_drop_in,
-            include_buddies=include_buddies,
-            require_api_key=require_api_key,
-        )
-        self.agent_container.image.name = self.AGENT_IMAGE

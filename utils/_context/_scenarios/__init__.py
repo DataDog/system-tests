@@ -7,7 +7,7 @@ from utils.tools import update_environ_with_local_env
 from .aws_lambda import LambdaScenario
 from .core import Scenario, scenario_groups
 from .default import DefaultScenario
-from .endtoend import DockerScenario, EndToEndScenario, DevEndToEndScenario
+from .endtoend import DockerScenario, EndToEndScenario
 from .integrations import CrossedTracingLibraryScenario, IntegrationsScenario, AWSIntegrationsScenario
 from .open_telemetry import OpenTelemetryScenario
 from .otel_collector import OtelCollectorScenario
@@ -535,7 +535,7 @@ class _Scenarios:
         doc="",
     )
 
-    apm_tracing_efficient_payload = DevEndToEndScenario(
+    apm_tracing_efficient_payload = EndToEndScenario(
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
@@ -544,6 +544,7 @@ class _Scenarios:
         agent_env={
             "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
         },
+        agent_image="datadog/agent-dev:master-py3",
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )

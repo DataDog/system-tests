@@ -655,7 +655,13 @@ class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
 
-    def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        use_proxy: bool = True,
+        environment: dict[str, str | None] | None = None,
+        agent_image: str = "datadog/agent:latest",
+    ) -> None:
         environment = environment or {}
         environment.update(
             {
@@ -674,7 +680,7 @@ class AgentContainer(TestedContainer):
 
         super().__init__(
             name="agent",
-            image_name="datadog/agent:latest",
+            image_name=agent_image,
             binary_file_name="agent-image",
             environment=environment,
             healthcheck={
