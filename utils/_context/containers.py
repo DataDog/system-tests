@@ -747,7 +747,7 @@ class WeblogContainer(TestedContainer):
                     "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
                     "threshold": 1,
                 },
-                "timestsmp": {
+                "timestamp": {
                     "keyids": ["ed7672c9a24abda78872ee32ee71c7cb1d5235e8db4ecbf1ca28b9c50eb75d9e"],
                     "threshold": 1,
                 },
