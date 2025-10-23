@@ -802,3 +802,12 @@ class EndToEndScenario(DockerScenario):
         result["dd_tags[systest.suite.context.appsec_rules_file]"] = self.weblog_container.appsec_rules_file or ""
 
         return result
+
+class DevEndToEndScenario(EndToEndScenario):
+    """Use to test scenarios with the dev agent image"""
+    AGENT_IMAGE = "datadog/agent-dev:master-py3"
+
+    def __init__(self, *args, **kwargs) -> None:
+        super().__init__(*args, **kwargs)
+        self.agent_container.image_name = self.AGENT_IMAGE
+        self.agent_container.binary_file_name = None

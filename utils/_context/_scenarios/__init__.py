@@ -535,7 +535,7 @@ class _Scenarios:
         doc="",
     )
 
-    apm_tracing_efficient_payload = EndToEndScenario(
+    apm_tracing_efficient_payload = DevEndToEndScenario(
         "APM_TRACING_EFFICIENT_PAYLOAD",
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
