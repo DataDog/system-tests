@@ -8,7 +8,7 @@ from utils.integration_frameworks import FrameworkTestClientFactory, TestAgentFa
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
-from .core import Scenario
+from .core import Scenario, scenario_groups
 
 _NETWORK_PREFIX = "framework_shared_tests_network"
 
@@ -18,11 +18,7 @@ class IntegrationFrameworksScenario(Scenario):
     test_agent_factory: TestAgentFactory
 
     def __init__(self, name: str, doc: str) -> None:
-        super().__init__(
-            name,
-            doc=doc,
-            github_workflow="endtoend",
-        )
+        super().__init__(name, doc=doc, github_workflow="endtoend", scenario_groups=[scenario_groups.tracer_release])
 
         self.environment = {
             "DD_TRACE_DEBUG": "true",

@@ -1,14 +1,11 @@
-from utils import (
-    context,
-    missing_feature,
-    scenarios,
-)
+from utils import context, missing_feature, scenarios, features
 
 import pytest
 
 from utils.integration_frameworks import FrameworkTestClientApi, TestAgentAPI
 
 
+@features.llm_observability
 @scenarios.integration_frameworks
 class TestOpenAiAPM:
     @missing_feature(context.library == "nodejs", reason="Node.js openai server not implemented yet")
