@@ -14,7 +14,7 @@ _NETWORK_PREFIX = "framework_shared_tests_network"
 
 class IntegrationFrameworksScenario(Scenario):
     TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
-    framework_test_server_definition: FrameworkTestClientFactory
+    test_client_factory: FrameworkTestClientFactory
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(
@@ -22,7 +22,6 @@ class IntegrationFrameworksScenario(Scenario):
             doc=doc,
             github_workflow="integration_frameworks",
         )
-        self.framework_factory = None
 
         self.environment = {
             "DD_TRACE_DEBUG": "true",
@@ -40,7 +39,7 @@ class IntegrationFrameworksScenario(Scenario):
         if not framework or not framework_version:
             pytest.exit("No framework specified, please set -F option", 1)
 
-        self.framework_test_server_definition = FrameworkTestClientFactory(
+        self.test_client_factory = FrameworkTestClientFactory(
             library=library,
             framework=framework,
             framework_version=framework_version,
@@ -65,7 +64,7 @@ class IntegrationFrameworksScenario(Scenario):
 
     def _build_framework_test_server_image(self, github_token_file: str) -> None:
         logger.stdout("Build framework test container...")
-        self.framework_test_server_definition.build(self.host_log_folder, github_token_file=github_token_file)
+        self.test_client_factory.build(self.host_log_folder, github_token_file=github_token_file)
         logger.stdout("Build complete")
 
     def _pull_test_agent_image(self) -> None:

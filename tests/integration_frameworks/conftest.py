@@ -192,7 +192,7 @@ def test_client(
 ) -> Generator[FrameworkTestClient, None, None]:
     scenarios.integration_frameworks.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
-    framework_test_server = scenarios.integration_frameworks.framework_test_server_definition
+    framework_test_server = scenarios.integration_frameworks.test_client_factory
     with framework_test_server.get_client(
         library_env=library_env,
         worker_id=worker_id,
