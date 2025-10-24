@@ -20,8 +20,22 @@ tests/:
           rack: irrelevant (rack does not have path parameters support)
         Test_API_Security_Sampling_Rate: irrelevant
         Test_API_Security_Sampling_With_Delay: v2.18.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.21.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Negative: v2.21.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.21.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Scanner: v2.21.0  # auto activation: might not be the earliest working version
       test_endpoint_discovery.py:
-        Test_Endpoint_Discovery: missing_feature
+        Test_Endpoint_Discovery:
+          "*": v2.22.0.dev
+          rack: irrelevant (rack does not have a router)
+          rails42: irrelevant
+          sinatra14: missing_feature
+          sinatra22: missing_feature
+          sinatra32: missing_feature
+          sinatra41: missing_feature
+          uds-sinatra: missing_feature
       test_schemas.py:
         Test_Scanners: v2.19.0
         Test_Schema_Request_Cookies: v1.15.0
@@ -209,12 +223,16 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
         Test_API10_response_body: missing_feature
         Test_API10_response_headers: missing_feature
         Test_API10_response_status: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py: missing_feature
       test_lfi.py: missing_feature
       test_shi.py: missing_feature
@@ -332,11 +350,11 @@ tests/:
       test_exclusions.py:
         Test_Exclusions:
           "*": v1.11.0
-          sinatra14: missing_feature (endpoint not implemented)
-          sinatra22: missing_feature (endpoint not implemented)
-          sinatra32: missing_feature (endpoint not implemented)
-          sinatra41: missing_feature (endpoint not implemented)
-          uds-sinatra: missing_feature (endpoint not implemented)
+          sinatra14: v2.21.0  # auto activation: might not be the earliest working version
+          sinatra22: v2.21.0  # auto activation: might not be the earliest working version
+          sinatra32: v2.21.0  # auto activation: might not be the earliest working version
+          sinatra41: v2.21.0  # auto activation: might not be the earliest working version
+          uds-sinatra: v2.21.0  # auto activation: might not be the earliest working version
       test_miscs.py:
         Test_MultipleAttacks: v0.54.2
         Test_MultipleHighlight: v1.0.0.beta1
@@ -370,7 +388,7 @@ tests/:
       Test_V2_Login_Events: irrelevant
       Test_V2_Login_Events_Anon: irrelevant
       Test_V2_Login_Events_RC: irrelevant
-      Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
+      Test_V3_Auto_User_Instrum_Mode_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_V3_Login_Events:
         "*": v2.13.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -424,8 +442,8 @@ tests/:
     test_blocking_addresses.py:
       Test_BlockingGraphqlResolvers: v2.4.0
       Test_Blocking_client_ip: v1.0.0
-      Test_Blocking_client_ip_with_K8_private_ip: missing_feature
-      Test_Blocking_client_ip_with_forwarded: missing_feature
+      Test_Blocking_client_ip_with_K8_private_ip: v2.23.0.dev
+      Test_Blocking_client_ip_with_forwarded: v2.22.0.dev
       Test_Blocking_request_body: v1.0.0
       Test_Blocking_request_body_multipart: v1.0.0
       Test_Blocking_request_cookies: v1.0.0
@@ -484,12 +502,12 @@ tests/:
       Test_ExtendedRequestBodyCollection: missing_feature
     test_fingerprinting.py:
       Test_Fingerprinting_Endpoint: v2.15.0
-      Test_Fingerprinting_Endpoint_Capability: missing_feature
+      Test_Fingerprinting_Endpoint_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Endpoint_Preprocessor: v2.16.0
       Test_Fingerprinting_Header_And_Network: v2.15.0
       Test_Fingerprinting_Header_And_Network_Preprocessor: v2.16.0
-      Test_Fingerprinting_Header_Capability: missing_feature
-      Test_Fingerprinting_Network_Capability: missing_feature
+      Test_Fingerprinting_Header_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
+      Test_Fingerprinting_Network_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session:
         "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -498,7 +516,7 @@ tests/:
         sinatra32: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         sinatra41: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
         uds-sinatra: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
-      Test_Fingerprinting_Session_Capability: missing_feature
+      Test_Fingerprinting_Session_Capability: v2.23.1-dev  # auto activation: might not be the earliest working version
       Test_Fingerprinting_Session_Preprocessor:
         "*": v2.16.0
         rack: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
@@ -535,7 +553,7 @@ tests/:
       Test_RuntimeActivation: missing_feature
       Test_RuntimeDeactivation: missing_feature
     test_service_activation_metric.py:
-      TestServiceActivationEnvVarConfigurationMetric: missing_feature
+      TestServiceActivationEnvVarConfigurationMetric: v2.22.0
       TestServiceActivationEnvVarMetric: missing_feature
       TestServiceActivationRemoteConfigMetric: missing_feature
       TestServiceActivationRemoteConfigurationConfigMetric: missing_feature
@@ -545,7 +563,7 @@ tests/:
       Test_Suspicious_Attacker_Blocking: missing_feature
     test_trace_tagging.py:
       Test_TraceTaggingRules: v2.22.0-dev
-      Test_TraceTaggingRulesRcCapability: missing_feature
+      Test_TraceTaggingRulesRcCapability: v2.22.0-dev
     test_traces.py:
       Test_AppSecEventSpanTags: v0.54.2
       Test_AppSecObfuscator: v1.0.0
@@ -709,6 +727,9 @@ tests/:
         "*": incomplete_test_app (endpoint not implemented)
         rails72: v2.0.0
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v1.17.0
     test_config_consistency.py:
@@ -720,6 +741,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v2.5.0
       Test_Stable_Config_Default: v2.18.0
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v2.3.0
     test_dynamic_configuration.py:
@@ -736,6 +758,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v2.1.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v1.17.0
     test_otel_span_with_baggage.py:
@@ -744,6 +767,7 @@ tests/:
       Test_Parametric_DDSpan_Set_Resource: incomplete_test_app (set_resource endpoint is not supported)
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current span endpoint is not supported)
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: incomplete_test_app (otel current span endpoint is not supported)
@@ -808,10 +832,10 @@ tests/:
     Test_Config_ClientIPHeader_Precedence: v2.3.0
     Test_Config_ClientTagQueryString_Configured: missing_feature (does not support redacting query string via envar)
     Test_Config_ClientTagQueryString_Empty: missing_feature (removes query string by default)
-    Test_Config_HttpClientErrorStatuses_Default: missing_feature
-    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpClientErrorStatuses_Default: bug (APMAPI-1702)
+    Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_HttpServerErrorStatuses_Default: v2.0.0
-    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
+    Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: v2.23.0-dev
     Test_Config_IntegrationEnabled_False:
       "*": irrelevant (endpoint not implemented)
       rails72: v2.0.0
@@ -844,12 +868,14 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: v2.22.1-dev
     Test_GraphQLOperationErrorTracking:
-      '*': missing_feature
+      "*": missing_feature
       graphql23: missing_feature
   test_identify.py:
     Test_Basic: v1.0.0

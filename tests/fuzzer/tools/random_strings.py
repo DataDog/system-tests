@@ -19,15 +19,15 @@ class _StringLists:
         for i in range(0xA0, 0xFF + 1):
             self.latin1 += bytes([i]).decode("latin1")
 
-    def get_random_unicode(self, min_length=1, max_length=255):
+    def get_random_unicode(self, min_length: int = 1, max_length: int = 255) -> str:
         length = random.randint(min_length, max_length)
         return "".join(random.choices(self.unicode, k=length))
 
-    def get_random_unicode_char(self):
+    def get_random_unicode_char(self) -> str:
         return random.choice(self.unicode)
 
     @cached_property
-    def unicode(self):
+    def unicode(self) -> list[str]:
         result = []
 
         def append(*args: int):
@@ -124,11 +124,11 @@ get_random_unicode = string_lists.get_random_unicode
 get_random_unicode_char = string_lists.get_random_unicode_char
 
 
-def get_random_latin1(min_length=0, max_length=255) -> str:
+def get_random_latin1(min_length: int = 0, max_length: int = 255) -> str:
     length = random.randint(min_length, max_length)
     return "".join(random.choices(string_lists.latin1, k=length))
 
 
-def get_random_string(population: list[str], min_length: int = 0, max_length: int = 255) -> str:
+def get_random_string(population: list[str] | str, min_length: int = 0, max_length: int = 255) -> str:
     length = random.randint(min_length, max_length)
     return "".join(random.choices(population, k=length))

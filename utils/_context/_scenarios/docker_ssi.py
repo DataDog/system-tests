@@ -14,8 +14,8 @@ from utils._context.containers import (
     DockerSSIContainer,
     APMTestAgentContainer,
     TestedContainer,
-    _get_client as get_docker_client,
 )
+from utils._context.docker import get_docker_client
 from utils.docker_ssi.docker_ssi_matrix_utils import resolve_runtime_version
 from utils._logger import logger
 from utils.virtual_machine.vm_logger import vm_logger

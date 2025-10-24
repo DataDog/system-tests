@@ -27,6 +27,7 @@ class _ScenarioGroups:
     all = ScenarioGroup()
     appsec = ScenarioGroup()
     appsec_rasp = ScenarioGroup()
+    appsec_rasp_scenario = ScenarioGroup()
     appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
     end_to_end = ScenarioGroup()
@@ -53,6 +54,10 @@ class _ScenarioGroups:
     telemetry = ScenarioGroup()
     tracing_config = ScenarioGroup()
     tracer_release = ScenarioGroup()
+    parametric = ScenarioGroup()
+    appsec_low_waf_timeout = ScenarioGroup()
+    default = ScenarioGroup()
+    feature_flag_exposure = ScenarioGroup()
 
     def __getitem__(self, key: str) -> ScenarioGroup:
         key = key.replace("-", "_").lower()
@@ -84,8 +89,6 @@ VALID_CI_WORKFLOWS = {
     "parametric",
     "testthetest",
     "dockerssi",
-    "externalprocessing",
-    "streamprocessingoffload",
 }
 
 

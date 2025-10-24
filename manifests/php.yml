@@ -16,6 +16,12 @@ tests/:
         Test_API_Security_Sampling_Different_Status: v1.11.0
         Test_API_Security_Sampling_Rate: irrelevant (new sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: v1.11.0
+      test_custom_data_classification.py:
+        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
+        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
+        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
+        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -207,12 +213,16 @@ tests/:
     rasp/:
       test_api10.py:
         Test_API10_all: missing_feature
+        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_ssrf_telemetry: missing_feature
         Test_API10_request_body: missing_feature
         Test_API10_request_headers: missing_feature
         Test_API10_request_method: missing_feature
         Test_API10_response_body: missing_feature
         Test_API10_response_headers: missing_feature
         Test_API10_response_status: missing_feature
+        Test_API10_without_downstream_body_analysis_using_max: missing_feature
+        Test_API10_without_downstream_body_analysis_using_sample_rate: missing_feature
       test_cmdi.py:
         Test_Cmdi_BodyJson: missing_feature
         Test_Cmdi_BodyUrlEncoded: missing_feature
@@ -299,9 +309,9 @@ tests/:
         Test_UrlRaw: v0.68.3  # probably sooner, but was flaky
         Test_gRPC: missing_feature
       test_blocking.py:
-        Test_Blocking: v0.86.0
+        Test_Blocking: missing_feature  # v0.86.0
         Test_Blocking_strip_response_headers: missing_feature
-        Test_CustomBlockingResponse: v0.86.0
+        Test_CustomBlockingResponse: missing_feature  # v0.86.0
       test_custom_rules.py:
         Test_CustomRules: v0.87.2
       test_exclusions.py:
@@ -541,6 +551,9 @@ tests/:
     test_context_propagation.py:
       Test_Otel_Context_Propagation_Default_Propagator_Api: incomplete_test_app (endpoint not implemented)
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v0.84.0
     test_config_consistency.py:
@@ -552,6 +565,7 @@ tests/:
       Test_Config_TraceLogDirectory: missing_feature
       Test_Config_UnifiedServiceTagging: v1.5.0
       Test_Stable_Config_Default: v1.8.0
+      Test_Stable_Config_Rules: missing_feature
     test_crashtracking.py:
       Test_Crashtracking: v1.3.0
     test_dynamic_configuration.py:
@@ -569,6 +583,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: v1.1.0
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: v0.94.0
     test_otel_span_with_baggage.py:
@@ -580,6 +595,7 @@ tests/:
       Test_Parametric_DDSpan_Start: v1.13.0+4663b2fa7c20c6920f347d059b57dc2a419cb7f7
       Test_Parametric_DDTrace_Baggage: missing_feature (baggage is not supported)
       Test_Parametric_DDTrace_Current_Span: bug (APMAPI-778)  # current span endpoint should return span and trace id of zero if no span is "active"
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_Otel_Baggage: missing_feature (otel baggage is not supported)
       Test_Parametric_Otel_Current_Span: bug (APMAPI-778)  # otel current span endpoint should return a span and trace id of zero if no span is "active"
       Test_Parametric_Write_Log: missing_feature
@@ -662,6 +678,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

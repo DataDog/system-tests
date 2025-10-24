@@ -5,19 +5,18 @@ import json
 from typing import cast
 from http import HTTPStatus
 from pathlib import Path
-from subprocess import run
 import time
-from functools import lru_cache
 from threading import RLock, Thread
 
 import docker
-from docker.errors import APIError, DockerException
+from docker.errors import APIError
 from docker.models.containers import Container, ExecResult
 from docker.models.networks import Network
 import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion
+from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
 from utils import interfaces
@@ -28,43 +27,17 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
-
-@lru_cache
-def _get_client():
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException as e:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
-            endpoint = run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("Fail to get docker client with context")
-
-        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
-            pytest.exit("Connection refused to docker daemon, is it running?", 1)
-
-        raise
-
-
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network() -> Network:
-    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
+    for network in get_docker_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return get_docker_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
@@ -72,7 +45,7 @@ _VOLUME_INJECTOR_NAME = "volume-inject"
 
 def create_inject_volume():
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
-    _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
+    get_docker_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
@@ -87,6 +60,7 @@ class TestedContainer:
         image_name: str,
         *,
         allow_old_container: bool = False,
+        binary_file_name: str | None = None,
         cap_add: list[str] | None = None,
         command: str | list[str] | None = None,
         environment: dict[str, str | None] | None = None,
@@ -104,7 +78,9 @@ class TestedContainer:
         self.host_project_dir = os.environ.get("SYSTEM_TESTS_HOST_PROJECT_DIR", str(Path.cwd()))
         self.allow_old_container = allow_old_container
 
-        self.image = ImageInfo(image_name, local_image_only=local_image_only)
+        self.image = ImageInfo(
+            self._get_image_name(binary_file_name, default_name=image_name), local_image_only=local_image_only
+        )
         self.healthcheck = healthcheck
 
         # healthy values:
@@ -127,6 +103,18 @@ class TestedContainer:
         self.ulimits: list | None = None
         self.privileged = False
         self.pid_mode = pid_mode
+
+    def _get_image_name(self, binary_file_name: str | None, default_name: str) -> str:
+        # if the container provide binary_file_name, then a file named binaries/{binary_file_name}
+        # may exists and contains the name of the image to use for this container
+        if binary_file_name is None:
+            return default_name
+
+        try:
+            with open(f"binaries/{binary_file_name}", encoding="utf-8") as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            return default_name
 
     def enable_core_dumps(self) -> None:
         """Modify container options to enable the possibility of core dumps"""
@@ -159,6 +147,11 @@ class TestedContainer:
         else:
             self.image.load_from_logs(self.log_folder_path)
 
+        if self.stdout_interface:
+            self.stdout_interface.configure(host_log_folder, replay=replay)
+
+        logger.info(f"Using {self.image.name} for container {self.name}")
+
     @property
     def container_name(self):
         return f"system-tests-{self.name}"
@@ -168,7 +161,7 @@ class TestedContainer:
         return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
-        for container in _get_client().containers.list(all=True, filters={"name": self.container_name}):
+        for container in get_docker_client().containers.list(all=True, filters={"name": self.container_name}):
             if container.name == self.container_name:
                 logger.debug(f"Container {self.container_name} found")
                 return container
@@ -206,7 +199,7 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = _get_client().containers.run(
+        self._container = get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -442,20 +435,7 @@ class TestedContainer:
             self.stdout_interface.load_data()
 
     def _set_aws_auth_environment(self):
-        # copy SYSTEM_TESTS_AWS env variables from local env to docker image
-
-        if "SYSTEM_TESTS_AWS_ACCESS_KEY_ID" in os.environ:
-            prefix = "SYSTEM_TESTS_AWS"
-            for key, value in os.environ.items():
-                if prefix in key:
-                    self.environment[key.replace("SYSTEM_TESTS_", "")] = value
-        else:
-            prefix = "AWS"
-            for key, value in os.environ.items():
-                if prefix in key:
-                    self.environment[key] = value
-
-        # Set default AWS values if specific keys are not present
+        # Set default AWS values
         if "AWS_REGION" not in self.environment:
             self.environment["AWS_REGION"] = "us-east-1"
             self.environment["AWS_DEFAULT_REGION"] = "us-east-1"
@@ -522,18 +502,18 @@ class ImageInfo:
 
     def load(self):
         try:
-            self._image = _get_client().images.get(self.name)
+            self._image = get_docker_client().images.get(self.name)
         except docker.errors.ImageNotFound:
             if self.local_image_only:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
             try:
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
             except docker.errors.ImageNotFound:
                 # Sometimes pull returns ImageNotFound, internal race?
                 time.sleep(5)
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
 
@@ -666,8 +646,9 @@ class AgentContainer(TestedContainer):
             environment["DD_PROXY_HTTP"] = f"http://proxy:{ProxyPorts.agent}"
 
         super().__init__(
-            image_name=self._get_image_name(),
             name="agent",
+            image_name="datadog/agent:latest",
+            binary_file_name="agent-image",
             environment=environment,
             healthcheck={
                 "test": f"curl --fail --silent --show-error --max-time 2 http://localhost:{self.apm_receiver_port}/info",
@@ -685,13 +666,6 @@ class AgentContainer(TestedContainer):
         )
 
         self.agent_version: str | None = ""
-
-    def _get_image_name(self) -> str:
-        try:
-            with open("binaries/agent-image", encoding="utf-8") as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            return "datadog/agent:latest"
 
     def post_start(self):
         with open(self.healthcheck_log_file, encoding="utf-8") as f:
@@ -1278,9 +1252,14 @@ class MsSqlServerContainer(SqlDbTestedContainer):
 
 
 class OpenTelemetryCollectorContainer(TestedContainer):
-    def __init__(self) -> None:
-        image = os.environ.get("SYSTEM_TESTS_OTEL_COLLECTOR_IMAGE", "otel/opentelemetry-collector-contrib:0.110.0")
-        self._otel_config_host_path = "./utils/build/docker/otelcol-config.yaml"
+    def __init__(
+        self,
+        config_file: str = "./utils/build/docker/otelcol-config.yaml",
+        environment: dict[str, str | None] | None = None,
+        volumes: dict | None = None,
+    ) -> None:
+        # Allow custom config file via environment variable
+        self._otel_config_host_path = config_file
 
         if "DOCKER_HOST" in os.environ:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
@@ -1292,13 +1271,20 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         self._otel_port = 13133
 
         super().__init__(
-            image_name=image,
             name="collector",
+            image_name="otel/opentelemetry-collector-contrib:0.110.0",
+            binary_file_name="otel_collector-image",
             command="--config=/etc/otelcol-config.yml",
-            environment={},
-            volumes={self._otel_config_host_path: {"bind": "/etc/otelcol-config.yml", "mode": "ro"}},
+            environment=environment,
+            volumes=volumes,
             ports={"13133/tcp": ("0.0.0.0", 13133)},  # noqa: S104
         )
+
+    def configure(self, *, host_log_folder: str, replay: bool) -> None:
+        self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
+        self.volumes[self._otel_config_host_path] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
+
+        super().configure(host_log_folder=host_log_folder, replay=replay)
 
     # Override wait_for_health because we cannot do docker exec for container opentelemetry-collector-contrib
     def wait_for_health(self) -> bool:
@@ -1373,7 +1359,7 @@ class MountInjectionVolume(TestedContainer):
 
     def remove(self):
         super().remove()
-        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
+        get_docker_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
 
 
 class WeblogInjectionInitContainer(TestedContainer):

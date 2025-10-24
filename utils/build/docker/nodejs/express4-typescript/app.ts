@@ -97,6 +97,21 @@ app.get('/customResponseHeaders', (req: Request, res: Response) => {
   res.send('OK');
 });
 
+app.get('/authorization_related_headers', (req: Request, res: Response) => {
+  res.set({
+    Authorization: 'value1',
+    'Proxy-Authorization': 'value2',
+    'WWW-Authenticate': 'value3',
+    'Proxy-Authenticate': 'value4',
+    'Authentication-Info': 'value5',
+    'Proxy-Authentication-Info': 'value6',
+    Cookie: 'value7',
+    'Set-Cookie': 'value8',
+    'content-type': 'text/plain'
+  })
+  res.send('OK')
+})
+
 app.get('/exceedResponseHeaders', (req: Request, res: Response) => {
   res.set('content-language', 'text/plain');
   for (let i: number = 0; i < 50; i++) {

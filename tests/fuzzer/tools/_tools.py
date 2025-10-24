@@ -6,12 +6,12 @@
 class cached_property:  # noqa: N801 (used as a decorator)
     """Descriptor (non-data) for building an attribute on-demand on first use."""
 
-    def __init__(self, factory):
+    def __init__(self, factory):  # noqa: ANN001
         """<factory> is called such: factory(instance) to build the attribute."""
         self._attr_name = factory.__name__
         self._factory = factory
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: object, owner):  # noqa: ANN001
         # Build the attribute.
         attr = self._factory(instance)
 
