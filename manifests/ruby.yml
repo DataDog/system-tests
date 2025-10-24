@@ -904,12 +904,12 @@ tests/:
   test_protobuf.py: missing_feature
   test_resource_renaming.py:
     Test_Resource_Renaming_HTTP_Endpoint_Tag:
-        "*": v2.23.0.dev
-        sinatra14: irrelevant
-        sinatra22: irrelevant
-        sinatra32: irrelevant
-        sinatra41: irrelevant
-        uds-sinatra: irrelevant
+      "*": v2.23.0.dev
+      sinatra14: irrelevant
+      sinatra22: irrelevant
+      sinatra32: irrelevant
+      sinatra41: irrelevant
+      uds-sinatra: irrelevant
     Test_Resource_Renaming_Stats_Aggregation_Keys: missing_feature
   test_sampling_rates.py:
     Test_SampleRateFunction: v2.15.0  # real version unknown
