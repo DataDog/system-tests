@@ -6,7 +6,7 @@ import time
 import tests.debugger.utils as debugger
 
 
-from utils import scenarios, features, missing_feature, context, irrelevant, bug
+from utils import scenarios, features, missing_feature, context, irrelevant
 from utils.interfaces._library.miscs import validate_process_tags
 
 
@@ -213,7 +213,6 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
@@ -298,7 +297,6 @@ class Test_Debugger_Line_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     def setup_log_line_snapshot(self):
         self._setup("probe_snapshot_log_line", "/debugger/log", "log", lines=None)
 
-    @bug(context.library == "nodejs", reason="DEBUG-4611")
     def test_log_line_snapshot(self):
         self._assert()
         self._validate_snapshots()
