@@ -3,7 +3,7 @@ from pathlib import Path
 from docker.models.networks import Network
 import pytest
 
-from utils.integration_frameworks import FrameworkTestClientFactory
+from utils.integration_frameworks import FrameworkTestClientFactory, TestAgentFactory
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
@@ -13,8 +13,8 @@ _NETWORK_PREFIX = "framework_shared_tests_network"
 
 
 class IntegrationFrameworksScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
     test_client_factory: FrameworkTestClientFactory
+    test_agent_factory: TestAgentFactory
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(
@@ -39,6 +39,7 @@ class IntegrationFrameworksScenario(Scenario):
         if not framework or not framework_version:
             pytest.exit("No framework specified, please set -F option", 1)
 
+        self.test_agent_factory = TestAgentFactory(self.host_log_folder)
         self.test_client_factory = FrameworkTestClientFactory(
             library=library,
             framework=framework,
@@ -58,7 +59,7 @@ class IntegrationFrameworksScenario(Scenario):
         if self.is_main_worker:
             # Build the framework test server image
             self._build_framework_test_server_image(config.option.github_token_file)
-            self._pull_test_agent_image()
+            self.test_agent_factory.pull()
             self._clean_containers()
             self._clean_networks()
 
@@ -66,10 +67,6 @@ class IntegrationFrameworksScenario(Scenario):
         logger.stdout("Build framework test container...")
         self.test_client_factory.build(self.host_log_folder, github_token_file=github_token_file)
         logger.stdout("Build complete")
-
-    def _pull_test_agent_image(self) -> None:
-        logger.stdout(f"Pull test agent image {self.TEST_AGENT_IMAGE}...")
-        get_docker_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self) -> None:
         for container in get_docker_client().containers.list(all=True):

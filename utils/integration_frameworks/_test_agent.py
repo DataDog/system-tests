@@ -1,10 +1,12 @@
 import base64
+from collections.abc import Generator
 import contextlib
 from http import HTTPStatus
 import json
 from pathlib import Path
+import os
 import time
-from typing import TypedDict, Any
+from typing import TypedDict, Any, TextIO
 import urllib.parse
 
 import pytest
@@ -13,12 +15,20 @@ import requests
 from utils._logger import logger
 from utils.parametric.spec.trace import Trace
 
-from ._core import get_host_port
+from ._core import get_host_port, get_docker_client, docker_run
 
 IGNORE_PARAMS_FOR_TEST_NAME = (
     "test_agent",
     "test_library",
 )
+
+
+def _request_token(request: pytest.FixtureRequest) -> str:
+    token = ""
+    token += request.module.__name__
+    token += f".{request.cls.__name__}" if request.cls else ""
+    token += f".{request.node.name}"
+    return token
 
 
 class AgentRequest(TypedDict):
@@ -28,12 +38,99 @@ class AgentRequest(TypedDict):
     body: str
 
 
+class TestAgentFactory:
+    """Handle everything to create the TestAgentApi"""
+
+    image = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
+
+    def __init__(self, host_log_folder: str):
+        self.host_log_folder = host_log_folder
+
+    def pull(self) -> None:
+        logger.stdout(f"Pull test agent image {self.image}...")
+        get_docker_client().images.pull(self.image)
+
+    @contextlib.contextmanager
+    def get_agent(
+        self,
+        worker_id: str,
+        docker_network: str,
+        request: pytest.FixtureRequest,
+        test_agent_container_name: str,
+        test_agent_port: int,
+        test_agent_otlp_http_port: int,
+        test_agent_otlp_grpc_port: int,
+        test_agent_log_file: TextIO,
+    ) -> Generator["_TestAgentAPI", None, None]:
+        # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
+        # (trace_content_length) go client doesn't submit content length header
+        env = {
+            "ENABLED_CHECKS": "trace_count_header",
+            "OTLP_HTTP_PORT": str(test_agent_otlp_http_port),
+            "OTLP_GRPC_PORT": str(test_agent_otlp_grpc_port),
+            "VCR_CASSETTES_DIRECTORY": "/vcr-cassettes",
+        }
+        if os.getenv("DEV_MODE") is not None:
+            env["SNAPSHOT_CI"] = "0"
+
+        agent_host_port = get_host_port(worker_id, 4600)
+
+        with docker_run(
+            image=self.image,
+            name=test_agent_container_name,
+            env=env,
+            volumes={
+                f"{Path.cwd()!s}/snapshots": "/snapshots",
+                f"{Path.cwd()!s}/tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
+            },
+            ports={f"{test_agent_port}/tcp": agent_host_port},
+            log_file=test_agent_log_file,
+            network=docker_network,
+        ):
+            client = _TestAgentAPI(
+                self.host_log_folder, "localhost", pytest_request=request, agent_host_port=agent_host_port
+            )
+            time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
+            for _ in range(100):
+                try:
+                    resp = client.info()
+                except Exception as e:
+                    logger.debug(f"Wait for 0.1s for the test agent to be ready {e}")
+                    time.sleep(0.1)
+                else:
+                    if resp["version"] != "test":
+                        message = f"""Agent version {resp['version']} is running instead of the test agent.
+                        Stop the agent on port {test_agent_port} and try again."""
+                        pytest.fail(message, pytrace=False)
+
+                    logger.info("Test agent is ready")
+                    break
+            else:
+                logger.error("Could not connect to test agent")
+                pytest.fail(
+                    f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", pytrace=False
+                )
+
+            # If the snapshot mark is on the test case then do a snapshot test
+            marks = list(request.node.iter_markers(name="snapshot"))
+            assert len(marks) <= 1, "Multiple snapshot marks detected"
+            if marks:
+                snap = marks[0]
+                assert len(snap.args) == 0, "only keyword arguments are supported by the snapshot decorator"
+                if "token" not in snap.kwargs:
+                    snap.kwargs["token"] = _request_token(request).replace(" ", "_").replace(os.path.sep, "_")
+                with client.snapshot_context(**snap.kwargs):
+                    yield client
+            else:
+                yield client
+
+
 class _TestAgentAPI:
     """Abstracts everything about test agent. TODO : share this with parametric test"""
 
-    def __init__(self, host_log_folder: str, host: str, worker_id: str, pytest_request: pytest.FixtureRequest):
+    def __init__(self, host_log_folder: str, host: str, agent_host_port: int, pytest_request: pytest.FixtureRequest):
         self.host = host
-        self.agent_port = get_host_port(worker_id, 4600)
+        self.agent_port = agent_host_port  # TODO rename to agent_host_port
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = (
