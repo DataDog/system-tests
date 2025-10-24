@@ -129,18 +129,11 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
     # Integration frameworks scenario options
     parser.addoption(
-        "--framework",
+        "--weblog",
         type=str,
         action="store",
         default=None,
-        help="Framework to test (e.g. 'openai'). INTEGRATION_FRAMEWORKS scenario.",
-    )
-    parser.addoption(
-        "--framework-version",
-        type=str,
-        action="store",
-        default="latest",
-        help="Version of the framework to test (e.g. '1.0.0'). INTEGRATION_FRAMEWORKS scenario.",
+        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
     )
 
     # report data to feature parity dashboard

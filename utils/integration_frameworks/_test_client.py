@@ -39,6 +39,7 @@ class TestClientFactory:
         self.container_env: dict[str, str] = dict(container_env)
 
     def build(self, host_log_folder: str, github_token_file: str) -> None:
+        logger.stdout("Build framework test container...")
         log_path = f"{host_log_folder}/outputs/docker_build_log.log"
         Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
@@ -87,6 +88,8 @@ class TestClientFactory:
 
             if p.returncode != 0:
                 pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
+
+        logger.stdout("Build complete")
 
 
 class FrameworkTestClientFactory(TestClientFactory):
