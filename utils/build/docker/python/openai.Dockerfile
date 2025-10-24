@@ -16,3 +16,5 @@ RUN mkdir /integration-framework-tracer-logs
 
 # TODO SAM: startlette? or starlette
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
+ENV OPENAI_API_KEY="<not-a-real-key>"
+CMD ["ddtrace-run", "python3.11", "-m", "integration_frameworks", "openai"],
