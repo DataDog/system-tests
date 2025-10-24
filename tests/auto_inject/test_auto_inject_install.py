@@ -222,6 +222,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
+    @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
