@@ -27,6 +27,7 @@ from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
+from utils.get_declaration import get_declarations
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
@@ -247,62 +248,62 @@ def _collect_item_metadata(item: pytest.Item):
     return metadata
 
 
-def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
-    # As now, declaration only works for tracers at module level
-
-    library = context.library.name
-
-    manifests = load_manifests()
-
-    path = module_path.relative_to(module_path.cwd())
-
-    full_declaration: str | None = None
-    nodeid: str
-
-    # look in manifests for any declaration of this file, or on one of its parents
-    while str(path) != ".":
-        nodeid = f"{path!s}/" if path.is_dir() else str(path)
-
-        if nodeid in manifests and library in manifests[nodeid]:
-            full_declaration = manifests[nodeid][library]
-            break
-
-        path = path.parent
-
-    if full_declaration is None:
-        return None
-
-    logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
-
-    declaration, details = parse_skip_declaration(full_declaration)
-
-    mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
-
-    add_pytest_marker(mod, declaration, details)
-
-    return mod
-
-
-@pytest.hookimpl(tryfirst=True)
-def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
-    if collector.istestclass(obj, name):
-        if obj is None:
-            message = f"""{collector.nodeid} is not properly collected.
-            You may have forgotten to return a value in a decorator like @features"""
-            raise ValueError(message)
-
-        manifest = load_manifests()
-
-        nodeid = f"{collector.nodeid}::{name}"
-
-        if nodeid in manifest:
-            declaration = manifest[nodeid]
-            logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
-
-            try:
-                released(**declaration)(obj)
-            except Exception as e:
-                raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
+# def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
+#     # As now, declaration only works for tracers at module level
+#
+#     library = context.library.name
+#
+#     manifests = load_manifests()
+#
+#     path = module_path.relative_to(module_path.cwd())
+#
+#     full_declaration: str | None = None
+#     nodeid: str
+#
+#     # look in manifests for any declaration of this file, or on one of its parents
+#     while str(path) != ".":
+#         nodeid = f"{path!s}/" if path.is_dir() else str(path)
+#
+#         if nodeid in manifests and library in manifests[nodeid]:
+#             full_declaration = manifests[nodeid][library]
+#             break
+#
+#         path = path.parent
+#
+#     if full_declaration is None:
+#         return None
+#
+#     logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
+#
+#     declaration, details = parse_skip_declaration(full_declaration)
+#
+#     mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
+#
+    # add_pytest_marker(mod, declaration, details)
+#
+#     return mod
+#
+#
+# @pytest.hookimpl(tryfirst=True)
+# def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
+#     if collector.istestclass(obj, name):
+#         if obj is None:
+#             message = f"""{collector.nodeid} is not properly collected.
+#             You may have forgotten to return a value in a decorator like @features"""
+#             raise ValueError(message)
+#
+#         manifest = load_manifests()
+#
+#         nodeid = f"{collector.nodeid}::{name}"
+#
+#         if nodeid in manifest:
+#             declaration = manifest[nodeid]
+#             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
+#
+#             try:
+#                 released(**declaration)(obj)
+#             except Exception as e:
+#                 raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
 
 
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
@@ -366,6 +367,24 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
     if config.option.scenario_report:
         with open(f"{context.scenario.host_log_folder}/scenarios.json", "w", encoding="utf-8") as f:
             json.dump(all_declared_scenarios, f, indent=2)
+
+    rules = get_declarations(context.library.name,
+                               context.library.version,
+                               context.weblog_variant,
+                               context.agent_version,
+                               context.dd_apm_inject_version,
+                               context.k8s_cluster_agent_version)
+    for item in items:
+        for nodeid, declarations in rules.items():
+            # if "TestLDAPInjection_ExtendedLocation" in nodeid and "TestLDAPInjection_ExtendedLocation" in item.nodeid:
+            #     print(nodeid, item.nodeid, declarations)
+            if nodeid in item.nodeid:
+                # if "TestLDAPInjection_ExtendedLocation" in nodeid:
+                #     print(nodeid, item.nodeid, declarations)
+                # print(nodeid, item.nodeid)
+                for declaration in declarations:
+                    add_pytest_marker(item, declaration[0], declaration[1])
+
 
 
 def pytest_deselected(items: Sequence[pytest.Item]) -> None:
@@ -456,6 +475,16 @@ def pytest_collection_finish(session: pytest.Session) -> None:
 
     context.scenario.post_setup(session)
 
+    print("\n=== Collected test functions and their marks ===")
+    with open("./dump", "w") as f:
+        for item in session.items:
+            # Get all marks, including inherited ones (parametrize, class, etc.)
+            marks = [m.name for m in item.iter_markers()]
+            f.write(f"{item.nodeid} :: {', '.join(sorted(set(marks))) or 'no marks'}\n")
+
+    # Stop after collection, before running tests
+    # pytest.exit("Listed all test marks.", returncode=0)
+
 
 def pytest_runtest_call(item: pytest.Item) -> None:
     # add a log line for each request made by the setup, to help debugging
@@ -522,10 +551,10 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
         exitstatus = pytest.ExitCode.OK
         session.exitstatus = pytest.ExitCode.OK
 
-    context.scenario.pytest_sessionfinish(session, exitstatus)
-
     if session.config.option.collectonly or session.config.option.replay:
         return
+
+    context.scenario.pytest_sessionfinish(session, exitstatus)
 
     # xdist: pytest_sessionfinish function runs at the end of all tests. If you check for the worker input attribute,
     # it will run in the master thread after all other processes have finished testing

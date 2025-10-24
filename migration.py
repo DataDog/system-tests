@@ -1,4 +1,5 @@
 import yaml
+import unittest
 from collections import OrderedDict
 
 variants = {"agent": set(),
@@ -154,7 +155,7 @@ def flatten(data, lib, root = "tests/", end = False, leaves = None):
                 leaf += f"library_version: <{var[1][1:]}"
                 leaf += f"\n    declaration: missing_feature"
             else:
-                leaf += f"declaration: {var[1]}"
+                leaf += f"declaration: '{var[1]}'"
             leaves.add(leaf)
 
     else:
@@ -230,10 +231,10 @@ def add_refs(file_path, output_file):
 
 def main():
     global output
-    for lib in ["python"]:
+    for lib in variants:
         output = ""
         file_path =f"./manifests/{lib}.yml" 
-        output_file =f"./manifests/{lib}.new.yml" 
+        output_file =f"./manifests.new/{lib}.yml" 
         add_refs(file_path, output_file)
         with open(file_path) as f:
             data = yaml.safe_load(f)

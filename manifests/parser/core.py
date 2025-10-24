@@ -3,6 +3,8 @@ from functools import lru_cache
 import json
 import os
 
+from utils._decorators import CustomSpec as SemverRange
+
 from jsonschema import validate
 import yaml
 
@@ -20,21 +22,51 @@ def _flatten(base: str, obj: dict):
                 yield from _flatten(f"{base}{key}", value)
 
 
-def _load_file(file: str):
+def _load_file(file: str, component: str):
+    def to_semver(version: str):
+        par = version.find("(")
+        if par >= 0:
+            version = sdec[:par]
+        return SemverRange(version)
+
     try:
         with open(file, encoding="utf-8") as f:
             data = yaml.safe_load(f)
     except FileNotFoundError:
         return {}
 
-    # this field is only used for YAML templating
-    if "refs" in data:
-        del data["refs"]
+    ret = {}
+    for nodeid, value in data["manifest"].items():
+        if "TestHeaderInjection_ExtendedLocation" in nodeid:
+            print(value)
+        try:
+            if isinstance(value, str):
+                sdec = value
+                value = {}
+                if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
+                    value["declaration"] = sdec
+                else:
+                    value["library_version"] = {to_semver(f"<{sdec.strip("v").strip("<").strip(">")}")}
+                    value["declaration"] = "missing_feature"
+            if not isinstance(value, list):
+                value = [value]
+            for entry in value:
+                if isinstance(entry.get("library_version"), str):
+                    entry["library_version"] = to_semver(entry["library_version"])
+                entry["library"] = component
 
-    return {nodeid: value for nodeid, value in _flatten("", data) if value is not None}
+            ret[nodeid] = value
+        except ValueError as e:
+            # print(e)
+            if "TestHeaderInjection_ExtendedLocation" in nodeid:
+                print(value)
+                print(e)
+            pass
+
+    return ret
 
 
-@lru_cache
+# @lru_cache
 def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     """Returns a dict of nodeid, value are another dict where the key is the component
     and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
@@ -70,10 +102,12 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
         "k8s_cluster_agent",
         "python_lambda",
     ):
-        data = _load_file(f"{base_dir}{component}.yml")
+        data = _load_file(f"{base_dir}{component}.yml", component)
 
         for nodeid, value in data.items():
-            result[nodeid][component] = value
+            if nodeid not in result:
+                result[nodeid] = []
+            result[nodeid] += value
 
     return result
 
