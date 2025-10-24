@@ -3,9 +3,7 @@ from collections.abc import Generator
 import contextlib
 import dataclasses
 import os
-import shutil
 import json
-import subprocess
 import time
 from pathlib import Path
 from typing import TextIO, TypedDict, Any
@@ -17,7 +15,6 @@ import pytest
 from utils._context._scenarios.integration_frameworks import FrameworkTestServer
 from utils.integration_frameworks._framework_client import FrameworkClient, FrameworkLibraryClient
 
-from utils.parametric.spec.trace import V06StatsPayload
 from utils.parametric.spec.trace import Trace
 
 from utils import context, scenarios, logger
@@ -47,16 +44,6 @@ class AgentRequest(TypedDict):
     body: str
 
 
-class AgentRequestV06Stats(AgentRequest):
-    body: V06StatsPayload  # type: ignore[misc]
-
-
-def pytest_configure(config: pytest.Config) -> None:
-    config.addinivalue_line(
-        "markers", "snapshot(*args, **kwargs): mark test to run as a snapshot test which sends traces to the test agent"
-    )
-
-
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
     token += request.module.__name__
@@ -71,15 +58,9 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def library_extra_command_arguments() -> list[str]:
-    return []
-
-
-@pytest.fixture
 def framework_test_server(
     request: pytest.FixtureRequest,
     library_env: dict[str, str],
-    library_extra_command_arguments: list[str],
     test_id: str,
 ) -> FrameworkTestServer:
     """Request level definition of the library test server with the session Docker image built"""
@@ -88,16 +69,6 @@ def framework_test_server(
     scenarios.integration_frameworks.parametrized_tests_metadata[request.node.nodeid] = new_env
 
     new_env.update(framework_test_server_image.env)
-
-    command = framework_test_server_image.container_cmd
-
-    if len(library_extra_command_arguments) > 0:
-        if framework_test_server_image.lang not in ("nodejs", "java", "php"):
-            # TODO : all test server should call directly the target without using a sh script
-            command += library_extra_command_arguments
-        else:
-            # temporary workaround for the test server to be able to run the command
-            new_env["SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS"] = " ".join(library_extra_command_arguments)
 
     return dataclasses.replace(
         framework_test_server_image,
@@ -290,25 +261,6 @@ class _TestAgentAPI:
         raise ValueError(
             f"Number ({num}) of LLMobs evaluations requests not available from test agent, got {num_received}:\n{llmobs_evaluations_requests}"
         )
-
-
-@pytest.fixture(scope="session")
-def docker() -> str | None:
-    """Fixture to ensure docker is ready to use on the system."""
-    # Redirect output to /dev/null since we just care if we get a successful response code.
-    r = subprocess.run(
-        ["docker", "info"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        timeout=default_subprocess_run_timeout,
-        check=False,
-    )
-    if r.returncode != 0:
-        pytest.exit(
-            "Docker is not running and is required to run the shared APM library tests. Start docker and try running the tests again.",
-            returncode=1,
-        )
-    return shutil.which("docker")
 
 
 @pytest.fixture
