@@ -6,7 +6,7 @@ import pytest
 
 from utils.integration_frameworks import (
     FrameworkTestClient,
-    _TestAgentAPI,
+    TestAgentAPI,
 )
 
 
@@ -102,7 +102,7 @@ def test_agent(
     test_agent_otlp_http_port: int,
     test_agent_otlp_grpc_port: int,
     test_agent_log_file: TextIO,
-) -> Generator[_TestAgentAPI, None, None]:
+) -> Generator[TestAgentAPI, None, None]:
     with scenarios.integration_frameworks.test_agent_factory.get_agent(
         worker_id=worker_id,
         docker_network=docker_network,

@@ -61,7 +61,7 @@ class TestAgentFactory:
         test_agent_otlp_http_port: int,
         test_agent_otlp_grpc_port: int,
         test_agent_log_file: TextIO,
-    ) -> Generator["_TestAgentAPI", None, None]:
+    ) -> Generator["TestAgentAPI", None, None]:
         # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
         # (trace_content_length) go client doesn't submit content length header
         env = {
@@ -87,7 +87,7 @@ class TestAgentFactory:
             log_file=test_agent_log_file,
             network=docker_network,
         ):
-            client = _TestAgentAPI(
+            client = TestAgentAPI(
                 self.host_log_folder, "localhost", pytest_request=request, agent_host_port=agent_host_port
             )
             time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
@@ -125,7 +125,7 @@ class TestAgentFactory:
                 yield client
 
 
-class _TestAgentAPI:
+class TestAgentAPI:
     """Abstracts everything about test agent. TODO : share this with parametric test"""
 
     def __init__(self, host_log_folder: str, host: str, agent_host_port: int, pytest_request: pytest.FixtureRequest):

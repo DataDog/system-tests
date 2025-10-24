@@ -6,8 +6,7 @@ from utils import (
 
 import pytest
 
-from tests.integration_frameworks.conftest import _TestAgentAPI
-from utils.integration_frameworks import FrameworkTestClient
+from utils.integration_frameworks import FrameworkTestClient, TestAgentAPI
 
 
 @scenarios.integration_frameworks
@@ -15,7 +14,7 @@ class TestOpenAiAPM:
     @missing_feature(context.library == "nodejs", reason="Node.js openai server not implemented yet")
     @missing_feature(context.library == "java", reason="Java does not auto-instrument OpenAI")
     @pytest.mark.parametrize("stream", [True, False])
-    def test_chat_completion(self, test_agent: _TestAgentAPI, test_client: FrameworkTestClient, *, stream: bool):
+    def test_chat_completion(self, test_agent: TestAgentAPI, test_client: FrameworkTestClient, *, stream: bool):
         with test_agent.vcr_context():
             test_client.request(
                 "POST",
