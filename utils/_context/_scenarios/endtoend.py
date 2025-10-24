@@ -339,9 +339,7 @@ class EndToEndScenario(DockerScenario):
 
         self._require_api_key = require_api_key
 
-        self.agent_container = AgentContainer(
-            use_proxy=use_proxy_for_agent, environment=agent_env
-        )
+        self.agent_container = AgentContainer(use_proxy=use_proxy_for_agent, environment=agent_env)
 
         if use_proxy_for_agent:
             self.agent_container.depends_on.append(self.proxy_container)
