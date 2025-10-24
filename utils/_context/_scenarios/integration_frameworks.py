@@ -1,21 +1,20 @@
 import contextlib
-from functools import lru_cache
+import dataclasses
 import os
+from pathlib import Path
 import shutil
 import subprocess
 from typing import Generator, TextIO
-import docker
-from docker.errors import DockerException
+
 from docker.models.networks import Network
+from docker.models.containers import Container
+import pytest
 from _pytest.outcomes import Failed
 
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
+from utils._context.docker import get_docker_client
 from .core import Scenario
-import pytest
-import dataclasses
-from docker.models.containers import Container
-from pathlib import Path
 
 _NETWORK_PREFIX = "framework_shared_tests_network"
 
@@ -24,28 +23,6 @@ def _fail(message: str):
     logger.error(message)
     raise Failed(message, pytrace=False) from None
 
-@lru_cache
-def _get_client() -> docker.DockerClient:
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = subprocess.run(
-                ["docker", "context", "show"], capture_output=True, check=True, text=True
-            ).stdout.strip()
-            endpoint = subprocess.run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("No more success with docker contexts")
-
-        raise
 
 @dataclasses.dataclass
 class FrameworkTestServer:
@@ -80,12 +57,10 @@ class IntegrationFrameworksScenario(Scenario):
         self.framework_factory = None
 
     def configure(self, config: pytest.Config):
-        if config.option.library:
-            library = config.option.library
-        elif "TEST_LIBRARY" in os.environ:
-            library = os.getenv("TEST_LIBRARY")
-        else:
+        if not config.option.library:
             pytest.exit("No library specified, please set -L option", 1)
+
+        library = config.option.library
 
         factory = {
             "python": python_library_factory,
@@ -172,16 +147,16 @@ class IntegrationFrameworksScenario(Scenario):
 
     def _pull_test_agent_image(self) -> None:
         logger.stdout(f"Pull test agent image {self.TEST_AGENT_IMAGE}...")
-        _get_client().images.pull(self.TEST_AGENT_IMAGE)
+        get_docker_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self) -> None:
-        for container in _get_client().containers.list(all=True):
+        for container in get_docker_client().containers.list(all=True):
             if _NETWORK_PREFIX in container.name:
                 logger.info(f"Remove container {container.name}")
                 container.remove(force=True)
 
     def _clean_networks(self) -> None:
-        for network in _get_client().networks.list():
+        for network in get_docker_client().networks.list():
             if _NETWORK_PREFIX in network.name:
                 logger.info(f"Remove network {network.name}")
                 network.remove()
@@ -193,7 +168,7 @@ class IntegrationFrameworksScenario(Scenario):
     def create_docker_network(self, test_id: str) -> Network:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
 
-        return _get_client().networks.create(name=docker_network_name, driver="bridge")
+        return get_docker_client().networks.create(name=docker_network_name, driver="bridge")
 
     @staticmethod
     def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
@@ -236,7 +211,7 @@ class IntegrationFrameworksScenario(Scenario):
         logger.info(f"Run container {name} from image {image} with ports {ports}")
 
         try:
-            container: Container = _get_client().containers.run(
+            container: Container = get_docker_client().containers.run(
                 image,
                 name=name,
                 environment=env,
@@ -249,7 +224,7 @@ class IntegrationFrameworksScenario(Scenario):
             logger.debug(f"Container {name} successfully started")
         except Exception as e:
             # at this point, even if it failed to start, the container may exists!
-            for container in _get_client().containers.list(filters={"name": name}, all=True):
+            for container in get_docker_client().containers.list(filters={"name": name}, all=True):
                 container.remove(force=True)
 
             _fail(f"Failed to run container {name}: {e}")
