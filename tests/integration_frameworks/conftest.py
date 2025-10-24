@@ -8,9 +8,6 @@ from utils.integration_frameworks import (
 )
 from utils import context, scenarios, logger
 
-# Max timeout in seconds to keep a container running
-default_subprocess_run_timeout = 300
-
 
 @pytest.fixture
 def test_id(request: pytest.FixtureRequest) -> str:
