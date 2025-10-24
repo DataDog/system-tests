@@ -32,14 +32,12 @@ class FrameworkTestServer:
 
     lang: str
     framework: str
+
     container_name: str
     container_tag: str
     dockerfile: str
     build_args: dict[str, str]
-    # container_img: str
     container_cmd: list[str]
-    container_build_dir: str
-    container_build_context: str = "."
 
     container_port: int = 8080
     host_port: int | None = None  # Will be assigned by get_host_port()
@@ -105,7 +103,6 @@ class IntegrationFrameworksScenario(Scenario):
             if docker_bin is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
-            root_path = "."
             cmd = [
                 docker_bin,
                 "build",
@@ -123,9 +120,9 @@ class IntegrationFrameworksScenario(Scenario):
                 framework_test_server_definition.container_tag,
                 "-f",
                 framework_test_server_definition.dockerfile,
-                framework_test_server_definition.container_build_context,
+                ".",
             ]
-            log_file.write(f"running {cmd} in {root_path}\n")
+            log_file.write(f"running {cmd}\n")
             log_file.flush()
 
             env = os.environ.copy()
@@ -135,7 +132,6 @@ class IntegrationFrameworksScenario(Scenario):
 
             p = subprocess.run(
                 cmd,
-                cwd=root_path,
                 text=True,
                 stdout=log_file,
                 stderr=log_file,
@@ -244,13 +240,7 @@ class IntegrationFrameworksScenario(Scenario):
             container.remove(force=True)
 
 
-def _get_base_directory() -> str:
-    return str(Path.cwd())
-
-
 def python_library_factory(framework: str, framework_version: str):
-    python_appdir = os.path.join("utils", "build", "docker", "python", "integration_frameworks")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
     return FrameworkTestServer(
         lang="python",
         framework=framework,
@@ -259,7 +249,9 @@ def python_library_factory(framework: str, framework_version: str):
         dockerfile=f"utils/build/docker/python/{framework}.Dockerfile",
         build_args={"FRAMEWORK_VERSION": framework_version},
         container_cmd=["ddtrace-run", "python3.11", "-m", "integration_frameworks", framework],
-        container_build_dir=python_absolute_appdir,
-        container_build_context=_get_base_directory(),
-        volumes={os.path.join(python_absolute_appdir): "/app/integration_frameworks"},
+        volumes={
+            str(
+                Path.cwd().joinpath("utils", "build", "docker", "python", f"{framework}_app")
+            ): "/app/integration_frameworks"
+        },
     )
