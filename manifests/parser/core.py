@@ -37,8 +37,6 @@ def _load_file(file: str, component: str):
 
     ret = {}
     for nodeid, value in data["manifest"].items():
-        if "TestHeaderInjection_ExtendedLocation" in nodeid:
-            print(value)
         try:
             if isinstance(value, str):
                 sdec = value
@@ -57,10 +55,7 @@ def _load_file(file: str, component: str):
 
             ret[nodeid] = value
         except ValueError as e:
-            # print(e)
-            if "TestHeaderInjection_ExtendedLocation" in nodeid:
-                print(value)
-                print(e)
+            print(e)
             pass
 
     return ret

@@ -247,65 +247,6 @@ def _collect_item_metadata(item: pytest.Item):
 
     return metadata
 
-
-# def pytest_pycollect_makemodule(module_path: Path, parent: pytest.Session) -> None | pytest.Module:
-#     # As now, declaration only works for tracers at module level
-#
-#     library = context.library.name
-#
-#     manifests = load_manifests()
-#
-#     path = module_path.relative_to(module_path.cwd())
-#
-#     full_declaration: str | None = None
-#     nodeid: str
-#
-#     # look in manifests for any declaration of this file, or on one of its parents
-#     while str(path) != ".":
-#         nodeid = f"{path!s}/" if path.is_dir() else str(path)
-#
-#         if nodeid in manifests and library in manifests[nodeid]:
-#             full_declaration = manifests[nodeid][library]
-#             break
-#
-#         path = path.parent
-#
-#     if full_declaration is None:
-#         return None
-#
-#     logger.info(f"Manifest declaration found for module {nodeid}: {full_declaration}")
-#
-#     declaration, details = parse_skip_declaration(full_declaration)
-#
-#     mod: pytest.Module = pytest.Module.from_parent(parent, path=module_path)
-#
-    # add_pytest_marker(mod, declaration, details)
-#
-#     return mod
-#
-#
-# @pytest.hookimpl(tryfirst=True)
-# def pytest_pycollect_makeitem(collector: pytest.Module | pytest.Class, name: str, obj: object) -> None:
-#     if collector.istestclass(obj, name):
-#         if obj is None:
-#             message = f"""{collector.nodeid} is not properly collected.
-#             You may have forgotten to return a value in a decorator like @features"""
-#             raise ValueError(message)
-#
-#         manifest = load_manifests()
-#
-#         nodeid = f"{collector.nodeid}::{name}"
-#
-#         if nodeid in manifest:
-#             declaration = manifest[nodeid]
-#             logger.info(f"Manifest declaration found for {nodeid}: {declaration}")
-#
-#             try:
-#                 released(**declaration)(obj)
-#             except Exception as e:
-#                 raise ValueError(f"Unexpected error for {nodeid}: {declaration}") from e
-
-
 def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config, items: list[pytest.Item]) -> None:
     """Unselect items that are not included in the current scenario"""
 
@@ -376,12 +317,7 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
                                context.k8s_cluster_agent_version)
     for item in items:
         for nodeid, declarations in rules.items():
-            # if "TestLDAPInjection_ExtendedLocation" in nodeid and "TestLDAPInjection_ExtendedLocation" in item.nodeid:
-            #     print(nodeid, item.nodeid, declarations)
             if nodeid in item.nodeid:
-                # if "TestLDAPInjection_ExtendedLocation" in nodeid:
-                #     print(nodeid, item.nodeid, declarations)
-                # print(nodeid, item.nodeid)
                 for declaration in declarations:
                     add_pytest_marker(item, declaration[0], declaration[1])
 
