@@ -655,12 +655,7 @@ class AgentContainer(TestedContainer):
     apm_receiver_port: int = 8127
     dogstatsd_port: int = 8125
 
-    def __init__(
-        self,
-        *,
-        use_proxy: bool = True,
-        environment: dict[str, str | None] | None = None,
-    ) -> None:
+    def __init__(self, *, use_proxy: bool = True, environment: dict[str, str | None] | None = None) -> None:
         environment = environment or {}
         environment.update(
             {
