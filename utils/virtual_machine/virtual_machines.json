@@ -259,7 +259,7 @@
             "os_branch": "debian",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_11_amd64",
