@@ -660,7 +660,6 @@ class AgentContainer(TestedContainer):
         *,
         use_proxy: bool = True,
         environment: dict[str, str | None] | None = None,
-        agent_image: str = "datadog/agent:latest",
     ) -> None:
         environment = environment or {}
         environment.update(
@@ -680,7 +679,7 @@ class AgentContainer(TestedContainer):
 
         super().__init__(
             name="agent",
-            image_name=agent_image,
+            image_name="datadog/agent:latest",
             binary_file_name="agent-image",
             environment=environment,
             healthcheck={

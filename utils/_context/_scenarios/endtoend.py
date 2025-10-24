@@ -306,7 +306,6 @@ class EndToEndScenario(DockerScenario):
         include_otel_drop_in: bool = False,
         include_buddies: bool = False,
         require_api_key: bool = False,
-        agent_image: str = "datadog/agent:latest",
     ) -> None:
         scenario_groups = [
             all_scenario_groups.all,
@@ -341,7 +340,7 @@ class EndToEndScenario(DockerScenario):
         self._require_api_key = require_api_key
 
         self.agent_container = AgentContainer(
-            use_proxy=use_proxy_for_agent, environment=agent_env, agent_image=agent_image
+            use_proxy=use_proxy_for_agent, environment=agent_env
         )
 
         if use_proxy_for_agent:

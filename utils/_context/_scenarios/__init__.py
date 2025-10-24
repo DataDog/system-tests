@@ -544,7 +544,6 @@ class _Scenarios:
         agent_env={
             "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
         },
-        agent_image="datadog/agent-dev:master-py3",
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
     )
