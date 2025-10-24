@@ -4,7 +4,8 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
-from typing import Generator, TextIO
+from typing import TextIO
+from collections.abc import Generator
 
 from docker.models.networks import Network
 from docker.models.containers import Container
@@ -18,6 +19,7 @@ from .core import Scenario
 
 _NETWORK_PREFIX = "framework_shared_tests_network"
 
+
 def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
@@ -27,6 +29,7 @@ def _fail(message: str):
 @dataclasses.dataclass
 class FrameworkTestServer:
     """The library of the interface."""
+
     lang: str
     framework: str
     container_name: str
@@ -43,6 +46,7 @@ class FrameworkTestServer:
     volumes: dict[str, str] = dataclasses.field(default_factory=dict)
 
     container: Container | None = None
+
 
 class IntegrationFrameworksScenario(Scenario):
     TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
@@ -71,13 +75,13 @@ class IntegrationFrameworksScenario(Scenario):
         framework_version = config.option.framework_version
         if framework is None or framework_version is None:
             pytest.exit("No framework specified, please set -F option", 1)
-        
+
         self.framework_test_server_definition = factory(framework, framework_version)
-        
+
         # Set library version - for now use a placeholder, will be updated after building
         self._library = ComponentVersion(library, "0.0.0")
         logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}")
-        
+
         if self.is_main_worker:
             # Build the framework test server image
             self._build_framework_test_server_image(config.option.github_token_file)
@@ -141,7 +145,7 @@ class IntegrationFrameworksScenario(Scenario):
             )
 
             if p.returncode != 0:
-                raise RuntimeError(f"Failed to build framework test server image. See {log_path} for details")
+                pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
 
         logger.stdout("Build complete")
 
@@ -239,8 +243,10 @@ class IntegrationFrameworksScenario(Scenario):
             log_file.flush()
             container.remove(force=True)
 
+
 def _get_base_directory() -> str:
     return str(Path.cwd())
+
 
 def python_library_factory(framework: str, framework_version: str):
     python_appdir = os.path.join("utils", "build", "docker", "python", "integration_frameworks")

@@ -16,14 +16,14 @@ Implement the API specified below to enable your framework to run all of the sha
 
 import openai
 
-client = openai.OpenAI(
-    base_url=f"{os.getenv('DD_TRACE_AGENT_URL')}/vcr/openai"
-)
+client = openai.OpenAI(base_url=f"{os.getenv('DD_TRACE_AGENT_URL')}/vcr/openai")
+
 
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: list[dict]
     parameters: dict
+
 
 @app.post("/chat/completions")
 def chat_completions(request: ChatCompletionRequest):

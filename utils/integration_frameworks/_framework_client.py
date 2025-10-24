@@ -7,10 +7,12 @@ import time
 from http import HTTPStatus
 import urllib.parse
 
+
 def _fail(message: str):
     """Used to mak a test as failed"""
     logger.error(message)
     raise Failed(message, pytrace=False) from None
+
 
 class FrameworkLibraryClient:
     def __init__(self, url: str, timeout: int, container: Container):
@@ -65,6 +67,7 @@ class FrameworkLibraryClient:
             logger.debug(f"Logs from container {self.container.name}:\n\n{logs}")
         except Exception:
             logger.error(f"Failed to get logs from container {self.container.name}")
+
 
 class FrameworkClient:
     def __init__(self, client: FrameworkLibraryClient, lang: str):

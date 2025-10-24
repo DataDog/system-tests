@@ -137,10 +137,8 @@ class _TestAgentAPI:
             log.write(f"\n{log_type}>>>>\n")
             log.write(json.dumps(json_trace))
 
-    def traces(self, *, clear: bool = False, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
+    def traces(self, **kwargs: Any) -> list[Trace]:  # noqa: ANN401
         resp = self._session.get(self._url("/test/session/traces"), **kwargs)
-        if clear:
-            self.clear()
         resp_json = resp.json()
         self._write_log("traces", resp_json)
         return resp_json
@@ -153,7 +151,6 @@ class _TestAgentAPI:
 
     def clear(self) -> None:
         self._session.get(self._url("/test/session/clear"))
-        self._session.get(self._otlp_url("/test/session/clear"))
 
     def info(self):
         resp = self._session.get(self._url("/info"))
@@ -167,15 +164,8 @@ class _TestAgentAPI:
         self._write_log("info", resp_json)
         return resp_json
 
-    def llmobs_requests(self, *, clear: bool = False) -> list[Any]:
-        reqs = [
-            r
-            for r in self.requests()
-            if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs")
-        ]
-
-        if clear:
-            self.clear()
+    def llmobs_requests(self) -> list[Any]:
+        reqs = [r for r in self.requests() if r["url"].endswith("/evp_proxy/v2/api/v2/llmobs")]
 
         events = []
         for r in reqs:
@@ -183,16 +173,13 @@ class _TestAgentAPI:
             events.append(json.loads(decoded_body))
         return events
 
-    def llmobs_evaluations_requests(self, *, clear: bool = False):
+    def llmobs_evaluations_requests(self):
         reqs = [
             r
             for r in self.requests()
             if r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v1/eval-metric")
             or r["url"].endswith("/evp_proxy/v2/api/intake/llm-obs/v2/eval-metric")
         ]
-
-        if clear:
-            self.clear()
 
         return [json.loads(base64.b64decode(r["body"])) for r in reqs]
 
@@ -214,9 +201,8 @@ class _TestAgentAPI:
                 raise RuntimeError(resp.text)
 
     @contextlib.contextmanager
-    def vcr_context(self, cassette_prefix: str = None):
-        """
-        Starts a VCR context manager, which will prefix all recorded cassettes from the test agent with the given prefix.
+    def vcr_context(self, cassette_prefix: str = ""):
+        """Starts a VCR context manager, which will prefix all recorded cassettes from the test agent with the given prefix.
         If no prefix is provided, the test name will be used.
         """
         test_name = cassette_prefix or self._pytest_request.node.originalname
@@ -227,18 +213,16 @@ class _TestAgentAPI:
                 test_name += f"_{param}_{param_value}"
 
         try:
-            resp = self._session.post(self._url(f"/vcr/test/start"), json={"test_name": test_name})
+            resp = self._session.post(self._url("/vcr/test/start"), json={"test_name": test_name})
             resp.raise_for_status()
         except Exception as e:
             raise RuntimeError(f"Could not connect to test agent: {e}") from e
         else:
             yield self
-            resp = self._session.post(self._url(f"/vcr/test/stop"))
+            resp = self._session.post(self._url("/vcr/test/stop"))
             resp.raise_for_status()
 
-    def wait_for_num_traces(
-        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> list[Trace]:
+    def wait_for_num_traces(self, num: int, *, wait_loops: int = 30, sort_by_start: bool = True) -> list[Trace]:
         """Wait for `num` traces to be received from the test agent.
 
         Returns after the number of traces has been received or raises otherwise after 2 seconds of polling.
@@ -249,14 +233,12 @@ class _TestAgentAPI:
         traces = []
         for _ in range(wait_loops):
             try:
-                traces = self.traces(clear=False)
+                traces = self.traces()
             except requests.exceptions.RequestException:
                 pass
             else:
                 num_received = len(traces)
                 if num_received == num:
-                    if clear:
-                        self.clear()
                     if sort_by_start:
                         for trace in traces:
                             # The testagent may receive spans and trace chunks in any order,
@@ -267,22 +249,18 @@ class _TestAgentAPI:
             time.sleep(0.1)
         raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{traces}")
 
-    def wait_for_llmobs_requests(
-        self, num: int, *, clear: bool = False, wait_loops: int = 30, sort_by_start: bool = True
-    ) -> list[Any]:
+    def wait_for_llmobs_requests(self, num: int, *, wait_loops: int = 30, sort_by_start: bool = True) -> list[Any]:
         """Wait for `num` LLMobs requests to be received from the test agent."""
         num_received = None
         llmobs_requests = []
         for _ in range(wait_loops):
             try:
-                llmobs_requests = self.llmobs_requests(clear=False)
+                llmobs_requests = self.llmobs_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
                 num_received = len(llmobs_requests)
                 if num_received == num:
-                    if clear:
-                        self.clear()
                     if sort_by_start:
                         for trace in llmobs_requests:
                             # The testagent may receive spans and trace chunks in any order,
@@ -291,27 +269,27 @@ class _TestAgentAPI:
                         return sorted(llmobs_requests, key=lambda t: t[0]["start_ns"])
                     return llmobs_requests
             time.sleep(0.1)
-        raise ValueError(f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}") 
+        raise ValueError(
+            f"Number ({num}) of traces not available from test agent, got {num_received}:\n{llmobs_requests}"
+        )
 
-    def wait_for_llmobs_evaluations_requests(
-        self, num: int, *, clear: bool = False, wait_loops: int = 30
-    ) -> list[Any]:
+    def wait_for_llmobs_evaluations_requests(self, num: int, *, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` LLMobs evaluations requests to be received from the test agent."""
         num_received = None
         llmobs_evaluations_requests = []
         for _ in range(wait_loops):
             try:
-                llmobs_evaluations_requests = self.llmobs_evaluations_requests(clear=False)
+                llmobs_evaluations_requests = self.llmobs_evaluations_requests()
             except requests.exceptions.RequestException:
                 pass
             else:
                 num_received = len(llmobs_evaluations_requests)
                 if num_received == num:
-                    if clear:
-                        self.clear()
                     return llmobs_evaluations_requests
             time.sleep(0.1)
-        raise ValueError(f"Number ({num}) of LLMobs evaluations requests not available from test agent, got {num_received}:\n{llmobs_evaluations_requests}") 
+        raise ValueError(
+            f"Number ({num}) of LLMobs evaluations requests not available from test agent, got {num_received}:\n{llmobs_evaluations_requests}"
+        )
 
 
 @pytest.fixture(scope="session")
