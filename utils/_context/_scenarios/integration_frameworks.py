@@ -1,6 +1,7 @@
+from collections.abc import Generator
+import contextlib
 from pathlib import Path
 
-from docker.models.networks import Network
 import pytest
 
 from utils.integration_frameworks import FrameworkTestClientFactory, TestAgentFactory
@@ -41,6 +42,7 @@ class IntegrationFrameworksScenario(Scenario):
 
         self.test_agent_factory = TestAgentFactory(self.host_log_folder)
         self.test_client_factory = FrameworkTestClientFactory(
+            host_log_folder=self.host_log_folder,
             library=library,
             framework=framework,
             framework_version=framework_version,
@@ -84,7 +86,18 @@ class IntegrationFrameworksScenario(Scenario):
     def library(self):
         return self._library
 
-    def create_docker_network(self, test_id: str) -> Network:
+    @contextlib.contextmanager
+    def get_docker_network(self, test_id: str) -> Generator[str, None, None]:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
+        network = get_docker_client().networks.create(name=docker_network_name, driver="bridge")
 
-        return get_docker_client().networks.create(name=docker_network_name, driver="bridge")
+        try:
+            yield network.name
+        finally:
+            try:
+                network.remove()
+            except:
+                # It's possible (why?) of having some container not stopped.
+                # If it happens, failing here makes stdout tough to understand.
+                # Let's ignore this, later calls will clean the mess
+                logger.info("Failed to remove network, ignoring the error")

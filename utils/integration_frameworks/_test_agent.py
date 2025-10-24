@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 import os
 import time
-from typing import TypedDict, Any, TextIO
+from typing import TypedDict, Any
 import urllib.parse
 
 import pytest
@@ -51,44 +51,52 @@ class TestAgentFactory:
         get_docker_client().images.pull(self.image)
 
     @contextlib.contextmanager
-    def get_agent(
+    def get_test_agent_api(
         self,
-        worker_id: str,
-        docker_network: str,
         request: pytest.FixtureRequest,
-        test_agent_container_name: str,
-        test_agent_port: int,
-        test_agent_otlp_http_port: int,
-        test_agent_otlp_grpc_port: int,
-        test_agent_log_file: TextIO,
+        worker_id: str,
+        container_name: str,
+        docker_network: str,
     ) -> Generator["TestAgentAPI", None, None]:
         # (meta_tracer_version_header) Not all clients (go for example) submit the tracer version
         # (trace_content_length) go client doesn't submit content length header
         env = {
             "ENABLED_CHECKS": "trace_count_header",
-            "OTLP_HTTP_PORT": str(test_agent_otlp_http_port),
-            "OTLP_GRPC_PORT": str(test_agent_otlp_grpc_port),
+            "OTLP_HTTP_PORT": str(4318),
+            "OTLP_GRPC_PORT": str(4317),
             "VCR_CASSETTES_DIRECTORY": "/vcr-cassettes",
         }
         if os.getenv("DEV_MODE") is not None:
             env["SNAPSHOT_CI"] = "0"
 
         agent_host_port = get_host_port(worker_id, 4600)
+        container_port = 8126
 
-        with docker_run(
-            image=self.image,
-            name=test_agent_container_name,
-            env=env,
-            volumes={
-                f"{Path.cwd()!s}/snapshots": "/snapshots",
-                f"{Path.cwd()!s}/tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
-            },
-            ports={f"{test_agent_port}/tcp": agent_host_port},
-            log_file=test_agent_log_file,
-            network=docker_network,
+        log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/agent_log.log"
+        Path(log_path).parent.mkdir(parents=True, exist_ok=True)
+
+        with (
+            open(log_path, "w+", encoding="utf-8") as log_file,
+            docker_run(
+                image=self.image,
+                name=container_name,
+                env=env,
+                volumes={
+                    f"{Path.cwd()!s}/snapshots": "/snapshots",
+                    f"{Path.cwd()!s}/tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
+                },
+                ports={f"{container_port}/tcp": agent_host_port},
+                log_file=log_file,
+                network=docker_network,
+            ),
         ):
             client = TestAgentAPI(
-                self.host_log_folder, "localhost", pytest_request=request, agent_host_port=agent_host_port
+                container_name,
+                container_port,
+                self.host_log_folder,
+                pytest_request=request,
+                host_port=agent_host_port,
+                network=docker_network,
             )
             time.sleep(0.2)  # initial wait time, the trace agent takes 200ms to start
             for _ in range(100):
@@ -100,16 +108,14 @@ class TestAgentFactory:
                 else:
                     if resp["version"] != "test":
                         message = f"""Agent version {resp['version']} is running instead of the test agent.
-                        Stop the agent on port {test_agent_port} and try again."""
+                        Stop the agent on port {container_port} and try again."""
                         pytest.fail(message, pytrace=False)
 
                     logger.info("Test agent is ready")
                     break
             else:
                 logger.error("Could not connect to test agent")
-                pytest.fail(
-                    f"Could not connect to test agent, check the log file {test_agent_log_file.name}.", pytrace=False
-                )
+                pytest.fail(f"Could not connect to test agent, check the log file {log_file.name}.", pytrace=False)
 
             # If the snapshot mark is on the test case then do a snapshot test
             marks = list(request.node.iter_markers(name="snapshot"))
@@ -124,13 +130,29 @@ class TestAgentFactory:
             else:
                 yield client
 
+        request.node.add_report_section("teardown", "Test Agent Output", f"Log file:\n./{log_path}")
+
 
 class TestAgentAPI:
     """Abstracts everything about test agent. TODO : share this with parametric test"""
 
-    def __init__(self, host_log_folder: str, host: str, agent_host_port: int, pytest_request: pytest.FixtureRequest):
-        self.host = host
-        self.agent_port = agent_host_port  # TODO rename to agent_host_port
+    __test__ = False  # pytest must not collect it
+
+    def __init__(
+        self,
+        container_name: str,
+        container_port: int,
+        host_log_folder: str,
+        host_port: int,
+        pytest_request: pytest.FixtureRequest,
+        network: str,
+    ):
+        self.container_name = container_name
+        self.container_port = container_port
+        self.network = network
+
+        self.host = "localhost"
+        self.agent_host_port = host_port
         self._session = requests.Session()
         self._pytest_request = pytest_request
         self.log_path = (
@@ -139,7 +161,7 @@ class TestAgentAPI:
         Path(self.log_path).parent.mkdir(parents=True, exist_ok=True)
 
     def _url(self, path: str) -> str:
-        return urllib.parse.urljoin(f"http://{self.host}:{self.agent_port}", path)
+        return urllib.parse.urljoin(f"http://{self.host}:{self.agent_host_port}", path)
 
     def _write_log(self, log_type: str, json_trace: dict | list | None):
         with open(self.log_path, "a") as log:
