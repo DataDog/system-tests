@@ -137,7 +137,10 @@ def test_agent(
         name=test_agent_container_name,
         command=[],
         env=env,
-        volumes={f"{Path.cwd()!s}/snapshots": "/snapshots", f"{Path.cwd()!s}/vcr-cassettes": "/vcr-cassettes"},
+        volumes={
+            f"{Path.cwd()!s}/snapshots": "/snapshots",
+            f"{Path.cwd()!s}/tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
+        },
         ports={f"{test_agent_port}/tcp": client.agent_port},
         log_file=test_agent_log_file,
         network=docker_network,

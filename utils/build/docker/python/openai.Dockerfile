@@ -1,5 +1,5 @@
 
-FROM python:3.11-slim  
+FROM python:3.11-slim
 # ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 ARG FRAMEWORK_VERSION
 
