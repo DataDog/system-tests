@@ -44,7 +44,7 @@ def _load_file(file: str, component: str):
                 if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
                     value["declaration"] = sdec
                 else:
-                    value["library_version"] = {to_semver(f"<{sdec.strip("v").strip("<").strip(">")}")}
+                    value["library_version"] = {to_semver(f"<{sdec.strip('v').strip('<').strip('>')}")}
                     value["declaration"] = "missing_feature"
             if not isinstance(value, list):
                 value = [value]
@@ -137,38 +137,11 @@ def validate_manifest_files() -> None:
                 with open(f"manifests/{file}", encoding="utf-8") as f:
                     data = yaml.safe_load(f)
 
-                # Handle new manifest format with refs and manifest sections
-                if "refs" in data and "manifest" in data:
-                    # New format: validate the manifest section after removing refs
-                    manifest_data = data["manifest"]
-                    if "refs" in manifest_data:
-                        del manifest_data["refs"]
-                    validate(manifest_data, schema)
-                    try:
-                        assert_key_order(manifest_data)
-                    except AssertionError as e:
-                        validation_errors.append(f"Key ordering issue in {file}: {e}")
-                elif "manifest" in data:
-                    # New format without refs: validate the manifest section
-                    manifest_data = data["manifest"]
-                    if "refs" in manifest_data:
-                        del manifest_data["refs"]
-                    validate(manifest_data, schema)
-                    try:
-                        assert_key_order(manifest_data)
-                    except AssertionError as e:
-                        validation_errors.append(f"Key ordering issue in {file}: {e}")
-                else:
-                    # Old format: validate the entire data structure
-                    # this field is only used for YAML templating
-                    if "refs" in data:
-                        del data["refs"]
-                    
-                    validate(data, schema)
-                    try:
-                        assert_key_order(data)
-                    except AssertionError as e:
-                        validation_errors.append(f"Key ordering issue in {file}: {e}")
+                validate(data, schema)
+                try:
+                    assert_key_order(data["manifest"])
+                except AssertionError as e:
+                    validation_errors.append(f"Key ordering issue in {file}: {e}")
 
             except yaml.YAMLError as e:
                 validation_errors.append(f"YAML parsing error in {file}: {e}")

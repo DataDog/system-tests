@@ -1,33 +1,22 @@
 {
   "type": "object",
-
-  "anyOf": [
-    {
-      "properties": {
-        "refs": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "pattern": "^&[a-zA-Z0-9_]+ '.*'$"
-          }
-        },
-        "manifest": {
-          "type": "object",
-          "patternProperties": {
-            "^tests/.*": { "$ref": "#/$defs/test_declaration" }
-          },
-          "additionalProperties": false
-        }
-      },
-      "additionalProperties": false
+  "properties": {
+    "refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
     },
-    {
+    "manifest": {
+      "type": "object",
       "patternProperties": {
         "^tests/.*": { "$ref": "#/$defs/test_declaration" }
       },
       "additionalProperties": false
     }
-  ],
+  },
+  "required": ["manifest"],
+  "additionalProperties": false,
 
   "$defs": {
     "test_declaration": {
@@ -39,7 +28,7 @@
 
     "simple_declaration": {
       "type": "string",
-      "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$|^v?[><=]*[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?(.*)?$|^&[a-zA-Z0-9_]+$|^[><=]+[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?( \\|\\| .*)?$|^>[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?$"
+      "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$|^(v[0-9]|<|>|<=|>=|[0-9]).*"
     },
 
     "complex_declaration": {
@@ -61,31 +50,16 @@
           },
           "library_version": {
             "type": "string",
-            "pattern": "^v?[><=]*[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?(.*)?$"
+            "pattern": "^(v[0-9]|<|>|<=|>=|[0-9]).*"
           },
           "declaration": {
             "type": "string",
-            "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$|^v?[><=]*[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?(.*)?$|^&[a-zA-Z0-9_]+$|^[><=]+[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?( \\|\\| .*)?$"
+            "pattern": "^(missing_feature|irrelevant|bug|flaky|incomplete_test_app)( \\(.*\\))?$"
           }
         },
         "additionalProperties": false,
         "minProperties": 1
       }
-    },
-
-    "version_reference": {
-      "type": "string",
-      "pattern": "^&[a-zA-Z0-9_]+$"
-    },
-
-    "version_string": {
-      "type": "string",
-      "pattern": "^v?[><=]*[0-9]+\\.[0-9]+(\\.[0-9]+)?(\\.[0-9]+)?([a-zA-Z0-9\\+\\-\\.]*)?$"
-    },
-
-    "declaration_type": {
-      "type": "string",
-      "enum": ["missing_feature", "irrelevant", "bug", "flaky", "incomplete_test_app"]
     }
   }
 }
