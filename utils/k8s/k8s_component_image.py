@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from utils._logger import logger
-from utils._context.containers import _get_client as get_docker_client
+from utils._context.docker import get_docker_client
 
 
 class K8sComponentImage:

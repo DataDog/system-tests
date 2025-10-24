@@ -5,13 +5,13 @@ from utils import logger
 
 
 def run_system_tests(
-    scenario="MOCK_THE_TEST",
-    test_path=None,
+    scenario: str = "MOCK_THE_TEST",
+    test_path: str | None = None,
     *,
-    verbose=False,
-    forced_test=None,
+    verbose: bool = False,
+    forced_test: str | None = None,
     use_xdist: bool = False,
-    xfail_strict=False,
+    xfail_strict: bool = False,
     env: dict[str, str] | None = None,
     expected_return_code: int = 0,
 ):

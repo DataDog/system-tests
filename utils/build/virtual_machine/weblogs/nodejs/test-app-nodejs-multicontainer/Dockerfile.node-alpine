@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:alpine
+FROM public.ecr.aws/docker/library/node:24.10-alpine
 
 # Create app directory
 WORKDIR /usr/src/app

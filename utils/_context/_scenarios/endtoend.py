@@ -15,6 +15,7 @@ from utils import interfaces
 from utils.interfaces._core import ProxyBasedInterfaceValidator
 from utils.buddies import BuddyHostPorts
 from utils.proxy.ports import ProxyPorts
+from utils._context.docker import get_docker_client
 from utils._context.containers import (
     WeblogContainer,
     AgentContainer,
@@ -30,7 +31,6 @@ from utils._context.containers import (
     TestedContainer,
     LocalstackContainer,
     ElasticMQContainer,
-    _get_client as get_docker_client,
 )
 
 from utils._logger import logger
@@ -691,7 +691,7 @@ class EndToEndScenario(DockerScenario):
                 data_path=None,
                 condition=self.library
                 in ("cpp", "cpp_httpd", "cpp_nginx", "dotnet", "java", "nodejs", "php", "python", "ruby")
-                and self.name in ("TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
+                and self.name in ("APPSEC_BLOCKING", "TRACE_STATS_COMPUTATION", "TRACING_CONFIG_NONDEFAULT_3"),
                 ticket="APMSP-2158",
             ),
         ]

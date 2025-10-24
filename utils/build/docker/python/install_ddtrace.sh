@@ -20,6 +20,7 @@ elif [ $(ls *.whl | wc -l) = 0 ]; then
 elif [ "$(ls *$PYTHON_VERSION*.whl | wc -l)" = "1" ]; then
     path=$(readlink -f $(ls *$PYTHON_VERSION*.whl))
     echo "Install ddtrace from ${path} (selected automatically)"
+    echo "In the system-tests CI see (python,dev)/Get parameters/Get dev artifacts for exact ref"
     pip install "ddtrace @ file://${path}"
 else
     echo "ERROR: Found several usable wheel files in binaries/, abort."
