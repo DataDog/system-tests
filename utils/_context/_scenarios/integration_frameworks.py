@@ -26,7 +26,7 @@ class IntegrationFrameworksScenario(Scenario):
         }
 
     def configure(self, config: pytest.Config):
-        library = config.option.library
+        library: str = config.option.library
         weblog: str = config.option.weblog
 
         if not library:
