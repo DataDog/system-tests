@@ -34,7 +34,9 @@ class FrameworkTestServer:
     framework: str
     container_name: str
     container_tag: str
-    container_img: str
+    dockerfile: str
+    build_args: dict[str, str]
+    # container_img: str
     container_cmd: list[str]
     container_build_dir: str
     container_build_context: str = "."
@@ -97,18 +99,13 @@ class IntegrationFrameworksScenario(Scenario):
         log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
         Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
-        # Write dockerfile to the build directory
-        dockf_path = os.path.join(framework_test_server_definition.container_build_dir, "Dockerfile")
-        with open(dockf_path, "w", encoding="utf-8") as f:
-            f.write(framework_test_server_definition.container_img)
-
         with open(log_path, "w+", encoding="utf-8") as log_file:
             docker_bin = shutil.which("docker")
 
             if docker_bin is None:
                 raise FileNotFoundError("Docker not found in PATH")
 
-            root_path = ".."
+            root_path = "."
             cmd = [
                 docker_bin,
                 "build",
@@ -118,11 +115,14 @@ class IntegrationFrameworksScenario(Scenario):
             if github_token_file and github_token_file.strip():
                 cmd += ["--secret", f"id=github_token,src={github_token_file}"]
 
+            for name, value in framework_test_server_definition.build_args.items():
+                cmd += ["--build-arg", f"{name}={value}"]
+
             cmd += [
                 "-t",
                 framework_test_server_definition.container_tag,
                 "-f",
-                dockf_path,
+                framework_test_server_definition.dockerfile,
                 framework_test_server_definition.container_build_context,
             ]
             log_file.write(f"running {cmd} in {root_path}\n")
@@ -256,18 +256,8 @@ def python_library_factory(framework: str, framework_version: str):
         framework=framework,
         container_name=f"python-test-library-{framework}-{framework_version}",
         container_tag=f"python-test-library-{framework}-{framework_version}",
-        container_img=f"""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
-WORKDIR /app
-RUN pyenv global 3.11
-RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
-RUN python3.11 -m pip install {framework}=={framework_version}
-COPY utils/build/docker/python/integration_frameworks/system_tests_library_version.sh system_tests_library_version.sh
-COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-RUN mkdir /integration-framework-tracer-logs
-ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
-        """,
+        dockerfile=f"utils/build/docker/python/{framework}.Dockerfile",
+        build_args={"FRAMEWORK_VERSION": framework_version},
         container_cmd=["ddtrace-run", "python3.11", "-m", "integration_frameworks", framework],
         container_build_dir=python_absolute_appdir,
         container_build_context=_get_base_directory(),
