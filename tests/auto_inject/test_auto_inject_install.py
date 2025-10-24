@@ -30,6 +30,7 @@ class TestSimpleInstallerAutoInjectManualProfiling(base.AutoInjectBaseTest):
         context.vm_name in ["Ubuntu_24_amd64", "Ubuntu_24_arm64"] and context.weblog_variant == "test-app-nodejs",
         reason="PROF-11264",
     )
+    @irrelevant(context.library < "python@3.0.0", reason="PROF-11296")
     def test_profiling(self):
         logger.info(f"Launching test_install for : [{context.vm_name}]...")
         self._test_install(context.virtual_machine, profile=True)
@@ -109,7 +110,7 @@ class TestContainerAutoInjectInstallScriptProfiling(base.AutoInjectBaseTest):
     )
     @bug(
         context.weblog_variant == "test-app-nodejs-container-25",
-        reason="APMSP-2331",
+        reason="PROF-12765",
     )
     def test_profiling(self):
         self._test_install(context.virtual_machine, profile=True)
@@ -221,10 +222,7 @@ class TestInstallerAutoInjectManual(base.AutoInjectBaseTest):
 @scenarios.simple_installer_auto_injection
 @scenarios.multi_installer_auto_injection
 class TestSimpleInstallerAutoInjectManual(base.AutoInjectBaseTest):
-    @irrelevant(
-        context.library > "python@2.21.0" and context.installed_language_runtime < "3.8.0",
-        reason="python 3.7 is not supported on ddtrace >= 3.x",
-    )
+    @irrelevant(context.library < "python@3.0.0", reason="Avoid blocking 2.21 release pipeline")
     def test_install(self):
         virtual_machine = context.virtual_machine
         logger.info(
