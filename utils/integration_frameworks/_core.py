@@ -280,7 +280,7 @@ class _TestAgentAPI:
         )
 
 
-class TestImage:
+class TestClientFactory:
     """Abstracts a docker image. TODO: share this with parametric tests"""
 
     def __init__(
@@ -351,8 +351,12 @@ class TestImage:
                 pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
 
 
-class FrameworkTestImage(TestImage):
-    """Abstracts the docker image that ship the tested tracer+framework."""
+class FrameworkTestClientFactory(TestClientFactory):
+    """Abstracts the docker image/container that ship the tested tracer+framework.
+    This class is responsible to:
+    * build the image
+    * expose a ready to call function that runs the container and returns the client that will be used in tests
+    """
 
     def __init__(
         self,
@@ -374,60 +378,42 @@ class FrameworkTestImage(TestImage):
             container_env=container_env,
         )
 
-    def get_container(
-        self, worker_id: str, test_id: str, test_agent_container_name: str, test_agent_port: int
-    ) -> "FrameworkTestContainer":
-        return FrameworkTestContainer(
-            self,
-            name=f"{self.container_name}-{test_id}",
-            host_port=_get_host_port(worker_id, 4500),
-            test_agent_container_name=test_agent_container_name,
-            test_agent_port=test_agent_port,
-        )
-
-
-class FrameworkTestContainer:
-    """Abstracts the docker container that ship the tested tracer+framework."""
-
-    def __init__(
+    @contextlib.contextmanager
+    def get_client(
         self,
-        server: FrameworkTestImage,
-        name: str,
-        host_port: int,
+        library_env: dict[str, str],
+        worker_id: str,
+        test_id: str,
         test_agent_container_name: str,
         test_agent_port: int,
-    ):
-        self.server = server
-        self.name = name
-        self.environment = dict(server.container_env)
-        self.volumes = dict(server.container_volumes)
-        self.container_port: int = 8080
-        self.host_port = host_port
-
-        # TODO : we should not have to set those three values
-        self.environment["DD_TRACE_AGENT_URL"] = f"http://{test_agent_container_name}:{test_agent_port}"
-        self.environment["DD_AGENT_HOST"] = test_agent_container_name
-        self.environment["DD_TRACE_AGENT_PORT"] = str(test_agent_port)
-
-        self.environment["FRAMEWORK_TEST_CLIENT_SERVER_PORT"] = str(self.container_port)
-
-    @contextlib.contextmanager
-    def run(
-        self,
         network: str,
         log_file: TextIO,
     ) -> Generator["FrameworkTestClient", None, None]:
+        environment = dict(self.container_env)
+
+        container_port: int = 8080
+        host_port = _get_host_port(worker_id, 4500)
+
+        # TODO : we should not have to set those three values
+        environment["DD_TRACE_AGENT_URL"] = f"http://{test_agent_container_name}:{test_agent_port}"
+        environment["DD_AGENT_HOST"] = test_agent_container_name
+        environment["DD_TRACE_AGENT_PORT"] = str(test_agent_port)
+        environment["FRAMEWORK_TEST_CLIENT_SERVER_PORT"] = str(container_port)
+
+        # overwrite env with the one provided by the test
+        environment |= library_env
+
         with docker_run(
-            image=self.server.tag,
-            name=self.name,
-            env=self.environment,
-            volumes=self.volumes,
+            image=self.tag,
+            name=f"{self.container_name}-{test_id}",
+            env=environment,
+            volumes=self.container_volumes,
             network=network,
-            ports={f"{self.container_port}/tcp": self.host_port},
+            ports={f"{container_port}/tcp": host_port},
             log_file=log_file,
         ) as container:
             test_server_timeout = 60
-            client = FrameworkTestClient(f"http://localhost:{self.host_port}", test_server_timeout, container)
+            client = FrameworkTestClient(f"http://localhost:{host_port}", test_server_timeout, container)
 
             yield client
 

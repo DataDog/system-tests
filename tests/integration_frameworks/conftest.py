@@ -7,7 +7,6 @@ from typing import TextIO
 import pytest
 
 from utils.integration_frameworks import (
-    FrameworkTestContainer,
     FrameworkTestClient,
     _TestAgentAPI,
     docker_run,
@@ -194,15 +193,13 @@ def test_client(
     scenarios.integration_frameworks.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
     framework_test_server = scenarios.integration_frameworks.framework_test_server_definition
-    container: FrameworkTestContainer = framework_test_server.get_container(
+    with framework_test_server.get_client(
+        library_env=library_env,
         worker_id=worker_id,
         test_id=test_id,
         test_agent_container_name=test_agent_container_name,
         test_agent_port=test_agent_port,
-    )
-
-    # overwrite env with the one provided by the test
-    container.environment |= library_env
-
-    with container.run(log_file=test_server_log_file, network=docker_network) as client:
+        log_file=test_server_log_file,
+        network=docker_network,
+    ) as client:
         yield client

@@ -3,7 +3,7 @@ from pathlib import Path
 from docker.models.networks import Network
 import pytest
 
-from utils.integration_frameworks import FrameworkTestImage
+from utils.integration_frameworks import FrameworkTestClientFactory
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
@@ -14,7 +14,7 @@ _NETWORK_PREFIX = "framework_shared_tests_network"
 
 class IntegrationFrameworksScenario(Scenario):
     TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0"
-    framework_test_server_definition: FrameworkTestImage
+    framework_test_server_definition: FrameworkTestClientFactory
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(
@@ -40,7 +40,7 @@ class IntegrationFrameworksScenario(Scenario):
         if not framework or not framework_version:
             pytest.exit("No framework specified, please set -F option", 1)
 
-        self.framework_test_server_definition = FrameworkTestImage(
+        self.framework_test_server_definition = FrameworkTestClientFactory(
             library=library,
             framework=framework,
             framework_version=framework_version,
