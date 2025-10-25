@@ -22,7 +22,7 @@ def get_host_port(worker_id: str, base_port: int) -> int:
     raise ValueError(f"Unexpected worker_id: {worker_id}")
 
 
-def _compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
+def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
     """Convert volumes to the format expected by the docker-py API"""
     fixed_volumes: dict[str, dict] = {}
     for key, value in volumes.items():
@@ -57,7 +57,7 @@ def docker_run(
             image,
             name=name,
             environment=env,
-            volumes=_compute_volumes(volumes),
+            volumes=compute_volumes(volumes),
             network=network,
             ports=ports,
             command=command,

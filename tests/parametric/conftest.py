@@ -14,7 +14,7 @@ from utils.parametric._library_client import APMLibrary, APMLibraryClient
 from utils import context, scenarios, logger
 
 from utils._context._scenarios.parametric import APMLibraryTestServer
-from utils.docker_fixtures._test_agent import TestAgentAPI as _TestAgentAPI
+from utils.docker_fixtures import TestAgentAPI as _TestAgentAPI, get_host_port, docker_run
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
@@ -159,9 +159,9 @@ def test_library(
         elif k in env:
             del env[k]
 
-    apm_test_server.host_port = scenarios.parametric.get_host_port(worker_id, 4500)
+    apm_test_server.host_port = get_host_port(worker_id, 4500)
 
-    with scenarios.parametric.docker_run(
+    with docker_run(
         image=apm_test_server.container_tag,
         name=apm_test_server.container_name,
         command=apm_test_server.container_cmd,
