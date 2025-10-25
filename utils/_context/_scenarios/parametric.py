@@ -32,7 +32,6 @@ class APMLibraryTestServer:
     container_img: str
     container_cmd: list[str]
     container_build_dir: str
-    container_build_context: str = "."
 
     container_port: int = 8080
     host_port: int | None = None  # Will be assigned by get_host_port()
@@ -193,7 +192,7 @@ class ParametricScenario(DockerFixturesScenario):
                 apm_test_server_definition.container_tag,
                 "-f",
                 dockf_path,
-                apm_test_server_definition.container_build_context,
+                ".",
             ]
             log_file.write(f"running {cmd} in {root_path}\n")
             log_file.flush()
@@ -259,7 +258,6 @@ ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
 """,
         container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
         container_build_dir=python_absolute_appdir,
-        container_build_context=_get_base_directory(),
         volumes={os.path.join(python_absolute_appdir, "apm_test_client"): "/app/apm_test_client"},
     )
 
@@ -302,7 +300,6 @@ RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=["./app.sh"],
         container_build_dir=nodejs_absolute_appdir,
-        container_build_context=_get_base_directory(),
         volumes=volumes,
     )
 
@@ -334,7 +331,6 @@ RUN go install
 """,
         container_cmd=["main"],
         container_build_dir=golang_absolute_appdir,
-        container_build_context=_get_base_directory(),
         volumes={os.path.join(golang_absolute_appdir): "/client"},
     )
 
@@ -410,7 +406,6 @@ RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=["./ApmTestApi"],
         container_build_dir=dotnet_absolute_appdir,
-        container_build_context=_get_base_directory(),
     )
 
 
@@ -441,7 +436,6 @@ RUN mkdir /parametric-tracer-logs
 """,
         container_cmd=["./run.sh"],
         container_build_dir=java_absolute_appdir,
-        container_build_context=_get_base_directory(),
     )
 
 
@@ -474,7 +468,6 @@ ADD {php_reldir}/server.php .
             "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
         ],  # In case of crash, give time to the sidecar to upload the crash report
         container_build_dir=php_absolute_appdir,
-        container_build_context=_get_base_directory(),
         volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},
         env={},
     )
@@ -501,7 +494,6 @@ def ruby_library_factory() -> APMLibraryTestServer:
             """,
         container_cmd=["bundle", "exec", "ruby", "server.rb"],
         container_build_dir=ruby_absolute_appdir,
-        container_build_context=_get_base_directory(),
         env={},
     )
 
@@ -536,7 +528,6 @@ RUN mkdir /parametric-tracer-logs
         container_img=dockerfile_content,
         container_cmd=["parametric-http-server"],
         container_build_dir=cpp_absolute_appdir,
-        container_build_context=_get_base_directory(),
         env={},
     )
 
@@ -576,6 +567,5 @@ WORKDIR /usr/app
             """,
         container_cmd=["./ddtrace-rs-client"],
         container_build_dir=rust_absolute_appdir,
-        container_build_context=_get_base_directory(),
         env={},
     )
