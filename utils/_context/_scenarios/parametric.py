@@ -1,23 +1,21 @@
-import contextlib
-import dataclasses
-from typing import Any, TextIO
 from collections.abc import Generator
-
-import json
+import contextlib
 import glob
+import json
 import os
 from pathlib import Path
 import shutil
 import subprocess
+from typing import Any, TextIO
 
 import pytest
-from docker.models.containers import Container
 
-from utils.docker_fixtures import TestAgentFactory, TestAgentAPI, compute_volumes, get_host_port, docker_run
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from utils._logger import logger
+from utils.docker_fixtures import TestAgentFactory, TestAgentAPI, compute_volumes, get_host_port, docker_run
 from utils.parametric._library_client import APMLibrary, APMLibraryClient
+
 from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
 
@@ -165,23 +163,6 @@ class TestClientFactory:
             yield tracer
 
 
-@dataclasses.dataclass
-class APMLibraryTestServer:
-    # The library of the interface.
-    lang: str
-    container_name: str
-    container_tag: str
-    container_img: str
-    container_cmd: list[str]
-    container_build_dir: str
-
-    host_port: int | None = None  # Will be assigned by get_host_port()
-
-    volumes: dict[str, str] = dataclasses.field(default_factory=dict)
-
-    container: Container | None = None
-
-
 class ParametricScenario(DockerFixturesScenario):
     _test_client_factory: TestClientFactory
 
@@ -236,12 +217,25 @@ class ParametricScenario(DockerFixturesScenario):
         library: str = config.option.library
 
         commands = {
+            "cpp": ["parametric-http-server"],
+            "dotnet": ["./ApmTestApi"],
+            "golang": ["main"],
+            "java": ["./run.sh"],
             "nodejs": ["./app.sh"],
+            "php": [
+                "bash",
+                "-c",
+                "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
+            ],  # In case of crash, give time to the sidecar to upload the crash report
             "python": ["ddtrace-run", "python3.11", "-m", "apm_test_client"],
+            "ruby": ["bundle", "exec", "ruby", "server.rb"],
+            "rust": ["./ddtrace-rs-client"],
         }
 
         volumes = {
+            "golang": {"./utils/build/docker/golang/parametric": "/client"},
             "nodejs": get_node_volumes(),
+            "php": {"./utils/build/docker/php/parametric/server.php": "/client/server.php"},
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }
 
@@ -254,7 +248,7 @@ class ParametricScenario(DockerFixturesScenario):
             tag=f"{library}-test-client",
             command=commands[library],
             container_name=f"{library}-test-client",
-            container_volumes=volumes[library],
+            container_volumes=volumes.get(library, {}),
             container_env={},
         )
 
@@ -348,30 +342,6 @@ def _get_base_directory() -> str:
     return str(Path.cwd())
 
 
-def python_library_factory() -> APMLibraryTestServer:
-    python_appdir = os.path.join("utils", "build", "docker", "python", "parametric")
-    python_absolute_appdir = os.path.join(_get_base_directory(), python_appdir)
-    return APMLibraryTestServer(
-        lang="python",
-        container_name="python-test-library",
-        container_tag="python-test-library",
-        container_img="""
-FROM ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
-WORKDIR /app
-RUN pyenv global 3.11
-RUN python3.11 -m pip install fastapi==0.89.1 uvicorn==0.20.0 opentelemetry-exporter-otlp==1.36.0
-COPY utils/build/docker/python/parametric/system_tests_library_version.sh system_tests_library_version.sh
-COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-RUN mkdir /parametric-tracer-logs
-ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
-""",
-        container_cmd=["ddtrace-run", "python3.11", "-m", "apm_test_client"],
-        container_build_dir=python_absolute_appdir,
-        volumes={os.path.join("utils", "build", "docker", "python", "parametric", "apm_test_client"): "/app/apm_test_client"},
-    )
-
-
 def get_node_volumes() -> dict[str, str]:
     volumes = {}
 
@@ -384,300 +354,3 @@ def get_node_volumes() -> dict[str, str]:
         logger.info("No local dd-trace-js found, do not mount any volume")
 
     return volumes
-
-
-def node_library_factory() -> APMLibraryTestServer:
-    nodejs_appdir = os.path.join("utils", "build", "docker", "nodejs", "parametric")
-    nodejs_absolute_appdir = os.path.join(_get_base_directory(), nodejs_appdir)
-    nodejs_reldir = nodejs_appdir.replace("\\", "/")
-    volumes = get_node_volumes()
-
-    return APMLibraryTestServer(
-        lang="nodejs",
-        container_name="nodejs-test-client",
-        container_tag="nodejs-test-client",
-        container_img=f"""
-FROM node:18.10-slim
-RUN apt-get update && apt-get -y install bash curl git jq \\
-  || sleep 60 && apt-get update && apt-get -y install bash curl git jq
-WORKDIR /usr/app
-COPY {nodejs_reldir}/package.json /usr/app/
-COPY {nodejs_reldir}/package-lock.json /usr/app/
-COPY {nodejs_reldir}/*.js /usr/app/
-COPY {nodejs_reldir}/*.sh /usr/app/
-COPY {nodejs_reldir}/npm/* /usr/app/
-
-RUN npm install || sleep 60 && npm install
-
-COPY {nodejs_reldir}/../install_ddtrace.sh binaries* /binaries/
-RUN /binaries/install_ddtrace.sh
-RUN mkdir /parametric-tracer-logs
-
-""",
-        container_cmd=["./app.sh"],
-        container_build_dir=nodejs_absolute_appdir,
-        volumes=volumes,
-    )
-
-
-def golang_library_factory():
-    golang_appdir = os.path.join("utils", "build", "docker", "golang", "parametric")
-    golang_absolute_appdir = os.path.join(_get_base_directory(), golang_appdir)
-    golang_reldir = golang_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="golang",
-        container_name="go-test-library",
-        container_tag="go-oldstable-test-library",
-        container_img=f"""
-FROM golang:1.24
-
-# install jq
-RUN apt-get update && apt-get -y install jq
-WORKDIR /app
-COPY {golang_reldir}/go.mod /app
-COPY {golang_reldir}/go.sum /app
-COPY {golang_reldir}/. /app
-# download the proper tracer version
-COPY utils/build/docker/golang/install_ddtrace.sh binaries* /binaries/
-COPY utils/build/docker/golang/parametric/system_tests_library_version.sh system_tests_library_version.sh
-RUN /binaries/install_ddtrace.sh
-RUN mkdir /parametric-tracer-logs
-
-RUN go install
-""",
-        container_cmd=["main"],
-        container_build_dir=golang_absolute_appdir,
-        volumes={os.path.join(golang_absolute_appdir): "/client"},
-    )
-
-
-def dotnet_library_factory():
-    dotnet_appdir = os.path.join("utils", "build", "docker", "dotnet", "parametric")
-    dotnet_absolute_appdir = os.path.join(_get_base_directory(), dotnet_appdir)
-    dotnet_reldir = dotnet_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="dotnet",
-        container_name="dotnet-test-api",
-        container_tag="dotnet8_0-test-api",
-        container_img=f"""
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-app
-WORKDIR /app
-
-# Opt-out of .NET SDK CLI telemetry
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-
-# dotnet restore
-COPY {dotnet_reldir}/ApmTestApi.csproj {dotnet_reldir}/nuget.config ./
-RUN dotnet restore "./ApmTestApi.csproj"
-
-# dotnet publish
-COPY {dotnet_reldir} ./
-RUN dotnet publish --no-restore -c Release -o out
-
-##################
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-version-tool
-WORKDIR /app
-
-# Opt-out of .NET SDK CLI telemetry
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-
-COPY {dotnet_reldir}/../GetAssemblyVersion ./
-RUN dotnet publish -c Release -o out
-
-##################
-
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
-WORKDIR /app
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y curl
-
-# install dd-trace-dotnet (must be done before setting LD_PRELOAD)
-COPY utils/build/docker/dotnet/install_ddtrace.sh binaries/ /binaries/
-RUN /binaries/install_ddtrace.sh
-
-# Opt-out of .NET SDK CLI telemetry (prevent unexpected http client spans)
-ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
-
-# Set up automatic instrumentation
-ENV CORECLR_ENABLE_PROFILING=1
-ENV CORECLR_PROFILER='{{846F5F1C-F9AE-4B07-969E-05C26BC060D8}}'
-ENV CORECLR_PROFILER_PATH=/opt/datadog/Datadog.Trace.ClrProfiler.Native.so
-ENV LD_PRELOAD=/opt/datadog/continuousprofiler/Datadog.Linux.ApiWrapper.x64.so
-ENV DD_DOTNET_TRACER_HOME=/opt/datadog
-
-# disable gRPC, ASP.NET Core, and other auto-instrumentations (to prevent unexpected spans)
-ENV DD_TRACE_Grpc_ENABLED=false
-ENV DD_TRACE_AspNetCore_ENABLED=false
-ENV DD_TRACE_Process_ENABLED=false
-
-# copy custom tool used to get library version (built above)
-COPY utils/build/docker/dotnet/parametric/system_tests_library_version.sh ./
-COPY --from=build-version-tool /app/out /app
-
-# copy the dotnet app (built above)
-COPY --from=build-app /app/out /app
-
-RUN mkdir /parametric-tracer-logs
-""",
-        container_cmd=["./ApmTestApi"],
-        container_build_dir=dotnet_absolute_appdir,
-    )
-
-
-def java_library_factory():
-    java_appdir = os.path.join("utils", "build", "docker", "java", "parametric")
-    java_absolute_appdir = os.path.join(_get_base_directory(), java_appdir)
-
-    # Create the relative path and substitute the Windows separator,
-    # to allow running the Docker build on Windows machines.
-    java_reldir = java_appdir.replace("\\", "/")
-
-    # TODO : use official install_ddtrace.sh
-    return APMLibraryTestServer(
-        lang="java",
-        container_name="java-test-client",
-        container_tag="java-test-client",
-        container_img=f"""
-FROM maven:3-eclipse-temurin-21
-WORKDIR /client
-RUN mkdir ./tracer
-COPY {java_reldir}/src src
-COPY {java_reldir}/install_ddtrace.sh .
-COPY {java_reldir}/pom.xml .
-COPY binaries /binaries
-RUN bash install_ddtrace.sh
-COPY {java_reldir}/run.sh .
-RUN mkdir /parametric-tracer-logs
-""",
-        container_cmd=["./run.sh"],
-        container_build_dir=java_absolute_appdir,
-    )
-
-
-def php_library_factory() -> APMLibraryTestServer:
-    php_appdir = os.path.join("utils", "build", "docker", "php", "parametric")
-    php_absolute_appdir = os.path.join(_get_base_directory(), php_appdir)
-    php_reldir = php_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="php",
-        container_name="php-test-library",
-        container_tag="php-test-library",
-        container_img=f"""
-FROM datadog/dd-trace-ci:php-8.2_bookworm-5
-RUN switch-php nts
-WORKDIR /binaries
-ENV DD_TRACE_CLI_ENABLED=1
-ADD {php_reldir}/composer.json .
-ADD {php_reldir}/composer.lock .
-RUN composer install
-ADD {php_reldir}/../common/install_ddtrace.sh .
-COPY binaries /binaries
-RUN NO_EXTRACT_VERSION=Y ./install_ddtrace.sh
-RUN php -d error_reporting='' -r 'echo phpversion("ddtrace");' > SYSTEM_TESTS_LIBRARY_VERSION
-ADD {php_reldir}/server.php .
-# RUN mkdir /parametric-tracer-logs
-""",
-        container_cmd=[
-            "bash",
-            "-c",
-            "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
-        ],  # In case of crash, give time to the sidecar to upload the crash report
-        container_build_dir=php_absolute_appdir,
-        volumes={os.path.join(php_absolute_appdir, "server.php"): "/client/server.php"},
-    )
-
-
-def ruby_library_factory() -> APMLibraryTestServer:
-    ruby_appdir = os.path.join("utils", "build", "docker", "ruby", "parametric")
-    ruby_absolute_appdir = os.path.join(_get_base_directory(), ruby_appdir)
-    ruby_reldir = ruby_appdir.replace("\\", "/")
-    return APMLibraryTestServer(
-        lang="ruby",
-        container_name="ruby-test-client",
-        container_tag="ruby-test-client",
-        container_img=f"""
-            FROM --platform=linux/amd64 ruby:3.2.1-bullseye
-            WORKDIR /app
-            COPY {ruby_reldir} .
-            COPY {ruby_reldir}/../install_ddtrace.sh binaries* /binaries/
-            COPY {ruby_reldir}/system_tests_library_version.sh system_tests_library_version.sh
-            RUN bundle install
-            RUN /binaries/install_ddtrace.sh
-            COPY {ruby_reldir}/server.rb /app/
-            RUN mkdir /parametric-tracer-logs
-            """,
-        container_cmd=["bundle", "exec", "ruby", "server.rb"],
-        container_build_dir=ruby_absolute_appdir,
-    )
-
-
-def cpp_library_factory() -> APMLibraryTestServer:
-    cpp_appdir = os.path.join("utils", "build", "docker", "cpp", "parametric")
-    cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
-    cpp_reldir = cpp_appdir.replace("\\", "/")
-    dockerfile_content = f"""
-FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-amd64 AS build
-
-RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
-WORKDIR /usr/app
-COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
-COPY utils/build/docker/github.sh /binaries/github.sh
-RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
-RUN cd /binaries/dd-trace-cpp \
- && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
- && cmake --build .build -j $(nproc) \
- && cmake --install .build --prefix /usr/app/
-
-FROM ubuntu:22.04
-COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
-COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION
-RUN mkdir /parametric-tracer-logs
-"""
-
-    return APMLibraryTestServer(
-        lang="cpp",
-        container_name="cpp-test-client",
-        container_tag="cpp-test-client",
-        container_img=dockerfile_content,
-        container_cmd=["parametric-http-server"],
-        container_build_dir=cpp_absolute_appdir,
-    )
-
-
-def rust_library_factory() -> APMLibraryTestServer:
-    rust_appdir = os.path.join("utils", "build", "docker", "rust", "parametric")
-    rust_absolute_appdir = os.path.join(_get_base_directory(), rust_appdir)
-    rust_reldir = rust_appdir.replace("\\", "/")
-
-    return APMLibraryTestServer(
-        lang="rust",
-        container_name="rust-test-client",
-        container_tag="rust-test-client",
-        container_img=f"""
-FROM rust:1.84.1-slim-bookworm AS builder
-WORKDIR /usr/app
-COPY {rust_reldir} .
-COPY {rust_reldir}/../install_ddtrace.sh ./binaries/ /binaries/
-COPY {rust_reldir}/Cargo.toml /usr/app/
-COPY {rust_reldir}/src /usr/app/
-
-RUN apt-get update && apt-get install -y --no-install-recommends openssh-client git
-
-RUN /binaries/install_ddtrace.sh
-
-RUN \
-    --mount=type=cache,target=/usr/app/target/ \
-    --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release && cp ./target/release/ddtrace-rs-client /usr/app
-
-FROM debian:bookworm-slim AS final
-COPY --from=builder /usr/app/ddtrace-rs-client /usr/app/ddtrace-rs-client
-COPY --from=builder /usr/app/Cargo.lock /usr/app/Cargo.lock
-COPY {rust_reldir}/system_tests_library_version.sh /usr/app/system_tests_library_version.sh
-RUN mkdir /parametric-tracer-logs
-WORKDIR /usr/app
-            """,
-        container_cmd=["./ddtrace-rs-client"],
-        container_build_dir=rust_absolute_appdir,
-    )
