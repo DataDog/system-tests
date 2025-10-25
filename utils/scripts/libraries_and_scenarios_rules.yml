@@ -256,6 +256,9 @@ patterns:
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
 
+    utils/docker_fixtures/*:
+        scenario_groups: parametric
+
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
     utils/_features.py:

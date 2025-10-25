@@ -13,13 +13,11 @@ import subprocess
 import pytest
 from _pytest.outcomes import Failed
 from docker.models.containers import Container
-from docker.models.networks import Network
-from retry import retry
 
+from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
 from utils._context.component_version import ComponentVersion
-from utils._logger import logger
-
 from utils._context.docker import get_docker_client
+from utils._logger import logger
 from .core import Scenario, scenario_groups
 
 
@@ -56,8 +54,9 @@ class APMLibraryTestServer:
 
 
 class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
     apm_test_server_definition: APMLibraryTestServer
+
+    _test_agent_factory: TestAgentFactory
 
     class PersistentParametricTestConf(dict):
         """Parametric tests are executed in multiple thread, we need a mechanism to persist
@@ -123,13 +122,14 @@ class ParametricScenario(Scenario):
             "rust": rust_library_factory,
         }[library]
 
+        self._test_agent_factory = TestAgentFactory(self.host_log_folder)
         self.apm_test_server_definition = factory()
 
         if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image(config.option.github_token_file)
-            self._pull_test_agent_image()
+            self._test_agent_factory.pull()
             self._clean_containers()
             self._clean_networks()
 
@@ -160,11 +160,6 @@ class ParametricScenario(Scenario):
         result.append(self._set_components)
 
         return result
-
-    @retry(delay=10, tries=3)
-    def _pull_test_agent_image(self):
-        logger.stdout("Pulling test agent image...")
-        get_docker_client().images.pull(self.TEST_AGENT_IMAGE)
 
     def _clean_containers(self):
         """Some containers may still exists from previous unfinished sessions"""
@@ -258,10 +253,21 @@ class ParametricScenario(Scenario):
 
             logger.debug("Build tested container finished")
 
-    def create_docker_network(self, test_id: str) -> Network:
+    @contextlib.contextmanager
+    def _get_docker_network(self, test_id: str) -> Generator[str, None, None]:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
+        network = get_docker_client().networks.create(name=docker_network_name, driver="bridge")
 
-        return get_docker_client().networks.create(name=docker_network_name, driver="bridge")
+        try:
+            yield network.name
+        finally:
+            try:
+                network.remove()
+            except:
+                # It's possible (why?) of having some container not stopped.
+                # If it happens, failing here makes stdout tough to understand.
+                # Let's ignore this, later calls will clean the mess
+                logger.info("Failed to remove network, ignoring the error")
 
     @staticmethod
     def get_host_port(worker_id: str, base_port: int) -> int:
@@ -340,6 +346,28 @@ class ParametricScenario(Scenario):
         result["dd_tags[systest.suite.context.weblog_variant]"] = self.weblog_variant
 
         return result
+
+    @contextlib.contextmanager
+    def get_test_agent_api(
+        self,
+        worker_id: str,
+        request: pytest.FixtureRequest,
+        test_id: str,
+        container_otlp_http_port: int,
+        container_otlp_grpc_port: int,
+    ) -> Generator[TestAgentAPI, None, None]:
+        with (
+            self._get_docker_network(test_id) as docker_network,
+            self._test_agent_factory.get_test_agent_api(
+                request=request,
+                worker_id=worker_id,
+                docker_network=docker_network,
+                container_name=f"ddapm-test-agent-{test_id}",
+                container_otlp_http_port=container_otlp_http_port,
+                container_otlp_grpc_port=container_otlp_grpc_port,
+            ) as result,
+        ):
+            yield result
 
 
 def _get_base_directory() -> str:
