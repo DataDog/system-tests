@@ -2,7 +2,7 @@ from collections.abc import Generator
 
 import pytest
 
-from utils.integration_frameworks import (
+from utils.docker_fixtures import (
     FrameworkTestClientApi,
     TestAgentAPI,
 )

@@ -2,7 +2,7 @@ from utils import context, missing_feature, scenarios, features
 
 import pytest
 
-from utils.integration_frameworks import FrameworkTestClientApi, TestAgentAPI
+from utils.docker_fixtures import FrameworkTestClientApi, TestAgentAPI
 
 
 @features.llm_observability
