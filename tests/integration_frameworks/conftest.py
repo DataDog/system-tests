@@ -24,23 +24,15 @@ def library_env() -> dict[str, str]:
 
 
 @pytest.fixture
-def docker_network(test_id: str) -> Generator[str, None, None]:
-    with scenarios.integration_frameworks.get_docker_network(test_id) as name:
-        yield name
-
-
-@pytest.fixture
 def test_agent(
     test_id: str,
     worker_id: str,
-    docker_network: str,
     request: pytest.FixtureRequest,
 ) -> Generator[TestAgentAPI, None, None]:
-    with scenarios.integration_frameworks.test_agent_factory.get_test_agent_api(
+    with scenarios.integration_frameworks.get_test_agent_api(
         request=request,
         worker_id=worker_id,
-        container_name=f"ddapm-test-agent-{test_id}",
-        docker_network=docker_network,
+        test_id=test_id,
     ) as result:
         yield result
 
@@ -55,8 +47,7 @@ def test_client(
 ) -> Generator[FrameworkTestClientApi, None, None]:
     context.scenario.parametrized_tests_metadata[request.node.nodeid] = dict(library_env)
 
-    framework_test_server = scenarios.integration_frameworks.test_client_factory
-    with framework_test_server.get_client(
+    with scenarios.integration_frameworks.get_client(
         request=request,
         library_env=library_env,
         worker_id=worker_id,

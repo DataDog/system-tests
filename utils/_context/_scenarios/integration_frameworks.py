@@ -3,7 +3,12 @@ import contextlib
 
 import pytest
 
-from utils.integration_frameworks import FrameworkTestClientFactory, TestAgentFactory
+from utils.integration_frameworks import (
+    FrameworkTestClientFactory,
+    TestAgentFactory,
+    TestAgentAPI,
+    FrameworkTestClientApi,
+)
 from utils._logger import logger
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
@@ -13,8 +18,8 @@ _NETWORK_PREFIX = "framework_shared_tests_network"
 
 
 class IntegrationFrameworksScenario(Scenario):
-    test_client_factory: FrameworkTestClientFactory
-    test_agent_factory: TestAgentFactory
+    _test_client_factory: FrameworkTestClientFactory
+    _test_agent_factory: TestAgentFactory
 
     def __init__(self, name: str, doc: str) -> None:
         super().__init__(name, doc=doc, github_workflow="endtoend", scenario_groups=[scenario_groups.tracer_release])
@@ -39,8 +44,8 @@ class IntegrationFrameworksScenario(Scenario):
 
         framework, framework_version = weblog.split("@", 1)
 
-        self.test_agent_factory = TestAgentFactory(self.host_log_folder)
-        self.test_client_factory = FrameworkTestClientFactory(
+        self._test_agent_factory = TestAgentFactory(self.host_log_folder)
+        self._test_client_factory = FrameworkTestClientFactory(
             host_log_folder=self.host_log_folder,
             library=library,
             framework=framework,
@@ -55,10 +60,46 @@ class IntegrationFrameworksScenario(Scenario):
 
         if self.is_main_worker:
             # Build the framework test server image
-            self.test_client_factory.build(self.host_log_folder, github_token_file=config.option.github_token_file)
-            self.test_agent_factory.pull()
+            self._test_client_factory.build(self.host_log_folder, github_token_file=config.option.github_token_file)
+            self._test_agent_factory.pull()
             self._clean_containers()
             self._clean_networks()
+
+    @contextlib.contextmanager
+    def get_test_agent_api(
+        self,
+        request: pytest.FixtureRequest,
+        test_id: str,
+        worker_id: str,
+    ) -> Generator[TestAgentAPI, None, None]:
+        with (
+            self._get_docker_network(test_id) as docker_network,
+            self._test_agent_factory.get_test_agent_api(
+                request=request,
+                worker_id=worker_id,
+                container_name=f"ddapm-test-agent-{test_id}",
+                docker_network=docker_network,
+            ) as result,
+        ):
+            yield result
+
+    @contextlib.contextmanager
+    def get_client(
+        self,
+        request: pytest.FixtureRequest,
+        worker_id: str,
+        test_id: str,
+        library_env: dict[str, str],
+        test_agent: TestAgentAPI,
+    ) -> Generator[FrameworkTestClientApi, None, None]:
+        with self._test_client_factory.get_client(
+            request=request,
+            library_env=library_env,
+            worker_id=worker_id,
+            test_id=test_id,
+            test_agent=test_agent,
+        ) as client:
+            yield client
 
     def _clean_containers(self) -> None:
         for container in get_docker_client().containers.list(all=True):
@@ -77,7 +118,7 @@ class IntegrationFrameworksScenario(Scenario):
         return self._library
 
     @contextlib.contextmanager
-    def get_docker_network(self, test_id: str) -> Generator[str, None, None]:
+    def _get_docker_network(self, test_id: str) -> Generator[str, None, None]:
         docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
         network = get_docker_client().networks.create(name=docker_network_name, driver="bridge")
 
