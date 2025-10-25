@@ -82,7 +82,7 @@ class ParametricScenario(DockerFixturesScenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release, scenario_groups.parametric],
+            scenario_groups=(scenario_groups.parametric,),
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -110,7 +110,9 @@ class ParametricScenario(DockerFixturesScenario):
             "rust": rust_library_factory,
         }[library]
 
-        self._test_agent_factory = TestAgentFactory(self.host_log_folder)
+        self._test_agent_factory = TestAgentFactory(
+            "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0", self.host_log_folder
+        )
         self.apm_test_server_definition = factory()
 
         if self.is_main_worker:

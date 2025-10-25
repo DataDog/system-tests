@@ -1,7 +1,10 @@
 from ._core import get_host_port, docker_run, compute_volumes
 from ._test_agent import TestAgentAPI, TestAgentFactory
+from ._test_client import FrameworkTestClientApi, FrameworkTestClientFactory
 
 __all__ = [
+    "FrameworkTestClientApi",
+    "FrameworkTestClientFactory",
     "TestAgentAPI",
     "TestAgentFactory",
     "compute_volumes",
