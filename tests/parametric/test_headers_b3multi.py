@@ -34,7 +34,7 @@ def enable_case_insensitive_b3multi() -> pytest.MarkDecorator:
     return parametrize("library_env", [env1, env2])
 
 
-@features.b3_headers_propagation
+@features.b3multi_headers_propagation
 @scenarios.parametric
 class Test_Headers_B3multi:
     @enable_b3multi()
