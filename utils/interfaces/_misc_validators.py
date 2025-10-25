@@ -20,7 +20,7 @@ class HeadersPresenceValidator:
         self.response_headers = set(response_headers)
         self.check_condition = check_condition
 
-    def __call__(self, data: dict):
+    def __call__(self, data: dict) -> None:
         if self.check_condition and not self.check_condition(data):
             return
 
@@ -48,7 +48,7 @@ class HeadersMatchValidator:
         self.response_headers = dict(response_headers) if response_headers is not None else {}
         self.check_condition = check_condition
 
-    def __call__(self, data: dict):
+    def __call__(self, data: dict) -> None:
         if self.check_condition and not self.check_condition(data):
             return
 

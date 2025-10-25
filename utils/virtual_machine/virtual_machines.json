@@ -259,7 +259,7 @@
             "os_branch": "debian",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": false
+            "disabled": true
         },
         {
             "name": "Debian_11_amd64",
@@ -494,7 +494,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_9_3_arm64",
@@ -508,7 +508,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_9_2_amd64",
@@ -522,7 +522,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_9_2_arm64",
@@ -536,7 +536,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_amd64",
@@ -550,7 +550,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "amd64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "OracleLinux_8_8_arm64",
@@ -564,7 +564,7 @@
             "os_branch": "oracle_linux",
             "os_cpu": "arm64",
             "default_vm": false,
-            "disabled": true
+            "disabled": false
         },
         {
             "name": "AlmaLinux_8_amd64",
@@ -750,7 +750,7 @@
             "disabled": false
         },
         {
-            "name": "Rocky_Linux_9_amd6",
+            "name": "Rocky_Linux_9_amd64",
             "aws_config": {
                 "ami_id": "ami-0a73e96a849c232cc",
                 "ami_instance_type": "t3.medium",

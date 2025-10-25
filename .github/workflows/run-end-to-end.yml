@@ -3,6 +3,10 @@ name: End-to-end tests
 on:
   workflow_call:
     inputs:
+      runs_on:
+        description: "Github runner"
+        required: true
+        type: string
       library:
         description: "Library to test"
         required: true
@@ -19,6 +23,10 @@ on:
         description: "Weblog name"
         required: true
         type: string
+      weblog_build_required:
+        description: "Is ./build.sh required?"
+        required: true
+        type: boolean
       weblog_instance:
         description: "Weblog instance name, if several job runs the same weblog, usefull to distinguish them in UI"
         required: false
@@ -89,13 +97,10 @@ on:
         required: false
         type: boolean
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   main:
     name: "${{ inputs.weblog }} ${{ inputs.weblog_instance }}"
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on }}
     env:
       SYSTEM_TESTS_REPORT_ENVIRONMENT: ${{ inputs.ci_environment }}
       SYSTEM_TESTS_REPORT_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -146,12 +151,17 @@ jobs:
         scenarios: ${{ inputs.scenarios }}
         dockerhub_username: ${{ secrets.DOCKERHUB_USERNAME }}
         dockerhub_token: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Log in to the Container registry
-      if: ${{ inputs.library == 'ruby' }}
-      run: echo ${{ secrets.GITHUB_TOKEN }} | docker login ${{ env.REGISTRY }} -u ${{ github.actor }} --password-stdin
     - name: Build weblog
       id: build
-      run: SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      run: |
+        # If not required, skip but succeed so outcome == 'success'
+        if [[ "${{ inputs.weblog_build_required }}" == 'false' ]]; then
+          echo "Skipping build (weblog_build_required=false)"
+          exit 0
+        fi
+        ./build.sh ${{ inputs.library }} -i weblog -w ${{ inputs.weblog }}
+      env:
+        SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
@@ -256,6 +266,9 @@ jobs:
     - name: Run REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE"')
       run: ./run.sh REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE
+    - name: Run FEATURE_FLAG_EXPOSURE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"FEATURE_FLAG_EXPOSURE"')
+      run: ./run.sh FEATURE_FLAG_EXPOSURE
     - name: Run AGENT_SUPPORTING_SPAN_EVENTS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"AGENT_SUPPORTING_SPAN_EVENTS"')
       run: ./run.sh AGENT_SUPPORTING_SPAN_EVENTS
@@ -264,14 +277,12 @@ jobs:
       run: ./run.sh AGENT_NOT_SUPPORTING_SPAN_EVENTS
     - name: Run APPSEC_MISSING_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_MISSING_RULES"')
-      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_MISSING_RULES
     - name: Run APPSEC_CUSTOM_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CUSTOM_RULES"')
       run: ./run.sh APPSEC_CUSTOM_RULES
     - name: Run APPSEC_CORRUPTED_RULES scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_CORRUPTED_RULES"')
-      # nginx 1.2.0 refuses to start without a valid rules files
       run: ./run.sh APPSEC_CORRUPTED_RULES
     - name: Run APPSEC_RULES_MONITORING_WITH_ERRORS scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RULES_MONITORING_WITH_ERRORS"')
@@ -326,6 +337,12 @@ jobs:
     - name: Run APPSEC_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP"')
       run: ./run.sh APPSEC_RASP
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE
+    - name: Run APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX"')
+      run: ./run.sh APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX
     - name: Run APPSEC_STANDALONE_RASP scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE_RASP"')
       run: ./run.sh APPSEC_STANDALONE_RASP
@@ -429,6 +446,22 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run EXTERNAL_PROCESSING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
+      run: ./run.sh EXTERNAL_PROCESSING
+    - name: Run EXTERNAL_PROCESSING_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING_BLOCKING"')
+      run: ./run.sh EXTERNAL_PROCESSING_BLOCKING
+    - name: Run STREAM_PROCESSING_OFFLOAD scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD
+    - name: Run STREAM_PROCESSING_OFFLOAD_BLOCKING scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"STREAM_PROCESSING_OFFLOAD_BLOCKING"')
+      run: ./run.sh STREAM_PROCESSING_OFFLOAD_BLOCKING
+    - name: Run OTEL_COLLECTOR scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"OTEL_COLLECTOR"')
+      run: ./run.sh OTEL_COLLECTOR
+
     - name: Run all scenarios in replay mode
       if: success() && steps.build.outcome == 'success' && inputs._enable_replay_scenarios
       run: utils/scripts/replay_scenarios.sh

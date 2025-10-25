@@ -43,7 +43,7 @@ _CUR_DIR = str(Path(__file__).resolve().parent)
 
 
 def read_probes(test_name: str) -> list:
-    with open(os.path.join(_CUR_DIR, "probes/", test_name + ".json"), "r", encoding="utf-8") as f:
+    with open(os.path.join(_CUR_DIR, "utils", "probes", test_name + ".json"), "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -67,11 +67,11 @@ def extract_probe_ids(probes: dict | list) -> list:
 
 
 def _get_path(test_name: str, suffix: str, version: str) -> str:
-    # system-tests/tests/debugger/approvals/{language}/{version}/{test_name}_{suffix}.json
+    # system-tests/tests/debugger/utils/approvals/{language}/{version}/{test_name}_{suffix}.json
 
     language = BaseDebuggerTest.tracer["language"]
     filename = test_name + "_" + suffix + ".json"
-    return os.path.join(_CUR_DIR, "approvals", language, version, filename)
+    return os.path.join(_CUR_DIR, "utils", "approvals", language, version, filename)
 
 
 def write_approval(data: list, test_name: str, suffix: str, version: str) -> None:
@@ -107,6 +107,7 @@ class BaseDebuggerTest:
     start_time: int | None = None
 
     rc_states: list[remote_config.RemoteConfigStateResults] = []
+    prev_payloads: list[dict[str, Any]] = []
     weblog_responses: list = []
 
     setup_failures: list = []
@@ -188,10 +189,10 @@ class BaseDebuggerTest:
                     elif language == "php":
                         probe["where"]["typeName"] = "DebuggerController"
                     elif language == "golang":
-                        probe["where"]["typeName"] = "-"  # Ignored
+                        probe["where"]["typeName"] = "main.DebuggerController"  # Ignored
                         method = probe["where"]["methodName"]
                         method = method[0].lower() + method[1:] if method else ""
-                        probe["where"]["methodName"] = "main." + method
+                        probe["where"]["methodName"] = "main.(*DebuggerController)." + method
                 elif probe["where"]["sourceFile"] == "ACTUAL_SOURCE_FILE":
                     if language == "dotnet":
                         probe["where"]["sourceFile"] = "DebuggerController.cs"
@@ -254,9 +255,11 @@ class BaseDebuggerTest:
 
         if reset:
             self.rc_states = []
+            self.prev_payloads = []
 
         self.rc_states.append(
             remote_config.send_apm_tracing_command(
+                prev_payloads=self.prev_payloads,
                 dynamic_instrumentation_enabled=dynamic_instrumentation_enabled,
                 exception_replay_enabled=exception_replay_enabled,
                 live_debugging_enabled=live_debugging_enabled,
@@ -784,7 +787,7 @@ class BaseDebuggerTest:
 
     def _get_path(self, test_name: str, suffix: str) -> str:
         filename = test_name + "_" + self.get_tracer()["language"] + "_" + suffix + ".json"
-        return os.path.join(_CUR_DIR, "approvals", filename)
+        return os.path.join(_CUR_DIR, "utils", "approvals", filename)
 
     def write_approval(self, data: list, test_name: str, suffix: str) -> None:
         with open(self._get_path(test_name, suffix), "w", encoding="utf-8") as f:

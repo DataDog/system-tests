@@ -29,7 +29,9 @@ class Test_StatusCode:
 
             return True
 
-        interfaces.library.validate_appsec(self.r, validator=check_http_code, legacy_validator=check_http_code_legacy)
+        interfaces.library.validate_one_appsec(
+            self.r, validator=check_http_code, legacy_validator=check_http_code_legacy
+        )
 
 
 @bug(context.library == "python@1.1.0", reason="APMRP-360")
@@ -59,7 +61,7 @@ class Test_Info:
 
             return True
 
-        interfaces.library.validate_appsec(self.r, legacy_validator=_check_service_legacy, validator=_check_service)
+        interfaces.library.validate_one_appsec(self.r, legacy_validator=_check_service_legacy, validator=_check_service)
 
 
 @rfc("https://datadoghq.atlassian.net/wiki/spaces/APS/pages/2186870984/HTTP+header+collection")

@@ -2,7 +2,7 @@
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2021 Datadog, Inc.
 
-from utils import interfaces, scenarios, features, weblog, remote_config as rc
+from utils import interfaces, scenarios, features, weblog, context, bug, remote_config as rc
 from utils.dd_constants import Capabilities
 
 
@@ -43,6 +43,13 @@ EXTENDED_DATA_COLLECTION_RULE = (
         ]
     },
 )
+
+
+def assert_body_property(body, prop, expected_value) -> None:
+    if context.library.name == "java":
+        assert body.get(prop)[0] == expected_value
+    else:
+        assert body.get(prop) == expected_value
 
 
 @features.appsec_extended_data_collection
@@ -454,8 +461,8 @@ class Test_ExtendedRequestBodyCollection:
         assert body is not None
 
         # Verify the body content based on library
-        assert body.get("body_key") == "body_value"
-        assert body.get("param") == "collect"
+        assert_body_property(body, "body_key", "body_value")
+        assert_body_property(body, "param", "collect")
 
     def setup_no_extended_request_body_collection_without_event(self):
         """Setup test with remote config for extended request body data collection but without triggering the rule"""
@@ -501,6 +508,7 @@ class Test_ExtendedRequestBodyCollection:
             "/tag_value/extended_body_collection/200", data={"param": "collect", "body_key": "A" * 5000}
         )
 
+    @bug(library="java", weblog_variant="vertx3", reason="APPSEC-57811")
     def test_extended_request_body_collection_truncated(self):
         """Test that extended request body data collection properly truncates large bodies when configured via remote config"""
         # Verify remote config was applied successfully
@@ -518,8 +526,8 @@ class Test_ExtendedRequestBodyCollection:
         assert body is not None
 
         # Verify the body content is truncated
-        assert body.get("param") == "collect"
-        assert body.get("body_key") == "A" * 4096
+        assert_body_property(body, "body_key", "A" * 4096)
+        assert_body_property(body, "param", "collect")
 
         # Verify the body size exceed tag is set
         meta = span.get("meta", {})

@@ -3,6 +3,9 @@ refs:
   - &ref_0_0_1 "0.0.1"
 tests/:
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_0_0_1
     test_config_consistency.py: missing_feature
@@ -30,6 +33,7 @@ tests/:
     test_otel_env_vars.py:
       Test_Otel_Env_Vars: incomplete_test_app (/trace/config endpoint is not implemented)
     test_otel_logs.py: missing_feature
+    test_otel_metrics.py: missing_feature
     test_otel_span_methods.py:
       Test_Otel_Span_Methods: *ref_0_0_1
     test_otel_span_with_baggage.py:
@@ -50,6 +54,7 @@ tests/:
       Test_Parametric_DDTrace_Current_Span: *ref_0_0_1
       Test_Parametric_DDTrace_Extract_Headers: *ref_0_0_1
       Test_Parametric_DDTrace_Flush: *ref_0_0_1
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_Inject_Headers: *ref_0_0_1
       Test_Parametric_OtelSpan_Events: *ref_0_0_1
       Test_Parametric_OtelSpan_Set_Name: *ref_0_0_1
@@ -87,4 +92,6 @@ tests/:
     test_tracer.py: missing_feature
     test_tracer_flare.py:
       TestTracerFlareV1: missing_feature
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_v1_payloads.py: missing_feature

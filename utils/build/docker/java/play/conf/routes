@@ -36,6 +36,7 @@ GET  /vulnerablerequestdownstream        controllers.AppSecController.vulnerable
 GET  /returnheaders            controllers.AppSecController.returnheaders
 GET  /createextraservice        controllers.AppSecController.createextraservice(serviceName: String)
 GET     /customResponseHeaders      controllers.AppSecController.customResponseHeaders
+GET     /authorization_related_headers      controllers.AppSecController.authResponseHeaders
 GET     /exceedResponseHeaders      controllers.AppSecController.exceedResponseHeaders
 
 # IAST Sampling endpoints

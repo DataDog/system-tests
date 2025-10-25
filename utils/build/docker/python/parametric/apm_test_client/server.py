@@ -5,6 +5,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 from typing import Any
+from typing import Union
 import logging
 import os
 import enum
@@ -14,6 +15,11 @@ from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from opentelemetry.metrics import CallbackOptions
+from opentelemetry.metrics import Meter
+from opentelemetry.metrics import Observation
+from opentelemetry.metrics import Instrument
+from opentelemetry.metrics import get_meter_provider
 from opentelemetry.trace import set_tracer_provider
 from opentelemetry.trace.span import NonRecordingSpan as OtelNonRecordingSpan
 from opentelemetry.trace import SpanKind
@@ -53,6 +59,8 @@ log = logging.getLogger(__name__)
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
 otel_spans: Dict[int, OtelSpan] = {}
+otel_meters: Dict[str, Meter] = {}
+otel_meter_instruments: Dict[str, Instrument] = {}
 # Store the active span for each tracer in an array to allow for easy global access
 # FastAPI resets the contextvar containing the active span after each request
 active_ddspan = [None]
@@ -68,6 +76,10 @@ Implement the API specified below to enable your library to run all of the share
 
 # Ensures the Datadog and OpenTelemetry tracers are interoperable
 opentelemetry.trace.set_tracer_provider(TracerProvider())
+
+
+def create_instrument_key(meter_name: str, name: str, kind: str, unit: str, description: str) -> Instrument:
+    return ",".join([meter_name, name.strip().lower(), kind, unit, description])
 
 
 try:
@@ -282,7 +294,7 @@ def trace_remove_all_baggage(args: SpanRemoveAllBaggageArgs) -> SpanRemoveAllBag
 class SpanSetMetricArgs(BaseModel):
     span_id: int
     key: str
-    value: float
+    value: Union[int, float]
 
 
 class SpanSetMetricReturn(BaseModel):
@@ -728,6 +740,377 @@ def otel_set_attributes(args: OtelSetAttributesArgs):
     attributes = args.attributes
     span.set_attributes(attributes)
     return OtelSetAttributesReturn()
+
+
+class OtelGetMeterArgs(BaseModel):
+    name: str
+    version: Optional[str]
+    schema_url: Optional[str]
+    attributes: Optional[dict] = None
+
+
+class OtelGetMeterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/get_meter")
+def otel_get_meter(args: OtelGetMeterArgs):
+    if args.name not in otel_meters:
+        otel_meters[args.name] = get_meter_provider().get_meter(
+            name=args.name, version=args.version, schema_url=args.schema_url, attributes=args.attributes
+        )
+    return OtelGetMeterReturn()
+
+
+class OtelCreateCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateCounterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_counter")
+def otel_create_counter(args: OtelCreateCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    counter = meter.create_counter(args.name, args.unit, args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+    otel_meter_instruments[instrument_key] = counter
+    return OtelCreateCounterReturn()
+
+
+class OtelCounterAddArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: Union[int, float]  # int MUST come first to preserve integer types
+    attributes: dict
+
+
+class OtelCounterAddReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/counter_add")
+def otel_counter_add(args: OtelCounterAddArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "counter", args.unit, args.description)
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(
+            f"Instrument with identifying fields Name={args.name},Kind=Counter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}"
+        )
+
+    counter = otel_meter_instruments[instrument_key]
+    counter.add(args.value, args.attributes)
+    return OtelCounterAddReturn()
+
+
+class OtelCreateUpDownCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateUpDownCounterReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_updowncounter")
+def otel_create_updowncounter(args: OtelCreateUpDownCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    counter = meter.create_up_down_counter(args.name, args.unit, args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "updowncounter", args.unit, args.description)
+    otel_meter_instruments[instrument_key] = counter
+    return OtelCreateUpDownCounterReturn()
+
+
+class OtelUpDownCounterAddArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelUpDownCounterAddReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/updowncounter_add")
+def otel_updowncounter_add(args: OtelUpDownCounterAddArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "updowncounter", args.unit, args.description)
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(
+            f"Instrument with identifying fields Name={args.name},Kind=UpDownCounter,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}"
+        )
+
+    counter = otel_meter_instruments[instrument_key]
+    counter.add(args.value, args.attributes)
+    return OtelUpDownCounterAddReturn()
+
+
+class OtelCreateGaugeArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateGaugeReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_gauge")
+def otel_create_gauge(args: OtelCreateGaugeArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    gauge = meter.create_gauge(args.name, args.unit, args.description)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "gauge", args.unit, args.description)
+    otel_meter_instruments[instrument_key] = gauge
+    return OtelCreateGaugeReturn()
+
+
+class OtelGaugeRecordArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelGaugeRecordReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/gauge_record")
+def otel_gauge_record(args: OtelGaugeRecordArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "gauge", args.unit, args.description)
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(
+            f"Instrument with identifying fields Name={args.name},Kind=Gauge,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}"
+        )
+
+    gauge = otel_meter_instruments[instrument_key]
+    gauge.set(args.value, args.attributes)
+    return OtelGaugeRecordReturn()
+
+
+class OtelCreateHistogramArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+
+
+class OtelCreateHistogramReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/create_histogram")
+def otel_create_histogram(args: OtelCreateHistogramArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    histogram = meter.create_histogram(args.name, args.unit, args.description, explicit_bucket_boundaries_advisory=None)
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "histogram", args.unit, args.description)
+    otel_meter_instruments[instrument_key] = histogram
+    return OtelCreateHistogramReturn()
+
+
+class OtelHistogramRecordArgs(BaseModel):
+    meter_name: str
+    name: str
+    unit: str
+    description: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelHistogramRecordReturn(BaseModel):
+    pass
+
+
+@app.post("/metrics/otel/histogram_record")
+def otel_histogram_record(args: OtelHistogramRecordArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "histogram", args.unit, args.description)
+
+    if instrument_key not in otel_meter_instruments:
+        raise ValueError(
+            f"Instrument with identifying fields Name={args.name},Kind=Histogram,Unit={args.unit},Description={args.description} not found in registered instruments for Meter={args.meter_name}"
+        )
+
+    histogram = otel_meter_instruments[instrument_key]
+    histogram.record(args.value, args.attributes)
+    return OtelHistogramRecordReturn()
+
+
+class OtelCreateAsynchronousCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelCreateAsynchronousCounterReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_counter_func(value: Union[int, float], attributes: dict):
+    def observable_counter_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+
+    return observable_counter_func
+
+
+@app.post("/metrics/otel/create_asynchronous_counter")
+def otel_create_asynchronous_counter(args: OtelCreateAsynchronousCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_counter = meter.create_observable_counter(
+        args.name, [create_constant_observable_counter_func(args.value, args.attributes)], args.unit, args.description
+    )
+
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, "observable_counter", args.unit, args.description
+    )
+    otel_meter_instruments[instrument_key] = observable_counter
+    return OtelCreateAsynchronousCounterReturn()
+
+
+class OtelCreateAsynchronousUpDownCounterArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelCreateAsynchronousUpDownCounterReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_updowncounter_func(value: Union[int, float], attributes: dict):
+    def observable_updowncounter_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+
+    return observable_updowncounter_func
+
+
+@app.post("/metrics/otel/create_asynchronous_updowncounter")
+def otel_create_asynchronous_updowncounter(args: OtelCreateAsynchronousUpDownCounterArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_updowncounter = meter.create_observable_up_down_counter(
+        args.name,
+        [create_constant_observable_updowncounter_func(args.value, args.attributes)],
+        args.unit,
+        args.description,
+    )
+
+    instrument_key = create_instrument_key(
+        args.meter_name, args.name, "observable_updowncounter", args.unit, args.description
+    )
+    otel_meter_instruments[instrument_key] = observable_updowncounter
+    return OtelCreateAsynchronousUpDownCounterReturn()
+
+
+class OtelCreateAsynchronousGaugeArgs(BaseModel):
+    meter_name: str
+    name: str
+    description: str
+    unit: str
+    value: Union[int, float]
+    attributes: dict
+
+
+class OtelCreateAsynchronousGaugeReturn(BaseModel):
+    pass
+
+
+def create_constant_observable_gauge_func(value: Union[int, float], attributes: dict):
+    def observable_gauge_func(options: CallbackOptions):
+        yield Observation(value, attributes)
+
+    return observable_gauge_func
+
+
+@app.post("/metrics/otel/create_asynchronous_gauge")
+def otel_create_asynchronous_gauge(args: OtelCreateAsynchronousGaugeArgs):
+    if args.meter_name not in otel_meters:
+        raise ValueError(f"Meter name {args.meter_name} not found in registered meters {otel_meters.keys()}")
+
+    meter = otel_meters[args.meter_name]
+    observable_gauge = meter.create_observable_gauge(
+        args.name, [create_constant_observable_gauge_func(args.value, args.attributes)], args.unit, args.description
+    )
+
+    instrument_key = create_instrument_key(args.meter_name, args.name, "observable_gauge", args.unit, args.description)
+    otel_meter_instruments[instrument_key] = observable_gauge
+    return OtelCreateAsynchronousGaugeReturn()
+
+
+class OtelMetricsForceFlushArgs(BaseModel):
+    pass
+
+
+class OtelMetricsForceFlushReturn(BaseModel):
+    success: bool
+
+
+@app.post("/metrics/otel/force_flush")
+def otel_metrics_force_flush(args: OtelMetricsForceFlushArgs):
+    meter_provider = get_meter_provider()
+
+    # Since force_flush is not part of the public API, we check if the
+    # meter provider has a force_flush method.
+    # If OpenTelemetry metrics is disabled, the meter provider will be
+    # a default _ProxyMeterProvider provided by the API which does not
+    # have the method.
+    if hasattr(meter_provider, "force_flush"):
+        meter_provider.force_flush()
+
+    return OtelMetricsForceFlushReturn(success=True)
 
 
 class LogGenerateArgs(BaseModel):

@@ -1,63 +1,26 @@
-import contextlib
 import dataclasses
-from typing import TextIO, Any
-from collections.abc import Generator
+from typing import Any
 
 import json
 import glob
-from functools import lru_cache
 import os
 from pathlib import Path
 import shutil
 import subprocess
 
 import pytest
-from _pytest.outcomes import Failed
-import docker
-from docker.errors import DockerException
 from docker.models.containers import Container
-from docker.models.networks import Network
 
+from utils.docker_fixtures import TestAgentFactory, compute_volumes
 from utils._context.component_version import ComponentVersion
+from utils._context.docker import get_docker_client
 from utils._logger import logger
-
-from .core import Scenario, scenario_groups
-
-
-def _fail(message: str):
-    """Used to mak a test as failed"""
-    logger.error(message)
-    raise Failed(message, pytrace=False) from None
+from .core import scenario_groups
+from ._docker_fixtures import DockerFixturesScenario
 
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
-_NETWORK_PREFIX = "apm_shared_tests_network"
-# _TEST_CLIENT_PREFIX = "apm_shared_tests_container"
-
-
-@lru_cache
-def _get_client() -> docker.DockerClient:
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = subprocess.run(
-                ["docker", "context", "show"], capture_output=True, check=True, text=True
-            ).stdout.strip()
-            endpoint = subprocess.run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("No more success with docker contexts")
-
-        raise
 
 
 @dataclasses.dataclass
@@ -80,8 +43,7 @@ class APMLibraryTestServer:
     container: Container | None = None
 
 
-class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
+class ParametricScenario(DockerFixturesScenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -120,7 +82,7 @@ class ParametricScenario(Scenario):
             name,
             doc=doc,
             github_workflow="parametric",
-            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release],
+            scenario_groups=[scenario_groups.all, scenario_groups.tracer_release, scenario_groups.parametric],
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -129,12 +91,10 @@ class ParametricScenario(Scenario):
         return self._parametric_tests_confs
 
     def configure(self, config: pytest.Config):
-        if config.option.library:
-            library = config.option.library
-        elif "TEST_LIBRARY" in os.environ:
-            library = os.getenv("TEST_LIBRARY")
-        else:
-            pytest.exit("No library specified, please set -L option", 1)
+        if not config.option.library:
+            pytest.exit("No library specified, please set -L option or use TEST_LIBRARY env var", 1)
+
+        library: str = config.option.library
 
         # get tracer version info building and executing the ddtracer-version.docker file
 
@@ -150,26 +110,26 @@ class ParametricScenario(Scenario):
             "rust": rust_library_factory,
         }[library]
 
+        self._test_agent_factory = TestAgentFactory(self.host_log_folder)
         self.apm_test_server_definition = factory()
 
         if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
-            self._build_apm_test_server_image()
-            self._pull_test_agent_image()
-            self._clean_containers()
-            self._clean_networks()
+            self._build_apm_test_server_image(config.option.github_token_file)
+            self._test_agent_factory.pull()
+            self._clean()
 
         # https://github.com/DataDog/system-tests/issues/2799
         if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
-            output = _get_client().containers.run(
+            output = get_docker_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["./system_tests_library_version.sh"],
-                volumes=self.compute_volumes(self.apm_test_server_definition.volumes),
+                volumes=compute_volumes(self.apm_test_server_definition.volumes),
             )
         else:
-            output = _get_client().containers.run(
+            output = get_docker_client().containers.run(
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["cat", "SYSTEM_TESTS_LIBRARY_VERSION"],
@@ -188,25 +148,6 @@ class ParametricScenario(Scenario):
 
         return result
 
-    def _pull_test_agent_image(self):
-        logger.stdout("Pulling test agent image...")
-        _get_client().images.pull(self.TEST_AGENT_IMAGE)
-
-    def _clean_containers(self):
-        """Some containers may still exists from previous unfinished sessions"""
-
-        for container in _get_client().containers.list(all=True):
-            if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
-                logger.info(f"Removing {container}")
-
-                container.remove(force=True)
-
-    def _clean_networks(self):
-        """Some network may still exists from previous unfinished sessions"""
-        logger.info("Removing unused network")
-        _get_client().networks.prune()
-        logger.info("Removing unused network done")
-
     @property
     def library(self):
         return self._library
@@ -215,7 +156,7 @@ class ParametricScenario(Scenario):
     def weblog_variant(self):
         return f"parametric-{self.library.name}"
 
-    def _build_apm_test_server_image(self) -> None:
+    def _build_apm_test_server_image(self, github_token_file: str) -> None:
         logger.stdout("Build tested container...")
 
         apm_test_server_definition: APMLibraryTestServer = self.apm_test_server_definition
@@ -242,6 +183,12 @@ class ParametricScenario(Scenario):
                 docker,
                 "build",
                 "--progress=plain",  # use plain output to assist in debugging
+            ]
+
+            if github_token_file.strip():
+                cmd += ["--secret", f"id=github_token,src={github_token_file}"]
+
+            cmd += [
                 "-t",
                 apm_test_server_definition.container_tag,
                 "-f",
@@ -277,80 +224,6 @@ class ParametricScenario(Scenario):
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
 
             logger.debug("Build tested container finished")
-
-    def create_docker_network(self, test_id: str) -> Network:
-        docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
-
-        return _get_client().networks.create(name=docker_network_name, driver="bridge")
-
-    @staticmethod
-    def get_host_port(worker_id: str, base_port: int) -> int:
-        """Deterministic port allocation for each worker"""
-
-        if worker_id == "master":  # xdist disabled
-            return base_port
-
-        if worker_id.startswith("gw"):
-            return base_port + int(worker_id[2:])
-
-        raise ValueError(f"Unexpected worker_id: {worker_id}")
-
-    @staticmethod
-    def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
-        """Convert volumes to the format expected by the docker-py API"""
-        fixed_volumes: dict[str, dict] = {}
-        for key, value in volumes.items():
-            if isinstance(value, dict):
-                fixed_volumes[key] = value
-            elif isinstance(value, str):
-                fixed_volumes[key] = {"bind": value, "mode": "rw"}
-            else:
-                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
-
-        return fixed_volumes
-
-    @contextlib.contextmanager
-    def docker_run(
-        self,
-        image: str,
-        name: str,
-        env: dict[str, str],
-        volumes: dict[str, str],
-        network: str,
-        ports: dict[str, int],
-        command: list[str],
-        log_file: TextIO,
-    ) -> Generator[Container, None, None]:
-        logger.info(f"Run container {name} from image {image} with ports {ports}")
-
-        try:
-            container: Container = _get_client().containers.run(
-                image,
-                name=name,
-                environment=env,
-                volumes=self.compute_volumes(volumes),
-                network=network,
-                ports=ports,
-                command=command,
-                detach=True,
-            )
-            logger.debug(f"Container {name} successfully started")
-        except Exception as e:
-            # at this point, even if it failed to start, the container may exists!
-            for container in _get_client().containers.list(filters={"name": name}, all=True):
-                container.remove(force=True)
-
-            _fail(f"Failed to run container {name}: {e}")
-
-        try:
-            yield container
-        finally:
-            logger.info(f"Stopping {name}")
-            container.stop(timeout=1)
-            logs = container.logs()
-            log_file.write(logs.decode("utf-8"))
-            log_file.flush()
-            container.remove(force=True)
 
     def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
@@ -581,7 +454,7 @@ def php_library_factory() -> APMLibraryTestServer:
         container_name="php-test-library",
         container_tag="php-test-library",
         container_img=f"""
-FROM datadog/dd-trace-ci:php-8.2_buster
+FROM datadog/dd-trace-ci:php-8.2_bookworm-5
 RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
@@ -638,12 +511,13 @@ def cpp_library_factory() -> APMLibraryTestServer:
     cpp_absolute_appdir = os.path.join(_get_base_directory(), cpp_appdir)
     cpp_reldir = cpp_appdir.replace("\\", "/")
     dockerfile_content = f"""
-FROM datadog/docker-library:dd-trace-cpp-ci AS build
+FROM datadog/docker-library:dd-trace-cpp-ci-23768e9-amd64 AS build
 
 RUN apt-get update && apt-get -y install pkg-config libabsl-dev curl jq
 WORKDIR /usr/app
 COPY {cpp_reldir}/install_ddtrace.sh binaries* /binaries/
-RUN sh /binaries/install_ddtrace.sh
+COPY utils/build/docker/github.sh /binaries/github.sh
+RUN --mount=type=secret,id=github_token /binaries/install_ddtrace.sh
 RUN cd /binaries/dd-trace-cpp \
  && cmake -B .build -DCMAKE_BUILD_TYPE=Release -DDD_TRACE_BUILD_TESTING=1 . \
  && cmake --build .build -j $(nproc) \

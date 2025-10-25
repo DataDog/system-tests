@@ -271,7 +271,23 @@ run_the_tests(){
     read -p "⚠️  Do you want to execute the command? (y/n): " CONFIRM
     if [[ "$CONFIRM" == "y" ]]; then
         echo -e "${GREEN}▶️ Executing the command...${NC}"
+
+        # Copy binaries folder to Docker build context
+        cp -r binaries utils/build/ssi/base/binaries
+        echo -e "${CYAN}ℹ️  Copied binaries folder to build context${NC}"
+
+        # Execute the command
         "${CMD[@]}"
+
+        # Store exit code
+        TEST_EXIT_CODE=$?
+
+        # Remove binaries folder after tests
+        rm -rf utils/build/ssi/base/binaries
+        echo -e "${CYAN}ℹ️  Removed binaries folder from build context${NC}"
+
+        # Return the original exit code
+        exit $TEST_EXIT_CODE
     else
         echo -e "${RED}❌ Execution canceled.${NC}"
     fi
