@@ -11,7 +11,7 @@ import subprocess
 import pytest
 from docker.models.containers import Container
 
-from utils.docker_fixtures import TestAgentFactory, compute_volumes
+from utils.docker_fixtures import compute_volumes
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from utils._logger import logger
@@ -83,6 +83,7 @@ class ParametricScenario(DockerFixturesScenario):
             doc=doc,
             github_workflow="parametric",
             scenario_groups=(scenario_groups.parametric,),
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0",
         )
         self._parametric_tests_confs = ParametricScenario.PersistentParametricTestConf(self)
 
@@ -110,9 +111,7 @@ class ParametricScenario(DockerFixturesScenario):
             "rust": rust_library_factory,
         }[library]
 
-        self._test_agent_factory = TestAgentFactory(
-            "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0", self.host_log_folder
-        )
+        self._test_agent_factory.configure(self.host_log_folder)
         self.apm_test_server_definition = factory()
 
         if self.is_main_worker:

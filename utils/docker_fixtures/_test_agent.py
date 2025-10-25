@@ -52,12 +52,18 @@ class AgentRequestV06Stats(AgentRequest):
 class TestAgentFactory:
     """Handle everything to create the TestAgentApi"""
 
-    def __init__(self, host_log_folder: str, image: str):
+    def __init__(self, image: str):
         self.image = image
+        self.host_log_folder = ""
+
+    def configure(self, host_log_folder: str):
         self.host_log_folder = host_log_folder
 
     @retry(delay=10, tries=3)
     def pull(self) -> None:
+        if len(self.host_log_folder) == 0:
+            pytest.exit("You need to call TestAgentFactory.configure()")
+
         if len(get_docker_client().images.list(name=self.image)) == 0:
             logger.stdout(f"Pull test agent image {self.image}...")
             get_docker_client().images.pull(self.image)

@@ -5,7 +5,6 @@ import pytest
 
 from utils.docker_fixtures import (
     FrameworkTestClientFactory,
-    TestAgentFactory,
     TestAgentAPI,
     FrameworkTestClientApi,
 )
@@ -18,7 +17,12 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
     _test_client_factory: FrameworkTestClientFactory
 
     def __init__(self, name: str, doc: str) -> None:
-        super().__init__(name, doc=doc, github_workflow="endtoend")
+        super().__init__(
+            name,
+            doc=doc,
+            github_workflow="endtoend",
+            agent_image="ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0",
+        )
 
         self.environment = {
             "DD_TRACE_DEBUG": "true",
@@ -40,9 +44,8 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         framework, framework_version = weblog.split("@", 1)
 
-        self._test_agent_factory = TestAgentFactory(
-            "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.36.0", self.host_log_folder
-        )
+        self._test_agent_factory.configure(self.host_log_folder)
+
         self._test_client_factory = FrameworkTestClientFactory(
             host_log_folder=self.host_log_folder,
             library=library,

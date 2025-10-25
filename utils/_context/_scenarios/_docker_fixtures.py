@@ -13,10 +13,13 @@ _NETWORK_PREFIX = "apm_shared_tests_network"
 
 
 class DockerFixturesScenario(Scenario):
-    _test_agent_factory: TestAgentFactory  # must be created in DockerFixtureScenario.configure
-
     def __init__(
-        self, name: str, github_workflow: str, doc: str, scenario_groups: tuple[ScenarioGroup, ...] = ()
+        self,
+        name: str,
+        github_workflow: str,
+        doc: str,
+        agent_image: str,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
     ) -> None:
         super().__init__(
             name=name,
@@ -24,6 +27,8 @@ class DockerFixturesScenario(Scenario):
             github_workflow=github_workflow,
             scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
         )
+
+        self._test_agent_factory = TestAgentFactory(agent_image)
 
     def _clean(self):
         if self.is_main_worker:
