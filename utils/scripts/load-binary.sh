@@ -214,6 +214,7 @@ elif [ "$TARGET" = "python" ]; then
     assert_version_is_dev
 
     LIBRARY_TARGET_BRANCH="${LIBRARY_TARGET_BRANCH:-main}"
+    get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp314-manylinux_x86_64" "*.whl"
     get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp313-manylinux_x86_64" "*.whl"
     get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp312-manylinux_x86_64" "*.whl"
     get_github_action_artifact "DataDog/dd-trace-py" "build_deploy.yml" $LIBRARY_TARGET_BRANCH "wheels-cp311-manylinux_x86_64" "*.whl"
