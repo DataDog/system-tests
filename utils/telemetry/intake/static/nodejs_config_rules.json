@@ -2,6 +2,7 @@
     "normalization_rules": {
         "DD_TRACE_MIDDLEWARE_ENABLED": "trace_middleware_enabled",
         "middlewareTracingEnabled": "trace_middleware_enabled",
+        "experimental.flaggingprovider.enabled": "experimental_flagging_provider_enabled",
         "profiling.heuristicsenabled": "profiling_heuristics_enabled",
         "profiling.ssi": "profiling_ssi",
         "traceremoveintegrationservicenamesenabled": "trace_remove_integration_service_names_enabled"
