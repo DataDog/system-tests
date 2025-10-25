@@ -1,5 +1,6 @@
 import contextlib
 from collections.abc import Generator
+from pathlib import Path
 from typing import TextIO
 
 from docker.models.containers import Container
@@ -25,10 +26,13 @@ def _compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
     """Convert volumes to the format expected by the docker-py API"""
     fixed_volumes: dict[str, dict] = {}
     for key, value in volumes.items():
+        # when host path starts with ./, resolve it from cwd()
+        fixed_key = str(Path.cwd().joinpath(key)) if key.startswith("./") else key
+
         if isinstance(value, dict):
-            fixed_volumes[key] = value
+            fixed_volumes[fixed_key] = value
         elif isinstance(value, str):
-            fixed_volumes[key] = {"bind": value, "mode": "rw"}
+            fixed_volumes[fixed_key] = {"bind": value, "mode": "rw"}
         else:
             raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
 

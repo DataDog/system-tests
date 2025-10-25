@@ -1,6 +1,5 @@
 from collections.abc import Generator
 import contextlib
-from pathlib import Path
 
 import pytest
 
@@ -47,11 +46,7 @@ class IntegrationFrameworksScenario(Scenario):
             framework=framework,
             framework_version=framework_version,
             container_env=self.environment,
-            container_volumes={
-                str(
-                    Path.cwd().joinpath("utils", "build", "docker", library, f"{framework}_app")
-                ): "/app/integration_frameworks"
-            },
+            container_volumes={f"./utils/build/docker/{library}/{framework}_app": "/app/integration_frameworks"},
         )
 
         # Set library version - for now use a placeholder, will be updated after building

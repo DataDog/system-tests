@@ -47,8 +47,9 @@ class TestAgentFactory:
         self.host_log_folder = host_log_folder
 
     def pull(self) -> None:
-        logger.stdout(f"Pull test agent image {self.image}...")
-        get_docker_client().images.pull(self.image)
+        if len(get_docker_client().images.list(name=self.image)) == 0:
+            logger.stdout(f"Pull test agent image {self.image}...")
+            get_docker_client().images.pull(self.image)
 
     @contextlib.contextmanager
     def get_test_agent_api(
@@ -82,8 +83,8 @@ class TestAgentFactory:
                 name=container_name,
                 env=env,
                 volumes={
-                    f"{Path.cwd()!s}/snapshots": "/snapshots",
-                    f"{Path.cwd()!s}/tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
+                    "./snapshots": "/snapshots",
+                    "./tests/integration_frameworks/utils/vcr-cassettes": "/vcr-cassettes",
                 },
                 ports={f"{container_port}/tcp": agent_host_port},
                 log_file=log_file,
