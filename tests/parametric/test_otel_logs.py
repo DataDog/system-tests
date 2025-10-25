@@ -1,8 +1,9 @@
 import pytest
 import base64
 
-from utils import scenarios, features, logger
+from utils import scenarios, features, logger, irrelevant, context, missing_feature
 from utils.parametric._library_client import LogLevel
+from utils.parametric.spec.trace import find_only_span
 from urllib.parse import urlparse
 
 
@@ -53,10 +54,10 @@ def find_attributes(proto_object):
 
 
 @pytest.fixture
-def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_name, test_agent_otlp_grpc_port):
+def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_name, test_agent_otlp_http_port):
     """Set up a custom endpoint for OTLP logs."""
     prev_value = library_env.get(endpoint_env)
-    library_env[endpoint_env] = f"http://{test_agent_container_name}:{test_agent_otlp_grpc_port}"
+    library_env[endpoint_env] = f"http://{test_agent_container_name}:{test_agent_otlp_http_port}/v1/logs"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
@@ -174,11 +175,16 @@ class Test_FR04_Trace_Span_IDs:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         log_record = find_log_record(log_payloads, "test_logger", "test_dd_span_context_injection")
 
-        span_id = int(base64.b64decode(log_record["span_id"]).hex(), 16)
-        trace_id = int(base64.b64decode(log_record["trace_id"]).hex(), 16)
+        expected_span_id = base64.b64decode(log_record["span_id"]).hex()
+        expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
-        assert span_id == span.span_id
-        assert trace_id == span.trace_id
+        root = find_only_span(test_agent.wait_for_num_traces(1))
+        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
+        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        span_id = f"{root['span_id']:016x}"
+
+        assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
+        assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
 
     @pytest.mark.parametrize(
         "library_env",
@@ -194,11 +200,15 @@ class Test_FR04_Trace_Span_IDs:
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         log_record = find_log_record(log_payloads, "test_logger", "test_otel_span_context_injection")
 
-        span_id = int(base64.b64decode(log_record["span_id"]).hex(), 16)
-        trace_id = int(base64.b64decode(log_record["trace_id"]).hex(), 16)
+        expected_span_id = base64.b64decode(log_record["span_id"]).hex()
+        expected_trace_id = base64.b64decode(log_record["trace_id"]).hex()
 
-        assert span_id == span.span_id
-        assert trace_id == span.trace_id
+        root = find_only_span(test_agent.wait_for_num_traces(1))
+        root_tid = root["meta"].get("_dd.p.tid", "0" * 16)
+        trace_id = f"{root_tid}{root['trace_id']:016x}"
+        span_id = f"{root['span_id']:016x}"
+        assert expected_span_id == span_id, f"Expected span_id {expected_span_id}, got {span_id}, span: {root}"
+        assert expected_trace_id == trace_id, f"Expected trace_id {expected_trace_id}, got {trace_id}, span: {root}"
 
 
 @features.otel_logs_enabled
@@ -207,7 +217,7 @@ class Test_FR05_Custom_Endpoints:
     """FR05: Custom OTLP Endpoint Tests"""
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {"DD_LOGS_OTEL_ENABLED": "true", "DD_TRACE_DEBUG": None},
@@ -217,7 +227,7 @@ class Test_FR05_Custom_Endpoints:
         ],
     )
     def test_otlp_custom_endpoint(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self, library_env, endpoint_env, test_agent_otlp_http_port, otlp_endpoint_library_env, test_agent, test_library
     ):
         """Logs are exported to custom OTLP endpoint."""
         with test_library as library:
@@ -230,7 +240,7 @@ class Test_FR05_Custom_Endpoints:
         assert find_log_record(log_payloads, "test_logger", "test_otlp_custom_endpoint") is not None
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -243,7 +253,7 @@ class Test_FR05_Custom_Endpoints:
         ],
     )
     def test_otlp_logs_custom_endpoint(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self, library_env, endpoint_env, test_agent_otlp_http_port, otlp_endpoint_library_env, test_agent, test_library
     ):
         """Logs are exported to custom OTLP logs endpoint."""
         with test_library as library:
@@ -302,6 +312,7 @@ class Test_FR07_Host_Name:
             },
         ],
     )
+    @irrelevant(context.library != "python", reason="DD_HOSTNAME is only supported in Python")
     def test_hostname_from_dd_hostname(self, test_agent, test_library, library_env):
         """host.name is set from DD_HOSTNAME."""
         with test_library as library:
@@ -476,7 +487,7 @@ class Test_FR09_Log_Injection:
     )
     def test_log_injection_when_otel_enabled(self, test_agent, test_library, library_env):
         """Log injection is disabled when OpenTelemetry Logs support is enabled."""
-        with test_library as library, library.dd_start_span("test_span") as span:
+        with test_library as library, library.otel_start_span("test_span") as span:
             library.write_log(
                 "test_log_injection_disabled_when_otel_enabled", LogLevel.INFO, "test_logger", span_id=span.span_id
             )
@@ -581,7 +592,7 @@ class Test_FR11_Telemetry:
     """Test OTLP Logs generated via OpenTelemetry API generate telemetry configurations and metrics."""
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -590,7 +601,7 @@ class Test_FR11_Telemetry:
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_TIMEOUT": "30000",
                     "OTEL_EXPORTER_OTLP_HEADERS": "api-key=key,other-config-value=value",
-                    "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                    "OTEL_EXPORTER_OTLP_PROTOCOL": "http/protobuf",
                 },
                 "OTEL_EXPORTER_OTLP_ENDPOINT",
                 4320,
@@ -598,7 +609,7 @@ class Test_FR11_Telemetry:
         ],
     )
     def test_telemetry_exporter_configurations(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self, library_env, endpoint_env, test_agent_otlp_http_port, otlp_endpoint_library_env, test_agent, test_library
     ):
         """Test configurations starting with OTEL_EXPORTER_OTLP_ are sent to the instrumentation telemetry intake."""
         with test_library as library:
@@ -610,22 +621,24 @@ class Test_FR11_Telemetry:
         configurations_by_name = test_agent.wait_for_telemetry_configurations()
 
         for expected_env, expected_value in [
-            ("OTEL_EXPORTER_OTLP_TIMEOUT", 30000),
+            ("OTEL_EXPORTER_OTLP_TIMEOUT", "30000"),
             ("OTEL_EXPORTER_OTLP_HEADERS", "api-key=key,other-config-value=value"),
-            ("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_ENDPOINT"]),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
             config = test_agent.get_telemetry_config_by_origin(
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
-            assert config is not None, f"No configuration found for '{expected_env}'"
             assert (
-                config.get("value") == expected_value
+                config is not None
+            ), f"No configuration found for '{expected_env}', configurations: {configurations_by_name}"
+            assert (
+                str(config.get("value", "")) == expected_value.lower()
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
     @pytest.mark.parametrize(
-        ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
+        ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
         [
             (
                 {
@@ -634,7 +647,7 @@ class Test_FR11_Telemetry:
                     "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
                     "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT": "30000",
                     "OTEL_EXPORTER_OTLP_LOGS_HEADERS": "api-key=key,other-config-value=value",
-                    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "grpc",
+                    "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 },
                 "OTEL_EXPORTER_OTLP_LOGS_ENDPOINT",
                 4325,
@@ -642,7 +655,7 @@ class Test_FR11_Telemetry:
         ],
     )
     def test_telemetry_exporter_logs_configurations(
-        self, library_env, endpoint_env, test_agent_otlp_grpc_port, otlp_endpoint_library_env, test_agent, test_library
+        self, library_env, endpoint_env, test_agent_otlp_http_port, otlp_endpoint_library_env, test_agent, test_library
     ):
         """Test Teleemtry configurations starting with OTEL_EXPORTER_OTLP_LOGS_ are sent to the instrumentation telemetry intake."""
         with test_library as library:
@@ -656,7 +669,7 @@ class Test_FR11_Telemetry:
         for expected_env, expected_value in [
             ("OTEL_EXPORTER_OTLP_LOGS_TIMEOUT", 30000),
             ("OTEL_EXPORTER_OTLP_LOGS_HEADERS", "api-key=key,other-config-value=value"),
-            ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "grpc"),
+            ("OTEL_EXPORTER_OTLP_LOGS_PROTOCOL", "http/protobuf"),
             ("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT", library_env["OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"]),
         ]:
             # Find configuration with env_var origin (since these are set via environment variables)
@@ -668,13 +681,14 @@ class Test_FR11_Telemetry:
                 config.get("value") == expected_value
             ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
 
+    @missing_feature(context.library == "python")
     @pytest.mark.parametrize(
         "library_env",
         [
             {
                 "DD_LOGS_OTEL_ENABLED": "true",
                 "DD_TELEMETRY_HEARTBEAT_INTERVAL": "0.1",
-                "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+                "OTEL_EXPORTER_OTLP_LOGS_PROTOCOL": "http/protobuf",
                 "DD_TRACE_DEBUG": None,
             },
         ],
@@ -694,5 +708,5 @@ class Test_FR11_Telemetry:
             assert len(metric.get("points", [])) > 0, f"Expected at least 1 point, got {metric}"
             assert metric.get("common") is True, f"Expected common, got {metric}"
             assert metric.get("tags") is not None, f"Expected tags, got {metric}"
-            assert "protocol:grpc" in metric.get("tags")
+            assert "protocol:http" in metric.get("tags")
             assert "encoding:protobuf" in metric.get("tags")
