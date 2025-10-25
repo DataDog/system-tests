@@ -84,7 +84,6 @@ assert scenario_groups.all.name == "all", "Scenario group 'all' should be named 
 VALID_CI_WORKFLOWS = {
     None,
     "endtoend",
-    "integration_frameworks",
     "libinjection",
     "k8s_injector_dev",
     "aws_ssi",
