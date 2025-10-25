@@ -12,8 +12,7 @@ from .endtoend import DockerScenario
 
 
 class OtelCollectorScenario(DockerScenario):
-    def __init__(self, name: str):
-        use_proxy = os.environ.get("OTELCOLLECTOR_PROXY", "true").lower() == "true"
+    def __init__(self, name: str, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
             name,
             github_workflow="endtoend",
@@ -21,38 +20,25 @@ class OtelCollectorScenario(DockerScenario):
             scenario_groups=[scenario_groups.end_to_end],
             include_postgres_db=True,
             use_proxy=use_proxy,
-            mocked_backend=use_proxy,  # Link mocked backend to proxy usage
+            mocked_backend=mocked_backend,
         )
         self.library = ComponentVersion("otel_collector", "0.0.0")
-
-        collector_env: dict[str, str | None] = {
-            "DD_API_KEY": os.environ.get("DD_API_KEY", "0123"),
-            "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
-        }
 
         postgres_image = self.postgres_container.image.name
         image_parts = postgres_image.split(":")
         docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
         docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
 
-        collector_env.update(
-            {
-                "DOCKER_IMAGE_NAME": docker_image_name,
-                "DOCKER_IMAGE_TAG": docker_image_tag,
-            }
-        )
-
-        if use_proxy:
-            collector_env.update(
-                {
-                    "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-                    "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-                }
-            )
-
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
-            environment=collector_env,
+            environment={
+                "DD_API_KEY": os.environ.get("DD_API_KEY", "0123"),
+                "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
+                "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
+                "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
+                "DOCKER_IMAGE_NAME": docker_image_name,
+                "DOCKER_IMAGE_TAG": docker_image_tag,
+            },
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
                     "bind": "/etc/ssl/certs/ca-certificates.crt",

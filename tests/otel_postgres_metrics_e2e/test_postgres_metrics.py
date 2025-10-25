@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import time
 
-from utils import scenarios, interfaces, logger, features, bug
+from utils import scenarios, interfaces, logger, features, bug, context
 
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
@@ -49,13 +49,13 @@ postgresql_metrics = {
         "description": "Number of rows returned by queries in the database",
     },
     "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
-    "postgresql.function.calls": {"data_type": "Sum", "description": "The number of calls made to a function. Requires track_functions=pl|all in Postgres config"},
+    "postgresql.function.calls": {"data_type": "Sum", "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config."},
     "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
-    "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table. Only appears when tables exist"},
+    "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
     "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
     "postgresql.operations": {"data_type": "Sum", "description": "The number of db row operations"},
     "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
-    "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk. Only appears when indexes exist"},
+    "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk."},
     "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
     "postgresql.table.vacuum.count": {"data_type": "Sum", "description": "Number of times a table has manually been vacuumed"},
     # Metrics not yet appearing due to needing a replica db
@@ -67,7 +67,7 @@ postgresql_metrics = {
 
 
 def _get_metrics() -> list[dict]:
-    collector_log_path = f"{scenarios.otel_collector.collector_container.log_folder_path}/logs/metrics.json"
+    collector_log_path = f"{context.scenario.collector_container.log_folder_path}/logs/metrics.json"
     assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
 
     # Default behaviors is that metrics are batched together in the file exporter
@@ -81,6 +81,7 @@ def _get_metrics() -> list[dict]:
 
 
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_PostgreSQLMetricsCollection:
     def _process_metrics_data(self, data: dict, found_metrics: set[str], metrics_dont_match_spec: set[str]) -> None:
@@ -181,6 +182,7 @@ class Test_PostgreSQLMetricsCollection:
 
 
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_BackendValidity:
     def test_postgresql_metrics_received_by_backend(self):
@@ -239,6 +241,7 @@ class Test_BackendValidity:
 
 @bug(condition=True, reason="AIDM-147", force_skip=False)
 @scenarios.otel_collector
+@scenarios.otel_collector_e2e
 @features.otel_postgres_support
 class Test_Smoke:
     def setup_main(self):
@@ -248,7 +251,7 @@ class Test_Smoke:
             - create a table
             - query something
         """
-        container = scenarios.otel_collector.postgres_container
+        container = context.scenario.postgres_container
 
         r = container.exec_run(
             'psql -U system_tests_user -d system_tests_dbname -c '

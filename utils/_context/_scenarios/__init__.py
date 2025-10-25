@@ -1089,6 +1089,7 @@ class _Scenarios:
     )
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
+    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", use_proxy=True, mocked_backend=False)
 
 
 scenarios = _Scenarios()
