@@ -7,3 +7,5 @@ tests/:
     Test_SamplingRates: v7.33.0
   test_telemetry.py:
     Test_APMOnboardingInstallID: v7.50.0
+  test_v1_payloads.py:
+    Test_V1Payload: v7.73.0-devel

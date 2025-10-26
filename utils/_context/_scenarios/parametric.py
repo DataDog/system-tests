@@ -1,7 +1,5 @@
-import contextlib
 import dataclasses
-from typing import TextIO, Any
-from collections.abc import Generator
+from typing import Any
 
 import json
 import glob
@@ -11,28 +9,18 @@ import shutil
 import subprocess
 
 import pytest
-from _pytest.outcomes import Failed
 from docker.models.containers import Container
-from docker.models.networks import Network
-from retry import retry
 
+from utils.docker_fixtures import TestAgentFactory, compute_volumes
 from utils._context.component_version import ComponentVersion
-from utils._logger import logger
-
 from utils._context.docker import get_docker_client
-from .core import Scenario, scenario_groups
-
-
-def _fail(message: str):
-    """Used to mak a test as failed"""
-    logger.error(message)
-    raise Failed(message, pytrace=False) from None
+from utils._logger import logger
+from .core import scenario_groups
+from ._docker_fixtures import DockerFixturesScenario
 
 
 # Max timeout in seconds to keep a container running
 default_subprocess_run_timeout = 300
-_NETWORK_PREFIX = "apm_shared_tests_network"
-# _TEST_CLIENT_PREFIX = "apm_shared_tests_container"
 
 
 @dataclasses.dataclass
@@ -55,8 +43,7 @@ class APMLibraryTestServer:
     container: Container | None = None
 
 
-class ParametricScenario(Scenario):
-    TEST_AGENT_IMAGE = "ghcr.io/datadog/dd-apm-test-agent/ddapm-test-agent:v1.32.0"
+class ParametricScenario(DockerFixturesScenario):
     apm_test_server_definition: APMLibraryTestServer
 
     class PersistentParametricTestConf(dict):
@@ -123,15 +110,15 @@ class ParametricScenario(Scenario):
             "rust": rust_library_factory,
         }[library]
 
+        self._test_agent_factory = TestAgentFactory(self.host_log_folder)
         self.apm_test_server_definition = factory()
 
         if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             self._build_apm_test_server_image(config.option.github_token_file)
-            self._pull_test_agent_image()
-            self._clean_containers()
-            self._clean_networks()
+            self._test_agent_factory.pull()
+            self._clean()
 
         # https://github.com/DataDog/system-tests/issues/2799
         if library in ("nodejs", "python", "golang", "ruby", "dotnet", "rust"):
@@ -139,7 +126,7 @@ class ParametricScenario(Scenario):
                 self.apm_test_server_definition.container_tag,
                 remove=True,
                 command=["./system_tests_library_version.sh"],
-                volumes=self.compute_volumes(self.apm_test_server_definition.volumes),
+                volumes=compute_volumes(self.apm_test_server_definition.volumes),
             )
         else:
             output = get_docker_client().containers.run(
@@ -160,26 +147,6 @@ class ParametricScenario(Scenario):
         result.append(self._set_components)
 
         return result
-
-    @retry(delay=10, tries=3)
-    def _pull_test_agent_image(self):
-        logger.stdout("Pulling test agent image...")
-        get_docker_client().images.pull(self.TEST_AGENT_IMAGE)
-
-    def _clean_containers(self):
-        """Some containers may still exists from previous unfinished sessions"""
-
-        for container in get_docker_client().containers.list(all=True):
-            if "test-client" in container.name or "test-agent" in container.name or "test-library" in container.name:
-                logger.info(f"Removing {container}")
-
-                container.remove(force=True)
-
-    def _clean_networks(self):
-        """Some network may still exists from previous unfinished sessions"""
-        logger.info("Removing unused network")
-        get_docker_client().networks.prune()
-        logger.info("Removing unused network done")
 
     @property
     def library(self):
@@ -257,80 +224,6 @@ class ParametricScenario(Scenario):
                 pytest.exit(f"Failed to build the container: {failure_text}", 1)
 
             logger.debug("Build tested container finished")
-
-    def create_docker_network(self, test_id: str) -> Network:
-        docker_network_name = f"{_NETWORK_PREFIX}_{test_id}"
-
-        return get_docker_client().networks.create(name=docker_network_name, driver="bridge")
-
-    @staticmethod
-    def get_host_port(worker_id: str, base_port: int) -> int:
-        """Deterministic port allocation for each worker"""
-
-        if worker_id == "master":  # xdist disabled
-            return base_port
-
-        if worker_id.startswith("gw"):
-            return base_port + int(worker_id[2:])
-
-        raise ValueError(f"Unexpected worker_id: {worker_id}")
-
-    @staticmethod
-    def compute_volumes(volumes: dict[str, str]) -> dict[str, dict]:
-        """Convert volumes to the format expected by the docker-py API"""
-        fixed_volumes: dict[str, dict] = {}
-        for key, value in volumes.items():
-            if isinstance(value, dict):
-                fixed_volumes[key] = value
-            elif isinstance(value, str):
-                fixed_volumes[key] = {"bind": value, "mode": "rw"}
-            else:
-                raise TypeError(f"Unexpected type for volume {key}: {type(value)}")
-
-        return fixed_volumes
-
-    @contextlib.contextmanager
-    def docker_run(
-        self,
-        image: str,
-        name: str,
-        env: dict[str, str],
-        volumes: dict[str, str],
-        network: str,
-        ports: dict[str, int],
-        command: list[str],
-        log_file: TextIO,
-    ) -> Generator[Container, None, None]:
-        logger.info(f"Run container {name} from image {image} with ports {ports}")
-
-        try:
-            container: Container = get_docker_client().containers.run(
-                image,
-                name=name,
-                environment=env,
-                volumes=self.compute_volumes(volumes),
-                network=network,
-                ports=ports,
-                command=command,
-                detach=True,
-            )
-            logger.debug(f"Container {name} successfully started")
-        except Exception as e:
-            # at this point, even if it failed to start, the container may exists!
-            for container in get_docker_client().containers.list(filters={"name": name}, all=True):
-                container.remove(force=True)
-
-            _fail(f"Failed to run container {name}: {e}")
-
-        try:
-            yield container
-        finally:
-            logger.info(f"Stopping {name}")
-            container.stop(timeout=1)
-            logs = container.logs()
-            log_file.write(logs.decode("utf-8"))
-            log_file.flush()
-            container.remove(force=True)
 
     def get_junit_properties(self) -> dict[str, str]:
         result = super().get_junit_properties()
@@ -561,7 +454,7 @@ def php_library_factory() -> APMLibraryTestServer:
         container_name="php-test-library",
         container_tag="php-test-library",
         container_img=f"""
-FROM datadog/dd-trace-ci:php-8.2_buster
+FROM datadog/dd-trace-ci:php-8.2_bookworm-5
 RUN switch-php nts
 WORKDIR /binaries
 ENV DD_TRACE_CLI_ENABLED=1
