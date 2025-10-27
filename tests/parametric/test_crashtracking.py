@@ -5,6 +5,7 @@ import json
 import pytest
 
 from utils import bug, features, scenarios, logger
+from utils.parametric._library_client import APMLibrary
 
 
 @scenarios.parametric
@@ -14,7 +15,10 @@ class Test_Crashtracking:
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+        while True:
+            event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+            if event is None or "is_crash_ping:true" not in event["payload"][0]["tags"]:
+                break
         self.assert_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
@@ -32,14 +36,14 @@ class Test_Crashtracking:
 
     @bug(library="java", reason="APMLP-302")
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "true"}])
-    def test_telemetry_timeout(self, test_agent, test_library, apm_test_server):
+    def test_telemetry_timeout(self, test_agent, test_library: APMLibrary):
         test_agent.set_trace_delay(60)
 
         test_library.crash()
 
         try:
             # container.wait will throw if the application doesn't exit in time
-            apm_test_server.container.wait(timeout=10)
+            test_library._client.container.wait(timeout=10)  # noqa: SLF001
         finally:
             test_agent.set_trace_delay(0)
 

@@ -45,7 +45,7 @@ DEFAULT_ENVVARS = {
 
 @pytest.fixture
 def otlp_metrics_endpoint_library_env(
-    library_env, endpoint_env, test_agent_otlp_http_port, test_agent_otlp_grpc_port, test_agent_container_name
+    library_env, endpoint_env, test_agent, test_agent_otlp_http_port, test_agent_otlp_grpc_port
 ):
     """Set up a custom endpoint for OTLP metrics."""
     prev_value = library_env.get(endpoint_env)
@@ -59,7 +59,7 @@ def otlp_metrics_endpoint_library_env(
     port = test_agent_otlp_grpc_port if protocol == "grpc" else test_agent_otlp_http_port
     path = "/" if protocol == "grpc" or endpoint_env == "OTEL_EXPORTER_OTLP_ENDPOINT" else "/v1/metrics"
 
-    library_env[endpoint_env] = f"http://{test_agent_container_name}:{port}{path}"
+    library_env[endpoint_env] = f"http://{test_agent.container_name}:{port}{path}"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]
