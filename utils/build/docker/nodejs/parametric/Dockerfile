@@ -15,3 +15,5 @@ COPY utils/build/docker/nodejs/parametric/../install_ddtrace.sh binaries* /binar
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 
+CMD ["./app.sh"]
+

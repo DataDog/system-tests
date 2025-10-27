@@ -9,3 +9,5 @@ COPY binaries /binaries
 RUN bash install_ddtrace.sh
 COPY utils/build/docker/java/parametric/run.sh .
 RUN mkdir /parametric-tracer-logs
+
+CMD ["./run.sh"]

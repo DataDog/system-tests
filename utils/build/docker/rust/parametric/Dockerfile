@@ -20,3 +20,5 @@ COPY --from=builder /usr/app/Cargo.lock /usr/app/Cargo.lock
 COPY utils/build/docker/rust/parametric/system_tests_library_version.sh /usr/app/system_tests_library_version.sh
 RUN mkdir /parametric-tracer-logs
 WORKDIR /usr/app
+
+CMD ["./ddtrace-rs-client"]

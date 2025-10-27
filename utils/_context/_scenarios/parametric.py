@@ -80,22 +80,6 @@ class ParametricScenario(DockerFixturesScenario):
 
         library: str = config.option.library
 
-        commands = {
-            "cpp": ["parametric-http-server"],
-            "dotnet": ["./ApmTestApi"],
-            "golang": ["main"],
-            "java": ["./run.sh"],
-            "nodejs": ["./app.sh"],
-            "php": [
-                "bash",
-                "-c",
-                "php server.php ${SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS:-} || sleep 2s",
-            ],  # In case of crash, give time to the sidecar to upload the crash report
-            "python": ["ddtrace-run", "python3.11", "-m", "apm_test_client"],
-            "ruby": ["bundle", "exec", "ruby", "server.rb"],
-            "rust": ["./ddtrace-rs-client"],
-        }
-
         volumes = {
             "golang": {"./utils/build/docker/golang/parametric": "/client"},
             "nodejs": get_node_volumes(),
@@ -110,7 +94,6 @@ class ParametricScenario(DockerFixturesScenario):
             library=library,
             dockerfile=f"utils/build/docker/{library}/parametric/Dockerfile",
             tag=f"{library}-test-client",
-            command=commands[library],
             container_name=f"{library}-test-client",
             container_volumes=volumes.get(library, {}),
             container_env={},
