@@ -9,8 +9,7 @@ def main(group_name: str) -> None:
 
     group_name = group_name.strip().lower().replace("_", "-")
 
-    if group_name.endswith("-scenarios"):
-        group_name = group_name[:-10]
+    group_name = group_name.removesuffix("-scenarios")
 
     group = scenario_groups[group_name]
 

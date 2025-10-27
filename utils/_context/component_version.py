@@ -20,8 +20,7 @@ class Version(version_module.Version):
     ):
         if version is not None:
             # remove any leading "v"
-            if version.startswith("v"):
-                version = version[1:]
+            version = version.removeprefix("v")
 
             # and use coerce to allow the wide variaty of version strings
             x = version_module.Version.coerce(version)

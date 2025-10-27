@@ -344,7 +344,7 @@ class LibraryInterfaceValidator(ProxyBasedInterfaceValidator):
         for data, trace in self.get_traces():
             spans = [span for span in trace if span.get("parent_id") in ("0", 0, None)]
 
-            if len(spans):
+            if len(spans) != 0:
                 log_filename = data["log_filename"]
                 span = spans[0]
                 assert "trace_id" in span, f"'trace_id' is missing in {log_filename}"

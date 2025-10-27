@@ -46,7 +46,7 @@ class _RequestExtractor(HTMLParser):
         elif tag == "input" and self.request:
             attrs_dict = dict(attrs)
 
-            name = attrs_dict.get("id", attrs_dict.get("name", None))
+            name = attrs_dict.get("id", attrs_dict.get("name"))
             if name:
                 self.request["data"][name] = attrs_dict.get("value", "")
 

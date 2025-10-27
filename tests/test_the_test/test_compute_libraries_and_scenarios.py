@@ -38,8 +38,7 @@ def build_inputs(
     if modified_files is None:
         modified_files = []
     with open("modified_files.txt", "w") as f:
-        for file in modified_files:
-            f.write(f"{file}\n")
+        f.writelines(f"{file}\n" for file in modified_files)
     inputs = Inputs(
         scenario_map_file="tests/test_the_test/scenarios.json",
         new_manifests=new_manifests,

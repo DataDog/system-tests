@@ -53,7 +53,7 @@ class Test_Cases:
 
 @scenarios.test_the_test
 @pytest.mark.parametrize("use_xdist", [True, False])
-def test_main(use_xdist: bool):  # noqa: FBT001
+def test_main(use_xdist: bool):
     run_system_tests(test_path="tests/test_the_test/test_junit.py", use_xdist=use_xdist, expected_return_code=1)
 
     observed_file = "logs_mock_the_test/reportJunit.xml"

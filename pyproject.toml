@@ -97,7 +97,9 @@ ignore = [
     "BLE001",   # blind-except: TODO big project to enable this (39 occurences)
     "C901",     # complex-structure: TODO (52 occurences)
     "E722",     # bare-except: TODO big project to enable this (15 occurences)
+    "FBT001",   # boolean-type-hint-positional-argument: TODO (38 occurences)
     "PERF401",  # manual-list-comprehension: TODO TBD, the "good" code can be harder to read (13 occurences)
+    "PLC0415",  # import-outside-top-level: TODO (29 occurences)
     "PLR0911",  # too-many-return-statements: TODO (7 occurences)
     "PLR0912",  # too-many-branches: TODO (17 occurences)
     "PLR0913",  # too-many-arguments: TODO (66 occurences)
@@ -105,10 +107,14 @@ ignore = [
     "PTH118",   # os-path-join: TODO (59 occurences)
     "PTH123",   # builtin-open: TODO (117 occurences)
     "RUF012",   # mutable-class-default: TODO (111 occurences)
+    "RUF059",   # unused-unpacked-variable: TODO (46 occurences)
     "S202",     # tarfile-unsafe-members: TODO (2 occurences)
     "SIM102",   # collapsible-if: TODO (22 occurences)
     "TRY003",   # raise-vanilla-args: TODO this is a full project to enable this (254 occurences)
+    "PLW1641",  # eq-without-hash: TODO (3 occurences)
+    "PTH208",   # os-listdir: TODO
 
+ 
     ### Ignores that will be kept for the entire project
     "ANN204", # missing-return-type-special-method
     "COM812", # ruff format recommend ignoring this
@@ -149,7 +155,7 @@ ignore = [
     "TD004",  # todo found
     "TRY300", # not always obvious
     "UP015",  # redundant-open-modes: yes it's redundant. But explicit is better than implicit
-    "UP038",  # not a big fan
+    # "UP038",  # not a big fan
 
 ]
 
@@ -166,6 +172,7 @@ ignore = [
     "INP001",   # implicit-namespace-package
     "PTH119",   # os-path-basename
     "PTH122",   # os-path-splitext
+    "PTH208",   # os-listdir: TODO
     "RET503",   # implicit-return
     "S105",     # hardcoded-password-string
     "T201",     # print
@@ -273,6 +280,9 @@ ignore = [
     "TRY301",   # raise-within-try: TODO
     "UP031",    # printf-string-formatting: TODO
 ]
+"utils/injector_dev/harness.py" = [
+    "LOG015",   # `info()` call on root logger TODO
+]
 "utils/interfaces/schemas/serve_doc.py" = [
     "ANN001",  # missing-type-function-argument: TODO
     "ANN201",  # missing-return-type-undocumented-public-function: TODO
@@ -295,6 +305,9 @@ ignore = [
     "S507",    # ssh-no-host-key-verification: TODO
     "UP017",   # datetime-timezone-utc: TODO
 ]
+"utils/scripts/pulumi_clean_up.py" = [
+    "FURB162",  #  2  [ ] fromisoformat-replace-z TODO
+]
 "utils/scripts/ssi_wizards/aws_onboarding_wizard_utils.py" = [
     "ANN001",   # missing-type-function-argument: TODO
     "PLR2004",  # magic-value-comparison: TODO
@@ -303,8 +316,10 @@ ignore = [
 "utils/scripts/ci_orchestrators/gitlab_exporter.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/ci_orchestrators/external_gitlab_pipeline.py" = ["ANN001"] # missing-type-function-argument: TODO
 "utils/scripts/*" = [
-    "INP001",  # implicit-namespace-package: this is not a package
-    "T201"     # print: allow print statements in scripts folder
+    "INP001",   # implicit-namespace-package: this is not a package
+    "LOG015",   # root-logger-call: allow logging.info on scripts module
+    "PTH208",   # os-listdir: TODO
+    "T201",     # print: allow print statements in scripts folder
 ]
 "utils/virtual_machine/virtual_machines.py" = [
     "ANN001",   # missing-type-function-argument: TODO
@@ -329,6 +344,7 @@ ignore = [
     "SIM115",  # open-file-with-context-handler: TODO
     "ARG002",  # unused-method-argument: TODO
     "PTH113",  # os-path-isfile: TODO
+    "PTH208",  # os-listdir: TODO
     "N802",    # invalid-function-name: TODO
     "F401",    # unused-import: TODO
     "F841",    # unused-variable: TODO
@@ -372,6 +388,7 @@ ignore = [
     "E501",    # line-too-long: TODO
     "F541",    # f-string-missing-placeholders: TODO
     "FBT002",  # boolean-default-value-positional-argument: TODO
+    "PTH208",  # os-listdir: TODO
     "PLW1510", # subprocess-run-without-check: TODO
     "PTH113",  # os-path-isfile: TODO
     "UP008",   # super-call-with-parameters: TODO

@@ -487,12 +487,11 @@ class Test_RemoteConfigurationSemVer:
             assert client, "Client is required"
             client_tracer = client.get("client_tracer")
             assert client_tracer, "Client tracer is required"
-            tracer_version = client_tracer.get("tracer_version")
+            tracer_version:str = client_tracer.get("tracer_version")
             assert tracer_version, "Tracer version is required"
-            if tracer_version.startswith("v"):
-                # A v prefix is not strictly semver, but it is accepted by our RC backend.
-                # dd-trace-go uses this.
-                tracer_version = tracer_version[1:]
+            # A v prefix is not strictly semver, but it is accepted by our RC backend.
+            # dd-trace-go uses this.
+            tracer_version = tracer_version.removeprefix("v")
             # This will raise ValueError if the version is invalid semver
             # See: https://pypi.org/project/semantic-version/
             semantic_version.Version(tracer_version)

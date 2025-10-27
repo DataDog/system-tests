@@ -747,7 +747,7 @@ class BaseSCAStandaloneTelemetry:
                 if item["name"] not in configuration_by_name:
                     configuration_by_name[item["name"]] = []
                 configuration_by_name[item["name"]].append(item)
-        if len(configuration_by_name):
+        if len(configuration_by_name) != 0:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configuration_by_name))
             if "seq_id" in configuration_by_name[sample_key][0]:

@@ -2,7 +2,6 @@ import os
 import re
 import stat
 import json
-from typing import cast
 from http import HTTPStatus
 from pathlib import Path
 import time
@@ -1383,7 +1382,7 @@ class WeblogInjectionInitContainer(TestedContainer):
 
 class DockerSSIContainer(TestedContainer):
     def __init__(self, extra_env_vars: dict | None = None) -> None:
-        environment = {
+        environment:dict[str, str | None] = {
             "DD_DEBUG": "true",
             "DD_TRACE_DEBUG": "true",
             "DD_TRACE_SAMPLE_RATE": "1",
@@ -1398,7 +1397,7 @@ class DockerSSIContainer(TestedContainer):
             ports={"18080": ("127.0.0.1", 18080), "8080": ("127.0.0.1", 8080), "9080": ("127.0.0.1", 9080)},
             healthcheck={"test": "sh /healthcheck.sh", "retries": 60},
             allow_old_container=False,
-            environment=cast(dict[str, str | None], environment),
+            environment=environment,
         )
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:

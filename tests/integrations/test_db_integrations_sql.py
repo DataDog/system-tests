@@ -295,9 +295,9 @@ class Test_MsSql(_BaseDatadogDbIntegrationTestClass):
     def test_db_user(self):
         super().test_db_user()
 
-    def test_obfuscate_query(self, excluded_operations: tuple[str, ...] = ()):
+    def test_obfuscate_query(self):
         """All queries come out obfuscated from agent"""
-        for db_operation, request in self.get_requests(excluded_operations=excluded_operations):
+        for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
             # We launch all queries with two parameters (from weblog)
             if db_operation == "insert":

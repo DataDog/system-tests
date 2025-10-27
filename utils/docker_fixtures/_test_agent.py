@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 import os
 import time
-from typing import TypedDict, Any, cast
+from typing import TypedDict, Any
 import urllib.parse
 
 import pytest
@@ -197,9 +197,9 @@ class TestAgentAPI:
         resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:
             self.clear()
-        resp_json = resp.json()
+        resp_json:list = resp.json()
         self._write_log("metrics", resp_json)
-        return cast(list[Any], resp_json)
+        return resp_json
 
     def set_remote_config(self, path: str, payload: dict):
         resp = self._session.post(self._url("/test/session/responses/config/path"), json={"path": path, "msg": payload})
@@ -518,7 +518,7 @@ class TestAgentAPI:
                         if config_name not in configurations:
                             configurations[config_name] = []
                         configurations[config_name].append(config)
-        if len(configurations):
+        if len(configurations) != 0:
             # Checking if we need to sort due to multiple sources being sent for the same config
             sample_key = next(iter(configurations))
             if "seq_id" in configurations[sample_key][0]:
@@ -716,7 +716,8 @@ class TestAgentAPI:
     def logs(self) -> list[Any]:
         url = self._otlp_url("/test/session/logs")
         resp = self._session.get(url)
-        return cast(list[Any], resp.json())
+        result:list = resp.json()
+        return result
 
     def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:
         """Wait for `num` logs to be received from the test agent."""

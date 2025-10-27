@@ -372,8 +372,7 @@ class Test_Config_ClientIPHeader_Precedence:
 
             logger.info(f"Checking request with header {header_name}={ip}")
 
-            if ip.startswith("for="):
-                ip = ip[4:]
+            ip = ip.removeprefix("for=")
 
             trace = [span for _, _, span in interfaces.library.get_spans(req, full_trace=True)]
             expected_tags = {"http.client_ip": ip}
