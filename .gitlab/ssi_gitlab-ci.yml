@@ -73,11 +73,11 @@ ssi_tests:
     variables:
       # Force gitlab to keep the exit code as 3 if the job fails with exit code 3
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
-      S3_AGENT_LINUX_INSTALL_SCRIPT_BUCKET: system-tests-aws-agent-linux-install-script
     script:
         - |
             if [[ -n "${DD_INSTALLER_VERSION}" ]]; then
-              aws s3 cp s3://${S3_AGENT_LINUX_INSTALL_SCRIPT_BUCKET}/${DD_INSTALLER_VERSION} binaries/
+              echo "Downloading the installer script from S3: system-tests-aws-agent-linux-install-script/${DD_INSTALLER_VERSION}"
+              aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALLER_VERSION} binaries/
             fi
         - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
         - timeout 3000 ./run.sh $SCENARIO --vm-weblog ${WEBLOG} --vm-env ${ONBOARDING_FILTER_ENV} --vm-library ${TEST_LIBRARY} --vm-provider aws --vm-default-vms All --vm-only ${VM} --report-run-url ${CI_JOB_URL} --report-environment ${ONBOARDING_FILTER_ENV}
