@@ -27,8 +27,7 @@ def _load_ufc_fixture() -> dict[str, Any]:
         pytest.skip(f"Fixture file not found: {fixture_path}")
 
     with fixture_path.open() as f:
-        ufc_payload = json.load(f)
-    return ufc_payload["data"]["attributes"]
+        return json.load(f)
 
 
 def _get_test_case_files() -> list[str]:
@@ -69,7 +68,7 @@ def _set_and_wait_ffe_rc(
         config_id = str(hash(json.dumps(ufc_data, sort_keys=True)))
 
     # Create RC config payload
-    rc_config = {"action": "apply", "flag_configuration": ufc_data, "flag_environment": "foo", "id": config_id}
+    rc_config = ufc_data
 
     # Set the config
     test_agent.set_remote_config(path=f"{RC_PATH}/{config_id}/config", payload=rc_config)
