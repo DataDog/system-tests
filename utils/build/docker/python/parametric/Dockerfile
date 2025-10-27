@@ -8,3 +8,5 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
+
+CMD ["ddtrace-run", "python3.11", "-m", "apm_test_client"]

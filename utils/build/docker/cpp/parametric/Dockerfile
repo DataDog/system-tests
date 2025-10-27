@@ -15,3 +15,5 @@ FROM ubuntu:22.04
 COPY --from=build /usr/app/bin/parametric-http-server /usr/local/bin/parametric-http-server
 COPY --from=build /usr/app/SYSTEM_TESTS_LIBRARY_VERSION /SYSTEM_TESTS_LIBRARY_VERSION
 RUN mkdir /parametric-tracer-logs
+
+CMD ["parametric-http-server"]

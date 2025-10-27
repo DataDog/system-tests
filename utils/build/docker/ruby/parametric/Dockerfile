@@ -8,3 +8,5 @@ RUN bundle install
 RUN /binaries/install_ddtrace.sh
 COPY utils/build/docker/ruby/parametric/server.rb /app/
 RUN mkdir /parametric-tracer-logs
+
+CMD ["bundle", "exec", "ruby", "server.rb"]

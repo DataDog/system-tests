@@ -3,20 +3,24 @@ from pathlib import Path
 import shutil
 import subprocess
 
+from docker.models.images import Image
 import pytest
 
 from utils._logger import logger
 
+from ._core import get_docker_client
+
 
 class TestClientFactory:
     """Abstracts a docker image builing for docker fixtures scenarios"""
+
+    _image: Image | None
 
     def __init__(
         self,
         library: str,
         dockerfile: str,
         tag: str,
-        command: list[str],
         container_name: str,
         container_volumes: dict[str, str],
         container_env: dict[str, str],
@@ -27,10 +31,10 @@ class TestClientFactory:
         self.build_args: dict[str, str] = build_args or {}
         self.tag = tag
 
-        self.command = command
         self.container_name = container_name
         self.container_volumes = container_volumes
         self.container_env: dict[str, str] = dict(container_env)
+        self._image = None
 
     def build(self, host_log_folder: str, github_token_file: str) -> None:
         logger.stdout("Build framework test container...")
@@ -83,4 +87,22 @@ class TestClientFactory:
             if p.returncode != 0:
                 pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
 
+            # Sanity checks
+            if "Config" not in self.image.attrs or not self.image.attrs["Config"].get("Cmd"):
+                pytest.exit(f"{self.dockerfile} does not set a command", 1)
+
+            assert isinstance(self.command, list)
+
         logger.stdout("Build complete")
+
+    @property
+    def image(self) -> Image:
+        # as it may be called in a xdist, memoize it
+        if self._image is None:
+            self._image = get_docker_client().images.get(self.tag)
+
+        return self._image
+
+    @property
+    def command(self) -> list[str]:
+        return self.image.attrs["Config"]["Cmd"]

@@ -58,3 +58,5 @@ COPY --from=build-version-tool /app/out /app
 COPY --from=build-app /app/out /app
 
 RUN mkdir /parametric-tracer-logs
+
+CMD ["./ApmTestApi"]
