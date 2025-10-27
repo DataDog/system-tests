@@ -1,6 +1,5 @@
 
 FROM python:3.11-slim
-# ghcr.io/datadog/dd-trace-py/testrunner:bca6869fffd715ea9a731f7b606807fa1b75cb71
 ARG FRAMEWORK_VERSION
 
 # install bin dependancies
@@ -17,7 +16,6 @@ COPY utils/build/docker/python/install_ddtrace.sh binaries* /binaries/
 RUN /binaries/install_ddtrace.sh
 RUN mkdir /integration-framework-tracer-logs
 
-# TODO SAM: startlette? or starlette
-ENV DD_PATCH_MODULES="fastapi:false,startlette:false"
+ENV DD_PATCH_MODULES="fastapi:false,starlette:false"
 ENV OPENAI_API_KEY="<not-a-real-key>"
 CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "openai"]

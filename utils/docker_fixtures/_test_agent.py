@@ -24,11 +24,6 @@ from utils.parametric.spec.trace import Trace
 
 from ._core import get_host_port, get_docker_client, docker_run
 
-IGNORE_PARAMS_FOR_TEST_NAME = (
-    "test_agent",
-    "test_library",
-)
-
 
 def _request_token(request: pytest.FixtureRequest) -> str:
     token = ""
@@ -418,16 +413,14 @@ class TestAgentAPI:
                 raise RuntimeError(resp.text)
 
     @contextlib.contextmanager
-    def vcr_context(self, cassette_prefix: str = ""):
+    def vcr_context(self, cassette_prefix: str = "", **test_params_for_cassette_prefix: Any):  # noqa: ANN401
         """Starts a VCR context manager, which will prefix all recorded cassettes from the test agent with the
         given prefix. If no prefix is provided, the test name will be used.
         """
         test_name = cassette_prefix or self._pytest_request.node.originalname
 
-        for param in self._pytest_request.node.callspec.params:
-            if param not in IGNORE_PARAMS_FOR_TEST_NAME:
-                param_value = self._pytest_request.node.callspec.params[param]
-                test_name += f"_{param}_{param_value}"
+        for param, value in test_params_for_cassette_prefix.items():
+            test_name += f"_{param}_{value}"
 
         try:
             resp = self._session.post(self._url("/vcr/test/start"), json={"test_name": test_name})
