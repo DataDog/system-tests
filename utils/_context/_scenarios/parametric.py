@@ -4,17 +4,20 @@ import glob
 import json
 import os
 from pathlib import Path
-import shutil
-import subprocess
-from typing import Any, TextIO
+from typing import Any
 
 import pytest
 
 from utils._context.component_version import ComponentVersion
 from utils._context.docker import get_docker_client
 from utils._logger import logger
-from utils.docker_fixtures import TestAgentFactory, TestAgentAPI, compute_volumes, get_host_port, docker_run
-from utils.parametric._library_client import APMLibrary, APMLibraryClient
+from utils.docker_fixtures import (
+    TestAgentFactory,
+    TestAgentAPI,
+    compute_volumes,
+    ParametricTestClientFactory,
+)
+from utils.parametric._library_client import APMLibrary
 
 from .core import scenario_groups
 from ._docker_fixtures import DockerFixturesScenario
@@ -24,147 +27,8 @@ from ._docker_fixtures import DockerFixturesScenario
 default_subprocess_run_timeout = 300
 
 
-class TestClientFactory:
-    """Abstracts a docker image."""
-
-    def __init__(
-        self,
-        library: str,
-        dockerfile: str,
-        tag: str,
-        command: list[str],
-        container_name: str,
-        container_volumes: dict[str, str],
-        container_env: dict[str, str],
-        build_args: dict[str, str] | None = None,
-    ):
-        self.library = library
-        self.dockerfile = dockerfile
-        self.build_args: dict[str, str] = build_args or {}
-        self.tag = tag
-
-        self.command = command
-        self.container_name = container_name
-        self.container_volumes = container_volumes
-        self.container_env: dict[str, str] = dict(container_env)
-
-    def build(self, host_log_folder: str, github_token_file: str) -> None:
-        logger.stdout("Build framework test container...")
-        log_path = f"{host_log_folder}/outputs/docker_build_log.log"
-        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
-
-        with open(log_path, "w+", encoding="utf-8") as log_file:
-            docker_bin = shutil.which("docker")
-
-            if docker_bin is None:
-                raise FileNotFoundError("Docker not found in PATH")
-
-            cmd = [
-                docker_bin,
-                "build",
-                "--progress=plain",
-            ]
-
-            if github_token_file and github_token_file.strip():
-                cmd += ["--secret", f"id=github_token,src={github_token_file}"]
-
-            for name, value in self.build_args.items():
-                cmd += ["--build-arg", f"{name}={value}"]
-
-            cmd += [
-                "-t",
-                self.tag,
-                "-f",
-                self.dockerfile,
-                ".",
-            ]
-            log_file.write(f"running {cmd}\n")
-            log_file.flush()
-
-            env = os.environ.copy()
-            env["DOCKER_SCAN_SUGGEST"] = "false"
-
-            timeout = 600
-
-            p = subprocess.run(
-                cmd,
-                text=True,
-                stdout=log_file,
-                stderr=log_file,
-                env=env,
-                timeout=timeout,
-                check=False,
-            )
-
-            if p.returncode != 0:
-                pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
-
-        logger.stdout("Build complete")
-
-    @contextlib.contextmanager
-    def get_apm_library(
-        self,
-        worker_id: str,
-        test_id: str,
-        test_agent: TestAgentAPI,
-        library_env: dict,
-        library_extra_command_arguments: list[str],
-        test_server_log_file: TextIO,
-    ) -> Generator["APMLibrary", None, None]:
-        host_port = get_host_port(worker_id, 4500)
-        container_port = 8080
-
-        env = {
-            "DD_TRACE_DEBUG": "true",
-            "DD_TRACE_AGENT_URL": f"http://{test_agent.container_name}:{test_agent.container_port}",
-            "DD_AGENT_HOST": test_agent.container_name,
-            "DD_TRACE_AGENT_PORT": str(test_agent.container_port),
-            "APM_TEST_CLIENT_SERVER_PORT": str(container_port),
-            "DD_TRACE_OTEL_ENABLED": "true",
-        }
-
-        for k, v in library_env.items():
-            # Don't set env vars with a value of None
-            if v is not None:
-                env[k] = v
-            elif k in env:
-                del env[k]
-
-        command = list(self.command)
-
-        if len(library_extra_command_arguments) > 0:
-            if self.library not in ("nodejs", "java", "php"):
-                # TODO : all test server should call directly the target without using a sh script
-                command += library_extra_command_arguments
-            else:
-                # temporary workaround for the test server to be able to run the command
-                env["SYSTEM_TESTS_EXTRA_COMMAND_ARGUMENTS"] = " ".join(library_extra_command_arguments)
-
-        with docker_run(
-            image=self.tag,
-            name=f"{self.container_name}-{test_id}",
-            command=command,
-            env=env,
-            ports={f"{container_port}/tcp": host_port},
-            volumes=self.container_volumes,
-            log_file=test_server_log_file,
-            network=test_agent.network,
-        ) as container:
-            test_server_timeout = 60
-
-            client = APMLibraryClient(
-                self.library,
-                f"http://localhost:{host_port}",
-                test_server_timeout,
-                container,
-            )
-
-            tracer = APMLibrary(client, self.library)
-            yield tracer
-
-
 class ParametricScenario(DockerFixturesScenario):
-    _test_client_factory: TestClientFactory
+    _test_client_factory: ParametricTestClientFactory
 
     class PersistentParametricTestConf(dict):
         """Parametric tests are executed in multiple thread, we need a mechanism to persist
@@ -242,7 +106,7 @@ class ParametricScenario(DockerFixturesScenario):
         self._test_agent_factory = TestAgentFactory(self.host_log_folder)
 
         # get tracer version info building and executing the ddtracer-version.docker file
-        self._test_client_factory = TestClientFactory(
+        self._test_client_factory = ParametricTestClientFactory(
             library=library,
             dockerfile=f"utils/build/docker/{library}/parametric/Dockerfile",
             tag=f"{library}-test-client",
@@ -316,7 +180,7 @@ class ParametricScenario(DockerFixturesScenario):
         test_agent: TestAgentAPI,
         library_env: dict,
         library_extra_command_arguments: list[str],
-    ) -> Generator["APMLibrary", None, None]:
+    ) -> Generator[APMLibrary, None, None]:
         log_path = f"{self.host_log_folder}/outputs/{request.cls.__name__}/{request.node.name}/server_log.log"
         Path(log_path).parent.mkdir(parents=True, exist_ok=True)
 
