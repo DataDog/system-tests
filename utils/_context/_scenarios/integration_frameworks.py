@@ -44,10 +44,7 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
 
         framework, framework_version = weblog.split("@", 1)
 
-        self._test_agent_factory.configure(self.host_log_folder)
-
         self._test_client_factory = FrameworkTestClientFactory(
-            host_log_folder=self.host_log_folder,
             library=library,
             framework=framework,
             framework_version=framework_version,
@@ -55,13 +52,16 @@ class IntegrationFrameworksScenario(DockerFixturesScenario):
             container_volumes={f"./utils/build/docker/{library}/{framework}_app": "/app/integration_frameworks"},
         )
 
+        self._test_agent_factory.configure(self.host_log_folder)
+        self._test_client_factory.configure(self.host_log_folder)
+
         # Set library version - for now use a placeholder, will be updated after building
         self._library = ComponentVersion(library, "0.0.0")
         logger.debug(f"Library: {library}, Framework: {framework}=={framework_version}")
 
         if self.is_main_worker:
             # Build the framework test server image
-            self._test_client_factory.build(self.host_log_folder, github_token_file=config.option.github_token_file)
+            self._test_client_factory.build(github_token_file=config.option.github_token_file)
             self._test_agent_factory.pull()
             self._clean()
 

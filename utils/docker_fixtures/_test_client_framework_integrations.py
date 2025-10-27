@@ -1,10 +1,7 @@
 from collections.abc import Generator
 import contextlib
 from http import HTTPStatus
-import os
 from pathlib import Path
-import shutil
-import subprocess
 import time
 import urllib.parse
 
@@ -16,80 +13,7 @@ from utils._logger import logger
 
 from ._core import docker_run, get_host_port
 from ._test_agent import TestAgentAPI
-
-
-class TestClientFactory:
-    """Abstracts a docker image. TODO: share this with parametric tests"""
-
-    def __init__(
-        self,
-        dockerfile: str,
-        build_args: dict[str, str],
-        tag: str,
-        container_name: str,
-        container_volumes: dict[str, str],
-        container_env: dict[str, str],
-    ):
-        self.dockerfile = dockerfile
-        self.build_args = build_args
-        self.tag = tag
-
-        self.container_name = container_name
-        self.container_volumes = container_volumes
-        self.container_env: dict[str, str] = dict(container_env)
-
-    def build(self, host_log_folder: str, github_token_file: str) -> None:
-        logger.stdout("Build framework test container...")
-        log_path = f"{host_log_folder}/outputs/docker_build_log.log"
-        Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
-
-        with open(log_path, "w+", encoding="utf-8") as log_file:
-            docker_bin = shutil.which("docker")
-
-            if docker_bin is None:
-                raise FileNotFoundError("Docker not found in PATH")
-
-            cmd = [
-                docker_bin,
-                "build",
-                "--progress=plain",
-            ]
-
-            if github_token_file and github_token_file.strip():
-                cmd += ["--secret", f"id=github_token,src={github_token_file}"]
-
-            for name, value in self.build_args.items():
-                cmd += ["--build-arg", f"{name}={value}"]
-
-            cmd += [
-                "-t",
-                self.tag,
-                "-f",
-                self.dockerfile,
-                ".",
-            ]
-            log_file.write(f"running {cmd}\n")
-            log_file.flush()
-
-            env = os.environ.copy()
-            env["DOCKER_SCAN_SUGGEST"] = "false"
-
-            timeout = 600
-
-            p = subprocess.run(
-                cmd,
-                text=True,
-                stdout=log_file,
-                stderr=log_file,
-                env=env,
-                timeout=timeout,
-                check=False,
-            )
-
-            if p.returncode != 0:
-                pytest.exit(f"Failed to build framework test server image. See {log_path} for details", 1)
-
-        logger.stdout("Build complete")
+from ._test_client import TestClientFactory
 
 
 class FrameworkTestClientFactory(TestClientFactory):
@@ -101,18 +25,17 @@ class FrameworkTestClientFactory(TestClientFactory):
 
     def __init__(
         self,
-        host_log_folder: str,
         library: str,
         framework: str,
         framework_version: str,
         container_env: dict[str, str],
         container_volumes: dict[str, str],
     ):
-        self.host_log_folder = host_log_folder
         self.library = library
         self.framework = framework
         self.framework_version = framework_version
         super().__init__(
+            library=library,
             dockerfile=f"utils/build/docker/{library}/{framework}.Dockerfile",
             build_args={"FRAMEWORK_VERSION": framework_version},
             tag=f"{library}-test-library-{framework}-{framework_version}",

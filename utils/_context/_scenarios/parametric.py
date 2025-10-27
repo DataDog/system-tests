@@ -87,8 +87,6 @@ class ParametricScenario(DockerFixturesScenario):
             "python": {"./utils/build/docker/python/parametric/apm_test_client": "/app/apm_test_client"},
         }
 
-        self._test_agent_factory.configure(self.host_log_folder)
-
         # get tracer version info building and executing the ddtracer-version.docker file
         self._test_client_factory = ParametricTestClientFactory(
             library=library,
@@ -99,14 +97,15 @@ class ParametricScenario(DockerFixturesScenario):
             container_env={},
         )
 
+        self._test_client_factory.configure(self.host_log_folder)
+        self._test_agent_factory.configure(self.host_log_folder)
+
         if self.is_main_worker:
             # https://github.com/pytest-dev/pytest-xdist/issues/271#issuecomment-826396320
             # we are in the main worker, not in a xdist sub-worker
             # self._build_apm_test_server_image(config.option.github_token_file)
             self._test_agent_factory.pull()
-            self._test_client_factory.build(
-                host_log_folder=self.host_log_folder, github_token_file=config.option.github_token_file
-            )
+            self._test_client_factory.build(github_token_file=config.option.github_token_file)
             self._clean()
 
         # https://github.com/DataDog/system-tests/issues/2799
