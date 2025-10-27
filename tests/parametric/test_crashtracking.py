@@ -15,7 +15,10 @@ class Test_Crashtracking:
     def test_report_crash(self, test_agent, test_library):
         test_library.crash()
 
-        event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+        while True:
+            event = test_agent.wait_for_telemetry_event("logs", wait_loops=400)
+            if event is None or "is_crash_ping:true" not in event["payload"][0]["tags"]:
+                break
         self.assert_crash_report(test_library, event)
 
     @pytest.mark.parametrize("library_env", [{"DD_CRASHTRACKING_ENABLED": "false"}])
