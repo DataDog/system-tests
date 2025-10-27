@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 
 	ddotel "github.com/DataDog/dd-trace-go/v2/ddtrace/opentelemetry"
 	"github.com/DataDog/dd-trace-go/v2/ddtrace/tracer"
@@ -25,7 +24,7 @@ type apmClientServer struct {
 	tp           *ddotel.TracerProvider
 	tracer       otel_trace.Tracer
 	ofClient     *of.Client
-	ddProvider   *ddof.DatadogProvider
+	ddProvider   of.FeatureProvider
 }
 
 type spanContext struct {
@@ -45,11 +44,7 @@ func newServer() *apmClientServer {
 	}
 
 	var err error
-	s.ddProvider, err = ddof.NewDatadogProvider()
-	if err != nil && strings.Contains(err.Error(), "flagging provider is not enabled") {
-		return s
-	}
-
+	s.ddProvider, err = ddof.NewDatadogProvider(ddof.ProviderConfig{})
 	if err != nil {
 		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
 	}

@@ -25,7 +25,10 @@ func (s *apmClientServer) ffeEval(writer http.ResponseWriter, request *http.Requ
 	}
 
 	ctx := of.NewEvaluationContext(body.TargetingKey, body.Attributes)
-	s.ddProvider.Init(ctx)
+
+	if initer, ok := s.ddProvider.(of.StateHandler); ok {
+		initer.Init(ctx)
+	}
 
 	val := s.ofClient.Object(request.Context(), body.Flag, body.DefaultValue, ctx)
 
