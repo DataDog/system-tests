@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -ex
 
 readonly SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 echo "SCRIPT_DIR: $SCRIPT_DIR"
@@ -138,8 +138,11 @@ done
 echo "Building docker weblog image using variant [${WEBLOG_VARIANT}] and library [${TEST_LIBRARY}]"
 echo "Target platforms: ${DOCKER_PLATFORM}"
 
-# Setup buildx
-setup_buildx
+# In CI environments, the builder instance is pre-configured for us.
+# We check DOCKER_HOST to know if we're running on a Docker in Docker runner
+if [[ -z "${CI:-}" && -z "$DOCKER_HOST" ]]; then
+    setup_buildx
+fi
 
 CURRENT_DIR=$(pwd)
 cd $WEBLOG_FOLDER
