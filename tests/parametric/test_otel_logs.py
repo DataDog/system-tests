@@ -223,9 +223,9 @@ class Test_FR05_Custom_Endpoints:
         with test_library as library:
             library.write_log("test_otlp_custom_endpoint", LogLevel.INFO, "test_logger")
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4320
-        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4320, (
+            f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        )
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "test_logger", "test_otlp_custom_endpoint") is not None
 
@@ -249,9 +249,9 @@ class Test_FR05_Custom_Endpoints:
         with test_library as library:
             library.write_log("test_otlp_logs_custom_endpoint", LogLevel.INFO, "test_logger")
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4321
-        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4321, (
+            f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        )
         log_payloads = test_agent.wait_for_num_log_payloads(1)
         assert find_log_record(log_payloads, "test_logger", "test_otlp_logs_custom_endpoint") is not None
 
@@ -422,9 +422,9 @@ class Test_FR08_Custom_Headers:
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
         assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert (
-            logs_request[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
+        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {logs_request[0]['headers']}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -452,9 +452,9 @@ class Test_FR08_Custom_Headers:
         logs_request = [r for r in requests if r["url"].endswith("/v1/logs")]
         assert logs_request, f"Expected logs request, got {requests}"
         assert logs_request[0]["headers"].get("api-key") == "key", f"Expected api-key, got {logs_request[0]['headers']}"
-        assert (
-            logs_request[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {logs_request[0]['headers']}"
+        assert logs_request[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {logs_request[0]['headers']}"
+        )
 
 
 @features.otel_logs_enabled
@@ -499,9 +499,9 @@ class Test_FR09_Log_Injection:
         log_attrs = find_attributes(log_record)
         for dd_attr in ("service", "env", "version", "span_id", "trace_id"):
             for log_attr in log_attrs:
-                assert (
-                    dd_attr not in log_attr
-                ), f"Found {dd_attr} in log attributes: {log_attrs}, should not duplicate resource attributes"
+                assert dd_attr not in log_attr, (
+                    f"Found {dd_attr} in log attributes: {log_attrs}, should not duplicate resource attributes"
+                )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -567,12 +567,12 @@ class Test_FR10_Timeout_Configuration:
         assert exporter_timeout is not None, "OTEL_EXPORTER_OTLP_TIMEOUT should be set"
         assert exporter_logs_timeout is not None, "OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be set"
 
-        assert (
-            exporter_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
-        assert (
-            exporter_logs_timeout.get("value") == 10000
-        ), f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
+        assert exporter_timeout.get("value") == 10000, (
+            f"OTEL_EXPORTER_OTLP_TIMEOUT should be 10000, exporter_timeout: {exporter_timeout}"
+        )
+        assert exporter_logs_timeout.get("value") == 10000, (
+            f"OTEL_EXPORTER_OTLP_LOGS_TIMEOUT should be 10000, exporter_logs_timeout: {exporter_logs_timeout}"
+        )
 
 
 @features.otel_logs_enabled
@@ -620,9 +620,9 @@ class Test_FR11_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_grpc_port"),
@@ -664,9 +664,9 @@ class Test_FR11_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         "library_env",

@@ -42,7 +42,7 @@ with open("utils/waf_rules.py", "w") as f:
     for key, rules in result.items():
         f.write(f"\n\nclass {key}:\n")
         for name, rule in rules.items():
-            f.write(f"    {name} = \"{rule['id']}\"  # {rule['name']}\n")  # noqa: Q003 (black does not like this)
+            f.write(f'    {name} = "{rule["id"]}"  # {rule["name"]}\n')
 
 with open("utils/interfaces/_library/appsec_data.py", "w") as f:
     f.write(HEADER)

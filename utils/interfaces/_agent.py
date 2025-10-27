@@ -47,7 +47,7 @@ class AgentInterfaceValidator(ProxyBasedInterfaceValidator):
                         if rid is None:
                             yield data, payload, chunk, span, appsec_data
                         elif get_rid_from_span(span) == rid:
-                            logger.debug(f'Found span with rid={rid} in {data["log_filename"]}')
+                            logger.debug(f"Found span with rid={rid} in {data['log_filename']}")
                             yield data, payload, chunk, span, appsec_data
 
     def get_profiling_data(self):

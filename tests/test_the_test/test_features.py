@@ -77,6 +77,6 @@ def test_feature_are_correctly_declared():
         feature_id = kwargs["feature_id"]
 
         if feature_id != NOT_REPORTED_ID:
-            assert (
-                f"https://feature-parity.us1.prod.dog/#/?feature={feature_id}" in feature.__doc__
-            ), f"Feature `{name}` must have a link to the feature parity in its docstring"
+            assert f"https://feature-parity.us1.prod.dog/#/?feature={feature_id}" in feature.__doc__, (
+                f"Feature `{name}` must have a link to the feature parity in its docstring"
+            )

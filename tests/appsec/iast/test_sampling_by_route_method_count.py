@@ -44,8 +44,6 @@ class TestSamplingByRouteMethodCount:
                     vulnerability_hash = vuln["hash"]
                     vuln_hash_set.add(vulnerability_hash)
 
-        assert (
-            len(vuln_hash_set) >= 45
-        ), (
+        assert len(vuln_hash_set) >= 45, (
             f"Invalid number of vulnerabilities: {vuln_debug_list}"
         )  # Bigger or equal, because unrelated extra vulns could be detected in the app

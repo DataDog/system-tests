@@ -1295,9 +1295,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4320
-        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4320, (
+            f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        )
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
@@ -1331,9 +1331,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4320
-        ), f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4320, (
+            f"Expected port 4320 in {urlparse(library_env[endpoint_env])}"
+        )
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
@@ -1366,9 +1366,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4321
-        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4321, (
+            f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        )
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
@@ -1402,9 +1402,9 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Endpoint:
         with test_library as t:
             generate_default_counter_data_point(t, name)
 
-        assert (
-            urlparse(library_env[endpoint_env]).port == 4321
-        ), f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        assert urlparse(library_env[endpoint_env]).port == 4321, (
+            f"Expected port 4321 in {urlparse(library_env[endpoint_env])}"
+        )
 
         metrics = test_agent.wait_for_num_otlp_metrics(num=1)
         scope_metrics = metrics[0]["resource_metrics"][0]["scope_metrics"]
@@ -1451,12 +1451,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert (
-            metrics_requests[0]["headers"].get("api-key") == "key"
-        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
-        assert (
-            metrics_requests[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        assert metrics_requests[0]["headers"].get("api-key") == "key", (
+            f"Expected api-key, got {metrics_requests[0]['headers']}"
+        )
+        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        )
 
     @pytest.mark.parametrize(
         "library_env",
@@ -1482,12 +1482,12 @@ class Test_Otel_Metrics_Configuration_OTLP_Exporter_Metrics_Headers:
         requests = test_agent.requests()
         metrics_requests = [r for r in requests if r["url"].endswith("/v1/metrics")]
         assert metrics_requests, f"Expected metrics request, got {requests}"
-        assert (
-            metrics_requests[0]["headers"].get("api-key") == "key"
-        ), f"Expected api-key, got {metrics_requests[0]['headers']}"
-        assert (
-            metrics_requests[0]["headers"].get("other-config-value") == "value"
-        ), f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        assert metrics_requests[0]["headers"].get("api-key") == "key", (
+            f"Expected api-key, got {metrics_requests[0]['headers']}"
+        )
+        assert metrics_requests[0]["headers"].get("other-config-value") == "value", (
+            f"Expected other-config-value, got {metrics_requests[0]['headers']}"
+        )
 
 
 @features.otel_metrics_api
@@ -1865,9 +1865,9 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "default", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
@@ -1921,9 +1921,9 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         ("library_env", "endpoint_env", "test_agent_otlp_http_port"),
@@ -1973,9 +1973,9 @@ class Test_Otel_Metrics_Telemetry:
                 configurations_by_name, expected_env, "env_var", fallback_to_first=True
             )
             assert config is not None, f"No configuration found for '{expected_env}'"
-            assert (
-                config.get("value") == expected_value
-            ), f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            assert config.get("value") == expected_value, (
+                f"Expected {expected_env} to be {expected_value}, configuration: {config}"
+            )
 
     @pytest.mark.parametrize(
         "library_env",

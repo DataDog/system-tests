@@ -69,13 +69,13 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
             span = self.get_span_from_agent(request)
 
             if db_operation == "procedure":
-                assert any(
-                    substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]
-                ), "db.operation span not found for procedure operation"
+                assert any(substring in span["meta"]["db.operation"].lower() for substring in ["call", "exec"]), (
+                    "db.operation span not found for procedure operation"
+                )
             else:
-                assert (
-                    db_operation.lower() in span["meta"]["db.operation"].lower()
-                ), f"Test is failing for {db_operation}"
+                assert db_operation.lower() in span["meta"]["db.operation"].lower(), (
+                    f"Test is failing for {db_operation}"
+                )
 
     @missing_feature(
         context.library in ("python_otel", "nodejs_otel"),
@@ -110,13 +110,13 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
             if db_operation in ["update", "delete", "procedure", "select_error", "select"]:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 2
-                ), f"The query is not properly obfuscated for operation {db_operation}"
+                assert span["meta"]["db.statement"].count("?") == 2, (
+                    f"The query is not properly obfuscated for operation {db_operation}"
+                )
             else:
-                assert (
-                    span["meta"]["db.statement"].count("?") == 3
-                ), f"The query is not properly obfuscated for operation {db_operation}"
+                assert span["meta"]["db.statement"].count("?") == 3, (
+                    f"The query is not properly obfuscated for operation {db_operation}"
+                )
 
     def test_sql_success(self):
         """We check all sql launched for the app work"""
@@ -128,9 +128,9 @@ class _BaseOtelDbIntegrationTestClass(BaseDbIntegrationsTestClass):
         """Usually the query"""
         for db_operation, request in self.get_requests(excluded_operations=["procedure", "select_error"]):
             span = self.get_span_from_agent(request)
-            assert (
-                db_operation in span["meta"]["db.statement"].lower()
-            ), f"{db_operation}  not found in {span['meta']['db.statement']}"
+            assert db_operation in span["meta"]["db.statement"].lower(), (
+                f"{db_operation}  not found in {span['meta']['db.statement']}"
+            )
 
 
 @features.otel_postgres_support
@@ -170,9 +170,9 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
         """
         for db_operation, request in self.get_requests():
             span = self.get_span_from_agent(request)
-            assert span["meta"][
-                "db.mssql.instance_name"
-            ].strip(), f"db.mssql.instance_name must not be empty for operation {db_operation}"
+            assert span["meta"]["db.mssql.instance_name"].strip(), (
+                f"db.mssql.instance_name must not be empty for operation {db_operation}"
+            )
 
     @missing_feature(library="nodejs_otel", reason="We are not generating this span")
     def test_db_operation(self):
@@ -181,9 +181,9 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
             span = self.get_span_from_agent(request)
             # db.operation span is not generating by Open Telemetry when we call to procedure or we have a syntax error on the SQL
             if db_operation not in ["select_error", "procedure"]:
-                assert (
-                    db_operation.lower() in span["meta"]["db.operation"].lower()
-                ), f"Test is failing for {db_operation}"
+                assert db_operation.lower() in span["meta"]["db.operation"].lower(), (
+                    f"Test is failing for {db_operation}"
+                )
 
     @missing_feature(
         library="nodejs_otel",
@@ -216,6 +216,6 @@ class Test_MsSql(_BaseOtelDbIntegrationTestClass):
                 expected_obfuscation_count = 2
 
             observed_obfuscation_count = span["meta"]["db.statement"].count("?")
-            assert (
-                observed_obfuscation_count == expected_obfuscation_count
-            ), f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['db.statement']}"
+            assert observed_obfuscation_count == expected_obfuscation_count, (
+                f"The mssql query is not properly obfuscated for operation {db_operation}, expecting {expected_obfuscation_count} obfuscation(s), found {observed_obfuscation_count}:\n {span['meta']['db.statement']}"
+            )

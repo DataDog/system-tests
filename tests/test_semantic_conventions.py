@@ -277,9 +277,9 @@ class Test_Meta:
             expected_language = RUNTIME_LANGUAGE_MAP.get(library, library)
 
             actual_language = span["meta"]["language"]
-            assert (
-                actual_language == expected_language
-            ), f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
+            assert actual_language == expected_language, (
+                f"Span actual language, {actual_language}, did not match expected language, {expected_language}."
+            )
 
         interfaces.library.validate_all_spans(validator=validator, allow_no_data=True)
         # checking that we have at least one root span
@@ -296,13 +296,13 @@ class Test_Meta:
 
             expected_component = get_component_name(span["name"])
 
-            assert "component" in span.get(
-                "meta", {}
-            ), f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+            assert "component" in span.get("meta", {}), (
+                f"No component tag found. Expected span {span['name']} component to be: {expected_component}."
+            )
             actual_component = span["meta"]["component"]
 
             if isinstance(expected_component, list):
-                exception_message = f"""Expected span {span['name']} to have component meta tag equal
+                exception_message = f"""Expected span {span["name"]} to have component meta tag equal
                  to one of the following, [{expected_component}], got: {actual_component}."""
 
                 assert actual_component in expected_component, exception_message
@@ -334,12 +334,12 @@ class Test_MetaDatadogTags:
 
     def test_meta_dd_tags(self):
         def validator(span: dict):
-            assert (
-                span["meta"]["key1"] == "val1"
-            ), f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
-            assert (
-                span["meta"]["key2"] == "val2"
-            ), f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
+            assert span["meta"]["key1"] == "val1", (
+                f'keyTag tag in span\'s meta should be "test", not {span["meta"]["env"]}'
+            )
+            assert span["meta"]["key2"] == "val2", (
+                f'dKey tag in span\'s meta should be "key2:val2", not {span["meta"]["key2"]}'
+            )
 
             return True
 

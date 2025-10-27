@@ -167,14 +167,14 @@ class Test_LibraryHeaders:
             if val.startswith("in-"):
                 assert val[3:].isdigit(), f"Datadog-Entity-ID header value {val} doesn't end with digits"
             elif val.startswith("ci-"):
-                assert all(
-                    c in string.hexdigits for c in val[3:]
-                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+                assert all(c in string.hexdigits for c in val[3:]), (
+                    f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+                )
             # The cid prefix is deprecated and will be removed in a future version of the agent
             elif val.startswith("cid-"):
-                assert all(
-                    c in string.hexdigits for c in val[4:]
-                ), f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+                assert all(c in string.hexdigits for c in val[4:]), (
+                    f"Datadog-Entity-ID header value {val} doesn't end with hex digits"
+                )
             else:
                 raise ValueError(
                     f"Datadog-Entity-ID header value {val} doesn't start with either 'in-', 'ci-' or 'cid-'"
@@ -207,9 +207,9 @@ class Test_LibraryHeaders:
             value = request_headers["datadog-external-env"]
             items = value.split(",")
             for item in items:
-                assert (
-                    item[2] == "-"
-                ), f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
+                assert item[2] == "-", (
+                    f"Datadog-External-Env item {item} is not using in the format {{prefix}}-{{value}}"
+                )
 
         interfaces.library.validate_all(validator, allow_no_data=True)
 

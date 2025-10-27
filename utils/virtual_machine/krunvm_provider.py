@@ -83,7 +83,7 @@ class KrunVmProvider(VmProvider):
         self.shared_volume = os.path.join(path, "shared_volume")
         os.mkdir(self.shared_volume)
         cmd_krunvm_mount_volume = (
-            f"krunvm changevm {self.vm.name} --volume {self.host_project_dir}/{self.shared_volume }:/shared_volume"
+            f"krunvm changevm {self.vm.name} --volume {self.host_project_dir}/{self.shared_volume}:/shared_volume"
         )
         logger.debug(cmd_krunvm_mount_volume)
         vm_logger(context.scenario.host_log_folder, self.vm.name).info(cmd_krunvm_mount_volume)

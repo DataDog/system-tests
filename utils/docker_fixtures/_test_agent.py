@@ -120,7 +120,7 @@ class TestAgentFactory:
                     time.sleep(0.1)
                 else:
                     if resp["version"] != "test":
-                        message = f"""Agent version {resp['version']} is running instead of the test agent.
+                        message = f"""Agent version {resp["version"]} is running instead of the test agent.
                         Stop the agent on port {container_port} and try again."""
                         pytest.fail(message, pytrace=False)
 
@@ -197,7 +197,7 @@ class TestAgentAPI:
         resp = self._session.get(self._otlp_url("/test/session/metrics"), **kwargs)
         if clear:
             self.clear()
-        resp_json:list = resp.json()
+        resp_json: list = resp.json()
         self._write_log("metrics", resp_json)
         return resp_json
 
@@ -716,7 +716,7 @@ class TestAgentAPI:
     def logs(self) -> list[Any]:
         url = self._otlp_url("/test/session/logs")
         resp = self._session.get(url)
-        result:list = resp.json()
+        result: list = resp.json()
         return result
 
     def wait_for_num_log_payloads(self, num: int, wait_loops: int = 30) -> list[Any]:

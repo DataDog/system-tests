@@ -88,6 +88,6 @@ class Test_Debugger_Probe_Budgets(debugger.BaseDebuggerTest):
 
             # Probe budgets aren't exact and can take time to be applied, so we allow a range of 1-20 snapshots with
             # captures for 150 requests.
-            assert (
-                1 <= snapshots_with_captures <= 20
-            ), f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+            assert 1 <= snapshots_with_captures <= 20, (
+                f"Expected 1-20 snapshot with captures, got {snapshots_with_captures} in {self.total_request_time} seconds"
+            )

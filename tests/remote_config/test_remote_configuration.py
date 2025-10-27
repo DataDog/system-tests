@@ -57,13 +57,13 @@ class RemoteConfigurationFieldsBasicTests:
             client = data["request"]["content"]["client"]
             client_tracer = client["client_tracer"]
 
-            assert (
-                "is_agent" not in client or client["is_agent"] is False
-            ), "'client.is_agent' MUST either NOT be set or set to false"
+            assert "is_agent" not in client or client["is_agent"] is False, (
+                "'client.is_agent' MUST either NOT be set or set to false"
+            )
             assert "client_agent" not in client, "'client.client_agent' must NOT be set"
-            assert (
-                client["id"] != client_tracer["runtime_id"]
-            ), "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            assert client["id"] != client_tracer["runtime_id"], (
+                "'client.id' and 'client.client_tracer.runtime_id' must be distinct"
+            )
 
         interfaces.library.validate_all_remote_configuration(validator=validator, allow_no_data=True)
 
@@ -102,9 +102,9 @@ def rc_check_request(data, expected, caching):
         # Our test suite will always emit SOMETHING for this
         expected_targets_version = expected_client_state.get("targets_version")
         targets_version = client_state.get("targets_version", 0)
-        assert (
-            targets_version == expected_targets_version
-        ), f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+        assert targets_version == expected_targets_version, (
+            f"targetsVersion was expected to be {expected_targets_version}, not {targets_version}"
+        )
 
         # verify that the tracer is properly storing and reporting on its config state
         expected_config_states = expected_client_state.get("config_states")
@@ -123,9 +123,9 @@ def rc_check_request(data, expected, caching):
             )
 
         if config_states is not None and expected_config_states is not None:
-            assert len(config_states) == len(
-                expected_config_states
-            ), "client reporting more or less configs than expected"
+            assert len(config_states) == len(expected_config_states), (
+                "client reporting more or less configs than expected"
+            )
 
             for state in expected_config_states:
                 if not dict_is_in_array(state, config_states, allow_additional_fields=True):
@@ -136,9 +136,9 @@ def rc_check_request(data, expected, caching):
 
         if not caching:
             # if a tracer decides to not cache target files, they are not supposed to fill out cached_target_files
-            assert not content.get(
-                "cached_target_files", []
-            ), "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+            assert not content.get("cached_target_files", []), (
+                "tracers not opting into caching target files must NOT populate cached_target_files in requests"
+            )
         else:
             expected_cached_target_files = expected.get("cached_target_files")
             cached_target_files = content.get("cached_target_files")
@@ -272,9 +272,9 @@ class Test_RemoteConfigurationExtraServices:
         assert extra_services, "extra_services not found"
         extra_services = list(itertools.dropwhile(lambda es: "extraVegetables" not in es, extra_services))
         assert extra_services, "no extra_services contains extraVegetables"
-        assert all(
-            "extraVegetables" in es for es in extra_services
-        ), "extraVegetables is not found in all requests after it was initially added"
+        assert all("extraVegetables" in es for es in extra_services), (
+            "extraVegetables is not found in all requests after it was initially added"
+        )
 
 
 @rfc("https://docs.google.com/document/d/1u_G7TOr8wJX0dOM_zUDKuRJgxoJU_hVTd5SeaMucQUs/edit#heading=h.octuyiil30ph")
@@ -487,7 +487,7 @@ class Test_RemoteConfigurationSemVer:
             assert client, "Client is required"
             client_tracer = client.get("client_tracer")
             assert client_tracer, "Client tracer is required"
-            tracer_version:str = client_tracer.get("tracer_version")
+            tracer_version: str = client_tracer.get("tracer_version")
             assert tracer_version, "Tracer version is required"
             # A v prefix is not strictly semver, but it is accepted by our RC backend.
             # dd-trace-go uses this.

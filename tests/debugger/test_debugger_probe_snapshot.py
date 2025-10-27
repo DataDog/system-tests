@@ -246,9 +246,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""
         self._assert()
         self._validate_snapshots()
-        assert (
-            self._debugger_v2_input_snapshots_received()
-        ), "Snapshots were not received at the debugger/v2/input endpoint"
+        assert self._debugger_v2_input_snapshots_received(), (
+            "Snapshots were not received at the debugger/v2/input endpoint"
+        )
 
     ### span decoration probe ###
     def setup_span_decoration_line_snapshot(self):

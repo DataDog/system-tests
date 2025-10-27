@@ -36,6 +36,6 @@ class TestDockerServiceNaming:
         traces_for_request = interfaces.test_agent.get_traces(request=self.r)
         assert traces_for_request, f"No traces found for request {self.r.get_rid()}"
         assert "service" in traces_for_request, "No service name found in traces"
-        assert (
-            traces_for_request["service"] == "payment-service"
-        ), f"Service name is not payment-service but {traces_for_request['service']}"
+        assert traces_for_request["service"] == "payment-service", (
+            f"Service name is not payment-service but {traces_for_request['service']}"
+        )

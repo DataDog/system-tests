@@ -149,6 +149,6 @@ def validate_span_metas_metrics(
 
     # Other fields should match
     assert meta1 == meta2, f"Diff in metas between {name1} and {name2}: {list(dictdiffer.diff(meta1, meta2))}"
-    assert (
-        metrics1 == metrics2
-    ), f"Diff in metrics between {name1} and {name2}: {list(dictdiffer.diff(metrics1, metrics2))}"
+    assert metrics1 == metrics2, (
+        f"Diff in metrics between {name1} and {name2}: {list(dictdiffer.diff(metrics1, metrics2))}"
+    )

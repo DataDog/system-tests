@@ -111,9 +111,9 @@ class Scenario:
         # if xdist is used, this property will be set to false for sub workers
         self.is_main_worker: bool = True
 
-        assert (
-            self.github_workflow in VALID_CI_WORKFLOWS
-        ), f"Invalid github_workflow {self.github_workflow} for {self.name}"
+        assert self.github_workflow in VALID_CI_WORKFLOWS, (
+            f"Invalid github_workflow {self.github_workflow} for {self.name}"
+        )
 
         for group in self.scenario_groups:
             assert isinstance(group, ScenarioGroup), f"Invalid scenario group {group} for {self.name}"

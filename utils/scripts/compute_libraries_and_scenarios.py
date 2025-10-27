@@ -181,7 +181,7 @@ class LibraryProcessor:
             return True
         # only acceptable use case : impacted library exactly matches user choice
         raise ValueError(
-            f"""File {file} is modified, and it may impact {', '.join(self.impacted)}.
+            f"""File {file} is modified, and it may impact {", ".join(self.impacted)}.
                     Please remove the PR title prefix [{self.user_choice}]"""
         )
 

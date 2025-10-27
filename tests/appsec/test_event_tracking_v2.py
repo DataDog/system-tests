@@ -246,9 +246,9 @@ class Test_UserLoginSuccessEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
                 return None
 
             for header in IP_HEADERS:
-                assert (
-                    f"http.request.headers.{header.lower()}" not in span["meta"]
-                ), f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                assert f"http.request.headers.{header.lower()}" not in span["meta"], (
+                    f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                )
 
             return True
 
@@ -506,9 +506,9 @@ class Test_UserLoginFailureEventV2_HeaderCollection_AppsecDisabled(BaseUserLogin
                 return None
 
             for header in IP_HEADERS:
-                assert (
-                    f"http.request.headers.{header.lower()}" not in span["meta"]
-                ), f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                assert f"http.request.headers.{header.lower()}" not in span["meta"], (
+                    f"Header {header} is found in span's meta. It should not be collected when appsec is disabled."
+                )
 
             return True
 

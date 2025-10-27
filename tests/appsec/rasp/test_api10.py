@@ -32,7 +32,7 @@ class API10:
         for tag, expected in self.TAGS_EXPECTED:
             assert tag in span["meta"], f"Missing {tag} from span's meta"
 
-            assert span["meta"][tag] == expected, f"Wrong value {span["meta"][tag]}, expected {expected}"
+            assert span["meta"][tag] == expected, f"Wrong value {span['meta'][tag]}, expected {expected}"
 
         # ensure this is the only rule(s) triggered
         tags = [t[0] for t in self.TAGS_EXPECTED]
