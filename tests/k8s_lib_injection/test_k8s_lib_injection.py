@@ -14,10 +14,6 @@ class TestK8sLibInjection:
     """Test K8s lib injection"""
 
     @bug(context.library >= "python@2.20.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
-    @bug(
-        context.library > "python@3.32.0" and context.installed_language_runtime < "3.9.0",
-        reason="Python 3.8 support was dropped",
-    )
     @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
         traces_json = get_dev_agent_traces(get_cluster_info())
@@ -30,10 +26,6 @@ class TestK8sLibInjection_operator:
     """Test K8s lib injection using the operator"""
 
     @bug(context.library > "python@2.21.0" and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-1750")
-    @bug(
-        context.library > "python@3.32.0" and context.installed_language_runtime < "3.9.0",
-        reason="Python 3.8 support was dropped",
-    )
     @bug(context.library in ("nodejs", "ruby") and context.k8s_cluster_agent_version == "7.56.2", reason="APMSP-2215")
     def test_k8s_lib_injection(self):
         cluster_info = get_cluster_info()
