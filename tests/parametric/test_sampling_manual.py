@@ -20,6 +20,9 @@ class Test_Manual_Keep_Sampling:
                 "DD_TRACE_PROPAGATION_STYLE": "Datadog",
                 "DD_TRACE_SAMPLE_RATE": "0",  # Disable automatic sampling
                 "DD_TRACE_SAMPLING_RULES": '[{"sample_rate":0}]',  # Ensure no rule-based sampling
+                # Force dropped traces to be sent to the agent in the cases
+                # where the tracer does not override the sampling decision
+                "DD_TRACE_STATS_COMPUTATION_ENABLED": "false",
             }
         ],
     )
