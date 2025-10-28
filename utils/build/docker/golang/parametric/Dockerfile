@@ -14,3 +14,5 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /parametric-tracer-logs
 
 RUN go install
+
+CMD ["main"]
