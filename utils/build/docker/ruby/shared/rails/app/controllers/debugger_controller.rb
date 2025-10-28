@@ -63,4 +63,18 @@ class DebuggerController < ActionController::Base
     custom_value = customPii.test_value
     render inline: "PII #{value}. CustomPII #{custom_value}" # must be line 64
   end
+
+  def snapshot_limits
+    data = DataGenerator.generate_test_data(
+      params[:depth].to_i,
+      params[:fields].to_i,
+      params[:collectionSize].to_i,
+      params[:stringLength].to_i
+    )
+    deepObject = data[:deepObject]
+    manyFields = data[:manyFields]
+    largeCollection = data[:largeCollection]
+    longString = data[:longString]
+    render inline: 'Capture limits probe' # must be line 78
+  end
 end
