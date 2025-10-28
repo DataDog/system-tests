@@ -496,7 +496,10 @@ class _BackendInterfaceValidator(ProxyBasedInterfaceValidator):
             sleep_interval_s *= sleep_interval_multiplier  # increase the sleep time with each retry
 
         raise ValueError(
-            f"Backend UI timeseries did not provide data after {retries} retries: {data['path']}. Status is {status_code}."
+
+                f"Backend UI timeseries did not provide data after {retries} retries: {data['path']}. "
+                "Status is {status_code}."
+
         )
 
     # Queries the backend log search API and returns the log matching the given query.

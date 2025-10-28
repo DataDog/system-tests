@@ -4,6 +4,12 @@ import time
 
 from utils import scenarios, interfaces, logger, features, bug, context
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from utils._context._scenarios.otel_collector import OtelCollectorScenario
+
+
 # Note that an extra comma was added because there is an inconsistency in the postgres metadata compared to what gets sent
 postgresql_metrics = {
     # Default metrics
@@ -43,13 +49,19 @@ postgresql_metrics = {
     "postgresql.temp_files": {"data_type": "Sum", "description": "The number of temp files"},
     "postgresql.tup_deleted": {"data_type": "Sum", "description": "Number of rows deleted by queries in the database"},
     "postgresql.tup_fetched": {"data_type": "Sum", "description": "Number of rows fetched by queries in the database"},
-    "postgresql.tup_inserted": {"data_type": "Sum", "description": "Number of rows inserted by queries in the database"},
+    "postgresql.tup_inserted": {
+        "data_type": "Sum",
+        "description": "Number of rows inserted by queries in the database",
+    },
     "postgresql.tup_returned": {
         "data_type": "Sum",
         "description": "Number of rows returned by queries in the database",
     },
     "postgresql.tup_updated": {"data_type": "Sum", "description": "Number of rows updated by queries in the database"},
-    "postgresql.function.calls": {"data_type": "Sum", "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config."},
+    "postgresql.function.calls": {
+        "data_type": "Sum",
+        "description": "The number of calls made to a function. Requires `track_functions=pl|all` in Postgres config.",
+    },
     "postgresql.sequential_scans": {"data_type": "Sum", "description": "The number of sequential scans"},
     "postgresql.table.size": {"data_type": "Sum", "description": "Disk space used by a table."},
     "postgresql.rows": {"data_type": "Sum", "description": "The number of rows in the database"},
@@ -57,7 +69,10 @@ postgresql_metrics = {
     "postgresql.index.scans": {"data_type": "Sum", "description": "The number of index scans on a table"},
     "postgresql.index.size": {"data_type": "Gauge", "description": "The size of the index on disk."},
     "postgresql.blocks_read": {"data_type": "Sum", "description": "The number of blocks read"},
-    "postgresql.table.vacuum.count": {"data_type": "Sum", "description": "Number of times a table has manually been vacuumed"},
+    "postgresql.table.vacuum.count": {
+        "data_type": "Sum",
+        "description": "Number of times a table has manually been vacuumed",
+    },
     # Metrics not yet appearing due to needing a replica db
     # "postgresql.wal.delay": {"data_type": "Gauge", "description": "Time between flushing recent WAL locally and receiving notification that the standby server has completed an operation with it"},
     # "postgresql.wal.age": {"data_type": "Gauge", "description": "Age of the oldest WAL file"},
@@ -67,7 +82,8 @@ postgresql_metrics = {
 
 
 def _get_metrics() -> list[dict]:
-    collector_log_path = f"{context.scenario.collector_container.log_folder_path}/logs/metrics.json"
+    scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+    collector_log_path = f"{scenario.collector_container.log_folder_path}/logs/metrics.json"
     assert Path(collector_log_path).exists(), f"Metrics log file not found: {collector_log_path}"
 
     # Default behaviors is that metrics are batched together in the file exporter
@@ -245,31 +261,28 @@ class Test_BackendValidity:
 @features.otel_postgres_support
 class Test_Smoke:
     def setup_main(self):
+        """When the postgres container spins up, we need some activity:
+        - call a test function
+        - create a table
+        - query something
         """
-        When the postgres container spins up, we need some activity:
-            - call a test function
-            - create a table
-            - query something
-        """
-        container = context.scenario.postgres_container
+        scenario: OtelCollectorScenario = context.scenario  # type: ignore[assignment]
+        container = scenario.postgres_container
 
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
+            "psql -U system_tests_user -d system_tests_dbname -c "
             '"CREATE OR REPLACE FUNCTION test_return_1_function() RETURNS integer AS $$ BEGIN RETURN 1; END; $$ LANGUAGE plpgsql;"'
         )
-        r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c "SELECT test_return_1_function();"'
-        )
+        r = container.exec_run('psql -U system_tests_user -d system_tests_dbname -c "SELECT test_return_1_function();"')
         logger.info(r.output)
 
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
+            "psql -U system_tests_user -d system_tests_dbname -c "
             '"CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY);"'
         )
 
         r = container.exec_run(
-            'psql -U system_tests_user -d system_tests_dbname -c '
-            '"INSERT INTO test_table DEFAULT VALUES;"'
+            "psql -U system_tests_user -d system_tests_dbname -c " '"INSERT INTO test_table DEFAULT VALUES;"'
         )
         logger.info(r.output)
 

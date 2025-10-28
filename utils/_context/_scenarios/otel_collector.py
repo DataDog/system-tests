@@ -1,5 +1,4 @@
 import os
-import time
 import pytest
 from utils import interfaces
 from utils._context.component_version import ComponentVersion
@@ -12,7 +11,7 @@ from .endtoend import DockerScenario
 
 
 class OtelCollectorScenario(DockerScenario):
-    def __init__(self, name: str, use_proxy: bool = True, mocked_backend: bool = True):
+    def __init__(self, name: str, *, use_proxy: bool = True, mocked_backend: bool = True):
         super().__init__(
             name,
             github_workflow="endtoend",
@@ -24,20 +23,13 @@ class OtelCollectorScenario(DockerScenario):
         )
         self.library = ComponentVersion("otel_collector", "0.0.0")
 
-        postgres_image = self.postgres_container.image.name
-        image_parts = postgres_image.split(":")
-        docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
-        docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
-
         self.collector_container = OpenTelemetryCollectorContainer(
             config_file="./utils/build/docker/otelcol-config-with-postgres.yaml",
             environment={
-                "DD_API_KEY": os.environ.get("DD_API_KEY", "0123"),
+                "DD_API_KEY": "0123",
                 "DD_SITE": os.environ.get("DD_SITE", "datadoghq.com"),
                 "HTTP_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
                 "HTTPS_PROXY": f"http://proxy:{ProxyPorts.otel_collector}",
-                "DOCKER_IMAGE_NAME": docker_image_name,
-                "DOCKER_IMAGE_TAG": docker_image_tag,
             },
             volumes={
                 "./utils/build/docker/agent/ca-certificates.crt": {
@@ -51,9 +43,23 @@ class OtelCollectorScenario(DockerScenario):
     def configure(self, config: pytest.Config) -> None:
         super().configure(config)
 
+        if not self.proxy_container.mocked_backend:
+            interfaces.backend.configure(self.host_log_folder, replay=self.replay)
+
+            if "DD_API_KEY" not in os.environ:
+                pytest.exit(f"{self.name} scenario requires a valid DD_API_KEY")
+
+            self.collector_container.environment["DD_API_KEY"] = os.environ["DD_API_KEY"]
+
+        postgres_image = self.postgres_container.image.name
+        image_parts = postgres_image.split(":")
+        docker_image_name = image_parts[0] if len(image_parts) > 0 else "unknown"
+        docker_image_tag = image_parts[1] if len(image_parts) > 1 else "unknown"
+
+        self.collector_container.environment["DOCKER_IMAGE_NAME"] = docker_image_name
+        self.collector_container.environment["DOCKER_IMAGE_TAG"] = docker_image_tag
+
         interfaces.otel_collector.configure(self.host_log_folder, replay=self.replay)
-        # Needed to avoid _BackendInterfaceValidator' object has no attribute 'log_folder
-        interfaces.backend.configure(self.host_log_folder, replay=self.replay)
         self.library = ComponentVersion(
             "otel_collector", self.collector_container.image.labels["org.opencontainers.image.version"]
         )
