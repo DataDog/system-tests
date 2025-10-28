@@ -36,8 +36,6 @@ def get_declarations(library: str, library_version=None, variant=None, agent_ver
     rules = load_manifests()
     for rule, conditions in rules.items():
         for condition in conditions:
-            if "TestHeaderInjection_ExtendedLocation" in rule:
-                print(rule, condition)
             if match_condition(condition, library, library_version, variant, agent_version, dd_apm_inject_version, k8s_cluster_agent_version):
                 if rule not in declarations:
                     declarations[rule] = []

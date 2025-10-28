@@ -2,6 +2,7 @@ from collections import defaultdict
 from functools import lru_cache
 import json
 import os
+import re
 
 from utils._decorators import CustomSpec as SemverRange
 
@@ -23,11 +24,24 @@ def _flatten(base: str, obj: dict):
 
 
 def _load_file(file: str, component: str):
-    def to_semver(version: str):
+    def to_semver(version: str, nodeid):
         par = version.find("(")
         if par >= 0:
-            version = sdec[:par]
-        return SemverRange(version)
+            version = version[:par]
+        if re.fullmatch("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
+            dots = re.finditer("\.", version)
+            core_version = re.match("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
+            connector = ""
+            if not version[core_version.end():].endswith(("-", ".")):
+                connector = "-"
+            version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
+
+        try:
+            return SemverRange(version)
+        except ValueError as e:
+            print(e)
+            print(nodeid, vsnap)
+            pass
 
     try:
         with open(file, encoding="utf-8") as f:
@@ -37,26 +51,33 @@ def _load_file(file: str, component: str):
 
     ret = {}
     for nodeid, value in data["manifest"].items():
-        try:
             if isinstance(value, str):
                 sdec = value
                 value = {}
                 if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
                     value["declaration"] = sdec
                 else:
-                    value["library_version"] = {to_semver(f"<{sdec.strip('v').strip('<').strip('>')}")}
+                    if sdec.startswith("<"):
+                           sdec = ">" + sdec[1:]
+                    elif sdec.startswith(">"):
+                           sdec = "<" + sdec[1:]
+                    if sdec.startswith("v"):
+                           sdec = "<" + sdec[1:]
+                    value["library_version"] = {to_semver(sdec, nodeid)}
+                    # if not value["library_version"]:
+                    #     print("Found str")
+                    #     print(nodeid, value)
                     value["declaration"] = "missing_feature"
             if not isinstance(value, list):
                 value = [value]
             for entry in value:
                 if isinstance(entry.get("library_version"), str):
-                    entry["library_version"] = to_semver(entry["library_version"])
+                        entry["library_version"] = to_semver(entry["library_version"], nodeid)
+                        # if not entry["library_version"]:
+                        #     print(nodeid, value, entry)
                 entry["library"] = component
 
             ret[nodeid] = value
-        except ValueError as e:
-            print(e)
-            pass
 
     return ret
 
@@ -64,7 +85,7 @@ def _load_file(file: str, component: str):
 # @lru_cache
 def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     """Returns a dict of nodeid, value are another dict where the key is the component
-    and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
+        and the value the declaration. It is meant to sent directly the value of a nodeid to @released.
 
     Data example:
 
