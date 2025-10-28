@@ -273,6 +273,10 @@ def _get_endtoend_weblogs(
 ) -> list[Weblog]:
     result: list[Weblog] = []
 
+    integration_frameworks_weblogs = {
+        "openai": ["2.0.0"]  # python
+    }
+
     folder = f"utils/build/docker/{library}"
     if Path(folder).exists():  # some lib does not have any weblog
         names = [
@@ -285,12 +289,20 @@ def _get_endtoend_weblogs(
             # filter weblogs by the weblogs_filter set
             names = [weblog for weblog in names if weblog in weblogs_filter]
 
-        result += [
-            Weblog(
-                name=name, require_build=True, artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}"
-            )
-            for name in names
-        ]
+        for name in names:
+            if name not in integration_frameworks_weblogs:
+                result.append(
+                    Weblog(
+                        name=name,
+                        require_build=True,
+                        artifact_name=f"binaries_{ci_environment}_{library}_{name}_{unique_id}",
+                    )
+                )
+            else:
+                for version in integration_frameworks_weblogs[name]:
+                    result.append(
+                        Weblog(name=f"{name}@{version}", require_build=False, artifact_name=binaries_artifact)
+                    )
 
     # weblog not related to a docker file
     if library == "golang":
@@ -542,6 +554,9 @@ def _is_supported(library: str, weblog: str, scenario: str, _ci_environment: str
     # otel collector
     if weblog == "otel_collector" or scenario == "OTEL_COLLECTOR":
         return weblog == "otel_collector" and scenario == "OTEL_COLLECTOR"
+
+    if "@" in weblog or scenario == "INTEGRATION_FRAMEWORKS":
+        return "@" in weblog and scenario == "INTEGRATION_FRAMEWORKS"
 
     return True
 

@@ -163,6 +163,9 @@ jobs:
       env:
         SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
+    - name: Run INTEGRATION_FRAMEWORKS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
+      run: ./run.sh INTEGRATION_FRAMEWORKS -L ${{ inputs.library }} --weblog ${{ inputs.weblog }}
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
