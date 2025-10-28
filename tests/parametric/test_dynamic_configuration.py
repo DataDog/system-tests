@@ -332,9 +332,9 @@ class TestDynamicConfigTracingEnabled:
 
         with pytest.raises(ValueError):
             test_agent.wait_for_num_traces(num=1, clear=True)
-        assert (
-            True
-        ), "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        assert True, (
+            "no traces are sent after tracing_enabled: false, even after an RC response with a different setting"
+        )
 
 
 def reverse_case(s):

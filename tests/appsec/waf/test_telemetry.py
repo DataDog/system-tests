@@ -179,9 +179,9 @@ class Test_TelemetryMetrics:
         for series in self._find_series(TELEMETRY_REQUEST_TYPE_GENERATE_METRICS, "appsec", expected_metric_name):
             for point in series["points"]:
                 total_requests_metric += point[1]
-        assert (
-            total_requests_metric == request_count
-        ), "Number of requests in traces do not match waf.requests metric total"
+        assert total_requests_metric == request_count, (
+            "Number of requests in traces do not match waf.requests metric total"
+        )
 
     def _find_series(self, request_type, namespace, metric):
         series = []

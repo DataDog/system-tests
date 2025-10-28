@@ -127,9 +127,9 @@ class _TestAgentInterfaceValidator(InterfaceValidator):
         for request in requests:
             if service_name is not None:
                 # Check if the service name in telemetry matches the expected service name
-                assert (
-                    request["application"]["service_name"] == service_name
-                ), f"Service name in telemetry in requests: {request} "
+                assert request["application"]["service_name"] == service_name, (
+                    f"Service name in telemetry in requests: {request} "
+                )
                 f"does not match expected service name {service_name}"
             # Convert all telemetry payloads to the the message-batch format. This simplifies configuration extraction
             events = (

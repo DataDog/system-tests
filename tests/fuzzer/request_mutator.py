@@ -542,8 +542,7 @@ class RequestMutator:
 
         # request["path"] = request["path"][:self.max_path_length]
 
-        if "_comment" in request:
-            del request["_comment"]
+        request.pop("_comment", None)
 
         if request["method"] in self.invalid_methods:
             request["method"] = "POST"

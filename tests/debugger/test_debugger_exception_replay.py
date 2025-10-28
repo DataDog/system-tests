@@ -261,9 +261,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
 
             expected_snapshots = self._read_approval(test_name, "snapshots_expected")
             assert expected_snapshots == snapshots
-            assert all(
-                "exceptionId" in snapshot for snapshot in snapshots
-            ), "One or more snapshots don't have 'exceptionId' field"
+            assert all("exceptionId" in snapshot for snapshot in snapshots), (
+                "One or more snapshots don't have 'exceptionId' field"
+            )
 
         assert snapshots, "Snapshots not found"
 
@@ -357,9 +357,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
         __approve(spans)
 
     def _validate_recursion_snapshots(self, snapshots, limit):
-        assert (
-            len(snapshots) == limit + 1
-        ), f"Expected {limit + 1} snapshots for recursion limit {limit}, got {len(snapshots)}"
+        assert len(snapshots) == limit + 1, (
+            f"Expected {limit + 1} snapshots for recursion limit {limit}, got {len(snapshots)}"
+        )
 
         entry_method = "exceptionReplayRecursion"
         helper_method = "exceptionReplayRecursionHelper"
@@ -400,9 +400,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
     def _validate_no_capture_reason(self, exception_key: str, expected_reason: str):
         """Validate no_capture_reason field from collected spans."""
         spans_with_no_capture_reason = self.probe_spans.get(exception_key, [])
-        assert (
-            spans_with_no_capture_reason
-        ), f"No spans with _dd.debug.error.no_capture_reason found for {exception_key}"
+        assert spans_with_no_capture_reason, (
+            f"No spans with _dd.debug.error.no_capture_reason found for {exception_key}"
+        )
 
         found_expected_reason = False
         actual_reasons = []
@@ -420,9 +420,9 @@ class Test_Debugger_Exception_Replay(debugger.BaseDebuggerTest):
             else:
                 logger.warning(f"Expected reason '{expected_reason}' but got '{actual_reason}'")
 
-        assert (
-            found_expected_reason
-        ), f"Expected no_capture_reason '{expected_reason}' not found. Actual reasons: {actual_reasons}"
+        assert found_expected_reason, (
+            f"Expected no_capture_reason '{expected_reason}' not found. Actual reasons: {actual_reasons}"
+        )
 
     ############ Approvals ############
 

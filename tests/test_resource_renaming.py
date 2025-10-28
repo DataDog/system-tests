@@ -92,6 +92,6 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         for (method, endpoint), expected_count in expected_hits.items():
             assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
             actual_count = actual_hits[(method, endpoint)]
-            assert (
-                actual_count == expected_count
-            ), f"Expected {expected_count} hits for {method} {endpoint}, got {actual_count}"
+            assert actual_count == expected_count, (
+                f"Expected {expected_count} hits for {method} {endpoint}, got {actual_count}"
+            )

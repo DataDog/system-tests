@@ -756,9 +756,9 @@ class BaseDebuggerTest:
         expected = self.probe_ids
         received = extract_probe_ids(self.probe_diagnostics)
 
-        assert set(expected) <= set(
-            received
-        ), f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        assert set(expected) <= set(received), (
+            f"Not all probes were received. Missing ids: {', '.join(set(expected) - set(received))}"
+        )
 
         errors = {}
         for probe_id in self.probe_ids:

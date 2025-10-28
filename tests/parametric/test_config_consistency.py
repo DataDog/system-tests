@@ -30,9 +30,9 @@ class Test_Config_TraceEnabled:
         assert library_env.get("DD_TRACE_ENABLED", "true") == "true"
         with test_library, test_library.dd_start_span("allowed"):
             pass
-        assert test_agent.wait_for_num_traces(
-            num=1
-        ), "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        assert test_agent.wait_for_num_traces(num=1), (
+            "DD_TRACE_ENABLED=true and wait_for_num_traces does not raise an exception after waiting for 1 trace."
+        )
 
     @enable_tracing_disabled()
     def test_tracing_disabled(self, library_env, test_agent, test_library):
@@ -283,13 +283,13 @@ class Test_Config_RateLimit:
         with test_library:
             # Generate three traces to demonstrate rate limiting in PHP's backfill model
             for i in range(3):
-                with test_library.dd_start_span(name=f"s{i+1}"):
+                with test_library.dd_start_span(name=f"s{i + 1}"):
                     pass
 
         traces = test_agent.wait_for_num_traces(3)
-        assert any(
-            trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces
-        ), "Expected at least one trace to be rate-limited with sampling priority -1."
+        assert any(trace[0]["metrics"]["_sampling_priority_v1"] == -1 for trace in traces), (
+            "Expected at least one trace to be rate-limited with sampling priority -1."
+        )
 
 
 tag_scenarios: dict = {
@@ -712,9 +712,9 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            assert (
-                config["dd_service"] == "my-service"
-            ), f"Service name is '{config["dd_service"]}' instead of 'my-service'"
+            assert config["dd_service"] == "my-service", (
+                f"Service name is '{config['dd_service']}' instead of 'my-service'"
+            )
 
     @pytest.mark.parametrize(
         "library_extra_command_arguments",
@@ -745,4 +745,4 @@ class Test_Stable_Config_Rules(StableConfigWriter):
             self.write_stable_config_content(stable_config_content, path, test_library)
             test_library.container_restart()
             config = test_library.config()
-            assert config["dd_service"] == "value", f"Service name is '{config["dd_service"]}' instead of 'value'"
+            assert config["dd_service"] == "value", f"Service name is '{config['dd_service']}' instead of 'value'"

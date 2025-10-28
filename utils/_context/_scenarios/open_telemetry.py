@@ -158,13 +158,13 @@ class OpenTelemetryScenario(DockerScenario):
             pytest.exit("DD_API_KEY is required for this scenario", 1)
 
         if self.include_intake:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")
-            ), "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            assert all(key in os.environ for key in ("DD_API_KEY_2", "DD_APP_KEY_2")), (
+                "OTel E2E test requires DD_API_KEY_2 and DD_APP_KEY_2"
+            )
         if self.include_collector:
-            assert all(
-                key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")
-            ), "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            assert all(key in os.environ for key in ("DD_API_KEY_3", "DD_APP_KEY_3")), (
+                "OTel E2E test requires DD_API_KEY_3 and DD_APP_KEY_3"
+            )
 
     @property
     def library(self):

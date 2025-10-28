@@ -45,9 +45,9 @@ class BaseAutoInjectChaos(base.AutoInjectBaseTest):
         assert wait_for_port(vm_port, vm_ip, 40.0), "Weblog port not reachable. Is the weblog running?"
         warmup_weblog(weblog_url)
         r = requests.get(weblog_url, timeout=10)
-        assert (
-            r.status_code == 200
-        ), "The weblog app it's not working after remove the installation folder  and restart the app"
+        assert r.status_code == 200, (
+            "The weblog app it's not working after remove the installation folder  and restart the app"
+        )
         # Kill the app before restore the installation
         self.execute_command(
             virtual_machine,

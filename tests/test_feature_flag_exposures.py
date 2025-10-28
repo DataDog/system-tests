@@ -84,9 +84,9 @@ class Test_FFE_Exposure_Events:
             # Validate context object
             assert "context" in exposure_data, "Response missing 'context' field"
             context = exposure_data["context"]
-            assert (
-                context["service_name"] == "weblog"
-            ), f"Expected service_name 'weblog', got '{context['service_name']}'"
+            assert context["service_name"] == "weblog", (
+                f"Expected service_name 'weblog', got '{context['service_name']}'"
+            )
             assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"
             assert context["env"] == "system-tests", f"Expected env 'system-tests', got '{context['env']}'"
 
@@ -102,6 +102,6 @@ class Test_FFE_Exposure_Events:
             assert event["flag"]["key"] == self.flag, f"Expected flag '{self.flag}', got '{event['flag']['key']}'"
 
             assert "subject" in event, "Exposure event missing 'subject' field"
-            assert (
-                event["subject"]["id"] == self.targeting_key
-            ), f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            assert event["subject"]["id"] == self.targeting_key, (
+                f"Expected subject '{self.targeting_key}', got '{event['subject']['id']}'"
+            )

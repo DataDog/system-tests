@@ -174,9 +174,9 @@ class Test_Library_Tracestats:
                 assert s["TopLevelHits"] == 1
                 assert s["Duration"] > 0
 
-        assert (
-            cnt == 7
-        ), "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+        assert cnt == 7, (
+            "There should be seven stats entries in the bucket. There is one baseline entry and 6 that are unique along each of 6 dimensions."
+        )
 
     @missing_feature(context.library == "cpp", reason="cpp has not implemented stats computation yet")
     @missing_feature(context.library == "nodejs", reason="nodejs has not implemented stats computation yet")
@@ -443,9 +443,9 @@ class Test_Library_Tracestats:
 
         bucket = buckets[0]
         stats = bucket["Stats"]
-        assert (
-            len(stats) == 1
-        ), "There should be one stats entry in the bucket which contains stats for 2 top level spans"
+        assert len(stats) == 1, (
+            "There should be one stats entry in the bucket which contains stats for 2 top level spans"
+        )
 
         assert stats[0]["Name"] == name
         assert stats[0]["TopLevelHits"] == 2

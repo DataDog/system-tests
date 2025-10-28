@@ -51,8 +51,7 @@ class _LogsInterfaceValidator(InterfaceValidator):
                     buffer: list[str] = []
                     for raw_line in f:
                         line = raw_line
-                        if line.endswith("\n"):
-                            line = line[:-1]  # remove tailing \n
+                        line = line.removesuffix("\n")  # remove tailing \n
                         line = self._clean_line(line)
 
                         if self._is_skipped_line(line):
@@ -190,10 +189,7 @@ class _LibraryStdout(_StdoutLogsInterfaceValidator):
             self._parsers.append(re.compile(p("message", r".*")))
 
     def _clean_line(self, line: str):
-        if line.startswith("weblog_1         | "):
-            line = line[19:]
-
-        return line
+        return line.removeprefix("weblog_1         | ")
 
     def _get_standardized_level(self, level: str):
         if self.library in ("php", "cpp_nginx"):

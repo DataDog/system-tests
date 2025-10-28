@@ -107,7 +107,7 @@ def select_multiple_items(
                         else:
                             selected_indices.remove(num)  # Toggle selection
                     else:
-                        print(f"{Colors.RED}Invalid selection: {num+1}{Colors.ENDC}")
+                        print(f"{Colors.RED}Invalid selection: {num + 1}{Colors.ENDC}")
             except ValueError:
                 print(f"{Colors.RED}Please enter valid numbers separated by commas.{Colors.ENDC}")
 

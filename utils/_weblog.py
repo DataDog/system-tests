@@ -291,8 +291,7 @@ class _Weblog:
     def _get_url(self, path: str, domain: str | None = None, port: int | None = None, query: dict | None = None):
         """Return a query with the passed host"""
         # Make all absolute paths to be relative
-        if path.startswith("/"):
-            path = path[1:]
+        path = path.removeprefix("/")
 
         if domain is None:
             domain = self.domain

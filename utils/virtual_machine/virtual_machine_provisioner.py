@@ -153,9 +153,9 @@ class VirtualMachineProvisioner:
                     continue
                 installation_raw_data = install
                 break
-        assert (
-            installation_raw_data is not None
-        ), f"Installation data not found for {env} {library_name} {os_type} {os_distro} {os_branch} {os_cpu}"
+        assert installation_raw_data is not None, (
+            f"Installation data not found for {env} {library_name} {os_type} {os_distro} {os_branch} {os_cpu}"
+        )
         installation = Intallation()
         installation.local_command = installation_raw_data.get("local-command", None)
         installation.local_script = installation_raw_data.get("local-script", None)
