@@ -270,7 +270,7 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
     only_defaults = should_run_only_defaults_vm()
 
     # Special filters from env variables
-    dd_installer_version = os.getenv("DD_INSTALLER_VERSION")
+    dd_install_script_version = os.getenv("DD_INSTALL_SCRIPT_VERSION")
     dd_installer_library_version = os.getenv("DD_INSTALLER_LIBRARY_VERSION")
     dd_installer_injector_version = os.getenv("DD_INSTALLER_INJECTOR_VERSION")
     if not dd_installer_library_version:
@@ -309,8 +309,8 @@ def print_aws_gitlab_pipeline(language, aws_matrix, ci_environment, result_pipel
                 result_pipeline[vm_job]["variables"]["DD_INSTALLER_LIBRARY_VERSION"] = dd_installer_library_version
             if dd_installer_injector_version:
                 result_pipeline[vm_job]["variables"]["DD_INSTALLER_INJECTOR_VERSION"] = dd_installer_injector_version
-            if dd_installer_version:
-                result_pipeline[vm_job]["variables"]["DD_INSTALLER_VERSION"] = dd_installer_version
+            if dd_install_script_version:
+                result_pipeline[vm_job]["variables"]["DD_INSTALL_SCRIPT_VERSION"] = dd_install_script_version
             # Job weblog matrix for a virtaul machine
             result_pipeline[vm_job]["parallel"] = {"matrix": []}
             for weblog in weblogs.keys():  # noqa: SIM118

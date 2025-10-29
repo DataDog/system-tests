@@ -75,9 +75,9 @@ ssi_tests:
       FF_USE_NEW_BASH_EVAL_STRATEGY: true
     script:
         - |
-            if [[ -n "${DD_INSTALLER_VERSION}" ]]; then
-              echo "Downloading the installer script from S3: system-tests-aws-agent-linux-install-script/${DD_INSTALLER_VERSION}"
-              aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALLER_VERSION}/install_script_agent7.sh binaries/
+            if [[ -n "${DD_INSTALL_SCRIPT_VERSION}" ]]; then
+              echo "Downloading the installer script from S3: system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}"
+              aws s3 cp s3://system-tests-aws-agent-linux-install-script/${DD_INSTALL_SCRIPT_VERSION}/install_script_agent7.sh binaries/
               chmod +x binaries/install_script_agent7.sh
             fi
         - SYSTEM_TEST_BUILD_ATTEMPTS=3 ./build.sh -i runner
