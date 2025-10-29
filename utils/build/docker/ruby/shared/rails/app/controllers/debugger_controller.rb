@@ -92,6 +92,12 @@ class DebuggerController < ActionController::Base
   # Padding
 
   def expression_operators
+    intValue = params[:intValue]
+    floatValue = params[:floatValue]
+    strValue = params[:strValue]
+    pii = Pii.new
+
+    render inline: "Int value #{intValue}. Float value #{floatValue}. String value is #{strValue}."
   end
 
   # Padding
