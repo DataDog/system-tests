@@ -282,6 +282,7 @@ class BaseDebuggerTest:
         if reset:
             self.weblog_responses = []
 
+        #import pdb;pdb.set_trace()
         self.weblog_responses.append(weblog.get(request_path))
 
     ###### wait for #####
