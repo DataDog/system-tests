@@ -90,6 +90,7 @@ class DebuggerController < ActionController::Base
   # Padding
   # Padding
   # Padding
+  # Padding
 
   def expression_operators
     intValue = params[:intValue]
@@ -98,7 +99,7 @@ class DebuggerController < ActionController::Base
     pii = Pii.new
 
     render inline: "Int value #{intValue}. Float value #{floatValue}. String value is #{strValue}."
-  end
+  end # line 102
 
   # Padding
   # Padding
@@ -113,8 +114,14 @@ class DebuggerController < ActionController::Base
   # Padding
 
   def expression_strings
-  end
+    strValue = params[:strValue]
+    emptyString = params[:emptyString]
+    nullString = params[:nullString]
 
+    render inline: "strValue #{strValue}. emptyString #{emptyString}. #{nullString}."
+  end # line 122
+
+  # Padding
   # Padding
   # Padding
   # Padding
@@ -128,8 +135,36 @@ class DebuggerController < ActionController::Base
   # Padding
 
   def expression_collections
-  end
+    factory = CollectionFactory.new
 
+    # Types copied from python
+    a0 = factory.get_collection(0, "array")
+    l0 = factory.get_collection(0, "list")
+    h0 = factory.get_collection(0, "hash")
+    a1 = factory.get_collection(1, "array")
+    l1 = factory.get_collection(1, "list")
+    h1 = factory.get_collection(1, "hash")
+    a5 = factory.get_collection(5, "array")
+    l5 = factory.get_collection(5, "list")
+    h5 = factory.get_collection(5, "hash")
+
+    a0_count = len(a0)
+    l0_count = len(l0)
+    h0_count = len(h0)
+    a1_count = len(a1)
+    l1_count = len(l1)
+    h1_count = len(h1)
+    a5_count = len(a5)
+    l5_count = len(l5)
+    h5_count = len(h5)
+
+    render inline: "#{a0_count},#{a1_count},#{a5_count},#{l0_count},#{l1_count},#{l5_count},#{h0_count},#{h1_count},#{h5_count}."
+  end # line 162
+
+  # Padding
+  # Padding
+  # Padding
+  # Padding
   # Padding
   # Padding
   # Padding
@@ -144,5 +179,15 @@ class DebuggerController < ActionController::Base
   # Padding
 
   def expression_null
-  end
+    intValue = params[:intValue]
+    strValue = params[:strValue]
+    boolValue = params[:boolValue]
+
+    pii = nil
+    if boolValue
+      pii = Pii.new
+    end
+
+    render inline: "Pii is null #{pii.nil?}. intValue is null #{intValue.nil?}. strValue is null #{strValue.nil?}."
+  end # line 192
 end
