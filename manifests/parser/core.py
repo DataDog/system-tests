@@ -32,7 +32,7 @@ def _load_file(file: str, component: str):
             dots = re.finditer("\.", version)
             core_version = re.match("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
             connector = ""
-            if not version[core_version.end():].endswith(("-", ".")):
+            if not version[core_version.end():].startswith(("-", ".")) or not version[core_version.end():]:
                 connector = "-"
             version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
 
@@ -63,7 +63,7 @@ def _load_file(file: str, component: str):
                            sdec = "<" + sdec[1:]
                     if sdec.startswith("v"):
                            sdec = "<" + sdec[1:]
-                    value["library_version"] = {to_semver(sdec, nodeid)}
+                    value["library_version"] = to_semver(sdec, nodeid)
                     # if not value["library_version"]:
                     #     print("Found str")
                     #     print(nodeid, value)

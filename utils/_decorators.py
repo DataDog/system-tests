@@ -74,6 +74,8 @@ def _is_jira_ticket(declaration_details: str | None):
 
 
 def _ensure_jira_ticket_as_reason(item: type[Any] | FunctionType | MethodType, declaration_details: str | None):
+    if isinstance(item, pytest.Function):
+        item = item.function
     if not _is_jira_ticket(declaration_details):
         path = inspect.getfile(item)
         rel_path = os.path.relpath(path)

@@ -22,11 +22,19 @@ def match_condition(condition, library=None, library_version=None, variant=None,
     if condition["library"] == library or library in ("agent", "k8s_cluster_agent", "dd_apm_inject"):
         ret = True
     if condition.get("library_version"):
+        if str(condition["library_version"]) == "{<CustomSpec: '<2.4.0-dev'>}":
+            print(condition)
         ret &= ref_version in condition["library_version"]
     if condition.get("variant"):
-        ret &= variant in condition["variant"]
+        if isinstance(condition["variant"], list):
+            ret &= variant in condition["variant"]
+        else:
+            ret &= variant == condition["variant"]
     if condition.get("excluded_variant"):
-        ret &= variant not in condition["excluded_variant"]
+        if isinstance(condition["excluded_variant"], list):
+            ret &= variant not in condition["excluded_variant"]
+        else:
+            ret &= variant != condition["excluded_variant"]
     return ret
 
 
@@ -36,11 +44,15 @@ def get_declarations(library: str, library_version=None, variant=None, agent_ver
     rules = load_manifests()
     for rule, conditions in rules.items():
         for condition in conditions:
+            if "TestServiceActivationEnvVarMetric" in rule:
+                print(rule, condition)
             if match_condition(condition, library, library_version, variant, agent_version, dd_apm_inject_version, k8s_cluster_agent_version):
+                if "TestServiceActivationEnvVarMetric" in rule:
+                    print("match")
                 if rule not in declarations:
                     declarations[rule] = []
                 declarations[rule].append(parse_skip_declaration(condition["declaration"]))
-                declarations[rule][-1][1] = f"{library}: {declarations[rule][-1][1]}"
+                declarations[rule][-1][1] = f"{declarations[rule][-1][1]}"
 
     return declarations
 
