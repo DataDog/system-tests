@@ -146,7 +146,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_configure(config: pytest.Config) -> None:
-    import pdb;pdb.set_trace()
+    #import pdb;pdb.set_trace()
     if not config.option.force_dd_trace_debug and os.environ.get("SYSTEM_TESTS_FORCE_DD_TRACE_DEBUG") == "true":
         config.option.force_dd_trace_debug = True
 
