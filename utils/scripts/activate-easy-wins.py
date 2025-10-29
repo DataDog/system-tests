@@ -388,6 +388,8 @@ def get_versions(path_data_opt: str, libraries: list[str]) -> dict[str, str]:
                 break
             if library not in variant:
                 continue
+            if "dev" in variant:
+                continue
 
             for scenario in os.listdir(f"{path_data_opt}/{variant}"):
                 if found_version:
