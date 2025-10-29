@@ -135,10 +135,10 @@ class BaseDebuggerTest:
             "Expression": {"java": [71], "dotnet": [74], "python": [72], "ruby": [82], "nodejs": [82]},
             # The `@exception` variable is not available in the context of line probes.
             "ExpressionException": {},
-            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [], "nodejs": [90]},
-            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [], "nodejs": [96]},
-            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [], "nodejs": [120]},
-            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [], "nodejs": [126]},
+            "ExpressionOperators": {"java": [82], "dotnet": [90], "python": [87], "ruby": [102], "nodejs": [90]},
+            "StringOperations": {"java": [87], "dotnet": [97], "python": [96], "ruby": [122], "nodejs": [96]},
+            "CollectionOperations": {"java": [114], "dotnet": [114], "python": [123], "ruby": [162], "nodejs": [120]},
+            "Nulls": {"java": [130], "dotnet": [127], "python": [136], "ruby": [192], "nodejs": [126]},
         }
 
         return definitions.get(method, {}).get(language, [])
