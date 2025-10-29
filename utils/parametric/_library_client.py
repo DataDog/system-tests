@@ -14,7 +14,6 @@ import pytest
 from _pytest.outcomes import Failed
 import requests
 from opentelemetry.trace import SpanKind, StatusCode
-from utils import context
 
 from utils.parametric.spec.otel_trace import OtelSpanContext
 from utils._logger import logger
@@ -55,7 +54,8 @@ class Event(TypedDict):
 
 
 class APMLibraryClient:
-    def __init__(self, url: str, timeout: int, container: Container):
+    def __init__(self, library: str, url: str, timeout: int, container: Container):
+        self.library = library
         self._base_url = url
         self._session = requests.Session()
         self.container = container
@@ -158,7 +158,7 @@ class APMLibraryClient:
         typestr: str | None = None,
         tags: list[tuple[str, str]] | None = None,
     ):
-        if context.library == "cpp":
+        if self.library == "cpp":
             # TODO: Update the cpp parametric app to accept null values for unset parameters
             service = service or ""
             resource = resource or ""

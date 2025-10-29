@@ -24,11 +24,11 @@ tests/:
           net-http-orchestrion: irrelevant (net-http doesn't handle path params)
         Test_API_Security_Sampling_With_Delay: missing_feature
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0-dev  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0-dev  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0-dev  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0-dev  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Capabilities: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Negative: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v2.4.0-dev
+        Test_API_Security_Custom_Data_Classification_Scanner: v2.4.0-dev
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
@@ -350,6 +350,11 @@ tests/:
         Test_Blocking: v1.50.0-rc.1
         Test_Blocking_strip_response_headers: missing_feature
         Test_CustomBlockingResponse: v1.63.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.51.0
       test_exclusions.py:

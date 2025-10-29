@@ -6,6 +6,8 @@ from utils import (
     scenarios,
     features,
     remote_config as rc,
+    missing_feature,
+    context,
 )
 
 
@@ -15,6 +17,7 @@ RC_PATH = f"datadog/2/{RC_PRODUCT}"
 
 # Simple UFC fixture for testing with doLog: true
 UFC_FIXTURE_DATA = {
+    "id": "1",
     "createdAt": "2024-04-17T19:40:53.716Z",
     "format": "SERVER",
     "environment": {"name": "Test"},
@@ -37,6 +40,11 @@ UFC_FIXTURE_DATA = {
 }
 
 
+@missing_feature(
+    context.library == "nodejs",
+    reason="Temporarily disabled while adjusting FFE implementation and system tests",
+    force_skip=True,
+)
 @scenarios.feature_flag_exposure
 @features.feature_flag_exposure
 class Test_FFE_Exposure_Events:
@@ -44,12 +52,7 @@ class Test_FFE_Exposure_Events:
         """Set up FFE exposure event generation."""
         # Set up Remote Config
         config_id = "ffe-test-config"
-        rc_config = {
-            "action": "apply",
-            "flag_configuration": UFC_FIXTURE_DATA,
-            "flag_environment": "test",
-            "id": config_id,
-        }
+        rc_config = UFC_FIXTURE_DATA
         rc.rc_state.reset().set_config(f"{RC_PATH}/{config_id}/config", rc_config).apply()
 
         # Evaluate a feature flag
