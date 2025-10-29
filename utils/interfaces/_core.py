@@ -65,7 +65,9 @@ class ProxyBasedInterfaceValidator(InterfaceValidator):
         super().configure(host_log_folder, replay=replay)
 
         if not replay:
-            shutil.rmtree(self.log_folder, ignore_errors=True)
+            import os
+            if not os.environ.get('ST_REUSE'):
+                shutil.rmtree(self.log_folder, ignore_errors=True)
             Path(self.log_folder).mkdir(parents=True, exist_ok=True)
             Path(self.log_folder + "/files").mkdir(parents=True, exist_ok=True)
 
