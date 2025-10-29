@@ -537,6 +537,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
+    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_extended_configs(
         self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
     ):
@@ -557,7 +558,7 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            
+
             # Special handling for dd_tags: check if expected tags are present in actual tags
             # since tracers may automatically append additional tags (service, env, version, runtime-id, etc.)
             for key, expected_value in expected.items():

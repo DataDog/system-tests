@@ -842,7 +842,8 @@ class Test_Stable_Configuration_Origin(StableConfigWriter):
         context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
-    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python and ruby")
+    @irrelevant(context.library in ["java", "php", "dotnet"], reason="temporary use case for python, ruby and nodejs")
+    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_stable_configuration_origin_extended_configs_temporary_use_case(
         self, local_cfg, library_env, fleet_cfg, test_agent, test_library, expected_origins
     ):
