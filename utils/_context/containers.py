@@ -1287,7 +1287,6 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
     ) -> None:
-        # Store config file path as public attribute
         self.config_file = config_file
 
         if "DOCKER_HOST" in os.environ:
