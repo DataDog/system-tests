@@ -17,5 +17,4 @@ RUN /binaries/install_ddtrace.sh
 RUN mkdir /integration-framework-tracer-logs
 
 ENV DD_PATCH_MODULES="fastapi:false,starlette:false"
-ENV OPENAI_API_KEY="<not-a-real-key>"
 CMD ["ddtrace-run", "python", "-m", "integration_frameworks", "openai"]
