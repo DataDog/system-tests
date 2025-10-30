@@ -18,10 +18,10 @@ tests/:
         Test_API_Security_Sampling_With_Delay: v1.11.0
       test_custom_data_classification.py:
         Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v1.14.0+92984872cbf9347bd44c335693810e33d58b572b  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Negative: v1.14.0+92984872cbf9347bd44c335693810e33d58b572b  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Processor_Override: v1.14.0+92984872cbf9347bd44c335693810e33d58b572b  # auto activation: might not be the earliest working version
-        Test_API_Security_Custom_Data_Classification_Scanner: v1.14.0+92984872cbf9347bd44c335693810e33d58b572b  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: v1.13.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Negative: v1.13.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Processor_Override: v1.13.0  # auto activation: might not be the earliest working version
+        Test_API_Security_Custom_Data_Classification_Scanner: v1.13.0  # auto activation: might not be the earliest working version
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery: missing_feature
       test_schemas.py:
