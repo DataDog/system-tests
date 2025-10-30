@@ -37,22 +37,19 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         error_messages = []
 
         for probe_id, snapshots in self.probe_snapshots.items():
-            for snapshot in snapshots:
+            for base in snapshots:
+                snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
+                assert snapshot
+                
                 if probe_id in expected_message_map:
                     not_found_ids.remove(probe_id)
 
-                    if not re.search(expected_message_map[probe_id], snapshot["message"]):
+                    if not re.search(expected_message_map[probe_id], base["message"]):
                         error_messages.append(
-                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
+                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {base['message']}."
                         )
 
-                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
-                        for error in evaluation_errors:
-                            error_messages.append(
-                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
-                            )
-
-                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        evaluation_errors = snapshot.get("evaluationErrors", [])
                         for error in evaluation_errors:
                             error_messages.append(
                                 f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
