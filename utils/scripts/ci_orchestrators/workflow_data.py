@@ -274,8 +274,13 @@ def _get_endtoend_weblogs(
     result: list[Weblog] = []
 
     integration_frameworks_weblogs = {
-        "openai": ["2.0.0"]  # python
-    }
+        "python": {
+            "openai": ["2.0.0"]
+        },
+        "nodejs": {
+            "openai": ["6.0.0"]
+        }
+    }[library]
 
     folder = f"utils/build/docker/{library}"
     if Path(folder).exists():  # some lib does not have any weblog
