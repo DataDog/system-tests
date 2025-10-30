@@ -702,6 +702,7 @@ class _Scenarios:
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
             "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "1",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         doc="Check exception replay",
