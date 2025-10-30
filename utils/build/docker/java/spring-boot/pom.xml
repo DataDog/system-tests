@@ -224,6 +224,11 @@
             <artifactId>okhttp</artifactId>
             <version>4.9.3</version>
         </dependency>
+        <dependency>
+            <groupId>dev.openfeature</groupId>
+            <artifactId>sdk</artifactId>
+            <version>1.18.2</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
