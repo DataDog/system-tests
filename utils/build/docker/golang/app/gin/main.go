@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"systemtests.weblog/_shared/common"
+	"systemtests.weblog/_shared/ffe"
 	"systemtests.weblog/_shared/grpc"
 	"systemtests.weblog/_shared/rasp"
 
@@ -347,6 +348,9 @@ func main() {
 	var d DebuggerController
 	r.Any("/debugger/log", ginHandleFunc(d.logProbe))
 	r.Any("/debugger/mix", ginHandleFunc(d.mixProbe))
+
+	// FFE endpoints
+	r.POST("/ffe", ginHandleFunc(ffe.EvaluateHandler))
 
 	srv := &http.Server{
 		Addr:    ":7777",

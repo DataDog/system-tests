@@ -77,6 +77,10 @@ func main() {
 	http.HandleFunc("/trace/otel/add_event", s.otelAddEventHandler)
 	http.HandleFunc("/trace/otel/set_status", s.otelSetStatusHandler)
 
+	// FFE endpoints
+	http.HandleFunc("/ffe/start", s.ffeStartHandler)
+	http.HandleFunc("/ffe/evaluate", s.ffeEvaluateHandler)
+
 	err = http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
