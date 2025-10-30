@@ -2103,6 +2103,12 @@ tests/:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': incomplete_test_app (endpoint not implemented)
         spring-boot: v1.39.0
+        spring-boot-jetty: v1.39.0
+        spring-boot-openliberty: v1.39.0
+        spring-boot-payara: v1.39.0
+        spring-boot-undertow: v1.39.0
+        spring-boot-wildfly: v1.39.0
+        uds-spring-boot: v1.39.0
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
