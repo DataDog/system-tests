@@ -75,9 +75,7 @@ class OtelCollectorScenario(DockerScenario):
         if self.collector_container.image.labels:
             image_labels = self.collector_container.image.labels
             if "org.opencontainers.image.revision" in image_labels:
-                result["configuration"]["collector_image_commit"] = image_labels[
-                    "org.opencontainers.image.revision"
-                ]
+                result["configuration"]["collector_image_commit"] = image_labels["org.opencontainers.image.revision"]
 
         # Parse OTel collector configuration file
         config_file_path = Path(self.collector_container.config_file)
