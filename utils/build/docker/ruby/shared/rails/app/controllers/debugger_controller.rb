@@ -93,8 +93,8 @@ class DebuggerController < ActionController::Base
   # Padding
 
   def expression_operators
-    intValue = params[:intValue]
-    floatValue = params[:floatValue]
+    intValue = params[:intValue].to_i
+    floatValue = params[:floatValue].to_f
     strValue = params[:strValue]
     pii = Pii.new
 
