@@ -1060,6 +1060,8 @@ tests/:
       Test_Otel_Context_Propagation_Default_Propagator_Api:
         '*': incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
+        uds-flask: v2.19.0
+        uwsgi-poc: v2.19.0
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
