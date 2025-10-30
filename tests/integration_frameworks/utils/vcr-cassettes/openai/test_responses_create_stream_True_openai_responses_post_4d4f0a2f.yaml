@@ -1,0 +1,221 @@
+interactions:
+- request:
+    body: '{"input":"Where is the nearest Dunkin'' Donuts?","instructions":"Talk with
+      a Boston accent.","max_output_tokens":50,"model":"gpt-4.1","stream":true,"temperature":0.1}'
+    headers:
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept-Encoding
+      : - gzip, deflate
+      ? !!python/object/apply:multidict._multidict.istr
+      - Connection
+      : - keep-alive
+      Content-Length:
+      - '165'
+      ? !!python/object/apply:multidict._multidict.istr
+      - Content-Type
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - User-Agent
+      : - OpenAI/Python 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Arch
+      : - arm64
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Async
+      : - 'false'
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Lang
+      : - python
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-OS
+      : - Linux
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Package-Version
+      : - 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime
+      : - CPython
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime-Version
+      : - 3.11.14
+      ? !!python/object/apply:multidict._multidict.istr
+      - traceparent
+      : - 00-69039d010000000058ce03e7b2b3e80a-cb90565ab173f106-01
+      ? !!python/object/apply:multidict._multidict.istr
+      - tracestate
+      : - dd=p:cb90565ab173f106;s:1;t.dm:-0;t.tid:69039d0100000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-parent-id
+      : - '14668318933869916422'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-sampling-priority
+      : - '1'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-tags
+      : - _dd.p.dm=-0,_dd.p.tid=69039d0100000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-trace-id
+      : - '6399056414210517002'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-read-timeout
+      : - '600'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-retry-count
+      : - '0'
+    method: POST
+    uri: https://api.openai.com/v1/responses
+  response:
+    body:
+      string: "event: response.created\ndata: {\"type\":\"response.created\",\"sequence_number\":0,\"response\":{\"id\":\"resp_04c2c37dd81e49e20169039d0207cc81949dbb51eb390410f5\",\"object\":\"response\",\"created_at\":1761844482,\"status\":\"in_progress\",\"background\":false,\"error\":null,\"incomplete_details\":null,\"instructions\":\"Talk
+        with a Boston accent.\",\"max_output_tokens\":50,\"max_tool_calls\":null,\"model\":\"gpt-4.1-2025-04-14\",\"output\":[],\"parallel_tool_calls\":true,\"previous_response_id\":null,\"prompt_cache_key\":null,\"reasoning\":{\"effort\":null,\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"auto\",\"store\":false,\"temperature\":0.1,\"text\":{\"format\":{\"type\":\"text\"},\"verbosity\":\"medium\"},\"tool_choice\":\"auto\",\"tools\":[],\"top_logprobs\":0,\"top_p\":1.0,\"truncation\":\"disabled\",\"usage\":null,\"user\":null,\"metadata\":{}}}\n\nevent:
+        response.in_progress\ndata: {\"type\":\"response.in_progress\",\"sequence_number\":1,\"response\":{\"id\":\"resp_04c2c37dd81e49e20169039d0207cc81949dbb51eb390410f5\",\"object\":\"response\",\"created_at\":1761844482,\"status\":\"in_progress\",\"background\":false,\"error\":null,\"incomplete_details\":null,\"instructions\":\"Talk
+        with a Boston accent.\",\"max_output_tokens\":50,\"max_tool_calls\":null,\"model\":\"gpt-4.1-2025-04-14\",\"output\":[],\"parallel_tool_calls\":true,\"previous_response_id\":null,\"prompt_cache_key\":null,\"reasoning\":{\"effort\":null,\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"auto\",\"store\":false,\"temperature\":0.1,\"text\":{\"format\":{\"type\":\"text\"},\"verbosity\":\"medium\"},\"tool_choice\":\"auto\",\"tools\":[],\"top_logprobs\":0,\"top_p\":1.0,\"truncation\":\"disabled\",\"usage\":null,\"user\":null,\"metadata\":{}}}\n\nevent:
+        response.output_item.added\ndata: {\"type\":\"response.output_item.added\",\"sequence_number\":2,\"output_index\":0,\"item\":{\"id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"type\":\"message\",\"status\":\"in_progress\",\"content\":[],\"role\":\"assistant\"}}\n\nevent:
+        response.content_part.added\ndata: {\"type\":\"response.content_part.added\",\"sequence_number\":3,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"part\":{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"\"}}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":4,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"Ah\",\"logprobs\":[],\"obfuscation\":\"MXMN4PDf1NrMUv\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":5,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\",\",\"logprobs\":[],\"obfuscation\":\"aJVZs0O2kBSYatQ\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":6,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        ya\",\"logprobs\":[],\"obfuscation\":\"7apJ081cnRnMh\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":7,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        look\",\"logprobs\":[],\"obfuscation\":\"m0nd9NknkRV\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":8,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"in\",\"logprobs\":[],\"obfuscation\":\"VHqIlLuLO5rj5a\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":9,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"\u2019\",\"logprobs\":[],\"obfuscation\":\"dtIJ3Cj8SxRU0qs\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":10,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        for\",\"logprobs\":[],\"obfuscation\":\"KMlYnEsjqfpV\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":11,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        a\",\"logprobs\":[],\"obfuscation\":\"4QLC5MBI6BgBaE\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":12,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        Dunk\",\"logprobs\":[],\"obfuscation\":\"nay9vxJMiaw\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":13,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"ies\",\"logprobs\":[],\"obfuscation\":\"6mbNAqAEOS4NC\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":14,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\",\",\"logprobs\":[],\"obfuscation\":\"i7Z7pIsxgWS3u56\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":15,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        huh\",\"logprobs\":[],\"obfuscation\":\"AQNuwdcYKzPn\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":16,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"?\",\"logprobs\":[],\"obfuscation\":\"0khnm0Ilo36cbgW\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":17,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        Classic\",\"logprobs\":[],\"obfuscation\":\"ago5zvJ0\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":18,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"!\",\"logprobs\":[],\"obfuscation\":\"KaaLMbFTJL91vuO\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":19,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        In\",\"logprobs\":[],\"obfuscation\":\"ucUEHRULHVsQJ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":20,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        Boston\",\"logprobs\":[],\"obfuscation\":\"0EhCb8cee\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":21,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\",\",\"logprobs\":[],\"obfuscation\":\"xYIV4YrfQAdAqQ4\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":22,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        ya\",\"logprobs\":[],\"obfuscation\":\"86gWUKq0z4Kra\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":23,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        can\",\"logprobs\":[],\"obfuscation\":\"QN2F1MQpijIl\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":24,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"\u2019t\",\"logprobs\":[],\"obfuscation\":\"w0neTL6ImVXaO3\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":25,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        throw\",\"logprobs\":[],\"obfuscation\":\"m3gw9n8UQK\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":26,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        a\",\"logprobs\":[],\"obfuscation\":\"qui0ANFNha8p6n\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":27,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        rock\",\"logprobs\":[],\"obfuscation\":\"LDUr5tAVWDO\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":28,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        without\",\"logprobs\":[],\"obfuscation\":\"aCCkj36V\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":29,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        hitt\",\"logprobs\":[],\"obfuscation\":\"vvTMVE0EcTB\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":30,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"in\",\"logprobs\":[],\"obfuscation\":\"dfzlvaLrvfheuG\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":31,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"\u2019\",\"logprobs\":[],\"obfuscation\":\"ZemLVfkQlBxYzoW\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":32,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        a\",\"logprobs\":[],\"obfuscation\":\"KzRTDoqYIKqyvd\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":33,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        Dunk\",\"logprobs\":[],\"obfuscation\":\"AblI2VlibZU\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":34,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"in\",\"logprobs\":[],\"obfuscation\":\"OoiDma6Is3CmiH\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":35,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"\u2019.\",\"logprobs\":[],\"obfuscation\":\"0ZcfqzZFv3Cxu7\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":36,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        Just\",\"logprobs\":[],\"obfuscation\":\"kLMxQRPLvh4\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":37,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        head\",\"logprobs\":[],\"obfuscation\":\"hoYwAXCTRdQ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":38,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        down\",\"logprobs\":[],\"obfuscation\":\"21sHxsRU8PJ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":39,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        the\",\"logprobs\":[],\"obfuscation\":\"cyLqVc2XTTsp\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":40,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        street\",\"logprobs\":[],\"obfuscation\":\"QnrULzBm4\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":41,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\",\",\"logprobs\":[],\"obfuscation\":\"qTs27kz9aej544A\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":42,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        take\",\"logprobs\":[],\"obfuscation\":\"SafjdZNiGuJ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":43,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        a\",\"logprobs\":[],\"obfuscation\":\"aLvMwNNGHSxtJs\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":44,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        left\",\"logprobs\":[],\"obfuscation\":\"cD8WLBTeU5x\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":45,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        at\",\"logprobs\":[],\"obfuscation\":\"NVClXaFUzUkYJ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":46,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        the\",\"logprobs\":[],\"obfuscation\":\"QL6vmYiiOxQk\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":47,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        rotary\",\"logprobs\":[],\"obfuscation\":\"eo1ZzVnQA\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":48,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\",\",\"logprobs\":[],\"obfuscation\":\"K7j9P0zmwJoJzOz\"}\n\nevent:
+        response.output_text.delta\ndata: {\"type\":\"response.output_text.delta\",\"sequence_number\":49,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        and\",\"logprobs\":[],\"obfuscation\":\"4cKeOYo0i03I\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":50,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        ya\",\"logprobs\":[],\"obfuscation\":\"P83UyerBAzqvw\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":51,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        should\",\"logprobs\":[],\"obfuscation\":\"kHnwug6oq\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":52,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        see\",\"logprobs\":[],\"obfuscation\":\"oFES2XnDJxEQ\"}\n\nevent: response.output_text.delta\ndata:
+        {\"type\":\"response.output_text.delta\",\"sequence_number\":53,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"delta\":\"
+        one\",\"logprobs\":[],\"obfuscation\":\"nxoOonnej3Qp\"}\n\nevent: response.output_text.done\ndata:
+        {\"type\":\"response.output_text.done\",\"sequence_number\":54,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"text\":\"Ah,
+        ya lookin\u2019 for a Dunkies, huh? Classic! In Boston, ya can\u2019t throw
+        a rock without hittin\u2019 a Dunkin\u2019. Just head down the street, take
+        a left at the rotary, and ya should see one\",\"logprobs\":[]}\n\nevent: response.content_part.done\ndata:
+        {\"type\":\"response.content_part.done\",\"sequence_number\":55,\"item_id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"output_index\":0,\"content_index\":0,\"part\":{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"Ah,
+        ya lookin\u2019 for a Dunkies, huh? Classic! In Boston, ya can\u2019t throw
+        a rock without hittin\u2019 a Dunkin\u2019. Just head down the street, take
+        a left at the rotary, and ya should see one\"}}\n\nevent: response.output_item.done\ndata:
+        {\"type\":\"response.output_item.done\",\"sequence_number\":56,\"output_index\":0,\"item\":{\"id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"type\":\"message\",\"status\":\"incomplete\",\"content\":[{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"Ah,
+        ya lookin\u2019 for a Dunkies, huh? Classic! In Boston, ya can\u2019t throw
+        a rock without hittin\u2019 a Dunkin\u2019. Just head down the street, take
+        a left at the rotary, and ya should see one\"}],\"role\":\"assistant\"}}\n\nevent:
+        response.incomplete\ndata: {\"type\":\"response.incomplete\",\"sequence_number\":57,\"response\":{\"id\":\"resp_04c2c37dd81e49e20169039d0207cc81949dbb51eb390410f5\",\"object\":\"response\",\"created_at\":1761844482,\"status\":\"incomplete\",\"background\":false,\"error\":null,\"incomplete_details\":{\"reason\":\"max_output_tokens\"},\"instructions\":\"Talk
+        with a Boston accent.\",\"max_output_tokens\":50,\"max_tool_calls\":null,\"model\":\"gpt-4.1-2025-04-14\",\"output\":[{\"id\":\"msg_04c2c37dd81e49e20169039d02be908194a7bfa4d0d7649d28\",\"type\":\"message\",\"status\":\"incomplete\",\"content\":[{\"type\":\"output_text\",\"annotations\":[],\"logprobs\":[],\"text\":\"Ah,
+        ya lookin\u2019 for a Dunkies, huh? Classic! In Boston, ya can\u2019t throw
+        a rock without hittin\u2019 a Dunkin\u2019. Just head down the street, take
+        a left at the rotary, and ya should see one\"}],\"role\":\"assistant\"}],\"parallel_tool_calls\":true,\"previous_response_id\":null,\"prompt_cache_key\":null,\"reasoning\":{\"effort\":null,\"summary\":null},\"safety_identifier\":null,\"service_tier\":\"default\",\"store\":false,\"temperature\":0.1,\"text\":{\"format\":{\"type\":\"text\"},\"verbosity\":\"medium\"},\"tool_choice\":\"auto\",\"tools\":[],\"top_logprobs\":0,\"top_p\":1.0,\"truncation\":\"disabled\",\"usage\":{\"input_tokens\":27,\"input_tokens_details\":{\"cached_tokens\":0},\"output_tokens\":50,\"output_tokens_details\":{\"reasoning_tokens\":0},\"total_tokens\":77},\"user\":null,\"metadata\":{}}}\n\n"
+    headers:
+      CF-RAY:
+      - 996c8ce9eef0d6c0-IAD
+      Connection:
+      - keep-alive
+      Content-Type:
+      - text/event-stream; charset=utf-8
+      Date:
+      - Thu, 30 Oct 2025 17:14:42 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=VYytwVjvRJ0Ib7i80MyS1W6pFIfg0uC2uq7zZpjVEEE-1761844482-1.0.1.1-6h7c4fknzDrpQL0dGOeRGG8nTrqRo5_CjKxHgusAvJGMzZOhoxxV28YJkOfVBuO07e.LHNQhZmmFiUSF18qK3QYmesA07M6SXXzq68TeIpQ;
+        path=/; expires=Thu, 30-Oct-25 17:44:42 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=8PZDDsDoRZFpJVSWnRxKUBg.61IyZ_vzBPYAVpoMukQ-1761844482213-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Strict-Transport-Security:
+      - max-age=31536000; includeSubDomains; preload
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-organization:
+      - datadog-staging
+      openai-processing-ms:
+      - '164'
+      openai-project:
+      - proj_gt6TQZPRbZfoY2J9AQlEJMpd
+      openai-version:
+      - '2020-10-01'
+      x-envoy-upstream-service-time:
+      - '172'
+      x-request-id:
+      - req_ff4d6817ee514a99aebfe7ed94b53246
+    status:
+      code: 200
+      message: OK
+version: 1

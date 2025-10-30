@@ -1,0 +1,145 @@
+interactions:
+- request:
+    body: '{"model":"gpt-3.5-turbo-instruct","prompt":"Hello OpenAI!","max_tokens":35}'
+    headers:
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - Accept-Encoding
+      : - gzip, deflate
+      ? !!python/object/apply:multidict._multidict.istr
+      - Connection
+      : - keep-alive
+      Content-Length:
+      - '75'
+      ? !!python/object/apply:multidict._multidict.istr
+      - Content-Type
+      : - application/json
+      ? !!python/object/apply:multidict._multidict.istr
+      - User-Agent
+      : - OpenAI/Python 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Arch
+      : - arm64
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Async
+      : - 'false'
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Lang
+      : - python
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-OS
+      : - Linux
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Package-Version
+      : - 2.0.0
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime
+      : - CPython
+      ? !!python/object/apply:multidict._multidict.istr
+      - X-Stainless-Runtime-Version
+      : - 3.11.14
+      ? !!python/object/apply:multidict._multidict.istr
+      - traceparent
+      : - 00-6903825200000000be50d700d749a0c1-8d112ef57ee41d7e-01
+      ? !!python/object/apply:multidict._multidict.istr
+      - tracestate
+      : - dd=p:8d112ef57ee41d7e;s:1;t.dm:-0;t.tid:6903825200000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-parent-id
+      : - '10164957465882664318'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-sampling-priority
+      : - '1'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-tags
+      : - _dd.p.dm=-0,_dd.p.tid=6903825200000000
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-datadog-trace-id
+      : - '13713697263955058881'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-read-timeout
+      : - '600'
+      ? !!python/object/apply:multidict._multidict.istr
+      - x-stainless-retry-count
+      : - '0'
+    method: POST
+    uri: https://api.openai.com/v1/completions
+  response:
+    body:
+      string: "{\n  \"id\": \"cmpl-CWOkFK1DsTHSRC5CdShGaMZmopHh2\",\n  \"object\":
+        \"text_completion\",\n  \"created\": 1761837651,\n  \"model\": \"gpt-3.5-turbo-instruct:20230824-v2\",\n
+        \ \"choices\": [\n    {\n      \"text\": \"\\n\\nHello there! What can I assist
+        you with?\",\n      \"index\": 0,\n      \"logprobs\": null,\n      \"finish_reason\":
+        \"stop\"\n    }\n  ],\n  \"usage\": {\n    \"prompt_tokens\": 4,\n    \"completion_tokens\":
+        11,\n    \"total_tokens\": 15\n  }\n}\n"
+    headers:
+      CF-RAY:
+      - 996be626ee2dc98f-IAD
+      Cache-Control:
+      - no-cache, must-revalidate
+      Connection:
+      - keep-alive
+      Content-Encoding:
+      - gzip
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 30 Oct 2025 15:20:51 GMT
+      Server:
+      - cloudflare
+      Set-Cookie:
+      - __cf_bm=S_hNdcf9J5wYWVJ3wTSJPT8FW3xqnsBC4xTqo1fTLEs-1761837651-1.0.1.1-O3WtLKFKfMLkuxg8WaU2HjHYn1Fg4A5xER.HPmCMVFtruU7eA9KG141B7X6VPhoRztWM4g5FKkk7yQ3nRt7mL4HPgoIKIOr_eleMDrkswKs;
+        path=/; expires=Thu, 30-Oct-25 15:50:51 GMT; domain=.api.openai.com; HttpOnly;
+        Secure; SameSite=None
+      - _cfuvid=70lRN2IzFCnwxvqWw_X.AifdKdWPQcVzW0Lyvdb.8AY-1761837651543-0.0.1.1-604800000;
+        path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - X-Request-ID
+      alt-svc:
+      - h3=":443"; ma=86400
+      cf-cache-status:
+      - DYNAMIC
+      openai-model:
+      - gpt-3.5-turbo-instruct:20230824-v2
+      openai-organization:
+      - datadog-staging
+      openai-processing-ms:
+      - '139'
+      openai-project:
+      - proj_gt6TQZPRbZfoY2J9AQlEJMpd
+      openai-version:
+      - '2020-10-01'
+      strict-transport-security:
+      - max-age=31536000; includeSubDomains; preload
+      via:
+      - envoy-router-54b578b84c-6hlfc
+      x-envoy-upstream-service-time:
+      - '163'
+      x-openai-proxy-wasm:
+      - v0.1
+      x-ratelimit-limit-requests:
+      - '3500'
+      x-ratelimit-limit-tokens:
+      - '90000'
+      x-ratelimit-remaining-requests:
+      - '3498'
+      x-ratelimit-remaining-tokens:
+      - '89996'
+      x-ratelimit-reset-requests:
+      - 17ms
+      x-ratelimit-reset-tokens:
+      - 2ms
+      x-request-id:
+      - req_2356cdcfb34b429cadac4e2b8f4cbf54
+    status:
+      code: 200
+      message: OK
+version: 1
