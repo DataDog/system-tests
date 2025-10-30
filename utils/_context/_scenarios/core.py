@@ -136,7 +136,7 @@ class Scenario:
 
         path = os.path.join(self.host_log_folder, subfolder)
 
-        if remove_if_exists:
+        if remove_if_exists and not os.environ.get('ST_REUSE'):
             shutil.rmtree(path, ignore_errors=True)
 
         Path(path).mkdir(mode=0o777, parents=True, exist_ok=True)
