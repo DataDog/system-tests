@@ -587,9 +587,11 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         probes = []
         expected_message_map = {}
         prob_types = []
-        if self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
+        if self.get_tracer()["language"] == "ruby":  # Method probes do not capture locals in Ruby
+            prob_types.append("line")
+        elif self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
             prob_types.append("method")
-        if len(lines) > 0:
+        if len(lines) > 0 and 'line' not in prob_types:
             prob_types.append("line")
 
         for probe_type in prob_types:
