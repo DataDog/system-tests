@@ -69,9 +69,10 @@ refs:
   - &ref_5_64_0 '>=5.64.0'  # Endpoints collection
   - &ref_5_66_0 '>=5.66.0'  # fastify rasp support
   - &ref_5_71_0 '>=5.71.0'
-  - &ref_5_72_0 '>=5.72.0'  # FFE support
+  - &ref_5_72_0 '>=5.72.0'  # Initial FFE support
   - &ref_5_73_0 '>=5.73.0'
   - &ref_5_74_0 '>=5.74.0'
+  - &ref_5_75_0 '>=5.75.0'  # FFE fixes
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1296,7 +1297,7 @@ tests/:
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
-        Test_Feature_Flag_Exposure: *ref_5_72_0
+        Test_Feature_Flag_Exposure: *ref_5_75_0
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: *ref_3_0_0
     test_config_consistency.py:
@@ -1334,7 +1335,7 @@ tests/:
       Test_Parametric_DDTrace_Baggage: incomplete_test_app (baggage endpoints are not implemented)
       Test_Parametric_DDTrace_Crash: incomplete_test_app (crash endpoint is not implemented)
       Test_Parametric_DDTrace_Current_Span: incomplete_test_app (current_span endpoint is not supported)
-      Test_Parametric_FFE_Start: *ref_5_72_0
+      Test_Parametric_FFE_Start: *ref_5_75_0
       Test_Parametric_OtelSpan_Set_Name: bug (APMAPI-778)  # set_name endpoint should set the resource name on a span (not the operation name)
       Test_Parametric_OtelSpan_Start: bug (APMAPI-778)  # The expected span.kind tag is not set
       Test_Parametric_Otel_Baggage: missing_feature (baggage is not supported)
@@ -1445,7 +1446,7 @@ tests/:
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events:
       '*': incomplete_test_app
-      express4: *ref_5_72_0  # only target express 4
+      express4: *ref_5_75_0  # only target express 4
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant
