@@ -24,6 +24,7 @@ require (
 	github.com/graphql-go/handler v0.2.3
 	github.com/labstack/echo/v4 v4.11.1
 	github.com/mattn/go-sqlite3 v1.14.32
+	github.com/open-feature/go-sdk v1.12.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/vektah/gqlparser/v2 v2.5.25
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.60.0

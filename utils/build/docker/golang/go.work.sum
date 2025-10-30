@@ -708,6 +708,8 @@ github.com/onsi/gomega v1.17.0/go.mod h1:HnhC7FXeEQY45zxNK3PPoIUhzk/80Xly9PcubAl
 github.com/onsi/gomega v1.19.0/go.mod h1:LY+I3pBVzYsTBU1AnDwOSxaYi9WoWiqgwooUqq9yPro=
 github.com/onsi/gomega v1.35.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
 github.com/onsi/gomega v1.36.1/go.mod h1:PvZbdDc8J6XJEpDK4HCuRBm8a6Fzp9/DmhC9C7yFlog=
+github.com/open-feature/go-sdk v1.12.0 h1:V0MAG3lC9o7Pmq0gxlqtKpoasDTm3to9vuvZKyUhhPk=
+github.com/open-feature/go-sdk v1.12.0/go.mod h1:UDNuwVrwY5FRHIluVRYzvxuS3nBkhjE6o4tlwFuHxiI=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.120.1 h1:dHSlc8xqs9yL8xlWjjpXaMVbLRg+gFjBsoUzZHy0FQQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/core/xidutils v0.120.1/go.mod h1:6J+HBkvDGCdVPRyJAokSmvmYnXgg90faLS9U3Fb6wmQ=
 github.com/open-telemetry/opentelemetry-collector-contrib/pkg/sampling v0.122.0/go.mod h1:MMvJIC26DIEZo5DR4Ub/WJD1aPVxKGpgJolXxTtjgLE=
