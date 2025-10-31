@@ -163,6 +163,9 @@ jobs:
       env:
         SYSTEM_TEST_BUILD_ATTEMPTS: 3
 
+    - name: Run INTEGRATION_FRAMEWORKS scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"INTEGRATION_FRAMEWORKS"')
+      run: ./run.sh INTEGRATION_FRAMEWORKS -L ${{ inputs.library }} --weblog ${{ inputs.weblog }}
     - name: Run APPSEC_STANDALONE scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_STANDALONE"')
       run: ./run.sh APPSEC_STANDALONE
@@ -446,6 +449,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
+      run: ./run.sh APPSEC_LAMBDA_RASP
     - name: Run EXTERNAL_PROCESSING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
       run: ./run.sh EXTERNAL_PROCESSING

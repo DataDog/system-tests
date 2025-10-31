@@ -30,6 +30,7 @@ class _ScenarioGroups:
     appsec_rasp_scenario = ScenarioGroup()
     appsec_lambda = ScenarioGroup()
     debugger = ScenarioGroup()
+    docker_fixtures = ScenarioGroup()
     end_to_end = ScenarioGroup()
     exotics = ScenarioGroup()
     graphql = ScenarioGroup()

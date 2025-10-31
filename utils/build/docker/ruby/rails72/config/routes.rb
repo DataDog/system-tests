@@ -4,6 +4,13 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
 
+  class ResourceRenamingRackApp
+    def call(_env)
+      [200, {'Content-Type' => 'text/plain'}, ['OK']]
+    end
+  end
+  mount ResourceRenamingRackApp.new => '/resource_renaming'
+
   get  '/' => 'system_test#root'
   post '/' => 'system_test#root'
 

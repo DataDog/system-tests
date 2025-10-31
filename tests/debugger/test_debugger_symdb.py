@@ -87,5 +87,6 @@ class Test_Debugger_SymDb(debugger.BaseDebuggerTest):
         self._setup()
 
     @bug(context.library == "dotnet", reason="DEBUG-3298")
+    @bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
     def test_symdb_upload(self):
         self._assert()
