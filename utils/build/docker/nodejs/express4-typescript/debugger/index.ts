@@ -2,9 +2,9 @@
 
 import type { Express, Request, Response } from 'express'
 import { Pii } from './pii'
+import { dataGenerator } from './data_generator'
 
 export function initRoutes (app: Express) {
-  // Padding
   // Padding
   // Padding
   // Padding
@@ -124,5 +124,15 @@ export function initRoutes (app: Express) {
     const { intValue, strValue, boolValue } = req.query
     const pii = boolValue ? new Pii() : null
     res.send('Expression probe') // This needs to be line 126
+  })
+
+  app.get('/debugger/snapshot/limits', (req: Request, res: Response) => {
+    const { deepObject, manyFields, largeCollection, longString } = dataGenerator({
+      depth: parseInt(req.query.depth as string, 10) || 0,
+      fields: parseInt(req.query.fields as string, 10) || 0,
+      collectionSize: parseInt(req.query.collectionSize as string, 10) || 0,
+      stringLength: parseInt(req.query.stringLength as string, 10) || 0
+    })
+    res.send('Capture limits probe') // This needs to be line 136
   })
 }
