@@ -4,8 +4,9 @@ import json
 import os
 
 from jsonschema import validate
-import yaml
+from ruamel.yaml import YAML
 
+yaml=YAML(typ="safe", pure=True)
 
 def _flatten(base: str, obj: dict):
     if base.endswith(".py"):
@@ -23,7 +24,7 @@ def _flatten(base: str, obj: dict):
 def _load_file(file: str):
     try:
         with open(file, encoding="utf-8") as f:
-            data = yaml.safe_load(f)
+            data = yaml.load(f)
     except FileNotFoundError:
         return {}
 
@@ -103,7 +104,7 @@ def validate_manifest_files() -> None:
         if file.endswith(".yml"):
             try:
                 with open(f"manifests/{file}", encoding="utf-8") as f:
-                    data = yaml.safe_load(f)
+                    data = yaml.load(f)
 
                 # this field is only used for YAML templating
                 if "refs" in data:
