@@ -25,7 +25,7 @@ from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
 from .integration_frameworks import IntegrationFrameworksScenario
-from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
+from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -1120,6 +1120,7 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+    appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
 
