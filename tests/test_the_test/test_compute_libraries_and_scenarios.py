@@ -135,7 +135,7 @@ class Test_ComputeLibrariesAndScenarios:
             'libraries_with_dev=["python"]',
             "desired_execution_time=600",
             "rebuild_lambda_proxy=false",
-            'scenarios="DEFAULT"',
+            'scenarios="APM_TRACING_E2E_OTEL,APPSEC_API_SECURITY,DEFAULT"',
             'scenarios_groups=""',
         ]
 
