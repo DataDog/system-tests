@@ -23,7 +23,6 @@ refs:
   - &ref_4_22_0 '>=4.22.0 || ^3.43.0'
   - &ref_4_23_0 '>=4.23.0 || ^3.44.0'
   - &ref_5_1_0 '>=5.1.0 || ^4.25.0 || ^3.46.0'
-  - &ref_5_2_0 '>=5.2.0 || ^4.26.0 || ^3.47.0'
   - &ref_5_3_0 '>=5.3.0 || ^4.27.0 || ^3.48.0'
   - &ref_5_4_0 '>=5.4.0 || ^4.28.0 || ^3.49.0'
   - &ref_5_6_0 '>=5.6.0 || ^4.30.0 || ^3.51.0'
@@ -72,7 +71,8 @@ refs:
   - &ref_5_72_0 '>=5.72.0'  # Initial FFE support
   - &ref_5_73_0 '>=5.73.0'
   - &ref_5_74_0 '>=5.74.0'
-  - &ref_5_75_0 '>=5.75.0'  # FFE fixes
+  - &ref_5_75_0 '>=5.75.0'
+  - &ref_5_76_0 '>=5.76.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -95,11 +95,11 @@ tests/:
         Test_API_Security_Sampling_Rate: irrelevant (new api security sampling algorithm implemented)
         Test_API_Security_Sampling_With_Delay: *ref_5_27_0
       test_custom_data_classification.py:
-        Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-        Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-        Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-        Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
+        Test_API_Security_Custom_Data_Classification_Capabilities: *ref_5_76_0
+        Test_API_Security_Custom_Data_Classification_Multiple_Scanners: *ref_5_76_0
+        Test_API_Security_Custom_Data_Classification_Negative: *ref_5_76_0
+        Test_API_Security_Custom_Data_Classification_Processor_Override: *ref_5_76_0
+        Test_API_Security_Custom_Data_Classification_Scanner: *ref_5_76_0
       test_endpoint_discovery.py:
         Test_Endpoint_Discovery:
           '*': *ref_5_74_0
@@ -769,6 +769,11 @@ tests/:
         Test_Blocking: *ref_3_19_0
         Test_Blocking_strip_response_headers: *ref_5_17_0
         Test_CustomBlockingResponse: *ref_5_15_0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules:
           '*': *ref_4_1_0
