@@ -90,6 +90,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
+@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -144,6 +145,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
+@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
