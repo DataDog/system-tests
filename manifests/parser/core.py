@@ -1,7 +1,9 @@
 from collections import defaultdict
 from functools import lru_cache
 import json
+from jsonschema.exceptions import ValidationError
 import os
+import ast
 import re
 
 from utils._decorators import CustomSpec as SemverRange
@@ -36,12 +38,13 @@ def _load_file(file: str, component: str):
                 connector = "-"
             version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
 
-        try:
-            return SemverRange(version)
-        except ValueError as e:
-            print(e)
-            print(nodeid, vsnap)
-            pass
+        return SemverRange(version)
+        # try:
+        #     return SemverRange(version)
+        # except ValueError as e:
+        #     print(e)
+        #     print(nodeid)
+        #     pass
 
     try:
         with open(file, encoding="utf-8") as f:
@@ -64,17 +67,12 @@ def _load_file(file: str, component: str):
                     if sdec.startswith("v"):
                            sdec = "<" + sdec[1:]
                     value["library_version"] = to_semver(sdec, nodeid)
-                    # if not value["library_version"]:
-                    #     print("Found str")
-                    #     print(nodeid, value)
                     value["declaration"] = "missing_feature"
             if not isinstance(value, list):
                 value = [value]
             for entry in value:
                 if isinstance(entry.get("library_version"), str):
                         entry["library_version"] = to_semver(entry["library_version"], nodeid)
-                        # if not entry["library_version"]:
-                        #     print(nodeid, value, entry)
                 entry["library"] = component
 
             ret[nodeid] = value
@@ -128,56 +126,107 @@ def load(base_dir: str = "manifests/") -> dict[str, dict[str, str]]:
     return result
 
 
-def assert_key_order(obj: dict, path: str = "") -> None:
+def assert_key_order(obj: dict, path: str = ""):
     last_key = "/"
+    errors = []
 
-    for key, value in obj.items():
-        # Only check alphabetical order within the same type (folder vs file)
-        # Allow folders and files to be mixed as long as they're sorted within their type
-        if last_key.endswith("/") and key.endswith("/"):  # both folders
-            assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
-        elif not last_key.endswith("/") and not key.endswith("/"):  # both files
-            assert last_key < key, f"Order is not respected at {path} ({last_key} < {key})"
-        # Mixed folder/file transitions are allowed
-
-        if isinstance(value, dict):
-            assert_key_order(value, f"{path}.{key}")
-
+    for key in obj.keys():
+        if not last_key < key:
+            errors.append(f"Order is not respected at {path} ({last_key} < {key})")
         last_key = key
+
+    return errors
+
+def assert_nodeids_exist(obj: dict, path: str = ""):
+    errors = []
+    for key in obj.keys():
+        elements = key.split("::")
+
+        if not os.path.exists(elements[0]):
+            errors.append(f"{elements[0]} does not exist")
+            continue
+
+        if len(elements) < 2 or not ".py" in elements[0]:
+            continue
+
+        with open(elements[0]) as f:
+            test_ast = ast.parse(f.read())
+
+        found_class = False
+        found_function = len(elements) < 3
+        for node in ast.walk(test_ast):
+            if not isinstance(node, ast.ClassDef) or not node.name == elements[1]:
+                continue
+            if found_class:
+                break
+
+            found_class = True
+            for child in ast.walk(node):
+                if found_function:
+                    break
+
+                if isinstance(child, ast.FunctionDef) and child.name == elements[2]:
+                    found_function = True
+
+        if not found_class:
+            errors.append(f"{elements[0]} does not contain class {elements[1]}")
+        if found_class and not found_function and len(elements) >= 3:
+            errors.append(f"{elements[0]}::{elements[1]} does not contain function {elements[2]}")
+
+    return errors
+
+def pretty(errors):
+    ret = ""
+    for file, file_errors in errors.items():
+        ret += f"{file}:\n"
+        for error in file_errors:
+            ret += '\n'.join('    ' + line for line in str(error).splitlines()) + "\n"
+    return ret
+
 
 
 def validate_manifest_files() -> None:
     with open("manifests/parser/schema.json", encoding="utf-8") as f:
         schema = json.load(f)
 
-    validation_errors = []
+    order_errors = {}
+    validation_errors = {}
+    nodeid_errors = {}
+    parser_errors = {}
     
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
+            with open(f"manifests/{file}", encoding="utf-8") as f:
+                raw_data = f.read()
+            with open(f"manifests/{file}", encoding="utf-8") as f:
+                data = yaml.safe_load(f)
+
             try:
-                with open(f"manifests/{file}", encoding="utf-8") as f:
-                    data = yaml.safe_load(f)
-
                 validate(data, schema)
-                try:
-                    assert_key_order(data["manifest"])
-                except AssertionError as e:
-                    validation_errors.append(f"Key ordering issue in {file}: {e}")
+            except ValidationError as e:
+                validation_errors[file] = [e]
 
-            except yaml.YAMLError as e:
-                validation_errors.append(f"YAML parsing error in {file}: {e}")
-            except Exception as e:
-                validation_errors.append(f"Validation error in {file}: {e}")
-    
+            errors = assert_key_order(data["manifest"])
+            if errors: order_errors[file] = errors
+
+            errors = assert_nodeids_exist(data["manifest"])
+            if errors: nodeid_errors[file] = errors
+
+            try:
+                _load_file(f"manifests/{file}", file.strip(".yml"))
+            except ValueError as e:
+                parser_errors[file] = [e]
+
+    message = ""
+    if order_errors:
+        message += "\n====================Key order errors====================\n" + pretty(order_errors)
     if validation_errors:
-        print("Validation completed with issues:")
-        for error in validation_errors:
-            print(f"  - {error}")
-        print(f"\nTotal issues found: {len(validation_errors)}")
-        # Don't raise an exception, just report the issues
-    else:
-        print("✅ All manifest files validated successfully!")
-
+        message += "\n================Syntax validation errors================\n" + pretty(validation_errors)
+    if nodeid_errors:
+        message += "\n=====================Node ID errors=====================\n" + pretty(nodeid_errors)
+    if parser_errors:
+        message += "\n===================Declaration errors===================\n" + pretty(parser_errors)
+    assert not message, message
 
 if __name__ == "__main__":
     validate_manifest_files()
