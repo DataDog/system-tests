@@ -106,7 +106,13 @@ def _create_rc_config(config_overrides: dict[str, Any]) -> dict:
     return rc_config
 
 
-def set_and_wait_rc(test_agent, config_overrides: dict[str, Any], config_id: str | None = None) -> dict:
+def set_and_wait_rc(
+    test_agent,
+    config_overrides: dict[str, Any],
+    config_id: str | None = None,
+    *,
+    clear: bool = True,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Helper to create an RC configuration with the given settings and wait for it to be applied.
 
     It is assumed that the configuration is successfully applied.
@@ -116,8 +122,21 @@ def set_and_wait_rc(test_agent, config_overrides: dict[str, Any], config_id: str
     _set_rc(test_agent, rc_config, config_id)
 
     # Wait for both the telemetry event and the RC apply status.
-    test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=True)
-    return test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=True)
+    event = test_agent.wait_for_telemetry_event("app-client-configuration-change", clear=clear)
+    cfg_state = test_agent.wait_for_rc_apply_state(
+        "APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED, clear=clear
+    )
+    return cfg_state, event
+
+
+def assert_telemetry_event_has_config(event: dict[str, Any], name: str, expected_value: float | None) -> None:
+    configs = {c.get("name"): c for c in event.get("payload", {}).get("configuration", [])}
+    assert name in configs, f"Expected telemetry config {name} not found; got: {list(configs.keys())}"
+    entry = configs[name]
+    assert entry.get("origin") == "remote_config", f"Unexpected origin for {name}: {entry.get('origin')}"
+    assert (
+        entry.get("value") == expected_value
+    ), f"Unexpected value for {name}: {entry.get('value')} != {expected_value}"
 
 
 def assert_sampling_rate(trace: list[dict], rate: float):
@@ -373,7 +392,8 @@ class TestDynamicConfigV1:
         This signal, along with the telemetry event, is used to determine when the
         configuration has been applied by the tracer.
         """
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        _, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", 0.5)
         cfg_state = test_agent.wait_for_rc_apply_state("APM_TRACING", state=RemoteConfigApplyState.ACKNOWLEDGED)
         assert cfg_state["apply_state"] == 2
         assert cfg_state["product"] == "APM_TRACING"
@@ -391,12 +411,14 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        _, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", 0.5)
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
         # Unset the RC sample rate to ensure the default setting is used.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        _, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", None)
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, DEFAULT_SAMPLE_RATE)
 
@@ -424,7 +446,8 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        rc_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5})
+        rc_state, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": 0.5}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", 0.5)
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.5)
 
@@ -433,20 +456,24 @@ class TestDynamicConfigV1:
 
         # Create another remote config entry, wait for the configuration change telemetry event to be received
         # and then create a new trace to assert the configuration has been applied.
-        set_and_wait_rc(
+        _, event = set_and_wait_rc(
             test_agent,
             config_overrides={"tracing_sampling_rate": 0.6},
             config_id=config_id,
+            clear=False,
         )
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", 0.6)
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, 0.6)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(
+        _, event = set_and_wait_rc(
             test_agent,
             config_overrides={"tracing_sampling_rate": None},
             config_id=config_id,
+            clear=False,
         )
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", None)
         trace = send_and_wait_trace(test_library, test_agent, name="test")
         assert_sampling_rate(trace, initial_sample_rate)
 
@@ -471,10 +498,12 @@ class TestDynamicConfigV1:
 
         # Create a remote config entry with a different sample rate. This rate should not
         # apply to env_service spans but should apply to all others.
-        set_and_wait_rc(
+        _, event = set_and_wait_rc(
             test_agent,
             config_overrides={"tracing_sampling_rate": rc_sampling_rule_rate},
+            clear=False,
         )
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", rc_sampling_rule_rate)
 
         trace = send_and_wait_trace(test_library, test_agent, name="env_name", service="")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
@@ -482,7 +511,8 @@ class TestDynamicConfigV1:
         assert_sampling_rate(trace, rc_sampling_rule_rate)
 
         # Unset the RC sample rate to ensure the previous setting is reapplied.
-        set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None})
+        _, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sampling_rate": None}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", None)
         trace = send_and_wait_trace(test_library, test_agent, name="env_name")
         assert_sampling_rate(trace, ENV_SAMPLING_RULE_RATE)
         trace = send_and_wait_trace(test_library, test_agent, name="other_name")
@@ -505,7 +535,8 @@ class TestDynamicConfigV1:
 
         There is no way (at the time of writing) to check the logs produced by the library.
         """
-        cfg_state = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None})
+        cfg_state, event = set_and_wait_rc(test_agent, config_overrides={"tracing_sample_rate": None}, clear=False)
+        assert_telemetry_event_has_config(event, "DD_TRACE_SAMPLE_RATE", None)
         assert cfg_state["apply_state"] == 2
 
 
@@ -907,7 +938,7 @@ class TestDynamicConfigSamplingRules:
         assert span["meta"]["_dd.p.dm"] == "-3"
 
         # Create a remote config entry with two rules at different sample rates.
-        rc_state = set_and_wait_rc(
+        rc_state, _ = set_and_wait_rc(
             test_agent,
             config_overrides={
                 "tracing_sampling_rate": rc_sampling_rate,
@@ -1021,7 +1052,7 @@ class TestDynamicConfigSamplingRules:
     @parametrize("library_env", [{**DEFAULT_ENVVARS}])
     def test_remote_sampling_rules_retention(self, library_env, test_agent, test_library):
         """Only the last set of sampling rules should be applied"""
-        rc_state = set_and_wait_rc(
+        rc_state, _ = set_and_wait_rc(
             test_agent,
             config_overrides={
                 "tracing_sampling_rules": [
