@@ -23,6 +23,10 @@ require 'datadog/tracing/span_link'
 
 require 'datadog/tracing/diagnostics/environment_logger'
 
+# Used for OpenFeature testing
+require 'open_feature/sdk'
+require 'datadog/open_feature/provider'
+
 # Only used for OpenTelemetry testing.
 require 'opentelemetry/sdk'
 require 'datadog/opentelemetry' # TODO: Remove when DD_TRACE_OTEL_ENABLED=true works out of the box for Ruby APM
@@ -476,6 +480,18 @@ class TraceSpanAddEventReturn
   end
 end
 
+class OpenFeatureArgs
+  attr_reader :flag, :variation_type, :default_value, :targeting_key, :attributes
+
+  def initialize(params)
+    @flag = params['flag']
+    @variation_type = params['variationType']
+    @default_value = params['defaultValue']
+    @targeting_key = params['targetingKey']
+    @attributes = params['attributes']
+  end
+end
+
 def get_ddtrace_version
   Gem::Version.new(Datadog::VERSION)
 end
@@ -488,6 +504,50 @@ def extract_http_headers(headers)
     Datadog::Tracing::Contrib::HTTP.extract(headers)
   else
     Datadog::Tracing::Contrib::HTTP::Distributed::Propagation.new.extract(headers)
+  end
+end
+
+def handle_ffe_start(req, res)
+  OpenFeature::SDK.set_provider(Datadog::OpenFeature::Provider.new)
+
+  # NOTE: There is no set_provider_and_wait in Ruby OpenFeature::SDK, but this is
+  #       a subject to change.
+  #
+  #       Remote Configuration will be received at this point because of the short
+  #       polling delay.
+  10.times do
+    break unless Datadog::OpenFeature.evaluator.ufc_json.nil?
+    sleep 0.5
+  end
+
+  res.write({}.to_json)
+end
+
+def handle_ffe_evaluation(req, res)
+  args = OpenFeatureArgs.new(JSON.parse(req.body.read))
+  client = OpenFeature::SDK.build_client
+
+  begin
+    context = OpenFeature::SDK::EvaluationContext.new(
+      targeting_key: args.targeting_key, **args.attributes
+    )
+    options = {
+      flag_key: args.flag, default_value: args.default_value, evaluation_context: context
+    }
+
+    value =
+      case variation_type
+      when 'BOOLEAN'then client.fetch_boolean_value(**options)
+      when 'STRING' then client.fetch_boolean_value(**options)
+      when 'INTEGER' then client.fetch_boolean_value(**options)
+      when 'NUMERIC' then client.fetch_boolean_value(**options)
+      when 'JSON' then client.fetch_boolean_value(**options)
+      else default_value
+      end
+
+    res.write({value: value, reason: 'DEFAULT'}.to_json)
+  rescue
+    res.write({value: args.default_value, reason: 'ERROR'}.to_json)
   end
 end
 
@@ -603,6 +663,10 @@ class MyApp
       handle_trace_otel_set_attributes(req, res)
     when '/trace/crash'
       handle_trace_crash(req, res)
+    when '/ffe/start'
+      handle_ffe_start(req, res)
+    when '/ffe/evaluate'
+      handle_ffe_evaluation(req, res)
     else
       res.status = 404
       res.write('Not Found')
@@ -733,17 +797,17 @@ class MyApp
   def handle_trace_span_add_event(req, res)
     args = TraceSpanAddEventsArgs.new(JSON.parse(req.body.read))
     span = find_span(args.span_id)
-    
+
     # Create a new SpanEvent with the provided parameters
     event = Datadog::Tracing::SpanEvent.new(
       args.name,
       attributes: args.attributes,
       time_unix_nano: args.timestamp * 1000
     )
-    
+
     # Add the event to the span's events array
     span.span_events << event
-    
+
     res.write(TraceSpanAddEventReturn.new.to_json)
   end
 
