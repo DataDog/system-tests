@@ -123,7 +123,7 @@ class _RequestLogger:
 
             logger.info(f"    => reverse proxy to {flow.request.pretty_url}")
 
-        elif port == ProxyPorts.otel_collector:
+        elif port == ProxyPorts.otel_collector and self.mocked_backend:
             flow.response = http.Response.make(200, b"Ok")  # TODO : response accepted by collector
 
         elif port in (
