@@ -223,7 +223,7 @@ build() {
 
                     # Choose Python version based on weblog variant
                     case "$WEBLOG_VARIANT" in
-                        flask-poc|django-poc|fastapi|uds-flask|uwsgi-poc)
+                        flask-poc|django-poc|uds-flask|uwsgi-poc)
                             PYTHON_VERSION="3.11"
                             ;;
                         django-py3.13)
@@ -232,6 +232,9 @@ build() {
                         python3.12)
                             PYTHON_VERSION="3.12"
                             ;;
+                        fastapi)
+                            PYTHON_VERSION="3.14.0rc1"
+                            ;;
                         *)
                             echo "Error: Unknown weblog variant, python version could not be determined" >&2
                             exit 1
@@ -239,7 +242,7 @@ build() {
                     esac
 
                     echo "Using Python version: $PYTHON_VERSION"
-                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; pip wheel --no-deps -w . /app/dd-trace-py"
+                    docker run -v ./binaries/:/app -w /app ghcr.io/datadog/dd-trace-py/testrunner bash -c "pyenv global $PYTHON_VERSION; python -m pip wheel --no-deps -w . /app/dd-trace-py"
                 fi
 
                 DOCKERFILE=utils/build/docker/${TEST_LIBRARY}/${WEBLOG_VARIANT}.Dockerfile
