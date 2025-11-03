@@ -175,13 +175,6 @@ ignore = [
     "ANN201",    # missing-return-type-undocumented-public-function: allow test_method to not declare their return type
 ]
 
-"tests/parametric/test_dynamic_configuration.py"= [ "ANN001" ]
-"tests/parametric/test_headers_b3multi.py"= [ "ANN001" ]
-"tests/parametric/test_headers_baggage.py"= [ "ANN001" ]
-"tests/parametric/test_headers_datadog.py"= [ "ANN001" ]
-"tests/parametric/test_headers_none.py"= [ "ANN001" ]
-"tests/parametric/test_headers_precedence.py"= [ "ANN001" ]
-"tests/parametric/test_headers_tracecontext.py"= [ "ANN001" ]
 "tests/parametric/test_headers_tracestate_dd.py"= [ "ANN001" ]
 "tests/parametric/test_library_tracestats.py"= [ "ANN001" ]
 "tests/parametric/test_otel_api_interoperability.py"= [ "ANN001" ]
