@@ -10,7 +10,7 @@ import (
 )
 
 func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
-	ddProvider, err := ddof.NewDatadogProvider()
+	ddProvider, err := ddof.NewDatadogProvider(ddof.ProviderConfig{})
 	if err != nil {
 		log.Fatalf("failed to create Datadog OpenFeature provider: %v", err)
 	}
@@ -24,7 +24,7 @@ func FFeEval() func(writer http.ResponseWriter, request *http.Request) {
 		var body struct {
 			Flag          string         `json:"flag"`
 			VariationType string         `json:"variationType"`
-			DefaultValue  int            `json:"defaultValue"`
+			DefaultValue  any            `json:"defaultValue"`
 			TargetingKey  string         `json:"targetingKey"`
 			Attributes    map[string]any `json:"attributes"`
 		}
