@@ -1,226 +1,321 @@
 ---
-tests/:
-  appsec/:
-    api_security/:
-      test_schemas.py:
-        Test_Scanners:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_Cookies:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_FormUrlEncoded_Body:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_Headers:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_Json_Body:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_Path_Parameters:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Request_Query_Parameters:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Response_Body:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Response_Headers:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-        Test_Schema_Response_on_Block:
-          "*": v8.113.0
-          alb: missing_feature
-          alb-multi: missing_feature
-          function-url: missing_feature
-    rasp/:
-      test_api10.py:
-        Test_API10_all: v8.117.0.dev
-        Test_API10_request_body: v8.117.0.dev
-        Test_API10_request_headers: v8.117.0.dev
-        Test_API10_request_method: v8.117.0.dev
-        Test_API10_response_body: v8.117.0.dev
-        Test_API10_response_headers: v8.117.0.dev
-        Test_API10_response_status: v8.117.0.dev
-      test_cmdi.py:
-        Test_Cmdi_BodyJson: v8.117.0.dev
-        Test_Cmdi_BodyUrlEncoded: v8.117.0.dev
-        Test_Cmdi_BodyXml: v8.117.0.dev
-        Test_Cmdi_Capability: v8.117.0.dev
-        Test_Cmdi_Mandatory_SpanTags: v8.117.0.dev
-        Test_Cmdi_Optional_SpanTags: v8.117.0.dev
-        Test_Cmdi_Rules_Version: v8.117.0.dev
-        Test_Cmdi_StackTrace: v8.117.0.dev
-        Test_Cmdi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-        Test_Cmdi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-        Test_Cmdi_Telemetry_Variant_Tag: missing_feature (telemetry is not available in Lambda yet)
-        Test_Cmdi_UrlQuery: v8.117.0.dev
-        Test_Cmdi_Waf_Version: v8.117.0.dev
-      test_lfi.py:
-        Test_Lfi_BodyJson: v8.117.0.dev
-        Test_Lfi_BodyUrlEncoded: v8.117.0.dev
-        Test_Lfi_BodyXml: v8.117.0.dev
-        Test_Lfi_Capability: v8.117.0.dev
-        Test_Lfi_Mandatory_SpanTags: v8.117.0.dev
-        Test_Lfi_Optional_SpanTags: v8.117.0.dev
-        Test_Lfi_RC_CustomAction: v8.117.0.dev
-        Test_Lfi_Rules_Version: v8.117.0.dev
-        Test_Lfi_StackTrace: v8.117.0.dev
-        Test_Lfi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-        Test_Lfi_Telemetry_Multiple_Exploits: missing_feature (telemetry is not available in Lambda yet)
-        Test_Lfi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-        Test_Lfi_UrlQuery: v8.117.0.dev
-        Test_Lfi_Waf_Version: v8.117.0.dev
-      test_shi.py:
-        Test_Shi_BodyJson: v8.117.0.dev
-        Test_Shi_BodyUrlEncoded: v8.117.0.dev
-        Test_Shi_BodyXml: v8.117.0.dev
-        Test_Shi_Capability: v8.117.0.dev
-        Test_Shi_Mandatory_SpanTags: v8.117.0.dev
-        Test_Shi_Optional_SpanTags: v8.117.0.dev
-        Test_Shi_Rules_Version: v8.117.0.dev
-        Test_Shi_StackTrace: v8.117.0.dev
-        Test_Shi_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-        Test_Shi_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-        Test_Shi_Telemetry_Variant_Tag: missing_feature (telemetry is not available in Lambda yet)
-        Test_Shi_UrlQuery: v8.117.0.dev
-        Test_Shi_Waf_Version: v8.117.0.dev
-      test_sqli.py:
-        Test_Sqli_BodyJson: v8.117.0.dev
-        Test_Sqli_BodyUrlEncoded: v8.117.0.dev
-        Test_Sqli_BodyXml: v8.117.0.dev
-        Test_Sqli_Capability: v8.117.0.dev
-        Test_Sqli_Mandatory_SpanTags: v8.117.0.dev
-        Test_Sqli_Optional_SpanTags: v8.117.0.dev
-        Test_Sqli_Rules_Version: v8.117.0.dev
-        Test_Sqli_StackTrace: v8.117.0.dev
-        Test_Sqli_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-        Test_Sqli_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-        Test_Sqli_UrlQuery: v8.117.0.dev
-        Test_Sqli_Waf_Version: v8.117.0.dev
-      test_ssrf.py:
-        Test_Ssrf_BodyJson: v8.117.0.dev
-        Test_Ssrf_BodyUrlEncoded: v8.117.0.dev
-        Test_Ssrf_BodyXml: v8.117.0.dev
-        Test_Ssrf_Capability: v8.117.0.dev
-        Test_Ssrf_Mandatory_SpanTags: v8.117.0.dev
-        Test_Ssrf_Optional_SpanTags: v8.117.0.dev
-        Test_Ssrf_Rules_Version: v8.117.0.dev
-        Test_Ssrf_StackTrace: v8.117.0.dev
-        Test_Ssrf_Telemetry: missing_feature (telemetry is not available in Lambda yet)
-        Test_Ssrf_Telemetry_V2: missing_feature (telemetry is not available in Lambda yet)
-        Test_Ssrf_UrlQuery: v8.117.0.dev
-        Test_Ssrf_Waf_Version: v8.117.0.dev
-    waf/:
-      test_blocking.py:
-        Test_Blocking:
-          "*": v8.113.0
-          alb-multi: v8.114.0.dev
-        Test_Blocking_strip_response_headers:
-          "*": v8.113.0
-          alb-multi: v8.114.0.dev
-        Test_CustomBlockingResponse:
-          "*": v8.113.0
-          alb-multi: v8.114.0.dev
-    test_alpha.py:
-      Test_Basic: v7.112.0
-    test_blocking_addresses.py:
-      Test_Blocking_client_ip:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_client_ip_with_K8_private_ip:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_client_ip_with_forwarded: v8.114.0.dev
-      Test_Blocking_request_body:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_body_multipart:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_cookies:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_headers:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_method:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_path_params:
-        "*": v8.113.0
-        alb: irrelevant (application-load-balancer event type does not support path params)
-        alb-multi: irrelevant (application-load-balancer event type does not support path params)
-        function-url: irrelevant (function-url event type does not support path params)
-      Test_Blocking_request_query:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_request_uri:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_response_headers:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_response_status:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Blocking_user_id:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Suspicious_Request_Blocking:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-    test_conf.py:
-      Test_ConfigurationVariables_New_Obfuscation: v8.113.0
-    test_extended_request_body_collection.py:
-      Test_ExtendedRequestBodyCollection: missing_feature
-    test_fingerprinting.py:
-      Test_Fingerprinting_Endpoint_Preprocessor:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Fingerprinting_Header_And_Network_Preprocessor:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-      Test_Fingerprinting_Session_Preprocessor:
-        "*": v8.113.0
-        alb-multi: v8.114.0.dev
-    test_only_python.py:
-      Test_ImportError: v7.112.0
-    test_reports.py:
-      Test_ExtraTagsFromRule: v7.112.0
-      Test_Info: v7.112.0
-      Test_RequestHeaders: v7.112.0
-      Test_StatusCode: v7.112.0
-    test_trace_tagging.py:
-      Test_TraceTaggingRules: v8.113.0
-    test_traces.py:
-      Test_AppSecEventSpanTags: v7.112.0
-      Test_AppSecObfuscator: v7.112.0
-      Test_CollectDefaultRequestHeader: v7.112.0
-      Test_CollectRespondHeaders: v7.112.0
-      Test_ExternalWafRequestsIdentification: v7.112.0
-      Test_RetainTraces: v7.112.0
-    test_versions.py:
-      Test_Events: v7.112.0
-  test_resource_renaming.py: missing_feature
-  test_v1_payloads.py: missing_feature
+manifest:
+  tests/appsec/api_security/test_schemas.py::Test_Scanners:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: missing_feature
+    - variant: alb-multi
+      declaration: missing_feature
+    - variant: function-url
+      declaration: missing_feature
+  tests/appsec/rasp/test_api10.py::Test_API10_all: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_request_body: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_request_headers: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_request_method: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_response_body: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_response_headers: "v8.117.0.dev"
+  tests/appsec/rasp/test_api10.py::Test_API10_response_status: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyJson: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyUrlEncoded: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_BodyXml: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Capability: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Mandatory_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Optional_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Rules_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_StackTrace: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_V2: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Telemetry_Variant_Tag: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_UrlQuery: "v8.117.0.dev"
+  tests/appsec/rasp/test_cmdi.py::Test_Cmdi_Waf_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyXml: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Capability: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Mandatory_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Optional_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Rules_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_StackTrace: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_Multiple_Exploits: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Telemetry_V2: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery: "v8.117.0.dev"
+  tests/appsec/rasp/test_lfi.py::Test_Lfi_Waf_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_BodyXml: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Capability: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Mandatory_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Optional_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Rules_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_StackTrace: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_V2: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Telemetry_Variant_Tag: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery: "v8.117.0.dev"
+  tests/appsec/rasp/test_shi.py::Test_Shi_Waf_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery: "v8.117.0.dev"
+  tests/appsec/rasp/test_sqli.py::Test_Sqli_Waf_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyJson: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyUrlEncoded: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_BodyXml: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Capability: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Mandatory_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Optional_SpanTags: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Rules_Version: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry_V2: "missing_feature (telemetry is not available in Lambda yet)"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery: "v8.117.0.dev"
+  tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Waf_Version: "v8.117.0.dev"
+  tests/appsec/test_alpha.py::Test_Basic: "v7.112.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: "v8.114.0.dev"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
+    - variant: [apigw-http, apigw-rest]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb
+      declaration: irrelevant (application-load-balancer event type does not support path params)
+    - variant: alb-multi
+      declaration: irrelevant (application-load-balancer event type does not support path params)
+    - variant: function-url
+      declaration: irrelevant (function-url event type does not support path params)
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: "v8.113.0"
+  tests/appsec/test_extended_request_body_collection.py::Test_ExtendedRequestBodyCollection: "missing_feature"
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Endpoint_Preprocessor:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_And_Network_Preprocessor:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/appsec/test_only_python.py::Test_ImportError: "v7.112.0"
+  tests/appsec/test_reports.py::Test_ExtraTagsFromRule: "v7.112.0"
+  tests/appsec/test_reports.py::Test_Info: "v7.112.0"
+  tests/appsec/test_reports.py::Test_RequestHeaders: "v7.112.0"
+  tests/appsec/test_reports.py::Test_StatusCode: "v7.112.0"
+  tests/appsec/test_trace_tagging.py::Test_TraceTaggingRules: "v8.113.0"
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: "v7.112.0"
+  tests/appsec/test_traces.py::Test_AppSecObfuscator: "v7.112.0"
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: "v7.112.0"
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders: "v7.112.0"
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: "v7.112.0"
+  tests/appsec/test_traces.py::Test_RetainTraces: "v7.112.0"
+  tests/appsec/test_versions.py::Test_Events: "v7.112.0"
+  tests/appsec/waf/test_blocking.py:
+    - excluded_variant: [alb-multi]
+      library_version: "<8.113.0"
+      declaration: missing_feature
+    - variant: alb-multi
+      library_version: "<8.114.0.dev"
+      declaration: missing_feature
+  tests/test_resource_renaming.py: "missing_feature"
+  tests/test_v1_payloads.py: "missing_feature"

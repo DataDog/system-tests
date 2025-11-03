@@ -160,7 +160,7 @@ def flatten(data, lib, refs, root = "tests/", end = False, leaves = None):
             else:
                 leaf += f"variant: {var[0]}\n    "
             if var[1].startswith(("v", "<", ">")):
-                if refs and var[1] in refs:
+                if refs and var[1] in refs and "||" in var[1]:
                     data_str = f"*{refs[var[1]]}"
                 else:
                     data_str = f"\"<{var[1][1:].strip('=')}\""
