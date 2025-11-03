@@ -8,235 +8,235 @@
 # is only supported on the `main` branch and in the upcoming release,
 # use `>1.0.0` to indicate that requirement.
 manifest:
-  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: missing_feature (missing /e2e_otel_span endpoint on weblog)
-  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: missing_feature (missing /e2e_otel_span endpoint on weblog)
-  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: 'v1.8.0'
-  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: 'v1.8.0'
-  tests/appsec/api_security/test_apisec_sampling.py: 'irrelevant (sampling works differently in proxies: RFC 1035)'
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: missing_feature
-  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: missing_feature
-  tests/appsec/api_security/test_endpoint_discovery.py: irrelevant (not applicable to proxies)
-  tests/appsec/api_security/test_schemas.py::Test_Scanners: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters: irrelevant (not applicable to proxies)
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: missing_feature (APPSEC_API_SECURITY_NO_RESPONSE_BODY not supported)
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: 'v1.8.0'
-  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: 'v1.8.0'
-  tests/appsec/iast/sink/: irrelevant (ASM is not implemented in C++)
-  tests/appsec/iast/source/: irrelevant (ASM is not implemented in C++)
-  tests/appsec/iast/test_sampling_by_route_method_count.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/iast/test_security_controls.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/iast/test_vulnerability_schema.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/rasp/: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_alpha.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: 'v1.7.0'
-  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: 'v1.7.0'
-  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: irrelevant
-  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: missing_feature
-  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_Login_Events: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: missing_feature
-  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: missing_feature
-  tests/appsec/test_automated_user_and_session_tracking.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: irrelevant
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: missing_feature (RFC 6598 block not recognized)
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: missing_feature (Forwarded not yet supported)
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: 'v1.4.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: 'v1.4.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: irrelevant
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: 'v1.2.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: 'v1.6.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: 'v1.6.0'
-  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: missing_feature (users not supported)
-  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: irrelevant (path params waf address unfilled)
-  tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: missing_feature (Standard logs not implemented)
-  tests/appsec/test_conf.py::Test_ConfigurationVariables: 'v1.2.0'
-  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: missing_feature (requires libddwaf 1.25.0)
-  tests/appsec/test_customconf.py::Test_ConfRuleSet: 'v1.2.0'
-  tests/appsec/test_customconf.py::Test_CorruptedRules: 'v1.2.0'
-  tests/appsec/test_customconf.py::Test_MissingRules: irrelevant (fatal error on missing rules)
-  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: 'v1.2.0'
-  tests/appsec/test_event_tracking.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_event_tracking_v2.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_extended_data_collection.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_extended_header_collection.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_extended_request_body_collection.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_fingerprinting.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_identify.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: 'v1.3.0'
-  tests/appsec/test_logs.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_metastruct.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_rate_limiter.py::Test_Main: missing_feature (Rate limiting not implemented)
-  tests/appsec/test_remote_config_rule_changes.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_reports.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: 'v1.3.0'
-  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: 'v1.3.0'
-  tests/appsec/test_service_activation_metric.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_shell_execution.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_suspicious_attacker_blocking.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_trace_tagging.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: 'v1.2.0'
-  tests/appsec/test_traces.py::Test_AppSecObfuscator: 'v1.2.0'
-  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: 'v1.7.0'
-  tests/appsec/test_traces.py::Test_CollectRespondHeaders: 'v1.2.0'
-  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: 'v1.2.0'
-  tests/appsec/test_traces.py::Test_RetainTraces: 'v1.2.0'
-  tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: missing_feature (User blocking not implemented)
-  tests/appsec/test_versions.py::Test_Events: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_BodyJson: 'v1.4.0'
-  tests/appsec/waf/test_addresses.py::Test_BodyRaw: missing_feature
-  tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: 'v1.4.0'
-  tests/appsec/waf/test_addresses.py::Test_BodyXml: missing_feature
-  tests/appsec/waf/test_addresses.py::Test_Cookies: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_FullGrpc: irrelevant
-  tests/appsec/waf/test_addresses.py::Test_GraphQL: irrelevant
-  tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: irrelevant
-  tests/appsec/waf/test_addresses.py::Test_Headers: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_PathParams: irrelevant (path params waf address unfilled)
-  tests/appsec/waf/test_addresses.py::Test_ResponseStatus: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_UrlRaw: 'v1.2.0'
-  tests/appsec/waf/test_addresses.py::Test_gRPC: irrelevant
-  tests/appsec/waf/test_blocking.py::Test_Blocking: 'v1.2.0'
-  tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: irrelevant (no response headers on 1st waf run, which is where blocking is possible)
-  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: 'v1.2.0'
-  tests/appsec/waf/test_custom_rules.py::Test_CustomRules: 'v1.2.0'
-  tests/appsec/waf/test_exclusions.py::Test_Exclusions: 'v1.2.0'
-  tests/appsec/waf/test_miscs.py::Test_404: 'v1.2.0'
-  tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing: 'v1.2.0'
-  tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: 'v1.2.0'
-  tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: 'v1.2.0'
-  tests/appsec/waf/test_reports.py::Test_Monitoring: missing_feature (WAF monitoring tags not implemented)
-  tests/appsec/waf/test_rules.py::Test_CommandInjection: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_DiscoveryScan: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_HttpProtocol: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_JavaCodeInjection: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_JsInjection: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_LFI: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_NoSqli: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_PhpCodeInjection: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_RFI: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_SQLI: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_SSRF: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_Scanners: 'v1.2.0'
-  tests/appsec/waf/test_rules.py::Test_XSS: 'v1.2.0'
-  tests/appsec/waf/test_telemetry.py: irrelevant (ASM is not implemented in C++)
-  tests/appsec/waf/test_truncation.py: missing_feature (WAF truncation metrics not implemented)
-  tests/debugger/: irrelevant
-  tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: missing_feature
-  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: missing_feature
-  tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: missing_feature
-  tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: missing_feature (Endpoint not implemented)
-  tests/integrations/crossed_integrations/test_sqs.py: missing_feature (Endpoint not implemented)
-  tests/integrations/test_db_integrations_sql.py::Test_MsSql: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_MySql: missing_feature
-  tests/integrations/test_db_integrations_sql.py::Test_Postgres: missing_feature
-  tests/integrations/test_dbm.py::Test_Dbm: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmHttp: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmKafka: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmKinesis: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmSNS: missing_feature
-  tests/integrations/test_dsm.py::Test_DsmSQS: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: missing_feature
-  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: missing_feature
-  tests/integrations/test_inferred_proxy.py: missing_feature
-  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: irrelevant (library does not implement OpenTelemetry)
-  tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: irrelevant (library does not implement OpenTelemetry)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: missing_feature
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: 'v1.3.0'
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: irrelevant (we opt into cache)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: 'v1.3.0'
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: irrelevant (we opt into cache)
-  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: irrelevant
-  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: missing_feature
-  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: missing_feature
-  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: missing_feature
-  tests/test_baggage.py::Test_Baggage_Headers_Basic: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Malformed: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Malformed2: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_baggage.py::Test_Only_Baggage_Header: incomplete_test_app (/make_distant_call endpoint is not implemented)
-  tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: 'v0.2.2'
-  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: missing_feature (DD_TRACE_CLIENT_IP_HEADER not implemented)
-  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: missing_feature (http.client_ip is not supported)
-  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: missing_feature
-  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: missing_feature (test can not capture span with the expected http.url tag)
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: missing_feature
-  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: missing_feature
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: missing_feature
-  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: missing_feature
-  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False: missing_feature
-  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: missing_feature
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: missing_feature
-  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: missing_feature
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: missing_feature
-  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: missing_feature
-  tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: missing_feature
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: missing_feature
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: missing_feature
-  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: missing_feature
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: missing_feature
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: missing_feature
-  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: missing_feature
-  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: missing_feature
-  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: missing_feature
-  tests/test_distributed.py::Test_DistributedHttp: missing_feature
-  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
-  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
-  tests/test_graphql.py: missing_feature
-  tests/test_identify.py: irrelevant
-  tests/test_ipv6.py: missing_feature (APMAPI-869)
-  tests/test_library_conf.py: irrelevant
-  tests/test_miscs.py: irrelevant
-  tests/test_protobuf.py: missing_feature
-  tests/test_resource_renaming.py: missing_feature
-  tests/test_sampling_rates.py::Test_SampleRateFunction: 'v1.0.0'
-  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: 'v1.0.0'
-  tests/test_sampling_rates.py::Test_SamplingDecisions: 'v1.0.0'
-  tests/test_sampling_rates.py::Test_SamplingDeterminism: 'v1.0.0'
-  tests/test_sampling_rates.py::Test_SamplingRates: 'v1.0.0'
-  tests/test_scrubbing.py: irrelevant
-  tests/test_span_events.py: incomplete_test_app (Weblog `/add_event` not implemented)
-  tests/test_standard_tags.py: irrelevant
-  tests/test_telemetry.py::Test_APMOnboardingInstallID: missing_feature
-  tests/test_telemetry.py::Test_DependencyEnable: missing_feature
-  tests/test_telemetry.py::Test_Log_Generation: missing_feature
-  tests/test_telemetry.py::Test_MessageBatch: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Disabled: missing_feature
-  tests/test_telemetry.py::Test_Metric_Generation_Enabled: missing_feature
-  tests/test_telemetry.py::Test_ProductsDisabled: irrelevant
-  tests/test_telemetry.py::Test_Telemetry: missing_feature
-  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: missing_feature
-  tests/test_telemetry.py::Test_TelemetrySCAEnvVar: missing_feature
-  tests/test_telemetry.py::Test_TelemetryV2: missing_feature
-  tests/test_v1_payloads.py: missing_feature
+  tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
+  tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_processors: "v1.8.0"
+  tests/appsec/api_security/test_api_security_rc.py::Test_API_Security_RC_ASM_DD_scanners: "v1.8.0"
+  tests/appsec/api_security/test_apisec_sampling.py: "irrelevant (sampling works differently in proxies: RFC 1035)"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Capabilities: "missing_feature"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Multiple_Scanners: "missing_feature"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Negative: "missing_feature"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "missing_feature"
+  tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "missing_feature"
+  tests/appsec/api_security/test_endpoint_discovery.py: "irrelevant (not applicable to proxies)"
+  tests/appsec/api_security/test_schemas.py::Test_Scanners: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Cookies: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_FormUrlEncoded_Body: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Headers: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Json_Body: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters: "irrelevant (not applicable to proxies)"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Query_Parameters: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body_env_var: "missing_feature (APPSEC_API_SECURITY_NO_RESPONSE_BODY not supported)"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Headers: "v1.8.0"
+  tests/appsec/api_security/test_schemas.py::Test_Schema_Response_on_Block: "v1.8.0"
+  tests/appsec/iast/sink/: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/iast/source/: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/iast/test_sampling_by_route_method_count.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/iast/test_security_controls.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/iast/test_vulnerability_schema.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/rasp/: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_alpha.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_asm_standalone.py::Test_APISecurityStandalone: "missing_feature"
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_NotEnabled: "v1.7.0"
+  tests/appsec/test_asm_standalone.py::Test_AppSecStandalone_UpstreamPropagation_V2: "v1.7.0"
+  tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: "irrelevant"
+  tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: "missing_feature"
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated: "missing_feature"
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V1: "missing_feature"
+  tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_SDK_V2: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_Login_Events: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_Login_Events_Extended: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_Anon: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking: "missing_feature"
+  tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_RC: "missing_feature"
+  tests/appsec/test_automated_user_and_session_tracking.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: "irrelevant"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_K8_private_ip: "missing_feature (RFC 6598 block not recognized)"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_client_ip_with_forwarded: "missing_feature (Forwarded not yet supported)"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body: "v1.4.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_body_multipart: "v1.4.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_cookies: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_headers: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_method: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params: "irrelevant"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_request_uri: "v1.2.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_headers: "v1.6.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_response_status: "v1.6.0"
+  tests/appsec/test_blocking_addresses.py::Test_Blocking_user_id: "missing_feature (users not supported)"
+  tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking: "irrelevant (path params waf address unfilled)"
+  tests/appsec/test_client_ip.py::Test_StandardTagsClientIp: "missing_feature (Standard logs not implemented)"
+  tests/appsec/test_conf.py::Test_ConfigurationVariables: "v1.2.0"
+  tests/appsec/test_conf.py::Test_ConfigurationVariables_New_Obfuscation: "missing_feature (requires libddwaf 1.25.0)"
+  tests/appsec/test_customconf.py::Test_ConfRuleSet: "v1.2.0"
+  tests/appsec/test_customconf.py::Test_CorruptedRules: "v1.2.0"
+  tests/appsec/test_customconf.py::Test_MissingRules: "irrelevant (fatal error on missing rules)"
+  tests/appsec/test_customconf.py::Test_NoLimitOnWafRules: "v1.2.0"
+  tests/appsec/test_event_tracking.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_event_tracking_v2.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_extended_data_collection.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_extended_header_collection.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_extended_request_body_collection.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_fingerprinting.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_identify.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_ip_blocking_full_denylist.py::Test_AppSecIPBlockingFullDenylist: "v1.3.0"
+  tests/appsec/test_logs.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_metastruct.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_rate_limiter.py::Test_Main: "missing_feature (Rate limiting not implemented)"
+  tests/appsec/test_remote_config_rule_changes.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_reports.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_request_blocking.py::Test_AppSecRequestBlocking: "v1.3.0"
+  tests/appsec/test_runtime_activation.py::Test_RuntimeActivation: "v1.3.0"
+  tests/appsec/test_service_activation_metric.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_shell_execution.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_suspicious_attacker_blocking.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_trace_tagging.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/test_traces.py::Test_AppSecEventSpanTags: "v1.2.0"
+  tests/appsec/test_traces.py::Test_AppSecObfuscator: "v1.2.0"
+  tests/appsec/test_traces.py::Test_CollectDefaultRequestHeader: "v1.7.0"
+  tests/appsec/test_traces.py::Test_CollectRespondHeaders: "v1.2.0"
+  tests/appsec/test_traces.py::Test_ExternalWafRequestsIdentification: "v1.2.0"
+  tests/appsec/test_traces.py::Test_RetainTraces: "v1.2.0"
+  tests/appsec/test_user_blocking_full_denylist.py::Test_UserBlocking_FullDenylist: "missing_feature (User blocking not implemented)"
+  tests/appsec/test_versions.py::Test_Events: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_BodyJson: "v1.4.0"
+  tests/appsec/waf/test_addresses.py::Test_BodyRaw: "missing_feature"
+  tests/appsec/waf/test_addresses.py::Test_BodyUrlEncoded: "v1.4.0"
+  tests/appsec/waf/test_addresses.py::Test_BodyXml: "missing_feature"
+  tests/appsec/waf/test_addresses.py::Test_Cookies: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_FullGrpc: "irrelevant"
+  tests/appsec/waf/test_addresses.py::Test_GraphQL: "irrelevant"
+  tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "irrelevant"
+  tests/appsec/waf/test_addresses.py::Test_Headers: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_PathParams: "irrelevant (path params waf address unfilled)"
+  tests/appsec/waf/test_addresses.py::Test_ResponseStatus: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_UrlQueryKey: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_UrlRaw: "v1.2.0"
+  tests/appsec/waf/test_addresses.py::Test_gRPC: "irrelevant"
+  tests/appsec/waf/test_blocking.py::Test_Blocking: "v1.2.0"
+  tests/appsec/waf/test_blocking.py::Test_Blocking_strip_response_headers: "irrelevant (no response headers on 1st waf run, which is where blocking is possible)"
+  tests/appsec/waf/test_blocking.py::Test_CustomBlockingResponse: "v1.2.0"
+  tests/appsec/waf/test_custom_rules.py::Test_CustomRules: "v1.2.0"
+  tests/appsec/waf/test_exclusions.py::Test_Exclusions: "v1.2.0"
+  tests/appsec/waf/test_miscs.py::Test_404: "v1.2.0"
+  tests/appsec/waf/test_miscs.py::Test_CorrectOptionProcessing: "v1.2.0"
+  tests/appsec/waf/test_miscs.py::Test_MultipleAttacks: "v1.2.0"
+  tests/appsec/waf/test_miscs.py::Test_MultipleHighlight: "v1.2.0"
+  tests/appsec/waf/test_reports.py::Test_Monitoring: "missing_feature (WAF monitoring tags not implemented)"
+  tests/appsec/waf/test_rules.py::Test_CommandInjection: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_DiscoveryScan: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_HttpProtocol: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_JavaCodeInjection: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_JsInjection: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_LFI: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_NoSqli: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_PhpCodeInjection: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_RFI: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_SQLI: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_SSRF: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_Scanners: "v1.2.0"
+  tests/appsec/waf/test_rules.py::Test_XSS: "v1.2.0"
+  tests/appsec/waf/test_telemetry.py: "irrelevant (ASM is not implemented in C++)"
+  tests/appsec/waf/test_truncation.py: "missing_feature (WAF truncation metrics not implemented)"
+  tests/debugger/: "irrelevant"
+  tests/integrations/crossed_integrations/test_kafka.py::Test_Kafka: "missing_feature"
+  tests/integrations/crossed_integrations/test_kinesis.py::Test_Kinesis_PROPAGATION_VIA_MESSAGE_ATTRIBUTES: "missing_feature"
+  tests/integrations/crossed_integrations/test_rabbitmq.py::Test_RabbitMQ_Trace_Context_Propagation: "missing_feature"
+  tests/integrations/crossed_integrations/test_sns_to_sqs.py::Test_SNS_Propagation: "missing_feature (Endpoint not implemented)"
+  tests/integrations/crossed_integrations/test_sqs.py: "missing_feature (Endpoint not implemented)"
+  tests/integrations/test_db_integrations_sql.py::Test_MsSql: "missing_feature"
+  tests/integrations/test_db_integrations_sql.py::Test_MySql: "missing_feature"
+  tests/integrations/test_db_integrations_sql.py::Test_Postgres: "missing_feature"
+  tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmHttp: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmKafka: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmKinesis: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmSNS: "missing_feature"
+  tests/integrations/test_dsm.py::Test_DsmSQS: "missing_feature"
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process: "missing_feature"
+  tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process: "missing_feature"
+  tests/integrations/test_inferred_proxy.py: "missing_feature"
+  tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: "irrelevant (library does not implement OpenTelemetry)"
+  tests/otel/test_context_propagation.py::Test_Otel_Context_Propagation_Default_Propagator_Api: "irrelevant (library does not implement OpenTelemetry)"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationExtraServices: "missing_feature"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDD: "v1.3.0"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceASMDDNoCache: "irrelevant (we opt into cache)"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeatures: "v1.3.0"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceFeaturesNoCache: "irrelevant (we opt into cache)"
+  tests/remote_config/test_remote_configuration.py::Test_RemoteConfigurationUpdateSequenceLiveDebugging: "irrelevant"
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_CopyObject: "missing_feature"
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_MultipartUpload: "missing_feature"
+  tests/serverless/span_pointers/aws/test_s3_span_pointers.py::Test_PutObject: "missing_feature"
+  tests/test_baggage.py::Test_Baggage_Headers_Basic: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_baggage.py::Test_Baggage_Headers_Malformed: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_baggage.py::Test_Baggage_Headers_Malformed2: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Bytes: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_baggage.py::Test_Baggage_Headers_Max_Items: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_baggage.py::Test_Only_Baggage_Header: "incomplete_test_app (/make_distant_call endpoint is not implemented)"
+  tests/test_config_consistency.py::Test_Config_ClientIPHeaderEnabled_False: "v0.2.2"
+  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Configured: "missing_feature (DD_TRACE_CLIENT_IP_HEADER not implemented)"
+  tests/test_config_consistency.py::Test_Config_ClientIPHeader_Precedence: "missing_feature (http.client_ip is not supported)"
+  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Configured: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_ClientTagQueryString_Empty: "missing_feature (test can not capture span with the expected http.url tag)"
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_Default: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_HttpClientErrorStatuses_FeatureFlagCustom: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_LogInjection_Enabled: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Configured: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Default: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_ObfuscationQueryStringRegexp_Empty: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Default: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_RuntimeMetrics_Enabled_WithRuntimeId: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_CustomService: "missing_feature"
+  tests/test_config_consistency.py::Test_Config_UnifiedServiceTagging_Default: "missing_feature"
+  tests/test_distributed.py::Test_DistributedHttp: "missing_feature"
+  tests/test_distributed.py::Test_Span_Links_Flags_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
+  tests/test_distributed.py::Test_Span_Links_From_Conflicting_Contexts: "missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)"
+  tests/test_distributed.py::Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: "missing_feature (implementation specs have not been determined)"
+  tests/test_graphql.py: "missing_feature"
+  tests/test_identify.py: "irrelevant"
+  tests/test_ipv6.py: "missing_feature (APMAPI-869)"
+  tests/test_library_conf.py: "irrelevant"
+  tests/test_miscs.py: "irrelevant"
+  tests/test_protobuf.py: "missing_feature"
+  tests/test_resource_renaming.py: "missing_feature"
+  tests/test_sampling_rates.py::Test_SampleRateFunction: "v1.0.0"
+  tests/test_sampling_rates.py::Test_SamplingDecisionAdded: "v1.0.0"
+  tests/test_sampling_rates.py::Test_SamplingDecisions: "v1.0.0"
+  tests/test_sampling_rates.py::Test_SamplingDeterminism: "v1.0.0"
+  tests/test_sampling_rates.py::Test_SamplingRates: "v1.0.0"
+  tests/test_scrubbing.py: "irrelevant"
+  tests/test_span_events.py: "incomplete_test_app (Weblog `/add_event` not implemented)"
+  tests/test_standard_tags.py: "irrelevant"
+  tests/test_telemetry.py::Test_APMOnboardingInstallID: "missing_feature"
+  tests/test_telemetry.py::Test_DependencyEnable: "missing_feature"
+  tests/test_telemetry.py::Test_Log_Generation: "missing_feature"
+  tests/test_telemetry.py::Test_MessageBatch: "missing_feature"
+  tests/test_telemetry.py::Test_Metric_Generation_Disabled: "missing_feature"
+  tests/test_telemetry.py::Test_Metric_Generation_Enabled: "missing_feature"
+  tests/test_telemetry.py::Test_ProductsDisabled: "irrelevant"
+  tests/test_telemetry.py::Test_Telemetry: "missing_feature"
+  tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting: "missing_feature"
+  tests/test_telemetry.py::Test_TelemetrySCAEnvVar: "missing_feature"
+  tests/test_telemetry.py::Test_TelemetryV2: "missing_feature"
+  tests/test_v1_payloads.py: "missing_feature"
