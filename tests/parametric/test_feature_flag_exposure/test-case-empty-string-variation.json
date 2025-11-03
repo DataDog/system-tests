@@ -1,0 +1,118 @@
+{
+  "flag": "empty-string-variation",
+  "variationType": "STRING",
+  "defaultValue": "default_value",
+  "subjects": [
+    {
+      "subjectKey": "empty_user",
+      "subjectAttributes": {
+        "content_type": "minimal"
+      },
+      "assignment": "",
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"minimal-content\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "empty-content",
+        "variationValue": "",
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "content_type",
+              "operator": "ONE_OF",
+              "value": [
+                "minimal"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "minimal-content",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 1
+        },
+        "unmatchedAllocations": [],
+        "unevaluatedAllocations": [
+          {
+            "key": "full-content",
+            "allocationEvaluationCode": "UNEVALUATED",
+            "orderPosition": 2
+          }
+        ]
+      }
+    },
+    {
+      "subjectKey": "full_user",
+      "subjectAttributes": {
+        "content_type": "full"
+      },
+      "assignment": "detailed_content",
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"full-content\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "detailed-content",
+        "variationValue": "detailed_content",
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "content_type",
+              "operator": "ONE_OF",
+              "value": [
+                "full"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "full-content",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 2
+        },
+        "unmatchedAllocations": [
+          {
+            "key": "minimal-content",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    },
+    {
+      "subjectKey": "default_user",
+      "subjectAttributes": {
+        "content_type": "unknown"
+      },
+      "assignment": "default_value",
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "DEFAULT_ALLOCATION_NULL",
+        "flagEvaluationDescription": "No allocations matched. Falling back to \"Default Allocation\", serving NULL",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": null,
+        "variationValue": null,
+        "matchedRule": null,
+        "matchedAllocation": null,
+        "unmatchedAllocations": [
+          {
+            "key": "minimal-content",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          },
+          {
+            "key": "full-content",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 2
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    }
+  ]
+}

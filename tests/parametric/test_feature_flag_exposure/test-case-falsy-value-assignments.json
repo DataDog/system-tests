@@ -1,0 +1,118 @@
+{
+  "flag": "falsy-value-assignments",
+  "variationType": "INTEGER",
+  "defaultValue": 999,
+  "subjects": [
+    {
+      "subjectKey": "zero_user",
+      "subjectAttributes": {
+        "plan_tier": "free"
+      },
+      "assignment": 0,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"free-tier-limit\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "zero-limit",
+        "variationValue": 0,
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "plan_tier",
+              "operator": "ONE_OF",
+              "value": [
+                "free"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "free-tier-limit",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 1
+        },
+        "unmatchedAllocations": [],
+        "unevaluatedAllocations": [
+          {
+            "key": "premium-tier-limit",
+            "allocationEvaluationCode": "UNEVALUATED",
+            "orderPosition": 2
+          }
+        ]
+      }
+    },
+    {
+      "subjectKey": "premium_user",
+      "subjectAttributes": {
+        "plan_tier": "premium"
+      },
+      "assignment": 100,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"premium-tier-limit\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "premium-limit",
+        "variationValue": 100,
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "plan_tier",
+              "operator": "ONE_OF",
+              "value": [
+                "premium"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "premium-tier-limit",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 2
+        },
+        "unmatchedAllocations": [
+          {
+            "key": "free-tier-limit",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    },
+    {
+      "subjectKey": "unknown_user",
+      "subjectAttributes": {
+        "plan_tier": "trial"
+      },
+      "assignment": 999,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "DEFAULT_ALLOCATION_NULL",
+        "flagEvaluationDescription": "No allocations matched. Falling back to \"Default Allocation\", serving NULL",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": null,
+        "variationValue": null,
+        "matchedRule": null,
+        "matchedAllocation": null,
+        "unmatchedAllocations": [
+          {
+            "key": "free-tier-limit",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          },
+          {
+            "key": "premium-tier-limit",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 2
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    }
+  ]
+}

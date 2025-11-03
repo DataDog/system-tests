@@ -1,0 +1,118 @@
+{
+  "flag": "boolean-false-assignment",
+  "variationType": "BOOLEAN",
+  "defaultValue": true,
+  "subjects": [
+    {
+      "subjectKey": "alice",
+      "subjectAttributes": {
+        "should_disable_feature": true
+      },
+      "assignment": false,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"disable-feature\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "false-variation",
+        "variationValue": false,
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "should_disable_feature",
+              "operator": "ONE_OF",
+              "value": [
+                "true"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "disable-feature",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 1
+        },
+        "unmatchedAllocations": [],
+        "unevaluatedAllocations": [
+          {
+            "key": "enable-feature",
+            "allocationEvaluationCode": "UNEVALUATED",
+            "orderPosition": 2
+          }
+        ]
+      }
+    },
+    {
+      "subjectKey": "bob",
+      "subjectAttributes": {
+        "should_disable_feature": false
+      },
+      "assignment": true,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "MATCH",
+        "flagEvaluationDescription": "Supplied attributes match rules defined in allocation \"enable-feature\".",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": "true-variation",
+        "variationValue": true,
+        "matchedRule": {
+          "conditions": [
+            {
+              "attribute": "should_disable_feature",
+              "operator": "ONE_OF",
+              "value": [
+                "false"
+              ]
+            }
+          ]
+        },
+        "matchedAllocation": {
+          "key": "enable-feature",
+          "allocationEvaluationCode": "MATCH",
+          "orderPosition": 2
+        },
+        "unmatchedAllocations": [
+          {
+            "key": "disable-feature",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    },
+    {
+      "subjectKey": "charlie",
+      "subjectAttributes": {
+        "unknown_attribute": "value"
+      },
+      "assignment": true,
+      "evaluationDetails": {
+        "environmentName": "Test",
+        "flagEvaluationCode": "DEFAULT_ALLOCATION_NULL",
+        "flagEvaluationDescription": "No allocations matched. Falling back to \"Default Allocation\", serving NULL",
+        "banditKey": null,
+        "banditAction": null,
+        "variationKey": null,
+        "variationValue": null,
+        "matchedRule": null,
+        "matchedAllocation": null,
+        "unmatchedAllocations": [
+          {
+            "key": "disable-feature",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 1
+          },
+          {
+            "key": "enable-feature",
+            "allocationEvaluationCode": "FAILING_RULE",
+            "orderPosition": 2
+          }
+        ],
+        "unevaluatedAllocations": []
+      }
+    }
+  ]
+}
