@@ -1063,7 +1063,7 @@ tests/:
   parametric/:
     test_feature_flag_exposure/:
       test_feature_flag_exposure.py:
-        Test_Feature_Flag_Exposure: missing_feature
+        Test_Feature_Flag_Exposure: v3.18.0+dev
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
@@ -1273,7 +1273,7 @@ tests/:
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
   test_feature_flag_exposures.py:
-    Test_FFE_Exposure_Events: missing_feature
+    Test_FFE_Exposure_Events:  v3.18.0+dev
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature

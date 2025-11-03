@@ -228,6 +228,18 @@ DB_USER = {
 
 tracer.trace("init.service").finish()
 
+# Initialize OpenFeature client if FFE is enabled
+openfeature_client = None
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+    except ImportError:
+        pass
+
 
 def reset_dsm_context():
     # force reset DSM context for global tracer and global DSM processor
@@ -1994,6 +2006,100 @@ def view_iast_sc_iv_overloaded_insecure():
     if _sc_v_overloaded(user, password):
         _sink_point_sqli(table=user)
     return Response("OK")
+
+
+@app.route("/ffe", methods=["POST"])
+def ffe():
+    """OpenFeature evaluation endpoint."""
+    if not openfeature_client:
+        return jsonify({"error": "FFE provider not initialized"}), 500
+
+    try:
+        body = flask_request.get_json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = {"targetingKey": targeting_key, **attributes} if targeting_key else attributes
+
+        # Evaluate based on variation type
+        value = None
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return jsonify({"error": f"Unknown variation type: {variation_type}"}), 400
+
+        return jsonify({"value": value}), 200
+    except Exception as e:
+        log.error(f"[FFE] Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/ffe/start", methods=["POST"])
+def ffe_start():
+    """Initialize OpenFeature provider."""
+    global openfeature_client
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+        return jsonify({}), 200
+    except Exception as e:
+        log.error(f"[FFE] Error starting provider: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/ffe/evaluate", methods=["POST"])
+def ffe_evaluate():
+    """Evaluate feature flag."""
+    if not openfeature_client:
+        return jsonify({"error": "FFE provider not initialized"}), 500
+
+    try:
+        body = flask_request.get_json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = {"targetingKey": targeting_key, **attributes} if targeting_key else attributes
+
+        # Evaluate based on variation type
+        value = default_value
+        reason = "DEFAULT"
+
+        try:
+            if variation_type == "BOOLEAN":
+                value = openfeature_client.get_boolean_value(flag, default_value, context)
+            elif variation_type == "STRING":
+                value = openfeature_client.get_string_value(flag, default_value, context)
+            elif variation_type in ["INTEGER", "NUMERIC"]:
+                value = openfeature_client.get_integer_value(flag, default_value, context)
+            elif variation_type == "JSON":
+                value = openfeature_client.get_object_value(flag, default_value, context)
+            else:
+                value = default_value
+        except Exception:
+            value = default_value
+            reason = "ERROR"
+
+        return jsonify({"value": value, "reason": reason}), 200
+    except Exception as e:
+        log.error(f"[FFE] Error evaluating flag: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/external_request", methods=["GET", "TRACE", "POST", "PUT"])
