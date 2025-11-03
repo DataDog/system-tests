@@ -449,6 +449,9 @@ jobs:
     - name: Run APPSEC_LAMBDA_API_SECURITY scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_API_SECURITY"')
       run: ./run.sh APPSEC_LAMBDA_API_SECURITY
+    - name: Run APPSEC_LAMBDA_RASP scenario
+      if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"APPSEC_LAMBDA_RASP"')
+      run: ./run.sh APPSEC_LAMBDA_RASP
     - name: Run EXTERNAL_PROCESSING scenario
       if: always() && steps.build.outcome == 'success' && contains(inputs.scenarios, '"EXTERNAL_PROCESSING"')
       run: ./run.sh EXTERNAL_PROCESSING
