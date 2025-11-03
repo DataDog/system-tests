@@ -35,7 +35,7 @@ class Test_HardcodedPasswords:
         vuln = list(unique_passwords)[0]
         assert vuln["location"]["path"] == self._get_expectation(self.location_map)
 
-    def _get_expectation(self, d):
+    def _get_expectation(self, d: dict):
         expected = d.get(context.library.name)
         if isinstance(expected, dict):
             expected = expected.get(context.weblog_variant)
