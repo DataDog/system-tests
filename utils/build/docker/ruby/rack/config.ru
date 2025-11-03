@@ -169,7 +169,7 @@ module MakeDistantCall
 
     result = {
       url: url,
-      status_code: response.code,
+      status_code: response.code.to_i,
       request_headers: request.each_header.to_h,
       response_headers: response.each_header.to_h
     }
@@ -424,6 +424,12 @@ module Flush
   end
 end
 
+module ResourceRenaming
+  def run
+    [200, {'Content-Type' => 'text/plain'}, ['OK']]
+  end
+end
+
 # trivial rack endpoint. We use a proc instead of Rack Builder because
 # we compare the request path using regexp and include?
 app = proc do |env|
@@ -473,6 +479,8 @@ app = proc do |env|
     UserLoginFailureEventV2.run(request)
   elsif request.path == '/flush'
     Flush.run(request)
+  elsif request.path.start_with?('/resource_renaming')
+    ResourceRenaming.run
   else
     NotFound.run
   end

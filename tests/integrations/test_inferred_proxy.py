@@ -9,9 +9,14 @@ DISTRIBUTED_PARENT_ID = 2
 DISTRIBUTED_SAMPLING_PRIORITY = 2
 
 
+class _BaseTestCase:
+    start_time: int
+    start_time_ns: int
+
+
 @features.aws_api_gateway_inferred_span_creation
 @scenarios.integrations
-class Test_AWS_API_Gateway_Inferred_Span_Creation:
+class Test_AWS_API_Gateway_Inferred_Span_Creation(_BaseTestCase):
     """Verify AWS API Gateway inferred spans are created when a web server receives specific headers."""
 
     start_time = round(time.time() * 1000)
@@ -41,7 +46,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation:
 
 @features.aws_api_gateway_inferred_span_creation
 @scenarios.integrations
-class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
+class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context(_BaseTestCase):
     """Verify AWS API Gateway inferred spans are created when a web server receives specific headers and
     distributed context.
     """
@@ -77,7 +82,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Distributed_Context:
 
 @features.aws_api_gateway_inferred_span_creation
 @scenarios.integrations
-class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
+class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error(_BaseTestCase):
     """Verify AWS API Gateway inferred spans are created when a web server receives specific headers and
     an error.
     """
@@ -109,7 +114,7 @@ class Test_AWS_API_Gateway_Inferred_Span_Creation_With_Error:
         )
 
 
-def get_span(interface, resource):
+def get_span(interface: interfaces.LibraryInterfaceValidator, resource: str) -> dict | None:
     logger.debug(f"Trying to find API Gateway span for interface: {interface}")
 
     for data, trace in interface.get_traces():
@@ -130,7 +135,15 @@ def get_span(interface, resource):
     return None
 
 
-def assert_api_gateway_span(test_case, span, path, status_code, *, is_distributed=False, is_error=False):
+def assert_api_gateway_span(
+    test_case: _BaseTestCase,
+    span: dict,
+    path: str,
+    status_code: str,
+    *,
+    is_distributed: bool = False,
+    is_error: bool = False,
+) -> None:
     assert span["name"] == "aws.apigateway", "Inferred AWS API Gateway span name should be 'aws.apigateway'"
 
     # Assertions to check if the span data contains the required keys and values.

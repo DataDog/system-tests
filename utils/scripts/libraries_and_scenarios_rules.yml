@@ -187,6 +187,8 @@ patterns:
         scenario_groups: onboarding
     utils/_context/_scenarios/default.py:
         scenario_groups: default
+    utils/_context/_scenarios/_docker_fixtures.py:
+        scenario_groups: parametric
     utils/_context/_scenarios/appsec_rasp.py:
         scenario_groups: appsec_rasp_scenario
     utils/_context/_scenarios/endtoend.py:
@@ -255,6 +257,9 @@ patterns:
 
     utils/_context/virtual_machine.py:
         scenario_groups: onboarding
+
+    utils/docker_fixtures/*:
+        scenario_groups: parametric
 
     utils/docker_ssi/*:
         scenario_groups: docker_ssi
@@ -465,6 +470,10 @@ patterns:
 
     tests/test_the_test/*:
         scenario_groups: null
+        libraries: null
+
+    tests/fuzzer/*:
+        scenario_groups: exotics
         libraries: null
 
 ################################# Default rules ################################

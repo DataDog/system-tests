@@ -59,6 +59,7 @@ class API10:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_headers(API10):
     """API 10 for request headers"""
@@ -74,12 +75,13 @@ class Test_API10_request_headers(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_method(API10):
     """API 10 for request method"""
@@ -94,12 +96,13 @@ class Test_API10_request_method(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_request_body(API10):
     """API 10 for request body"""
@@ -117,12 +120,13 @@ class Test_API10_request_body(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_status(API10):
     """API 10 for response status"""
@@ -138,12 +142,13 @@ class Test_API10_response_status(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 201
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_headers(API10):
     """API 10 for response headers."""
@@ -159,12 +164,13 @@ class Test_API10_response_headers(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_response_body(API10):
     """API 10 for response body."""
@@ -182,12 +188,13 @@ class Test_API10_response_body(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.api10
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_API10_all(API10):
     """API 10 for all addresses at the same time."""
@@ -217,7 +224,7 @@ class Test_API10_all(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 201
-        interfaces.library.validate_spans(self.r, validator=self.validate)
+        interfaces.library.validate_one_span(self.r, validator=self.validate)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
@@ -238,7 +245,7 @@ class Test_API10_downstream_request_tag(API10):
         assert self.r.status_code == 200
         body = json.loads(self.r.text)
         assert "error" not in body
-        interfaces.library.validate_spans(self.r, validator=self.validate_metric)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_metric)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
@@ -302,7 +309,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate_absence)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_absence)
 
 
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7Cwg/edit#heading=h.giijrtyn1fdx")
@@ -333,4 +340,4 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
         body = json.loads(self.r.text)
         assert "error" not in body
         assert int(body["status"]) == 200
-        interfaces.library.validate_spans(self.r, validator=self.validate_absence)
+        interfaces.library.validate_one_span(self.r, validator=self.validate_absence)

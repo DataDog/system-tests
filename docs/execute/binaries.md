@@ -118,8 +118,9 @@ There are three ways to run system-tests with a custom node tracer.
 
 ## PHP library
 
-- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-aarch64-linux-gnu.tar.gz` (or the `x86_64` if you're not on ARM) in `/binaries` folder
-  - You can download those from the `build_packages/package extension` job artifacts, from a CI run of your branch.
+- Place `datadog-setup.php` and `dd-library-php-[X.Y.Z+commitsha]-*-linux-gnu.tar.gz` in `/binaries` folder
+  - You can download the `.tar.gz` from the `package extension: [arm64, aarch64-unknown-linux-gnu]` (or the `amd64` if you're not on ARM) job artifacts (from the `package-trigger` sub-pipeline), from a CI run of your branch.
+  - The `datadog-setup.php` can be copied from the dd-trace-php repository root.
 - Copy it in the binaries folder
 
 Then run the tests from the repo root folder:

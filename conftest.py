@@ -128,6 +128,15 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="An file containing a valid Github token to perform API calls",
     )
 
+    # Integration frameworks scenario options
+    parser.addoption(
+        "--weblog",
+        type=str,
+        action="store",
+        default=None,
+        help="Framework to test (e.g. 'openai@2.0.0' for INTEGRATION_FRAMEWORKS scenario)",
+    )
+
     # report data to feature parity dashboard
     parser.addoption(
         "--report-run-url", type=str, action="store", default=None, help="URI of the run who produced the report"
@@ -159,6 +168,9 @@ def pytest_configure(config: pytest.Config) -> None:
 
     if not config.option.force_execute and "SYSTEM_TESTS_FORCE_EXECUTE" in os.environ:
         config.option.force_execute = os.environ["SYSTEM_TESTS_FORCE_EXECUTE"].strip().split(",")
+
+    if not config.option.library and "TEST_LIBRARY" in os.environ:
+        config.option.library = os.environ["TEST_LIBRARY"].strip()
 
     # clean input
     config.option.force_execute = [item.strip() for item in config.option.force_execute if len(item.strip()) != 0]

@@ -38,11 +38,15 @@ import ddtrace
 from ddtrace.appsec import trace_utils as appsec_trace_utils
 
 try:
-    from ddtrace.trace import Pin
+    from ddtrace._trace.pin import Pin
     from ddtrace.trace import tracer
 except ImportError:
-    from ddtrace import Pin
-    from ddtrace import tracer
+    try:
+        from ddtrace.trace import Pin
+        from ddtrace.trace import tracer
+    except ImportError:
+        from ddtrace import Pin
+        from ddtrace import tracer
 
 ddtrace.patch_all(urllib3=True)
 

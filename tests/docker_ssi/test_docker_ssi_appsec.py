@@ -17,6 +17,7 @@ class TestDockerSSIAppsecFeatures:
     @missing_feature(condition=context.library in ("nodejs", "java", "php", "dotnet"), reason="No implemented")
     @missing_feature(context.library < "python@3.15.0", reason="No implemented")
     @irrelevant(context.library == "python" and context.installed_language_runtime < "3.8.0")
+    @irrelevant(context.library >= "python@3.32.0" and context.installed_language_runtime < "3.9.0")
     def test_telemetry_source_ssi(self):
         root_span = interfaces.test_agent.get_traces(request=self.r)
         assert root_span, f"No traces found for request {self.r.get_rid()}"
