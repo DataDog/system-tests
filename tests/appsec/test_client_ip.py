@@ -21,7 +21,7 @@ class Test_StandardTagsClientIp:
     def test_not_reported(self):
         """Test IP-related span tags are not reported when ASM is disabled"""
 
-        def validator(span):
+        def validator(span: dict):
             meta = span.get("meta", {})
             assert "appsec.event" not in meta, "unexpected appsec event while appsec should be disabled"
             assert "http.client_ip" not in meta, "unexpected http.client_ip tag"
@@ -32,4 +32,4 @@ class Test_StandardTagsClientIp:
 
             return True
 
-        interfaces.library.validate_spans(request=self.r, validator=validator)
+        interfaces.library.validate_one_span(request=self.r, validator=validator)

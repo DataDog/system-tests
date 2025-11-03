@@ -162,7 +162,7 @@ tests/:
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
-            fastapi: v2.15.0
+            fastapi: bug (APPSEC-59742)
           TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: v3.9.0.dev
         test_stacktrace_leak.py:
@@ -304,7 +304,8 @@ tests/:
         Test_API10_all:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
-        Test_API10_downstream_request_tag: missing_feature
+        Test_API10_downstream_request_tag: v3.18.0
+        Test_API10_downstream_ssrf_telemetry: v3.18.0
         Test_API10_request_body:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
@@ -323,6 +324,8 @@ tests/:
         Test_API10_response_status:
           '*': v3.14.0.rc
           'fastapi': v3.15.0.dev (with requests support)
+        Test_API10_without_downstream_body_analysis_using_max: v3.15.0
+        Test_API10_without_downstream_body_analysis_using_sample_rate: v3.15.0
       test_cmdi.py:
         Test_Cmdi_BodyJson: v2.20.0.dev
         Test_Cmdi_BodyUrlEncoded: v2.20.0.dev
@@ -449,6 +452,11 @@ tests/:
         Test_CustomBlockingResponse:
           '*': v1.20.0
           fastapi: v2.4.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules:
           '*': v1.16.1
@@ -724,10 +732,10 @@ tests/:
       Test_UserLoginSuccessEventV2_Tags_AppsecEnabled:
         '*': v3.7.0.dev
     test_extended_data_collection.py:
-      Test_ExtendedDataCollectionCapability: missing_feature
-      Test_ExtendedRequestBodyCollection: missing_feature
-      Test_ExtendedRequestHeadersDataCollection: missing_feature
-      Test_ExtendedResponseHeadersDataCollection: missing_feature
+      Test_ExtendedDataCollectionCapability: irrelevant (wont do)
+      Test_ExtendedRequestBodyCollection: irrelevant (wont do)
+      Test_ExtendedRequestHeadersDataCollection: irrelevant (wont do)
+      Test_ExtendedResponseHeadersDataCollection: irrelevant (wont do)
     test_extended_header_collection.py:
       Test_ExtendedHeaderCollection: missing_feature
     test_extended_request_body_collection.py:
@@ -1053,6 +1061,9 @@ tests/:
         '*': incomplete_test_app (endpoint not implemented)
         flask-poc: v2.19.0
   parametric/:
+    test_feature_flag_exposure/:
+      test_feature_flag_exposure.py:
+        Test_Feature_Flag_Exposure: missing_feature
     test_128_bit_traceids.py:
       Test_128_Bit_Traceids: v2.6.0
     test_config_consistency.py:
@@ -1128,6 +1139,7 @@ tests/:
       Test_Otel_Tracer: v2.8.0
     test_parametric_endpoints.py:
       Test_Parametric_DDTrace_Baggage: v2.16.0
+      Test_Parametric_FFE_Start: missing_feature
       Test_Parametric_Otel_Baggage: v2.16.0
     test_partial_flushing.py:
       Test_Partial_Flushing: flaky (APMAPI-734)
@@ -1260,6 +1272,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: v2.17.0
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': missing_feature
@@ -1294,7 +1308,9 @@ tests/:
       django-py3.13: missing_feature (python 3.13 not supported yet)
       python3.12: v2.1.0
   test_protobuf.py: missing_feature
-  test_resource_renaming.py: missing_feature
+  test_resource_renaming.py:
+    Test_Resource_Renaming_HTTP_Endpoint_Tag: v3.17.0
+    Test_Resource_Renaming_Stats_Aggregation_Keys: v3.17.0
   test_sampling_rates.py:
     Test_SampleRateFunction: v3.6.0+dev
     Test_SamplingDecisionAdded: v2.8.0

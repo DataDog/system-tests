@@ -24,7 +24,8 @@ from .external_processing import ExternalProcessingScenario
 from .stream_processing_offload import StreamProcessingOffloadScenario
 from .ipv6 import IPV6Scenario
 from .appsec_low_waf_timeout import AppsecLowWafTimeout
-from utils._context._scenarios.appsec_rasp import AppsecRaspScenario
+from .integration_frameworks import IntegrationFrameworksScenario
+from utils._context._scenarios.appsec_rasp import AppSecLambdaRaspScenario, AppsecRaspScenario
 
 update_environ_with_local_env()
 
@@ -173,7 +174,11 @@ class _Scenarios:
     )
     appsec_blocking = EndToEndScenario(
         "APPSEC_BLOCKING",
-        weblog_env={"DD_APPSEC_RULES": "/appsec_blocking_rule.json"},
+        weblog_env={
+            "DD_APPSEC_RULES": "/appsec_blocking_rule.json",
+            "DD_TRACE_RESOURCE_RENAMING_ALWAYS_SIMPLIFIED_ENDPOINT": "true",
+            "DD_TRACE_COMPUTE_STATS": "true",
+        },
         weblog_volumes={"./tests/appsec/blocking_rule.json": {"bind": "/appsec_blocking_rule.json", "mode": "ro"}},
         doc="Misc tests for appsec blocking",
         scenario_groups=[scenario_groups.appsec, scenario_groups.essentials],
@@ -491,6 +496,17 @@ class _Scenarios:
         ],
     )
 
+    feature_flag_exposure = EndToEndScenario(
+        "FEATURE_FLAG_EXPOSURE",
+        rc_api_enabled=True,
+        weblog_env={
+            "DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED": "true",
+            "DD_REMOTE_CONFIG_POLL_INTERVAL_SECONDS": "0.2",
+        },
+        doc="",
+        scenario_groups=[scenario_groups.feature_flag_exposure],
+    )
+
     remote_config_mocked_backend_asm_features_nocache = EndToEndScenario(
         "REMOTE_CONFIG_MOCKED_BACKEND_ASM_FEATURES_NOCACHE",
         rc_api_enabled=True,
@@ -525,6 +541,9 @@ class _Scenarios:
         weblog_env={
             "DD_TRACE_SAMPLE_RATE": "1.0",
             "DD_TRACE_V1_PAYLOAD_FORMAT_ENABLED": "true",
+        },
+        agent_env={
+            "DD_APM_ENABLE_V1_TRACE_ENDPOINT": "true",
         },
         backend_interface_timeout=5,
         doc="End-to-end testing scenario focused on efficient payload handling and v1 trace format validation",
@@ -683,6 +702,7 @@ class _Scenarios:
         "DEBUGGER_EXCEPTION_REPLAY",
         weblog_env={
             "DD_EXCEPTION_DEBUGGING_ENABLED": "1",
+            "DD_CODE_ORIGIN_FOR_SPANS_ENABLED": "0",
             "DD_EXCEPTION_REPLAY_CAPTURE_MAX_FRAMES": "10",
         },
         doc="Check exception replay",
@@ -962,6 +982,20 @@ class _Scenarios:
 
     appsec_rasp = AppsecRaspScenario("APPSEC_RASP")
 
+    appsec_rasp_without_downstream_body_analysis_using_sample_rate = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_SAMPLE_RATE",
+        weblog_env={
+            "DD_API_SECURITY_DOWNSTREAM_REQUEST_BODY_ANALYSIS_SAMPLE_RATE": "0",
+        },
+    )
+
+    appsec_rasp_without_downstream_body_analysis_using_max = AppsecRaspScenario(
+        "APPSEC_RASP_WITHOUT_DOWNSTREAM_BODY_ANALYSIS_USING_MAX",
+        weblog_env={
+            "DD_API_SECURITY_MAX_DOWNSTREAM_REQUEST_BODY_ANALYSIS": "0",
+        },
+    )
+
     appsec_standalone_rasp = AppsecRaspScenario(
         "APPSEC_STANDALONE_RASP",
         weblog_env={
@@ -1087,9 +1121,14 @@ class _Scenarios:
         """,
         scenario_groups=[scenario_groups.appsec, scenario_groups.appsec_lambda],
     )
+    appsec_lambda_rasp = AppSecLambdaRaspScenario("APPSEC_LAMBDA_RASP")
 
     otel_collector = OtelCollectorScenario("OTEL_COLLECTOR")
-    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", use_proxy=True, mocked_backend=False)
+    otel_collector_e2e = OtelCollectorScenario("OTEL_COLLECTOR_E2E", mocked_backend=False)
+
+    integration_frameworks = IntegrationFrameworksScenario(
+        "INTEGRATION_FRAMEWORKS", doc="Tests for third-party integration frameworks"
+    )
 
 
 scenarios = _Scenarios()

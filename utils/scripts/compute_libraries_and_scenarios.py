@@ -119,6 +119,21 @@ def match_patterns(modified_file: str, impacts: dict[str, Param]) -> tuple[set[s
     return None
 
 
+def get_prefix(path: str, pattern: str) -> str:
+    """Returns the prefix of `path` before the given `pattern` (including the trailing slash).
+
+    Example:
+        get_prefix("aa/bb/pattern/dd/ee", "pattern")  # -> "aa/bb/"
+
+    """
+    parts = path.split("/")
+    if pattern in parts:
+        idx = parts.index(pattern)
+        return "/".join(parts[: idx + 0]) + "/" if idx > 0 else ""
+
+    return path
+
+
 class LibraryProcessor:
     def __init__(self, libraries: set[str] | None = None):
         self.selected = libraries if libraries else set()
@@ -236,8 +251,19 @@ class ScenarioProcessor:
 
     def process_test_files(self, file: str) -> None:
         if file.startswith("tests/"):
-            if file.endswith(("/utils.py", "/conftest.py", ".json")):
-                # particular use case for modification in tests/ of a file utils.py or conftest.py
+            if "/utils/" in file:
+                # particular use case for modification in a utils/ folder:
+                # in that situation, all files near to this utils/ folder, or inside folders near it
+                # are be impacted
+
+                folder = get_prefix(file, "utils")
+
+                for sub_file, scenario_names in self.scenarios_by_files.items():
+                    if sub_file.startswith(folder):
+                        self.scenarios |= scenario_names
+
+            elif file.endswith(("/utils.py", "/conftest.py", ".json")):
+                # particular use case for modification in tests/ of a file utils.py or conftest.py:
                 # in that situation, takes all scenarios executed in tests/<path>/
 
                 # same for any json file
