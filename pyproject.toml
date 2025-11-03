@@ -177,7 +177,7 @@ ignore = [
 "tests/{parametric,appsec}*/test_*.py" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
-"tests/debugger/{test_debugger_expression_language.py,test_debugger_exception_replay.py}" = [
+"tests/debugger/test_debugger_exception_replay.py" = [
     "ANN001",    # missing-type-function-argument: TODO
 ]
 "tests/*" = [
