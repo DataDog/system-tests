@@ -15,7 +15,7 @@ CONFIG_EMPTY = None  # Empty config to reset the state at test setup
 CONFIG_ENABLED = {"asm": {"enabled": True}}
 
 
-def _send_config(config):
+def _send_config(config: dict | None):
     if config is not None:
         rc.rc_state.set_config("datadog/2/ASM_FEATURES/asm_features_activation/config", config)
     else:
