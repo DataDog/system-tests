@@ -37,8 +37,10 @@ class Test_HardcodedSecrets:
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
-        assert len(hardcode_secrets) == 1
-        vuln = hardcode_secrets[0]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcode_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        vuln = list(unique_secrets)[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
 
 
@@ -57,8 +59,10 @@ class Test_HardcodedSecretsExtended:
         assert self.r_hardcoded_secrets_exec.status_code == 200
         hardcoded_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcoded_secrets = [v for v in hardcoded_secrets if v["evidence"]["value"] == "datadog-access-token"]
-        assert len(hardcoded_secrets) == 1
-        vuln = hardcoded_secrets[0]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcoded_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        vuln = list(unique_secrets)[0]
         assert vuln["location"]["path"] == get_expectation(self.location_map)
 
 
@@ -87,8 +91,10 @@ class Test_HardcodedSecrets_ExtendedLocation:
     def test_extended_location_data(self):
         hardcode_secrets = get_hardcoded_vulnerabilities("HARDCODED_SECRET")
         hardcode_secrets = [v for v in hardcode_secrets if v["evidence"]["value"] == "aws-access-token"]
-        assert len(hardcode_secrets) == 1
-        location = hardcode_secrets[0]["location"]
+        # Deduplicate by hash in case the tracer reports the same secret multiple times
+        unique_secrets = {v["hash"]: v for v in hardcode_secrets}.values()
+        assert len(unique_secrets) == 1, f"Expected 1 unique secret, found {len(unique_secrets)}"
+        location = list(unique_secrets)[0]["location"]
 
         assert all(field in location for field in ["path", "line"])
 

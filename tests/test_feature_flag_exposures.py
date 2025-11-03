@@ -80,6 +80,7 @@ class Test_FFE_Exposure_Events:
             # Validate context object
             assert "context" in exposure_data, "Response missing 'context' field"
             context = exposure_data["context"]
+
             service_name = context.get("service")
             assert service_name == "weblog", f"Expected service_name 'weblog', got '{context}'"
             assert context["version"] == "1.0.0", f"Expected version '1.0.0', got '{context['version']}'"

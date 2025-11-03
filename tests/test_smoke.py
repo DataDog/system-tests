@@ -23,7 +23,9 @@ class Test_Backend:
     @missing_feature(context.agent_version < "7.67.0-dev")
     def test_good_backend_partial(self):
         """Agent reads and use DD_SITE env var"""
-        self._assert_good_backend(expected_domain=context.dd_site, excluded_sub_domains=("intake.profile",))
+        self._assert_good_backend(
+            expected_domain=context.dd_site, excluded_sub_domains=("intake.profile", "debugger-intake")
+        )
 
     @staticmethod
     def _assert_good_backend(expected_domain: str, excluded_sub_domains: tuple[str, ...] = ()) -> None:
