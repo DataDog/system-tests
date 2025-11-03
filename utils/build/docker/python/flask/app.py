@@ -102,6 +102,7 @@ from ddtrace.data_streams import set_produce_checkpoint
 
 from debugger_controller import debugger_blueprint
 from exception_replay_controller import exception_replay_blueprint
+from openfeature.evaluation_context import EvaluationContext
 
 try:
     from ddtrace._trace.pin import Pin

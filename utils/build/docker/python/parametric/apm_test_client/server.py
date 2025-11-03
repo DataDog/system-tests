@@ -10,11 +10,14 @@ import logging
 import os
 import enum
 from fastapi import FastAPI
+from fastapi import Request
+from fastapi.responses import JSONResponse
 import opentelemetry.trace
 from pydantic import BaseModel
 from urllib.parse import urlparse
 
 import opentelemetry
+from openfeature.evaluation_context import EvaluationContext
 from opentelemetry.metrics import CallbackOptions
 from opentelemetry.metrics import Meter
 from opentelemetry.metrics import Observation
@@ -55,6 +58,18 @@ except ImportError:
 from opentelemetry._logs import get_logger_provider
 
 log = logging.getLogger(__name__)
+
+# OpenFeature client initialization
+openfeature_client = None
+if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+    except ImportError:
+        pass
 
 spans: Dict[int, Span] = {}
 ddcontexts: Dict[int, Context] = {}
@@ -1175,6 +1190,101 @@ def _global_sampling_rate():
         ):
             return rule.sample_rate
     return 1.0
+
+
+# OpenFeature endpoints
+@app.post("/ffe", response_class=JSONResponse)
+async def ffe(request: Request) -> JSONResponse:
+    """OpenFeature evaluation endpoint."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+        # Evaluate based on variation type
+        value = None
+        if variation_type == "BOOLEAN":
+            value = openfeature_client.get_boolean_value(flag, default_value, context)
+        elif variation_type == "STRING":
+            value = openfeature_client.get_string_value(flag, default_value, context)
+        elif variation_type in ["INTEGER", "NUMERIC"]:
+            value = openfeature_client.get_integer_value(flag, default_value, context)
+        elif variation_type == "JSON":
+            value = openfeature_client.get_object_value(flag, default_value, context)
+        else:
+            return JSONResponse({"error": f"Unknown variation type: {variation_type}"}, status_code=400)
+
+        return JSONResponse({"value": value}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/start", response_class=JSONResponse)
+async def ffe_start() -> JSONResponse:
+    """Initialize OpenFeature provider."""
+    global openfeature_client
+    try:
+        from openfeature import api
+        from ddtrace.openfeature import DataDogProvider
+
+        api.set_provider(DataDogProvider())
+        openfeature_client = api.get_client()
+        return JSONResponse({}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error starting provider: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/ffe/evaluate", response_class=JSONResponse)
+async def ffe_evaluate(request: Request) -> JSONResponse:
+    """Evaluate feature flag."""
+    if not openfeature_client:
+        return JSONResponse({"error": "FFE provider not initialized"}, status_code=500)
+
+    try:
+        body = await request.json()
+        flag = body.get("flag")
+        variation_type = body.get("variationType")
+        default_value = body.get("defaultValue")
+        targeting_key = body.get("targetingKey")
+        attributes = body.get("attributes", {})
+
+        # Build context
+        context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
+
+        # Evaluate based on variation type
+        value = default_value
+        reason = "DEFAULT"
+
+        try:
+            if variation_type == "BOOLEAN":
+                value = openfeature_client.get_boolean_value(flag, default_value, context)
+            elif variation_type == "STRING":
+                value = openfeature_client.get_string_value(flag, default_value, context)
+            elif variation_type in ["INTEGER", "NUMERIC"]:
+                value = openfeature_client.get_integer_value(flag, default_value, context)
+            elif variation_type == "JSON":
+                value = openfeature_client.get_object_value(flag, default_value, context)
+            else:
+                value = default_value
+        except Exception:
+            value = default_value
+            reason = "ERROR"
+        print(f"!!!!!!!!!!!!!!!!!!!!FFE value: {value}, reason: {reason}")
+        print(value)
+        return JSONResponse({"value": value, "reason": reason}, status_code=200)
+    except Exception as e:
+        log.error(f"[FFE] Error evaluating flag: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 
 # TODO: Remove all unused otel types and endpoints from parametric tests
