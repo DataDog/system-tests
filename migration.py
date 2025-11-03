@@ -205,15 +205,12 @@ def yml_sort(output_file):
             data[-1][1].append(line)
         else:
             data.append((line, []))
-    data.sort()
-    # return
+    data.sort(key=lambda x: x[0][:x[0].rfind(":")])
 
     with open(output_file, "a") as f:
         for entry in data:
-            # print("  " + entry[0])
             f.write("  " + entry[0] + "\n")
             for line in entry[1]:
-                # print("  " + line)
                 f.write("  " + line + "\n")
 
 def add_refs(file_path, output_file):
