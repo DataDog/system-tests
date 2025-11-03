@@ -46,10 +46,6 @@ else
     done
 fi
 
-export GONOSUMDB=github.com/DataDog,go.ddbuild.io
-export GOPRIVATE=github.com/DataDog
-go get -v github.com/DataDog/datadog-agent/pkg/remoteconfig/state@a6fc0902d44f5b544bbc2f6056242bd6f4acb6ac
-
 # Downloading a newer version of the tracer may require to resolve again all dependencies
 go mod tidy
 
