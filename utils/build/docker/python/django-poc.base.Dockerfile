@@ -1,7 +1,7 @@
 FROM python:3.11-slim
 
 # install bin dependancies
-RUN apt-get update && apt-get install -y curl
+RUN apt-get update && apt-get install -y --no-install-recommends curl gcc openssh-client git
 
 # print versions
 RUN python --version && curl --version
