@@ -54,10 +54,10 @@ def find_attributes(proto_object):
 
 
 @pytest.fixture
-def otlp_endpoint_library_env(library_env, endpoint_env, test_agent_container_name, test_agent_otlp_http_port):
+def otlp_endpoint_library_env(library_env, endpoint_env, test_agent, test_agent_otlp_http_port):
     """Set up a custom endpoint for OTLP logs."""
     prev_value = library_env.get(endpoint_env)
-    library_env[endpoint_env] = f"http://{test_agent_container_name}:{test_agent_otlp_http_port}/v1/logs"
+    library_env[endpoint_env] = f"http://{test_agent.container_name}:{test_agent_otlp_http_port}/v1/logs"
     yield library_env
     if prev_value is None:
         del library_env[endpoint_env]

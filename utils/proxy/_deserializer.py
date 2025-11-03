@@ -146,6 +146,9 @@ def deserialize_http_message(
         return content if content else None
 
     if path == "/v1.0/traces" and source_is_datadog_tracer:
+        if content_type == "text/plain; charset=utf-8":
+            return content.decode(encoding="utf-8")
+
         return deserialize_v1_trace(content)
 
     if content_type in ("application/msgpack", "application/msgpack, application/msgpack") or (path == "/v0.6/stats"):

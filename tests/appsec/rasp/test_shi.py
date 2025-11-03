@@ -27,6 +27,7 @@ class Test_Shi_Base:
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_UrlQuery(Test_Shi_Base):
     """Shell Injection through query parameters"""
@@ -50,6 +51,7 @@ class Test_Shi_UrlQuery(Test_Shi_Base):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
     """Shell Injection through a url-encoded body parameter"""
@@ -73,6 +75,7 @@ class Test_Shi_BodyUrlEncoded(Test_Shi_Base):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_BodyXml(Test_Shi_Base):
     """Shell Injection through an xml body parameter"""
@@ -97,6 +100,7 @@ class Test_Shi_BodyXml(Test_Shi_Base):
 @rfc("https://docs.google.com/document/d/1gCXU3LvTH9en3Bww0AC2coSJWz1m7HcavZjvMLuDCWg/edit#heading=h.giijrtyn1fdx")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_BodyJson(Test_Shi_Base):
     """Shell Injection through a json body parameter"""
@@ -122,6 +126,7 @@ class Test_Shi_BodyJson(Test_Shi_Base):
 @features.rasp_span_tags
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_Mandatory_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -137,6 +142,7 @@ class Test_Shi_Mandatory_SpanTags:
 @features.rasp_span_tags
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_Optional_SpanTags:
     """Validate span tag generation on exploit attempts"""
@@ -152,6 +158,7 @@ class Test_Shi_Optional_SpanTags:
 @features.rasp_stack_trace
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_StackTrace:
     """Validate stack trace generation on exploit attempts"""
@@ -166,6 +173,7 @@ class Test_Shi_StackTrace:
 @rfc("https://docs.google.com/document/d/1vmMqpl8STDk7rJnd3YBsa6O9hCls_XHHdsodD61zr_4/edit#heading=h.96mezjnqf46y")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_Telemetry:
     """Validate Telemetry data on exploit attempts"""
@@ -190,6 +198,7 @@ class Test_Shi_Telemetry:
 @rfc("https://docs.google.com/document/d/1D4hkC0jwwUyeo0hEQgyKP54kM1LZU98GL8MaP60tQrA")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_Telemetry_V2:
     """Validate Telemetry data on exploit attempts"""
@@ -216,6 +225,7 @@ class Test_Shi_Telemetry_V2:
 @rfc("https://docs.google.com/document/d/1DDWy3frMXDTAbk-BfnZ1FdRwuPx6Pl7AWyR4zjqRFZw")
 @features.rasp_shell_injection
 @scenarios.appsec_rasp
+@scenarios.appsec_lambda_rasp
 @scenarios.appsec_standalone_rasp
 class Test_Shi_Telemetry_Variant_Tag:
     """Validate Telemetry data variant tag on exploit attempts"""
