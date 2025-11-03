@@ -1257,7 +1257,7 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
         default_value = body.get("defaultValue")
         targeting_key = body.get("targetingKey")
         attributes = body.get("attributes", {})
-
+        print(f"!!!!!!!!!!!!!!!!!!!!flag: {flag}, variation_type: {variation_type}, default_value: {default_value}, targeting_key: {targeting_key}, attributes: {attributes}")
         # Build context
         context = EvaluationContext(targeting_key=targeting_key, attributes=attributes)
 
@@ -1270,8 +1270,10 @@ async def ffe_evaluate(request: Request) -> JSONResponse:
                 value = openfeature_client.get_boolean_value(flag, default_value, context)
             elif variation_type == "STRING":
                 value = openfeature_client.get_string_value(flag, default_value, context)
-            elif variation_type in ["INTEGER", "NUMERIC"]:
+            elif variation_type == "INTEGER":
                 value = openfeature_client.get_integer_value(flag, default_value, context)
+            elif variation_type == "NUMERIC":
+                value = openfeature_client.get_float_value(flag, default_value, context)
             elif variation_type == "JSON":
                 value = openfeature_client.get_object_value(flag, default_value, context)
             else:

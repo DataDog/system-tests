@@ -16,6 +16,6 @@ RUN pip install 'flask[async]'==2.2.4 flask-login==0.6.3 uWSGI==2.0.26 gevent==2
 RUN pip install 'moto[ec2,s3,all]'==5.0.14 xmltodict==0.14.2
 RUN pip install boto3==1.34.141 kombu==5.3.7 mock==5.1.0 asyncpg==0.29.0 aiomysql==0.2.0 mysql-connector-python==9.0.0 mysqlclient==2.2.4 urllib3==1.26.19 PyMySQL==1.1.1
 
-# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v7 .
-# docker push datadog/system-tests:uwsgi-poc.base-v7
+# docker build --progress=plain -f utils/build/docker/python/uwsgi-poc.base.Dockerfile -t datadog/system-tests:uwsgi-poc.base-v8 .
+# docker push datadog/system-tests:uwsgi-poc.base-v8
 
