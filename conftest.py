@@ -412,7 +412,7 @@ def pytest_collection_finish(session: pytest.Session) -> None:
     context.scenario.post_setup(session)
 
     print("\n=== Collected test functions and their marks ===")
-    with open("./dump", "w") as f:
+    with open(f"./dumps/dump_{context.library.name}_{context.weblog_variant}_{context.scenario.name}", "w") as f:
         for item in session.items:
             # Get all marks, including inherited ones (parametrize, class, etc.)
             marks = [m.name for m in item.iter_markers()]

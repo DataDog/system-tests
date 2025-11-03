@@ -39,12 +39,6 @@ def _load_file(file: str, component: str):
             version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
 
         return SemverRange(version)
-        # try:
-        #     return SemverRange(version)
-        # except ValueError as e:
-        #     print(e)
-        #     print(nodeid)
-        #     pass
 
     try:
         with open(file, encoding="utf-8") as f:
