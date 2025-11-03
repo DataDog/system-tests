@@ -7,6 +7,10 @@ libraries.
 import pytest
 from utils import features, rfc, scenarios
 from utils.parametric.spec.trace import MANUAL_KEEP_KEY
+from utils.parametric.spec.trace import SAMPLING_DECISION_MAKER_KEY
+from utils.dd_constants import SAMPLING_PRIORITY_KEY
+from utils.dd_constants import SamplingMechanism
+from utils.dd_constants import SamplingPriority
 
 
 @features.ensure_that_sampling_is_consistent_across_languages
@@ -55,9 +59,9 @@ class Test_Manual_Keep_Sampling:
         assert span["parent_id"] == parent_id
 
         # Verify manual keep overrode the extracted drop decision
-        assert "_sampling_priority_v1" in span["metrics"]
-        assert span["metrics"]["_sampling_priority_v1"] == 2  # Manual keep priority
+        assert SAMPLING_PRIORITY_KEY in span["metrics"]
+        assert span["metrics"][SAMPLING_PRIORITY_KEY] == SamplingPriority.USER_KEEP
 
         # Verify decision maker shows manual decision (mechanism 4)
-        assert "_dd.p.dm" in span["meta"]
-        assert span["meta"]["_dd.p.dm"] == "-4"  # Manual decision mechanism
+        assert SAMPLING_DECISION_MAKER_KEY in span["meta"]
+        assert span["meta"][SAMPLING_DECISION_MAKER_KEY] == "-" + str(SamplingMechanism.MANUAL)
