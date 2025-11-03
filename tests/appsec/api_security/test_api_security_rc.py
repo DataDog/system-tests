@@ -3,11 +3,11 @@
 # Copyright 2021 Datadog, Inc.
 
 from utils import interfaces, rfc, scenarios, weblog, features, logger
-
+from utils._weblog import HttpResponse
 from tests.appsec.api_security.utils import BaseAppsecApiSecurityRcTest
 
 
-def get_schema(request, address):
+def get_schema(request: HttpResponse, address: str):
     """Get api security schema from spans"""
     for _, _, span in interfaces.library.get_spans(request):
         meta = span.get("meta", {})
