@@ -237,6 +237,7 @@ if os.environ.get("DD_EXPERIMENTAL_FLAGGING_PROVIDER_ENABLED") == "true":
     api.set_provider(DataDogProvider())
     openfeature_client = api.get_client()
 
+
 def reset_dsm_context():
     # force reset DSM context for global tracer and global DSM processor
     try:
