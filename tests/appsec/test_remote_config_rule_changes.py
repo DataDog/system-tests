@@ -167,14 +167,14 @@ class Test_UpdateRuleFileWithRemoteConfig:
         expected_rules_version_tag = "_dd.appsec.event_rules.version"
         expected_version_regex = r"[0-9]+\.[0-9]+\.[0-9]+"
 
-        def validate_waf_rule_version_tag(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack"""
             meta = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
             assert re.match(expected_version_regex, meta[expected_rules_version_tag])
             return True
 
-        def validate_waf_rule_version_tag_by_rc(span, appsec_data):  # noqa: ARG001
+        def validate_waf_rule_version_tag_by_rc(span: dict, appsec_data: dict):  # noqa: ARG001
             """Validate the mandatory event_rules.version tag is added to the request span having an attack with expected rc version"""
             meta: dict = span["meta"]
             assert expected_rules_version_tag in meta, f"missing span meta tag `{expected_rules_version_tag}` in meta"
@@ -185,10 +185,10 @@ class Test_UpdateRuleFileWithRemoteConfig:
         assert self.config_state_1.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_1, rule="ua0-600-56x")
         assert self.response_1.status_code == 403
-        interfaces.library.validate_appsec(self.response_1, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_1, validate_waf_rule_version_tag)
         interfaces.library.assert_waf_attack(self.response_1b, rule="ua0-600-12x")
         assert self.response_1b.status_code == 200
-        interfaces.library.validate_appsec(self.response_1b, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_1b, validate_waf_rule_version_tag)
 
         # new rule file with only 12x
         assert self.config_state_2.state == rc.ApplyState.ACKNOWLEDGED
@@ -197,7 +197,7 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.assert_no_appsec_event(self.response_2)
         interfaces.library.assert_waf_attack(self.response_2b, rule="ua0-600-12x")
         assert self.response_2b.status_code == 200
-        interfaces.library.validate_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
+        interfaces.library.validate_one_appsec(self.response_2b, validate_waf_rule_version_tag_by_rc)
 
         # block on 405/json with RC. It must not change anything for the new rule file
         assert self.config_state_3.state == rc.ApplyState.ACKNOWLEDGED
@@ -206,16 +206,16 @@ class Test_UpdateRuleFileWithRemoteConfig:
         interfaces.library.assert_no_appsec_event(self.response_3)
         interfaces.library.assert_waf_attack(self.response_3b, rule="ua0-600-12x")
         assert self.response_3b.status_code == 200
-        interfaces.library.validate_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
+        interfaces.library.validate_one_appsec(self.response_3b, validate_waf_rule_version_tag_by_rc)
 
         # Switch back to default rules but keep updated blocking action
         assert self.config_state_4.state == rc.ApplyState.ACKNOWLEDGED
         interfaces.library.assert_waf_attack(self.response_4, rule="ua0-600-56x")
-        interfaces.library.validate_appsec(self.response_4, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_4, validate_waf_rule_version_tag)
         assert self.response_4.status_code == 405
         interfaces.library.assert_waf_attack(self.response_4b, rule="ua0-600-12x")
         assert self.response_4b.status_code == 200
-        interfaces.library.validate_appsec(self.response_4b, validate_waf_rule_version_tag)
+        interfaces.library.validate_one_appsec(self.response_4b, validate_waf_rule_version_tag)
 
         # ASM disabled
         assert self.config_state_5.state == rc.ApplyState.ACKNOWLEDGED

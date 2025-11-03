@@ -5,19 +5,18 @@ import json
 from typing import cast
 from http import HTTPStatus
 from pathlib import Path
-from subprocess import run
 import time
-from functools import lru_cache
 from threading import RLock, Thread
 
 import docker
-from docker.errors import APIError, DockerException
+from docker.errors import APIError
 from docker.models.containers import Container, ExecResult
 from docker.models.networks import Network
 import pytest
 import requests
 
 from utils._context.component_version import ComponentVersion
+from utils._context.docker import get_docker_client
 from utils.proxy.ports import ProxyPorts
 from utils._logger import logger
 from utils import interfaces
@@ -28,43 +27,17 @@ from utils.interfaces import StdoutLogsInterface, LibraryStdoutInterface
 # fake key of length 32
 _FAKE_DD_API_KEY = "0123456789abcdef0123456789abcdef"
 
-
-@lru_cache
-def _get_client():
-    try:
-        return docker.DockerClient.from_env()
-    except DockerException as e:
-        # Failed to start the default Docker client... Let's see if we have
-        # better luck with docker contexts...
-        try:
-            ctx_name = run(["docker", "context", "show"], capture_output=True, check=True, text=True).stdout.strip()
-            endpoint = run(
-                ["docker", "context", "inspect", ctx_name, "-f", "{{ .Endpoints.docker.Host }}"],
-                capture_output=True,
-                check=True,
-                text=True,
-            ).stdout.strip()
-            return docker.DockerClient(base_url=endpoint)
-        except:
-            logger.exception("Fail to get docker client with context")
-
-        if "Error while fetching server API version: ('Connection aborted.'" in str(e):
-            pytest.exit("Connection refused to docker daemon, is it running?", 1)
-
-        raise
-
-
 _DEFAULT_NETWORK_NAME = "system-tests_default"
 _NETWORK_NAME = "bridge" if "GITLAB_CI" in os.environ else _DEFAULT_NETWORK_NAME
 
 
 def create_network() -> Network:
-    for network in _get_client().networks.list(names=[_NETWORK_NAME]):
+    for network in get_docker_client().networks.list(names=[_NETWORK_NAME]):
         logger.debug(f"Network {_NETWORK_NAME} still exists")
         return network
 
     logger.debug(f"Create network {_NETWORK_NAME}")
-    return _get_client().networks.create(_NETWORK_NAME, check_duplicate=True)
+    return get_docker_client().networks.create(_NETWORK_NAME, check_duplicate=True)
 
 
 _VOLUME_INJECTOR_NAME = "volume-inject"
@@ -72,7 +45,7 @@ _VOLUME_INJECTOR_NAME = "volume-inject"
 
 def create_inject_volume():
     logger.debug(f"Create volume {_VOLUME_INJECTOR_NAME}")
-    _get_client().volumes.create(_VOLUME_INJECTOR_NAME)
+    get_docker_client().volumes.create(_VOLUME_INJECTOR_NAME)
 
 
 class TestedContainer:
@@ -188,7 +161,7 @@ class TestedContainer:
         return f"{self.host_project_dir}/{self.host_log_folder}/docker/{self.name}"
 
     def get_existing_container(self) -> Container:
-        for container in _get_client().containers.list(all=True, filters={"name": self.container_name}):
+        for container in get_docker_client().containers.list(all=True, filters={"name": self.container_name}):
             if container.name == self.container_name:
                 logger.debug(f"Container {self.container_name} found")
                 return container
@@ -226,7 +199,7 @@ class TestedContainer:
 
         logger.info(f"Start container {self.container_name}")
 
-        self._container = _get_client().containers.run(
+        self._container = get_docker_client().containers.run(
             image=self.image.name,
             name=self.container_name,
             hostname=self.name,
@@ -529,18 +502,18 @@ class ImageInfo:
 
     def load(self):
         try:
-            self._image = _get_client().images.get(self.name)
+            self._image = get_docker_client().images.get(self.name)
         except docker.errors.ImageNotFound:
             if self.local_image_only:
                 pytest.exit(f"Image {self.name} not found locally, please build it", 1)
 
             logger.stdout(f"Pulling {self.name}")
             try:
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
             except docker.errors.ImageNotFound:
                 # Sometimes pull returns ImageNotFound, internal race?
                 time.sleep(5)
-                self._image = _get_client().images.pull(self.name)
+                self._image = get_docker_client().images.pull(self.name)
 
         self._init_from_attrs(self._image.attrs)
 
@@ -1388,7 +1361,7 @@ class MountInjectionVolume(TestedContainer):
 
     def remove(self):
         super().remove()
-        _get_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
+        get_docker_client().api.remove_volume(_VOLUME_INJECTOR_NAME)
 
 
 class WeblogInjectionInitContainer(TestedContainer):

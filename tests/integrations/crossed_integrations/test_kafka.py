@@ -15,7 +15,7 @@ class _BaseKafka:
     buddy_interface: interfaces.LibraryInterfaceValidator
 
     @classmethod
-    def get_span(cls, interface, span_kind, topic) -> dict | None:
+    def get_span(cls, interface: interfaces.LibraryInterfaceValidator, span_kind: str, topic: str) -> dict | None:
         logger.debug(f"Trying to find traces with span kind: {span_kind} and topic: {topic} in {interface}")
 
         for data, trace in interface.get_traces():
@@ -36,7 +36,7 @@ class _BaseKafka:
         return None
 
     @staticmethod
-    def get_topic(span) -> str | None:
+    def get_topic(span: dict) -> str | None:
         """Extracts the topic from a span by trying various fields"""
         topic = span["meta"].get("kafka.topic")  # this is in python
         if topic is None:
@@ -131,7 +131,12 @@ class _BaseKafka:
         assert consumer_span is not None
         assert producer_span["trace_id"] == consumer_span["trace_id"]
 
-    def validate_kafka_spans(self, producer_interface, consumer_interface, topic):
+    def validate_kafka_spans(
+        self,
+        producer_interface: interfaces.LibraryInterfaceValidator,
+        consumer_interface: interfaces.LibraryInterfaceValidator,
+        topic: str,
+    ):
         """Validates production/consumption of kafka message.
         It works the same for both test_produce and test_consume
         """

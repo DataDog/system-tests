@@ -1,6 +1,7 @@
 # Unless explicitly stated otherwise all files in this repository are licensed under the the Apache License Version 2.0.
 # This product includes software developed at Datadog (https://www.datadoghq.com/).
 # Copyright 2022 Datadog, Inc.
+from collections.abc import Callable
 
 from utils import bug
 from utils import context
@@ -15,7 +16,7 @@ from utils import weblog
 from utils.dd_constants import Capabilities, SamplingPriority
 
 
-def login_data(context, username, password):
+def login_data(username: str, password: str):
     """In Rails the parameters are group by scope. In the case of the test the scope is user.
     The syntax to group parameters in a POST request is scope[parameter]
     """
@@ -88,7 +89,7 @@ class Test_Login_Events:
     # ]
 
     def setup_login_pii_success_local(self):
-        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @irrelevant(
@@ -123,7 +124,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -148,7 +149,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -189,7 +190,7 @@ class Test_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     @bug(context.library < "nodejs@4.9.0", reason="APMRP-360")
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -232,7 +233,7 @@ class Test_Login_Events:
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -265,7 +266,7 @@ class Test_Login_Events:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
         )
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -307,7 +308,7 @@ class Test_Login_Events_Extended:
     """Test login success/failure use cases"""
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -367,7 +368,7 @@ class Test_Login_Events_Extended:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_user_failure_local(self):
@@ -426,7 +427,7 @@ class Test_Login_Events_Extended:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
     def test_login_wrong_password_failure_local(self):
@@ -477,7 +478,7 @@ class Test_Login_Events_Extended:
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -529,7 +530,7 @@ class Test_Login_Events_Extended:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
         )
 
     @missing_feature(weblog_variant="spring-boot-openliberty", reason="weblog returns error 500")
@@ -547,7 +548,7 @@ class Test_Login_Events_Extended:
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
             "/login?auth=local",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -558,7 +559,7 @@ class Test_Login_Events_Extended:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span):
+        def validate_login_success_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -566,12 +567,12 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
             "/login?auth=local",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -582,7 +583,7 @@ class Test_Login_Events_Extended:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span):
+        def validate_login_failure_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -590,7 +591,7 @@ class Test_Login_Events_Extended:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/19VHLdJLVFwRb_JrE87fmlIM5CL5LdOBv4AmLxgdo9qI/edit")
@@ -618,7 +619,7 @@ class Test_V2_Login_Events:
     # ]
 
     def setup_login_pii_success_local(self):
-        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_pii_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_pii_success_local(self):
         assert self.r_pii_success.status_code == 200
@@ -653,7 +654,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, UUID_USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(UUID_USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -686,7 +687,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now it's ...failure.usr.login"
@@ -733,7 +734,7 @@ class Test_V2_Login_Events:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0", reason="Released v3 with logins from 3.7, now exists ...failure.usr.login"
@@ -793,7 +794,7 @@ class Test_V2_Login_Events:
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -826,7 +827,7 @@ class Test_V2_Login_Events:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
         )
 
     def test_login_sdk_failure_local(self):
@@ -869,7 +870,7 @@ class Test_V2_Login_Events_Anon:
     """
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -910,7 +911,7 @@ class Test_V2_Login_Events_Anon:
             assert_priority(span, trace)
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     @irrelevant(
         context.library >= "dotnet@3.7.0",
@@ -957,7 +958,7 @@ class Test_V2_Login_Events_Anon:
             assert_priority(span, trace)
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1012,7 +1013,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_sdk_success_local(self):
         self.r_sdk_success = weblog.post(
             "/login?auth=local&sdk_event=success&sdk_user=sdkUser",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
         )
 
     def test_login_sdk_success_local(self):
@@ -1063,7 +1064,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_sdk_failure_local(self):
         self.r_sdk_failure = weblog.post(
             "/login?auth=local&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
         )
 
     def test_login_sdk_failure_local(self):
@@ -1080,7 +1081,7 @@ class Test_V2_Login_Events_Anon:
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
             "/login?auth=local",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -1088,7 +1089,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span):
+        def validate_login_success_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1096,12 +1097,12 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
             "/login?auth=local",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -1109,7 +1110,7 @@ class Test_V2_Login_Events_Anon:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span):
+        def validate_login_failure_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1117,10 +1118,10 @@ class Test_V2_Login_Events_Anon:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
-def assert_priority(span, trace):
+def assert_priority(span: dict, trace: list[dict]):
     if "_sampling_priority_v1" not in span["metrics"]:
         # some tracers like java only send the priority in the first and last span of the trace
         assert trace[0]["metrics"].get("_sampling_priority_v1") == SamplingPriority.USER_KEEP
@@ -1187,12 +1188,12 @@ class Test_V2_Login_Events_RC:
         },
     ]
 
-    def _send_rc_and_execute_request(self, rc_payload):
+    def _send_rc_and_execute_request(self, rc_payload: dict):
         config_states = rc.send_state(raw_payload=rc_payload)
-        request = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        request = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         return {"config_states": config_states, "request": request}
 
-    def _assert_response(self, test, validation):
+    def _assert_response(self, test: dict, validation: Callable):
         config_states, request = test["config_states"], test["request"]
 
         assert config_states.state == rc.ApplyState.ACKNOWLEDGED
@@ -1208,13 +1209,13 @@ class Test_V2_Login_Events_RC:
         self.tests = [self._send_rc_and_execute_request(rc) for rc in self.PAYLOADS]
 
     def test_rc(self):
-        def validate_disabled(meta):
+        def validate_disabled(meta: dict):
             assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
 
-        def validate_anon(meta):
+        def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
 
-        def validate_iden(meta):
+        def validate_iden(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
 
         self._assert_response(self.tests[0], validate_disabled)
@@ -1262,7 +1263,7 @@ class Test_V3_Login_Events:
     # ]
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -1303,7 +1304,7 @@ class Test_V3_Login_Events:
                 assert meta["_dd.appsec.usr.id"] == "social-security-id"
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1344,7 +1345,7 @@ class Test_V3_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1396,7 +1397,7 @@ class Test_V3_Login_Events:
         self.r_sdk_success = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, USER, PASSWORD),
+                data=login_data(USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]
@@ -1453,7 +1454,7 @@ class Test_V3_Login_Events:
         self.r_sdk_failure = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data=login_data(context, INVALID_USER, PASSWORD),
+                data=login_data(INVALID_USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]
@@ -1501,7 +1502,7 @@ class Test_V3_Login_Events:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_signup_local(self):
-        self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
+        self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
     @irrelevant(
@@ -1533,7 +1534,7 @@ class Test_V3_Login_Events:
     def setup_login_success_headers(self):
         self.r_hdr_success = weblog.post(
             "/login?auth=local",
-            data=login_data(context, USER, PASSWORD),
+            data=login_data(USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -1541,7 +1542,7 @@ class Test_V3_Login_Events:
     def test_login_success_headers(self):
         # Validate that all relevant headers are included on user login success on extended mode
 
-        def validate_login_success_headers(span):
+        def validate_login_success_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1549,12 +1550,12 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_success, validator=validate_login_success_headers)
+        interfaces.library.validate_one_span(self.r_hdr_success, validator=validate_login_success_headers)
 
     def setup_login_failure_headers(self):
         self.r_hdr_failure = weblog.post(
             "/login?auth=local",
-            data=login_data(context, INVALID_USER, PASSWORD),
+            data=login_data(INVALID_USER, PASSWORD),
             headers=HEADERS,
         )
 
@@ -1562,7 +1563,7 @@ class Test_V3_Login_Events:
     def test_login_failure_headers(self):
         # Validate that all relevant headers are included on user login failure on extended mode
 
-        def validate_login_failure_headers(span):
+        def validate_login_failure_headers(span: dict):
             if span.get("parent_id") not in (0, None):
                 return None
 
@@ -1570,7 +1571,7 @@ class Test_V3_Login_Events:
                 assert f"http.request.headers.{header.lower()}" in span["meta"], f"Can't find {header} in span's meta"
             return True
 
-        interfaces.library.validate_spans(self.r_hdr_failure, validator=validate_login_failure_headers)
+        interfaces.library.validate_one_span(self.r_hdr_failure, validator=validate_login_failure_headers)
 
 
 @rfc("https://docs.google.com/document/d/1RT38U6dTTcB-8muiYV4-aVDCsT_XrliyakjtAPyjUpw")
@@ -1583,7 +1584,7 @@ class Test_V3_Login_Events_Anon:
     """
 
     def setup_login_success_local(self):
-        self.r_success = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_success = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_success_local(self):
         assert self.r_success.status_code == 200
@@ -1624,7 +1625,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["_dd.appsec.usr.id"] == USER_HASH
 
     def setup_login_wrong_user_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, INVALID_USER, PASSWORD))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(INVALID_USER, PASSWORD))
 
     def test_login_wrong_user_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1665,7 +1666,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "false"
 
     def setup_login_wrong_password_failure_local(self):
-        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(context, USER, "12345"))
+        self.r_wrong_user_failure = weblog.post("/login?auth=local", data=login_data(USER, "12345"))
 
     def test_login_wrong_password_failure_local(self):
         assert self.r_wrong_user_failure.status_code == 401
@@ -1717,7 +1718,7 @@ class Test_V3_Login_Events_Anon:
         self.r_sdk_success = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, USER, PASSWORD),
+                data=login_data(USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]
@@ -1774,7 +1775,7 @@ class Test_V3_Login_Events_Anon:
         self.r_sdk_failure = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=failure&sdk_user=sdkUser&sdk_user_exists=true",
-                data=login_data(context, INVALID_USER, PASSWORD),
+                data=login_data(INVALID_USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]
@@ -1822,7 +1823,7 @@ class Test_V3_Login_Events_Anon:
                 assert meta["appsec.events.users.login.failure.usr.exists"] == "true"
 
     def setup_signup_local(self):
-        self.r_success = weblog.post("/signup", data=login_data(context, NEW_USER, PASSWORD))
+        self.r_success = weblog.post("/signup", data=login_data(NEW_USER, PASSWORD))
 
     @missing_feature(context.library == "nodejs", reason="Signup events not implemented")
     @irrelevant(
@@ -1861,12 +1862,12 @@ ANONYMIZATION = ("datadog/2/ASM_FEATURES/auto-user-instrum/config", {"auto_user_
 @features.user_monitoring
 @scenarios.appsec_auto_events_rc
 class Test_V3_Login_Events_RC:
-    def _send_rc_and_execute_request(self, config):
+    def _send_rc_and_execute_request(self, config: list | tuple):
         config_state = rc.rc_state.set_config(*config).apply()
-        request = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        request = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
         return {"config_state": config_state, "request": request}
 
-    def _assert_response(self, test, validation):
+    def _assert_response(self, test: dict, validation: Callable):
         config_state, request = test["config_state"], test["request"]
 
         assert config_state.state == rc.ApplyState.ACKNOWLEDGED
@@ -1884,13 +1885,13 @@ class Test_V3_Login_Events_RC:
         self.anonymization = self._send_rc_and_execute_request(ANONYMIZATION)
 
     def test_rc(self):
-        def validate_disabled(meta):
+        def validate_disabled(meta: dict):
             assert "_dd.appsec.events.users.login.success.auto.mode" not in meta
 
-        def validate_anon(meta):
+        def validate_anon(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "anonymization"
 
-        def validate_iden(meta):
+        def validate_iden(meta: dict):
             assert meta["_dd.appsec.events.users.login.success.auto.mode"] == "identification"
 
         self._assert_response(self.disabled, validate_disabled)
@@ -1973,12 +1974,12 @@ class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_id(self):
         rc.rc_state.reset().apply()
 
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
         self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_ID).apply()
 
-        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     @irrelevant(context.library == "java", reason="Blocking by user ID not available in java")
     def test_login_event_blocking_auto_id(self):
@@ -1994,12 +1995,12 @@ class Test_V3_Login_Events_Blocking:
     def setup_login_event_blocking_auto_login(self):
         rc.rc_state.reset().apply()
 
-        self.r_login = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
         self.config_state_1 = rc.rc_state.set_config(*BLOCK_USER_RULE).apply()
         self.config_state_2 = rc.rc_state.set_config(*BLOCK_USER_LOGIN).apply()
 
-        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(context, USER, PASSWORD))
+        self.r_login_blocked = weblog.post("/login?auth=local", data=login_data(USER, PASSWORD))
 
     def test_login_event_blocking_auto_login(self):
         assert self.r_login.status_code == 200
@@ -2016,7 +2017,7 @@ class Test_V3_Login_Events_Blocking:
         self.r_login = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, UUID_USER, PASSWORD),
+                data=login_data(UUID_USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]
@@ -2027,7 +2028,7 @@ class Test_V3_Login_Events_Blocking:
         self.r_login_blocked = [
             weblog.post(
                 f"/login?auth=local&sdk_trigger={trigger}&sdk_event=success&sdk_user=sdkUser",
-                data=login_data(context, UUID_USER, PASSWORD),
+                data=login_data(UUID_USER, PASSWORD),
             )
             for trigger in SDK_TRIGGERS
         ]

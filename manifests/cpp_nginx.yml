@@ -65,6 +65,11 @@ tests/:
         Test_Blocking: v1.2.0
         Test_Blocking_strip_response_headers: irrelevant (no response headers on 1st waf run, which is where blocking is possible)
         Test_CustomBlockingResponse: v1.2.0
+      test_blocking_security_response_id.py:
+        Test_SecurityResponseId_Custom_Redirect: missing_feature
+        Test_SecurityResponseId_HTML_Response: missing_feature
+        Test_SecurityResponseId_In_Span_Triggers: missing_feature
+        Test_SecurityResponseId_JSON_Response: missing_feature
       test_custom_rules.py:
         Test_CustomRules: v1.2.0
       test_exclusions.py:
@@ -268,6 +273,8 @@ tests/:
     Test_Span_Links_Flags_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
     Test_Span_Links_From_Conflicting_Contexts: missing_feature (baggage should be implemented and conflicting trace contexts should generate span link)
     Test_Span_Links_Omit_Tracestate_From_Conflicting_Contexts: missing_feature (implementation specs have not been determined)
+  test_feature_flag_exposures.py:
+    Test_FFE_Exposure_Events: missing_feature
   test_graphql.py: missing_feature
   test_identify.py: irrelevant
   test_ipv6.py: missing_feature (APMAPI-869)
