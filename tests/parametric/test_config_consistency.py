@@ -534,9 +534,10 @@ class Test_Stable_Config_Default(StableConfigWriter):
         ],
     )
     @missing_feature(
-        context.library in ["cpp", "golang", "nodejs"],
+        context.library in ["cpp", "golang"],
         reason="extended configs are not supported",
     )
+    @missing_feature(context.library <= "nodejs@5.75.0", reason="extended configs are not supported")
     def test_extended_configs(
         self, test_agent, test_library, path, library_env, name, apm_configuration_default, expected
     ):
@@ -557,7 +558,21 @@ class Test_Stable_Config_Default(StableConfigWriter):
             )
             test_library.container_restart()
             config = test_library.config()
-            assert expected.items() <= config.items(), f"Expected config items not found. Actual config is: {config}"
+
+            # Special handling for dd_tags: check if expected tags are present in actual tags
+            # since tracers may automatically append additional tags (service, env, version, runtime-id, etc.)
+            for key, expected_value in expected.items():
+                if key == "dd_tags":
+                    actual_tags = config.get("dd_tags", "")
+                    # Handle list format (dotnet, php) vs string format (other languages)
+                    if isinstance(expected_value, list):
+                        for tag in expected_value:
+                            assert tag in actual_tags, f"Expected tag '{tag}' not found in actual tags: {actual_tags}"
+                    else:
+                        for tag in expected_value.split(","):
+                            assert tag in actual_tags, f"Expected tag '{tag}' not found in actual tags: {actual_tags}"
+                else:
+                    assert config.get(key) == expected_value, f"Expected {key}={expected_value}, got {config.get(key)}"
 
     @pytest.mark.parametrize(
         "test",
