@@ -73,6 +73,7 @@ refs:
   - &ref_5_74_0 '>=5.74.0'
   - &ref_5_75_0 '>=5.75.0'
   - &ref_5_76_0 '>=5.76.0'
+  - &ref_5_77_0 '>=5.77.0'
 tests/:
   apm_tracing_e2e/:
     test_otel.py:
@@ -1451,7 +1452,7 @@ tests/:
   test_feature_flag_exposures.py:
     Test_FFE_Exposure_Events:
       '*': incomplete_test_app
-      express4: missing_feature  # only target express 4
+      express4: *ref_5_77_0  # only target express 4
   test_graphql.py:
     Test_GraphQLOperationErrorReporting:
       '*': irrelevant

@@ -14,7 +14,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     message_map: dict = {}
 
     ############ setup ############
-    def _setup(self, probes, request_path):
+    def _setup(self, probes: list[dict], request_path: str):
         self.set_probes(probes)
         self.send_rc_probes()
         self.wait_for_all_probes(statuses=["INSTALLED"])
@@ -31,7 +31,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.assert_all_weblog_responses_ok(expected_response)
         self._validate_expression_language_messages(self.message_map)
 
-    def _validate_expression_language_messages(self, expected_message_map):
+    def _validate_expression_language_messages(self, expected_message_map: dict):
         not_found_ids = set(self.probe_ids)
         error_messages = []
 
@@ -521,7 +521,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self._assert(expected_response=200)
 
     ############ helpers ############
-    def _get_type(self, value_type):
+    def _get_type(self, value_type: str):
         instance_type = ""
 
         if self.get_tracer()["language"] == "dotnet":
@@ -577,7 +577,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
 
         return instance_type
 
-    def _create_expression_probes(self, method_name, expressions, lines=()):
+    def _create_expression_probes(self, method_name: str, expressions: list[list], lines: list | tuple = ()):
         probes = []
         expected_message_map = {}
         prob_types = []
@@ -620,23 +620,23 @@ class Segment:
     def __init__(self):
         self.segments = []
 
-    def add_str(self, string):
+    def add_str(self, string: str):
         self.segments.append({"str": string})
         return self
 
-    def add_dsl(self, dsl_creator):
+    def add_dsl(self, dsl_creator: "Segment"):
         self.segments.append({"dsl": "", "json": dsl_creator.to_dict()})
         return self
 
-    def to_dict(self):
+    def to_dict(self) -> list:
         return self.segments
 
-    def to_json(self):
+    def to_json(self) -> str:
         return json.dumps(self.to_dict())
 
 
 class Dsl:
-    def __init__(self, operator, value):
+    def __init__(self, operator: str, value: "list|str|Dsl"):
         self.data = {}
 
         if isinstance(value, Dsl):
