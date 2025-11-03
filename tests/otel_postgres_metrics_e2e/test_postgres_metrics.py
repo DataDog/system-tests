@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 import time
 
-from utils import scenarios, interfaces, logger, features, bug, context
+from utils import scenarios, interfaces, logger, features, context
 
 from typing import TYPE_CHECKING
 
@@ -255,7 +255,6 @@ class Test_BackendValidity:
             logger.error(f"\n❌ Failed validations: {failed_metrics}")
 
 
-@bug(condition=True, reason="AIDM-147", force_skip=False)
 @scenarios.otel_collector
 @scenarios.otel_collector_e2e
 @features.otel_postgres_support
