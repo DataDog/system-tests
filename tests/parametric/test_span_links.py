@@ -8,6 +8,8 @@ from utils.parametric.spec.trace import span_has_no_parent
 from utils.parametric.spec.tracecontext import TRACECONTEXT_FLAGS_SET
 from utils import scenarios, missing_feature, features
 from utils.parametric.spec.trace import retrieve_span_links, find_span, find_trace, find_span_in_traces
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 
 @scenarios.parametric
@@ -15,7 +17,7 @@ from utils.parametric.spec.trace import retrieve_span_links, find_span, find_tra
 class Test_Span_Links:
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.4"}])
     @missing_feature(library="nodejs", reason="only supports span links encoding through _dd.span_links tag")
-    def test_span_started_with_link_v04(self, test_agent, test_library):
+    def test_span_started_with_link_v04(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span and serialized in the expected v0.4 format.
         This tests the functionality of "create a direct link between two spans
         given two valid span (or SpanContext) objects" as specified in the RFC.
@@ -50,7 +52,7 @@ class Test_Span_Links:
 
     @missing_feature(library="ruby", reason="v0.5 is not supported in Ruby")
     @pytest.mark.parametrize("library_env", [{"DD_TRACE_API_VERSION": "v0.5"}])
-    def test_span_started_with_link_v05(self, test_agent, test_library):
+    def test_span_started_with_link_v05(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link created from another span and serialized in the expected v0.5 format.
         This tests the functionality of "create a direct link between two spans
         given two valid span (or SpanContext) objects" as specified in the RFC.
@@ -87,7 +89,7 @@ class Test_Span_Links:
     @missing_feature(
         library="nodejs", reason="does not currently support creating a link from distributed datadog headers"
     )
-    def test_span_link_from_distributed_datadog_headers(self, test_agent, test_library):
+    def test_span_link_from_distributed_datadog_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Properly inject datadog distributed tracing information into span links when trace_api is v0.4.
         Testing the conversion of x-datadog-* headers to tracestate for
         representation in span links.
@@ -122,7 +124,7 @@ class Test_Span_Links:
         assert link.get("flags", 1) == 1 | TRACECONTEXT_FLAGS_SET
         assert link["attributes"] == {"foo": "bar"}
 
-    def test_span_link_from_distributed_w3c_headers(self, test_agent, test_library):
+    def test_span_link_from_distributed_w3c_headers(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Properly inject w3c distributed tracing information into span links.
         This mostly tests that the injected tracestate and flags are accurate.
         """
@@ -163,7 +165,7 @@ class Test_Span_Links:
         assert link.get("flags") == 1 | TRACECONTEXT_FLAGS_SET
         assert len(link.get("attributes") or {}) == 0
 
-    def test_span_with_attached_links(self, test_agent, test_library):
+    def test_span_with_attached_links(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Test adding a span link from a span to another span."""
         with test_library:
             with (
@@ -212,7 +214,7 @@ class Test_Span_Links:
     @missing_feature(library="python", reason="links do not influence the sampling decision of spans")
     @missing_feature(library="nodejs", reason="links do not influence the sampling decision of spans")
     @missing_feature(library="ruby", reason="links do not influence the sampling decision of spans")
-    def test_span_link_propagated_sampling_decisions(self, test_agent, test_library):
+    def test_span_link_propagated_sampling_decisions(self, test_agent: TestAgentAPI, test_library: APMLibrary):
         """Sampling decisions made by an upstream span should be propagated via span links to
         downstream spans.
         """

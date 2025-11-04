@@ -8,6 +8,8 @@ libraries.
 
 import pytest
 from utils import features, rfc, scenarios
+from utils.docker_fixtures import TestAgentAPI
+from .conftest import APMLibrary
 
 
 @features.decisionless_extraction
@@ -34,7 +36,9 @@ class Test_Decisionless_Extraction:
             }
         ],
     )
-    def test_sampling_delegation_extract_neither_decision_nor_delegation(self, test_agent, test_library):
+    def test_sampling_delegation_extract_neither_decision_nor_delegation(
+        self, test_agent: TestAgentAPI, test_library: APMLibrary
+    ):
         """Make your own sampling decision when the client doesn't send one.
 
         The behavior tested here is not specified in the sampling delegation
