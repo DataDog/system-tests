@@ -162,7 +162,6 @@ tests/:
         test_ssrf.py:
           TestSSRF:
             '*': v2.10.0
-            fastapi: bug (APPSEC-59742)
           TestSSRF_ExtendedLocation: v3.1.0.dev
           TestSSRF_StackTrace: v3.9.0.dev
         test_stacktrace_leak.py:
