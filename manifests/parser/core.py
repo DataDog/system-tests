@@ -7,9 +7,11 @@ import ast
 import re
 
 from utils._decorators import CustomSpec as SemverRange
+from utils.get_declaration import match_rule
 
 from jsonschema import validate
 import yaml
+from semantic_version import Version
 
 
 def _flatten(base: str, obj: dict):
@@ -24,19 +26,23 @@ def _flatten(base: str, obj: dict):
             else:
                 yield from _flatten(f"{base}{key}", value)
 
+def sanitize_version(version):
+    if re.fullmatch("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
+        core_version = re.match("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
+        connector = ""
+        if version[core_version.end():] and not version[core_version.end():].startswith(("-", ".", "+")):
+            connector = "-"
+        version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
+    return version
+
 
 def _load_file(file: str, component: str):
     def to_semver(version: str, nodeid):
         par = version.find("(")
         if par >= 0:
             version = version[:par]
-        if re.fullmatch("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]*(-|\+|\.|[a-z]|[A-Z]|[0-9])*", version.strip()):
-            dots = re.finditer("\.", version)
-            core_version = re.match("(<|>|=)*[0-9]*\.[0-9]*\.[0-9]", version)
-            connector = ""
-            if not version[core_version.end():].startswith(("-", ".")) or not version[core_version.end():]:
-                connector = "-"
-            version = version[:core_version.end()] + connector + version[core_version.end():].replace(".", "-")
+
+        version = sanitize_version(version)
 
         return SemverRange(version)
 
@@ -169,6 +175,43 @@ def assert_nodeids_exist(obj: dict, path: str = ""):
 
     return errors
 
+def assert_increasing_versions(obj: dict):
+    def to_version(sdec: str):
+        if sdec.startswith(("bug", "flaky", "incomplete_test_app", "irrelevant", "missing_feature")):
+            return None
+        while len(sdec.split(".")) < 3:
+            sdec += ".0"
+        sdec = sdec.strip("v")
+        sdec = sdec[:sdec.find(" ")%(len(sdec)+1)]
+        sdec = sdec[:sdec.find("(")%(len(sdec)+1)]
+        sdec = sanitize_version(sdec)
+        return Version(sdec.strip(">").strip("="))
+
+    stack = []
+    errors = []
+    for key, val in obj.items():
+        if not isinstance(val, str):
+            continue
+
+        while stack and not match_rule(stack[-1][0], key):
+            stack.pop()
+
+        version = to_version(val)
+        if not version:
+            continue
+
+        if not stack:
+            stack.append((key, version))
+            continue
+
+        if stack[-1][1] >= version:
+            errors.append(f"{stack[-1][0]} version ({stack[-1][1]}) should be lower than {key} version ({version})")
+        stack.append((key, val))
+
+    return errors
+
+    
+
 def pretty(errors):
     ret = ""
     for file, file_errors in errors.items():
@@ -187,6 +230,7 @@ def validate_manifest_files() -> None:
     validation_errors = {}
     nodeid_errors = {}
     parser_errors = {}
+    increasing_versions_errors = {}
     
     for file in os.listdir("manifests/"):
         if file.endswith(".yml"):
@@ -211,6 +255,9 @@ def validate_manifest_files() -> None:
             except ValueError as e:
                 parser_errors[file] = [e]
 
+            errors = assert_increasing_versions(data["manifest"])
+            if errors: increasing_versions_errors[file] = errors
+
     message = ""
     if order_errors:
         message += "\n====================Key order errors====================\n" + pretty(order_errors)
@@ -220,6 +267,8 @@ def validate_manifest_files() -> None:
         message += "\n=====================Node ID errors=====================\n" + pretty(nodeid_errors)
     if parser_errors:
         message += "\n===================Declaration errors===================\n" + pretty(parser_errors)
+    if increasing_versions_errors:
+        message += "\n==================Version order errors==================\n" + pretty(increasing_versions_errors)
     assert not message, message
 
 if __name__ == "__main__":
