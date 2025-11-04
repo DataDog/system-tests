@@ -1,4 +1,4 @@
-from time import sleep
+import time
 from utils import scenarios, weblog, interfaces, features
 from utils._weblog import HttpResponse
 
@@ -58,25 +58,24 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
 
     def setup_stats_aggregation_with_method_and_endpoint(self):
         """Generate multiple requests to create stats"""
-        # Generate multiple requests to the same endpoint for aggregation
-        # Wait for the CSS to be enabled
-
-        #weblog.get("/stats-setup")
+        # Wait for some stats to be sent to verify that client-side stats has been enabled
         stats_req = []
         for req in interfaces.library.get_data("/v0.6/stats"):
             stats_req.append(req)
         while stats_req == []:
-            sleep(1)
-            #weblog.get("/stats-setup")
+            time.sleep(1)
             for req in interfaces.library.get_data("/v0.6/stats"):
                 stats_req.append(req)
-        print(stats_req)
+
+        # Generate multiple requests to the same endpoint for aggregation
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
         for _ in range(3):
             self.requests.append(weblog.get("/resource_renaming/api/posts/456"))
-        sleep(10)
+
+        # Wait for stats to be flushed
+        time.sleep(10)
 
     def test_stats_aggregation_with_method_and_endpoint(self):
         """Test that stats are aggregated by method and endpoint"""
