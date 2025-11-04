@@ -1,5 +1,4 @@
 import semantic_version as semver
-from manifests.parser.core import load as load_manifests
 from utils._decorators import parse_skip_declaration
 
 def match_condition(condition, library=None, library_version=None, variant=None, agent_version=None, dd_apm_inject_version=None, k8s_cluster_agent_version=None):
@@ -37,8 +36,26 @@ def match_condition(condition, library=None, library_version=None, variant=None,
             ret &= variant != condition["excluded_variant"]
     return ret
 
+def match_rule(rule: str, nodeid: str):
+    path = rule.split("/")
+    rest = rule.split("::")
+    rule_elements = path[:-1] + [path[-1].split("::")[0]] + rest[1:]
+
+    path = nodeid.split("/")
+    rest = nodeid.split("::")
+    nodeid_elements = path[:-1] + [path[-1].split("::")[0]] + rest[1:]
+
+    if len(rule_elements) > len(nodeid_elements):
+        return False
+    for elements in zip(rule_elements, nodeid_elements):
+        if elements[0] != elements[1]:
+            return False
+
+    return True
+
 
 def get_declarations(library: str, library_version=None, variant=None, agent_version=None, dd_apm_inject_version=None, k8s_cluster_agent_version=None, manifests_path = "manifests/"):
+    from manifests.parser.core import load as load_manifests
     declarations = {}
 
     rules = load_manifests()

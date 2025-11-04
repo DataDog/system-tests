@@ -27,7 +27,7 @@ from utils._context.component_version import ComponentVersion
 from utils._decorators import released, configure as configure_decorators, parse_skip_declaration, add_pytest_marker
 from utils._features import NOT_REPORTED_ID as NOT_REPORTED_FEATURE_ID
 from utils._logger import logger
-from utils.get_declaration import get_declarations
+from utils.get_declaration import get_declarations, match_rule
 
 # Monkey patch JSON-report plugin to avoid noise in report
 JSONReport.pytest_terminal_summary = lambda *args, **kwargs: None  # noqa: ARG005
@@ -328,8 +328,8 @@ def pytest_collection_modifyitems(session: pytest.Session, config: pytest.Config
                                context.dd_apm_inject_version,
                                context.k8s_cluster_agent_version)
     for item in items:
-        for nodeid, declarations in rules.items():
-            if nodeid in item.nodeid:
+        for rule, declarations in rules.items():
+            if match_rule(rule, item.nodeid):
                 for declaration in declarations:
                     add_pytest_marker(item, declaration[0], declaration[1])
 
