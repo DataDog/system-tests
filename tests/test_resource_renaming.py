@@ -107,7 +107,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
             try:
                 assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
             except Exception as e:
-                print(f"Actual hits are: {actual_hits}")
+                print(f"Actual hits are: {stats_points}")
                 print(f"Info fetches: {[req for req in interfaces.library.get_data("/info")]}")
                 raise e
             actual_count = actual_hits[(method, endpoint)]
