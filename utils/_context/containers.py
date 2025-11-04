@@ -1260,8 +1260,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         environment: dict[str, str | None] | None = None,
         volumes: dict | None = None,
     ) -> None:
-        # Allow custom config file via environment variable
-        self._otel_config_host_path = config_file
+        self.config_file = config_file
 
         if "DOCKER_HOST" in os.environ:
             m = re.match(r"(?:ssh:|tcp:|fd:|)//(?:[^@]+@|)([^:]+)", os.environ["DOCKER_HOST"])
@@ -1284,7 +1283,7 @@ class OpenTelemetryCollectorContainer(TestedContainer):
 
     def configure(self, *, host_log_folder: str, replay: bool) -> None:
         self.volumes[f"./{host_log_folder}/docker/collector/logs"] = {"bind": "/var/log/system-tests", "mode": "rw"}
-        self.volumes[self._otel_config_host_path] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
+        self.volumes[self.config_file] = {"bind": "/etc/otelcol-config.yml", "mode": "ro"}
 
         super().configure(host_log_folder=host_log_folder, replay=replay)
 
@@ -1306,13 +1305,13 @@ class OpenTelemetryCollectorContainer(TestedContainer):
         return False
 
     def start(self, network: Network) -> Container:
-        # _otel_config_host_path is mounted in the container, and depending on umask,
+        # config_file is mounted in the container, and depending on umask,
         # it might have no read permissions for other users, which is required within
         # the container. So set them here.
-        prev_mode = Path(self._otel_config_host_path).stat().st_mode
+        prev_mode = Path(self.config_file).stat().st_mode
         new_mode = prev_mode | stat.S_IROTH
         if prev_mode != new_mode:
-            Path(self._otel_config_host_path).chmod(new_mode)
+            Path(self.config_file).chmod(new_mode)
         return super().start(network)
 
 
