@@ -60,7 +60,9 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         """Generate multiple requests to create stats"""
         # Generate multiple requests to the same endpoint for aggregation
         # Wait for the CSS to be enabled
-        sleep(5)
+        while next(interfaces.library.get_data("/info"), None) is None:
+            sleep(1)
+        sleep(1)
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
@@ -97,6 +99,7 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
                 assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
             except Exception as e:
                 print(f"Actual hits are: {actual_hits}")
+                print(f"Info fetches: {interfaces.library.get_data("/info")}")
                 raise e
             actual_count = actual_hits[(method, endpoint)]
             assert (
