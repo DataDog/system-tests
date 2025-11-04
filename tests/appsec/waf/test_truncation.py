@@ -3,7 +3,7 @@ from tests.appsec.utils import find_series
 from utils import weblog, rfc, features, interfaces
 
 
-def create_nested_object(n, obj):
+def create_nested_object(n: int, obj: dict) -> dict:
     if n > 0:
         return {"a": create_nested_object(n - 1, obj)}
     return obj

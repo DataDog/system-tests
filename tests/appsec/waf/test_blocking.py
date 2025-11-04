@@ -126,7 +126,7 @@ class Test_Blocking:
             self.r_abt, pattern="Arachni/v", address="server.request.headers.no_cookies"
         )
 
-        def validate_appsec_blocked(span):
+        def validate_appsec_blocked(span: dict):
             if span.get("type") not in ("web", "serverless"):
                 return None
 

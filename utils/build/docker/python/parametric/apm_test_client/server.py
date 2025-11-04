@@ -35,13 +35,17 @@ from opentelemetry.baggage import get_baggage
 
 import ddtrace
 from ddtrace import config
-from ddtrace.settings.profiling import config as profiling_config
 from ddtrace.contrib.trace_utils import set_http_meta
 from ddtrace.constants import ERROR_MSG
 from ddtrace.constants import ERROR_STACK
 from ddtrace.constants import ERROR_TYPE
 from ddtrace.propagation.http import HTTPPropagator
 from ddtrace.internal.utils.version import parse_version
+
+try:
+    from ddtrace.internal.settings.profiling import config as profiling_config
+except ImportError:
+    from ddtrace.settings.profiling import config as profiling_config
 
 try:
     from ddtrace.trace import Span
@@ -91,6 +95,7 @@ try:
 
     def dogstatsd_url():
         return agent_config.dogstatsd_url
+
 except ImportError:
     # TODO: Remove this block once we stop running parametric tests for ddtrace<3.3.0
     def trace_agent_url():
