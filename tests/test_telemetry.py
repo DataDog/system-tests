@@ -212,25 +212,30 @@ class Test_Telemetry:
         """Request type app-started is the first telemetry message or the first message in the first batch"""
         telemetry_data = list(interfaces.library.get_telemetry_data(flatten_message_batches=False))
         assert len(telemetry_data) > 0, "No telemetry messages"
-        if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
-            first_message = telemetry_data[0]["request"]["content"]["payload"][0]
-            try:
+        for batch in telemetry_data:
+            if batch["request"]["content"].get("request_type") == "message-batch":
+                first_message = telemetry_data[0]["request"]["content"]["payload"][0]
+                if first_message.get("request_type") in ["sketches", "generate-metrics", "logs"]:
+                # In some cases (e.g. with the trace exporter) a telemetry payload without app-lifecycles messages can be sent first. 
+                # In this case if the batch only contains message not related to app-lifecycle we can ignore it.
+                    for message in batch["request"]["content"]["payload"]:
+                        assert (
+                            message.get("request_type") in ["sketches", "generate-metrics", "logs"]
+                        ), "app-started is not the first message in the first batch containing app-lifecycle messages"
+                    continue 
                 assert (
                     first_message.get("request_type") == "app-started"
                 ), "app-started was not the first message in the first batch"
-            except Exception as e:
-                print(f"Received first messages are : {[b["request"]["content"]["payload"][0].get("request_type") for b in telemetry_data]}")
-                raise e
-        else:
-            # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
-            # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
-            telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
-            app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
-            assert app_started, "app-started message not found"
-            min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
-            assert (
-                app_started[0]["request"]["content"]["seq_id"] == min_seq_id
-            ), "app-started is not the first message by seq_id"
+            else:
+                # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
+                # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
+                telemetry_data = sorted(telemetry_data, key=lambda x: x["request"]["content"]["seq_id"])
+                app_started = [d for d in telemetry_data if d["request"]["content"].get("request_type") == "app-started"]
+                assert app_started, "app-started message not found"
+                min_seq_id = min(d["request"]["content"]["seq_id"] for d in telemetry_data)
+                assert (
+                    app_started[0]["request"]["content"]["seq_id"] == min_seq_id
+                ), "app-started is not the first message by seq_id"
 
     @bug(weblog_variant="spring-boot-openliberty", reason="APPSEC-6583")
     @bug(weblog_variant="spring-boot-wildfly", reason="APPSEC-6583")
