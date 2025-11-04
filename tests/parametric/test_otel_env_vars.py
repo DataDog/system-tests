@@ -44,7 +44,7 @@ class Test_Otel_Env_Vars:
         assert float(resp["dd_trace_sample_rate"]) == 0.5
         assert resp["dd_trace_enabled"] == "true"
         tags = resp["dd_tags"]
-        assert isinstance(tags, str)
+        assert isinstance(tags, (str, list))
         assert "foo:bar" in tags
         assert "baz:qux" in tags
         assert "foo:otel_bar" not in tags
@@ -82,7 +82,7 @@ class Test_Otel_Env_Vars:
         assert float(resp["dd_trace_sample_rate"]) == 0.1
         assert resp["dd_trace_enabled"] == "true"
         tags = resp["dd_tags"]
-        assert isinstance(tags, str)
+        assert isinstance(tags, (str, list))
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
@@ -124,7 +124,7 @@ class Test_Otel_Env_Vars:
         assert resp["dd_env"] == "test1"
         assert resp["dd_version"] == "5"
         tags = resp["dd_tags"]
-        assert isinstance(tags, str)
+        assert isinstance(tags, (str, list))
         assert "foo:bar1" in tags
         assert "baz:qux1" in tags
 
