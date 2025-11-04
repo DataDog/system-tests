@@ -276,6 +276,9 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
             if not snapshots:
                 raise ValueError(f"No snapshots found for probe {probe_id}")
 
+            if len(snapshots) > 1:
+                raise ValueError(f"Expected 1 snapshot, got {len(snapshots)} for probe {probe_id}")
+
             snapshot = snapshots[0]
             debugger_snapshot = snapshot.get("debugger", {}).get("snapshot") or snapshot.get("debugger.snapshot")
 
