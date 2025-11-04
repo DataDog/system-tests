@@ -90,7 +90,10 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
 
         # Verify that the hits match expectations
         for (method, endpoint), expected_count in expected_hits.items():
-            assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
+            try:
+                assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
+            except Exception as e:
+                raise e
             actual_count = actual_hits[(method, endpoint)]
             assert (
                 actual_count == expected_count
