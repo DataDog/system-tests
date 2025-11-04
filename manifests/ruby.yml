@@ -25,7 +25,7 @@ manifest:
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Processor_Override: "v2.21.0"
   tests/appsec/api_security/test_custom_data_classification.py::Test_API_Security_Custom_Data_Classification_Scanner: "v2.21.0"
   tests/appsec/api_security/test_endpoint_discovery.py:
-    - variant: [rails72, rails80, graphql23, rails61, rails52, uds-rails]
+    - variant: [graphql23, rails52, rails61, rails72, rails80, uds-rails]
       library_version: "<2.22.0.dev"
       declaration: missing_feature
     - variant: rack
@@ -201,7 +201,7 @@ manifest:
   tests/appsec/rasp/test_lfi.py: "missing_feature"
   tests/appsec/rasp/test_shi.py: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.12.3"
       declaration: missing_feature
     - variant: rack
@@ -217,7 +217,7 @@ manifest:
     - variant: uds-sinatra
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -234,7 +234,7 @@ manifest:
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyXml: "irrelevant (XML not natively supported)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Capability:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.15.0"
       declaration: missing_feature
     - variant: rack
@@ -250,7 +250,7 @@ manifest:
     - variant: uds-sinatra
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Mandatory_SpanTags:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -266,7 +266,7 @@ manifest:
     - variant: uds-sinatra
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Optional_SpanTags:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -283,7 +283,7 @@ manifest:
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Rules_Version: "missing_feature (relies on Telemetry V2)"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_StackTrace:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -299,7 +299,7 @@ manifest:
     - variant: uds-sinatra
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -316,7 +316,7 @@ manifest:
       declaration: irrelevant
   tests/appsec/rasp/test_sqli.py::Test_Sqli_Telemetry_V2: "missing_feature"
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.14.0"
       declaration: missing_feature
     - variant: rack
@@ -350,7 +350,7 @@ manifest:
   tests/appsec/test_asm_standalone.py::Test_IastStandalone_UpstreamPropagation_V2: "missing_feature"
   tests/appsec/test_asm_standalone.py::Test_SCAStandalone_Telemetry_V2: "v2.13.0"
   tests/appsec/test_asm_standalone.py::Test_UserEventsStandalone_Automated:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.20.0-dev"
       declaration: missing_feature
     - variant: rack
@@ -374,7 +374,7 @@ manifest:
   tests/appsec/test_automated_login_events.py::Test_V2_Login_Events_RC: "irrelevant"
   tests/appsec/test_automated_login_events.py::Test_V3_Auto_User_Instrum_Mode_Capability: "v2.23.1-dev"
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.13.0"
       declaration: missing_feature
     - variant: rack
@@ -390,7 +390,7 @@ manifest:
     - variant: uds-sinatra
       declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Anon:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.13.0"
       declaration: missing_feature
     - variant: rack
@@ -406,7 +406,7 @@ manifest:
     - variant: uds-sinatra
       declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_login_events.py::Test_V3_Login_Events_Blocking:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.13.0"
       declaration: missing_feature
     - variant: rack
@@ -436,15 +436,15 @@ manifest:
     - variant: uds-sinatra
       declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_Session_Blocking:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.16.0"
       declaration: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Blocking:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.13.0"
       declaration: missing_feature
   tests/appsec/test_automated_user_and_session_tracking.py::Test_Automated_User_Tracking:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.13.0"
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_BlockingGraphqlResolvers: "v2.4.0"
@@ -510,7 +510,7 @@ manifest:
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Header_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Network_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.16.0"
       declaration: missing_feature
     - variant: rack
@@ -527,7 +527,7 @@ manifest:
       declaration: missing_feature (no instrumentation of authentication frameworks that work with sinatra or rack)
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Capability: "v2.23.1-dev"
   tests/appsec/test_fingerprinting.py::Test_Fingerprinting_Session_Preprocessor:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32, rack]
+    - excluded_variant: [rack, sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.16.0"
       declaration: missing_feature
     - variant: rack
@@ -585,7 +585,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GraphQL: "v2.3.0"
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32]
+    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<0.54.2"
       declaration: missing_feature
     - variant: sinatra14
@@ -617,7 +617,7 @@ manifest:
   tests/appsec/waf/test_blocking_security_response_id.py::Test_SecurityResponseId_JSON_Response: "missing_feature"
   tests/appsec/waf/test_custom_rules.py::Test_CustomRules: "v1.12.0"
   tests/appsec/waf/test_exclusions.py:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32]
+    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<1.11.0"
       declaration: missing_feature
     - variant: sinatra14
@@ -1011,7 +1011,7 @@ manifest:
   tests/test_profiling.py::Test_Profile: "missing_feature (temporary fix, scenario not working on dd-trace-rb CI)"
   tests/test_protobuf.py: "missing_feature"
   tests/test_resource_renaming.py::Test_Resource_Renaming_HTTP_Endpoint_Tag:
-    - excluded_variant: [sinatra14, uds-sinatra, sinatra41, sinatra22, sinatra32]
+    - excluded_variant: [sinatra14, sinatra22, sinatra32, sinatra41, uds-sinatra]
       library_version: "<2.23.0.dev"
       declaration: missing_feature
     - variant: sinatra14

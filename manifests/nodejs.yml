@@ -73,6 +73,7 @@ refs:
   - &ref_5_74_0 '>=5.74.0'
   - &ref_5_75_0 '>=5.75.0'
   - &ref_5_76_0 '>=5.76.0'
+  - &ref_5_77_0 '>=5.77.0'
 manifest:
   tests/apm_tracing_e2e/test_otel.py::Test_Otel_Span: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
   tests/apm_tracing_e2e/test_single_span.py::Test_SingleSpan: "missing_feature (missing /e2e_otel_span endpoint on weblog)"
@@ -145,7 +146,7 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Request_Path_Parameters:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_4_21_0
       declaration: missing_feature
     - variant: express5
@@ -164,7 +165,7 @@ manifest:
       library_version: "<5.57.0"
       declaration: missing_feature
   tests/appsec/api_security/test_schemas.py::Test_Schema_Response_Body:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_3_0
       declaration: missing_feature
     - variant: express5
@@ -658,7 +659,7 @@ manifest:
   tests/appsec/iast/source/test_multipart.py::TestMultipart: "missing_feature"
   tests/appsec/iast/source/test_parameter_name.py::TestParameterName: "missing_feature"
   tests/appsec/iast/source/test_parameter_value.py:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -671,7 +672,7 @@ manifest:
       declaration: missing_feature
   tests/appsec/iast/source/test_path.py::TestPath: "missing_feature"
   tests/appsec/iast/source/test_path_parameter.py:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_4_4_0
       declaration: missing_feature
     - variant: express5
@@ -805,7 +806,7 @@ manifest:
     - library_version: *ref_5_30_0
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyJson:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -817,7 +818,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_BodyUrlEncoded:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -852,7 +853,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_RC_CustomAction:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -895,7 +896,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_lfi.py::Test_Lfi_UrlQuery:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -910,7 +911,7 @@ manifest:
     - library_version: *ref_5_25_0
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyJson:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -922,7 +923,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_BodyUrlEncoded:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -988,7 +989,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_shi.py::Test_Shi_UrlQuery:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express5
@@ -1003,7 +1004,7 @@ manifest:
     - library_version: *ref_5_25_0
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyJson:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1015,7 +1016,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_BodyUrlEncoded:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1074,7 +1075,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_sqli.py::Test_Sqli_UrlQuery:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_23_0
       declaration: missing_feature
     - variant: express5
@@ -1133,7 +1134,7 @@ manifest:
     - library_version: *ref_5_25_0
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_StackTrace:
-    - excluded_variant: [fastify, express5]
+    - excluded_variant: [express5, fastify]
       library_version: *ref_5_20_0
       declaration: missing_feature
     - variant: express5
@@ -1143,7 +1144,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_Telemetry:
-    - excluded_variant: [fastify, express5]
+    - excluded_variant: [express5, fastify]
       library_version: *ref_5_22_0
       declaration: missing_feature
     - variant: express5
@@ -1160,7 +1161,7 @@ manifest:
       library_version: "<5.66.0"
       declaration: missing_feature
   tests/appsec/rasp/test_ssrf.py::Test_Ssrf_UrlQuery:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_20_0
       declaration: missing_feature
     - variant: express5
@@ -1306,7 +1307,7 @@ manifest:
     - library_version: *ref_3_19_0
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_path_params:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -1318,7 +1319,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Blocking_request_query:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -1345,7 +1346,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature
   tests/appsec/test_blocking_addresses.py::Test_Suspicious_Request_Blocking:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_5_24_0
       declaration: missing_feature
     - variant: express5
@@ -1564,7 +1565,7 @@ manifest:
   tests/appsec/test_reports.py::Test_RequestHeaders: "v2.0.0"
   tests/appsec/test_reports.py::Test_StatusCode: "v2.0.0"
   tests/appsec/test_request_blocking.py:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: *ref_3_19_0
       declaration: missing_feature
     - variant: express5
@@ -1663,7 +1664,7 @@ manifest:
   tests/appsec/waf/test_addresses.py::Test_GrpcServerMethod: "missing_feature"
   tests/appsec/waf/test_addresses.py::Test_Headers: "v2.0.0"
   tests/appsec/waf/test_addresses.py::Test_PathParams:
-    - excluded_variant: [fastify, express5, nextjs]
+    - excluded_variant: [express5, fastify, nextjs]
       library_version: "<2.0.0"
       declaration: missing_feature
     - variant: express5
@@ -1894,7 +1895,7 @@ manifest:
     - variant: nextjs
       declaration: irrelevant
   tests/integrations/crossed_integrations/test_kafka.py:
-    - excluded_variant: [express5, express4]
+    - excluded_variant: [express4, express5]
       declaration: irrelevant
     - variant: express4
       library_version: "<0.1"
@@ -1903,7 +1904,7 @@ manifest:
       library_version: "<0.1"
       declaration: missing_feature
   tests/integrations/crossed_integrations/test_kinesis.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: *ref_5_3_0
@@ -1915,7 +1916,7 @@ manifest:
       library_version: *ref_5_3_0
       declaration: missing_feature
   tests/integrations/crossed_integrations/test_rabbitmq.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<0.1"
@@ -1927,7 +1928,7 @@ manifest:
       library_version: "<0.1"
       declaration: missing_feature
   tests/integrations/crossed_integrations/test_sns_to_sqs.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: *ref_5_20_0
@@ -1939,7 +1940,7 @@ manifest:
       library_version: *ref_5_20_0
       declaration: missing_feature
   tests/integrations/crossed_integrations/test_sqs.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<0.1"
@@ -1951,7 +1952,7 @@ manifest:
       library_version: "<0.1"
       declaration: missing_feature
   tests/integrations/test_db_integrations_sql.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: missing_feature
     - variant: express4
       library_version: "<1.0.0"
@@ -1964,7 +1965,7 @@ manifest:
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm: "missing_feature"
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_mysql2:
-    - variant: [nextjs, express4-typescript]
+    - variant: [express4-typescript, nextjs]
       declaration: missing_feature (Missing on weblog)
     - variant: express4
       library_version: *ref_5_13_0
@@ -1979,7 +1980,7 @@ manifest:
       library_version: *ref_5_13_0
       declaration: missing_feature
   tests/integrations/test_dbm.py::Test_Dbm_Comment_NodeJS_pg:
-    - variant: [nextjs, express4-typescript]
+    - variant: [express4-typescript, nextjs]
       declaration: missing_feature (Missing on weblog)
     - variant: express4
       library_version: *ref_5_13_0
@@ -1994,7 +1995,7 @@ manifest:
       library_version: *ref_5_13_0
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Extraction_Base64:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2006,7 +2007,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmContext_Injection_Base64:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2025,7 +2026,7 @@ manifest:
     - variant: nextjs
       declaration: missing_feature (missing endpoint)
   tests/integrations/test_dsm.py::Test_DsmKinesis:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2037,7 +2038,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2049,7 +2050,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_FanoutExchange:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       declaration: missing_feature
@@ -2058,7 +2059,7 @@ manifest:
     - variant: fastify
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmRabbitmq_TopicExchange:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       declaration: missing_feature
@@ -2067,7 +2068,7 @@ manifest:
     - variant: fastify
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmSNS:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2079,7 +2080,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_DsmSQS:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2091,7 +2092,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Inter_Process:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2103,7 +2104,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_dsm.py::Test_Dsm_Manual_Checkpoint_Intra_Process:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.62.0"
@@ -2115,7 +2116,7 @@ manifest:
       library_version: "<5.62.0"
       declaration: missing_feature
   tests/integrations/test_inferred_proxy.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.37.0"
@@ -2128,7 +2129,7 @@ manifest:
       declaration: missing_feature
   tests/integrations/test_otel_drop_in.py::Test_Otel_Drop_In: "missing_feature"
   tests/otel/test_context_propagation.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: incomplete_test_app (endpoint not implemented)
     - variant: express4
       library_version: *ref_5_26_0
@@ -2283,7 +2284,7 @@ manifest:
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_Default: *ref_5_37_0
   tests/test_config_consistency.py::Test_Config_HttpServerErrorStatuses_FeatureFlagCustom: "missing_feature"
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_False:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express4-typescript
@@ -2291,7 +2292,7 @@ manifest:
     - variant: nextjs
       declaration: incomplete_test_app
   tests/test_config_consistency.py::Test_Config_IntegrationEnabled_True:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: *ref_5_25_0
       declaration: missing_feature
     - variant: express4-typescript
@@ -2299,7 +2300,7 @@ manifest:
     - variant: nextjs
       declaration: incomplete_test_app
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Disabled:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: *ref_3_15_0
       declaration: missing_feature
     - variant: express4-typescript
@@ -2307,7 +2308,7 @@ manifest:
     - variant: nextjs
       declaration: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_128Bit_TraceId_Enabled:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: "<5.38.0"
       declaration: missing_feature
     - variant: express4-typescript
@@ -2315,7 +2316,7 @@ manifest:
     - variant: nextjs
       declaration: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Structured:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: "<5.57.0"
       declaration: missing_feature
     - variant: express4-typescript
@@ -2323,7 +2324,7 @@ manifest:
     - variant: nextjs
       declaration: incomplete_test_app (endpoint not implemented)
   tests/test_config_consistency.py::Test_Config_LogInjection_Default_Unstructured:
-    - excluded_variant: [nextjs, express4-typescript]
+    - excluded_variant: [express4-typescript, nextjs]
       library_version: *ref_3_0_0
       declaration: missing_feature
     - variant: express4-typescript
@@ -2369,7 +2370,7 @@ manifest:
     - excluded_variant: [express4]
       declaration: incomplete_test_app
     - variant: express4
-      library_version: "<5.75.0"
+      library_version: "<5.77.0"
       declaration: missing_feature
   tests/test_graphql.py::Test_GraphQLOperationErrorReporting:
     - excluded_variant: [express4]
@@ -2457,7 +2458,7 @@ manifest:
     - library_version: *ref_3_13_1
       declaration: missing_feature
   tests/test_span_events.py:
-    - excluded_variant: [fastify, express5, express4]
+    - excluded_variant: [express4, express5, fastify]
       declaration: irrelevant
   tests/test_span_events.py::Test_SpanEvents_WithAgentSupport:
     - variant: express4
@@ -2518,7 +2519,7 @@ manifest:
       library_version: *ref_3_7_0
       declaration: missing_feature
   tests/test_telemetry.py::Test_TelemetryEnhancedConfigReporting:
-    - excluded_variant: [express5, express4]
+    - excluded_variant: [express4, express5]
       declaration: irrelevant
     - variant: express4
       library_version: "<5.56.0"
