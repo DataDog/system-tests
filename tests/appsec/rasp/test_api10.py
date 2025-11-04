@@ -25,7 +25,7 @@ API10_TAGS = [
 class API10:
     TAGS_EXPECTED: list[tuple[str, str]] = []
 
-    def validate(self, span):
+    def validate(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -41,7 +41,7 @@ class API10:
 
         return True
 
-    def validate_metric(self, span):
+    def validate_metric(self, span: dict):
         for tag, expected in self.TAGS_EXPECTED:
             # check also in meta to be safe
             assert tag in span["metrics"] or tag in span["meta"], f"Missing {tag} from span's meta/metrics"
@@ -295,7 +295,7 @@ class Test_API10_without_downstream_body_analysis_using_sample_rate(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span):
+    def validate_absence(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 
@@ -326,7 +326,7 @@ class Test_API10_without_downstream_body_analysis_using_max(API10):
             "/external_request", data=json.dumps(self.BODY), headers={"Content-Type": "application/json"}
         )
 
-    def validate_absence(self, span):
+    def validate_absence(self, span: dict):
         if span.get("parent_id") not in (0, None):
             return None
 

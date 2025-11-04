@@ -18,7 +18,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         probes_name: str,
         request_path: str,
         probe_type: str,
-        lines=None,
+        lines: None = None,
     ):
         self.initialize_weblog_remote_config()
 
