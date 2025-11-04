@@ -214,9 +214,13 @@ class Test_Telemetry:
         assert len(telemetry_data) > 0, "No telemetry messages"
         if telemetry_data[0]["request"]["content"].get("request_type") == "message-batch":
             first_message = telemetry_data[0]["request"]["content"]["payload"][0]
-            assert (
-                first_message.get("request_type") == "app-started"
-            ), "app-started was not the first message in the first batch"
+            try:
+                assert (
+                    first_message.get("request_type") == "app-started"
+                ), "app-started was not the first message in the first batch"
+            except Exception as e:
+                print(f"Received first messages are : {[b["request"]["content"]["payload"][0].get("request_type") for b in telemetry_data]}")
+                raise e
         else:
             # In theory, app-started must have seq_id 1, but tracers may skip seq_ids if sending messages fail.
             # So we will check that app-started is the first message by seq_id, rather than strictly seq_id 1.
