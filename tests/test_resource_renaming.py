@@ -1,3 +1,4 @@
+from time import sleep
 from utils import scenarios, weblog, interfaces, features
 from utils._weblog import HttpResponse
 
@@ -58,6 +59,8 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
     def setup_stats_aggregation_with_method_and_endpoint(self):
         """Generate multiple requests to create stats"""
         # Generate multiple requests to the same endpoint for aggregation
+        # Wait for the CSS to be enabled
+        sleep(5)
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
