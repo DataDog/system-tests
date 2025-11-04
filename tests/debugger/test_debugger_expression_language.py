@@ -36,22 +36,19 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         error_messages = []
 
         for probe_id, snapshots in self.probe_snapshots.items():
-            for snapshot in snapshots:
+            for base in snapshots:
+                snapshot = base.get("debugger", {}).get("snapshot") or base["debugger.snapshot"]
+                assert snapshot
+                
                 if probe_id in expected_message_map:
                     not_found_ids.remove(probe_id)
 
-                    if not re.search(expected_message_map[probe_id], snapshot["message"]):
+                    if not re.search(expected_message_map[probe_id], base["message"]):
                         error_messages.append(
-                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {snapshot['message']}."
+                            f"Message for probe id {probe_id} is wrong. \n Expected: {expected_message_map[probe_id]}. \n Found: {base['message']}."
                         )
 
-                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
-                        for error in evaluation_errors:
-                            error_messages.append(
-                                f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
-                            )
-
-                        evaluation_errors = snapshot["debugger"]["snapshot"].get("evaluationErrors", [])
+                        evaluation_errors = snapshot.get("evaluationErrors", [])
                         for error in evaluation_errors:
                             error_messages.append(
                                 f" Evaluation error in probe id {probe_id}: {error['expr']} - {error['message']}\n"
@@ -123,9 +120,15 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
     ############ access exception ############
     def setup_expression_language_access_exception(self):
         language, method = self.get_tracer()["language"], "ExpressionException"
+        if self.get_tracer()["language"] == "ruby":
+            # Ruby does not include exception message into serialized payloads
+            # at the moment (this requires writing serialization code in C).
+            expected_message = '.*RuntimeError'
+        else:
+            expected_message = ".*Hello from exception"
         message_map, probes = self._create_expression_probes(
             method_name=method,
-            expressions=[["Accessing exception", ".*Hello from exception", Dsl("ref", "@exception")]],
+            expressions=[["Accessing exception", expected_message, Dsl("ref", "@exception")]],
             lines=self.method_and_language_to_line_number(method, language),
         )
 
@@ -414,6 +417,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         self.message_map = message_map
         self._setup(probes, "/debugger/expression/collections")
 
+    @missing_feature(context.library <= "ruby@2.23.0", reason="Hash length not implemented")
     def test_expression_language_collection_operations(self):
         self._assert(expected_response=200)
 
@@ -421,7 +425,7 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         language, method = self.get_tracer()["language"], "CollectionOperations"
         if self.get_tracer()["language"] == "dotnet":
             get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "Value"])
-        elif self.get_tracer()["language"] == "nodejs":
+        elif self.get_tracer()["language"] == "nodejs" or self.get_tracer()["language"] == "ruby":
             get_hash_value = Dsl("ref", "@value")
         else:
             get_hash_value = Dsl("getmember", [Dsl("ref", "@it"), "value"])
@@ -559,6 +563,17 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
                 instance_type = "debugger.pii.Pii"
             else:
                 instance_type = value_type
+        elif self.get_tracer()["language"] == "ruby":
+            if value_type == "int":
+                instance_type = "Integer"
+            elif value_type == "float":
+                instance_type = "Float"
+            elif value_type == "string":
+                instance_type = "String"
+            elif value_type == "pii":
+                instance_type = "Pii"
+            else:
+                instance_type = value_type
         elif self.get_tracer()["language"] == "nodejs":
             if value_type in ("int", "float"):
                 instance_type = "number"
@@ -577,9 +592,23 @@ class Test_Debugger_Expression_Language(debugger.BaseDebuggerTest):
         probes = []
         expected_message_map = {}
         prob_types = []
-        if self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
+        # Method probes do not capture locals in Ruby, therefore in Ruby
+        # we set line probes.
+        # The exception is the test case testing @exception capture
+        # which requires a method probe (and this case does not capture
+        # local variables).
+        if self.get_tracer()["language"] == "ruby":
+            if method_name == 'Expression' and not lines:
+                prob_types.append('method')
+                method_name = 'expression'
+            elif method_name == 'ExpressionException':
+                prob_types.append('method')
+                method_name = 'expression_exception'
+            else:
+                prob_types.append("line")
+        elif self.get_tracer()["language"] != "nodejs":  # Method probes are not supported in Node.js
             prob_types.append("method")
-        if len(lines) > 0:
+        if len(lines) > 0 and 'line' not in prob_types:
             prob_types.append("line")
 
         for probe_type in prob_types:
