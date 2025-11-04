@@ -18,7 +18,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
         probes_name: str,
         request_path: str,
         probe_type: str,
-        lines=None,
+        lines: None = None,
     ):
         self.initialize_weblog_remote_config()
 
@@ -90,6 +90,7 @@ class BaseDebuggerProbeSnaphotTest(debugger.BaseDebuggerTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
+@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -144,6 +145,7 @@ class Test_Debugger_Method_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
 @missing_feature(
     context.library == "golang" and context.agent_version < "7.71.0-rc.1", reason="Not yet implemented", force_skip=True
 )
+@bug(context.library == "golang" and context.agent_version >= "7.73.0-rc.0", reason="DEBUG-4676", force_skip=True)
 class Test_Debugger_Method_Probe_Snaphots_With_SCM(BaseDebuggerProbeSnaphotTest):
     """Tests for method-level probe snapshots"""
 
@@ -225,7 +227,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @missing_feature(context.library == "ruby", reason="DEBUG-4343")
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(
-        context.library >= "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
+        context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
     )
     def test_log_line_snapshot_debug_track(self):
         """Test that the library sends snapshots to the debug track endpoint (fallback or not)"""
@@ -240,7 +242,7 @@ class Test_Debugger_Line_Probe_Snaphots(BaseDebuggerProbeSnaphotTest):
     @missing_feature(context.library == "nodejs", reason="DEBUG-4345")
     @missing_feature(context.agent_version < "7.72.0", reason="Endpoint was introduced in 7.72.0", force_skip=True)
     @missing_feature(
-        context.library >= "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
+        context.library < "python@3.15.0", reason="Python 3.15.0 introduced the track change", force_skip=True
     )
     def test_log_line_snapshot_new_destination(self):
         """Test that the library sends snapshots to the debugger/v2/input endpoint"""

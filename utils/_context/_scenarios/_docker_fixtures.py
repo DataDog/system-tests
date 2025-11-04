@@ -6,14 +6,29 @@ import pytest
 from utils.docker_fixtures._test_agent import TestAgentFactory, TestAgentAPI
 from utils._context.docker import get_docker_client
 from utils._logger import logger
-from .core import Scenario
+from .core import Scenario, ScenarioGroup, scenario_groups as groups
 
 
 _NETWORK_PREFIX = "apm_shared_tests_network"
 
 
 class DockerFixturesScenario(Scenario):
-    _test_agent_factory: TestAgentFactory  # must be created in DockerFixtureScenario.configure
+    def __init__(
+        self,
+        name: str,
+        github_workflow: str,
+        doc: str,
+        agent_image: str,
+        scenario_groups: tuple[ScenarioGroup, ...] = (),
+    ) -> None:
+        super().__init__(
+            name=name,
+            doc=doc,
+            github_workflow=github_workflow,
+            scenario_groups=[*scenario_groups, groups.all, groups.tracer_release, groups.docker_fixtures],
+        )
+
+        self._test_agent_factory = TestAgentFactory(agent_image)
 
     def _clean(self):
         if self.is_main_worker:
@@ -57,8 +72,8 @@ class DockerFixturesScenario(Scenario):
         worker_id: str,
         request: pytest.FixtureRequest,
         test_id: str,
-        container_otlp_http_port: int,
-        container_otlp_grpc_port: int,
+        container_otlp_http_port: int = 4318,
+        container_otlp_grpc_port: int = 4317,
     ) -> Generator[TestAgentAPI, None, None]:
         with (
             self._get_docker_network(test_id) as docker_network,

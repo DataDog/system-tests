@@ -1,6 +1,6 @@
 ## What is system-tests?
 
-🛟 [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) 🛟
+🛟 Slack: [#apm-shared-testing](https://dd.enterprise.slack.com/archives/C025TJ4RZ8X) 🛟
 
 A workbench designed to run advanced tests (integration, smoke, functional, fuzzing and performance) against our suite of dd-trace libraries.
 

@@ -15,6 +15,7 @@ class TestClientFactory:
     """Abstracts a docker image builing for docker fixtures scenarios"""
 
     _image: Image | None
+    host_log_folder: str
 
     def __init__(
         self,
@@ -36,9 +37,12 @@ class TestClientFactory:
         self.container_env: dict[str, str] = dict(container_env)
         self._image = None
 
-    def build(self, host_log_folder: str, github_token_file: str) -> None:
+    def configure(self, host_log_folder: str):
+        self.host_log_folder = host_log_folder
+
+    def build(self, github_token_file: str) -> None:
         logger.stdout("Build framework test container...")
-        log_path = f"{host_log_folder}/outputs/docker_build_log.log"
+        log_path = f"{self.host_log_folder}/outputs/docker_build_log.log"
         Path.mkdir(Path(log_path).parent, exist_ok=True, parents=True)
 
         with open(log_path, "w+", encoding="utf-8") as log_file:

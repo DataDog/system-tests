@@ -168,6 +168,7 @@ ROUTES = [
     ("/finger_print", ["GET"]),
     ("/headers", ["GET"]),
     ("/healthcheck", ["GET"]),
+    ("/external_request", ["GET", "POST", "PUT", "TRACE"]),
     ("/params/<path>/", ["GET", "POST", "OPTIONS"]),
     ("/session/new", ["GET"]),
     ("/tag_value/<tag_value>/<status_code>", ["GET", "POST", "OPTIONS"]),
@@ -177,6 +178,11 @@ ROUTES = [
     ("/waf/", ["GET", "POST", "OPTIONS"]),
     ("/waf/<path>", ["GET", "POST", "OPTIONS"]),
     ("/.git", ["GET"]),
+    ("/rasp/lfi", ["GET", "POST"]),
+    ("/rasp/ssrf", ["GET", "POST"]),
+    ("/rasp/sqli", ["GET", "POST"]),
+    ("/rasp/cmdi", ["GET", "POST"]),
+    ("/rasp/shi", ["GET", "POST"]),
 ]
 
 for endpoint, methods in ROUTES:
