@@ -61,17 +61,17 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         # Generate multiple requests to the same endpoint for aggregation
         # Wait for the CSS to be enabled
 
-        weblog.get("/resource_renaming/api/users/123")
-        stats_req = []
-        for req in interfaces.library.get_data("/v0.6/stats"):
-            stats_req.append(req)
-        while stats_req == []:
-            sleep(1)
-            weblog.get("/resource_renaming/api/users/123")
-            for req in interfaces.library.get_data("/v0.6/stats"):
-                stats_req.append(req)
-        print(stats_req)
-        sleep(10)
+        # weblog.get("/resource_renaming/api/users/123")
+        # stats_req = []
+        # for req in interfaces.library.get_data("/v0.6/stats"):
+        #     stats_req.append(req)
+        # while stats_req == []:
+        #     sleep(1)
+        #     weblog.get("/resource_renaming/api/users/123")
+        #     for req in interfaces.library.get_data("/v0.6/stats"):
+        #         stats_req.append(req)
+        # print(stats_req)
+        # sleep(10)
         self.requests = []
         for _ in range(5):
             self.requests.append(weblog.get("/resource_renaming/api/users/123"))
@@ -96,7 +96,11 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
         actual_hits = {}
         for point in stats_points:
             method = point.get("HTTPMethod", "")
+            if method == "":
+                method = point.get("HttpMethod", "")
             endpoint = point.get("HTTPEndpoint", "")
+            if endpoint == "":
+                endpoint = point.get("HttpEndpoint", "")
             hits = point.get("Hits", 0)
 
             if (method, endpoint) in expected_hits:
@@ -108,7 +112,6 @@ class Test_Resource_Renaming_Stats_Aggregation_Keys:
                 assert (method, endpoint) in actual_hits, f"Missing stats for {method} {endpoint}"
             except Exception as e:
                 print(f"Actual hits are: {stats_points}")
-                print(f"Info fetches: {[req for req in interfaces.library.get_data("/info")]}")
                 raise e
             actual_count = actual_hits[(method, endpoint)]
             assert (
